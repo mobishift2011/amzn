@@ -87,15 +87,23 @@ class AmazonSpider(BaseSpider):
         if summary:
             model = summary[0].select('li[contains(b, "Item model number")]/text()').extract()
             model = model[0] if model else ""
+            rank = summary[0].select('li[@id="SalesRank"]//text()').extract()
+            if rank:
+                rank = ''.join(rank).replace('\n', '').split(':', 1)[1]
+                rank = re.sub('\(.*(}|\))', '', rank).strip()
+            else:
+                rank = ""
         else:
             model = ""
+            rank = ""
         summary = summary.extract()[0] if summary else ""
         print "title:", title
         print "vartitle:", vartitle
         print "price:", price
         print "model:", model
         print "asin:", asin
-        self.products.insert({"url":url, "title":title, "vartitle":vartitle, "price":price, "model":model, "asin":asin, "summary":summary, 'catstr':catstr})
+        print 'rank', rank
+        self.products.insert({"url":url, "title":title, "vartitle":vartitle, "price":price, "model":model, "asin":asin, "summary":summary, 'catstr':catstr, 'rank':rank})
         return None
         
     def normalize_detail_url(self, url):

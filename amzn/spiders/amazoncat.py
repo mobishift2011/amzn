@@ -19,7 +19,8 @@ class AmazonCatSpider(BaseSpider):
     def parse(self, response):
         cat_prefix = response.request.meta.get('cd',[self.root_cat])
         hxs = HtmlXPathSelector(response)
-        items = hxs.select('//div[@id="leftNavContainer"]/*/ul[1]//span[@class="refinementLink"]')  # text node for the subcategory
+#        items = hxs.select('//div[@id="leftNavContainer"]/*/ul[1]//span[@class="refinementLink"]')  # text node for the subcategory
+        items = hxs.select('//div[@id="leftNavContainer"]//ul[@data-typeid="n"]//span[@class="refinementLink"]')
         if not items:
             self.set_cats_leaf(cat_prefix)
         reqs = []

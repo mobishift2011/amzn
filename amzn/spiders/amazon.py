@@ -102,7 +102,7 @@ class AmazonSpider(BaseSpider):
         print "price:", price
         print "model:", model
         print "asin:", asin
-        print 'rank', rank
+        print 'rank:', rank
         self.products.insert({"url":url, "title":title, "vartitle":vartitle, "price":price, "model":model, "asin":asin, "summary":summary, 'catstr':catstr, 'rank':rank})
         return None
         

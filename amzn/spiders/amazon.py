@@ -76,8 +76,16 @@ class AmazonSpider(BaseSpider):
                 fd.write('\nOne response url: ' + response.url + '\n')
                 fd.write(response.body + '\n\n')
         try:
+            manufactory = hxs.select('//h1[@class="parseasinTitle "]/following-sibling::*/a[@href]/text()').extract()[0]
+            review = hxs.select('//div[@class="jumpBar"]//span[@class="crAvgStars"]//span[contains(@class, "swSprite s_star_")]/span/text()')[0].extract()
+            review_num = hxs.select('//div[@class="jumpBar"]//span[@class="crAvgStars"]/a[@href]/text()')[0].extract()
+            like = hxs.select('//span[@class="amazonLikeCount"]/text()')[0].extract()
             vartitle = hxs.select('//span[@id="variationProductTitle"]/text()').extract()[0]
         except:
+            manufactory = ""
+            review = ""
+            review_num = ""
+            like = ""
             vartitle = ""
         try:
             price = hxs.select('//span[@id="actualPriceValue"]/b/text()').extract()[0]
@@ -99,11 +107,15 @@ class AmazonSpider(BaseSpider):
         summary = summary.extract()[0] if summary else ""
         print "title:", title
         print "vartitle:", vartitle
+        print "manufactory:", manufactory
+        print "review:", review
+        print "review_num:", review_num
+        print "like", like
         print "price:", price
         print "model:", model
         print "asin:", asin
         print 'rank:', rank
-        self.products.insert({"url":url, "title":title, "vartitle":vartitle, "price":price, "model":model, "asin":asin, "summary":summary, 'catstr':catstr, 'rank':rank})
+        self.products.insert({"url":url, "title":title, "manufactory":manufactory, "vartitle":vartitle, "review":review, "review_num":review_num, "like":like, "price":price, "model":model, "asin":asin, "summary":summary, 'catstr':catstr, 'rank':rank})
         return None
         
     def normalize_detail_url(self, url):

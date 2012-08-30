@@ -29,7 +29,7 @@ class AmazonSpider(BaseSpider):
     def parse_listing(self, response):
         reqs = []; cnt = response.request.meta.get('count',0)
         cat = response.request.meta.get('catstr','')  #Electronics Warranties')
-        if cat.split(' > ')[-1] in donot_crawl:
+        if cat.split(' > ')[-1] in self.donot_crawl:
             return reqs
         
         hxs = HtmlXPathSelector(response)

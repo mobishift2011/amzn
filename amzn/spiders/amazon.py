@@ -11,12 +11,13 @@ class AmazonSpider(BaseSpider):
     name = "amazon"
     allowed_domains = ["www.amazon.com"]
     #start_urls = ['http://www.amazon.com/s/ref=sr_nr_n_5?rh=n%3A172282%2Cn%3A%21493964%2Cn%3A2242348011&bbn=493964&ie=UTF8&qid=1342426287&rnid=493964']
-    max_detail_pages = 1000
+    max_detail_pages = 2000
     
     mgdb_conn = pymongo.Connection('localhost')
     cats = mgdb_conn['amazon']['cats']
     products = mgdb_conn['amazon']['products']
     products.ensure_index('asin', unique=True)
+    donot_crawl = ['Trading Cards', 'Chargers &amp; Adapters', 'Yard Signs']
     
     def parse(self, response):
         page = response.request.meta.get('page', 'listing')
@@ -26,21 +27,25 @@ class AmazonSpider(BaseSpider):
             return self.parse_detail(response)
             
     def parse_listing(self, response):
-        hxs = HtmlXPathSelector(response)
-        items = hxs.select('//div[@id="btfResults"]//div[@class="data"]//a[@class="title"]')
-        items.extend(hxs.select('//div[@id="atfResults"]//div[@class="data"]//a[@class="title"]'))
-#        items = hxs.select('//div[@id="atfResults"]//div[@class="productTitle"]/a | //div[@id="btfResults"]//div[@class="productTitle"]/a') # When using scrapy shell, this one works fine.
         reqs = []; cnt = response.request.meta.get('count',0)
         cat = response.request.meta.get('catstr','')  #Electronics Warranties')
+        if cat.split(' > ')[-1] in donot_crawl:
+            return reqs
         
+        hxs = HtmlXPathSelector(response)
+        items = hxs.select('//div[@id="atfResults"]//div[@class="data"]//a[@class="title"]'))
+        items.extend( hxs.select('//div[@id="btfResults"]//div[@class="data"]//a[@class="title"]') )
+#        items = hxs.select('//div[@id="atfResults"]//div[@class="productTitle"]/a | //div[@id="btfResults"]//div[@class="productTitle"]/a')
+#        # When using scrapy shell, this one works fine.
+
         for item in items:
             cnt += 1
             if cnt > self.max_detail_pages:
                 break
             url =  item.select('@href').extract()[0]
             url = self.normalize_detail_url(url)
-            if self.check_seen(url):
-                continue
+#            if self.check_seen(url):
+#                continue
             print "URL ==>", url
             print "Proudct ==>", item.select('text()').extract()
             print "cnt=", cnt
@@ -77,16 +82,18 @@ class AmazonSpider(BaseSpider):
                 fd.write(response.body + '\n\n')
         try:
             manufactory = hxs.select('//h1[@class="parseasinTitle "]/following-sibling::*/a[@href]/text()').extract()[0]
-            review = hxs.select('//div[@class="jumpBar"]//span[@class="crAvgStars"]//span[contains(@class, "swSprite s_star_")]/span/text()')[0].extract()
-            review_num = hxs.select('//div[@class="jumpBar"]//span[@class="crAvgStars"]/a[@href]/text()')[0].extract()
-            like = hxs.select('//span[@class="amazonLikeCount"]/text()')[0].extract()
             vartitle = hxs.select('//span[@id="variationProductTitle"]/text()').extract()[0]
         except:
             manufactory = ""
+            vartitle = ""
+        try:
+            review = hxs.select('//div[@class="jumpBar"]//span[@class="crAvgStars"]//span[contains(@class, "swSprite s_star_")]/span/text()')[0].extract()
+            review_num = hxs.select('//div[@class="jumpBar"]//span[@class="crAvgStars"]/a[@href]/text()')[0].extract()
+            like = hxs.select('//span[@class="amazonLikeCount"]/text()')[0].extract()
+        except:
             review = ""
             review_num = ""
             like = ""
-            vartitle = ""
         try:
             price = hxs.select('//span[@id="actualPriceValue"]/b/text()').extract()[0]
         except:
@@ -115,7 +122,8 @@ class AmazonSpider(BaseSpider):
         print "model:", model
         print "asin:", asin
         print 'rank:', rank
-        self.products.insert({"url":url, "title":title, "manufactory":manufactory, "vartitle":vartitle, "review":review, "review_num":review_num, "like":like, "price":price, "model":model, "asin":asin, "summary":summary, 'catstr':catstr, 'rank':rank})
+        self.products.update({'asin': asin}, {"url":url, "title":title, "manufactory":manufactory, "vartitle":vartitle, "review":review, "review_num":review_num, "like":like, "price":price, "model":model, "summary":summary, 'catstr':catstr, 'rank':rank}, upsert=True, multi=False)
+#        self.products.insert({"url":url, "title":title, "manufactory":manufactory, "vartitle":vartitle, "review":review, "review_num":review_num, "like":like, "price":price, "model":model, "asin":asin, "summary":summary, 'catstr':catstr, 'rank':rank})
         return None
         
     def normalize_detail_url(self, url):

@@ -21,6 +21,8 @@ config = {
 }
 
 s = requests.session(prefetch=True, timeout=15, config=config, headers=headers)
+ip = s.get("http://httpbin.org/ip").text
+print "which ip am i using?", ip
 dps = set()
 
 t1 = time.time()

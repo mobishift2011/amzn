@@ -3,7 +3,8 @@
 from gevent import monkey
 monkey.patch_all()
 
-PORT = 8144
+ROOT_PORT = 8144
+CONTROLLER_PORT_RANGE = range(8145,8344)
 
 import logging
 from ansistrm import ColorizingStreamHandler

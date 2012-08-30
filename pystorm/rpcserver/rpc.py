@@ -13,9 +13,9 @@ import os
 logger = logging.getLogger("rpc")
 
 from gevent.server import StreamServer
-from api import Controller
+from api import Scheduler
 
-controller = Controller()
+scheduler = Scheduler()
 
 def handle(socket, address):
     logger.debug('New connection from {0}:{1}'.format(*address))
@@ -30,15 +30,15 @@ def handle(socket, address):
 
         # pass calls to controller
         # returns a string to response
-        response = controller.request(line)
+        response = scheduler.request(line)
 
         fileobj.write(response)
         fileobj.flush()
 
 def serve_forever():
     controller.start_workers()
-    server = StreamServer(('0.0.0.0', settings.PORT), handle)
-    logger.info('Starting echo server on port {0}'.format(settings.PORT))
+    server = StreamServer(('0.0.0.0', settings.ROOT_PORT), handle)
+    logger.info('Starting echo server on port {0}'.format(settings.ROOT_PORT))
     server.serve_forever()
 
 if __name__ == '__main__':

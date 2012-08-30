@@ -11,8 +11,9 @@ fabric is used to:
 this module should not consider the following:
     1. monitor the code runs on remote machine
 """
-from settings import PEERS, ENV_NAME
+from settings import PEERS, ENV_NAME, USE_INDEX
 from fabric.api import *
+
 
 @parallel
 @hosts(PEERS)
@@ -21,16 +22,20 @@ def setup_env():
     
     A ubuntu 12.04 or later distribution of linux is required
     """
-    run("apt-get -y install build-essential python-dev libevent-dev libxslt-dev uuid-dev python-setuptools dtach")
+    run("apt-get -y install build-essential python-dev libevent-dev libxslt-dev uuid-dev python-setuptools dtach libzmq-dev")
     run("easy_install pip")
     run("pip install virtualenvwrapper")
     run("mkdir -p /opt/pystorm")
+
+    with settings(warn_only=True):
+        run("kill -9 `pgrep -f {0}`".format(ENV_NAME))
+
     with cd("/opt/pystorm"):
         with prefix("source /usr/local/bin/virtualenvwrapper.sh"):
             run("mkvirtualenv "+ENV_NAME)
             with prefix("workon "+ENV_NAME):
-                run("pip install cython")
-                run("pip install zerorpc gevent lxml requests") 
+                run("pip install cython"+USE_INDEX)
+                run("pip install zerorpc requests gevent_zeromq"+USE_INDEX) 
 
 def run_code(host_string, code, filename="code.py"):
     """ Run a code block on a specific host

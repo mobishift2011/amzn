@@ -2,3 +2,4 @@
 # -*- coding:utf-8 -*-
 ENV_NAME = "pystormenv"
 PEERS = ['root@192.168.56.102', 'root@192.168.56.104', 'root@192.168.56.105']
+USE_INDEX = ' --index-url http://e.pypi.python.org/simple/'

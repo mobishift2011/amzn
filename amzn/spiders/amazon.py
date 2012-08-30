@@ -33,7 +33,7 @@ class AmazonSpider(BaseSpider):
             return reqs
         
         hxs = HtmlXPathSelector(response)
-        items = hxs.select('//div[@id="atfResults"]//div[@class="data"]//a[@class="title"]'))
+        items = hxs.select('//div[@id="atfResults"]//div[@class="data"]//a[@class="title"]')
         items.extend( hxs.select('//div[@id="btfResults"]//div[@class="data"]//a[@class="title"]') )
 #        items = hxs.select('//div[@id="atfResults"]//div[@class="productTitle"]/a | //div[@id="btfResults"]//div[@class="productTitle"]/a')
 #        # When using scrapy shell, this one works fine.

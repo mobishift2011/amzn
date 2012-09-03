@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-""" A pluggable API server runs any amount of worker, powered by gevent 
+""" A pluggable API server runs any amount of worker 
 
 Worker     : execute some Code Blocks based on configs
 Controller : schedules and monitors Workers
@@ -8,48 +8,54 @@ Code Block : should lives in seperate .py files under `workers` directory,
              each contains an `execute` method and  a `configs` dict
 """
 import settings
-import logging
+from settings import SHUFFLE_GROUPING, FIELD_GROUPING
+from settings import TYPE_SPOUT, TYPE_BOLT, TYPE_OUTLET, TYPE_MINT
 
 import os
+import re
 import zmq
 import uuid
-import gevent
-import zerorpc
+import time
+import random
+import logging
+import threading
 
 import multiprocessing
 from msgpack import packb as pack, unpackb as unpack
 
 logger = logging.getLogger("api")
 
-class Worker(multiprocess.Process):
+class Worker(multiprocessing.Process):
     """ Worker class to execute some code 
     
     * do some basic statistics
     * respond to controller's ping request
     * throttled subject to configs
     """
+    usable_ports = set(settings.CONTROLLER_PORT_RANGE)
     default_configs = {
         'num_coroutines' : 1,   # num of concurrently running greenlets
         'qps_limit'      : 0,   # 0 -> not limiting, not implemented yet
     }
-    def __init__(self, type=TYPE_BOLT, execute=lambda:None, configs={}):
+    def __init__(self, type=TYPE_BOLT, controller_address=None, backend_addresses=[], execute=lambda:None, configs={}, *args, **kwargs):
         super(Worker, self).__init__(*args, **kwargs)
 
-        self.uuid = uuid.uuid4()
-        self.execute = execute
-        self.configs = default_configs
+        self.uuid = uuid.uuid4().hex
+        self._execute = execute
+        self.configs = Worker.default_configs
 
         self.configs.update(configs)
         self.logger = logging.getLogger("api.Worker")
 
-        self.context = None  # zeromq context
+        self.__stopped = False
 
         # zmq related settings
         self.context         = None
         self.rpc             = None   # zerorpc server
+        self.rpc_address     = ""
         self.frontend        = None   # receives messages
         self.bind_address    = None   
-        self.backends        = []     # pass messages to
+        self.backends        = backend_addresses    
         self.addresses       = []
         self.grouping_fields = []
         self.grouping_policy = SHUFFLE_GROUPING
@@ -58,17 +64,17 @@ class Worker(multiprocess.Process):
         self.create_time     = time.time()
         self.loop_count      = 0
         self.controller      = None
-        self.controller_address = None
+        self.controller_address = controller_address
 
         self.type            = type
-        if self.type not in [TYPE_SPOUT, TYPE_BOLT, TYPE_OUTLET]:
+        if self.type not in [TYPE_SPOUT, TYPE_BOLT, TYPE_OUTLET, TYPE_MINT]:
             raise NotImplementedError()
 
         
     def execute(self, *args, **kwargs):
         if self._not_throttled():
             try:
-                self.execute(*args, **kwargs)
+                self._execute(*args, **kwargs)
             except Exception, e:
                 self.logger.exception(e.message)
             else:
@@ -77,9 +83,17 @@ class Worker(multiprocess.Process):
     def bind(self):
         """ bind address & notify controller """
         self.context = zmq.Context()
+        # bind a port mainly for rpc call
+        self.rpc             = self.context.socket(zmq.REP)
+        self.rpc_address     = "tcp://0.0.0.0"
+        port                 = self.rpc.bind_to_random_port(self.rpc_address)
+        self.rpc_address    += ":{0}".format(port)
+        self.logger.debug(type(self).__name__ + " binded rpc at " + self.rpc_address)
+
+        # bind itself to some port for listening and then tell the controller about this info
         if self.type in [TYPE_BOLT, TYPE_OUTLET]:
             self.frontend        = self.context.socket(zmq.PULL)
-            self.bind_address    = "tcp://{0}".format(random.choice(SERVERS))
+            self.bind_address    = "tcp://0.0.0.0"
             port                 = self.frontend.bind_to_random_port(self.bind_address)
             self.bind_address   += ":{0}".format(port)
             self.logger.debug(type(self).__name__ + " binded at " + self.bind_address)
@@ -89,51 +103,98 @@ class Worker(multiprocess.Process):
         self.ping_controller()
 
     def ping_controller(self):
-        data = {
+        data = self.get_status()
+        self.controller.send(pack(data))
+
+    def get_status(self):
+        return {
             "pid":              os.getpid(),
+            "uuid":             self.uuid,
             "worker_class":     type(self).__name__,
+            "rpc_address":      self.rpc_address,
             "bind_address":     self.bind_address,
             "loop_count":       self.loop_count,
             "cpu_percent":      time.clock()/(time.time()-self.create_time),
         }
-        self.controller.send(pack(data))
 
     def run(self):
         """ runs the worker """
-        # start a zerorpc server so that we can controll worker across process
-        self.server = zerorpc.Server(worker_instance)
-        self.server.bind()
-        gevent.spawn(self.server.run)
-
-        # bind itself to some port for listening and then tell the controller about this info
         self.bind()
         self.connect(self.addresses)
 
-        while True:
-            try:
-                if self.type == TYPE_SPOUT:
-                    self.results = self.execute()
-                else:
-                    self.packed_dict  = self.frontend.recv()
-                    kwargs            = unpack(self.packed_dict)
-                    self.results      = self.execute(**kwargs)
+        poller = zmq.Poller()
+        if self.frontend:
+            poller.register(self.frontend, zmq.POLLIN)
+        if self.rpc:
+            poller.register(self.rpc, zmq.POLLIN)
 
-                if self.type == TYPE_OUTLET:
-                    # for outlets, we don't need to push our messages further
-                    # so we simply do nothing
-                    pass
+        def worker_only():
+            while not self.__stopped:
+                self._process_worker()
+
+        if not self.frontend:
+            import threading
+            threading.Thread(target=worker_only).start()
+
+        while not self.__stopped:
+            socks = dict(poller.poll(50))
+            if socks.get(self.frontend) == zmq.POLLIN:
+                self._process_worker()
+            elif socks.get(self.rpc) == zmq.POLLIN:
+                self._process_rpc()
+
+    def _process_rpc(self):
+        try:
+            # func, args,
+            req = self.rpc.recv()
+
+            ret = {}
+            m = re.compile(r'(.*?)\((.*?)\)').search(req)            
+            if m:
+                func, args = m.group(1), m.group(2)
+                if args:
+                    raise NotImplementedError()
                 else:
-                    # pick a backend according to "grouping_policy", push result to it
-                    for r in self.results:
-                        backend = self.choose_backend(r)
-                        backend.send(pack(r))
-                self.loop_count += 1
-            except Exception, e:
-                logging.exception(e.message)
+                    ret.update( getattr(self, func)() )
+            else:
+                ret = {"status":"invalid request"}
+            
+            resp = pack(ret)
+            self.rpc.send(resp)
+        except Exception, e:
+            if not self.__stopped:
+                self.logger.exception(e.message)
+
+    def _process_worker(self):
+        try:
+            if self.type in [TYPE_SPOUT, TYPE_MINT]:
+                self.results = self.execute()
+            else:
+                self.packed_dict  = self.frontend.recv()
+                kwargs            = unpack(self.packed_dict)
+                self.results      = self.execute(**kwargs)
+
+            if self.type in [TYPE_OUTLET, TYPE_MINT]:
+                # for outlets/mint, we don't need to push our messages further
+                # so we simply do nothing
+                pass
+            else:
+                # pick a backend according to "grouping_policy", push result to it
+                for r in self.results:
+                    backend = self.choose_backend(r)
+                    backend.send(pack(r))
+            self.loop_count += 1
+        except Exception, e:
+            logging.exception(e.message)
 
     def stop(self):
-        if self.server:
-            self.server.stop()
+        self.__stopped = True
+        if self.rpc:
+            self.rpc.close()
+        if self.frontend:
+            self.frontend.close()
+        status = self.get_status()
+        return {"stopped":True, "status":status}
 
     def connect(self, addresses):
         for address in addresses:
@@ -164,7 +225,7 @@ class Worker(multiprocess.Process):
         # TODO implement statistics
         pass
 
-class Scheduler(object):
+class Controller(object):
     """ Schedules worker creates/stops/executes
     
     * schedule workers
@@ -173,16 +234,57 @@ class Scheduler(object):
     workers = {}        # uuid -> Controller
     def __init__(self):
         self.logger = logging.getLogger("api.Controller")
-        self.context = None
+        self.context = zmq.Context()
+
+        # listens to pings
         self.ping_backend = None
         self.ping_address = None
+        self._receiver_running = True
+        threading.Thread(target=self.ping_receiver).start()
         
+        # let ping receiver initialize first
+        while not self.ping_address:
+            time.sleep(0.05)
+
     def start_workers(self):
         self.reload_workers()
 
     def get_all_stats(self):
-        # TODO implement get stats info
-        pass
+        return self._rpc_all('get_status()')
+
+    def _rpc_all(self, cmd):
+        workers = Controller.workers
+        clients = {}
+        poller = zmq.Poller()
+
+        ret = []
+        for k, d in workers.items():
+            socket = self.context.socket(zmq.REQ)
+            socket.setsockopt(zmq.LINGER, 0)
+            socket.connect(d['rpc_address'])
+            poller.register(socket, zmq.POLLIN)
+            socket.send(cmd)
+            clients[socket] = k
+
+        t = time.time()
+        while time.time() - t < 1.000:
+            socks = dict(poller.poll(100)) # wait 0.1s
+            for socket in socks.keys():
+                status = unpack(socket.recv())
+                workers[clients[socket]] = status
+                ret.append(status)
+                del clients[socket]
+            if not clients:
+                break
+
+        # timeouted sockets
+        for k, socket in clients.items():
+            status = {"status":"no response"} 
+            if k in workers:
+                status.update( workers[k] )
+            ret.append(status)
+
+        return ret
 
     def request(self, request):
         """ processing request
@@ -198,15 +300,16 @@ class Scheduler(object):
             if req.get("op") == "all_stats":
                 response.update({"status":"ok"})
                 response.update({"data":self.get_all_stats()})
+            elif req.get("op") == "stop_all":
+                response.update({"status":"ok"})
+                response.update({"data":self.stop_workers()})
             else:
                 response.update({"status":"error","message":"op code error/not found"})
             
         return pack(response)
 
     def stop_workers(self):
-        workers = Controller.workers
-        for w in workers.itervalues():
-            w.stop()
+        return self._rpc_all('stop()')
 
     def reload_workers(self):
         """ reload all workers from workers subdir
@@ -223,22 +326,30 @@ class Scheduler(object):
 
         for path in os.listdir("workers"):
             if path.endswith(".py"): 
-                code = open(path).read()
+                code = open(os.path.join("workers", path)).read()
                 try:
                     exec(code)
                 except Exception, e:
                     self.logger.error("worker {0} cannot exec {1}".format(path, e.message))
                 else:
-                    f = locals().get("execute")
-                    c = locals().get("configs")
-                    multiprocessing.Process(Target=Worker, args=(f, c)).start()
+                    try:
+                        n = locals().get("num_workers")
+                        t = locals().get("worker_type")
+                        f = locals().get("execute")
+                        c = locals().get("configs")
+                    except Exception, e:
+                        self.logger.exception(e.message)
+                    else:
+                        for _ in range(n):
+                            w = Worker(type=t, execute=f, configs=c, controller_address=self.ping_address)
+                            w.start()
 
     def ping_receiver(self):
         """ recieves ping from workers, record ping info """
-        self.context         = zmq.Context()
-        self.ping_backend    = self.context.socket(zmq.PULL)
+        context              = zmq.Context()
+        self.ping_backend    = context.socket(zmq.PULL)
         self.ping_address    = "tcp://0.0.0.0"
-        port                 = self.ping_backend.bind_to_random_port(self.bind_address)
+        port                 = self.ping_backend.bind_to_random_port(self.ping_address)
         self.ping_address   += ":{0}".format(port)
 
         self.logger.debug(type(self).__name__ + " binded at " + self.ping_address)
@@ -246,17 +357,21 @@ class Scheduler(object):
         poller = zmq.Poller()
         poller.register(self.ping_backend, zmq.POLLIN)
 
-        while self.running:
+        while self._receiver_running:
             socks = dict(poller.poll(100))
             if socks.get(self.ping_backend) == zmq.POLLIN:
                 message_packed = self.ping_backend.recv(zmq.NOBLOCK)
                 d = unpack(message_packed)
                 d["time"] = time.time()
+                self.logger.debug("received worker ping: {0}".format(repr(d)))
                 self.workers[d['uuid']] = d
 
 if __name__ == "__main__":
-    #c = Controller()
-    #c.start_workers()
-    s = zerorpc.Server(Sandbox())
-    s.bind("tcp://0.0.0.0:4242")
-    s.run()
+    c = Controller()
+    c.start_workers()
+    while True:
+        time.sleep(5)
+        r = c.request(pack({"op":"all_stats"}))
+        for x in unpack(r)['data']:
+            print x
+        c.reload_workers()

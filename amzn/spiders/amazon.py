@@ -102,6 +102,7 @@ class AmazonSpider(BaseSpider):
         if summary:
             model = summary[0].select('li[contains(b, "Item model number")]/text()').extract()
             model = model[0] if model else ""
+            model = model.strip()
             rank = summary[0].select('li[@id="SalesRank"]//text()').extract()
             if rank:
                 rank = ''.join(rank).replace('\n', '').split(':', 1)[1]

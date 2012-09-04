@@ -55,10 +55,10 @@ def run_tieba_scraper():
     
     # nodes
     s  = storm.Node(TiebaSpout, 1)
-    f1 = storm.Node(TiebaIndexFetcher, 1)
-    p1 = storm.Node(TiebaIndexProcessor, 1)
-    f2 = storm.Node(TiebaPageFetcher, 10)
-    p2 = storm.Node(TiebaPageProcessor, 1)
+    f1 = storm.Node(TiebaIndexFetcher, 2)
+    p1 = storm.Node(TiebaIndexProcessor, 2)
+    f2 = storm.Node(TiebaPageFetcher, 12)
+    p2 = storm.Node(TiebaPageProcessor, 2)
     
     # connect them
     t.set_root(s).chain(f1).chain(p1).chain(f2).chain(p2)

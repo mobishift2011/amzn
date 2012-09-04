@@ -220,7 +220,8 @@ class Topology(object):
             addr = self.ctrl.add_worker(host_string, node.worker_name, node.code, addresses) 
 
             if addr:
-                backends.append(addr)
+                host = host_string[host_string.find('@')+1:] if '@' in host_string else host_string
+                backends.append(addr.replace('0.0.0.0',host))
                 
         return backends
 

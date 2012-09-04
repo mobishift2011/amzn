@@ -185,9 +185,10 @@ class Worker(multiprocessing.Process):
                 pass
             else:
                 # pick a backend according to "grouping_policy", push result to it
-                for r in self.results:
-                    backend = self.choose_backend(r)
-                    backend.send(pack(r))
+                if self.results:
+                    for r in self.results:
+                        backend = self.choose_backend(r)
+                        backend.send(pack(r))
             self.loop_count += 1
         except Exception, e:
             logging.exception(e.message)
@@ -346,7 +347,7 @@ class Controller(object):
         else:
             try:
                 t = locals().get("worker_type")
-                f = locals().get("execute")
+                e = locals().get("execute")
                 c = locals().get("configs")
                 s = locals().get("setup")
                 p = locals().get("policy", SHUFFLE_GROUPING)
@@ -355,7 +356,7 @@ class Controller(object):
                 self.logger.exception(e.message)
             else:
                 uuids = self.workers.keys()
-                w = Worker(type=t, execute=f, configs=c, setup=s, policy=p, fields=f,
+                w = Worker(type=t, execute=e, configs=c, setup=s, policy=p, fields=f,
                         controller_address=self.ping_address, backend_addresses=backends, worker_name=worker_name)
                 w.start()
 

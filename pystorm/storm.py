@@ -238,6 +238,9 @@ class SimpleFetcher(Bolt):
     def setup(self):
         import requests
 
+        self.cache_timeout = 3600*24
+        self.cache = {}    # caches url and its visit time
+
         self.session = requests.Session(
             prefetch = True,
             timeout = 15,
@@ -260,10 +263,18 @@ class SimpleFetcher(Bolt):
         
         @yield: a list/tuple of zlib compressed 
         """
+        import time
         import lxml.html
         from zlib import compress, decompress
 
         self.logger.debug("get url {0}".format(url))
+
+        # if cache not expired, don't fetch
+        if url in self.cache and time.time() - self.cache.get(url) < self.cache_timeout:
+            return
+        else:
+            self.cache[ url ] = time.time()
+                
         content = self.session.get(url).text
         if selector:
             tree = lxml.html.fromstring(content)

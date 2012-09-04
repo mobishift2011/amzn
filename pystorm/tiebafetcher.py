@@ -56,7 +56,7 @@ def run_tieba_scraper():
     # nodes
     s  = storm.Node(TiebaSpout, 1)
     f1 = storm.Node(TiebaIndexFetcher, 1)
-    p1 = storm.Node(TiebaIndexProcessor, 1)
+    p1 = storm.Node(TiebaIndexProcessor, 1, storm.FIELD_GROUPING, ('url',))
     f2 = storm.Node(TiebaPageFetcher, 12)
     p2 = storm.Node(TiebaPageProcessor, 4)
     

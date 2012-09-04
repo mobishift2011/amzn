@@ -28,7 +28,6 @@ for i in r.instances:
         i.update()
         if i.state == 'running':
             break
-            
 
 dns_names = [ i.dns_name for i in r.instances ]
 

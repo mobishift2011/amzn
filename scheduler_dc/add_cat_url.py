@@ -13,7 +13,7 @@ class Seeder:
         self.queue_key = '%s:requests' % (spider)
         
     def insert_seed(self, url, catstr):
-        req = Request("http://www.amazon.com"+url)
+        req = Request(url)
         req.meta['page'] = 'listing'
         req.meta['count'] = 0
         req.meta['catstr'] = catstr   # catstr

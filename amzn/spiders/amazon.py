@@ -14,7 +14,7 @@ class AmazonSpider(BaseSpider):
     max_detail_pages = 2000
     
     mgdb_conn = pymongo.Connection('localhost')
-    cats = mgdb_conn['amazon']['cats']
+    cats = mgdb_conn['amazon']['category']
     products = mgdb_conn['amazon']['products']
     products.ensure_index('asin', unique=True)
     donot_crawl = ['Trading Cards', 'Chargers &amp; Adapters', 'Yard Signs']

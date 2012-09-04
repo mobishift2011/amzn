@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import os
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 import time
 import storm
 import pickle
@@ -75,5 +79,6 @@ def stop_tieba_scraper():
 
 if __name__ == "__main__":
     run_tieba_scraper()
+    print "sleep 5 seconds, then destory topology"
     time.sleep(5)
     stop_tieba_scraper()

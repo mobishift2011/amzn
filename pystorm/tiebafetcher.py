@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import time
 import storm
+import pickle
 
 class TiebaSpout(storm.Spout):
     """ spout urls to fetch """
@@ -65,6 +66,14 @@ def run_tieba_scraper():
 
     # create and run 
     t.create() 
+    
+    pickle.dump(t, open('/tmp/topology.dump','w'))
+
+def stop_tieba_scraper():
+    t = pickle.load( open('/tmp/topology.dump') )
+    t.destroy()
 
 if __name__ == "__main__":
     run_tieba_scraper()
+    time.sleep(5)
+    stop_tieba_scraper()

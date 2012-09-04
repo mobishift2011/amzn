@@ -105,6 +105,7 @@ class Node(object):
 
         self.parent = None
         self.children = []
+        self.worker_status_list = []
 
     def check_type(self):
         """ type checking """
@@ -122,6 +123,9 @@ class Node(object):
             if "yield" not in lastline:
                 raise ValueError("Spouts/Bolts should yield a dict as kwargs to the next worker")
 
+    def add_worker_status(self, worker_status):
+        self.worker_status_list.append(worker_status)
+
     def add_child(self, node):
         node.parent = self
         self.children.append(node)
@@ -132,8 +136,9 @@ class Node(object):
 
 class Controller(object):
     """ controls deploys and others """
-    def __init__(self):
-        self.logger = logging.getLogger("storm.Controller")
+    @property
+    def logger(self):
+        return logging.getLogger("storm.Topology")
         
     def add_worker(self, host_string, name, code, addresses):
         """ add worker to remote host, return bind_address """
@@ -149,9 +154,21 @@ class Controller(object):
             
         resp = self._request(host_string, {"op":"add_worker","worker_name":name,"backends":addresses})
         if resp and resp.get("worker_status"):
-            return resp.get("worker_status").get("bind_address")
+            return resp.get("worker_status")
         else:
             raise ValueError("resp should be a dict with a key equals `worker_status`")
+
+    def stop_worker(self, host_string, uuid):
+        """ stop worker @ remote host """
+        self.logger.warning("stop worker {0} @ {1}".format(uuid, host_string))
+        resp = self._request(host_string, {"op":"stop_worker","uuid":uuid})
+
+    def destroy(self, node):
+        """ stop all workers of this node """
+        for worker_status in node.worker_status_list:
+            uuid = worker_status.get('uuid')
+            host_string = worker_status.get('host_string')
+            self.stop_worker(host_string, uuid)
 
     def request(self, host_string, request):
         threading.Thread(target=self._request, args=(host_string, request)).start()
@@ -184,10 +201,13 @@ class Controller(object):
 class Topology(object):
     """ a tree of nodes """
     def __init__(self, node=None):
-        self.logger = logging.getLogger("storm.Topology")
         self.root = node
         self.root_workers = []
         self.ctrl = Controller()
+
+    @property
+    def logger(self):
+        return logging.getLogger("storm.Topology")
 
     def set_root(self, node):
         self.root = node
@@ -221,7 +241,10 @@ class Topology(object):
             host_string = random.choice(round_robin_peers)
             round_robin_peers.remove(host_string)
 
-            addr = self.ctrl.add_worker(host_string, node.worker_name, node.code, addresses) 
+            status = self.ctrl.add_worker(host_string, node.worker_name, node.code, addresses) 
+            addr = status.get("bind_address")
+            status.update({'host_string':host_string})
+            node.add_worker_status(status)
 
             if addr:
                 host = host_string[host_string.find('@')+1:] if '@' in host_string else host_string
@@ -229,8 +252,14 @@ class Topology(object):
                 
         return backends
 
-    #def shutdown(self):
-    #    self.ctrl.shutdown()
+    def destroy(self, node=None):
+        if not node:
+            node = self.root
+        
+        self.ctrl.destroy(node)
+
+        for n in node.children:
+            self.destroy(n)
 
 
 class SimpleFetcher(Bolt):

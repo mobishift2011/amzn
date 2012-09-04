@@ -6,6 +6,7 @@ rpc messages/responses are all msgpacked
 
 {"op":"all_status"}     ->    tell me about all the worker status of this server
 {"op":"add_worker","worker_name":"name"}   ->  add name.py to workers
+{"op":"stop_worker","uuid":"asdfasdfasdf"} ->  stop worker
 """
 import settings
 import logging

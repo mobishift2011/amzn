@@ -305,20 +305,24 @@ class Controller(object):
         {"op":"all_stats"} -> a dict of stats
         """
         response = {}
+        response.update({"status":"ok"})
         try:
             req = unpack(request)
         except Exception, e:
             response.update({"status":"error","message":e.message})
         else:
             if req.get("op") == "all_stats":
-                response.update({"status":"ok"})
                 response.update({"data":self.get_all_stats()})
+
             elif req.get("op") == "stop_all":
-                response.update({"status":"ok"})
                 response.update({"data":self.stop_workers()})
+
             elif req.get("op") == "add_worker":
-                response.update({"status":"ok"})
                 response.update({"data":self.add_worker(req.get("worker_name"), backends=req.get("backends"))})
+
+            elif req.get("op") == "stop_worker":
+                response.update({"data":self.stop_worker_by_uuid(req.get("uuid"))})
+
             else:
                 response.update({"status":"error","message":"op code {0} error/not found".format(req.get("op"))})
             
@@ -383,9 +387,13 @@ class Controller(object):
         # TODO implement it
         pass
 
-    def stop_worker_by_uuid(self):
-        # TODO stop worker by uuid
-        raise NotImplementedError()
+    def stop_worker_by_uuid(self, uuid):
+        d = self.workers[uuid]
+        socket = self.context.socket(zmq.REQ)
+        socket.setsockopt(zmq.LINGER, 0)
+        socket.connect(d['rpc_address'])
+        socket.send('stop()')
+        return {"status":"stopped"}
 
     def start_workers(self, name_backends=None):
         """ basically add workers one by one """

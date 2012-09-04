@@ -34,7 +34,7 @@ if __name__ == "__main__":
     from optparse import OptionParser
     redis_server = redis.Redis('localhost', 6379)
     mgdb_conn = pymongo.Connection('localhost')
-    cats = mgdb_conn['amazon']['cats']
+    cats = mgdb_conn['amazon']['category']
     seeder = Seeder('amazon', redis_server, cats)
     
     parser = OptionParser(usage='usage: %prog [options]')

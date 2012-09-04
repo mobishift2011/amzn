@@ -14,7 +14,7 @@ class AmazonSpider(BaseSpider):
     max_detail_pages = 2000
     
     mgdb_conn = pymongo.Connection('localhost')
-    cats = mgdb_conn['amazon']['cats']
+    cats = mgdb_conn['amazon']['category']
     products = mgdb_conn['amazon']['products']
     products.ensure_index('asin', unique=True)
     donot_crawl = ['Trading Cards', 'Chargers &amp; Adapters', 'Yard Signs']
@@ -102,6 +102,7 @@ class AmazonSpider(BaseSpider):
         if summary:
             model = summary[0].select('li[contains(b, "Item model number")]/text()').extract()
             model = model[0] if model else ""
+            model = model.strip()
             rank = summary[0].select('li[@id="SalesRank"]//text()').extract()
             if rank:
                 rank = ''.join(rank).replace('\n', '').split(':', 1)[1]
@@ -122,7 +123,7 @@ class AmazonSpider(BaseSpider):
         print "model:", model
         print "asin:", asin
         print 'rank:', rank
-        self.products.update({'asin': asin}, {"url":url, "title":title, "manufactory":manufactory, "vartitle":vartitle, "review":review, "review_num":review_num, "like":like, "price":price, "model":model, "summary":summary, 'catstr':catstr, 'rank':rank}, upsert=True, multi=False)
+        self.products.update({'asin': asin}, {'$set': {"url":url, "title":title, "manufactory":manufactory, "vartitle":vartitle, "review":review, "review_num":review_num, "like":like, "price":price, "model":model, "summary":summary, 'catstr':catstr, 'rank':rank}}, upsert=True, multi=False)
 #        self.products.insert({"url":url, "title":title, "manufactory":manufactory, "vartitle":vartitle, "review":review, "review_num":review_num, "like":like, "price":price, "model":model, "asin":asin, "summary":summary, 'catstr':catstr, 'rank':rank})
         return None
         
@@ -143,4 +144,4 @@ class AmazonSpider(BaseSpider):
             row['complete'] = 1
             row['complete_time'] = int(time.time())
             self.cats.save(row)
-        
+            

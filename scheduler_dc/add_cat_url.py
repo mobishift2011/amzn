@@ -13,7 +13,7 @@ class Seeder:
         self.queue_key = '%s:requests' % (spider)
         
     def insert_seed(self, url, catstr):
-        req = Request("http://www.amazon.com"+url)
+        req = Request(url)
         req.meta['page'] = 'listing'
         req.meta['count'] = 0
         req.meta['catstr'] = catstr   # catstr
@@ -34,7 +34,7 @@ if __name__ == "__main__":
     from optparse import OptionParser
     redis_server = redis.Redis('localhost', 6379)
     mgdb_conn = pymongo.Connection('localhost')
-    cats = mgdb_conn['amazon']['cats']
+    cats = mgdb_conn['amazon']['category']
     seeder = Seeder('amazon', redis_server, cats)
     
     parser = OptionParser(usage='usage: %prog [options]')

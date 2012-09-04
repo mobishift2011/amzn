@@ -5,6 +5,7 @@
 rpc messages/responses are all msgpacked 
 
 {"op":"all_status"}     ->    tell me about all the worker status of this server
+{"op":"add_worker","worker_name":"name"}   ->  add name.py to workers
 """
 import settings
 import logging
@@ -13,9 +14,9 @@ import os
 logger = logging.getLogger("rpc")
 
 from gevent.server import StreamServer
-from api import Scheduler
+from api import Controller
 
-scheduler = Scheduler()
+controller = Controller()
 
 def handle(socket, address):
     logger.debug('New connection from {0}:{1}'.format(*address))
@@ -30,7 +31,7 @@ def handle(socket, address):
 
         # pass calls to controller
         # returns a string to response
-        response = scheduler.request(line)
+        response = controller.request(line)
 
         fileobj.write(response)
         fileobj.flush()

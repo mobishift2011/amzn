@@ -1,166 +1,31 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import os
-import zmq
 import time
+import socket
 import random
 import logging
+import inspect
+import requests 
 import threading
-import multiprocessing
-import cPickle as pickle
+import lxml.html
+import lxml.etree
 
-SERVERS = ['127.0.0.1']
+from settings import PEERS
 
-SHUFFLE_GROUPING, FIELD_GROUPING = 1001, 1002
-TYPE_SPOUT, TYPE_BOLT, TYPE_OUTLET = 2001, 2002, 2003
+from rpcserver.settings import SHUFFLE_GROUPING, FIELD_GROUPING
+from rpcserver.settings import TYPE_SPOUT, TYPE_BOLT, TYPE_OUTLET, TYPE_MINT
+from rpcserver.settings import ROOT_PORT
 
-class Controller(object):
-    """ controlling workers """
-    def __init__(self):
-        self.context = None
-        self.backend = None
-        self.running = True
-        self.bind_address = None
-        self.workers_by_pid = {}
-        threading.Thread(target=self.receiver).start()
+from msgpack import packb as pack, unpackb as unpack
 
-    def shutdown(self):
-        for pid in self.workers_by_pid.keys():
-            print "killing", pid
-            os.kill(int(pid), 9)
-        self.running = False
-    
-    def get_backend_addresses(self, worker_class):
-        addresses = []
-        for w in self.workers_by_pid.values():
-            if w['worker_class'] == type(worker_class).__name__:
-                addresses.append(w['bind_address'])
-        return addresses
-
-    def receiver(self):
-        self.context         = zmq.Context()
-        self.controller      = self.context.socket(zmq.PULL)
-        self.bind_address    = "tcp://{0}".format(random.choice(SERVERS))
-        port                 = self.controller.bind_to_random_port(self.bind_address)
-        self.bind_address   += ":{0}".format(port)
-
-        print type(self).__name__, "binded", self.bind_address
-        poller = zmq.Poller()
-        poller.register(self.controller, zmq.POLLIN)
-
-        while self.running:
-            socks = dict(poller.poll(100))
-            if socks.get(self.controller) == zmq.POLLIN:
-                message_pickled = self.controller.recv(zmq.NOBLOCK)
-                d = pickle.loads(message_pickled)
-                d["time"] = time.time()
-                self.workers_by_pid[d['pid']] = d
-
-class Worker(multiprocessing.Process):
-    """ A general zeromq worker
-
-    bind on a random port  
-    able to connect to other workers
-    """
-    def __init__(self, type=TYPE_BOLT, *args, **kwargs):
-        super(Worker, self).__init__(*args, **kwargs)
-
-        # zmq related settings
-        self.context         = None
-        self.frontend        = None
-        self.bind_address    = None
-        self.backends        = []
-        self.addresses       = []
-        self.grouping_fields = []
-        self.grouping_policy = SHUFFLE_GROUPING
-
-        # controller related settings
-        self.create_time     = time.time()
-        self.loop_count      = 0
-        self.controller      = None
-        self.controller_address = None
-
-        self.type            = type
-        if self.type not in [TYPE_SPOUT, TYPE_BOLT, TYPE_OUTLET]:
-            raise NotImplementedError()
-
-    def bind(self):
-        """ bind address & notify controller """
-        self.context = zmq.Context()
-        if self.type in [TYPE_BOLT, TYPE_OUTLET]:
-            self.frontend        = self.context.socket(zmq.PULL)
-            self.bind_address    = "tcp://{0}".format(random.choice(SERVERS))
-            port                 = self.frontend.bind_to_random_port(self.bind_address)
-            self.bind_address   += ":{0}".format(port)
-            print type(self).__name__, "binded", self.bind_address
-
-        self.controller = self.context.socket(zmq.PUSH)
-        self.controller.connect(self.controller_address)
-        self.ping_controller()
-        
-    def ping_controller(self):
-        data = {
-            "pid":              os.getpid(),
-            "worker_class":     type(self).__name__,
-            "bind_address":     self.bind_address,
-            "loop_count":       self.loop_count,
-            "cpu_percent":      time.clock()/(time.time()-self.create_time),
-        }
-        self.controller.send(pickle.dumps(data))
+class Worker(object):
+    """ Raw Worker """
+    def setup(self):
+        pass
 
     def execute(self, **kwargs):
-        """ accepts fields, yield results, must implement by subclasses """
-        raise NotImplementedError("should be implemented by subclass")
-
-    def run(self):
-        self.bind()
-        self.connect(self.addresses)
-
-        poller = zmq.Poller()
-        poller.register(self.controller, zmq.POLLIN)
-
-        while True:
-            try:
-                if self.type == TYPE_SPOUT:
-                    self.results = self.execute()
-                else:
-                    self.pickled_dict = self.frontend.recv()
-                    kwargs            = pickle.loads(self.pickled_dict)
-                    self.results      = self.execute(**kwargs)
-
-                if self.type == TYPE_OUTLET:
-                    # for outlets, we don't need to push our messages further
-                    # so we simply do nothing
-                    pass
-                else:
-                    # pick a backend according to "grouping_policy", push result to it
-                    for r in self.results:
-                        backend = self.choose_backend(r)
-                        backend.send(pickle.dumps(r))
-                self.loop_count += 1
-            except Exception, e:
-                logging.exception(e.message)
-                
-    def connect(self, addresses):
-        for address in addresses:
-            print type(self).__name__, "connecting", address
-            backend = self.context.socket(zmq.PUSH)
-            backend.connect(address)
-            self.backends.append(backend)
-
-    def set_grouping(self, policy=SHUFFLE_GROUPING, fields=None):
-        self.grouping_policy = policy
-        self.grouping_fields = fields
-
-    def choose_backend(self, result_dict):
-        if self.grouping_policy == SHUFFLE_GROUPING:
-            return random.choice(self.backends)
-        elif self.grouping_policy == FIELD_GROUPING:
-            mod = len(self.backends)
-            values = [ result_dict.get(field) for field in self.grouping_fields ]
-            return self.backends[hash(tuple(values)) % mod]
-        else:
-            raise NotImplementedError()
+        raise NotImplementedError("This method should be overrided by sub class")
 
 class Spout(Worker):
     """ source of the task chain
@@ -180,30 +45,149 @@ class Outlet(Worker):
     def __init__(self, *args, **kwargs):
         super(Outlet, self).__init__(type=TYPE_OUTLET, *args, **kwargs)
 
+class Mint(Worker):
+    """ independent workers: no `input`/`output` """
+    def __init__(self, *args, **kwargs):
+        super(Mint, self).__init__(type=TYPE_MINT, *args, **kwargs)
+
 class Node(object):
     """ a node in topology """
-    def __init__(self, worker_class, num_of_workers, grouping_policy=SHUFFLE_GROUPING, fields=None):
+    def __init__(self, worker_class, num_workers, grouping_policy=SHUFFLE_GROUPING, fields=None, configs={}):
+        if not issubclass(worker_class, Worker):
+            raise TypeError("worker class should be a sub class of Worker")
+
         self.worker_class = worker_class
-        self.num_of_workers = num_of_workers
+        self.worker_name = worker_class.__name__
+        self.configs = configs              # temporily unused
+        self.num_workers = num_workers
         self.grouping_policy = grouping_policy
         self.fields = fields
+        self.varnames = worker_class.execute.func_code.co_varnames
+
+        self.typename = worker_class.__base__.__name__.upper()
+        if self.typename not in ["SPOUT","BOLT","OUTLET","MINT"]:
+            self.typename = worker_class.__base__.__base__.__name__.upper()
+            
+        self.codes = [
+            "#!/usr/bin/env python\n",
+            "# -*- coding: utf-8 -*-\n",
+            "import os\n",
+            "import sys\n",
+            "sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))\n",
+            "\n"
+            "import settings\n",
+            "import logging\n",
+            "\n",
+            "worker_type = settings.TYPE_{0}\n".format(self.typename),
+            "\n",
+            "configs = {0}\n".format(repr(self.configs)),
+            "\n",
+        ]
+
+        self.codes.append("\n")
+        for line in inspect.getsourcelines(worker_class.execute)[0]:
+            # unindent 4 bytes
+            self.codes.append(line[4:])
+
+        self.codes.append("\n")
+        for line in inspect.getsourcelines(worker_class.setup)[0]:
+            # unindent 4 bytes
+            self.codes.append(line[4:])
+
+        self.check_type() 
+
+        self.code = "".join(self.codes)
+
+
         self.parent = None
         self.children = []
+
+    def check_type(self):
+        """ type checking """
+        typename = type(self.worker_class).__name__
+
+        # check argument list
+        if typename in ["Spout", "Mint"]:
+            assert len(self.varnames) == 1, "worker type and execute args does not match"
+        else:
+            assert len(self.varnames) > 1, "worker type and execute args does not match"
+
+        # check return type
+        if typename in ["Spout", "Bolt"]:
+            lastline = self.codes[-1]
+            if "yield" not in lastline:
+                raise ValueError("Spouts/Bolts should yield a dict as kwargs to the next worker")
 
     def add_child(self, node):
         node.parent = self
         self.children.append(node)
 
+    def chain(self, node):
+        self.add_child(node)
+        return node
+
+class Controller(object):
+    """ controls deploys and others """
+    def __init__(self):
+        self.logger = logging.getLogger("storm.Controller")
+        
+    def add_worker(self, host_string, name, code, addresses):
+        """ add worker to remote host, return bind_address """
+        self.logger.warning("add worker {0} to {1}".format(name, host_string))
+        from fabric.api import settings, run, put
+
+        tmpfile = "/tmp/{0}.py".format(name)
+        open(tmpfile, "w").write(code)
+
+        with settings(host_string=host_string):
+            run("mkdir -p /opt/pystorm/rpcserver/workers")
+            put(tmpfile, "/opt/pystorm/rpcserver/workers/{0}.py".format(name))
+            
+        resp = self._request(host_string, {"op":"add_worker","worker_name":name,"backends":addresses})
+        if resp and resp.get("worker_status"):
+            return resp.get("worker_status").get("bind_address")
+        else:
+            raise ValueError("resp should be a dict with a key equals `worker_status`")
+
+    def request(self, host_string, request):
+        threading.Thread(target=self._request, args=(host_string, request)).start()
+
+    def _request(self, host_string, request):
+        """ send request to rpcserver """
+        host = host_string[host_string.find('@')+1:] if '@' in host_string else host_string
+        port = ROOT_PORT
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+        try:
+            s.connect((host, port))
+            s.sendall( pack(request)+'\n' ) 
+            resp = unpack(s.recv(8192))
+        except socket.timeout:
+            self.logger.warning("request timed out: <request: {0}>".format(request))
+        except Exception, e:
+            self.logger.exception("unexpected exception: {0}".format(e.message))
+        else:
+            if not isinstance(resp, dict):
+                raise ValueError("rpcserver should return a packed dict")
+
+            if resp.get("status") != "ok":
+                self.logger.exception("request has unexpected return: <request: {0}>, <response: {1}>".format(repr(request), repr(resp)))
+
+            return resp.get("data")
+        finally:
+            s.close()
+
 class Topology(object):
     """ a tree of nodes """
     def __init__(self, node=None):
+        self.logger = logging.getLogger("storm.Topology")
         self.root = node
         self.root_workers = []
         self.ctrl = Controller()
-        time.sleep(0.1)
 
     def set_root(self, node):
         self.root = node
+        return node
 
     def create(self, node=None):
         """ create topology from bottom up 
@@ -218,34 +202,72 @@ class Topology(object):
             child_address = self.create(n)
             addresses.extend(child_address)
 
-        return self.spawn(node, addresses)
+        ret = self.spawn(node, addresses)
+        return ret
 
     def spawn(self, node, addresses):
         """ spawn a worker for a node, add addresses to its backend """
         backends = []
-        for _ in range(node.num_of_workers):
-            w = node.worker_class()
-            w.addresses = addresses
-            w.controller_address = self.ctrl.bind_address
-            w.set_grouping(node.grouping_policy, node.fields)
-        
-            if node == self.root:
-                self.root_workers.append( w )
+        first_run_peers = list(PEERS)
+
+        for _ in range(node.num_workers):
+            if first_run_peers:
+                host_string = random.choice(first_run_peers)
+                first_run_peers.remove(host_string)
             else:
-                w.start()
-                
-        time.sleep(0.1)
-        backends.extend( self.ctrl.get_backend_addresses(w) )
+                host_string = random.choice(PEERS)
+
+            addr = self.ctrl.add_worker(host_string, node.worker_name, node.code, addresses) 
+
+            if addr:
+                backends.append(addr)
                 
         return backends
 
-    def start(self):
-        """ run the root worker """
-        for w in self.root_workers:
-            w.start()
+    #def shutdown(self):
+    #    self.ctrl.shutdown()
 
-    def shutdown(self):
-        self.ctrl.shutdown()
+
+class SimpleFetcher(Bolt):
+    """ A general-purpose web page fetcher """
+    def setup(self):
+        import requests
+
+        self.session = requests.Session(
+            prefetch = True,
+            timeout = 15,
+            headers = {
+                'User-Agent': 'Mozilla 5.0/Firefox 15.0.1 FavBuyBot',
+            },
+            config = {
+                'max_retries': 3,
+                'pool_connections': 10,
+                'pool_maxsize': 10,
+            }
+        ) 
+
+    def execute(self, url, selector=None):
+        """ given url, fetch page, return content (filtered by selector if present)
+
+        @param: `url` is the web url to fetch
+        @param: `selector` is a xpath string to extract blocks of info from the page
+                the main page main contain too many unuseful infos that we want to filter
+        
+        @yield: a list/tuple of zlib compressed 
+        """
+        import lxml.html
+        from zlib import compress, decompress
+
+        self.logger.debug("get url {0}".format(url))
+        content = self.session.get(url).text
+        if selector:
+            tree = lxml.html.fromstring(content)
+            for t in tree.xpath(selector):
+                ret = {"content":compress(lxml.etree.tostring(t))}
+                yield ret
+        else:
+            ret = {"content":compress(content)}
+            yield ret
 
 if __name__ == '__main__':
     pass

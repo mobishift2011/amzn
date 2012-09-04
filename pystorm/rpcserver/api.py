@@ -37,15 +37,26 @@ class Worker(multiprocessing.Process):
         'num_coroutines' : 1,   # num of concurrently running greenlets
         'qps_limit'      : 0,   # 0 -> not limiting, not implemented yet
     }
-    def __init__(self, type=TYPE_BOLT, controller_address=None, backend_addresses=[], execute=lambda:None, configs={}, *args, **kwargs):
+    def __init__(self,  type=TYPE_BOLT, 
+                        controller_address=None, 
+                        backend_addresses=[], 
+                        setup=None,
+                        execute=None, 
+                        configs={}, 
+                        grouping_policy = SHUFFLE_GROUPING,
+                        fields = [],
+                        worker_name = "unnamed",
+                        *args, **kwargs):
         super(Worker, self).__init__(*args, **kwargs)
 
+        setup(self)
+
+        self.worker_name = worker_name
         self.uuid = uuid.uuid4().hex
         self._execute = execute
         self.configs = Worker.default_configs
-
         self.configs.update(configs)
-        self.logger = logging.getLogger("api.Worker")
+        self.logger = logging.getLogger("api.Worker.{0}".format(worker_name))
 
         self.__stopped = False
 
@@ -55,9 +66,9 @@ class Worker(multiprocessing.Process):
         self.rpc_address     = ""
         self.frontend        = None   # receives messages
         self.bind_address    = None   
-        self.backends        = backend_addresses    
-        self.addresses       = []
-        self.grouping_fields = []
+        self.backends        = []
+        self.addresses       = backend_addresses    
+        self.grouping_fields = fields
         self.grouping_policy = SHUFFLE_GROUPING
 
         # controller related settings
@@ -71,15 +82,6 @@ class Worker(multiprocessing.Process):
             raise NotImplementedError()
 
         
-    def execute(self, *args, **kwargs):
-        if self._not_throttled():
-            try:
-                self._execute(*args, **kwargs)
-            except Exception, e:
-                self.logger.exception(e.message)
-            else:
-                self._executed()
-
     def bind(self):
         """ bind address & notify controller """
         self.context = zmq.Context()
@@ -109,10 +111,13 @@ class Worker(multiprocessing.Process):
     def get_status(self):
         return {
             "pid":              os.getpid(),
+            "type":             self.type,
             "uuid":             self.uuid,
-            "worker_class":     type(self).__name__,
+            "time":             time.time(),
+            "worker_name":      self.worker_name,
             "rpc_address":      self.rpc_address,
             "bind_address":     self.bind_address,
+            "backend_addresses":self.addresses,
             "loop_count":       self.loop_count,
             "cpu_percent":      time.clock()/(time.time()-self.create_time),
         }
@@ -187,6 +192,17 @@ class Worker(multiprocessing.Process):
         except Exception, e:
             logging.exception(e.message)
 
+    def execute(self, **kwargs):
+        if self._not_throttled():
+            ret = None
+            try:
+                ret = self._execute(self, **kwargs)
+            except Exception, e:
+                self.logger.exception("Execution Error: <{0}>".format(e.message))
+            else:
+                self._executed()
+            return ret
+
     def stop(self):
         self.__stopped = True
         if self.rpc:
@@ -231,10 +247,10 @@ class Controller(object):
     * schedule workers
     * monitor workers
     """
-    workers = {}        # uuid -> Controller
     def __init__(self):
         self.logger = logging.getLogger("api.Controller")
         self.context = zmq.Context()
+        self.workers = {}        # uuid -> Controller
 
         # listens to pings
         self.ping_backend = None
@@ -246,19 +262,15 @@ class Controller(object):
         while not self.ping_address:
             time.sleep(0.05)
 
-    def start_workers(self):
-        self.reload_workers()
-
     def get_all_stats(self):
         return self._rpc_all('get_status()')
 
     def _rpc_all(self, cmd):
-        workers = Controller.workers
         clients = {}
         poller = zmq.Poller()
 
         ret = []
-        for k, d in workers.items():
+        for k, d in self.workers.items():
             socket = self.context.socket(zmq.REQ)
             socket.setsockopt(zmq.LINGER, 0)
             socket.connect(d['rpc_address'])
@@ -268,10 +280,10 @@ class Controller(object):
 
         t = time.time()
         while time.time() - t < 1.000:
-            socks = dict(poller.poll(100)) # wait 0.1s
+            socks = dict(poller.poll(50)) # wait 0.05s
             for socket in socks.keys():
                 status = unpack(socket.recv())
-                workers[clients[socket]] = status
+                self.workers[clients[socket]] = status
                 ret.append(status)
                 del clients[socket]
             if not clients:
@@ -280,8 +292,8 @@ class Controller(object):
         # timeouted sockets
         for k, socket in clients.items():
             status = {"status":"no response"} 
-            if k in workers:
-                status.update( workers[k] )
+            if k in self.workers:
+                status.update( self.workers[k] )
             ret.append(status)
 
         return ret
@@ -303,10 +315,90 @@ class Controller(object):
             elif req.get("op") == "stop_all":
                 response.update({"status":"ok"})
                 response.update({"data":self.stop_workers()})
+            elif req.get("op") == "add_worker":
+                response.update({"status":"ok"})
+                response.update({"data":self.add_worker(req.get("worker_name"), backends=req.get("backends"))})
             else:
-                response.update({"status":"error","message":"op code error/not found"})
+                response.update({"status":"error","message":"op code {0} error/not found".format(req.get("op"))})
             
         return pack(response)
+
+
+    def is_added(self, initial_uuids, worker_name):
+        added_workers = set(self.workers.keys()) - set(initial_uuids)
+        added = False
+        added_info = {}
+        for w in added_workers:
+            if self.workers[w].get("worker_name") == worker_name and (not self.workers[w].get("recorded", False)):
+                added = True
+                added_info.update(self.workers[w])
+                self.workers[w]['recorded'] = True
+                break
+        return added, added_info
+
+    def add_worker(self, worker_name, backends=[]):
+        " add/start a worker based on its name "
+        code = open(os.path.join("workers", worker_name+".py")).read()
+        try:
+            exec(code)
+        except Exception, e:
+            self.logger.error("worker {0} cannot execute: {1}".format(worker_name, e.message))
+        else:
+            try:
+                t = locals().get("worker_type")
+                f = locals().get("execute")
+                c = locals().get("configs")
+                s = locals().get("setup")
+            except Exception, e:
+                self.logger.exception(e.message)
+            else:
+                uuids = self.workers.keys()
+                w = Worker(type=t, execute=f, configs=c, setup = s, 
+                        controller_address=self.ping_address, backend_addresses=backends, worker_name=worker_name)
+                w.start()
+
+                # wait until we got pinged
+                t = time.time()
+
+                while time.time() - t < 1.0:
+                    time.sleep(0.05)
+                    added, added_info = self.is_added(uuids, worker_name)
+                    if added:
+                        break
+
+                return {"worker_status":added_info}
+
+        return {"worker_status":{}}
+
+    def check_health(self):
+        """ do a health check and auto recovery
+
+        1. check health
+        2. stop "no response" workers by uuid
+        3. start those workers by name
+        """
+        # TODO implement it
+        pass
+
+    def stop_worker_by_uuid(self):
+        # TODO stop worker by uuid
+        raise NotImplementedError()
+
+    def start_workers(self, name_backends=None):
+        """ basically add workers one by one """
+        if name_backends:
+            for name, backends in name_backends:
+                self.add_worker(name, backends)
+        else:
+            if not os.path.exists("workers"):
+                self.logger.warning("workers directory does not exist")
+                return
+
+            self.logger.warning("no backends info available, this mode should only used in debuging")
+            for path in os.listdir("workers"):
+                if path.endswith(".py"): 
+                    worker_name = path[:-3]
+                    info = self.add_worker(worker_name)
 
     def stop_workers(self):
         return self._rpc_all('stop()')
@@ -317,32 +409,8 @@ class Controller(object):
         * each worker lives in a .py file
         * each worker has a `execute` method and a `configs` dict
         """
-        if not os.path.exists("workers"):
-            self.logger.warning("workers directory does not exist")
-            return
-
-        self.stop_workers() 
-        workers = Controller.workers = {}
-
-        for path in os.listdir("workers"):
-            if path.endswith(".py"): 
-                code = open(os.path.join("workers", path)).read()
-                try:
-                    exec(code)
-                except Exception, e:
-                    self.logger.error("worker {0} cannot exec {1}".format(path, e.message))
-                else:
-                    try:
-                        n = locals().get("num_workers")
-                        t = locals().get("worker_type")
-                        f = locals().get("execute")
-                        c = locals().get("configs")
-                    except Exception, e:
-                        self.logger.exception(e.message)
-                    else:
-                        for _ in range(n):
-                            w = Worker(type=t, execute=f, configs=c, controller_address=self.ping_address)
-                            w.start()
+        # TODO reimplement this
+        pass
 
     def ping_receiver(self):
         """ recieves ping from workers, record ping info """
@@ -374,4 +442,4 @@ if __name__ == "__main__":
         r = c.request(pack({"op":"all_stats"}))
         for x in unpack(r)['data']:
             print x
-        c.reload_workers()
+        #c.reload_workers()

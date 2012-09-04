@@ -12,8 +12,9 @@ this module should not consider the following:
     1. monitor the code runs on remote machine
 """
 from settings import PEERS, ENV_NAME, USE_INDEX
+from settings import PROJECT_ROOT
 from fabric.api import *
-
+import os
 
 @parallel
 @hosts(PEERS)
@@ -35,10 +36,35 @@ def setup_env():
             run("mkvirtualenv "+ENV_NAME)
             with prefix("workon "+ENV_NAME):
                 run("pip install cython"+USE_INDEX)
-                run("pip install zerorpc requests gevent_zeromq"+USE_INDEX) 
+                run("pip install zerorpc requests"+USE_INDEX) 
+
+def deploy_rpc():
+    """ deploy rpc server code to host """
+    for host_string in PEERS:
+        _deploy_rpc(host_string)
+
+def _deploy_rpc(host_string):
+    """ deploy rpc server code to host """
+    # copy files
+    with settings(host_string=host_string, warn_only=True):
+        run("rm -rf /opt/pystorm")
+        run("mkdir -p /opt/pystorm")
+        put(os.path.join(PROJECT_ROOT, "rpcserver"), "/opt/pystorm/")
+
+    # remove if already exists
+    with settings(host_string=host_string, warn_only=True):
+        run("kill -9 `pgrep -f rpc.py`")
+        run("rm /tmp/rpc.sock")
+
+    # dtach rpc @ /tmp/rpc.sock
+    with settings(host_string=host_string):
+        with cd("/opt/pystorm/rpcserver"):
+            with prefix("source /usr/local/bin/virtualenvwrapper.sh"):
+                with prefix("workon "+ENV_NAME):
+                    _runbg("python rpc.py", sockname="rpc")
 
 def run_code(host_string, code, filename="code.py"):
-    """ Run a code block on a specific host
+    """ * Run a code block on a specific host
 
     :param host_string: a host_string required by fabric
     :param code: an executable code block 
@@ -46,7 +72,7 @@ def run_code(host_string, code, filename="code.py"):
 
     Example::
 
-    >>> run_code("root@192.168.1.1", '''from test.pystone import pystones\\npystones()''')
+    >>> run_code("root@192.168.1.1", '''from test.pystone import pystones\npystones()''')
 
     """
     try:
@@ -67,7 +93,7 @@ def run_code(host_string, code, filename="code.py"):
                         _runbg("python "+filename, sockname="code")
 
 def stop_code(host_string, filename="code.py"):
-    """ Stop a running script on host
+    """ * Stop a running script on host
     """
     with settings(host_string=host_string, warn_only=True):
         run("rm /tmp/{0}.sock".format("code"))
@@ -78,6 +104,9 @@ def _runbg(cmd, sockname="dtach"):
     return run('dtach -n /tmp/{0}.sock {1}'.format(sockname,cmd))
 
 if __name__ == "__main__":
+    #for peer in PEERS:
+    #    deploy_rpc(peer)
+    #exit(0)
     run_code("root@192.168.56.102", """#!/usr/bin/env python
 import time
 

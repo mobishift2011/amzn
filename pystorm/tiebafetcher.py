@@ -1,11 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import time
-import random
-
 import storm
-import lxml.html
-from zlib import compress, decompress
 
 class TiebaSpout(storm.Spout):
     """ spout urls to fetch """

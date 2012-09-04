@@ -123,7 +123,7 @@ class AmazonSpider(BaseSpider):
         print "model:", model
         print "asin:", asin
         print 'rank:', rank
-        self.products.update({'asin': asin}, {"url":url, "title":title, "manufactory":manufactory, "vartitle":vartitle, "review":review, "review_num":review_num, "like":like, "price":price, "model":model, "summary":summary, 'catstr':catstr, 'rank':rank}, upsert=True, multi=False)
+        self.products.update({'asin': asin}, {'$set': {"url":url, "title":title, "manufactory":manufactory, "vartitle":vartitle, "review":review, "review_num":review_num, "like":like, "price":price, "model":model, "summary":summary, 'catstr':catstr, 'rank':rank}}, upsert=True, multi=False)
 #        self.products.insert({"url":url, "title":title, "manufactory":manufactory, "vartitle":vartitle, "review":review, "review_num":review_num, "like":like, "price":price, "model":model, "asin":asin, "summary":summary, 'catstr':catstr, 'rank':rank})
         return None
         
@@ -144,4 +144,4 @@ class AmazonSpider(BaseSpider):
             row['complete'] = 1
             row['complete_time'] = int(time.time())
             self.cats.save(row)
-        
+            

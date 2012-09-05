@@ -82,6 +82,10 @@ class Node(object):
             "\n",
             "configs = {0}\n".format(repr(self.configs)),
             "\n",
+            "policy = {0}\n".format(self.grouping_policy),
+            "\n"
+            "fields = {0}\n".format(repr(self.fields)),
+            "\n"
         ]
 
         self.codes.append("\n")
@@ -208,14 +212,14 @@ class Topology(object):
     def spawn(self, node, addresses):
         """ spawn a worker for a node, add addresses to its backend """
         backends = []
-        first_run_peers = list(PEERS)
+        round_robin_peers = []
 
         for _ in range(node.num_workers):
-            if first_run_peers:
-                host_string = random.choice(first_run_peers)
-                first_run_peers.remove(host_string)
-            else:
-                host_string = random.choice(PEERS)
+            if not round_robin_peers:
+                round_robin_peers = list(PEERS)
+
+            host_string = random.choice(round_robin_peers)
+            round_robin_peers.remove(host_string)
 
             addr = self.ctrl.add_worker(host_string, node.worker_name, node.code, addresses) 
 

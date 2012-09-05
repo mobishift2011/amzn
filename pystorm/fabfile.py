@@ -23,12 +23,15 @@ def setup_env():
     
     A ubuntu 12.04 or later distribution of linux is required
     """
+    run("apt-get update")
+    run("apt-get -y upgrade")
     run("apt-get -y install build-essential python-dev libevent-dev libxslt-dev uuid-dev python-setuptools dtach libzmq-dev")
     run("easy_install pip")
     run("pip install virtualenvwrapper")
     run("mkdir -p /opt/pystorm")
 
     with settings(warn_only=True):
+        run("kill -9 `pgrep -f rpc.py`")
         run("kill -9 `pgrep -f {0}`".format(ENV_NAME))
 
     with cd("/opt/pystorm"):
@@ -36,12 +39,19 @@ def setup_env():
             run("mkvirtualenv "+ENV_NAME)
             with prefix("workon "+ENV_NAME):
                 run("pip install cython"+USE_INDEX)
-                run("pip install zerorpc requests"+USE_INDEX) 
+                run("pip install zerorpc lxml requests pymongo mongoengine"+USE_INDEX) 
 
 def deploy_rpc():
     """ deploy rpc server code to host """
+    import multiprocessing
+    tasks = []
     for host_string in PEERS:
-        _deploy_rpc(host_string)
+        t = multiprocessing.Process(target=_deploy_rpc, args=(host_string,))
+        tasks.append(t)
+        t.start()
+
+    for t in tasks:
+        t.join()
 
 def _deploy_rpc(host_string):
     """ deploy rpc server code to host """
@@ -61,7 +71,8 @@ def _deploy_rpc(host_string):
         with cd("/opt/pystorm/rpcserver"):
             with prefix("source /usr/local/bin/virtualenvwrapper.sh"):
                 with prefix("workon "+ENV_NAME):
-                    _runbg("python rpc.py", sockname="rpc")
+                    with prefix("ulimit -s 1024"):
+                        _runbg("python rpc.py", sockname="rpc")
 
 def run_code(host_string, code, filename="code.py"):
     """ * Run a code block on a specific host

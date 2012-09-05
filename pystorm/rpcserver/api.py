@@ -43,7 +43,7 @@ class Worker(multiprocessing.Process):
                         setup=None,
                         execute=None, 
                         configs={}, 
-                        grouping_policy = SHUFFLE_GROUPING,
+                        policy = SHUFFLE_GROUPING,
                         fields = [],
                         worker_name = "unnamed",
                         *args, **kwargs):
@@ -69,7 +69,7 @@ class Worker(multiprocessing.Process):
         self.backends        = []
         self.addresses       = backend_addresses    
         self.grouping_fields = fields
-        self.grouping_policy = SHUFFLE_GROUPING
+        self.grouping_policy = policy
 
         # controller related settings
         self.create_time     = time.time()
@@ -349,11 +349,13 @@ class Controller(object):
                 f = locals().get("execute")
                 c = locals().get("configs")
                 s = locals().get("setup")
+                p = locals().get("policy", SHUFFLE_GROUPING)
+                f = locals().get("fields", [])
             except Exception, e:
                 self.logger.exception(e.message)
             else:
                 uuids = self.workers.keys()
-                w = Worker(type=t, execute=f, configs=c, setup = s, 
+                w = Worker(type=t, execute=f, configs=c, setup=s, policy=p, fields=f,
                         controller_address=self.ping_address, backend_addresses=backends, worker_name=worker_name)
                 w.start()
 

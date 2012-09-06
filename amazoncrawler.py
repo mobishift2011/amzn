@@ -17,8 +17,8 @@ from datetime import datetime, timedelta
 # setup worker's common vars
 #############################
 
-DB_HOST = 'ec2-54-245-3-3.us-west-2.compute.amazonaws.com'
-#DB_HOST = '127.0.0.1'
+#DB_HOST = 'ec2-54-245-3-3.us-west-2.compute.amazonaws.com'
+DB_HOST = '127.0.0.1'
 DB = 'amazon'
 
 connect(db=DB, host=DB_HOST)
@@ -41,7 +41,7 @@ def url2catn(url):
     m = re.compile(r'(n%3A.*?)&').search(url)
     if not m:
         m = re.compile(r'(n%3A.*)').search(url)
-    return unquote(m.group(1))
+    return unquote(m.group(1)).decode('utf-8')
 
 class Category(Document):
     cats        =   ListField(StringField()) 

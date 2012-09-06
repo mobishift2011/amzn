@@ -56,7 +56,7 @@ class TiebaPageProcessor(storm.Outlet):
         self.logger.debug(u"saving username={0} to database".format(username))
 
 def run_tieba_scraper():
-    t = storm.Topology() 
+    t = storm.Topology(__file__) 
     
     # nodes
     s  = storm.Node(TiebaSpout, 1)

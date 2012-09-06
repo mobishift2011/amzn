@@ -18,7 +18,7 @@ from datetime import datetime, timedelta
 #############################
 
 DB_HOST = 'ec2-54-245-3-3.us-west-2.compute.amazonaws.com'
-DB_HOST = '127.0.0.1'
+#DB_HOST = '127.0.0.1'
 DB = 'amazon'
 
 connect(db=DB, host=DB_HOST)
@@ -88,12 +88,17 @@ class Product(Document):
 ################################
 class AmazonCategorySpout(storm.Spout):
     """ spout urls to fetch """
+    def setup(self):
+        self.cache = set()
+
     def execute(self):
         for k, v in ROOT_CATN.items():
             url = catn2url(v)
             ret = {"url":url+'&page=2'}
-            self.logger.debug("spouting: {0}".format(repr(ret)))
-            yield ret
+            if url not in self.cache:
+                self.logger.debug("spouting: {0}".format(repr(ret)))
+                self.cache.add(url)
+                yield ret
 
         for c in Category.objects(updated=False):
             if c.catn not in ROOT_CATN.values():
@@ -101,15 +106,21 @@ class AmazonCategorySpout(storm.Spout):
             else:
                 page = 2
             ret = {"url":c.url()+'&page='+str(page)}
-            yield ret
+            if url not in self.cache:
+                self.logger.debug("spouting: {0}".format(repr(ret)))
+                self.cache.add(url)
+                yield ret
 
-        for c in Category.objects(update_time__lt=datetime.utcnow()-timedelta(days=7)):
+        for c in Category.objects(update_time__lt=datetime.utcnow()-timedelta(days=7), updated=True):
             if c.catn not in ROOT_CATN.values():
                 page = 1
             else:
                 page = 2
             ret = {"url":c.url()+'&page='+str(page)}
-            yield ret
+            if url not in self.cache:
+                self.logger.debug("spouting: {0}".format(repr(ret)))
+                self.cache.add(url)
+                yield ret
 
         time.sleep(10)
 
@@ -117,15 +128,15 @@ class AmazonCategoryFetcher(storm.SimpleFetcher):
     """ fetches amazon category """
     def setup(self):
         self.session = requests.Session(
-            prefetch = True,
-            timeout = 15,
+            prefetch = False,
+            timeout = 30,
             headers = {
                 'User-Agent': 'Mozilla 5.0/Firefox 15.0.1 FavBuyBot',
             },
             config = {
-                'max_retries': 3,
-                'pool_connections': 10,
-                'pool_maxsize': 10,
+                'max_retries': 10,
+                'pool_connections': 3,
+                'pool_maxsize': 3,
             }
         )
         self.cache = {}
@@ -139,6 +150,7 @@ class AmazonCategoryFetcher(storm.SimpleFetcher):
 
         text = self.session.get(url).text
         t = lxml.html.fromstring(text)
+        #open("/tmp/test.html","w").write(text.encode('utf-8'))
 
         catn = url2catn(url)
         c = Category.objects(catn=catn).first()
@@ -147,20 +159,22 @@ class AmazonCategoryFetcher(storm.SimpleFetcher):
         c.update_time = datetime.utcnow()
         
         delimitter = u'\xa0'
-        catlist = t.xpath('//div[@id="leftNavContainer"]//ul[@data-typeid="n"]//li')
+        
+        #catlist = t.xpath('//div[@id="leftNavContainer"]//ul[@data-typeid="n"]//li')
+        catlist = t.xpath('//div[@id="leftNavContainer"]//ul')[0].xpath(".//li")
         if delimitter not in catlist[-1].text_content():
             c.is_leaf = True
         
         # format1: Showing 25 - 48 of 496 Results
         # format2: Showing 4 Results
         try:
-            resultcount = t.xpath('//*[@id="resultCount"]/span')[0].text_content()
+            resultcount = t.xpath('//*[@id="resultCount"]')[0].text_content()
         except:
             # format3: Should Get Page2 to get this info
             url = url[:-1]+'2'
             text = self.session.get(url).text
             t = lxml.html.fromstring(text)
-            resultcount = t.xpath('//*[@id="resultCount"]/span')[0].text_content()
+            resultcount = t.xpath('//*[@id="resultCount"]')[0].text_content()
 
         m = re.compile(r'Showing \d+ - (\d+) of ([0-9,]+) Results').search(resultcount)
         if not m:
@@ -223,7 +237,7 @@ class AmazonCrawler(object):
     
         # nodes
         s = storm.Node(AmazonCategorySpout, 1, storm.FIELD_GROUPING, ('url',))
-        f = storm.Node(AmazonCategoryFetcher, 5)
+        f = storm.Node(AmazonCategoryFetcher, 3)
     
         # connect them
         t.add_root(s).chain(f)

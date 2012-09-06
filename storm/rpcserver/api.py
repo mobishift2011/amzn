@@ -52,7 +52,6 @@ class Worker(multiprocessing.Process):
                         worker_name = "unnamed",
                         *args, **kwargs):
         super(Worker, self).__init__(*args, **kwargs)
-        self.logger = logging.getLogger("api.Worker.{0}".format(worker_name))
 
         for name in os.listdir("common"):
             if name.endswith(".py"):
@@ -104,6 +103,9 @@ class Worker(multiprocessing.Process):
         if self.type not in [TYPE_SPOUT, TYPE_BOLT, TYPE_OUTLET, TYPE_MINT]:
             raise NotImplementedError()
 
+    @property 
+    def logger(self):
+        return logging.getLogger("api.Worker.{0},{1}".format(self.worker_name,self.bind_address))
         
     def bind(self):
         """ bind address & notify controller """

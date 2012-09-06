@@ -17,8 +17,8 @@ from datetime import datetime, timedelta
 # setup worker's common vars
 #############################
 
-DB_HOST = 'ec2-54-245-3-3.us-west-2.compute.amazonaws.com'
-#DB_HOST = '127.0.0.1'
+#DB_HOST = 'ec2-54-245-3-3.us-west-2.compute.amazonaws.com'
+DB_HOST = '127.0.0.1'
 DB = 'amazon'
 
 connect(db=DB, host=DB_HOST)
@@ -41,7 +41,7 @@ def url2catn(url):
     m = re.compile(r'(n%3A.*?)&').search(url)
     if not m:
         m = re.compile(r'(n%3A.*)').search(url)
-    return unquote(m.group(1))
+    return unquote(m.group(1)).decode('utf-8')
 
 class Category(Document):
     cats        =   ListField(StringField()) 
@@ -88,17 +88,12 @@ class Product(Document):
 ################################
 class AmazonCategorySpout(storm.Spout):
     """ spout urls to fetch """
-    def setup(self):
-        self.cache = set()
-
     def execute(self):
         for k, v in ROOT_CATN.items():
             url = catn2url(v)
             ret = {"url":url+'&page=2'}
-            if url not in self.cache:
-                self.logger.debug("spouting: {0}".format(repr(ret)))
-                self.cache.add(url)
-                yield ret
+            self.logger.debug("spouting: {0}".format(repr(ret)))
+            yield ret
 
         for c in Category.objects(updated=False):
             if c.catn not in ROOT_CATN.values():
@@ -106,10 +101,7 @@ class AmazonCategorySpout(storm.Spout):
             else:
                 page = 2
             ret = {"url":c.url()+'&page='+str(page)}
-            if url not in self.cache:
-                self.logger.debug("spouting: {0}".format(repr(ret)))
-                self.cache.add(url)
-                yield ret
+            yield ret
 
         for c in Category.objects(update_time__lt=datetime.utcnow()-timedelta(days=7), updated=True):
             if c.catn not in ROOT_CATN.values():
@@ -117,10 +109,7 @@ class AmazonCategorySpout(storm.Spout):
             else:
                 page = 2
             ret = {"url":c.url()+'&page='+str(page)}
-            if url not in self.cache:
-                self.logger.debug("spouting: {0}".format(repr(ret)))
-                self.cache.add(url)
-                yield ret
+            yield ret
 
         time.sleep(10)
 
@@ -142,12 +131,12 @@ class AmazonCategoryFetcher(storm.SimpleFetcher):
         self.cache = {}
 
     def execute(self, url):
-        self.logger.info("extracting info from {0}".format(url))
         if url in self.cache and time.time() - self.cache.get(url) < 86400:
             return
         else:
             self.cache[url] = time.time()
 
+        self.logger.info("extracting info from {0}".format(url))
         text = self.session.get(url).text
         t = lxml.html.fromstring(text)
         #open("/tmp/test.html","w").write(text.encode('utf-8'))

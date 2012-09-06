@@ -145,7 +145,7 @@ class Worker(multiprocessing.Process):
             socks = dict(poller.poll(50))
             if socks.get(self.frontend) == zmq.POLLIN:
                 self._process_worker()
-            elif socks.get(self.rpc) == zmq.POLLIN:
+            if socks.get(self.rpc) == zmq.POLLIN:
                 self._process_rpc()
 
     def _process_rpc(self):

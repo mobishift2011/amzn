@@ -88,8 +88,11 @@ class Node(object):
             "import pickle\n",
             "\n",
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
             "worker_type = configs.TYPE_{0}\n".format(self.typename),
 =======
+=======
+>>>>>>> Stashed changes
         ]
 
         for line in global_imports:

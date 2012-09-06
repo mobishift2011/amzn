@@ -20,6 +20,13 @@ from rpcserver.configs import ROOT_PORT
 
 from msgpack import packb as pack, unpackb as unpack
 
+global_codeblocks = {}
+
+global_imports = [
+    "import lxml.html\n",
+    "from zlib import decompress\n"
+]
+
 class Worker(object):
     """ Raw Worker """
     def setup(self):
@@ -80,7 +87,23 @@ class Node(object):
             "import logging\n",
             "import pickle\n",
             "\n",
+<<<<<<< Updated upstream
             "worker_type = configs.TYPE_{0}\n".format(self.typename),
+=======
+        ]
+
+        for line in global_imports:
+            self.codes.append(line)
+        self.codes.append("\n")
+
+        self.codes.append("args = {0}\n".format(repr(global_codeblocks.keys())))
+        for k, v in global_codeblocks.items():
+            self.codes.append("{0} = pickle.loads({1})\n".format(k, repr(pickle.dumps(v))))
+        self.codes.append("\n")
+
+        self.codes.extend([
+            "worker_type = settings.TYPE_{0}\n".format(self.typename),
+>>>>>>> Stashed changes
             "\n",
             "configs = {0}\n".format(repr(self.configs)),
             "\n",
@@ -88,7 +111,7 @@ class Node(object):
             "\n"
             "fields = {0}\n".format(repr(self.fields)),
             "\n"
-        ]
+        ])
 
         for line in inspect.getsourcelines(worker_class.execute)[0]:
             # unindent 4 bytes
@@ -324,10 +347,14 @@ class SimpleFetcher(Bolt):
         # if cache not expired, don't fetch
         if url in self.cache and time.time() - self.cache.get(url) < self.cache_timeout:
             return
-        else:
-            self.cache[ url ] = time.time()
-                
-        content = self.session.get(url).text
+            
+        r = self.session.get(url)
+        if r.error
+            self.logger.error("fetching url {0}, got error {1}".format(url, r.error))
+            return
+
+        content = r.text
+        self.cache[ url ] = time.time()
         if selector:
             tree = lxml.html.fromstring(content)
             for t in tree.xpath(selector):
@@ -336,6 +363,15 @@ class SimpleFetcher(Bolt):
         else:
             ret = {"url":url,"content":compress(content)}
             yield ret
+
+def add_global_codeblocks(**kwargs):
+    global global_codeblocks
+    global_codeblocks = kwargs
+
+def add_global_imports(*args):
+    global global_imports
+    for line in args:
+        global_imports.append(line)
 
 if __name__ == '__main__':
     pass

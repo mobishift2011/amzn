@@ -81,4 +81,4 @@ if __name__ == "__main__":
     run_tieba_scraper()
     print "sleep 5 seconds, then destory topology"
     time.sleep(5)
-    stop_tieba_scraper()
+    #stop_tieba_scraper()

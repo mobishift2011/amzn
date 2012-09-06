@@ -91,8 +91,11 @@ class Node(object):
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
             "worker_type = configs.TYPE_{0}\n".format(self.typename),
 =======
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
 =======

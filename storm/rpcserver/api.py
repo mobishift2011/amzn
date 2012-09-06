@@ -7,16 +7,20 @@ Controller : schedules and monitors Workers
 Code Block : should lives in seperate .py files under `workers` directory,
              each contains an `execute` method and  a `configs` dict
 """
-import settings
-from settings import SHUFFLE_GROUPING, FIELD_GROUPING
-from settings import TYPE_SPOUT, TYPE_BOLT, TYPE_OUTLET, TYPE_MINT
+import configs
+from configs import SHUFFLE_GROUPING, FIELD_GROUPING
+from configs import TYPE_SPOUT, TYPE_BOLT, TYPE_OUTLET, TYPE_MINT
 
 import os
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 import re
 import zmq
 import uuid
 import time
 import random
+import pickle
 import logging
 import threading
 
@@ -32,7 +36,7 @@ class Worker(multiprocessing.Process):
     * respond to controller's ping request
     * throttled subject to configs
     """
-    usable_ports = set(settings.CONTROLLER_PORT_RANGE)
+    usable_ports = set(configs.CONTROLLER_PORT_RANGE)
     default_configs = {
         'num_coroutines' : 1,   # num of concurrently running greenlets
         'qps_limit'      : 0,   # 0 -> not limiting, not implemented yet
@@ -48,6 +52,26 @@ class Worker(multiprocessing.Process):
                         worker_name = "unnamed",
                         *args, **kwargs):
         super(Worker, self).__init__(*args, **kwargs)
+        self.logger = logging.getLogger("api.Worker.{0}".format(worker_name))
+
+        for name in os.listdir("common"):
+            if name.endswith(".py"):
+                content = open(os.path.join("common", name)).read()
+                lines = content.split('\n')
+                content = []
+                for line in lines:
+                    if "import sotrm" in line:
+                        continue
+
+                    if "storm." not in line:
+                        content.append(line)
+                    else:
+                        break
+                content = '\n'.join(content)
+                try:
+                    exec(content, globals())
+                except Exception, e:
+                    self.logger.exception(e.message)
 
         setup(self)
 
@@ -56,7 +80,6 @@ class Worker(multiprocessing.Process):
         self._execute = execute
         self.configs = Worker.default_configs
         self.configs.update(configs)
-        self.logger = logging.getLogger("api.Worker.{0}".format(worker_name))
 
         self.__stopped = False
 
@@ -347,7 +370,7 @@ class Controller(object):
         try:
             exec(code)
         except Exception, e:
-            self.logger.error("worker {0} cannot execute: {1}".format(worker_name, e.message))
+            self.logger.exception("worker {0} cannot execute: {1}".format(worker_name, e.message))
         else:
             try:
                 t = locals().get("worker_type")
@@ -360,7 +383,7 @@ class Controller(object):
                 self.logger.exception(e.message)
             else:
                 uuids = self.workers.keys()
-                w = Worker(type=t, execute=e, configs=c, setup=s, policy=p, fields=f,
+                w = Worker(type=t, execute=e, configs=c, setup=s, policy=p, fields=f, 
                         controller_address=self.ping_address, backend_addresses=backends, worker_name=worker_name)
                 w.start()
 

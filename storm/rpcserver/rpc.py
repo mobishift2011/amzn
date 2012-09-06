@@ -8,7 +8,7 @@ rpc messages/responses are all msgpacked
 {"op":"add_worker","worker_name":"name"}   ->  add name.py to workers
 {"op":"stop_worker","uuid":"asdfasdfasdf"} ->  stop worker
 """
-import settings
+import configs
 import logging
 import os
 
@@ -39,8 +39,8 @@ def handle(socket, address):
 
 def serve_forever():
     controller.start_workers()
-    server = StreamServer(('0.0.0.0', settings.ROOT_PORT), handle)
-    logger.info('Starting echo server on port {0}'.format(settings.ROOT_PORT))
+    server = StreamServer(('0.0.0.0', configs.ROOT_PORT), handle)
+    logger.info('Starting echo server on port {0}'.format(configs.ROOT_PORT))
     server.serve_forever()
 
 if __name__ == '__main__':

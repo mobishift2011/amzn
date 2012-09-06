@@ -53,13 +53,20 @@ def deploy_rpc():
     for t in tasks:
         t.join()
 
+def deploy_local():
+    """ copy files to local dir """
+    with settings(warn_only=True):
+        local("rm -rf /opt/pystorm")
+        local("mkdir -p /opt/pystorm")
+        put(PROJECT_ROOT+"/*", "/opt/pystorm/")
+
 def _deploy_rpc(host_string):
     """ deploy rpc server code to host """
     # copy files
     with settings(host_string=host_string, warn_only=True):
         run("rm -rf /opt/pystorm")
         run("mkdir -p /opt/pystorm")
-        put(os.path.join(PROJECT_ROOT, "rpcserver"), "/opt/pystorm/")
+        put(PROJECT_ROOT+"/*", "/opt/pystorm/")
 
     # remove if already exists
     with settings(host_string=host_string, warn_only=True):

@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 import time
 import logging
-import settings
+import configs
 
-worker_type = settings.TYPE_MINT
+worker_type = configs.TYPE_MINT
 num_workers = 1
 
 configs = {

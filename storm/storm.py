@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import os
 import time
+import pickle
 import socket
 import random
 import logging
@@ -75,10 +76,11 @@ class Node(object):
             "import sys\n",
             "sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))\n",
             "\n"
-            "import settings\n",
+            "import configs\n",
             "import logging\n",
+            "import pickle\n",
             "\n",
-            "worker_type = settings.TYPE_{0}\n".format(self.typename),
+            "worker_type = configs.TYPE_{0}\n".format(self.typename),
             "\n",
             "configs = {0}\n".format(repr(self.configs)),
             "\n",
@@ -88,15 +90,15 @@ class Node(object):
             "\n"
         ]
 
-        self.codes.append("\n")
         for line in inspect.getsourcelines(worker_class.execute)[0]:
             # unindent 4 bytes
             self.codes.append(line[4:])
-
         self.codes.append("\n")
+
         for line in inspect.getsourcelines(worker_class.setup)[0]:
             # unindent 4 bytes
             self.codes.append(line[4:])
+        self.codes.append("\n")
 
         self.check_type() 
 
@@ -106,6 +108,8 @@ class Node(object):
         self.parent = None
         self.children = []
         self.worker_status_list = []
+        self.created = False
+        self.backends = []
 
     def check_type(self):
         """ type checking """
@@ -136,12 +140,26 @@ class Node(object):
 
 class Controller(object):
     """ controls deploys and others """
+    def __init__(self, path):
+        self.path = path
+        self.name = path.rsplit('/',1)[-1]
+        self.host_added = []
+
     @property
     def logger(self):
         return logging.getLogger("storm.Topology")
-        
+
+    def add_common(self, host_string):
+        from fabric.api import settings, put, run
+        with settings(host_string=host_string, warn_only=True):
+            run("mkdir -p /opt/pystorm/rpcserver/common/")
+            put(self.path, "/opt/pystorm/rpcserver/common/")
+
     def add_worker(self, host_string, name, code, addresses):
         """ add worker to remote host, return bind_address """
+        if host_string not in self.host_added:
+            self.add_common(host_string)
+
         self.logger.warning("add worker {0} to {1}".format(name, host_string))
         from fabric.api import settings, run, put
 
@@ -200,17 +218,16 @@ class Controller(object):
 
 class Topology(object):
     """ a tree of nodes """
-    def __init__(self, node=None):
-        self.root = node
-        self.root_workers = []
-        self.ctrl = Controller()
+    def __init__(self, path):
+        self.roots = []
+        self.ctrl = Controller(path)
 
     @property
     def logger(self):
         return logging.getLogger("storm.Topology")
 
-    def set_root(self, node):
-        self.root = node
+    def add_root(self, node):
+        self.roots.append(node)
         return node
 
     def create(self, node=None):
@@ -219,7 +236,11 @@ class Topology(object):
         return address of the node worker
         """
         if node is None:
-            node = self.root
+            for node in self.roots:
+                self.create(node)
+
+        if node.created:
+            return node.backends  
 
         addresses = []
         for n in node.children:
@@ -250,6 +271,8 @@ class Topology(object):
                 host = host_string[host_string.find('@')+1:] if '@' in host_string else host_string
                 backends.append(addr.replace('0.0.0.0',host))
                 
+        node.created = True
+        node.backends = backends
         return backends
 
     def destroy(self, node=None):
@@ -308,10 +331,10 @@ class SimpleFetcher(Bolt):
         if selector:
             tree = lxml.html.fromstring(content)
             for t in tree.xpath(selector):
-                ret = {"content":compress(lxml.etree.tostring(t))}
+                ret = {"url":url,"content":compress(lxml.etree.tostring(t))}
                 yield ret
         else:
-            ret = {"content":compress(content)}
+            ret = {"url":url,"content":compress(content)}
             yield ret
 
 if __name__ == '__main__':

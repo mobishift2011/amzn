@@ -26,7 +26,7 @@ class TiebaIndexFetcher(storm.SimpleFetcher):
 
 class TiebaIndexProcessor(storm.Bolt):
     """ extract post info from index """ 
-    def execute(self, content):
+    def execute(self, url, content):
         import lxml.html
         from zlib import decompress
 
@@ -42,7 +42,7 @@ class TiebaPageFetcher(storm.SimpleFetcher):
 
 class TiebaPageProcessor(storm.Outlet):
     """ extract post content from page """
-    def execute(self, content):
+    def execute(self, url, content):
         import lxml.html
         from zlib import decompress
 
@@ -66,7 +66,7 @@ def run_tieba_scraper():
     p2 = storm.Node(TiebaPageProcessor, 4)
     
     # connect them
-    t.set_root(s).chain(f1).chain(p1).chain(f2).chain(p2)
+    t.add_root(s).chain(f1).chain(p1).chain(f2).chain(p2)
 
     # create and run 
     t.create() 

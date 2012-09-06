@@ -7,10 +7,11 @@ INSTANCE_TYPE = 't1.micro'
 EC2_ACCESS_ID = 'AKIAJCVQIOJ3SANYUC4Q'
 EC2_SECRET_KEY = '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'
 AMI_ID = 'ami-a4f87694'
-RSA_PUB = open('~/.ssh/id_rsa.pub').read()
 
 conn = boto.connect_ec2(EC2_ACCESS_ID, EC2_SECRET_KEY)
 conn = boto.connect_ec2(EC2_ACCESS_ID, EC2_SECRET_KEY, region=conn.get_all_regions()[4])
+
+#RSA_PUB = open('~/.ssh/id_rsa.pub').read()
 
 # keypair
 kp = conn.get_all_key_pairs()[0]

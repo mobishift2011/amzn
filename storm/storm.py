@@ -14,9 +14,9 @@ import lxml.etree
 
 from settings import PEERS
 
-from rpcserver.settings import SHUFFLE_GROUPING, FIELD_GROUPING
-from rpcserver.settings import TYPE_SPOUT, TYPE_BOLT, TYPE_OUTLET, TYPE_MINT
-from rpcserver.settings import ROOT_PORT
+from rpcserver.configs import SHUFFLE_GROUPING, FIELD_GROUPING
+from rpcserver.configs import TYPE_SPOUT, TYPE_BOLT, TYPE_OUTLET, TYPE_MINT
+from rpcserver.configs import ROOT_PORT
 
 from msgpack import packb as pack, unpackb as unpack
 

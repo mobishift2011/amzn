@@ -226,7 +226,7 @@ class AmazonCrawler(object):
     
         # nodes
         s = storm.Node(AmazonCategorySpout, 1, storm.FIELD_GROUPING, ('url',))
-        f = storm.Node(AmazonCategoryFetcher, 8)
+        f = storm.Node(AmazonCategoryFetcher, 12)
     
         # connect them
         t.add_root(s).chain(f)

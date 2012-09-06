@@ -58,7 +58,7 @@ def deploy_local():
     with settings(warn_only=True):
         local("rm -rf /opt/pystorm")
         local("mkdir -p /opt/pystorm")
-        put(PROJECT_ROOT+"/*", "/opt/pystorm/")
+        local("cp -r {0}/* /opt/pystorm".format(PROJECT_ROOT))
 
 def _deploy_rpc(host_string):
     """ deploy rpc server code to host """

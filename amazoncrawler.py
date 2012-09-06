@@ -88,17 +88,12 @@ class Product(Document):
 ################################
 class AmazonCategorySpout(storm.Spout):
     """ spout urls to fetch """
-    def setup(self):
-        self.cache = set()
-
     def execute(self):
         for k, v in ROOT_CATN.items():
             url = catn2url(v)
             ret = {"url":url+'&page=2'}
-            if url not in self.cache:
-                self.logger.debug("spouting: {0}".format(repr(ret)))
-                self.cache.add(url)
-                yield ret
+            self.logger.debug("spouting: {0}".format(repr(ret)))
+            yield ret
 
         for c in Category.objects(updated=False):
             if c.catn not in ROOT_CATN.values():
@@ -106,10 +101,7 @@ class AmazonCategorySpout(storm.Spout):
             else:
                 page = 2
             ret = {"url":c.url()+'&page='+str(page)}
-            if url not in self.cache:
-                self.logger.debug("spouting: {0}".format(repr(ret)))
-                self.cache.add(url)
-                yield ret
+            yield ret
 
         for c in Category.objects(update_time__lt=datetime.utcnow()-timedelta(days=7), updated=True):
             if c.catn not in ROOT_CATN.values():
@@ -117,10 +109,7 @@ class AmazonCategorySpout(storm.Spout):
             else:
                 page = 2
             ret = {"url":c.url()+'&page='+str(page)}
-            if url not in self.cache:
-                self.logger.debug("spouting: {0}".format(repr(ret)))
-                self.cache.add(url)
-                yield ret
+            yield ret
 
         time.sleep(10)
 
@@ -142,12 +131,12 @@ class AmazonCategoryFetcher(storm.SimpleFetcher):
         self.cache = {}
 
     def execute(self, url):
-        self.logger.info("extracting info from {0}".format(url))
         if url in self.cache and time.time() - self.cache.get(url) < 86400:
             return
         else:
             self.cache[url] = time.time()
 
+        self.logger.info("extracting info from {0}".format(url))
         text = self.session.get(url).text
         t = lxml.html.fromstring(text)
         #open("/tmp/test.html","w").write(text.encode('utf-8'))
@@ -237,7 +226,7 @@ class AmazonCrawler(object):
     
         # nodes
         s = storm.Node(AmazonCategorySpout, 1, storm.FIELD_GROUPING, ('url',))
-        f = storm.Node(AmazonCategoryFetcher, 8)
+        f = storm.Node(AmazonCategoryFetcher, 12)
     
         # connect them
         t.add_root(s).chain(f)

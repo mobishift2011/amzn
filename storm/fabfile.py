@@ -66,6 +66,8 @@ def _deploy_rpc(host_string):
     with settings(host_string=host_string, warn_only=True):
         run("rm -rf /opt/pystorm")
         run("mkdir -p /opt/pystorm")
+        run("mkdir -p /opt/pystorm/rpcserver/common/")
+        run("mkdir -p /opt/pystorm/rpcserver/workers/")
         put(PROJECT_ROOT+"/*", "/opt/pystorm/")
 
     # remove if already exists

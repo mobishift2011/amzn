@@ -39,7 +39,7 @@ def setup_env():
             run("mkvirtualenv "+ENV_NAME)
             with prefix("workon "+ENV_NAME):
                 run("pip install cython"+USE_INDEX)
-                run("pip install zerorpc lxml requests pymongo mongoengine"+USE_INDEX) 
+                run("pip install zerorpc lxml requests pymongo mongoengine redis redisco"+USE_INDEX) 
 
 def deploy_rpc():
     """ deploy rpc server code to host """

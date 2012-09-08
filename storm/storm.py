@@ -20,13 +20,6 @@ from rpcserver.configs import ROOT_PORT
 
 from msgpack import packb as pack, unpackb as unpack
 
-global_codeblocks = {}
-
-global_imports = [
-    "import lxml.html\n",
-    "from zlib import decompress\n"
-]
-
 class Worker(object):
     """ Raw Worker """
     def setup(self):
@@ -87,29 +80,7 @@ class Node(object):
             "import logging\n",
             "import pickle\n",
             "\n",
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
             "worker_type = configs.TYPE_{0}\n".format(self.typename),
-=======
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
-        ]
-
-        for line in global_imports:
-            self.codes.append(line)
-        self.codes.append("\n")
-
-        self.codes.append("args = {0}\n".format(repr(global_codeblocks.keys())))
-        for k, v in global_codeblocks.items():
-            self.codes.append("{0} = pickle.loads({1})\n".format(k, repr(pickle.dumps(v))))
-        self.codes.append("\n")
-
-        self.codes.extend([
-            "worker_type = settings.TYPE_{0}\n".format(self.typename),
->>>>>>> Stashed changes
             "\n",
             "configs = {0}\n".format(repr(self.configs)),
             "\n",
@@ -117,7 +88,7 @@ class Node(object):
             "\n"
             "fields = {0}\n".format(repr(self.fields)),
             "\n"
-        ])
+        ]
 
         for line in inspect.getsourcelines(worker_class.execute)[0]:
             # unindent 4 bytes
@@ -173,6 +144,7 @@ class Controller(object):
         self.path = path
         self.name = path.rsplit('/',1)[-1]
         self.host_added = []
+        self.ss = {}
 
     @property
     def logger(self):
@@ -200,6 +172,7 @@ class Controller(object):
             put(tmpfile, "/opt/pystorm/rpcserver/workers/{0}.py".format(name))
             
         resp = self._request(host_string, {"op":"add_worker","worker_name":name,"backends":addresses})
+            
         if resp and resp.get("worker_status"):
             return resp.get("worker_status")
         else:
@@ -217,17 +190,21 @@ class Controller(object):
             host_string = worker_status.get('host_string')
             self.stop_worker(host_string, uuid)
 
-    def request(self, host_string, request):
-        threading.Thread(target=self._request, args=(host_string, request)).start()
+    #def request(self, host_string, request):
+    #    threading.Thread(target=self._request, args=(host_string, request)).start()
 
     def _request(self, host_string, request):
         """ send request to rpcserver """
         host = host_string[host_string.find('@')+1:] if '@' in host_string else host_string
         port = ROOT_PORT
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        if host_string not in self.ss:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.connect((host, port))
+            self.ss[host_string] = s
+        else:
+            s = self.ss[host_string]
 
         try:
-            s.connect((host, port))
             s.sendall( pack(request)+'\n' ) 
             resp = unpack(s.recv(8192))
         except socket.timeout:
@@ -242,8 +219,6 @@ class Controller(object):
                 self.logger.exception("request has unexpected return: <request: {0}>, <response: {1}>".format(repr(request), repr(resp)))
 
             return resp.get("data")
-        finally:
-            s.close()
 
 class Topology(object):
     """ a tree of nodes """
@@ -353,14 +328,10 @@ class SimpleFetcher(Bolt):
         # if cache not expired, don't fetch
         if url in self.cache and time.time() - self.cache.get(url) < self.cache_timeout:
             return
-            
-        r = self.session.get(url)
-        if r.error
-            self.logger.error("fetching url {0}, got error {1}".format(url, r.error))
-            return
-
-        content = r.text
-        self.cache[ url ] = time.time()
+        else:
+            self.cache[ url ] = time.time()
+                
+        content = self.session.get(url).content
         if selector:
             tree = lxml.html.fromstring(content)
             for t in tree.xpath(selector):
@@ -369,15 +340,6 @@ class SimpleFetcher(Bolt):
         else:
             ret = {"url":url,"content":compress(content)}
             yield ret
-
-def add_global_codeblocks(**kwargs):
-    global global_codeblocks
-    global_codeblocks = kwargs
-
-def add_global_imports(*args):
-    global global_imports
-    for line in args:
-        global_imports.append(line)
 
 if __name__ == '__main__':
     pass

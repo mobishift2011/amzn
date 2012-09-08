@@ -56,7 +56,7 @@ class TiebaPageProcessor(storm.Outlet):
         self.logger.debug(u"saving username={0} to database".format(username))
 
 def run_tieba_scraper():
-    t = storm.Topology(__file__) 
+    t = storm.Topology() 
     
     # nodes
     s  = storm.Node(TiebaSpout, 1)
@@ -81,4 +81,4 @@ if __name__ == "__main__":
     run_tieba_scraper()
     print "sleep 5 seconds, then destory topology"
     time.sleep(5)
-    #stop_tieba_scraper()
+    stop_tieba_scraper()

@@ -56,7 +56,7 @@ class TiebaPageProcessor(storm.Outlet):
         self.logger.debug(u"saving username={0} to database".format(username))
 
 def run_tieba_scraper():
-    t = storm.Topology() 
+    t = storm.Topology(__file__) 
     
     # nodes
     s  = storm.Node(TiebaSpout, 1)
@@ -71,7 +71,7 @@ def run_tieba_scraper():
     # create and run 
     t.create() 
     
-    pickle.dump(t, open('/tmp/topology.dump','w'))
+    #pickle.dump(t, open('/tmp/topology.dump','w'))
 
 def stop_tieba_scraper():
     t = pickle.load( open('/tmp/topology.dump') )
@@ -79,6 +79,6 @@ def stop_tieba_scraper():
 
 if __name__ == "__main__":
     run_tieba_scraper()
-    print "sleep 5 seconds, then destory topology"
-    time.sleep(5)
-    stop_tieba_scraper()
+    #print "sleep 5 seconds, then destory topology"
+    #time.sleep(5)
+    #stop_tieba_scraper()

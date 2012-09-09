@@ -59,6 +59,7 @@ def deploy_local():
         local("rm -rf /opt/pystorm")
         local("mkdir -p /opt/pystorm")
         local("cp -r {0}/* /opt/pystorm".format(PROJECT_ROOT))
+        local("kill -9 `pgrep -f rpc.py`")
 
 def _deploy_rpc(host_string):
     """ deploy rpc server code to host """

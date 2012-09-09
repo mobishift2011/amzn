@@ -13,6 +13,7 @@ from configs import TYPE_SPOUT, TYPE_BOLT, TYPE_OUTLET, TYPE_MINT
 
 import os
 import sys
+import signal
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 import re
@@ -192,8 +193,7 @@ class Worker(multiprocessing.Process):
             resp = pack(ret)
             self.rpc.send(resp)
         except Exception, e:
-            if not self.__stopped:
-                self.logger.exception(e.message)
+            self.logger.exception(e.message)
 
     def _process_worker(self):
         try:
@@ -231,12 +231,9 @@ class Worker(multiprocessing.Process):
 
     def stop(self):
         self.__stopped = True
-        if self.rpc:
-            self.rpc.close()
-        if self.frontend:
-            self.frontend.close()
         status = self.get_status()
         return {"stopped":True, "status":status}
+    
 
     def connect(self, addresses):
         for address in addresses:
@@ -287,6 +284,13 @@ class Controller(object):
         # let ping receiver initialize first
         while not self.ping_address:
             time.sleep(0.05)
+    
+        threading.Thread(target=self.update_status).start()
+
+    def update_status(self):
+        while True:
+            time.sleep(10)
+            self._rpc_all('get_status()')
 
     def get_all_stats(self):
         return self._rpc_all('get_status()')
@@ -297,12 +301,13 @@ class Controller(object):
 
         ret = []
         for k, d in self.workers.items():
-            socket = self.context.socket(zmq.REQ)
-            socket.setsockopt(zmq.LINGER, 0)
-            socket.connect(d['rpc_address'])
-            poller.register(socket, zmq.POLLIN)
-            socket.send(cmd)
-            clients[socket] = k
+            if isinstance(d, dict) and d.get('rpc_address'):
+                socket = self.context.socket(zmq.REQ)
+                socket.setsockopt(zmq.LINGER, 0)
+                socket.connect(d['rpc_address'])
+                poller.register(socket, zmq.POLLIN)
+                socket.send(cmd)
+                clients[socket] = k
 
         t = time.time()
         while time.time() - t < 1.000:
@@ -338,6 +343,9 @@ class Controller(object):
         else:
             if req.get("op") == "all_stats":
                 response.update({"data":self.get_all_stats()})
+
+            elif req.get("op") == "get_status":
+                response.update({"data":self.workers.get(req.get("uuid"))})
 
             elif req.get("op") == "stop_all":
                 response.update({"data":self.stop_workers()})
@@ -387,6 +395,7 @@ class Controller(object):
                 for _ in range(num):
                     w = Worker(type=t, execute=e, configs=c, setup=s, policy=p, fields=f, 
                             controller_address=self.ping_address, backend_addresses=backends, worker_name=worker_name)
+                    time.sleep(0.03)
                     w.start()
 
                 # wait until we got pinged
@@ -394,12 +403,12 @@ class Controller(object):
 
                 added_infos = []
                 remain_count = num
-                while time.time() - t < 1.0:
+                while time.time() - t < 0.3*num:
                     time.sleep(0.05)
                     added_count, added_info = self.is_added(uuids, worker_name)
                     remain_count -= added_count 
                     added_infos.extend(added_info)
-                    if remain_count == 0:
+                    if remain_count <= 0:
                         break
 
                 return {"worker_status":added_info}
@@ -417,11 +426,16 @@ class Controller(object):
         pass
 
     def stop_worker_by_uuid(self, uuid):
-        d = self.workers[uuid]
-        socket = self.context.socket(zmq.REQ)
-        socket.setsockopt(zmq.LINGER, 0)
-        socket.connect(d['rpc_address'])
-        socket.send('stop()')
+        d = self.workers.get(uuid)
+        if d:
+            self.logger.warning("stopping worker {0} @ pid {1}".format(d['uuid'],d['pid']))
+            os.kill(d['pid'], signal.SIGKILL)
+            del self.workers[uuid]
+        #socket = self.context.socket(zmq.REQ)
+        #socket.setsockopt(zmq.LINGER, 0)
+        #socket.connect(d['rpc_address'])
+        #socket.send('stop()')
+        #resp = socket.recv()
         return {"status":"stopped"}
 
     def start_workers(self, name_backends=None):

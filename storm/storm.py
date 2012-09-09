@@ -161,7 +161,7 @@ class Controller(object):
         if host_string not in self.host_added:
             self.add_common(host_string)
 
-        self.logger.warning("add worker {0} to {1}".format(name, host_string))
+        self.logger.info("add worker {0} to {1}".format(name, host_string))
         from fabric.api import settings, run, put
 
         tmpfile = "/tmp/{0}.py".format(name)
@@ -173,14 +173,14 @@ class Controller(object):
             
         resp = self._request(host_string, {"op":"add_worker","worker_name":name,"backends":addresses,"num":num})
             
-        if resp and resp.get("worker_status"):
+        if resp:
             return resp.get("worker_status")
         else:
             raise ValueError("resp should be a dict with a key equals `worker_status`")
 
     def stop_worker(self, host_string, uuid):
         """ stop worker @ remote host """
-        self.logger.warning("stop worker {0} @ {1}".format(uuid, host_string))
+        self.logger.info("stop worker {0} @ {1}".format(uuid, host_string))
         resp = self._request(host_string, {"op":"stop_worker","uuid":uuid})
 
     def destroy(self, node):
@@ -189,6 +189,10 @@ class Controller(object):
             uuid = worker_status.get('uuid')
             host_string = worker_status.get('host_string')
             self.stop_worker(host_string, uuid)
+
+    def get_status(self, host_string, uuid):
+        resp = self._request(host_string, {"op":"get_status","uuid":uuid})
+        return resp
 
     #def request(self, host_string, request):
     #    threading.Thread(target=self._request, args=(host_string, request)).start()
@@ -242,6 +246,8 @@ class Topology(object):
         if node is None:
             for node in self.roots:
                 self.create(node)
+            # clear ctrl's socket so that we can pickle it
+            self.ctrl.ss = {}
 
         if node.created:
             return node.backends  
@@ -264,6 +270,8 @@ class Topology(object):
             if bonus > 0:
                 num = average+1
                 bonus -= 1
+            else:
+                num = average
 
             host_string = random.choice(round_robin_peers)
             round_robin_peers.remove(host_string)
@@ -276,8 +284,9 @@ class Topology(object):
                 node.add_worker_status(status)
 
             for addr in addrs:
-                host = host_string[host_string.find('@')+1:] if '@' in host_string else host_string
-                backends.append(addr.replace('0.0.0.0',host))
+                if addr:
+                    host = host_string[host_string.find('@')+1:] if '@' in host_string else host_string
+                    backends.append(addr.replace('0.0.0.0',host))
                 
         node.created = True
         node.backends = backends
@@ -285,12 +294,30 @@ class Topology(object):
 
     def destroy(self, node=None):
         if not node:
-            node = self.root
+            for node in self.roots:
+                self.destroy(node)
+            self.ctrl.ss = {}
         
         self.ctrl.destroy(node)
 
         for n in node.children:
             self.destroy(n)
+
+    def all_status(self, node=None):
+        statuses = []
+        if not node:
+            for node in self.roots:
+                statuses.extend(self.all_status(node))
+            self.ctrl.ss = {}
+            return statuses
+    
+        for status in node.worker_status_list:
+            statuses.append(self.ctrl.get_status(status.get('host_string'), status.get('uuid')))
+
+        for n in node.children:
+            statuses.extend(self.all_status(n))
+    
+        return statuses
 
 
 class SimpleFetcher(Bolt):

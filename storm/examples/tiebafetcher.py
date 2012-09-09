@@ -77,8 +77,15 @@ def stop_tieba_scraper():
     t = pickle.load( open('/tmp/topology.dump') )
     t.destroy()
 
+def monitor_tieba_scraper():
+    t = pickle.load( open('/tmp/topology.dump') )
+    for x in t.all_status():
+        print x['pid'], x['rpc_address'], x['loop_count']
+
 if __name__ == "__main__":
     run_tieba_scraper()
-    #print "sleep 5 seconds, then destory topology"
-    #time.sleep(5)
-    #stop_tieba_scraper()
+    print "sleep 5 seconds, then destory topology"
+    time.sleep(5)
+    monitor_tieba_scraper()
+    stop_tieba_scraper()
+    #time.sleep(1)

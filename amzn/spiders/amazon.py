@@ -5,6 +5,7 @@ from amzn.items import ProductItem
 from scrapy.http import Request
 import pymongo, re, time
 import sys
+reload(sys)
 sys.setdefaultencoding('utf-8')
 
 # try to implement a spider that does both listing and detail pages

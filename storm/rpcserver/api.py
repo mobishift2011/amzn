@@ -170,7 +170,7 @@ class Worker(multiprocessing.Process):
             socks = dict(poller.poll(50))
             if socks.get(self.frontend) == zmq.POLLIN:
                 self._process_worker()
-            elif socks.get(self.rpc) == zmq.POLLIN:
+            if socks.get(self.rpc) == zmq.POLLIN:
                 self._process_rpc()
 
     def _process_rpc(self):
@@ -343,7 +343,7 @@ class Controller(object):
                 response.update({"data":self.stop_workers()})
 
             elif req.get("op") == "add_worker":
-                response.update({"data":self.add_worker(req.get("worker_name"), backends=req.get("backends"))})
+                response.update({"data":self.add_worker(req.get("worker_name"), req.get('num'), backends=req.get("backends"))})
 
             elif req.get("op") == "stop_worker":
                 response.update({"data":self.stop_worker_by_uuid(req.get("uuid"))})
@@ -356,17 +356,16 @@ class Controller(object):
 
     def is_added(self, initial_uuids, worker_name):
         added_workers = set(self.workers.keys()) - set(initial_uuids)
-        added = False
-        added_info = {}
+        added_count = 0
+        added_info = []
         for w in added_workers:
             if self.workers[w].get("worker_name") == worker_name and (not self.workers[w].get("recorded", False)):
-                added = True
-                added_info.update(self.workers[w])
+                added_count += 1
+                added_info.append(self.workers[w])
                 self.workers[w]['recorded'] = True
-                break
-        return added, added_info
+        return added_count, added_info
 
-    def add_worker(self, worker_name, backends=[]):
+    def add_worker(self, worker_name, num=1, backends=[]):
         " add/start a worker based on its name "
         code = open(os.path.join("workers", worker_name+".py")).read()
         try:
@@ -385,22 +384,27 @@ class Controller(object):
                 self.logger.exception(e.message)
             else:
                 uuids = self.workers.keys()
-                w = Worker(type=t, execute=e, configs=c, setup=s, policy=p, fields=f, 
-                        controller_address=self.ping_address, backend_addresses=backends, worker_name=worker_name)
-                w.start()
+                for _ in range(num):
+                    w = Worker(type=t, execute=e, configs=c, setup=s, policy=p, fields=f, 
+                            controller_address=self.ping_address, backend_addresses=backends, worker_name=worker_name)
+                    w.start()
 
                 # wait until we got pinged
                 t = time.time()
 
+                added_infos = []
+                remain_count = num
                 while time.time() - t < 1.0:
                     time.sleep(0.05)
-                    added, added_info = self.is_added(uuids, worker_name)
-                    if added:
+                    added_count, added_info = self.is_added(uuids, worker_name)
+                    remain_count -= added_count 
+                    added_infos.extend(added_info)
+                    if remain_count == 0:
                         break
 
                 return {"worker_status":added_info}
 
-        return {"worker_status":{}}
+        return {"worker_status":[]}
 
     def check_health(self):
         """ do a health check and auto recovery

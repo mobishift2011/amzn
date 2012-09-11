@@ -156,7 +156,7 @@ class Controller(object):
             run("mkdir -p /opt/pystorm/rpcserver/common/")
             put(self.path, "/opt/pystorm/rpcserver/common/")
 
-    def add_worker(self, host_string, name, code, addresses):
+    def add_worker(self, host_string, name, code, addresses, num=1):
         """ add worker to remote host, return bind_address """
         if host_string not in self.host_added:
             self.add_common(host_string)
@@ -171,7 +171,7 @@ class Controller(object):
             run("mkdir -p /opt/pystorm/rpcserver/workers")
             put(tmpfile, "/opt/pystorm/rpcserver/workers/{0}.py".format(name))
             
-        resp = self._request(host_string, {"op":"add_worker","worker_name":name,"backends":addresses})
+        resp = self._request(host_string, {"op":"add_worker","worker_name":name,"backends":addresses,"num":num})
             
         if resp and resp.get("worker_status"):
             return resp.get("worker_status")
@@ -257,21 +257,25 @@ class Topology(object):
     def spawn(self, node, addresses):
         """ spawn a worker for a node, add addresses to its backend """
         backends = []
-        round_robin_peers = []
+        round_robin_peers = list(PEERS)
+        average, bonus = divmod(node.num_workers, len(PEERS))
 
-        for _ in range(node.num_workers):
-            if not round_robin_peers:
-                round_robin_peers = list(PEERS)
+        for _ in range(len(PEERS)):
+            if bonus > 0:
+                num = average+1
+                bonus -= 1
 
             host_string = random.choice(round_robin_peers)
             round_robin_peers.remove(host_string)
 
-            status = self.ctrl.add_worker(host_string, node.worker_name, node.code, addresses) 
-            addr = status.get("bind_address")
-            status.update({'host_string':host_string})
-            node.add_worker_status(status)
+            statuses = self.ctrl.add_worker(host_string, node.worker_name, node.code, addresses, num) 
+            addrs = []
+            for status in statuses:
+                addrs.append( status.get("bind_address") )
+                status.update({'host_string':host_string})
+                node.add_worker_status(status)
 
-            if addr:
+            for addr in addrs:
                 host = host_string[host_string.find('@')+1:] if '@' in host_string else host_string
                 backends.append(addr.replace('0.0.0.0',host))
                 

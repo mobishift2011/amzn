@@ -13,7 +13,6 @@ from configs import TYPE_SPOUT, TYPE_BOLT, TYPE_OUTLET, TYPE_MINT
 
 import os
 import sys
-import signal
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 import re
@@ -54,27 +53,6 @@ class Worker(multiprocessing.Process):
                         *args, **kwargs):
         super(Worker, self).__init__(*args, **kwargs)
 
-        for name in os.listdir("common"):
-            if name.endswith(".py"):
-                content = open(os.path.join("common", name)).read()
-                lines = content.split('\n')
-                content = []
-                for line in lines:
-                    if "import sotrm" in line:
-                        continue
-
-                    if "storm." not in line:
-                        content.append(line)
-                    else:
-                        break
-                content = '\n'.join(content)
-                try:
-                    exec(content, globals())
-                except Exception, e:
-                    self.logger.exception(e.message)
-
-        setup(self)
-
         self.worker_name = worker_name
         self.uuid = uuid.uuid4().hex
         self._execute = execute
@@ -103,6 +81,27 @@ class Worker(multiprocessing.Process):
         self.type            = type
         if self.type not in [TYPE_SPOUT, TYPE_BOLT, TYPE_OUTLET, TYPE_MINT]:
             raise NotImplementedError()
+
+        for name in os.listdir("common"):
+            if name.endswith(".py"):
+                content = open(os.path.join("common", name)).read()
+                lines = content.split('\n')
+                content = []
+                for line in lines:
+                    if "import sotrm" in line:
+                        continue
+
+                    if "storm." not in line:
+                        content.append(line)
+                    else:
+                        break
+                content = '\n'.join(content)
+                try:
+                    exec(content, globals())
+                except Exception, e:
+                    self.logger.exception(e.message)
+
+        setup(self)
 
     @property 
     def logger(self):
@@ -193,7 +192,8 @@ class Worker(multiprocessing.Process):
             resp = pack(ret)
             self.rpc.send(resp)
         except Exception, e:
-            self.logger.exception(e.message)
+            if not self.__stopped:
+                self.logger.exception(e.message)
 
     def _process_worker(self):
         try:
@@ -231,9 +231,12 @@ class Worker(multiprocessing.Process):
 
     def stop(self):
         self.__stopped = True
+        if self.rpc:
+            self.rpc.close()
+        if self.frontend:
+            self.frontend.close()
         status = self.get_status()
         return {"stopped":True, "status":status}
-    
 
     def connect(self, addresses):
         for address in addresses:
@@ -284,13 +287,6 @@ class Controller(object):
         # let ping receiver initialize first
         while not self.ping_address:
             time.sleep(0.05)
-    
-        threading.Thread(target=self.update_status).start()
-
-    def update_status(self):
-        while True:
-            time.sleep(10)
-            self._rpc_all('get_status()')
 
     def get_all_stats(self):
         return self._rpc_all('get_status()')
@@ -301,13 +297,12 @@ class Controller(object):
 
         ret = []
         for k, d in self.workers.items():
-            if isinstance(d, dict) and d.get('rpc_address'):
-                socket = self.context.socket(zmq.REQ)
-                socket.setsockopt(zmq.LINGER, 0)
-                socket.connect(d['rpc_address'])
-                poller.register(socket, zmq.POLLIN)
-                socket.send(cmd)
-                clients[socket] = k
+            socket = self.context.socket(zmq.REQ)
+            socket.setsockopt(zmq.LINGER, 0)
+            socket.connect(d['rpc_address'])
+            poller.register(socket, zmq.POLLIN)
+            socket.send(cmd)
+            clients[socket] = k
 
         t = time.time()
         while time.time() - t < 1.000:
@@ -344,14 +339,11 @@ class Controller(object):
             if req.get("op") == "all_stats":
                 response.update({"data":self.get_all_stats()})
 
-            elif req.get("op") == "get_status":
-                response.update({"data":self.workers.get(req.get("uuid"))})
-
             elif req.get("op") == "stop_all":
                 response.update({"data":self.stop_workers()})
 
             elif req.get("op") == "add_worker":
-                response.update({"data":self.add_worker(req.get("worker_name"), req.get('num'), backends=req.get("backends"))})
+                response.update({"data":self.add_worker(req.get("worker_name"), backends=req.get("backends"))})
 
             elif req.get("op") == "stop_worker":
                 response.update({"data":self.stop_worker_by_uuid(req.get("uuid"))})
@@ -364,16 +356,17 @@ class Controller(object):
 
     def is_added(self, initial_uuids, worker_name):
         added_workers = set(self.workers.keys()) - set(initial_uuids)
-        added_count = 0
-        added_info = []
+        added = False
+        added_info = {}
         for w in added_workers:
             if self.workers[w].get("worker_name") == worker_name and (not self.workers[w].get("recorded", False)):
-                added_count += 1
-                added_info.append(self.workers[w])
+                added = True
+                added_info.update(self.workers[w])
                 self.workers[w]['recorded'] = True
-        return added_count, added_info
+                break
+        return added, added_info
 
-    def add_worker(self, worker_name, num=1, backends=[]):
+    def add_worker(self, worker_name, backends=[]):
         " add/start a worker based on its name "
         code = open(os.path.join("workers", worker_name+".py")).read()
         try:
@@ -392,28 +385,22 @@ class Controller(object):
                 self.logger.exception(e.message)
             else:
                 uuids = self.workers.keys()
-                for _ in range(num):
-                    w = Worker(type=t, execute=e, configs=c, setup=s, policy=p, fields=f, 
-                            controller_address=self.ping_address, backend_addresses=backends, worker_name=worker_name)
-                    time.sleep(0.03)
-                    w.start()
+                w = Worker(type=t, execute=e, configs=c, setup=s, policy=p, fields=f, 
+                        controller_address=self.ping_address, backend_addresses=backends, worker_name=worker_name)
+                w.start()
 
                 # wait until we got pinged
                 t = time.time()
 
-                added_infos = []
-                remain_count = num
-                while time.time() - t < 0.3*num:
+                while time.time() - t < 1.0:
                     time.sleep(0.05)
-                    added_count, added_info = self.is_added(uuids, worker_name)
-                    remain_count -= added_count 
-                    added_infos.extend(added_info)
-                    if remain_count <= 0:
+                    added, added_info = self.is_added(uuids, worker_name)
+                    if added:
                         break
 
                 return {"worker_status":added_info}
 
-        return {"worker_status":[]}
+        return {"worker_status":{}}
 
     def check_health(self):
         """ do a health check and auto recovery
@@ -426,16 +413,11 @@ class Controller(object):
         pass
 
     def stop_worker_by_uuid(self, uuid):
-        d = self.workers.get(uuid)
-        if d:
-            self.logger.warning("stopping worker {0} @ pid {1}".format(d['uuid'],d['pid']))
-            os.kill(d['pid'], signal.SIGKILL)
-            del self.workers[uuid]
-        #socket = self.context.socket(zmq.REQ)
-        #socket.setsockopt(zmq.LINGER, 0)
-        #socket.connect(d['rpc_address'])
-        #socket.send('stop()')
-        #resp = socket.recv()
+        d = self.workers[uuid]
+        socket = self.context.socket(zmq.REQ)
+        socket.setsockopt(zmq.LINGER, 0)
+        socket.connect(d['rpc_address'])
+        socket.send('stop()')
         return {"status":"stopped"}
 
     def start_workers(self, name_backends=None):

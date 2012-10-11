@@ -263,7 +263,8 @@ class Server:
             else:
                 link = l if l.startswith('http') else self.caturl + l
 
-            m = re.compile(r'http://www.dickssportinggoods.com/product/index.jsp.*productId=(\d+).*').match(link)
+            # http://www.dickssportinggoods.com/config/index.jsp?productId=11326588
+            m = re.compile(r'http://www.dickssportinggoods.com/(product|config)/index.jsp.*productId=(\d+).*').match(link)
             if m:
                 itemNO = m.group(1)
             else:

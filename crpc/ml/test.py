@@ -30,7 +30,7 @@ def the_cleanse_amazon(p):
 def cleanse_amazon():
     from crawlers.amazon.models import Product as AmazonProduct
     connect(db='amazon')
-    counter = 12210000
+    counter = 651000
     for p in AmazonProduct.objects().order_by('full_update_time').skip(counter).timeout(False):
         counter += 1
         if counter % 1000 == 0:

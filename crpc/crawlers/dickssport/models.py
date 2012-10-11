@@ -34,7 +34,7 @@ class Product(Document):
     image = StringField()
     price = StringField()
     shipping = StringField()
-    avaiable = StringField()
+    available = StringField()
     rating = FloatField()
     reviews = IntField()
     sell_rank = IntField()
@@ -42,6 +42,7 @@ class Product(Document):
     model = StringField()
     updated = BooleanField()
     also_like = ListField()
+    comment = ListField()
     catstrs = ListField(StringField())
     meta = {
         "indexes": ["updated"]

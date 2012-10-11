@@ -117,102 +117,81 @@ def listing():
     
 
 def product():
-    url = 'http://www.cabelas.com/product/Boating/Electric-Trolling-Motors/Bow-Mount%7C/pc/104794380/c/104716980/sc/104233680/MotorGuide174-Brute-Series-Bow-Mount-150-75-FB/1152272.uts?destination=%2Fcatalog%2Fbrowse%2Fboating-electric-trolling-motors-bow-mount%2F_%2FN-1100545%2FNs-CATEGORY_SEQ_104233680%3FWTz_l%3DSBC%253BMMcat104794380%253Bcat104716980&WTz_l=SBC%3BMMcat104794380%3Bcat104716980%3Bcat104233680'
-    url = 'http://www.cabelas.com/product/Hunting/Hunting-Game-Calls/Turkey-Calls|/pc/104791680/c/104725980/sc/104662980/WoodHaven-TKM-Diaphragm-Call-Three-Pack/1324129.uts?destination=%2Fcatalog%2Fbrowse%2Fhunting-hunting-game-calls-turkey-calls%2F_%2FN-1100097%2FNs-CATEGORY_SEQ_104662980%3Fpcrid%3D8195158497%26WTz_l%3DSBC%253BMMcat104791680%253Bcat104725980&WTz_l=SBC%3BMMcat104791680%3Bcat104725980%3Bcat104662980'
 
-    url = 'http://www.cabelas.com/product/714212.uts'
-    url = 'http://www.cabelas.com/product/738848.uts'
-    url = 'http://www.cabelas.com/product/755814.uts'
-#    url = 'http://www.cabelas.com/product/1328017.uts'
+    url = 'http://www.dickssportinggoods.com/product/index.jsp?productId=10828736'
+    url = 'http://www.dickssportinggoods.com/product/index.jsp?productId=11259348'
+
+    url = 'http://www.dickssportinggoods.com/product/index.jsp?productId=2040792'
+    url = 'http://www.dickssportinggoods.com/product/index.jsp?productId=12261498'
+
+    url = 'http://www.dickssportinggoods.com/product/index.jsp?productId=12319729'
     tree, cont = iurl_otree(url)
 
     try:
-        node = tree.xpath('//div[@id="siteContent"]//div[@id="productDetailsTemplate"]/div[@class="layoutWithRightColumn"]')[0]
+        node = tree.xpath('//div[@id="wrapper"]/div[@id="frame"]/div[@id="align"]')[0]
     except:
-        log.log_traceback(self.logger_product, 'Parsing page problem: {0}'.format(url))
-
-    timenow = datetime.utcnow()
+        print 'Parsing page problem'
 
     also_like = []
-    like = node.xpath('./div[@class="layoutRightColumn"]/div[@class="youMayAlsoLike"]//div[@class="item"]//a[@class="itemName"]')
+    like = node.xpath('./div[@id="lCol"]//div[@class="mbContent"]//ul/li')
     for l in like:
-        link = l.get('href') if l.get('href').startswith('http') else 'http://www.cabelas.com' + l.get('href')
-        also_like.append( (l.text_content(), link) )
-
-#    img = node.xpath('./div[@class="layoutCenterColumn"]/div[@class="js-itemImageViewer itemImageInclude"]/img/@src')
-    img = tree.xpath('/html/head/meta[@property="og:image"]/@content')
-    image = img[0] if img else ''
-
-    info = node.xpath('./div[@class="layoutCenterColumn"]/div[@id="productInfo"]')[0]
-    available = info.xpath('.//div[@class="variantConfigurator"]//div[@class="stockMessage"]/span/text()')
-    if not available:
-        if info.xpath('.//div[@class="variantConfigurator"]//div[@class="js-availabilityMessage"]'):
-            jsid = re.compile(r"ddWidgetEntries\['js-vc13280170'] =(.*), values ").search(cont).group(1).split(':')[-1].strip()
-            post_data = {
-                'productVariantId': jsid,
-            }
-            jsurl = 'http://www.cabelas.com/catalog/includes/availabilityMessage_include.jsp'
-            sess = requests.Session()
-            resp_cont = sess.post(jsurl, data=post_data).content
-            available = re.compile(r'<span class="availabilityMessage">(.*)</span>').search(resp_cont).group(1)
-
-    price = info.xpath('.//div[@class="price"]/dl[@class="salePrice"]/dd[1]/text()')
-    if not price:
-        price = info.xpath('.//div[@class="price"]/dl[1]/dd[1]/text()')
-    if not price:
-        avail = info.xpath('.//div[@class="variantConfigurator"]/span[@class="soldOut"]/text()')
-        if avail == ['Sold Out']:
-            available = 'Sold Out'
-
-    price = price[0].replace(',', '').replace('$', '')
-
-    itemNO = info.xpath('.//div[@class="variantConfigurator"]//span[@class="itemNumber"]/text()') # this xpath need strip()
-    if not itemNO:
-        itemNO = tree.xpath('//div[@id="siteContent"]//div[@class="w100"]/meta[1]/@content')
-    if not itemNO:
-        print 'Page donot have a itemNO: {0}'.format(url)
-    else:
-        itemNO = itemNO[0].strip()
-
-
-    ship = info.xpath('.//div[@class="bottomNote"]//td/img/@alt')
-    if ship and ship[0] == 'In-Store Pick Up':
-        shipping = 'free shipping'
-    else:
-        shipping = ''
-
-
-    desc = node.xpath('./div[@class="layoutCenterColumn"]/div[@id="tabsCollection"]//div[@id="description"]')
-    description = desc[0].text_content()
-
-    if node.xpath('./div[@class="layoutCenterColumn"]/div[@id="tabsCollection"]//div[@class="panel"]//div[@id="RRQASummaryBlock"]/div[@id="BVRRSummaryContainer"]'):
-        jsurl = 'http://reviews.cabelas.com/8815/{0}/reviews.djs?format=embeddedhtml'.format(itemNO.split('-')[-1])
-        tree, rating_content = iurl_otree(jsurl)
-        m = re.compile(r'<span class=\\"BVRRNumber BVRRRatingNumber\\">(.*?)<\\/span>').search(rating_content)
-        if m:
-            rating = float(m.group(1))
-        m = re.compile(r'<span class=\\"BVRRNumber BVRRBuyAgainTotal\\">(.*?)<\\/span>').search(rating_content)
-        if m:
-            review = float(m.group(1))
-        print rating, review
-
-
-    model = []
-    models = node.xpath('./div[@class="layoutCenterColumn"]/div[@id="productChart"]//tbody/tr/td[1]/text()')
-    for m in models:
-        model.append(m)
+        link = l.xpath('./a/@href')[0]
+        title = l.xpath('./a/text()')[0]
+        link = link if link.startswith('http') else 'http://www.dickssportinggoods.com' + link
+        also_like.append( (title, link) )
 
     print also_like
-    print image, itemNO, shipping
-    print price, available
-    print description
-    print model
+
+    title = node.xpath('./div[@id="rCol"]//h1[@class="productHeading"]/text()')[0]
+    price = node.xpath('./div[@id="rCol"]//div[@class="op"]/text()')[0]
+    if not price:
+        print 'Page donot have a price'
+    else:
+        price = price.split(':')[1].strip().replace('$', '').replace(',', '')
+
+    print [title], [price]
+
+    shipping = node.xpath('./div[@id="rCol"]//div[@class="fs"]//font[@class="alert"]/text()')
+    img = node.xpath('./div[@id="rCol"]/div[@class="r1w secSpace"]//div[@id="galImg"]/a/img/@src')
+    if not img:
+        img = tree.xpath('//div[@id="wrapper"]/div[@id="frame"]/form[@name="path"]/input/@value')
+    if not img:
+        print 'Page donot have a image'
+
+    if shipping:
+        print [shipping],
+    print [img[0]]
+
+    info = node.xpath('./div[@id="rCol"]/div[@id="FieldsetProductInfo"]')
+    description = info[0].text_content()
+    available = node.xpath('./div[@id="rCol"]//div[@id="prodpad"]//div[@class="availability"]/text()')
+    if available:
+        # ['\n\n    \n    ', ' In stock, leaves warehouse in 1 - 2 full bus. days. ', '\n\t']
+        available = ''.join(available).strip()
+
+    print [description], [available]
+
+    rating = node.xpath('./div[@id="rCol"]/div[@id="FieldsetCustomerReviews"]//div[@class="pr-snapshot-rating rating"]/span[@class="pr-rating pr-rounded average"]/text()')
+    reviews = node.xpath('./div[@id="rCol"]/div[@id="FieldsetCustomerReviews"]//div[@class="pr-snapshot-rating rating"]//span[@class="count"]/text()')
+    comment = []
+    comment_all = node.xpath('./div[@id="rCol"]/div[@id="FieldsetCustomerReviews"]//div[starts-with(@id, "pr-contents-")]//div[@class="pr-review-wrap"]')
+    for comm in comment_all:
+        rate = comm.xpath('.//span[@class="pr-rating pr-rounded"]/text()')
+        head = comm.xpath('.//p[@class="pr-review-rating-headline"]/text()')
+        text = comm.xpath('./div[@class="pr-review-main-wrapper"]//p[@class="pr-comments"]/text()')
+        comment.append( (rate, head, text) )
+
+    print [rating], [reviews], '++', comment
+    m = re.compile(r'.*(Model|Model Number):(.*)\n').search(description)
+    if m:
+        model = m.group(2).strip()
+        print model
 
 
 if __name__ == '__main__':
 #    top()
-    second_category()
+#    second_category()
 #    listing()
-#    product()
+    product()
 
 

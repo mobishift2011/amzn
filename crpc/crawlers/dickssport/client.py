@@ -1,3 +1,4 @@
+#encoding=utf-8
 import gevent
 from gevent import monkey
 monkey.patch_all()
@@ -6,6 +7,8 @@ from settings import *
 from models import *
 
 import sys
+reload(sys)
+sys.setdefaultencoding('utf-8')
 import time
 import random
 import zerorpc
@@ -31,9 +34,7 @@ def crawl_category():
 
 
 def crawl_listing(*targs):
-    """ Parameter *targs for updating:
-            price, available, shipping, rating, reviews, sell_rank ...
-
+    """
         Output:
             num_new_crawl - newly crawled
             num_new_update - newly updated
@@ -66,14 +67,22 @@ def crawl_product():
     count = 0
     t = time.time()
     for p in Product.objects(updated=False).timeout(False):
-        url = p.url()
-        ss.crawl_product(url, p.itemID)
-#        pool.spawn(random.choice(clients).crawl_product, url)
+        ss.crawl_product(p.url())
+#        pool.spawn(random.choice(clients).crawl_product, p.url())
         progress('.')
         count += 1
         if count % 100 == 0:
             print 'qps', count/(time.time()-t)
 #    pool.join()
+
+
+def update_product(*targs):
+    """ Parameter *targs for updating:
+            price, available, shipping, rating, reviews, sell_rank ...
+    """
+    allow_param = ['price', 'sell_rank', 'available', 'shipping', 'rating', 'reviews']
+    for p in Product.objects().timeout(False):
+        pass
 
 
 if __name__ == '__main__':

@@ -168,7 +168,7 @@ class Server:
                 self.queue.put((cate.cats, link))
 
 
-    def crawl_listing(self, url, catstr):
+    def crawl_listing(self, url, catstr, *targs):
         content = self.fetch_page(url)
         if not content:
             log.log_traceback(self.logger_list, 'page url can not be downloaded {0}'.format(url))
@@ -196,9 +196,17 @@ class Server:
                 self.parse_listing(link, catstr, page, ITEM_PER_PAGE)
 
         
-    def crawl_product(self, url, itemID):
+    def crawl_product(self, url):
         content = self.fetch_page(url)
-        self.parse_product(url, content, itemID)
+        if not content:
+            log.log_traceback(self.logger_product, 'page url can not be downloaded {0}'.format(url))
+        try:
+            tree = lxml.html.fromstring(content)
+        except:
+            log.log_traceback(self.logger_product, 'Page {0} can not build xml tree {1}'.format(url, content))
+            return
+        self.parse_product(url, tree)
+
         
     def fetch_page(self, url):
         try:
@@ -255,7 +263,13 @@ class Server:
             else:
                 link = l if l.startswith('http') else self.caturl + l
 
-            itemNO = re.compile(r'http://www.dickssportinggoods.com/product/index.jsp.*productId=(\d+).*').match(link).group(1)
+            m = re.compile(r'http://www.dickssportinggoods.com/product/index.jsp.*productId=(\d+).*').match(link)
+            if m:
+                itemNO = m.group(1)
+            else:
+                log.log_traceback(self.logger_list, '!!* Can not get itemNO from link {0} {1}'.format(url, j))
+                continue
+
             # This rank changes all the time.If some product updated,some not, same rank on two products will happen!
             sell_rank = ITEM_PER_PAGE * (page_num-1) + j + 1
 
@@ -279,109 +293,84 @@ class Server:
 
 
 
-    def parse_product(self, url, content, itemID):
-        tree = lxml.html.fromstring(content)
+    def parse_product(self, url, tree):
         try:
-            node = tree.xpath('//div[@id="siteContent"]//div[@id="productDetailsTemplate"]/div[@class="layoutWithRightColumn"]')[0]
+            node = tree.xpath('//div[@id="wrapper"]/div[@id="frame"]/div[@id="align"]')[0]
         except:
             log.log_traceback(self.logger_product, 'Parsing page problem: {0}'.format(url))
-
-        timenow = datetime.utcnow()
+            redis_SERVER.hincrby(redis_KEY, 'num_parse_error', 1)
+            return
 
         also_like = []
-        like = node.xpath('./div[@class="layoutRightColumn"]/div[@class="youMayAlsoLike"]//div[@class="item"]//a[@class="itemName"]')
+        like = node.xpath('./div[@id="lCol"]//div[@class="mbContent"]//ul/li')
         for l in like:
-            link = l.get('href') if l.get('href').startswith('http') else 'http://www.cabelas.com' + l.get('href')
-            also_like.append( (l.text_content(), link) )
+            link = l.xpath('./a/@href')[0]
+            title = l.xpath('./a/text()')[0]
+            link = link if link.startswith('http') else self.caturl + link
+            also_like.append( (title, link) )
 
-#        img = node.xpath('./div[@class="layoutCenterColumn"]/div[@class="js-itemImageViewer itemImageInclude"]/img/@src')
-        img = tree.xpath('/html/head/meta[@property="og:image"]/@content')
+        title = node.xpath('./div[@id="rCol"]//h1[@class="productHeading"]/text()')[0]
+        price = node.xpath('./div[@id="rCol"]//div[@class="op"]/text()')
+        if not price:
+            log.log_traceback(self.logger_product, 'Page donot have a price: {0}'.format(url))
+
+        shipping = node.xpath('./div[@id="rCol"]//div[@class="fs"]//font[@class="alert"]/text()')
+        img = node.xpath('./div[@id="rCol"]/div[@class="r1w secSpace"]//div[@id="galImg"]/a/img/@src')
+        if not img:
+            img = tree.xpath('//div[@id="wrapper"]/div[@id="frame"]/form[@name="path"]/input/@value')
         if not img:
             log.log_traceback(self.logger_product, 'Page donot have a image: {0}'.format(url))
 
-        info = node.xpath('./div[@class="layoutCenterColumn"]/div[@id="productInfo"]')[0]
+        description = node.xpath('./div[@id="rCol"]/div[@id="FieldsetProductInfo"]')[0].text_content()
+        model = ''
+        if description:
+            m = re.compile(r'.*(Model|Model Number):(.*)\n').search(description)
+            if m: model = m.group(1).strip()
 
-        available = info.xpath('.//div[@class="variantConfigurator"]//div[@class="stockMessage"]/span/text()')
-        if not available:
-            if info.xpath('.//div[@class="variantConfigurator"]//div[@class="js-availabilityMessage"]'):
-                m = re.compile(r"ddWidgetEntries\['js-vc13280170'] =(.*), values ").search(content)
-                # http://www.cabelas.com/product/746407.uts
-                if m:
-                    jsid = m.group(1).split(':')[-1].strip()
-                    post_data = { 
-                        'productVariantId': jsid,
-                    }   
-                    jsurl = 'http://www.cabelas.com/catalog/includes/availabilityMessage_include.jsp'
-                    sess = requests.Session()
-                    resp_cont = sess.post(jsurl, data=post_data).content
-                    available = re.compile(r'<span class="availabilityMessage">(.*)</span>').search(resp_cont).group(1)
-
-        price = info.xpath('.//div[@class="price"]/dl[@class="salePrice"]/dd[1]/text()')
-        if not price:
-            price = info.xpath('.//div[@class="price"]/dl[1]/dd[1]/text()')
-        if not price:
-            avail = info.xpath('.//div[@class="variantConfigurator"]/span[@class="soldOut"]/text()')
-            if avail == ['Sold Out']:
-                available = 'Sold Out'
-                log.log_traceback(self.logger_product, 'Page donot have a price: {0}'.format(url))
-
-        itemNO = info.xpath('.//div[@class="variantConfigurator"]//span[@class="itemNumber"]/text()') # this xpath need strip()
-        if not itemNO:
-            itemNO = tree.xpath('//div[@id="siteContent"]//div[@class="w100"]/meta[1]/@content')
-        if not itemNO:
-            log.log_traceback(self.logger_product, 'Page donot have a itemNO: {0}'.format(url))
-        else:
-            itemNO = itemNO[0].strip()
-
-        ship = info.xpath('.//div[@class="bottomNote"]//td/img/@alt')
-        if ship and ship[0] == 'In-Store Pick Up':
-            shipping = 'free shipping'
-        else:
-            shipping = ''
-
-        desc = node.xpath('./div[@class="layoutCenterColumn"]/div[@id="tabsCollection"]//div[@id="description"]')
-        description = desc[0].text_content()
-
-        rating, review = '', ''
-        if node.xpath('./div[@class="layoutCenterColumn"]/div[@id="tabsCollection"]//div[@class="panel"]//div[@id="RRQASummaryBlock"]/div[@id="BVRRSummaryContainer"]'):
-            jsurl = 'http://reviews.cabelas.com/8815/{0}/reviews.djs?format=embeddedhtml'.format(itemNO.split('-')[-1])
-            rating_content = self.fetch_page(jsurl)
-            m = re.compile(r'<span class=\\"BVRRNumber BVRRRatingNumber\\">(.*?)<\\/span>').search(rating_content)
-            if m:
-                rating = float(m.group(1))
-            m = re.compile(r'<span class=\\"BVRRNumber BVRRBuyAgainTotal\\">(.*?)<\\/span>').search(rating_content)
-            if m:
-                review = float(m.group(1).replace(',', ''))
-
-        model = []
-        models = node.xpath('./div[@class="layoutCenterColumn"]/div[@id="productChart"]//tbody/tr/td[1]/text()')
-        for m in models:
-            model.append(m)
-            
-
-        product = Product.objects(itemID=itemID).first()
-        if not product:
-            product = Product(itemID=itemID)
-
-        product.full_update_time = timenow
-        product.also_like = also_like
-        product.image = img[0] if img else ''
-        if price:
-            product.price = price[0].replace('$', '').replace(',', '')
-        product.itemNO = itemNO
-        product.shipping = shipping
+        available = node.xpath('./div[@id="rCol"]//div[@id="prodpad"]//div[@class="availability"]/text()')
         if available:
-            product.available = available[0]
-        product.description = description
-        if rating:
-            product.rating = rating
-        if review:
-            product.review = review
-        if model:
-            product.model = model
-        product.updated = True
+            available = ''.join(available).strip()
 
+        comment = []
+        rating = node.xpath('./div[@id="rCol"]/div[@id="FieldsetCustomerReviews"]//div[@class="pr-snapshot-rating rating"]/span[@class="pr-rating pr-rounded average"]/text()')
+        reviews = node.xpath('./div[@id="rCol"]/div[@id="FieldsetCustomerReviews"]//div[@class="pr-snapshot-rating rating"]//span[@class="count"]/text()')
+        if reviews: reviews = int(reviews[0].replace(',', ''))
+        if rating:
+            rating = float(rating[0])
+
+            comment_all = node.xpath('./div[@id="rCol"]/div[@id="FieldsetCustomerReviews"]//div[starts-with(@id, "pr-contents-")]//div[@class="pr-review-wrap"]')
+            for comm in comment_all:
+                rate = comm.xpath('.//span[@class="pr-rating pr-rounded"]/text()')[0]
+                head = comm.xpath('.//p[@class="pr-review-rating-headline"]/text()')[0]
+                text = comm.xpath('./div[@class="pr-review-main-wrapper"]//p[@class="pr-comments"]/text()')[0]
+                comment.append(rate, head, text)
+
+
+        itemNO = re.compile(r'http://www.dickssportinggoods.com/product/index.jsp.*productId=(\d+).*').match(url).group(1)
+        product = Product.objects(itemNO=itemNO).first()
+        if not product:
+            product = Product(itemNO=itemNO)
+            redis_SERVER.hincrby(redis_KEY, 'num_new_crawl', 1)
+        else:
+            redis_SERVER.hincrby(redis_KEY, 'num_new_update', 1)
+
+        product.title = title
+        if also_like: product.also_like = also_like
+        if price:
+            product.price = price[0].split(':')[1].strip().replace('$', '').replace(',', '')
+        if shipping: product.shipping = shipping
+        if img: product.image = img[0]
+        if description: product.description = description
+        if model: product.model = model
+        if available: product.available = available
+        if rating: product.rating = rating
+        if review: product.reviews = reviews
+        if comment: product.comment = comment
+
+        product.full_update_time = datetime.utcnow()
+        product.updated = True
         product.save()
+
 
 if __name__ == '__main__':
     server = zerorpc.Server(Server())

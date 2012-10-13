@@ -3,8 +3,7 @@
 
 RPC_PORT = 1239
 
-#DB_HOST = 'ec2-54-245-3-3.us-west-2.compute.amazonaws.com'
-DB_HOST = 'ec2-54-245-40-206.us-west-2.compute.amazonaws.com'
+DB_HOST = 'mongodb.favbuy.org'
 DB = 'cabelas'
 
 TIMEOUT = 60

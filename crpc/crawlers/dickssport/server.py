@@ -343,7 +343,7 @@ class Server:
                 rate = comm.xpath('.//span[@class="pr-rating pr-rounded"]/text()')[0]
                 head = comm.xpath('.//p[@class="pr-review-rating-headline"]/text()')[0]
                 text = comm.xpath('./div[@class="pr-review-main-wrapper"]//p[@class="pr-comments"]/text()')[0]
-                comment.append(rate, head, text)
+                comment.append( (rate, head, text) )
 
 
         itemNO = re.compile(r'http://www.dickssportinggoods.com/product/index.jsp.*productId=(\d+).*').match(url).group(1)
@@ -356,15 +356,15 @@ class Server:
 
         product.title = title
         if also_like: product.also_like = also_like
-        if price:
+        if price and '$' in price[0]:
             product.price = price[0].split(':')[1].strip().replace('$', '').replace(',', '')
-        if shipping: product.shipping = shipping
+        if shipping: product.shipping = shipping[0].strip()
         if img: product.image = img[0]
         if description: product.description = description
         if model: product.model = model
         if available: product.available = available
         if rating: product.rating = rating
-        if review: product.reviews = reviews
+        if reviews: product.reviews = reviews
         if comment: product.comment = comment
 
         product.full_update_time = datetime.utcnow()

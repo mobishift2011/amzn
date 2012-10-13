@@ -87,8 +87,7 @@ def update_product(*targs):
 
 if __name__ == '__main__':
 #    crawl_category()
-    crawl_listing()
-#    if len(sys.argv) >= 2:
-#        crawl_product()
-#    else:
-#        crawl_listing()
+    if len(sys.argv) >= 2:
+        crawl_product()
+    else:
+        crawl_listing()

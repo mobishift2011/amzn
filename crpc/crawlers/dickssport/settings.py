@@ -3,8 +3,7 @@
 
 RPC_PORT = 1240
 
-#DB_HOST = 'ec2-54-245-3-3.us-west-2.compute.amazonaws.com'
-DB_HOST = 'ec2-54-245-40-206.us-west-2.compute.amazonaws.com'
+DB_HOST = 'ec2-50-112-19-38.us-west-2.compute.amazonaws.com'
 DB = 'dickssport'
 
 TIMEOUT = 60

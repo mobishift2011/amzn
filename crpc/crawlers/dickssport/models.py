@@ -14,7 +14,7 @@ class Category(Document):
     catn = IntField(unique=True)
     num = IntField()
     meta = {
-        "indexes": ["leaf", "update_time", "num"],
+        "indexes": ["leaf", "catn"],
     }
 
     def catstr(self):

@@ -1,25 +1,34 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""用回调来去除程序耦合
+"""Decoupling though callbacks
 
-例如：
+Usage:
 
-1.在任务结束的时候发送结束信号:
+1. issue signal when some event occur
+
+>>> TASK_COMPLETE = 5001
 >>> import signals
->>> signals.signal("taskcomplete", product_id=1, time_consumed=5.23)
+>>> signals.signal(TASK_COMPLETE, product_id=1, time_consumed=5.23)
 
-2.在任务统计模块(如果有这个模块的话)收集信息并处理:
+2. at another module, bind event listeners to the event
+
 >>> import signals
->>> @signals.bind("taskcomplete")
+>>> @signals.bind(TASK_COMPLETE)
 >>> def log_task(product_id, time_consumed):
-...     print("任务{product_id}在{time_consumed}秒内成功执行".format(**locals()))
+...     print("Product {product_id} completed in {time_consumed} seconds".format(**locals()))
 
-则每次任务结束以后会自动输出任务完成信息
+3. define a proper protocol for signals arguments and document it, that's it, we got decoupling modules cooperating happily without knowing the implementation of each other.
+
+.. note::
+
+    be aware that this module works for threads or coroutines but not for processes
 
 """
-import logging
 from collections import defaultdict
 from multiprocessing import current_process
+
+import log
+logger = log.getlogger("helper.signals")
 
 class Processer:
     def __init__(self):
@@ -28,22 +37,27 @@ class Processer:
 
     def add_worker(self, workername, callback):
         funcname = callback.__name__
+        
+        # a work around for multiple processing signals
+        # when we reload a module, signals does not rebind
+        # this might be an issue if we hook the module ``reload`` 
+        # otherwise, this will be fine
         if funcname not in self.funcnames:
             self.workers[workername].add(callback)
             self.funcnames.add(funcname)
 
     def _execute_callbacks(self, workername, message):
         if workername not in self.workers:
-            logging.warning("不存在名为%s的信号接收函数!"%workername)
+            logger.warning("signal bingings on {workername} not found!".format(**locals()))
         else:
             try:
                 data = message
                 for w in self.workers[workername]:
                     w(*data['args'],**data['kwargs'])
-            except Exception, e:
-                logging.exception("消息处理出错")
-                logging.error("workername, %s" % workername)
-                logging.error("message, %s" % message)
+            except Exception as e:
+                logger.exception("Exception happened when executing callback")
+                logger.error("workername, {workername}".format(**locals()))
+                logger.error("message, {message}".format(**locals()))
 
     def send_message(self, workername, message):
         self._execute_callbacks(workername, message)

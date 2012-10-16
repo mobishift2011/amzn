@@ -29,6 +29,17 @@ def url2catn(url):
     catn = [x for x in catn.split(',') if x.startswith('n:')][-1]
     return catn
 
+ROOT_CATN = {
+    'Electronics':              'n:172282',
+    'Appliances':               'n:2619525011',
+    'Patio, Lawn & Garden':     'n:2972638011',
+    'Tools & Home Improvement': 'n:228013',
+    'Health & Personal Care':   'n:3760901',
+    'Sports & Outdoors':        'n:3375251',
+    'Video Games':              'n:468642',
+    'Toys & Games':             'n:165793011',
+}
+
 class Category(BaseCategory):
     """ we generates category by catn identifier """
     catn        =   StringField(unique=True)
@@ -42,4 +53,4 @@ class Product(BaseProduct):
     vartitle            =   StringField()
 
     def url(self):
-        return "http://www.amazon.com/{slug}/dp/{asin}/".format(slug=self.slug, asin=self.asin)
+        return "http://www.amazon.com/{slug}/dp/{key}/".format(slug=self.slug, key=self.key)

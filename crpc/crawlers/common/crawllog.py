@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Author: bishop Liu <miracle (at) gmail.com>
-
 from events import *
 from helpers.log import getlogger
 
@@ -13,4 +11,20 @@ def debug_info_print(sender, **kwargs):
 
 @warning_info.bind
 def warning_info_print(sender, **kwargs):
-    logger.warning('<{0}> -- {1}'.format(sender, kwargs.items()))
+    logger.debug('{0}'.format(kwargs.items()))
+
+@category_saved.bind
+def on_category_saved(sender, **kwargs):
+    logger.debug('{0}'.format(kwargs.items()))
+
+@product_saved.bind
+def on_product_save(sender, **kwargs):
+    logger.debug('{0}'.format(kwargs.items()))
+
+@category_failed.bind
+def on_category_failed(sender, **kwargs):
+    logger.error('{0}'.format(kwargs.items()))
+
+@product_failed.bind
+def on_product_failed(sender, **kwargs):
+    logger.error('{0}'.format(kwargs.items()))

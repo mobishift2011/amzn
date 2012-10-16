@@ -53,7 +53,7 @@ class BaseProduct(Document):
     # meta infomation for record keeping
     updated             =   BooleanField(default=False)
     list_update_time    =   DateTimeField(default=datetime.utcnow)
-    full_update_time    =   DateTimeField(default=datetime.utcnow)
+    full_update_time    =   DateTimeField()
 
     # dimension info
     cats                =   ListField(StringField()) 

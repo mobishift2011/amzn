@@ -35,3 +35,7 @@ product_deleted = Signal("product_deleted")
 category_saved = Signal("category_saved")
 category_failed = Signal("category_failed")
 category_deleted = Signal("category_deleted")
+
+
+debug_info = Signal("debug_info")
+warning_info = Signal("warning_info")

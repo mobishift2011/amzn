@@ -37,6 +37,24 @@ class BaseCategory(Document):
     def url(self):
         raise NotImplementedError("should implemented in sub classes!")
 
+class BaseReview(Document):
+    """ :py:class:crawlers.common.models.BaseReview
+
+    common review info
+        
+    """
+    post_time       =   DateTimeField() # when the review is made
+    username        =   StringField()
+    title           =   StringField()
+    content         =   StringField()
+    rating          =   StringField()
+
+    meta            =   {
+        "allow_inheritance": True,
+        "collection": "review",
+        "indexes": ['post_time'],
+    }
+
 class BaseProduct(Document):
     """ :py:class:crawlers.common.models.BaseProduct
 
@@ -71,7 +89,7 @@ class BaseProduct(Document):
 
     # reviews
     num_reviews         =   StringField()
-    reviews             =   ListField(StringField())
+    reviews             =   ListField(ReferenceField(BaseReview))
 
     # product images
     image_urls          =   ListField(StringField())

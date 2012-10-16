@@ -23,7 +23,7 @@ class BaseCategory(Document):
     is_leaf     =   BooleanField(default=False) # should set values to false manually
     update_time =   DateTimeField(default=datetime.utcnow)
     spout_time  =   DateTimeField() # time when we issue a new category fetch operation
-    num         =   IntField() 
+    num         =   IntField()
     pagesize    =   IntField()
     meta        =   {
         "allow_inheritance": True,
@@ -61,6 +61,7 @@ class BaseProduct(Document):
     rating              =   StringField()  # how it is rated, if any
     brand               =   StringField()
     model               =   StringField()
+    models              =   ListField()
     price               =   StringField()
 
     # text info

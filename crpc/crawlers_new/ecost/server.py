@@ -60,7 +60,6 @@ class Server(object):
         self.logger_category = log.init(DB + '_category', DB + '_category.txt')
         self.logger_list = log.init(DB + '_list', DB + '_list.txt')
         self.logger_product = log.init(DB + '_product', DB + '_product.txt')
-        self.ecosturl = 'http://www.ecost.com'
 
     def get_main_category(self):
         """.. :py:method::
@@ -98,16 +97,6 @@ class Server(object):
                 log.log_traceback(self.logger_category)
 
 
-    def set_leaf_to_db(self, catstr, total_num=None):
-        """.. :py:method::
-            insert/update leaf node information to db
-        """
-        c, is_new = Category.objects.get_or_create(catstr=catstr)
-        c.is_leaf = True
-        if total_num: c.num = total_num
-        c.update_time = datetime.utcnow()
-        c.save()
-
     def parse_category(self, category_list_path, url, content):
         """.. :py:method::
             parse the category in the page source
@@ -121,7 +110,7 @@ class Server(object):
                 if not categories:
                     # http://www.ecost.com/n/Blu-Ray-Dvd-Player/mainMenu-3368
                     # treat as leaf
-                    self.set_leaf_to_db(' > '.join(category_list_path))
+                    self.conn.set_leaf_category(category_list_path)
                     log.log_print('Special page {0}'.format(url), self.logger_category, logging.WARNING)
                     return
 
@@ -129,7 +118,7 @@ class Server(object):
                 link = category.get('href')
                 name = category.text_content()
                 if not link.startswith('http'):
-                    link = self.ecosturl + link
+                    link = 'http://www.ecost.com' + link
 
                 # trap "Household Insulation":
                 # ['Electronics & Entertainment', 'Audio & Video', 'Accessories', 'Receivers', 'Accessories', 'Receivers', ...
@@ -138,22 +127,18 @@ class Server(object):
 
                 cats = category_list_path + [name]
                 log.log_print('category ==> {0}'.format(cats), self.logger_category)
+                if self.conn.category_updated(' > '.join(cats)):
+                    continue
+
                 log.log_print('queue size ==> {0}'.format(self.queue.qsize()), self.logger_category)
                 self.conn.insert_update_category(cats, link)
-                c, is_new = Category.objects.get_or_create(catstr = ' > '.join(category_list_path) )
-                if is_new:
-                    c.cats = cats
-                    c.catstr = ' > '.join(cats)
-                    c.url = link
-                c.update_time = datetime.utcnow()
-                c.save()
                 self.queue.put((cats, link))
         else:
             # leaf node
             num = tree.xpath('//div[@class="searchHeaderDisplayTitle"]/span[1]/text()')
             if num:
                 total_num = int(num[0])
-                self.set_leaf_to_db(' > '.join(category_list_path))
+                self.conn.set_leaf_category(category_list_path, total_num)
             else:
                 log.log_traceback(self.logger_category, 'Not a valid page {0}'.format(url))
 #                log.log_print('content: {0}'.format(content), self.logger_category, logging.DEBUG)

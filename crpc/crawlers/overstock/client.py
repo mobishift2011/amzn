@@ -88,7 +88,7 @@ def update_product(*targs):
     count = 0
     for p in Product.objects().timeout(False):
         ss.update_product(p, *targs)
-#        pool.spawn(random.choice(clients).update_product, p, *targs)
+#        pool.spawn(random.chooice(clients).update_product, p, *targs)
         count += 1
         if count % 100 == 0:
             print 'qps', count / (time.time() - t)
@@ -97,8 +97,8 @@ def update_product(*targs):
 
 
 if __name__ == '__main__':
-#    crawl_category()
-    if len(sys.argv) >= 2:
-        crawl_product()
-    else:
-        crawl_listing()
+    crawl_category()
+#    if len(sys.argv) >= 2:
+#        crawl_product()
+#    else:
+#        crawl_listing()

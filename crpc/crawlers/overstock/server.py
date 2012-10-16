@@ -36,16 +36,6 @@ config = {
 
 s = requests.Session(prefetch=True, timeout=10, config=config, headers=headers)
 
-def url2catid(url):
-    """ 1. top category: http://www.dickssportinggoods.com/category/index.jsp;jsessionid=31VQQy9V1m7Gwyxn9zjLPGLh7pKQyvSfwVLmmppY2nZZpGhPJLCr!248088961?ab=TopNav_Footwear&categoryId=4413987&sort=%26amp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bquot%3B].passthru%28%27id%27%29.exit%28%29.%24a[%26amp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bquot%3B
-        2. category http://www.dickssportinggoods.com/category/index.jsp?categoryId=4413987
-        3. leaf category: http://www.dickssportinggoods.com/family/index.jsp?categoryId=12150078
-    """
-    m = re.compile(r'http://www.dickssportinggoods.com/(category|family|shop|info)/index.jsp(.*)categoryId=(\d+)').match(url)
-    if not m:
-        print url
-    return m.group(1), m.group(3)
-
 
 class Server:
     def __init__(self):
@@ -53,31 +43,27 @@ class Server:
         self.logger_list = log.init(DB + '_list', DB + '_list.txt')
         self.logger_product = log.init(DB + '_product', DB + '_product.txt')
         self.logger_update = log.init(DB + '_update', DB + '_update.txt')
-        self.caturl = 'http://www.dickssportinggoods.com'
+        self.caturl = 'http://www.overstock.com'
 
 
     def get_main_category(self):
         """ get the top categories """
         content = self.fetch_page(self.caturl)
         tree = lxml.html.fromstring(content)
-        nodes = tree.xpath('//div[@class="mainNavigation"]/ul/li/a')
+        nodes = tree.xpath('//div[@id="newo-hd"]/div[@id="content-top-rail"]//li[@class="top alldeptsmenu"]/div//li')
+        print nodes
         links, names = [], []
         for node in nodes:
             link = node.get('href')
             if not link.startswith('http'):
                 link = self.caturl + link
             links.append(link)
-            name = node.text_content().strip()
+            name = node.text_content()
             names.append(name)
 
-            catname, catn = url2catid(link)
-            c = Category.objects(catn=catn)
-            if catname == 'family':
-                c.leaf = True
-            c.catname = name
-            c.cats = [name]
-            c.update_time = datetime.utcnow()
         self.mainCategory = dict(zip(names, links))
+        print self.mainCategory
+        exit()
 
 
     def crawl_category(self):
@@ -346,7 +332,7 @@ class Server:
                 rate = comm.xpath('.//span[@class="pr-rating pr-rounded"]/text()')[0]
                 head = comm.xpath('.//p[@class="pr-review-rating-headline"]/text()')[0]
                 text = comm.xpath('./div[@class="pr-review-main-wrapper"]//p[@class="pr-comments"]/text()')[0]
-                comment.append( (rate, head, text) )
+                comment.append(rate, head, text)
 
 
         itemNO = re.compile(r'http://www.dickssportinggoods.com/product/index.jsp.*productId=(\d+).*').match(url).group(1)
@@ -359,15 +345,15 @@ class Server:
 
         product.title = title
         if also_like: product.also_like = also_like
-        if price and '$' in price[0]:
+        if price:
             product.price = price[0].split(':')[1].strip().replace('$', '').replace(',', '')
-        if shipping: product.shipping = shipping[0].strip()
+        if shipping: product.shipping = shipping
         if img: product.image = img[0]
         if description: product.description = description
         if model: product.model = model
         if available: product.available = available
         if rating: product.rating = rating
-        if reviews: product.reviews = reviews
+        if review: product.reviews = reviews
         if comment: product.comment = comment
 
         product.full_update_time = datetime.utcnow()

@@ -15,6 +15,7 @@ pyzmq-static==2.2
 redis==2.7.1
 redisco==0.1.4
 requests==0.14.1
+selenium==2.25.0
 ssh==1.7.14
 wsgiref==0.1.2
 zerorpc==0.3.0

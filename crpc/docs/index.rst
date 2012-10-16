@@ -1,20 +1,41 @@
-.. crpc documentation master file, created by
-   sphinx-quickstart on Tue Oct 16 03:40:00 2012.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+=======================
+CRPC User Documentation
+=======================
 
-Welcome to crpc's documentation!
-================================
+Crpc is a computing framework that generates and maintains FavBuy's WebSite data source, it (will) contains the following components:
 
-Contents:
+-  crawlers for different e-commerce website
+-  data cleansing and intergration
+-  web backends that support above operations
+
+Designs
+-------
 
 .. toctree::
    :maxdepth: 2
 
+   model
 
+Guides 
+------
+    
+.. toctree::
+   :maxdepth: 2
+
+   maintain 
+
+APIs
+----
+
+.. toctree::
+   :maxdepth: 0
+
+   crawlers
+   helpers
+   backends
 
 Indices and tables
-==================
+------------------
 
 * :ref:`genindex`
 * :ref:`modindex`

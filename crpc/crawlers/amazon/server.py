@@ -21,7 +21,7 @@ from datetime import datetime, timedelta
 from models import *
 from settings import *
 
-s = requests.Session()
+s = requests.session(headers={'User-Agent':'Mozilla 5.0/b'})
     
 class Server:
     def crawl_listing(self, url):
@@ -33,7 +33,13 @@ class Server:
         self.parse_product(url, content)
         
     def fetch_page(self, url):
-        return s.get(url).content
+        r = s.get(url)
+        if r.status_code == 200:
+            return r.content
+        elif r.status_code == 404:
+            return ''
+        else:
+            raise ValueError('the crawler seems to be banned!!')
     
     def parse_listing(self, url, content):
         """ index info about each product -> db """
@@ -85,8 +91,6 @@ class Server:
                 p.save()
     
     def parse_product(self, url, content):
-        t = lxml.html.fromstring(content)
-            
         if url.endswith('/'):
             asin = url.split('/')[-2] 
         else:
@@ -97,6 +101,18 @@ class Server:
         if not p:
             p = Product(asin=asin)
             is_new = True
+
+        # might not available
+        if not content:
+            try:
+                p.delete()
+            except:
+                pass
+            return
+
+        t = lxml.html.fromstring(content)
+
+        p.title = t.xpath('//*[@id="btAsinTitle"]')[0].text_content()
     
         try:
             p.manufactory = t.xpath('//h1[@class="parseasinTitle "]/following-sibling::*/a[@href]')[0].text_content().strip()

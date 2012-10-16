@@ -53,10 +53,24 @@ def crawl_product(addrs):
             print 'current qps:', count/(time.time()-t)
     pool.join()
 
+def crawl_with_failure(func, url):
+    try:
+        func(url)
+    except:
+        pass
+
 if __name__ == '__main__':
-    crawl_product(['tcp://127.0.0.1:1234'])
+    #crawl_product(['tcp://127.0.0.1:1234'])
     from server import Server
+    pool = Pool(100)
     ss = Server()
-    for p in Product.objects.filter(updated=False):
-        print p.url()
-        ss.crawl_product(p.url())
+    t = time.time()
+    count = 0
+    for p in Product.objects.filter(full_update_time__lte=datetime.utcnow()-timedelta(days=1)).order_by('full_update_time'):
+        #print p.url()
+        count += 1
+        pool.spawn(crawl_with_failure, ss.crawl_product, p.url())
+        progress(".")
+        if count % 100 == 0:
+            print 'current qps:', count/(time.time()-t)
+    pool.join()

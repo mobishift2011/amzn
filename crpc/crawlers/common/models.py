@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from sqlalchemy import create_engine
-engine = create_engine('sqlite:////root/amzn/crpc/status.db')
+engine = create_engine('sqlite:////home/jingchao/Projects/amzn/crpc/status.db')
 
 from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base()

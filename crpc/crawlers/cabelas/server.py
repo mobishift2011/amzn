@@ -215,6 +215,7 @@ class Server:
             node = tree.xpath('//div[@id="siteContent"]//div[@id="productDetailsTemplate"]/div[@class="layoutWithRightColumn"]')[0]
         except:
             log.log_traceback(self.logger_product, 'Parsing page problem: {0}'.format(url))
+            return
 
         timenow = datetime.utcnow()
 

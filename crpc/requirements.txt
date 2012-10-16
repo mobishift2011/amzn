@@ -1,10 +1,15 @@
 Cython==0.17.1
 Django==1.4.1
 Fabric==1.4.3
+GitPython==0.3.2.RC1
 argparse==1.2.1
+async==0.6.1
+clint==0.3.1
 gevent==0.13.8
+gitdb==0.5.4
 greenlet==0.4.0
 ipython==0.13
+legit==0.1.1
 lxml==3.0.1
 mongoengine==0.7.5
 msgpack-python==0.2.2
@@ -16,6 +21,7 @@ redis==2.7.1
 redisco==0.1.4
 requests==0.14.1
 selenium==2.25.0
+smmap==0.8.2
 ssh==1.7.14
 wsgiref==0.1.2
 zerorpc==0.3.0

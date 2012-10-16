@@ -24,6 +24,9 @@ from settings import *
 s = requests.session(headers={'User-Agent':'Mozilla 5.0/b'})
     
 class Server:
+    def test(self):
+        return "this is a test"
+
     def crawl_listing(self, url):
         content = self.fetch_page(url)
         self.parse_listing(url, content)

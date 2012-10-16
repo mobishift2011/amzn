@@ -33,27 +33,39 @@ class RPCServer(object):
     def __init__(self):
         excludes = ['common']
         self.logger = log.getlogger("crawlers.common.rpcserver.RPCServer")
-        self.crawlers = []
+        self.crawlers = {}
         for name in listdir(join(CRPC_ROOT, "crawlers")):
             path = join(CRPC_ROOT, "crawlers", name)
             if name not in excludes and isdir(path):
-                self.is_service_defined(name)
-                self.crawlers.append( (name, path) ) 
+                service = self.get_service(name)
+                if service:
+                    self.crawlers[name] = service
 
-    def is_service_defined(self, name):
+    def get_service(self, name):
         """ Given name of a crawler, determine whether there's valid service inside it 
 
         :param str name: name of the crawler's directory
-        :rtype: bool
+        :rtype: None or Class
         """ 
         try:
             m = __import__("crawlers."+name+".server", fromlist=['Server'])
-            print m.Server()
+            service = m.Server()
         except Exception as e:
-            self.logger.exception(e.message)
-            return False
+            pass
+            #self.logger.exception(e.message)
         else:
-            return True
+            return service
 
+    def call(self, crawler, method, *args, **kwargs):
+        """ this is a router function for crawlers """
+        service = self.crawlers.get(crawler)
+
+        if service:
+            return getattr(service, method)(*args, **kwargs)
+        else:
+            raise ValueError("{crawler} does not seems to a valid crawler".format(**locals()))
+        
 if __name__ == "__main__":
-    RPCServer()
+    zs = RPCServer()
+    print zs.call('amazon', 'test')
+    print zs.call('newegg', 'test')

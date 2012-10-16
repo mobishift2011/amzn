@@ -13,9 +13,8 @@ connect(db="amazon", host=MONGODB_HOST)
 
 import re
 from urllib import quote, unquote
-from datetime import datetime, timedelta
 
-from crawlers.common.models import Category, Product
+from crawlers.common.models import BaseCategory, BaseProduct
 
 def catn2url(catn): 
     return 'http://www.amazon.com/s?ie=UTF8&rh=' + quote(catn.encode("utf-8"))
@@ -30,18 +29,17 @@ def url2catn(url):
     catn = [x for x in catn.split(',') if x.startswith('n:')][-1]
     return catn
 
-class Category(Category):
+class Category(BaseCategory):
     """ we generates category by catn identifier """
     catn        =   StringField(unique=True)
 
     def url(self):
         return catn2url(self.catn)
 
-class Product(Product):
+class Product(BaseProduct):
     catns               =   ListField(StringField())
     sales_rank          =   StringField()
     vartitle            =   StringField()
 
     def url(self):
         return "http://www.amazon.com/{slug}/dp/{asin}/".format(slug=self.slug, asin=self.asin)
-

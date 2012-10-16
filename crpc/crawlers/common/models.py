@@ -6,6 +6,7 @@ crawlers.common.models
 
 """
 from mongoengine import *
+from datetime import datetime, timedelta
 
 class BaseCategory(Document):
     """ :py:class:crawlers.common.models.BaseCategory
@@ -25,6 +26,8 @@ class BaseCategory(Document):
     num         =   IntField() 
     pagesize    =   IntField()
     meta        =   {
+        "allow_inheritance": True,
+        "collection": "caetgory",
         "indexes":  ["cats", ("is_leaf", "update_time"), "num", ],
     }
 
@@ -73,6 +76,8 @@ class BaseProduct(Document):
     image_urls          =   ListField(StringField())
 
     meta                =   {
+        "allow_inheritance": True,
+        "collection": "product",
         "indexes":  ["key", "cats", "list_update_time", "full_update_time", "model", "brand", "updated"],
     }
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from gevent import monkey
-monkey.patch_all()
+import gevent
+gevent.monkey.patch_all()
 from gevent.pool import Pool
 
 import os
@@ -11,11 +11,8 @@ import time
 import zerorpc
 import logging
 import requests
-import traceback
 import lxml.html
-import logging
 import log
-import Queue
 
 from urllib import quote, unquote
 from datetime import datetime, timedelta
@@ -23,6 +20,7 @@ from datetime import datetime, timedelta
 from settings import *
 from models import *
 
+from selenium import webdriver
 
 headers = {
     'User-Agent': 'Mozilla 5.0/Firefox 15.0.1',
@@ -36,112 +34,97 @@ config = {
 
 s = requests.Session(prefetch=True, timeout=10, config=config, headers=headers)
 
-def url2catid(url):
-    """ 1. top category: http://www.dickssportinggoods.com/category/index.jsp;jsessionid=31VQQy9V1m7Gwyxn9zjLPGLh7pKQyvSfwVLmmppY2nZZpGhPJLCr!248088961?ab=TopNav_Footwear&categoryId=4413987&sort=%26amp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bquot%3B].passthru%28%27id%27%29.exit%28%29.%24a[%26amp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bquot%3B
-        2. category http://www.dickssportinggoods.com/category/index.jsp?categoryId=4413987
-        3. leaf category: http://www.dickssportinggoods.com/family/index.jsp?categoryId=12150078
-    """
-    m = re.compile(r'http://www.dickssportinggoods.com/(category|family|shop|info)/index.jsp(.*)categoryId=(\d+)').match(url)
-    if not m:
-        print url
-    return m.group(1), m.group(3)
-
 
 class Server:
     def __init__(self):
-        self.logger_category = log.init(DB + '_category', DB + '_category.txt')
-        self.logger_list = log.init(DB + '_list', DB + '_list.txt')
+        self.logger_brand= log.init(DB + '_brand', DB + '_brand.txt')
         self.logger_product = log.init(DB + '_product', DB + '_product.txt')
         self.logger_update = log.init(DB + '_update', DB + '_update.txt')
-        self.caturl = 'http://www.dickssportinggoods.com'
+        self.siteurl = 'http://www.myhabit.com'
 
+    def login(self, email=None, passwd=None):
+        try:
+            self.browser = webdriver.Chrome()
+        except:
+            self.browser = webdriver.Firefox()
+            self.browser.set_page_load_timeout(5)
+        self.browser.implicitly_wait(5)
 
-    def get_main_category(self):
-        """ get the top categories """
-        content = self.fetch_page(self.caturl)
-        tree = lxml.html.fromstring(content)
-        nodes = tree.xpath('//div[@class="mainNavigation"]/ul/li/a')
-        links, names = [], []
-        for node in nodes:
-            link = node.get('href')
-            if not link.startswith('http'):
-                link = self.caturl + link
-            links.append(link)
-            name = node.text_content().strip()
-            names.append(name)
-
-            catname, catn = url2catid(link)
-            c = Category.objects(catn=catn)
-            if catname == 'family':
-                c.leaf = True
-            c.catname = name
-            c.cats = [name]
-            c.update_time = datetime.utcnow()
-        self.mainCategory = dict(zip(names, links))
+        self.browser.get(siteurl)
+        self.browser.find_element_by_id('ap_email').send_keys(email)
+        self.browser.find_element_by_id('ap_password').send_keys(passwd)
+        signin_button = self.browser.find_element_by_id('signInSubmit')
+        signin_button.submit()
 
 
     def crawl_category(self):
-        """ crawl category """
-        self.get_main_category()
+        """ From top depts, get all the brands """
+        self.queue = geven.queue.Queue(None)
+        depts = ['women', 'men', 'kids', 'home']
 
-        log.log_print('Initialization of category cralwer.', self.logger_category, logging.INFO)
-        self.queue = Queue.Queue()
-        for top_category, url in self.mainCategory.items():
-            self.queue.put(([top_category], url))
-        self.cycle_crawl_category(TIMEOUT)
-        log.log_print('Close category cralwer.', self.logger_category, logging.INFO)
+        log.log_print('Initialization of brand cralwer.', self.logger_brand, logging.INFO)
+        for dept in depts:
+            link = 'http://www.myhabit.com/homepage?#page=g&dept={0}&ref=qd_nav_tab_{0}'.format(dept)
+            self.get_brand_list(dept, link)
 
-    def cycle_crawl_category(self, timeover=60):
+        self.cycle_crawl_brand(TIMEOUT)
+        log.log_print('Close brand cralwer.', self.logger_brand, logging.INFO)
+
+    def get_brand_list(self, dept, url):
+        """ Get all the brand from brand list.
+            Brand have a list of product.
+        """
+        self.browser.get(url)
+        nodes = self.browser.find_element_by_xpath('//div[@id="main"]/div[@id="page-content"]/div[@id="currentSales"]/div[starts-with(@id, "privateSale")]/div[@class="caption"]/a')
+        for node in nodes:
+            l = node.get(href)
+            link = l if l.startswith('http') else 'http://www.myhabit.com/homepage?' + l
+            self.queue.put( (dept, link) )
+
+
+    def cycle_crawl_brand(self, timeover=60):
         while not self.queue.empty():
             try:
                 job = self.queue.get(timeout=timeover)
                 utf8_content = self.fetch_page(job[1])
-                self.parse_category(job[0], job[1], utf8_content)
-            except Queue.Empty:
+                self.parse_brand(job[0], job[1], utf8_content)
+            except gevent.queue.Empty:
                 log.log_traceback(self.logger_category, 'Queue waiting {0} seconds without response!'.format(timeover))
             except:
                 log.log_traceback(self.logger_category)
 
-
-    def parse_category(self, category_list_path, url, content):
+    def time_proc(self):
+        import pytz
+        pt = pytz.timezone('US/Pacific')
+        tinfo = 'Fri Oct 12 9 AM' + ' ' + str(pt.normalize(datetime.now(tz=pt)).year)
+        endtime = datetime.strptime(tinfo, '%a %b %d %I %p %Y').replace(tzinfo=pt)
+        utc_endtime = pt.normalize(endtime).astimezone(pytz.utc)
+    
+    def parse_brand(self, dept, url, content):
         """
-        http://www.dickssportinggoods.com/shop/index.jsp?categoryId=13342544&ab=ACLN1_Link_ShopCategory_TradeIn
-        http://www.dickssportinggoods.com/category/index.jsp?categoryId=4414069
-
-        http://www.dickssportinggoods.com/category/index.jsp?categoryId=4414427
-        http://www.dickssportinggoods.com/category/index.jsp?categoryId=12137921
-        http://www.dickssportinggoods.com/category/index.jsp?categoryId=4414021
+            Brand page parsing
         """
         tree = lxml.html.fromstring(content)
 
-        # parse leaf category, leaf node saved before.
-        catname, catn = url2catid(url)
-        if catname == 'shop' or catname == 'info':
-            log.log_print('Invalid url {0}'.format(url), self.logger_category, logging.INFO)
-            return
-
-        # parse category
-        nodes = tree.xpath('//div[@id="wrapper"]/div[@id="frame"]/div[@id="contentLeft"]/div[@class="leftNavNew "]/ul[@id="leftNavUL"]/li/a')
+        node = tree.xpath('//div[@id="main"]/div[@id="page-content"]')
         if not nodes:
-            nodes = tree.xpath('//div[@id="wrapper"]/div[@id="frame"]/div[@id="catLeftContent"]/div[@id="left1"]//ul/li/a')
-        if not nodes:
-            log.log_traceback(self.logger_category, 'Url can not be parsed {0}'.format(url))
+            log.log_traceback(self.logger_brand, 'Url can not be parsed {0}'.format(url))
             redis_SERVER.hincrby(redis_KEY, 'num_parse_error', 1)
             return
 
-        for node in nodes:
-            link = node.get('href')
-            name = node.text_content()
-            if name in category_list_path: # avoid trap loop
-                continue
-            if not link.startswith('http'):
-                link = self.caturl + link
-            
-            catname, catn = url2catid(link)
-            if name.startswith("View All"):
-                if catname == 'family':
-                    # equal to all other categories
-                    continue
+        sale_brand_img = node.xpath('./div/div[@id="top"]/img/@src')
+        sale_title = node.xpath('.//div[@id="salePageDescription"]/div[@id="saleTitle"]')
+        sale_description = node.xpath('.//div[@id="salePageDescription"]/div[@id="saleDescription"]/text()')
+        sale_end_time = node.xpath('.//div[@id="salePageDescription"]/div[@id="saleEndTime"]/span/text()')
+        sale_brand_link = node.xpath('.//div[@id="salePageDescription"]/div[@id="saleBrandLink"]/a/@href')
+        num = node.xpath('./div/div[@id="middle"]/div[@id="middleCenter"]/div[@id="numResults"]/text()')
+        if num: num = int(num[0].split()[0])
+
+        sale = re.compile(r'http://www.myhabit.com/homepage?#page=b&dept={0}&sale=(\w+)&ref=.*'.format(dept)).match(url).group(1)
+        brand_link = 'http://www.myhabit.com/homepage?#page=b&dept={0}&sale={1}'.format(dept, sale)
+
+        pnodes = node.xpath('./div/div[@id="asinbox"]//li[starts-with(@id, "result_")]')
+        for pnode in pnodes:
 
             cate = Category.objects(catn=catn).first() # without first() it return a list
             if cate is None:

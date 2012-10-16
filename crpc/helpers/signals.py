@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""Decoupling though callbacks
+"""
+helpers.signals
+~~~~~~~~~~~~~~~
+
+Decoupling though callbacks
 
 Usage:
 

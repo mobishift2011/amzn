@@ -8,7 +8,7 @@ Decoupling though callbacks
 
 Usage:
 
-1. issue signal when some event occur
+1. define signal when some event occur
 
 >>> import signals
 >>> after_task_complete = signals.Signal('task completed')
@@ -33,7 +33,6 @@ Usage:
 
 """
 from collections import defaultdict
-from multiprocessing import current_process
 
 import log
 
@@ -52,7 +51,7 @@ class Processer(object):
 
     def _execute_callbacks(self, sender, signal, **kwargs):
         if signal not in self._listeners:
-            self.logger.warning("signal bingings for {signal!r} not found!".format(**locals()))
+            self.logger.warning("signal bindings for {signal!r} not found!".format(**locals()))
         else:
             try:
                 for cb in self._listeners[signal]:
@@ -60,7 +59,6 @@ class Processer(object):
             except Exception as e:
                 self.logger.exception("Exception happened when executing callback")
                 self.logger.error("sender: {sender}, signal: {signal!r}, kwargs: {kwargs!r}".format(**locals()))
-
 
 p = Processer()
 

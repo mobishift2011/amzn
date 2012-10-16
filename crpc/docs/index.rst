@@ -30,9 +30,9 @@ APIs
 .. toctree::
    :maxdepth: 0
 
-   crawlers
-   helpers
-   backends
+   crawlers/index
+   helpers/index
+   backends/index
 
 Indices and tables
 ------------------

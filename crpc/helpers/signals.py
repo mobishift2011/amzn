@@ -6,18 +6,22 @@ Usage:
 
 1. issue signal when some event occur
 
->>> TASK_COMPLETE = 5001
 >>> import signals
->>> signals.signal(TASK_COMPLETE, product_id=1, time_consumed=5.23)
+>>> after_task_complete = signals.Signal('task completed')
 
 2. at another module, bind event listeners to the event
 
->>> import signals
->>> @signals.bind(TASK_COMPLETE)
->>> def log_task(product_id, time_consumed):
-...     print("Product {product_id} completed in {time_consumed} seconds".format(**locals()))
+>>> after_task_complete.bind
+>>> def log_task(sender, **kwargs):
+...     product_id = kwargs.get('product_id')
+...     time_consumed = kwargs.get('time_consumed')
+...     print("Sender {sender!r}: Product {product_id} completed in {time_consumed} seconds".format(**locals()))
 
-3. define a proper protocol for signals arguments and document it, that's it, we got decoupling modules cooperating happily without knowing the implementation of each other.
+3. in the task module, when task finished, send signal
+
+>>> after_task_complete.send(sender="taskmodule", product_id=1, time_consumed=5.3)
+
+4. define a proper protocol for signals arguments and document it, that's it, we got decoupling modules cooperating happily without knowing the implementation of each other.
 
 .. note::
 
@@ -28,59 +32,64 @@ from collections import defaultdict
 from multiprocessing import current_process
 
 import log
-logger = log.getlogger("helper.signals")
 
-class Processer:
+class Processer(object):
     def __init__(self):
-        self.workers = defaultdict(set)
-        self.funcnames = set()
+        self._listeners = defaultdict(set)
+        self.logger = log.getlogger("helper.signals.Processor")
 
-    def add_worker(self, workername, callback):
-        funcname = callback.__name__
-        
-        # a work around for multiple processing signals
-        # when we reload a module, signals does not rebind
-        # this might be an issue if we hook the module ``reload`` 
-        # otherwise, this will be fine
-        if funcname not in self.funcnames:
-            self.workers[workername].add(callback)
-            self.funcnames.add(funcname)
+    def add_listener(self, signal, callback):
+        cbname = callback.__name__
+        self._listeners[signal].add(callback)
+        self.logger.debug("{signal!r} binded by <{cbname}>".format(**locals()))
 
-    def _execute_callbacks(self, workername, message):
-        if workername not in self.workers:
-            logger.warning("signal bingings on {workername} not found!".format(**locals()))
+    def send_message(self, sender, signal, **kwargs):
+        self._execute_callbacks(sender, signal, **kwargs)
+
+    def _execute_callbacks(self, sender, signal, **kwargs):
+        if signal not in self._listeners:
+            logger.warning("signal bingings for {signal!r} not found!".format(**locals()))
         else:
             try:
-                data = message
-                for w in self.workers[workername]:
-                    w(*data['args'],**data['kwargs'])
+                for cb in self._listeners[signal]:
+                    cb(sender, **kwargs)
             except Exception as e:
                 logger.exception("Exception happened when executing callback")
-                logger.error("workername, {workername}".format(**locals()))
-                logger.error("message, {message}".format(**locals()))
+                logger.error("sender: {sender}, signal: {signal!r}, kwargs: {kwargs!r}".format(**locals()))
 
-    def send_message(self, workername, message):
-        self._execute_callbacks(workername, message)
 
 p = Processer()
 
-def bind(workername):
-    """ the decorator method for convinience """
-    def _decorator(f):
-        p.add_worker(str(workername), f)
-        return f
-    return _decorator
+class Signal(object):
+    def __init__(self, name):
+        self._name = name
 
-def signal(workername, *args, **kwargs):
-    data = {'args':args,'kwargs':kwargs}
-    p.send_message(workername, data)
+    def send(self, sender, **kwargs):
+        data = {'kwargs':kwargs}
+        p.send_message(sender, self, **kwargs)
+        
+    def connect(self, callback):
+        p.add_listener(self, callback)
+
+    def bind(self, f):
+        self.connect(f)
+        def _decorator():
+            return f
+        return _decorator
+
+    def __str__(self):
+        return "<Signal: {name}>".format(name=self._name)
+
+    def __repr__(self):
+        return self.__str__()
+
 
 if __name__ == '__main__':
-    has_item = "has_item"
+    after_item_init = Signal("after_item_init")
 
-    @bind(has_item)
-    def when_fight_finished_print_signal(tip, aid):
-        print( "tip is {tip} and aid is {aid}".format(**locals()))
+    @after_item_init.bind
+    def log_item_init(sender, **kwargs):
+        itemid  = kwargs.get('item_id')
+        print("sender: {sender}, itemid: {itemid}".format(**locals()))
 
-    signal(has_item, 'wow', aid=1)
-
+    after_item_init.send(sender="main", item_id=3)

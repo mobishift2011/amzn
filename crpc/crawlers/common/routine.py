@@ -125,6 +125,6 @@ def update_product(site, rpc, concurrency=30):
 if __name__ == '__main__':
     from rpcserver import RPCServer
     rpc = RPCServer() 
-    #update_category('amazon', rpc) 
+    update_category('amazon', rpc) 
     #update_listing('amazon', rpc)
-    update_product('amazon', rpc)
+    #update_product('amazon', rpc)

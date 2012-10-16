@@ -26,9 +26,10 @@ monkey.patch_all()
 from gevent.pool import Pool
 from urllib import quote, unquote
 from datetime import datetime, timedelta
-from settings import *
+from models import *
 
 sys.path.insert(0, os.path.abspath( os.path.dirname(__file__) ))
+from common.events import *
 from common.stash import *
 
 
@@ -57,9 +58,6 @@ class Server(object):
 
     """
     def __init__(self):
-        self.logger_category = log.init(DB + '_category', DB + '_category.txt')
-        self.logger_list = log.init(DB + '_list', DB + '_list.txt')
-        self.logger_product = log.init(DB + '_product', DB + '_product.txt')
         self.ecosturl = 'http://www.ecost.com'
 
     def get_main_category(self):
@@ -74,43 +72,55 @@ class Server(object):
         """.. :py:method::
             crawl ecost category
         """
-        log.log_print('Initialization of ecost category cralwer.', self.logger_category, logging.INFO)
+        debug_info.send(sender="ecost.category.begin" )
         self.queue = Queue.Queue()
         self.get_main_category()
 
         self.cycle_crawl_category(TIMEOUT)
-        log.log_print('Close ecost category cralwer.', self.logger_category, logging.INFO)
+        debug_info.send(sender="ecost.category.end" )
 
 
     def cycle_crawl_category(self, timeover=60):
         """.. :py:method::
             read (category, link) tuple from queue, crawl sub-category, insert into the queue
+
+        :param timeover: timeout in queue.get
         """
         while not self.queue.empty():
             try:
                 job = self.queue.get(timeout=timeover)
                 utf8_content = fetch_page(job[1])
-                if not utf8_content: continue
+                if not utf8_content:
+                    page_download_failed.send(sender="ecost.category.download.error", category_list=job[0], url=job[1])
+                    continue
                 self.parse_category(job[0], job[1], utf8_content)
             except Queue.Empty:
-                log.log_traceback(self.logger_category, 'Queue waiting {0} seconds without response!'.format(timeover))
+                debug_info.send(sender="ecost.category:Queue waiting {0} seconds without response!".format(timeover))
             except:
-                log.log_traceback(self.logger_category)
+                debug_info.send(sender="ecost.category", tracebackinfo=sys.exc_info())
 
 
     def set_leaf_to_db(self, catstr, total_num=None):
         """.. :py:method::
             insert/update leaf node information to db
+
+        :param catstr: primary key in collection Category
+        :param total_num: product number in this leaf category
         """
-        c, is_new = Category.objects.get_or_create(catstr=catstr)
+        c, is_new = Category.objects.get_or_create(pk=catstr)
         c.is_leaf = True
         if total_num: c.num = total_num
         c.update_time = datetime.utcnow()
         c.save()
+        category_saved.send(sender='ecost.category', site='ecost', key=catstr, is_new=is_new)
 
     def parse_category(self, category_list_path, url, content):
         """.. :py:method::
             parse the category in the page source
+
+        :param category_list_path: category path in list data type
+        :param url: category url need to find sub-category
+        :param content: content in this url
         """
         tree = lxml.html.fromstring(content)
         if tree.xpath('//img[@src="/croppedWidgets/images.browseCategoriesTitle.png"]'):
@@ -122,7 +132,7 @@ class Server(object):
                     # http://www.ecost.com/n/Blu-Ray-Dvd-Player/mainMenu-3368
                     # treat as leaf
                     self.set_leaf_to_db(' > '.join(category_list_path))
-                    log.log_print('Special page {0}'.format(url), self.logger_category, logging.WARNING)
+                    debug_info.send(sender='ecost.category', info='special leaf page {0}'.format(url))
                     return
 
             for category in categories:
@@ -137,16 +147,15 @@ class Server(object):
                     continue
 
                 cats = category_list_path + [name]
-                log.log_print('category ==> {0}'.format(cats), self.logger_category)
-                log.log_print('queue size ==> {0}'.format(self.queue.qsize()), self.logger_category)
-                self.conn.insert_update_category(cats, link)
-                c, is_new = Category.objects.get_or_create(catstr = ' > '.join(category_list_path) )
+                debug_info.send(sender='ecost.category', cats=cats, queue_size=self.queue.qsize())
+                c, is_new = Category.objects.get_or_create( pk=' > '.join(category_list_path) )
                 if is_new:
                     c.cats = cats
                     c.catstr = ' > '.join(cats)
                     c.url = link
                 c.update_time = datetime.utcnow()
                 c.save()
+                category_saved.send(sender='ecost.category', site='ecost', key=' > '.join(category_list_path), is_new=is_new)
                 self.queue.put((cats, link))
         else:
             # leaf node
@@ -155,7 +164,7 @@ class Server(object):
                 total_num = int(num[0])
                 self.set_leaf_to_db(' > '.join(category_list_path))
             else:
-                log.log_traceback(self.logger_category, 'Not a valid page {0}'.format(url))
+                debug_info.send(sender='ecost.category', info='Not a valid page {0}'.format(url))
 #                log.log_print('content: {0}'.format(content), self.logger_category, logging.DEBUG)
                 return
 
@@ -163,23 +172,40 @@ class Server(object):
     def crawl_listing(self, url, catstr, num=None):
         """.. :py:method::
             crawl list page to get part of products' info
+
+        :param url: listing page url
+        :param catstr: listing page's category path in string data type
+        :param num: porduct number in this leaf category
         """
         content = fetch_page(url)
-        if content:
-            self.parse_listing(catstr, url, content, num)
+        if not content:
+            page_download_failed.send(sender="ecost.list.download.error", url=url)
+            return
+        self.parse_listing(catstr, url, content, num)
         
     def crawl_product(self, url, ecost=''):
         """.. :py:method::
             crawl the detail page to get another part of products' info
+
+        :param url: product url
+        :param ecost: product's ecost number
         """
         content = fetch_page(url)
-        if content:
-            self.parse_product(url, content, ecost)
+        if not content:
+            page_download_failed.send(sender="ecost.product.download.error", url=url)
+            return
+        self.info = {'ecost': '', 'model':'', 'shipping': '', 'available': '', 'platform': '', 'manufacturer': '', 'upc': '', 'review': 0, 'rating': ''}
+        self.parse_product(url, content, ecost)
         
     def parse_listing(self, catstr, url, content, num):
         """.. :py:method::
-            only for price. some special page don't have a item number.
-            ITEM_PER_PAGE: 25 in setting.py
+            only for price. some special page don't have an item number.
+            ITEM_PER_PAGE: 25 in models.py
+
+        :param catstr: listing page's category path in string data type
+        :param url: listing page url
+        :param content: this url's content
+        :param num: porduct number in this leaf category
         """
         tree = lxml.html.fromstring(content)
 
@@ -190,40 +216,52 @@ class Server(object):
             prices = [p.text_content().strip().replace('$','').replace(',','') for p in price]
             links = tree.xpath('//span[@class="itemName wcB1"]/a')
             if len(prices) != len(links):
-                log.log_traceback(self.logger_list, 'Special page: prices number != links number {0}'.format(url))
-                raw_input()
+                warning_info.send(sender='ecost.listing', msg='prices number != links number', url=url)
             for j in xrange( len(links) ):
                 href = links[j].get('href')
                 if not href or not links[j].text_content().strip():
                     continue
                 if not href.startswith('http'):
-                    href = 'http://www.ecost.com' + href
+                    href = self.ecosturl + href
                 self.conn.title_link(links[j].text_content().strip(), href, prices[j])
             return
 
         total_num = int(tree.xpath('//div[@class="searchHeaderDisplayTitle"]/span[1]/text()')[0])
         page_num = (total_num - 1) // ITEM_PER_PAGE + 1
 
-        if page_num == 0:
-            log.log_print('Listing page do not have any items! -- {0}'.format(url), self.logger_list, logging.ERROR)
-        elif page_num == 1:
+        if page_num == 1:
             self.get_info(url, catstr, total_num, page_num)
         else:
             for i in xrange(1, page_num):
                 self.get_info('{0}&op=zones.SearchResults.pageNo&pageNo={1}'.format(url, i), catstr, ITEM_PER_PAGE, i)
             self.get_info('{0}&op=zones.SearchResults.pageNo&pageNo={1}'.format(url, page_num), catstr, total_num % ITEM_PER_PAGE, page_num)
 
+    def url2ecoststr(self, url, ecost):
+        """.. :py:method::
+            from the url to get the ecost_str
 
-    def get_info(self, url, catstr, item_num, page_num):
-        """  """
+        :param url: product page url
+        :param ecost: product ecost id
+        """
+        return re.compile(r'http://www.ecost.com/p/.*/product~dpno~{0}~pdp.(\w+)'.format(ecost)).match(url).group(1)
+
+    def get_info(self, url, catstr, total_num, page_num):
+        """.. :py:method::
+            get some of the product detail from the listing page
+
+        :param url: listing page url
+        :param catstr: listing page's category in string datatype
+        :param total_num: product number in this leaf category
+        :param page_num: page number in this leaf category
+        """
         content = fetch_page(url)
+        if not content:
+            page_download_failed.send(sender="ecost.parse_list.download.error", url=url)
+            return
         tree = lxml.html.fromstring(content)
         nodes = tree.xpath('//div[@id="searchResultList"]/div[@class="sr-table_content"]')
 
-        ecost = []
-        models = []
-        prices = []
-        links = []
+        ecost, models, prices, links = [], [], [], []
         for node in nodes:
             pnode = node.xpath('.//td[@class="rscontent"]/span')
             for p in pnode:
@@ -241,34 +279,39 @@ class Server(object):
 
             link = node.xpath('.//td[@class="sr-item_img rscontent"]//span[@class="sr-item_description"]/h5/a/@href')
             for l in link:
-                links.append( l if l.startswith('http') else 'http://www.ecost.com' + l )
+                links.append( l if l.startswith('http') else self.ecosturl + l )
 
+        if total_num != len(ecost):
+            warning_info.send(sender='ecost.list:', url=url, total_num=total_num, ecost_num=len(ecost), page_num=page_num)
 
-        if item_num != len(ecost):
-            log.log_traceback(self.logger_list, '{0} item_num: {1}, ecost_num: {2}, page_num: {3}'.format(url, item_num, len(ecost), page_num) )
-
-        log.log_print('{0} {1} {2} {3} {4}'.format(len(ecost), len(models), len(prices), len(links), url), self.logger_list)
+        debug_info.send(sender='ecost.list', ecost_num=len(ecost), models_num=len(models), prices_num=len(prices), links_num=len(links), url=url)
         timenow = datetime.utcnow()
 
         for j in xrange( len(ecost) ):
             # This rank changes all the time.If some product updated, some not, same rank on two products will happen!
             sell_rank = ITEM_PER_PAGE * (page_num-1) + j + 1
-            try:
-                price = string.atof( prices[j] )
-            except ValueError as e:
-                log.log_print(e, self.logger_list, logging.WARNING)
-                price = ''
-            except IndexError as e:
-                log.log_print('{0}, index:{1}, prices:{2}'.format(e, j, prices), self.logger_list, logging.WARNING)
-
-            try:
-                self.conn.update_listing(ecost[j], models[j], price, sell_rank, links[j], catstr, timenow, updated=False)
-            except:
-                log.log_traceback(self.logger_list, '{0} item of {1} items. item_num: {2}'.format(j, len(ecost), item_num))
-
+            p, is_new = Product.objects.get_or_create(pk=ecost[j])
+            if catstr.decode('utf-8') not in p.cats:
+                p.cats.append(catstr)
+            if is_new:
+                p.ecost_str = self.url2ecoststr(links[j], ecost[j])
+                p.model = models[j]
+            p.price = prices[j]
+            p.sell_rank = sell_rank
+            p.updated = False
+            p.list_update_time = timenow
+            p.save()
+            product_saved.send(sender='ecost.list', site='ecost', key=ecost[j], is_new=is_new)
     
 
     def parse_product(self, url, content, ecost):
+        """.. :py:method::
+            get product detail
+
+        :param url: product page url
+        :param content: this url contents
+        :param ecost: ecost number
+        """
         tree = lxml.html.fromstring(content)
 
         title = tree.xpath('//h1[@class="prodInfo wt"]/text()')[-1]
@@ -280,7 +323,6 @@ class Server(object):
             price = tree.xpath('//td[@class="leftPane"]//td[@class="infoContent infoPrice wt15"]/text()')
         price = price[0].replace('$', '').replace(',', '') if price else ''
 
-        self.info = {'ecost': '', 'model':'', 'shipping': '', 'available': '', 'platform': '', 'manufacturer': '', 'upc': '', 'review': 0, 'rating': ''}
         node = tree.xpath('//td[@class="rightPane"]/table//tr')
         for tr in node:
             name = tr.xpath('./td[@class="infoLabel"]/text()')
@@ -290,13 +332,33 @@ class Server(object):
         tables = tree.xpath('//div[@class="simpleTab06 wt11 wcGray1"]/div[@id="pdpTechSpecs"]//tr[@class="dtls"]')
         specifications = dict(t.text_content().strip().split('\n\t\t\t\t') for t in tables)
 
-        try:
-            self.conn.update_product(title, image, price, ecost, self.info['model'], self.info['shipping'], self.info['available'], self.info['platform'], self.info['manufacturer'], self.info['upc'], self.info['review'], self.info['rating'], specifications)
-        except:
-            log.log_traceback(self.logger_product, '{0} {1}'.format(url, self.info))
+        p, is_new = Product.objects.get_or_create(pk=ecost)
+        p.title = title
+        p.image_urls.append(image)
+        p.price = price
+        p.model = self.info['model']
+        p.shipping = self.info['shipping']
+        p.available = self.info['available']
+        p.platform = self.info['platform']
+        p.manufacturer = self.info['manufacturer']
+        p.upc = self.info['upc']
+        p.num_reviews = self.info['review']
+        p.rating = self.info['rating']
+        p.specifications = specifications
+        p.updated = True
+        p.full_update_time = datetime.utcnow()
+        p.save()
+        product_saved.send(sender='ecost.product', site='ecost', key=ecost, is_new=is_new)
 
 
     def label_value(self, name, tr):
+        """.. :py:method::
+            based on the name(key) of the field, get its value. put the information into self.info
+
+        :param name: name of the field in web page
+        :param tr: xml node, use xpath to get the value based on the name
+        """
+
         if name == ['eCOST Part#:']:
             ecost = tr.xpath('./td[@class="infoContent wcGray2"]/text()')
             if ecost:

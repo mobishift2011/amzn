@@ -8,6 +8,7 @@ crawlers.ecost.models
 Implements Product and Category Model for ecost
 """
 DB = 'ecost'
+ITEM_PER_PAGE = 25
 
 from datetime import datetime, timedelta
 from settings import MONGODB_HOST
@@ -31,12 +32,12 @@ class Product(BaseProduct):
     """
 #    ecost = StringField(primary_key=True)
     ecost_str = StringField()
-    shipping = StringField()
-    available = StringField()
-    sell_rank = IntField()
-    description = StringField()
-    also_like = ListField()
-    catstrs = ListField(StringField())
+    platform = StringField()
+    manufacturer = StringField()
+    upc = StringField()
+    specifications = DictField()
+#    description = StringField()
+#    also_like = ListField()
     meta = {
         "indexes": ["updated"]
     }

@@ -1,9 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from gevent import monkey
-monkey.patch_all()
-from gevent.pool import Pool
+"""
+crawler.ecost.server
+~~~~~~~~~~~~~~~~~~~
 
+This is the server part of zeroRPC module. Call by client.py automatically, run on many differen ec2 instances.
+
+"""
 import os
 import re
 import sys
@@ -13,28 +16,21 @@ import logging
 import requests
 import traceback
 import lxml.html
-import conn_mongo
 import logging
 import log
 import Queue
 import string
 
+from gevent import monkey
+monkey.patch_all()
+from gevent.pool import Pool
 from urllib import quote, unquote
 from datetime import datetime, timedelta
-
 from settings import *
 
-headers = { 
-    'User-Agent': 'Mozilla 5.0/Firefox 15.0.1',
-}
+sys.path.insert(0, os.path.abspath( os.path.dirname(__file__) ))
+from common.stash import *
 
-config = { 
-    'max_retries': 3,
-    'pool_connections': 10, 
-    'pool_maxsize': 10, 
-}
-
-s = requests.Session(prefetch=True, timeout=15, config=config, headers=headers)
 
 top_category = {
 #    "Apple": "http://www.ecost.com/n/Apple-Computer/mainMenu-222006384",
@@ -54,31 +50,30 @@ top_category = {
     "Home Decor": "http://www.ecost.com/s/Home-Decor?cc=CK*,CKAA,CKB*,CKF*,CKG*",
 }
 
-class Server:
-    def __init__(self):
-        self.conn = conn_mongo.conn_mongo(DB, DB_HOST)
-        self.product = self.conn.get_product_col('product')
-        self.conn.index_unique(self.product, 'ecost')
-        self.logger_category = log.init('ecost_category', 'ecost_category.txt')
-        self.logger_list = log.init('ecost_list', 'ecost_list.txt')
-        self.logger_product = log.init('ecost_product', 'ecost_product.txt')
+class Server(object):
+    """.. :py:class:: Server
+    
+    This is zeroRPC server class for ec2 instance to crawl pages.
 
-    def clear(self):
-        self.conn.close_mongo()
+    """
+    def __init__(self):
+        self.logger_category = log.init(DB + '_category', DB + '_category.txt')
+        self.logger_list = log.init(DB + '_list', DB + '_list.txt')
+        self.logger_product = log.init(DB + '_product', DB + '_product.txt')
 
     def get_main_category(self):
+        """.. :py:method::
+            put top category into queue
+        """
         for top, link in top_category.items():
-            self.conn.set_update_flag(top)
             self.queue.put(([top], link))
         self.queue.put((['Apple', 'iPod'], 'http://www.ecost.com/n/Apple-Ipod/mainMenu-2083'))
 
-
     def crawl_category(self):
-        """ crawl category """
+        """.. :py:method::
+            crawl ecost category
+        """
         log.log_print('Initialization of ecost category cralwer.', self.logger_category, logging.INFO)
-        self.category = self.conn.get_category_col('category')
-        self.conn.index_unique(self.category, 'catstr')
-
         self.queue = Queue.Queue()
         self.get_main_category()
 
@@ -87,10 +82,14 @@ class Server:
 
 
     def cycle_crawl_category(self, timeover=60):
+        """.. :py:method::
+            read (category, link) tuple from queue, crawl sub-category, insert into the queue
+        """
         while not self.queue.empty():
             try:
                 job = self.queue.get(timeout=timeover)
-                utf8_content = self.fetch_page(job[1])
+                utf8_content = fetch_page(job[1])
+                if not utf8_content: continue
                 self.parse_category(job[0], job[1], utf8_content)
             except Queue.Empty:
                 log.log_traceback(self.logger_category, 'Queue waiting {0} seconds without response!'.format(timeover))
@@ -99,9 +98,10 @@ class Server:
 
 
     def parse_category(self, category_list_path, url, content):
+        """.. :py:method::
+            parse the category in the page source
+        """
         tree = lxml.html.fromstring(content)
-        names, links = [], []
-
         if tree.xpath('//img[@src="/croppedWidgets/images.browseCategoriesTitle.png"]'):
             # has 'BROWSE CATEGORIES' image
             categories = tree.xpath('//div[@class="nav-list wt"]/h2[@class="wt"]/span/a')
@@ -117,9 +117,24 @@ class Server:
             for category in categories:
                 link = category.get('href')
                 name = category.text_content()
-                names.append(name)
-                links.append(link)
+                if not link.startswith('http'):
+                    link = 'http://www.ecost.com' + link
+
+                # trap "Household Insulation":
+                # ['Electronics & Entertainment', 'Audio & Video', 'Accessories', 'Receivers', 'Accessories', 'Receivers', ...
+                if name in category_list_path:
+                    continue
+
+                cats = category_list_path + [name]
+                log.log_print('category ==> {0}'.format(cats), self.logger_category)
+                if self.conn.category_updated(' > '.join(cats)):
+                    continue
+
+                log.log_print('queue size ==> {0}'.format(self.queue.qsize()), self.logger_category)
+                self.conn.insert_update_category(cats, link)
+                self.queue.put((cats, link))
         else:
+            # leaf node
             num = tree.xpath('//div[@class="searchHeaderDisplayTitle"]/span[1]/text()')
             if num:
                 total_num = int(num[0])
@@ -130,45 +145,27 @@ class Server:
                 return
 
 
-        pairs = []
-        if len(links) != len(names):
-            log.log_traceback(self.logger_category, '!! links num: {0}; names num: {1}. {2}'.format(len(links), len(names), url))
-            return
-        else:
-            pairs = zip(names, links)
-
-        for category, link in pairs:
-            if not link.startswith('http'):
-                link = 'http://www.ecost.com' + link
-            # trap "Household Insulation":
-            # ['Electronics & Entertainment', 'Audio & Video', 'Accessories', 'Receivers', 'Accessories', 'Receivers', ...
-            if category in category_list_path:
-                continue
-
-            cats = category_list_path + [category]
-            log.log_print('category ==> {0}'.format(cats), self.logger_category)
-            if self.conn.category_updated(' > '.join(cats)):
-                continue
-
-            log.log_print('queue size ==> {0}'.format(self.queue.qsize()), self.logger_category)
-            self.conn.insert_update_category(cats, link)
-            self.queue.put((cats, link))
-
-
     def crawl_listing(self, url, catstr, num=None):
-        content = self.fetch_page(url)
-        self.parse_listing(catstr, url, content, num)
+        """.. :py:method::
+            crawl list page to get part of products' info
+        """
+        content = fetch_page(url)
+        if content:
+            self.parse_listing(catstr, url, content, num)
         
     def crawl_product(self, url, ecost=''):
-        content = self.fetch_page(url)
-        self.parse_product(url, content, ecost)
+        """.. :py:method::
+            crawl the detail page to get another part of products' info
+        """
+        content = fetch_page(url)
+        if content:
+            self.parse_product(url, content, ecost)
         
-    def fetch_page(self, url):
-        return s.get(url).content
-    
     def parse_listing(self, catstr, url, content, num):
-        """ only for price. some special page don't have a item number.
-            ITEM_PER_PAGE: 25 in setting.py """
+        """.. :py:method::
+            only for price. some special page don't have a item number.
+            ITEM_PER_PAGE: 25 in setting.py
+        """
         tree = lxml.html.fromstring(content)
 
         if not num:
@@ -204,7 +201,7 @@ class Server:
 
     def get_info(self, url, catstr, item_num, page_num):
         """  """
-        content = self.fetch_page(url)
+        content = fetch_page(url)
         tree = lxml.html.fromstring(content)
         nodes = tree.xpath('//div[@id="searchResultList"]/div[@class="sr-table_content"]')
 

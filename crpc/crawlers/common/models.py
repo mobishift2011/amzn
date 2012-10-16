@@ -1,59 +1,84 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from sqlalchemy import create_engine
-engine = create_engine('sqlite:////home/jingchao/Projects/amzn/crpc/status.db')
+"""
+crawlers.common.models
+~~~~~~~~~~~~~~~~~~~~~~
 
-from sqlalchemy.ext.declarative import declarative_base
-Base = declarative_base()
+"""
+from mongoengine import *
 
-from sqlalchemy.orm import sessionmaker
-Session = sessionmaker(bind=engine)
-        
-session = Session()
+class BaseCategory(Document):
+    """ :py:class:crawlers.common.models.BaseCategory
+    
+    common category info
+    crawlers should inherit from this base class
+    
+    >>> from crawlers.common.models import BaseCategory
+    >>> class Category(BaseCategory):
+    ...     pass
 
-from datetime import datetime, timedelta
+    """
+    cats        =   ListField(StringField()) 
+    is_leaf     =   BooleanField(default=False) # should set values to false manually
+    update_time =   DateTimeField(default=datetime.utcnow)
+    spout_time  =   DateTimeField() # time when we issue a new category fetch operation
+    num         =   IntField() 
+    pagesize    =   IntField()
+    meta        =   {
+        "indexes":  ["cats", ("is_leaf", "update_time"), "num", ],
+    }
 
-from sqlalchemy import Column, Integer, String, Boolean, DateTime
-class Stat(Base):
-    __tablename__ = 'Stat'
+    def catstr(self):
+        return " > ".join(self.cats)
+    
+    def url(self):
+        raise NotImplementedError("should implemented in sub classes!")
 
-    sid = Column(Integer, primary_key=True)
-    crawler = Column(String, nullable=False)
-    created_at = Column(DateTime)
-    updated_at = Column(DateTime)
-    stopped = Column(Boolean, default=False)
-    loops = Column(Integer, default=0)
-    errors = Column(Integer, default=0) 
-    errors_list = Column(String, default='') # comma sepreated error
+class BaseProduct(Document):
+    """ :py:class:crawlers.common.models.BaseProduct
 
-    @staticmethod
-    def get_or_create(crawler):
-        s = session.query(Stat).filter_by(crawler=crawler, stopped=False).first()
-        if not s:
-            s = Stat(crawler=crawler)
-            s.created_at = s.updated_at = datetime.utcnow()
-            session.add(s)
-            session.commit()
-        return s
-                
-    def incr(self):
-        self.updated_at = datetime.utcnow()
-        self.loops += 1
-        session.add(self)
-        session.commit()
+    common product info
+    crawlers should inherit from this base class
 
-    def error(self, message):
-        self.udpated_at = datetime.utcnow()
-        self.loops += 1 
-        self.errors += 1
-        l = self.errors_list.split(';;;')[:9]
-        l.insert(0, message)
-        self.errors_list = ';;;'.join(l)
-        session.add(self)
-        session.commit()
+    >>> from crawlers.common.models import BaseProduct
+    >>> class Product(BaseProduct):
+    ...     pass
 
-    def done(self):
-        self.stopped = True
-        session.commit()
+    """
+    key                 =   StringField(primary_key=True)
 
-Base.metadata.create_all(engine)
+    # meta infomation for record keeping
+    updated             =   BooleanField(default=False)
+    list_update_time    =   DateTimeField(default=datetime.utcnow)
+    full_update_time    =   DateTimeField(default=datetime.utcnow)
+
+    # dimension info
+    cats                =   ListField(StringField()) 
+    like                =   StringField()  # how many likes
+    rating              =   StringField()  # how it is rated, if any
+    brand               =   StringField()
+    model               =   StringField()
+    price               =   StringField()
+
+    # text info
+    title               =   StringField()
+    slug                =   StringField()
+    summary             =   StringField() 
+
+    # reviews
+    num_reviews         =   StringField()
+    reviews             =   ListField(StringField())
+
+    # product images
+    image_urls          =   ListField(StringField())
+
+    meta                =   {
+        "indexes":  ["key", "cats", "list_update_time", "full_update_time", "model", "brand", "updated"],
+    }
+
+    def catstr(self):
+        return " > ".join(self.cats)
+
+    def url(self):
+        raise NotImplementedError("should implemented in sub classes!")
+

@@ -16,7 +16,7 @@ product_saved = Signal("product_saved")
 """ product_failed kwargs:
 
 site    =   site         (amazon, newegg, ...)
-key     =   key          
+url     =   url        
 resaon  =   ...
 
 """

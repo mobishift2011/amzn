@@ -34,7 +34,7 @@ class Category(BaseCategory):
     catn        =   StringField(unique=True)
 
     def url(self):
-        return catn2url(self.catn)
+        return catn2url(self.catn)+'&page={0}'
 
 class Product(BaseProduct):
     catns               =   ListField(StringField())

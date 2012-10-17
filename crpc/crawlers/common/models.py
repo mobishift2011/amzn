@@ -81,11 +81,14 @@ class BaseProduct(Document):
     model               =   StringField()
     models              =   ListField()
     price               =   StringField()
+    sell_rank           =   IntField()
 
     # text info
     title               =   StringField()
     slug                =   StringField()
     summary             =   StringField() 
+    shipping            =   StringField()
+    available           =   StringField()
 
     # reviews
     num_reviews         =   StringField()

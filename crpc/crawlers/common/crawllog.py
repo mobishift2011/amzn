@@ -11,7 +11,7 @@ def debug_info_print(sender, **kwargs):
 
 @warning_info.bind
 def warning_info_print(sender, **kwargs):
-    logger.debug('{0}'.format(kwargs.items()))
+    logger.debug('<{0}> -- {1}'.format(sender, kwargs.items()))
 
 @category_saved.bind
 def on_category_saved(sender, **kwargs):

@@ -58,6 +58,7 @@ class Server(object):
 
     """
     def __init__(self):
+        self.site = 'ecost'
         self.ecosturl = 'http://www.ecost.com'
 
     def get_main_category(self):
@@ -91,7 +92,7 @@ class Server(object):
                 job = self.queue.get(timeout=timeover)
                 utf8_content = fetch_page(job[1])
                 if not utf8_content:
-                    page_download_failed.send(sender="ecost.category.download.error", category_list=job[0], url=job[1])
+                    category_failed.send(sender="ecost.category.download.error", site=self.site, url=job[1], category_list=job[0], reason="download page error")
                     continue
                 self.parse_category(job[0], job[1], utf8_content)
             except Queue.Empty:
@@ -112,7 +113,7 @@ class Server(object):
         if total_num: c.num = total_num
         c.update_time = datetime.utcnow()
         c.save()
-        category_saved.send(sender='ecost.category', site='ecost', key=catstr, is_new=is_new)
+        category_saved.send(sender='ecost.category', site=self.site, key=catstr, is_new=is_new, is_updated=not is_new)
 
     def parse_category(self, category_list_path, url, content):
         """.. :py:method::
@@ -155,7 +156,7 @@ class Server(object):
                     c.url = link
                 c.update_time = datetime.utcnow()
                 c.save()
-                category_saved.send(sender='ecost.category', site='ecost', key=' > '.join(category_list_path), is_new=is_new)
+                category_saved.send(sender='ecost.category', site=self.site, key=' > '.join(category_list_path), is_new=is_new, is_updated=not is_new)
                 self.queue.put((cats, link))
         else:
             # leaf node
@@ -165,6 +166,7 @@ class Server(object):
                 self.set_leaf_to_db(' > '.join(category_list_path))
             else:
                 debug_info.send(sender='ecost.category', info='Not a valid page {0}'.format(url))
+                category_failed.send(sender='ecost.category', site=self.site, url=url, reason='can not get number of this leaf category.')
 #                log.log_print('content: {0}'.format(content), self.logger_category, logging.DEBUG)
                 return
 
@@ -179,7 +181,7 @@ class Server(object):
         """
         content = fetch_page(url)
         if not content:
-            page_download_failed.send(sender="ecost.list.download.error", url=url)
+            category_failed.send(sender="ecost.category.download.error", site=self.site, url=url, reason="download page error")
             return
         self.parse_listing(catstr, url, content, num)
         
@@ -192,7 +194,7 @@ class Server(object):
         """
         content = fetch_page(url)
         if not content:
-            page_download_failed.send(sender="ecost.product.download.error", url=url)
+            product_failed.send(sender="ecost.category.download.error", site=self.site, url=url, reason="download page error")
             return
         self.info = {'ecost': '', 'model':'', 'shipping': '', 'available': '', 'platform': '', 'manufacturer': '', 'upc': '', 'review': 0, 'rating': ''}
         self.parse_product(url, content, ecost)
@@ -256,7 +258,7 @@ class Server(object):
         """
         content = fetch_page(url)
         if not content:
-            page_download_failed.send(sender="ecost.parse_list.download.error", url=url)
+            category_failed.send(sender="ecost.category.download.error", site=self.site, url=url, reason="download parse_list page error")
             return
         tree = lxml.html.fromstring(content)
         nodes = tree.xpath('//div[@id="searchResultList"]/div[@class="sr-table_content"]')
@@ -301,7 +303,7 @@ class Server(object):
             p.updated = False
             p.list_update_time = timenow
             p.save()
-            product_saved.send(sender='ecost.list', site='ecost', key=ecost[j], is_new=is_new)
+            product_saved.send(sender='ecost.list', site=self.site, key=ecost[j], is_new=is_new)
     
 
     def parse_product(self, url, content, ecost):
@@ -348,7 +350,7 @@ class Server(object):
         p.updated = True
         p.full_update_time = datetime.utcnow()
         p.save()
-        product_saved.send(sender='ecost.product', site='ecost', key=ecost, is_new=is_new)
+        product_saved.send(sender='ecost.product', site=self.site, key=ecost, is_new=is_new)
 
 
     def label_value(self, name, tr):

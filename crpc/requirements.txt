@@ -11,6 +11,7 @@ greenlet==0.4.0
 ipython==0.13
 legit==0.1.1
 lxml==3.0.1
+mock==1.0.0
 mongoengine==0.7.5
 msgpack-python==0.2.2
 pycrypto==2.6

@@ -58,6 +58,28 @@ class Server(object):
         self.site = 'ecost'
         self.ecosturl = 'http://www.ecost.com'
 
+
+    def url2tree(self, url, err_msg, is_category=None):
+        content = fetch_page(url)
+        if not content:
+            if is_category == True:
+                category_failed.send(sender=err_msg, site=self.site, url=url, reason="download page error")
+            elif is_category == False:
+                product_failed.send(sender=err_msg, site=self.site, url=url, reason="download page error")
+            else:
+                debug_info.send(sender=err_msg)
+            return
+        tree = lxml.html.fromstring(content)
+        if not tree:
+            if is_category == True:
+                category_failed.send(sender=self.site + '.url2tree', site=self.site, url=url, reason='parse content to tree error')
+            elif is_category == False:
+                product_failed.send(sender=self.site + '.url2tree', site=self.site, url=url, reason='parse content to tree error')
+            else:
+                debug_info.send(sender=self.site + '.url2tree_parse_tree_error')
+            return
+        return tree
+
     def get_main_category(self):
         """.. :py:method::
             put top category into queue
@@ -93,9 +115,9 @@ class Server(object):
                     continue
                 self.parse_category(job[0], job[1], utf8_content)
             except Queue.Empty:
-                debug_info.send(sender="ecost.category:Queue waiting {0} seconds without response!".format(timeover))
+                debug_info.send(sender="{0}.category:Queue waiting {1} seconds without response!".format(self.site, timeover))
             except:
-                debug_info.send(sender="ecost.category", tracebackinfo=sys.exc_info())
+                debug_info.send(sender=self.site + ".category", tracebackinfo=sys.exc_info())
 
 
     def set_leaf_to_db(self, catstr, total_num=None):

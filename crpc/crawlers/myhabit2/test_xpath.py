@@ -34,6 +34,8 @@ class myhabitLogin(object):
         signin_button = self.browser.find_element_by_id('signInSubmit')
         signin_button.submit()
 
+    def crawl_category(self):
+        self.browser.get('http://www.myhabit.com/homepage?#page=g&dept=kids&ref=qd_nav_tab_kids')
 
 def iurl_otree(url):
     http = httplib2.Http()

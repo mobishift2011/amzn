@@ -38,7 +38,14 @@ class Server:
         self.site = 'myhabit'
         self.siteurl = 'http://www.myhabit.com'
 
+
     def login(self, email=None, passwd=None):
+        """.. :py:method::
+            login the site
+
+        :param email: login email
+        :param passwd: login passwd
+        """
         try:
             self.browser = webdriver.Chrome()
         except:
@@ -52,26 +59,32 @@ class Server:
         signin_button = self.browser.find_element_by_id('signInSubmit')
         signin_button.submit()
 
-
     def crawl_category(self):
-        """ From top depts, get all the brands """
+        """.. :py:method::
+            From top depts, get all the brands
+        """
+        depts = ['women', 'men', 'kids', 'home', 'designer']
         self.queue = Queue.Queue()
-        depts = ['women', 'men', 'kids', 'home']
+        debug_info.send(sender=self.site + 'ecost.category.begin')
 
         for dept in depts:
             link = 'http://www.myhabit.com/homepage?#page=g&dept={0}&ref=qd_nav_tab_{0}'.format(dept)
             self.get_brand_list(dept, link)
-
         self.cycle_crawl_brand(TIMEOUT)
+        debug_info.send(sender=self.site + '.category.end')
 
     def get_brand_list(self, dept, url):
-        """ Get all the brand from brand list.
+        """.. :py:method::
+            Get all the brands from brand list.
             Brand have a list of product.
+
+        :param dept: dept in the page
+        :param url: the dept's url
         """
         self.browser.get(url)
-        nodes = self.browser.find_element_by_xpath('//div[@id="main"]/div[@id="page-content"]/div[@id="currentSales"]/div[starts-with(@id, "privateSale")]/div[@class="caption"]/a')
+        nodes = self.browser.find_elements_by_xpath('//div[@id="main"]/div[@id="page-content"]/div[@id="currentSales"]/div[starts-with(@id, "privateSale")]/div[@class="caption"]/a')
         for node in nodes:
-            l = node.get(href)
+            l = node.get_attribute('href')
             link = l if l.startswith('http') else 'http://www.myhabit.com/homepage?' + l
             self.queue.put( (dept, link) )
 
@@ -85,12 +98,14 @@ class Server:
         while not self.queue.empty():
             try:
                 job = self.queue.get(timeout=timeover)
-                utf8_content = self.fetch_page(job[1])
-                self.parse_brand(job[0], job[1], utf8_content)
+                tree = self.url2tree(job[1])
+                if not tree: continue
+                self.parse_brand(job[0], job[1], tree)
             except Queue.Empty:
-                log.log_traceback(self.logger_category, 'Queue waiting {0} seconds without response!'.format(timeover))
+                debug_info.send(sender="{0}.category:Queue waiting {1} seconds without response!".format(self.site, timeover))
             except:
-                log.log_traceback(self.logger_category)
+                debug_info.send(sender=self.site + ".category", tracebackinfo=sys.exc_info())
+
 
     def url2tree(self, url, err_msg, is_category=None):
         content = fetch_page(url)
@@ -102,21 +117,35 @@ class Server:
             else:
                 debug_info.send(sender=err_msg)
             return
-        return lxml.html.fromstring(content)
+        tree = lxml.html.fromstring(content)
+        if not tree:
+            if is_category == True:
+                category_failed.send(sender=self.site + '.url2tree', site=self.site, url=url, reason='parse content to tree error')
+            elif is_category == False:
+                product_failed.send(sender=self.site + '.url2tree', site=self.site, url=url, reason='parse content to tree error')
+            else:
+                debug_info.send(sender=self.site + '.url2tree_parse_tree_error')
+            return
+        return tree
+
 
     def time_proc(self):
+        """.. :py:method::
+        """
         import pytz
         pt = pytz.timezone('US/Pacific')
         tinfo = 'Fri Oct 12 9 AM' + ' ' + str(pt.normalize(datetime.now(tz=pt)).year)
         endtime = datetime.strptime(tinfo, '%a %b %d %I %p %Y').replace(tzinfo=pt)
         utc_endtime = pt.normalize(endtime).astimezone(pytz.utc)
     
-    def parse_brand(self, dept, url, content):
-        """
+    def parse_brand(self, dept, url, tree):
+        """.. :py:method::
             Brand page parsing
-        """
-        tree = lxml.html.fromstring(content)
 
+        :param dept: dept in the page
+        :param url: the dept's url
+        :param object tree: the lxml tree of this url
+        """
         node = tree.xpath('//div[@id="main"]/div[@id="page-content"]')
         if not nodes:
             log.log_traceback(self.logger_brand, 'Url can not be parsed {0}'.format(url))

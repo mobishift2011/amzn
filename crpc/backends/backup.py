@@ -19,8 +19,8 @@ import traceback
 from cStringIO import StringIO
 from datetime import datetime, timedelta
 
-DUMP_FILE = '/mnt/dump.tar.gz'
-DUMP_DIR = '/mnt/mongodump'
+DUMP_FILE = '/tmp/dump.tar.gz'
+DUMP_DIR = '/tmp/mongodump'
 DBPATH = '/var/lib/mongodb'
     
 AWS_ACCESS_KEY = "AKIAIQC5UD4UWIJTBB2A"
@@ -39,7 +39,7 @@ def dumpdb():
         # unlock
         # admin['$cmd'].sys.unlock.find_one()
         
-    os.system("mongodump --out {0}".format(DBPATH, DUMP_DIR))
+    os.system("mongodump --out {0}".format(DUMP_DIR))
     os.system("tar czvvf {0} {1}".format(DUMP_FILE, DUMP_DIR))
 
 def get_connection():

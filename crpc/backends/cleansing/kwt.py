@@ -155,7 +155,7 @@ class KeywordSearch(object):
         self.rq.put(result)
     
 if __name__ == '__main__':
-    #ks = KeywordSearch()
+    ks = KeywordSearch()
     t = time.time()
     #print ks.search(['ipad','cars','a0012k2k2','kindle','mac','beats','travel'])
     #print time.time() - t

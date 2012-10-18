@@ -47,7 +47,7 @@ def crawl_listing(addrs):
     clients = [zerorpc.Client(addr, timeout=300) for addr in addrs]
     it = 0 
     num_cats = Category.objects().count()
-    for c in Category.objects(leaf=True).timeout(False):
+    for c in Category.objects(is_leaf=True).timeout(False):
         it += 1
         print c.catname, it, 'of', num_cats
         if c.spout_time and  c.spout_time > datetime.utcnow()-timedelta(hours=8):

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-crawler.ecost.server
+crawlers.ecost.server
 ~~~~~~~~~~~~~~~~~~~
 
 This is the server part of zeroRPC module. Call by client.py automatically, run on many differen ec2 instances.
@@ -28,10 +28,9 @@ from urllib import quote, unquote
 from datetime import datetime, timedelta
 from models import *
 
-sys.path.insert(0, os.path.abspath( os.path.dirname(__file__) ))
-from common.events import *
-from common.stash import *
-
+#sys.path.insert(0, os.path.abspath( os.path.dirname(__file__) ))
+from crawlers.common.events import *
+from crawlers.common.stash import *
 
 top_category = {
 #    "Apple": "http://www.ecost.com/n/Apple-Computer/mainMenu-222006384",
@@ -350,7 +349,7 @@ class Server(object):
 
         p, is_new = Product.objects.get_or_create(pk=ecost)
         p.title = title
-        p.image_urls.append(image)
+        if image not in p.image_urls: p.image_urls.append(image)
         if price: p.price = price
         if self.info['model']: p.model = self.info['model']
         if self.info['shipping']: p.shipping = self.info['shipping']

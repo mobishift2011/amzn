@@ -103,9 +103,6 @@ class BaseProduct(Document):
         "indexes":  ["key", "cats", "list_update_time", "full_update_time", "model", "brand", "updated"],
     }
 
-    def catstr(self):
-        return " > ".join(self.cats)
-
     def url(self):
         raise NotImplementedError("should implemented in sub classes!")
 

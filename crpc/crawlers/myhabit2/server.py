@@ -1,5 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""
+crawlers.myhabit.server
+~~~~~~~~~~~~~~~~~~~
+
+This is the server part of zeroRPC module. Call by client automatically, run on many differen ec2 instances.
+
+"""
 import gevent
 gevent.monkey.patch_all()
 from gevent.pool import Pool
@@ -8,38 +15,27 @@ import os
 import re
 import sys
 import time
+import Queue
 import zerorpc
-import logging
-import requests
 import lxml.html
-import log
 
 from urllib import quote, unquote
 from datetime import datetime, timedelta
-
-from settings import *
-from models import *
-
 from selenium import webdriver
 
-headers = {
-    'User-Agent': 'Mozilla 5.0/Firefox 15.0.1',
-}
-
-config = { 
-    'max_retries': 3,
-    'pool_connections': 10, 
-    'pool_maxsize': 10, 
-}
-
-s = requests.Session(prefetch=True, timeout=10, config=config, headers=headers)
+from models import *
+from crawlers.common.events import *
+from crawlers.common.stash import *
 
 
 class Server:
+    """.. :py:class:: Server
+    
+    This is zeroRPC server class for ec2 instance to crawl pages.
+
+    """
     def __init__(self):
-        self.logger_brand= log.init(DB + '_brand', DB + '_brand.txt')
-        self.logger_product = log.init(DB + '_product', DB + '_product.txt')
-        self.logger_update = log.init(DB + '_update', DB + '_update.txt')
+        self.site = 'myhabit'
         self.siteurl = 'http://www.myhabit.com'
 
     def login(self, email=None, passwd=None):
@@ -50,7 +46,7 @@ class Server:
             self.browser.set_page_load_timeout(5)
         self.browser.implicitly_wait(5)
 
-        self.browser.get(siteurl)
+        self.browser.get(self.siteurl)
         self.browser.find_element_by_id('ap_email').send_keys(email)
         self.browser.find_element_by_id('ap_password').send_keys(passwd)
         signin_button = self.browser.find_element_by_id('signInSubmit')
@@ -59,16 +55,14 @@ class Server:
 
     def crawl_category(self):
         """ From top depts, get all the brands """
-        self.queue = geven.queue.Queue(None)
+        self.queue = Queue.Queue()
         depts = ['women', 'men', 'kids', 'home']
 
-        log.log_print('Initialization of brand cralwer.', self.logger_brand, logging.INFO)
         for dept in depts:
             link = 'http://www.myhabit.com/homepage?#page=g&dept={0}&ref=qd_nav_tab_{0}'.format(dept)
             self.get_brand_list(dept, link)
 
         self.cycle_crawl_brand(TIMEOUT)
-        log.log_print('Close brand cralwer.', self.logger_brand, logging.INFO)
 
     def get_brand_list(self, dept, url):
         """ Get all the brand from brand list.
@@ -83,15 +77,32 @@ class Server:
 
 
     def cycle_crawl_brand(self, timeover=60):
+        """.. :py:method::
+            read (category, link) tuple from queue, crawl sub-category, insert into the queue
+
+        :param timeover: timeout in queue.get
+        """
         while not self.queue.empty():
             try:
                 job = self.queue.get(timeout=timeover)
                 utf8_content = self.fetch_page(job[1])
                 self.parse_brand(job[0], job[1], utf8_content)
-            except gevent.queue.Empty:
+            except Queue.Empty:
                 log.log_traceback(self.logger_category, 'Queue waiting {0} seconds without response!'.format(timeover))
             except:
                 log.log_traceback(self.logger_category)
+
+    def url2tree(self, url, err_msg, is_category=None):
+        content = fetch_page(url)
+        if not content:
+            if is_category == True:
+                category_failed.send(sender=err_msg, site=self.site, url=url, reason="download page error")
+            elif is_category == False:
+                product_failed.send(sender=err_msg, site=self.site, url=url, reason="download page error")
+            else:
+                debug_info.send(sender=err_msg)
+            return
+        return lxml.html.fromstring(content)
 
     def time_proc(self):
         import pytz

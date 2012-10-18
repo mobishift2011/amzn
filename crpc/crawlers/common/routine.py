@@ -38,16 +38,22 @@ def spout_listing(site):
     m = get_site_module(site)
     return m.Category.objects(is_leaf=True).order_by('-update_time').timeout(False)
 
-def spout_category(category):
-    """ return a generator spouting category url """
+def spout_category(site, category):
+    """ return a generator spouting category parameters """
     c = category
     if c.spout_time and c.spout_time > datetime.utcnow()-timedelta(hours=12):
         return
+    if site == 'ecost':
+        if c.num: # not None
+            yield {'url': c.link, 'catstr': c.cat_str, 'num': c.num}
+        else:
+            yield {'url': c.link, 'catstr': c.cat_str}
+    else:
+        pages = (c.num-1)/c.pagesize+10
+        for p in range(1, min(pages+1,MAX_PAGE+1)):
+            url = c.url().format(p)
+            yield {'url': url}
 
-    pages = (c.num-1)/c.pagesize+10
-    for p in range(1, min(pages+1,MAX_PAGE+1)):
-        url = c.url().format(p)
-        yield url
 
 def spout_product(site):
     """ return a generator spouting product url """
@@ -56,7 +62,10 @@ def spout_product(site):
     p2 = m.Product.objects.filter(updated = True, 
             full_update_time__lt = datetime.utcnow()-timedelta(hours=24)).timeout(False)
     for p in chain(p1, p2):
-        yield p.url()
+        if site == 'ecost':
+            yield {'url': p.url(), 'ecost': p.key}
+        else:
+            yield {'url': p.url()}
 
 class UpdateContext(object):
     """ the context manager for monitoring 
@@ -101,30 +110,30 @@ def update_category(site, rpc, concurrency=30):
 def update_listing(site, rpc, concurrency=30):
     with UpdateContext(site=site, method='update_listing'):
         for category in spout_listing(site):
-            for url in spout_category(category):
+            for kwargs in spout_category(site, category):
                 try:
-                    rpc.call(site, 'crawl_listing', url) 
+                    rpc.call(site, 'crawl_listing', **kwargs) 
                 except Exception as e:
                     category_failed.send(sender="common.update_listing",
                                         site = site,
-                                        url = url,
+                                        url = kwargs['url'],
                                         reason = e.message)
 
 def update_product(site, rpc, concurrency=30):
     with UpdateContext(site=site, method='update_product'):
-        for url in spout_product(site):
+        for kwargs in spout_product(site):
             try:
-                rpc.call(site, 'crawl_product', url)
+                rpc.call(site, 'crawl_product', **kwargs)
             except Exception as e: 
                 product_failed.send(sender="common.update_product",
                                     site = site,
-                                    url = url,
+                                    url = kwargs['url'],
                                     reason = e.message)
                 
 
 if __name__ == '__main__':
     from rpcserver import RPCServer
     rpc = RPCServer() 
-    update_category('amazon', rpc) 
-    #update_listing('amazon', rpc)
+    #update_category('amazon', rpc) 
+    update_listing('amazon', rpc)
     #update_product('amazon', rpc)

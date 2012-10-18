@@ -9,6 +9,7 @@ Implements Product and Category Model for ecost
 """
 DB = 'ecost'
 ITEM_PER_PAGE = 25
+TIMEOUT = 60
 
 from datetime import datetime, timedelta
 from settings import MONGODB_HOST
@@ -36,6 +37,7 @@ class Product(BaseProduct):
     manufacturer = StringField()
     upc = StringField()
     specifications = DictField()
+    special_page = BooleanField()
 #    description = StringField()
 #    also_like = ListField()
     meta = {

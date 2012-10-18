@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-crawler.ecost.server
+crawlers.ecost.server
 ~~~~~~~~~~~~~~~~~~~
 
-This is the server part of zeroRPC module. Call by client.py automatically, run on many differen ec2 instances.
+This is the server part of zeroRPC module. Call by client automatically, run on many differen ec2 instances.
 
 """
 import os
@@ -12,12 +12,10 @@ import re
 import sys
 import time
 import zerorpc
-import logging
 import requests
 import traceback
 import lxml.html
 import logging
-import log
 import Queue
 import string
 
@@ -28,10 +26,9 @@ from urllib import quote, unquote
 from datetime import datetime, timedelta
 from models import *
 
-sys.path.insert(0, os.path.abspath( os.path.dirname(__file__) ))
-from common.events import *
-from common.stash import *
-
+#sys.path.insert(0, os.path.abspath( os.path.dirname(__file__) ))
+from crawlers.common.events import *
+from crawlers.common.stash import *
 
 top_category = {
 #    "Apple": "http://www.ecost.com/n/Apple-Computer/mainMenu-222006384",
@@ -185,7 +182,7 @@ class Server(object):
             return
         self.parse_listing(catstr, url, content, num)
         
-    def crawl_product(self, url, ecost=''):
+    def crawl_product(self, url, ecost):
         """.. :py:method::
             crawl the detail page to get another part of products' info
 
@@ -196,7 +193,7 @@ class Server(object):
         if not content:
             product_failed.send(sender="ecost.category.download.error", site=self.site, url=url, reason="download page error")
             return
-        self.info = {'ecost': '', 'model':'', 'shipping': '', 'available': '', 'platform': '', 'manufacturer': '', 'upc': '', 'review': 0, 'rating': ''}
+        self.info = {'ecost': '', 'model': '', 'shipping': '', 'available': '', 'platform': '', 'manufacturer': '', 'upc': '', 'review': '', 'rating': ''}
         self.parse_product(url, content, ecost)
         
     def parse_listing(self, catstr, url, content, num):
@@ -225,7 +222,15 @@ class Server(object):
                     continue
                 if not href.startswith('http'):
                     href = self.ecosturl + href
-                self.conn.title_link(links[j].text_content().strip(), href, prices[j])
+                ecost, ecost_str = self.url2ecoststr(href)
+                p, is_new = Product.objects.get_or_create(pk=ecost)
+                p.ecost_str = ecost_str
+                p.title = links[j].text_content().strip()
+                if prices[j]: p.price = prices[j] 
+                p.special_page = True
+                p.updated = False
+                p.save()
+                product_saved.send(sender='ecost.list', site=self.site, key=ecost, is_new=is_new, is_updated=not is_new)
             return
 
         total_num = int(tree.xpath('//div[@class="searchHeaderDisplayTitle"]/span[1]/text()')[0])
@@ -238,14 +243,16 @@ class Server(object):
                 self.get_info('{0}&op=zones.SearchResults.pageNo&pageNo={1}'.format(url, i), catstr, ITEM_PER_PAGE, i)
             self.get_info('{0}&op=zones.SearchResults.pageNo&pageNo={1}'.format(url, page_num), catstr, total_num % ITEM_PER_PAGE, page_num)
 
-    def url2ecoststr(self, url, ecost):
+    def url2ecoststr(self, url):
         """.. :py:method::
             from the url to get the ecost_str
 
         :param url: product page url
         :param ecost: product ecost id
+        :rtype: tuple of (ecost, ecost_str)
         """
-        return re.compile(r'http://www.ecost.com/p/.*/product~dpno~{0}~pdp.(\w+)'.format(ecost)).match(url).group(1)
+        m = re.compile(r'http://www.ecost.com/p/.*/product~dpno~(\d+)~pdp.(\w+)').match(url)
+        return m.groups()
 
     def get_info(self, url, catstr, total_num, page_num):
         """.. :py:method::
@@ -263,7 +270,7 @@ class Server(object):
         tree = lxml.html.fromstring(content)
         nodes = tree.xpath('//div[@id="searchResultList"]/div[@class="sr-table_content"]')
 
-        ecost, models, prices, links = [], [], [], []
+        ecost, ecost_str, models, prices, links = [], [], [], [], []
         for node in nodes:
             pnode = node.xpath('.//td[@class="rscontent"]/span')
             for p in pnode:
@@ -276,12 +283,16 @@ class Server(object):
             for i in m:
                 temp = i.split(u'\xa0')
                 # [u'eCOST Part #: 9106327 ', u' ', u' ', u' Mfr. Part #: 960-000866']
-                ecost.append( temp[0].split(u':')[1].strip() )
+                # ecost.append( temp[0].split(u':')[1].strip() )
                 models.append( temp[-1].split(u':')[1].strip() if 'Mfr. Part' in temp[-1] else '' )
 
             link = node.xpath('.//td[@class="sr-item_img rscontent"]//span[@class="sr-item_description"]/h5/a/@href')
             for l in link:
-                links.append( l if l.startswith('http') else self.ecosturl + l )
+                ll = l if l.startswith('http') else self.ecosturl + l
+                ecosts = self.url2ecoststr(ll)
+                ecost.append(ecosts[0])
+                ecost_str.append(ecosts[1])
+                links.append( ll ) 
 
         if total_num != len(ecost):
             warning_info.send(sender='ecost.list:', url=url, total_num=total_num, ecost_num=len(ecost), page_num=page_num)
@@ -296,14 +307,14 @@ class Server(object):
             if catstr.decode('utf-8') not in p.cats:
                 p.cats.append(catstr)
             if is_new:
-                p.ecost_str = self.url2ecoststr(links[j], ecost[j])
+                p.ecost_str = ecost_str[j]
                 p.model = models[j]
             p.price = prices[j]
             p.sell_rank = sell_rank
             p.updated = False
             p.list_update_time = timenow
             p.save()
-            product_saved.send(sender='ecost.list', site=self.site, key=ecost[j], is_new=is_new)
+            product_saved.send(sender='ecost.list', site=self.site, key=ecost[j], is_new=is_new, is_updated=not is_new)
     
 
     def parse_product(self, url, content, ecost):
@@ -336,16 +347,16 @@ class Server(object):
 
         p, is_new = Product.objects.get_or_create(pk=ecost)
         p.title = title
-        p.image_urls.append(image)
-        p.price = price
-        p.model = self.info['model']
-        p.shipping = self.info['shipping']
-        p.available = self.info['available']
-        p.platform = self.info['platform']
-        p.manufacturer = self.info['manufacturer']
-        p.upc = self.info['upc']
-        p.num_reviews = self.info['review']
-        p.rating = self.info['rating']
+        if image not in p.image_urls: p.image_urls.append(image)
+        if price: p.price = price
+        if self.info['model']: p.model = self.info['model']
+        if self.info['shipping']: p.shipping = self.info['shipping']
+        if self.info['available']: p.available = self.info['available']
+        if self.info['platform']: p.platform = self.info['platform']
+        if self.info['manufacturer']: p.manufacturer = self.info['manufacturer']
+        if self.info['upc']: p.upc = self.info['upc']
+        if self.info['review']: p.num_reviews = self.info['review']
+        if self.info['rating']: p.rating = self.info['rating']
         p.specifications = specifications
         p.updated = True
         p.full_update_time = datetime.utcnow()
@@ -363,55 +374,31 @@ class Server(object):
 
         if name == ['eCOST Part#:']:
             ecost = tr.xpath('./td[@class="infoContent wcGray2"]/text()')
-            if ecost:
-                self.info['ecost'] = ecost[0]
-            else:
-                self.info['ecost'] = ''
+            if ecost: self.info['ecost'] = ecost[0]
         elif name == ['Mfr Part#:']:
             model = tr.xpath('./td[@class="infoContent wcGray2"]/text()')
-            if model:
-                self.info['model'] = model[0]
-            else:
-                self.info['model'] = ''
+            if model: self.info['model'] = model[0]
         elif name == ['Usually Ships:']:
             shipping = tr.xpath('./td[@class="infoContent"]//td[1]/a/text()')
-            if shipping:
-                self.info['shipping'] = shipping[0]
-            else:
-                self.info['shipping'] = ''
+            if shipping: self.info['shipping'] = shipping[0]
         elif name == ['Availability:']:
             available = tr.xpath('./td[@class="infoLink"]/a/text()')
-            if available:
-                self.info['available'] = available[0]
-            else:
-                self.info['available'] = ''
+            if available: self.info['available'] = available[0]
         elif name == ['Platform:']:
             platform = tr.xpath('./td[@class="infoContent wcGray2"]/text()')
-            if platform:
-                self.info['platform'] = platform[0]
-            else:
-                self.info['platform'] = ''
+            if platform: self.info['platform'] = platform[0]
         elif name == ['Manufacturer:']:
             manufacturer = tr.xpath('./td[@class="infoLink wcGray2"]/a/text()')
-            if manufacturer:
-                self.info['manufacturer'] = manufacturer[0]
-            else:
-                self.info['manufacturer'] = ''
+            if manufacturer: self.info['manufacturer'] = manufacturer[0]
         elif name == ['UPC:']:
             upc = tr.xpath('./td[@class="infoContent wcGray2"]/text()')
-            if upc:
-                self.info['upc'] = upc[0]
-            else:
-                self.info['upc'] = ''
+            if upc: self.info['upc'] = upc[0]
         elif name == ['Customer Rating:']:
             rate = tr.xpath('./td[@class="infoContent wcGray2"]/span[@class="list-ratingy"]')
             if rate:
-                self.info['review'] = int( rate[0].text_content().strip().replace('(', '').replace(')', '') )
+                self.info['review'] = rate[0].text_content().strip().replace('(', '').replace(')', '')
                 self.info['rating'] = rate[0].xpath('.//li/@style')[0].split(':')[-1]
 #            elif tr.xpath('./td[@class="infoContent wcGray2"]/span[@class="list-ratingn"]'):
-            else:
-                self.info['review'] = 0
-                self.info['rating'] = ''
 
 
 

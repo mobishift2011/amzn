@@ -1,0 +1,92 @@
+[0.000][INFO]:      ChromeDriver 23.0.1240.0 /usr/bin/chromedriver
+[1.007][FINE]:      Initializing session with capabilities {
+   "browserName": "chrome",
+   "chromeOptions": {
+      "args": [  ],
+      "binary": "",
+      "extensions": [  ]
+   },
+   "javascriptEnabled": true,
+   "platform": "ANY",
+   "version": ""
+}
+
+[1.007][INFO]:      Launching chrome: /usr/bin/google-chrome --enable-logging --log-level=1 --disable-hang-monitor --disable-prompt-on-repost --dom-automation --full-memory-crash-report --no-default-browser-check --no-first-run --disable-background-networking --disable-sync --disable-translate --disable-web-resources --safebrowsing-disable-auto-update --safebrowsing-disable-download-protection --disable-client-side-phishing-detection --disable-component-update --disable-default-apps --password-store=basic --ignore-certificate-errors about:blank
+[1.504][INFO]:      Connected to Chrome successfully. Version: 22.0.1229.79
+[1.549][FINE]:      Command received (/session/02ba46d47a4348d2d48f87eaf6f0ace7)
+[1.549][FINE]:      Command finished (/session/02ba46d47a4348d2d48f87eaf6f0ace7) with response {
+   "sessionId": "02ba46d47a4348d2d48f87eaf6f0ace7",
+   "status": 0,
+   "value": {
+      "acceptSslCerts": false,
+      "applicationCacheEnabled": false,
+      "browserConnectionEnabled": false,
+      "browserName": "chrome",
+      "chrome.chromedriverVersion": "23.0.1240.0",
+      "chrome.nativeEvents": false,
+      "cssSelectorsEnabled": true,
+      "databaseEnabled": false,
+      "handlesAlerts": true,
+      "javascriptEnabled": true,
+      "locationContextEnabled": false,
+      "nativeEvents": true,
+      "platform": "linux",
+      "rotatable": false,
+      "takesScreenshot": true,
+      "version": "22.0.1229.79",
+      "webStorageEnabled": true
+   }
+}
+
+[1.559][FINE]:      Command received (/session/02ba46d47a4348d2d48f87eaf6f0ace7/timeouts/implicit_wait) with params {
+   "ms": 5000.0,
+   "sessionId": "02ba46d47a4348d2d48f87eaf6f0ace7"
+}
+
+[1.559][FINER]:     Waiting for all views to stop loading...
+[1.559][FINER]:     Done waiting for all views to stop loading
+[1.559][FINER]:     Waiting for all views to stop loading...
+[1.560][FINER]:     Done waiting for all views to stop loading
+[1.560][FINE]:      Command finished (/session/02ba46d47a4348d2d48f87eaf6f0ace7/timeouts/implicit_wait) with response {
+   "sessionId": "02ba46d47a4348d2d48f87eaf6f0ace7",
+   "status": 0,
+   "value": {
+
+   }
+}
+
+[1.561][FINE]:      Command received (/session/02ba46d47a4348d2d48f87eaf6f0ace7/url) with params {
+   "sessionId": "02ba46d47a4348d2d48f87eaf6f0ace7",
+   "url": "http://www.myhabit.com"
+}
+
+[1.561][FINER]:     Waiting for all views to stop loading...
+[1.561][FINER]:     Done waiting for all views to stop loading
+[64.743][FINER]:    Waiting for all views to stop loading...
+[64.748][FINER]:    Done waiting for all views to stop loading
+[64.748][FINE]:     Command finished (/session/02ba46d47a4348d2d48f87eaf6f0ace7/url) with response {
+   "sessionId": "02ba46d47a4348d2d48f87eaf6f0ace7",
+   "status": 0,
+   "value": {
+
+   }
+}
+
+[64.750][FINE]:     Command received (/session/02ba46d47a4348d2d48f87eaf6f0ace7/element) with params {
+   "sessionId": "02ba46d47a4348d2d48f87eaf6f0ace7",
+   "using": "id",
+   "value": "ap_email"
+}
+
+[64.750][FINER]:    Waiting for all views to stop loading...
+[64.751][FINER]:    Done waiting for all views to stop loading
+[69.777][FINER]:    Waiting for all views to stop loading...
+[69.778][FINER]:    Done waiting for all views to stop loading
+[69.778][WARNING]:  Command finished (/session/02ba46d47a4348d2d48f87eaf6f0ace7/element) with response {
+   "sessionId": "02ba46d47a4348d2d48f87eaf6f0ace7",
+   "status": 7,
+   "value": {
+      "message": "The element could not be found"
+   }
+}
+

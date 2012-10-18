@@ -5,7 +5,7 @@
 import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
-import httplib2
+#import httplib2
 import lxml.html
 import requests
 import re

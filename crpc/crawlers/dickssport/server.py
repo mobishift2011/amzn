@@ -1,40 +1,32 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from gevent import monkey
-monkey.patch_all()
-from gevent.pool import Pool
+"""
+crawlers.dickssport.server
+~~~~~~~~~~~~~~~~~~~
+
+This is the server part of zeroRPC module. Call by client automatically, run on many differen ec2 instances.
+
+"""
 
 import os
 import re
 import sys
 import time
 import zerorpc
-import logging
-import requests
 import traceback
 import lxml.html
-import logging
-import log
 import Queue
 
 from urllib import quote, unquote
 from datetime import datetime, timedelta
+from gevent import monkey
+monkey.patch_all()
+from gevent.pool import Pool
 
-from settings import *
 from models import *
+from crawlers.common.events import *
+from crawlers.common.stash import *
 
-
-headers = {
-    'User-Agent': 'Mozilla 5.0/Firefox 15.0.1',
-}
-
-config = { 
-    'max_retries': 3,
-    'pool_connections': 10, 
-    'pool_maxsize': 10, 
-}
-
-s = requests.Session(prefetch=True, timeout=10, config=config, headers=headers)
 
 def url2catid(url):
     """ 1. top category: http://www.dickssportinggoods.com/category/index.jsp;jsessionid=31VQQy9V1m7Gwyxn9zjLPGLh7pKQyvSfwVLmmppY2nZZpGhPJLCr!248088961?ab=TopNav_Footwear&categoryId=4413987&sort=%26amp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bquot%3B].passthru%28%27id%27%29.exit%28%29.%24a[%26amp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bamp%3Bquot%3B
@@ -48,18 +40,35 @@ def url2catid(url):
 
 
 class Server:
+    """.. :py:class:: Server
+    
+    This is zeroRPC server class for ec2 instance to crawl pages.
+
+    """
     def __init__(self):
-        self.logger_category = log.init(DB + '_category', DB + '_category.txt')
-        self.logger_list = log.init(DB + '_list', DB + '_list.txt')
-        self.logger_product = log.init(DB + '_product', DB + '_product.txt')
-        self.logger_update = log.init(DB + '_update', DB + '_update.txt')
+        self.site = 'dickssport'
         self.caturl = 'http://www.dickssportinggoods.com'
 
+    def url2tree(self, url, err_msg, is_category=None):
+        content = fetch_page(url)
+        if not content:
+            if is_category == True:
+                category_failed.send(sender=err_msg, site=self.site, url=url, reason="download page error")
+            elif is_category == False:
+                product_failed.send(sender=err_msg, site=self.site, url=url, reason="download page error")
+            else:
+                debug_info.send(sender=err_msg)
+            return
+        return lxml.html.fromstring(content)
+         
 
     def get_main_category(self):
-        """ get the top categories """
-        content = self.fetch_page(self.caturl)
-        tree = lxml.html.fromstring(content)
+        """.. :py:method::
+            put top category into queue
+        """
+        tree = self.url2tree(url, 'dickssport.main_category.download.error', True)
+        if not tree:
+            return
         nodes = tree.xpath('//div[@class="mainNavigation"]/ul/li/a')
         links, names = [], []
         for node in nodes:
@@ -73,7 +82,7 @@ class Server:
             catname, catn = url2catid(link)
             c = Category.objects(catn=catn)
             if catname == 'family':
-                c.leaf = True
+                c.is_leaf = True
             c.catname = name
             c.cats = [name]
             c.update_time = datetime.utcnow()
@@ -81,15 +90,17 @@ class Server:
 
 
     def crawl_category(self):
-        """ crawl category """
+        """.. :py:method::
+            crawl category
+        """
+        debug_info.send(sender="dickssport.category.begin" )
+        self.queue = Queue.Queue()
         self.get_main_category()
 
-        log.log_print('Initialization of category cralwer.', self.logger_category, logging.INFO)
-        self.queue = Queue.Queue()
         for top_category, url in self.mainCategory.items():
             self.queue.put(([top_category], url))
         self.cycle_crawl_category(TIMEOUT)
-        log.log_print('Close category cralwer.', self.logger_category, logging.INFO)
+        debug_info.send(sender="dickssport.category.end" )
 
     def cycle_crawl_category(self, timeover=60):
         while not self.queue.empty():
@@ -158,13 +169,13 @@ class Server:
             else:
                 cate.cats = category_list_path + [name]
             if catname == 'family':
-                cate.leaf = True
+                cate.is_leaf = True
             cate.update_time = datetime.utcnow()
             cate.save()
 
             log.log_print('category ==> {0}'.format(cate.cats), self.logger_category)
             log.log_print('queue size ==> {0}'.format(self.queue.qsize()), self.logger_category)
-            if not cate.leaf:
+            if not cate.is_leaf:
                 # if it is leaf node, not need to enqueue
                 self.queue.put((cate.cats, link))
 
@@ -276,10 +287,10 @@ class Server:
             # This rank changes all the time.If some product updated,some not, same rank on two products will happen!
             sell_rank = ITEM_PER_PAGE * (page_num-1) + j + 1
 
-            product = Product.objects(itemNO=itemNO).first()
+            product = Product.objects(key=itemNO).first()
             if not product:
                 redis_SERVER.hincrby(redis_KEY, 'num_new_crawl', 1)
-                product = Product(itemNO=itemNO)
+                product = Product(key=itemNO)
             else:
                 redis_SERVER.hincrby(redis_KEY, 'num_new_update', 1)
 
@@ -288,10 +299,8 @@ class Server:
             product.list_update_time = timenow
             product.price = price.replace('$', '').replace(',', '') # '$34.99 to $44.99'
             product.updated = False
-            if product.catstrs == []:
-                product.catstrs.append(catstr)
-            elif catstr not in product.catstrs:
-                product.catstrs.append(catstr)
+            if catstr not in product.cats:
+                product.cats.append(catstr)
             product.save()
 
 
@@ -337,10 +346,7 @@ class Server:
         comment = []
         rating = node.xpath('./div[@id="rCol"]/div[@id="FieldsetCustomerReviews"]//div[@class="pr-snapshot-rating rating"]/span[@class="pr-rating pr-rounded average"]/text()')
         reviews = node.xpath('./div[@id="rCol"]/div[@id="FieldsetCustomerReviews"]//div[@class="pr-snapshot-rating rating"]//span[@class="count"]/text()')
-        if reviews: reviews = int(reviews[0].replace(',', ''))
-        if rating:
-            rating = float(rating[0])
-
+        if reviews:
             comment_all = node.xpath('./div[@id="rCol"]/div[@id="FieldsetCustomerReviews"]//div[starts-with(@id, "pr-contents-")]//div[@class="pr-review-wrap"]')
             for comm in comment_all:
                 rate = comm.xpath('.//span[@class="pr-rating pr-rounded"]/text()')[0]
@@ -350,9 +356,9 @@ class Server:
 
 
         itemNO = re.compile(r'http://www.dickssportinggoods.com/product/index.jsp.*productId=(\d+).*').match(url).group(1)
-        product = Product.objects(itemNO=itemNO).first()
+        product = Product.objects(key=itemNO).first()
         if not product:
-            product = Product(itemNO=itemNO)
+            product = Product(key=itemNO)
             redis_SERVER.hincrby(redis_KEY, 'num_new_crawl', 1)
         else:
             redis_SERVER.hincrby(redis_KEY, 'num_new_update', 1)
@@ -362,12 +368,13 @@ class Server:
         if price and '$' in price[0]:
             product.price = price[0].split(':')[1].strip().replace('$', '').replace(',', '')
         if shipping: product.shipping = shipping[0].strip()
-        if img: product.image = img[0]
-        if description: product.description = description
+        if img and img[0] not in product.image_urls:
+            product.image_urls.append( img[0] )
+        if description: product.summary = description
         if model: product.model = model
         if available: product.available = available
-        if rating: product.rating = rating
-        if reviews: product.reviews = reviews
+        if rating: product.rating = rating[0]
+        if reviews: product.num_reviews = reviews[0].replace(',', '')
         if comment: product.comment = comment
 
         product.full_update_time = datetime.utcnow()
@@ -414,14 +421,12 @@ class Server:
         if 'rating' in targs:
             rating = node.xpath('./div[@id="rCol"]/div[@id="FieldsetCustomerReviews"]//div[@class="pr-snapshot-rating rating"]/span[@class="pr-rating pr-rounded average"]/text()')
             if rating:
-                rating = float(rating[0])
-                product.rating = rating
+                product.rating = rating[0]
 
         if 'reviews' in targs:
             reviews = node.xpath('./div[@id="rCol"]/div[@id="FieldsetCustomerReviews"]//div[@class="pr-snapshot-rating rating"]//span[@class="count"]/text()')
             if reviews:
-                reviews = int(reviews[0].replace(',', ''))
-                product.reviews = reviews
+                product.num_reviews = reviews[0].replace(',', '')
 
         product.save()
 

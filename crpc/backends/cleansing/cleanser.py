@@ -60,4 +60,4 @@ def _part_cleanse(offset, limit):
 
 if __name__ == '__main__':
     #cleanse()
-    extract_models()
+    #extract_models()

@@ -8,7 +8,7 @@ from sqlalchemy import UniqueConstraint
 
 from datetime import datetime, timedelta
 
-engine = create_engine('mysql+pymysql://root@localhost:3306/ml')
+engine = create_engine('mysql+pymysql://root:123456@localhost:3306/cleansing')
 Base = declarative_base()
 Session = sessionmaker(bind=engine)
         

@@ -4,7 +4,7 @@
 crawlers.ecost.server
 ~~~~~~~~~~~~~~~~~~~
 
-This is the server part of zeroRPC module. Call by client.py automatically, run on many differen ec2 instances.
+This is the server part of zeroRPC module. Call by client automatically, run on many differen ec2 instances.
 
 """
 import os
@@ -12,12 +12,10 @@ import re
 import sys
 import time
 import zerorpc
-import logging
 import requests
 import traceback
 import lxml.html
 import logging
-import log
 import Queue
 import string
 

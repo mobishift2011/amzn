@@ -13,12 +13,8 @@ import re
 import sys
 import time
 import zerorpc
-import logging
-import requests
 import traceback
 import lxml.html
-import logging
-import log
 import Queue
 
 from urllib import quote, unquote
@@ -60,6 +56,8 @@ class Server:
                 category_failed.send(sender=err_msg, site=self.site, url=url, reason="download page error")
             elif is_category == False:
                 product_failed.send(sender=err_msg, site=self.site, url=url, reason="download page error")
+            else:
+                debug_info.send(sender=err_msg)
             return
         return lxml.html.fromstring(content)
          

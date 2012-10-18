@@ -36,6 +36,7 @@ class Product(BaseProduct):
     manufacturer = StringField()
     upc = StringField()
     specifications = DictField()
+    special_page = BooleanField()
 #    description = StringField()
 #    also_like = ListField()
     meta = {

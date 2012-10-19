@@ -2,7 +2,7 @@
 # -*- coding: utf-8
 
 CREDENTIALS = [
-    #('kwtools3456@gmail.com','1qaz2wsx!@'),
+    ('kwtools3456@gmail.com','1qaz2wsx!@'),
     ('kwtools3457@gmail.com','1qaz2wsx!@'),
     ('kwtools3458@gmail.com','1qaz2wsx!@'),
 ]
@@ -41,7 +41,7 @@ def getvolume(keywords, email=None, passwd=None):
 
     print email
     kw = ','.join(keywords)
-    data = casperjs_with_proxy(os.path.join(PATH,'kwt.js'), email = email, passwd = passwd, keywords = kw)
+    data = casperjs(os.path.join(PATH,'kwt.js'), email = email, passwd = passwd, keywords = kw)
     return json.loads(data.stdout)
 
 def volume2int(volume):
@@ -54,7 +54,7 @@ def volume2int(volume):
         return 0
 
 def update_volume():
-    blocksize = 499
+    blocksize = 50
     concurrency = 1 #len(CREDENTIALS)
     
     while True:
@@ -79,11 +79,15 @@ def update_volume():
         #
         #for t in tasks:
         #    t.join()
-        #session.close()
+        session.close()
 
 def update_volume_with_email_passwd(models, email=None, passwd=None):
     session = Session()
-    kwdict = getvolume(models, email, passwd)
+    #kwdict = getvolume(models, email, passwd)
+    if not hasattr(update_volume_with_email_passwd, 'ks'):
+        setattr(update_volume_with_email_passwd, 'ks', KeywordSearch())
+    ks = update_volume_with_email_passwd.ks
+    kwdict = ks.search(models)
 
     for k, v in kwdict.items():
         print k, v
@@ -95,6 +99,12 @@ def update_volume_with_email_passwd(models, email=None, passwd=None):
 
     session.commit()
     session.close()
+    sleep = 5
+    while sleep>0:
+        import time
+        print 'sleeping', sleep
+        time.sleep(1)
+        sleep -= 1
 
 if __name__ == "__main__":
     update_volume()

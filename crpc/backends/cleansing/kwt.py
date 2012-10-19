@@ -18,9 +18,9 @@ from Queue import Queue
 MAX_BATCH = 50 # max batch size that google can handle
 
 CREDENTIALS = [
-    ('kwtools3456@gmail.com','1qaz2wsx!@'),
     ('kwtools3457@gmail.com','1qaz2wsx!@'),
     ('kwtools3458@gmail.com','1qaz2wsx!@'),
+    ('kwtools3459@gmail.com','1qaz2wsx!@'),
 ]
 
 class AdwordsAutomater(object):
@@ -79,11 +79,11 @@ class AdwordsAutomater(object):
         try:
             # wait for at least one elements ready, implicitly
             self.ff.find_elements_by_xpath('//tr//*[contains(text(),"{0}")]'.format(random.choice(keywords)))
-        except TimeoutException:
+            text = self.ff.find_elements_by_xpath('//table[@class="sMNB"]')[0].text
+        except Exception:
             # if we fail, fail gracefully
             pass 
         else:
-            text = self.ff.find_elements_by_xpath('//table[@class="sMNB"]')[0].text
             texts = text.split('\n')
             for i in range(1,len(texts)/4):
                 ret[ texts[i*4] ] = (texts[i*4+2], texts[i*4+3]) 
@@ -139,6 +139,7 @@ class KeywordSearch(object):
     def _search(self, keywords):
         while True:
             found = False
+            random.shuffle(self.pool)
             for aa in self.pool:
                 if aa.busy == False:
                     aa.busy = True

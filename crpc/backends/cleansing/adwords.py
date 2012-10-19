@@ -18,9 +18,9 @@ from Queue import Queue
 MAX_BATCH = 50 # max batch size that google can handle
 
 CREDENTIALS = [
-    ('kwtools3456@gmail.com','1qaz2wsx!@'),
     ('kwtools3457@gmail.com','1qaz2wsx!@'),
     ('kwtools3458@gmail.com','1qaz2wsx!@'),
+    ('kwtools3459@gmail.com','1qaz2wsx!@'),
 ]
 
 class AdwordsAutomater(object):

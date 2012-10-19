@@ -42,15 +42,17 @@ class Product(BaseProduct):
     sale_id = StringField()
     asin = StringField()
     listprice = StringField()
+    soldout = BooleanField()
 
-    shipping = StringField()
-    available = StringField()
-    rating = FloatField()
-    reviews = IntField()
-    description = StringField()
-    model = StringField()
-    also_like = ListField()
-    comment = ListField()
+    list_info = ListField(StringField())
+    color = StringField()
+    sizes = ListField(StringField())
+
+    video = StringField()
+    international_shipping = StringField()
+    returned = StringField()
+    scarcity = StringField()
+
     meta = {
         "indexes": ["updated"]
     }

@@ -173,7 +173,7 @@ class Server:
             category_failed.send(sender=DB + '.brand_page', site=DB, url=url, reason='Url can not be parsed.')
             return
 
-#        sale_title = node[0].find_element_by_xpath('./div[@id="saleTitle"]').text
+        sale_title = node[0].find_element_by_xpath('./div[@id="saleTitle"]').text
         sale_description = node[0].find_element_by_xpath('./div[@id="saleDescription"]').text
         end_date = node[0].find_element_by_xpath('./div[@id="saleEndTime"]/span[@class="date"]').text # SAT OCT 20
         end_time = node[0].find_element_by_xpath('./div[@id="saleEndTime"]/span[@class="time"]').text # 9 AM PT
@@ -192,25 +192,32 @@ class Server:
         brand.events_end = utc_endtime
         if sale_brand_link: brand.brand_link = sale_brand_link
         brand.num = num
+        brand.update_time = datetime.utcnow()
         brand.save()
         category_saved.send(sender=DB + '.parse_category', site=DB, key=sale_id, is_new=is_new, is_updated=not is_new)
 
         elements = node[0].find_elements_by_xpath('../../div[@id="asinbox"]/ul/li[starts-with(@id, "result_")]')
         for ele in elements:
-            self.parse_category_product(ele)
+            self.parse_category_product(ele, sale_title)
 
 
-    def parse_category_product(self, element):
+    def parse_category_product(self, element, sale_title):
         """.. :py:method::
             Brand page, product parsing
 
         :param element: product's xpath element
+        :param sale_title: as brand pass to product
         """
+        try:
+            element.find_element_by_class_name('soldout')
+        except:
+            soldout = False
+        else: soldout = True
         l = element.find_element_by_class_name('evt-prdtDesc-a').get_attribute('href')
         link = l if l startswith('http') else 'http://www.myhabit.com/homepage' + l
         title = element.find_element_by_class_name('title').text
-        listprice = element.find_element_by_class_name('listprice').text
-        ourprice = element.find_element_by_class_name('ourprice').text
+        listprice = element.find_element_by_class_name('listprice').text.replace('$', '').replace(',', '')
+        ourprice = element.find_element_by_class_name('ourprice').text.replace('$', '').replace(',', '')
 #        img = element.find_element_by_class_name('iImg').get_attribute('src')
 
         asin, casin = self.url2asin(link)
@@ -218,10 +225,14 @@ class Server:
         if is_new:
             product.dept = dept
             product.sale_id = sale_id
+            product.brand = sale_title
             product.asin = asin
             product.title = title
         product.price = ourprice
         product.listprice = listprice
+        product.soldout = soldout
+        product.updated = False
+        product.list_update_time = datetime.utcnow()
         product.save()
         product_saved.send(sender=DB + '.parse_category', site=DB, key=casin, is_new=is_new, is_updated=not is_new)
 
@@ -232,148 +243,74 @@ class Server:
         """
         pass
 
-    def crawl_product(self, url):
+    def crawl_product(self, url, casin):
         """.. :py:method::
+            Got all the product information and save into the database
 
         :param url: product url
         """
         self.browser.get(url)
-        node = self.browser.find_element_by_xpath('//div[@id="main"]/div[@id="page-content"]/div[@id="detail-page"]')
+        node = self.browser.find_element_by_xpath('//div[@id="main"]/div[@id="page-content"]/div[@id="detail-page"]/div[@id="dpLeftCol"]')
         shortDesc = node.find_element_by_class_name('shortDesc').text
-        node.find_element_by_xpath()
 
-        self.parse_product(url)
+        international_shipping = node.find_element_by_id('intlShippableBullet').text
+        returned = node.find_element_by_id('returnPolicyBullet').text
+
+        already_have = [shortDesc, internaltional_shipping, returned]
+        bullets = node.find_elements_by_tag_name('li')
+        info_table = []
+        for bullet in bullets:
+            if bullet.text and bullet.text not in already_have:
+                info_table.append(bullet.text)
+
+        image_urls = []
+        video = ''
+        imgs = node.find_elements_by_xpath('.//div[@id="altImgContainer"]/div')
+        for img in imgs:
+            try:
+                picture = img.find_element_by_class_name('zoomImageL2').get_attribute('value')
+                image_urls.append(picture)
+            except:
+                video = img.find_element_by_class_name('videoURL').get_attribute('value')
+
+
+        right_col = node.find_element_by_xpath('../div[@id="dpRightCol"]/div[@id="innerRightCol"]')
+        try:
+            color = right_col.find_element_by_xpath('.//div[@class="dimensionAltText variationSelectOn"]').text
+        except:
+            color = ''
+        try:
+            sizes = right_col.find_elements_by_xpath('./div[@id="dpVariationMatrix"]//select[@class="variationDropdown"]/option')
+            size = [s for s in sizes if not s.text.startswith('Please')]
+        except:
+            sizes = [] 
+
+        listprice = right_col.find_element_by_id('listPrice').text.replace('$', '').replace(',', '')
+        ourprice = right_col.find_element_by_id('ourPrice').text.replace('$', '').replace(',', '')
+        scarcity = right_col.find_element_by_id('scarcity').text
+        shipping = '; '.join( [a.text for a in right_col.find_elements_by_class_name('dpRightColLabel') if a.text] )
+
+        product, is_new = Product.objects.get_or_create(pk=casin)
+        if is_new:
+            product.summary = shortDesc
+            product.image_urls = image_urls
+            product.list_info = info_table
+            if video: product.video = video
+            if color: product.color = color
+            if sizes: product.sizes = sizes
+            if international_shipping: product.international_shipping = international_shipping
+            if returned: product.returned = returned
+        product.price = ourprice
+        product.listprice = listprice
+        product.shipping = shipping
+        if scarcity: product.scarcity = scarcity
+        product.updated = True
+        product.full_update_time = datetime.utcnow()
+        product.save()
+        
+        product_saved.send(sender=DB + '.parse_product_detail', site=DB, key=casin, is_new=is_new, is_updated=not is_new)
 
         
-    def parse_product(self, url):
-        try:
-            node = tree.xpath('//div[@id="wrapper"]/div[@id="frame"]/div[@id="align"]')[0]
-        except:
-            log.log_traceback(self.logger_product, 'Parsing page problem: {0}'.format(url))
-            redis_SERVER.hincrby(redis_KEY, 'num_parse_error', 1)
-            return
-
-        also_like = []
-        like = node.xpath('./div[@id="lCol"]//div[@class="mbContent"]//ul/li')
-        for l in like:
-            link = l.xpath('./a/@href')[0]
-            title = l.xpath('./a/text()')[0]
-            link = link if link.startswith('http') else self.caturl + link
-            also_like.append( (title, link) )
-
-        title = node.xpath('./div[@id="rCol"]//h1[@class="productHeading"]/text()')[0]
-        price = node.xpath('./div[@id="rCol"]//div[@class="op"]/text()')
-        if not price:
-            log.log_traceback(self.logger_product, 'Page donot have a price: {0}'.format(url))
-
-        shipping = node.xpath('./div[@id="rCol"]//div[@class="fs"]//font[@class="alert"]/text()')
-        img = node.xpath('./div[@id="rCol"]/div[@class="r1w secSpace"]//div[@id="galImg"]/a/img/@src')
-        if not img:
-            img = tree.xpath('//div[@id="wrapper"]/div[@id="frame"]/form[@name="path"]/input/@value')
-        if not img:
-            log.log_traceback(self.logger_product, 'Page donot have a image: {0}'.format(url))
-
-        description = node.xpath('./div[@id="rCol"]/div[@id="FieldsetProductInfo"]')[0].text_content()
-        model = ''
-        if description:
-            m = re.compile(r'.*(Model|Model Number):(.*)\n').search(description)
-            if m: model = m.group(1).strip()
-
-        available = node.xpath('./div[@id="rCol"]//div[@id="prodpad"]//div[@class="availability"]/text()')
-        if available:
-            available = ''.join(available).strip()
-
-        comment = []
-        rating = node.xpath('./div[@id="rCol"]/div[@id="FieldsetCustomerReviews"]//div[@class="pr-snapshot-rating rating"]/span[@class="pr-rating pr-rounded average"]/text()')
-        reviews = node.xpath('./div[@id="rCol"]/div[@id="FieldsetCustomerReviews"]//div[@class="pr-snapshot-rating rating"]//span[@class="count"]/text()')
-        if reviews: reviews = int(reviews[0].replace(',', ''))
-        if rating:
-            rating = float(rating[0])
-
-            comment_all = node.xpath('./div[@id="rCol"]/div[@id="FieldsetCustomerReviews"]//div[starts-with(@id, "pr-contents-")]//div[@class="pr-review-wrap"]')
-            for comm in comment_all:
-                rate = comm.xpath('.//span[@class="pr-rating pr-rounded"]/text()')[0]
-                head = comm.xpath('.//p[@class="pr-review-rating-headline"]/text()')[0]
-                text = comm.xpath('./div[@class="pr-review-main-wrapper"]//p[@class="pr-comments"]/text()')[0]
-                comment.append(rate, head, text)
-
-
-        itemNO = re.compile(r'http://www.dickssportinggoods.com/product/index.jsp.*productId=(\d+).*').match(url).group(1)
-        product = Product.objects(itemNO=itemNO).first()
-        if not product:
-            product = Product(itemNO=itemNO)
-            redis_SERVER.hincrby(redis_KEY, 'num_new_crawl', 1)
-        else:
-            redis_SERVER.hincrby(redis_KEY, 'num_new_update', 1)
-
-        product.title = title
-        if also_like: product.also_like = also_like
-        if price:
-            product.price = price[0].split(':')[1].strip().replace('$', '').replace(',', '')
-        if shipping: product.shipping = shipping
-        if img: product.image = img[0]
-        if description: product.description = description
-        if model: product.model = model
-        if available: product.available = available
-        if rating: product.rating = rating
-        if review: product.reviews = reviews
-        if comment: product.comment = comment
-
-        product.full_update_time = datetime.utcnow()
-        product.updated = True
-        product.save()
-
-
-    def update_product(self, product, *targs):
-        """ Parameter *targs for updating:
-                useful_param = ['price', 'available', 'shipping', 'rating', 'reviews']
-        """
-        url = product.url()
-        content = self.fetch_page(url)
-        if not content:
-            log.log_traceback(self.logger_update, 'Page url can not be downloaded {0}'.format(url))
-        try:
-            tree = lxml.html.fromstring(content)
-        except:
-            log.log_traceback(self.logger_update, 'Page {0} can not build xml tree {1}'.format(url, content))
-            return
-
-        try:
-            node = tree.xpath('//div[@id="wrapper"]/div[@id="frame"]/div[@id="align"]')[0]
-        except:
-            redis_SERVER.hincrby(redis_KEY, 'num_parse_error', 1)
-            log.log_traceback(self.logger_update, 'Product url can not be parsed: {0}'.format(url))
-#            log.log_print('content: {0}'.format(content), self.logger_update, logging.DEBUG)
-            return
-
-        if 'price' in targs:
-            price = node.xpath('./div[@id="rCol"]//div[@class="op"]/text()')
-            if price:
-                product.price = price[0].split(':')[1].strip().replace('$', '').replace(',', '')
-
-        if 'available' in targs:
-            available = node.xpath('./div[@id="rCol"]//div[@id="prodpad"]//div[@class="availability"]/text()')
-            if available:
-                product.available = ''.join(available).strip()
-
-        if 'shipping' in targs:
-            shipping = node.xpath('./div[@id="rCol"]//div[@class="fs"]//font[@class="alert"]/text()')
-            if shipping: product.shipping = shipping
-
-        if 'rating' in targs:
-            rating = node.xpath('./div[@id="rCol"]/div[@id="FieldsetCustomerReviews"]//div[@class="pr-snapshot-rating rating"]/span[@class="pr-rating pr-rounded average"]/text()')
-            if rating:
-                rating = float(rating[0])
-                product.rating = rating
-
-        if 'reviews' in targs:
-            reviews = node.xpath('./div[@id="rCol"]/div[@id="FieldsetCustomerReviews"]//div[@class="pr-snapshot-rating rating"]//span[@class="count"]/text()')
-            if reviews:
-                reviews = int(reviews[0].replace(',', ''))
-                product.reviews = reviews
-
-        product.save()
-
 
 if __name__ == '__main__':
     server = zerorpc.Server(Server())

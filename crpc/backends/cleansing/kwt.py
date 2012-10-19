@@ -18,12 +18,17 @@ from Queue import Queue
 MAX_BATCH = 50 # max batch size that google can handle
 
 CREDENTIALS = [
+    ('kwtools3456@gmail.com','1qaz2wsx!@'),
+    ('kwtools3457@gmail.com','1qaz2wsx!@'),
+    ('kwtools3458@gmail.com','1qaz2wsx!@'),
     ('kwtools3459@gmail.com','1qaz2wsx!@'),
     ('kwtools3460@gmail.com','1qaz2wsx!@'),
     ('kwtools3461@gmail.com','1qaz2wsx!@'),
     ('kwtools3462@gmail.com','1qaz2wsx!@'),
     ('kwtools3463@gmail.com','1qaz2wsx!@'),
     ('kwtools3464@gmail.com','1qaz2wsx!@'),
+    ('kwtools3465@gmail.com','1qaz2wsx!@'),
+    ('kwtools3466@gmail.com','1qaz2wsx!@'),
 ]
 
 class AdwordsAutomater(object):
@@ -34,8 +39,8 @@ class AdwordsAutomater(object):
             self.ff = webdriver.Chrome()
         except:
             self.ff = webdriver.Firefox()
-            self.ff.set_page_load_timeout(30)
-        self.ff.implicitly_wait(30)
+            self.ff.set_page_load_timeout(15)
+        self.ff.implicitly_wait(10)
         self.busy = False
         self.is_login = False
         self.on_keyword_page = False
@@ -88,6 +93,7 @@ class AdwordsAutomater(object):
             text = self.ff.find_elements_by_xpath('//table[@class="sMNB"]')[0].text
         except Exception:
             # if we fail, fail gracefully
+            print self.email, 'failed'
             pass 
         else:
             texts = text.split('\n')
@@ -145,7 +151,7 @@ class KeywordSearch(object):
     def _search(self, keywords):
         while True:
             found = False
-            random.shuffle(self.pool)
+            self.pool.insert(0, self.pool.pop())
             for aa in self.pool:
                 if aa.busy == False:
                     aa.busy = True

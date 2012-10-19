@@ -5,7 +5,8 @@
 import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
-import httplib2
+#import httplib2
+import Queue
 import lxml.html
 import requests
 import re
@@ -34,6 +35,22 @@ class myhabitLogin(object):
         signin_button = self.browser.find_element_by_id('signInSubmit')
         signin_button.submit()
 
+    def crawl_category(self):
+        depts = ['women', 'men', 'kids', 'home', 'designer']
+        self.queue = Queue.Queue()
+        for dept in depts:
+            link = 'http://www.myhabit.com/homepage?#page=g&dept={0}&ref=qd_nav_tab_{0}'.format(dept)
+            self.get_brand_list(dept, link)
+        while not self.queue.empty():
+            print self.queue.get()
+
+    def get_brand_list(self, dept, url):
+        self.browser.get(url)
+        nodes = self.browser.find_elements_by_xpath('//div[@id="main"]/div[@id="page-content"]/div[@id="currentSales"]/div[starts-with(@id, "privateSale")]/div[@class="caption"]/a')
+        for node in nodes:
+            l = node.get_attribute('href')
+            link = l if l.startswith('http') else 'http://www.myhabit.com/homepage?' + l 
+            self.queue.put( (dept, link) )
 
 def iurl_otree(url):
     http = httplib2.Http()
@@ -182,4 +199,5 @@ if __name__ == '__main__':
     passwd = 'forke@me'
     lgin = myhabitLogin(email, passwd)
     lgin.login()
+    lgin.crawl_category()
 

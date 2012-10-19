@@ -89,7 +89,6 @@ class Server:
         :param dept: dept in the page
         :param url: the dept's url
         """
-        # TODO: upcoming events
         self.browser.get(url)
         nodes = self.browser.find_elements_by_xpath('//div[@id="main"]/div[@id="page-content"]/div[@id="currentSales"]/div[starts-with(@id, "privateSale")]/div[@class="caption"]/a')
         for node in nodes:
@@ -115,6 +114,25 @@ class Server:
             category_saved.send(sender=DB + '.get_brand_list', site=DB, key=sale_id, is_new=is_new, is_updated=not is_new)
 
             self.queue.put( (dept, link) )
+
+        # upcoming brand
+        nodes = self.browser.find_elements_by_xpath('//div[@id="main"]/div[@id="page-content"]/div[@id="upcomingSales"]//div[@class="fourColumnSales"]//div[@class="caption"]/a')
+        for node in nodes:
+            l = node.get_attribute('href')
+            link = l if l.startswith('http') else 'http://www.myhabit.com/homepage' + l 
+            title = node.text
+
+            self.browser.get(link)
+            path = self.browser.find_element_by_xpath('//div[@id="main"]/div[@id="page-content"]/div[@id="top-content"]')
+            begin_date = path.find_element_by_xpath('./div[@id="startHeader"]/span[@class="date"]').text # SAT OCT 20
+            begin_time = path.find_element_by_xpath('./div[@id="startHeader"]/span[@class="time"]').text # 9 AM PT
+            utc_begintime = self.time_proc(begin_date + ' ' + begin_time.replace('PT', ''))
+            brand_info = path.find_element_by_id('upcomingSaleBlurb').text
+            img = path.find_element_by_xpath('./div[@class="upcomingSaleHero"]/img[@class="main-image"]').get_attribute('src')
+            for sub in path.find_elements_by_xpath('./div[@id="asinbox"]/ul/li'):
+                sub_title = sub.find_element_by_class_name('title')
+                sub_img = sub.find_element_by_xpath('./img').get_attribute('src')
+
 
     def url2saleid(self, url):
         """.. :py:method::

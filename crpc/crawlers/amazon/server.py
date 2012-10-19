@@ -93,7 +93,6 @@ class Server:
                     break
 
             c.updated = True
-            print 'is_new', is_new
             c.save()
             category_saved.send(sender = 'amazon.crawl_category',
                                 site = self.site,

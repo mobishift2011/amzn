@@ -31,11 +31,11 @@ def get_or_create_task(site, method):
 
 def task_all():
     tasks = Task.objects().select_related()
-    return {"tasks":tasks}
+    return {"tasks":[t.to_json() for t in tasks]}
 
 def task_updates():
     tasks = Task.objects(status=Task.RUNNING).select_related()
-    return {"tasks":tasks}
+    return {"tasks":[t.to_json() for t in tasks]}
 
 @pre_general_update.bind
 def stat_pre_general_update(sender, **kwargs):
@@ -64,7 +64,7 @@ def stat_post_general_update(sender, **kwargs):
 def stat_category_save(sender, **kwargs):
     logger.debug('SECOND{0}'.format(kwargs.items()))
     site = kwargs.get('site')
-    method = kwargs.get('method')
+    method = kwargs.get('method', 'update_category')
     key = kwargs.get('key')
     assert site is not None and method is not None and key is not None, u"argument error"
 
@@ -74,10 +74,9 @@ def stat_category_save(sender, **kwargs):
 
     if is_new:
         t.num_new += 1
-    elif is_updated:
+    if is_updated:
         t.num_update += 1
-    else:
-        t.num_finish += 1
+    t.num_finish += 1
     
     t.save() 
 
@@ -86,6 +85,7 @@ def stat_category_save(sender, **kwargs):
 
 @product_saved.bind
 def stat_product_save(sender, **kwargs):
+    kwargs.update({'method':'update_product'})
     on_category_save(sender, **kwargs)
 
 @category_failed.bind
@@ -108,4 +108,4 @@ def stat_product_failed(sender, **kwargs):
     on_category_failed(sender, **kwargs)
 
 if __name__ == '__main__':
-    print task_updates()
+    print task_all()

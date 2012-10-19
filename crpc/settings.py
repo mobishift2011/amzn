@@ -14,7 +14,7 @@ envs = {
     },
     'DEV': {
         'PEERS': ['root@127.0.0.1'],
-        'USE_INDEX': ' --index-url http://e.pypi.python.org/simple/',
+        'USE_INDEX': '',
         'MONGODB_HOST': '127.0.0.1',
         'REDIS_HOST': '127.0.0.1',
     },

@@ -56,7 +56,6 @@ def spout_category(site, category):
             url = c.url().format(p)
             yield {'url': url}
 
-
 def spout_product(site):
     """ return a generator spouting product url """
     m = get_site_module(site)
@@ -72,7 +71,6 @@ def spout_product(site):
             yield {'url': p.url(), 'casin': p.key}
         else:
             yield {'url': p.url()}
-
 
 class UpdateContext(object):
     """ the context manager for monitoring 
@@ -108,33 +106,40 @@ class UpdateContext(object):
                                     complete = False,
                                     reason = reason)
 
+def callrpc(rpc, site, method, *args, **kwargs):
+    """ rpc call with failure protection """
+    try:
+        rpc.call(site, method, args, kwargs) 
+    except Exception as e:
+        if 'category' in method:
+            name = 'category_failed'
+        else:
+            name = 'product_failed'
+        globals()[name].send(sender="{0}.{1}".format(site,method),
+                            site = site,
+                            url = kwargs['url'],
+                            reason = e.message)
+
 def update_category(site, rpc, concurrency=30):
     with UpdateContext(site=site, method='update_category'):
         rpc.call(site, 'crawl_category')
 
 def update_listing(site, rpc, concurrency=30):
     with UpdateContext(site=site, method='update_listing'):
+        rpcs = [rpc] if not isinstance(rpc, list) else rpc
+        pool = Pool(len(rpcs)*concurrency)
         for category in spout_listing(site):
             for kwargs in spout_category(site, category):
-                try:
-                    rpc.call(site, 'crawl_listing', **kwargs) 
-                except Exception as e:
-                    category_failed.send(sender="common.update_listing",
-                                        site = site,
-                                        url = kwargs['url'],
-                                        reason = e.message)
+                rpc = random.choice(rpcs)
+                pool.spawn(callrpc, rpc,  site, 'crawl_listing', **kwargs)
 
 def update_product(site, rpc, concurrency=30):
     with UpdateContext(site=site, method='update_product'):
+        rpcs = [rpc] if not isinstance(rpc, list) else rpc
+        pool = Pool(len(rpcs)*concurrency)
         for kwargs in spout_product(site):
-            try:
-                rpc.call(site, 'crawl_product', **kwargs)
-            except Exception as e: 
-                product_failed.send(sender="common.update_product",
-                                    site = site,
-                                    url = kwargs['url'],
-                                    reason = e.message)
-                
+            rpc = random.choice(rpcs)
+            pool.spawn(callrpc, rpc, site, 'crawl_product', **kwargs)
 
 if __name__ == '__main__':
     from rpcserver import RPCServer

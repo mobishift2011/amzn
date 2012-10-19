@@ -114,7 +114,7 @@ casper.dumpSteps = function dumpSteps( showSource ) {
 };
 
 // setup globals 
-var email = casper.cli.options['email'] || 'kwtools3456@gmail.com';
+var email = casper.cli.options['email'] || 'kwtools3457@gmail.com';
 var passwd = casper.cli.options['passwd'] || '1qaz2wsx!@';
 var keywords = casper.cli.options['keywords'] || 'iphone,cars,kindle';
 keywords = keywords.split(',');

@@ -1,6 +1,9 @@
 Cython==0.17.1
+Django==1.4.1
 Fabric==1.4.3
 GitPython==0.3.2.RC1
+PyMySQL==0.5
+SQLAlchemy==0.7.9
 argparse==1.2.1
 async==0.6.1
 clint==0.3.1
@@ -10,6 +13,7 @@ greenlet==0.4.0
 ipython==0.13
 legit==0.1.1
 lxml==3.0.1
+mock==1.0.0
 mongoengine==0.7.5
 msgpack-python==0.2.2
 pycrypto==2.6
@@ -20,6 +24,9 @@ pyzmq-static==2.2
 redis==2.7.1
 redisco==0.1.4
 requests==0.14.1
+selenium==2.25.0
+sh==1.04
+simplejson==2.6.2
 smmap==0.8.2
 ssh==1.7.14
 wsgiref==0.1.2

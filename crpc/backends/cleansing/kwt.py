@@ -18,8 +18,6 @@ from Queue import Queue
 MAX_BATCH = 50 # max batch size that google can handle
 
 CREDENTIALS = [
-    ('kwtools3457@gmail.com','1qaz2wsx!@'),
-    ('kwtools3458@gmail.com','1qaz2wsx!@'),
     ('kwtools3459@gmail.com','1qaz2wsx!@'),
     ('kwtools3460@gmail.com','1qaz2wsx!@'),
     ('kwtools3461@gmail.com','1qaz2wsx!@'),
@@ -59,8 +57,11 @@ class AdwordsAutomater(object):
         except TimeoutException:
             pass
         self.is_login = True
-        search = re.compile(r'(\?[^#]*)#').search(self.ff.current_url).group(1)
-        self.kwurl = 'https://adwords.google.com/o/Targeting/Explorer'+search+'&__o=cues&ideaRequestType=KEYWORD_IDEAS';
+        try:
+            search = re.compile(r'(\?[^#]*)#').search(self.ff.current_url).group(1)
+            self.kwurl = 'https://adwords.google.com/o/Targeting/Explorer'+search+'&__o=cues&ideaRequestType=KEYWORD_IDEAS';
+        except:
+            print self.ff.current_url, email, passwd
 
     def find_keyword_volumes(self, keywords):
         if not self.is_login:
@@ -84,11 +85,11 @@ class AdwordsAutomater(object):
         try:
             # wait for at least one elements ready, implicitly
             self.ff.find_elements_by_xpath('//tr//*[contains(text(),"{0}")]'.format(random.choice(keywords)))
-        except TimeoutException:
+            text = self.ff.find_elements_by_xpath('//table[@class="sMNB"]')[0].text
+        except Exception:
             # if we fail, fail gracefully
             pass 
         else:
-            text = self.ff.find_elements_by_xpath('//table[@class="sMNB"]')[0].text
             texts = text.split('\n')
             for i in range(1,len(texts)/4):
                 ret[ texts[i*4] ] = (texts[i*4+2], texts[i*4+3]) 
@@ -144,6 +145,7 @@ class KeywordSearch(object):
     def _search(self, keywords):
         while True:
             found = False
+            random.shuffle(self.pool)
             for aa in self.pool:
                 if aa.busy == False:
                     aa.busy = True
@@ -168,5 +170,5 @@ if __name__ == '__main__':
     #print ks.search([ str(x) for x in range(50000,51000) ])
     #print time.time() - t
     #ks.close()
-    aa = AdwordsAutomater('kwtools3457@gmail.com','1qaz2wsx!@')
+    aa = AdwordsAutomater('kwtools3461@gmail.com','1qaz2wsx!@')
     print aa.find_keyword_volumes(['ipad','cars','kindle'])

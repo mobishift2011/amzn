@@ -2,9 +2,14 @@
 # -*- coding: utf-8
 
 CREDENTIALS = [
-    ('kwtools3456@gmail.com','1qaz2wsx!@'),
     ('kwtools3457@gmail.com','1qaz2wsx!@'),
     ('kwtools3458@gmail.com','1qaz2wsx!@'),
+    ('kwtools3459@gmail.com','1qaz2wsx!@'),
+    ('kwtools3460@gmail.com','1qaz2wsx!@'),
+    ('kwtools3461@gmail.com','1qaz2wsx!@'),
+    ('kwtools3462@gmail.com','1qaz2wsx!@'),
+    ('kwtools3463@gmail.com','1qaz2wsx!@'),
+    ('kwtools3464@gmail.com','1qaz2wsx!@'),
 ]
 
 import os, sys
@@ -65,7 +70,6 @@ def update_volume():
             break
 
         models = list(models)
-        print ','.join(models)
 
         update_volume_with_email_passwd(models)
         #i = 0
@@ -99,7 +103,7 @@ def update_volume_with_email_passwd(models, email=None, passwd=None):
 
     session.commit()
     session.close()
-    sleep = 5
+    sleep = 3
     while sleep>0:
         import time
         print 'sleeping', sleep

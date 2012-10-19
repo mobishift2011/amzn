@@ -21,6 +21,11 @@ CREDENTIALS = [
     ('kwtools3457@gmail.com','1qaz2wsx!@'),
     ('kwtools3458@gmail.com','1qaz2wsx!@'),
     ('kwtools3459@gmail.com','1qaz2wsx!@'),
+    ('kwtools3460@gmail.com','1qaz2wsx!@'),
+    ('kwtools3461@gmail.com','1qaz2wsx!@'),
+    ('kwtools3462@gmail.com','1qaz2wsx!@'),
+    ('kwtools3463@gmail.com','1qaz2wsx!@'),
+    ('kwtools3464@gmail.com','1qaz2wsx!@'),
 ]
 
 class AdwordsAutomater(object):
@@ -163,5 +168,5 @@ if __name__ == '__main__':
     #print ks.search([ str(x) for x in range(50000,51000) ])
     #print time.time() - t
     #ks.close()
-    aa = AdwordsAutomater('kwtools3456@gmail.com','1qaz2wsx!@')
+    aa = AdwordsAutomater('kwtools3459@gmail.com','1qaz2wsx!@')
     print aa.find_keyword_volumes(['ipad','cars','kindle'])

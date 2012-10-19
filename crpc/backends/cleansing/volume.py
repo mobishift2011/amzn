@@ -47,6 +47,7 @@ def getvolume(keywords, email=None, passwd=None):
     print email
     kw = ','.join(keywords)
     data = casperjs(os.path.join(PATH,'kwt.js'), email = email, passwd = passwd, keywords = kw)
+    print data.ran
     return json.loads(data.stdout)
 
 def volume2int(volume):
@@ -57,6 +58,12 @@ def volume2int(volume):
         return int(volume)
     except:
         return 0
+
+def normalizemodel(model):
+    if model.startswith('-'):
+        return model[1:]
+    else:
+        return model
 
 def update_volume():
     blocksize = 50
@@ -69,7 +76,7 @@ def update_volume():
         if not models:
             break
 
-        models = list(models)
+        models = [ normalizemodel(m) for m in models ]
 
         update_volume_with_email_passwd(models)
         #i = 0
@@ -96,10 +103,11 @@ def update_volume_with_email_passwd(models, email=None, passwd=None):
     for k, v in kwdict.items():
         print k, v
         m = session.query(Model).filter_by(model=k).first()
-        m.global_volume = volume2int(v[0])
-        m.local_volume = volume2int(v[1])
-        m.updated_at = datetime.utcnow()
-        session.add(m)
+        if m:
+            m.global_volume = volume2int(v[0])
+            m.local_volume = volume2int(v[1])
+            m.updated_at = datetime.utcnow()
+            session.add(m)
 
     session.commit()
     session.close()

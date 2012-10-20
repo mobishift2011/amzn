@@ -37,6 +37,26 @@ class BaseCategory(Document):
     def url(self):
         raise NotImplementedError("should implemented in sub classes!")
 
+class BaseBrand(BaseCategory):
+    """ :py:class:crawlers.common.models.BaseBrand
+    
+    common brand info
+    luxury crawlers should inherit from this this basic class
+    
+    >>> from crawlers.common.models import BaseBrand
+    >>> class Category(BaseBrand):
+    ...     pass
+
+    """
+    events_begin = DateTimeField()
+    events_end = DateTimeField()
+    soldout = BooleanField()
+    sale_title = StringField()
+    brand_link = StringField()
+    image_url = StringField()
+    sale_description = StringField()
+
+
 class BaseReview(Document):
     """ :py:class:crawlers.common.models.BaseReview
 

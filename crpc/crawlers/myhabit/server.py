@@ -73,6 +73,7 @@ class Server:
         """
         depts = ['women', 'men', 'kids', 'home', 'designer']
         self.queue = Queue.Queue()
+        self.upcoming_queue = Queue.Queue()
         debug_info.send(sender=DB + '.category.begin')
 
         for dept in depts:
@@ -110,6 +111,7 @@ class Server:
                 brand.sale_title = a_title.text
                 brand.image_url = image
             brand.soldout = soldout
+            brand.update_time = datetime.utcnow()
             brand.save()
             category_saved.send(sender=DB + '.get_brand_list', site=DB, key=sale_id, is_new=is_new, is_updated=not is_new)
 
@@ -120,18 +122,9 @@ class Server:
         for node in nodes:
             l = node.get_attribute('href')
             link = l if l.startswith('http') else 'http://www.myhabit.com/homepage' + l 
-            title = node.text
+#            title = node.text
+            self.upcoming_queue.put( (dept, link) )
 
-            self.browser.get(link)
-            path = self.browser.find_element_by_xpath('//div[@id="main"]/div[@id="page-content"]/div[@id="top-content"]')
-            begin_date = path.find_element_by_xpath('./div[@id="startHeader"]/span[@class="date"]').text # SAT OCT 20
-            begin_time = path.find_element_by_xpath('./div[@id="startHeader"]/span[@class="time"]').text # 9 AM PT
-            utc_begintime = self.time_proc(begin_date + ' ' + begin_time.replace('PT', ''))
-            brand_info = path.find_element_by_id('upcomingSaleBlurb').text
-            img = path.find_element_by_xpath('./div[@class="upcomingSaleHero"]/img[@class="main-image"]').get_attribute('src')
-            for sub in path.find_elements_by_xpath('./div[@id="asinbox"]/ul/li'):
-                sub_title = sub.find_element_by_class_name('title')
-                sub_img = sub.find_element_by_xpath('./img').get_attribute('src')
 
 
     def url2saleid(self, url):
@@ -156,11 +149,23 @@ class Server:
 
         :param timeover: timeout in queue.get
         """
-        while not self.queue.empty():
+        self.queue_get_parse(self.upcoming_queue, upcoming=True)
+        self.queue_get_parse(self.queue)
+
+    def queue_get_parse(self, queue, upcoming=False):
+        """.. :py:method::
+            get queue and parse the brand page
+        :param queue: upcoming brand queue or brand page queue
+        :param upcoming: flag to shwo whether it is the upcoming queue or not
+        """
+        while not queue.empty():
             try:
-                job = self.queue.get(timeout=timeover)
+                job = queue.get(timeout=timeover)
                 self.browser.get(job[1])
-                self.parse_category(job[0], job[1])
+                if upcoming:
+                    self.parse_upcoming(job[0], job[1])
+                else:
+                    self.parse_category(job[0], job[1])
             except Queue.Empty:
                 debug_info.send(sender="{0}.category:Queue waiting {1} seconds without response!".format(DB, timeover))
             except:
@@ -178,6 +183,38 @@ class Server:
         endtime = datetime.strptime(tinfo, '%a %b %d %I %p %Y').replace(tzinfo=pt)
         return pt.normalize(endtime).astimezone(pytz.utc)
     
+    def parse_upcoming(self, dept, url):
+        """.. :py:method::
+            upcoming brand page parsing
+
+        :param dept: dept in the page
+        :param url: url in the page
+        """
+        path = self.browser.find_element_by_xpath('//div[@id="main"]/div[@id="page-content"]/div[@id="top-content"]')
+        begin_date = path.find_element_by_xpath('./div[@id="startHeader"]/span[@class="date"]').text # SAT OCT 20
+        begin_time = path.find_element_by_xpath('./div[@id="startHeader"]/span[@class="time"]').text # 9 AM PT
+        utc_begintime = self.time_proc(begin_date + ' ' + begin_time.replace('PT', ''))
+        brand_info = path.find_element_by_id('upcomingSaleBlurb').text
+        img = path.find_element_by_xpath('./div[@class="upcomingSaleHero"]/img[@class="main-image"]').get_attribute('src')
+        subs = {}
+        for sub in path.find_elements_by_xpath('./div[@id="asinbox"]/ul/li'):
+            sub_title = sub.find_element_by_class_name('title')
+            sub_img = sub.find_element_by_xpath('./img').get_attribute('src')
+            subs[sub_title] = sub_img
+
+        sale_id = self.url2saleid(url)
+        brand, is_new = Category.objects.get_or_create(pk=sale_id)
+        if is_new:
+            brand.dept = dept
+            brand.sale_title = None # TODO
+            brand.image_url = img
+            brand.events_begin = utc_begintime
+            brand.sale_description = brand_info
+            brand.upcoming_title_img = subs
+            brand.update_time = datetime.utcnow()
+            brand.save()
+
+
     def parse_category(self, dept, url):
         """.. :py:method::
             Brand page parsing

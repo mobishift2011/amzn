@@ -18,6 +18,12 @@ envs = {
         'MONGODB_HOST': '127.0.0.1',
         'REDIS_HOST': '127.0.0.1',
     },
+    'HJC': {
+        'PEERS': ['root@192.168.56.102','root@192.168.56.103'],
+        'USE_INDEX': '',
+        'MONGODB_HOST': '192.168.56.101',
+        'REDIS_HOST': '192.168.56.101',
+    },
     'TEST': {
         'PEERS': [
             'root@ec2-54-245-25-85.us-west-2.compute.amazonaws.com',

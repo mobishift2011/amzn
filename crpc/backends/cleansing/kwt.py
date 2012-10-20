@@ -29,6 +29,8 @@ CREDENTIALS = [
     ('kwtools3464@gmail.com','1qaz2wsx!@'),
     ('kwtools3465@gmail.com','1qaz2wsx!@'),
     ('kwtools3466@gmail.com','1qaz2wsx!@'),
+    ('kwtools3467@gmail.com','1qaz2wsx!@'),
+    ('kwtools3468@gmail.com','1qaz2wsx!@'),
 ]
 
 class AdwordsAutomater(object):
@@ -41,6 +43,7 @@ class AdwordsAutomater(object):
             self.ff = webdriver.Firefox()
             self.ff.set_page_load_timeout(timeout)
         self.ff.implicitly_wait(timeout)
+        self.bad_network = timeout - 10
         self.busy = False
         self.is_login = False
         self.on_keyword_page = False
@@ -62,6 +65,7 @@ class AdwordsAutomater(object):
         except TimeoutException:
             pass
         self.is_login = True
+        time.sleep(self.bad_network)
         try:
             search = re.compile(r'(\?[^#]*)#').search(self.ff.current_url).group(1)
             self.kwurl = 'https://adwords.google.com/o/Targeting/Explorer'+search+'&__o=cues&ideaRequestType=KEYWORD_IDEAS';

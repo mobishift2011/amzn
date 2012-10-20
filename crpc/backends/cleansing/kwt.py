@@ -32,15 +32,15 @@ CREDENTIALS = [
 ]
 
 class AdwordsAutomater(object):
-    def __init__(self, email, passwd):
+    def __init__(self, email, passwd, timeout=10):
         self.email = email
         self.passwd = passwd
         try:
             self.ff = webdriver.Chrome()
         except:
             self.ff = webdriver.Firefox()
-            self.ff.set_page_load_timeout(15)
-        self.ff.implicitly_wait(10)
+            self.ff.set_page_load_timeout(timeout)
+        self.ff.implicitly_wait(timeout)
         self.busy = False
         self.is_login = False
         self.on_keyword_page = False
@@ -82,7 +82,10 @@ class AdwordsAutomater(object):
         print 'visiting keyword tools'
         self.ff.get(self.kwurl)
 
-        kwinput = self.ff.find_element_by_class_name("sEAB")
+        try:
+            kwinput = self.ff.find_element_by_class_name("sEAB")
+        except:
+            return ret
         kwinput.send_keys('\n'.join(keywords))
 
         self.ff.find_element_by_css_selector("button.gwt-Button").click()

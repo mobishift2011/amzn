@@ -24,11 +24,16 @@ def table_all():
 
 @route('/table/update')
 def table_update():
-	log_event.wait()
+    try:
+	    log_event.wait(timeout=10)
+    except:
+        # we shouldn't hang the user fovever
+        # after 10 seconds, if no event occur, return empty
+        pass
 	return task_updates()
 
 @route('/angular')
 def table():
     return template('angular')
 
-run(server='gevent', host='localhost', port=8080)
+run(server='gevent', host='0.0.0.0', port=1317)

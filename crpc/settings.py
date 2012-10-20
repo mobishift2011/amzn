@@ -18,6 +18,12 @@ envs = {
         'MONGODB_HOST': '127.0.0.1',
         'REDIS_HOST': '127.0.0.1',
     },
+    'HJC': {
+        'PEERS': ['root@192.168.56.102','root@192.168.56.103'],
+        'USE_INDEX': '',
+        'MONGODB_HOST': '192.168.56.101',
+        'REDIS_HOST': '192.168.56.101',
+    },
     'TEST': {
         'PEERS': [
             'root@ec2-54-245-25-85.us-west-2.compute.amazonaws.com',
@@ -25,7 +31,7 @@ envs = {
             'root@ec2-50-112-195-236.us-west-2.compute.amazonaws.com',
             'root@ec2-54-245-15-250.us-west-2.compute.amazonaws.com',
         ],
-        'USE_INDEX': ' --index-url http://b.pypi.python.org/simple/',
+        'USE_INDEX': '',
         'MONGODB_HOST': 'mongodb.favbuy.org',
         'REDIS_HOST': 'mongodb.favbuy.org',
     },

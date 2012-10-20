@@ -65,7 +65,7 @@ var updater = {
     updateTasks: function(tasks) {
         var task2row = function(t) {
             $scope.tasks.push(t);
-            return [t.name, t.status, t.started_at, t.dones, t.updates, t.news, t.fails];
+            return [t.name, t.status, t.started_at, t.updated_at, t.dones, t.updates, t.news, t.fails];
         }
 
         $scope.$apply(function(){

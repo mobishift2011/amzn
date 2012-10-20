@@ -3,9 +3,62 @@
 from settings import MONGODB_HOST
 
 from mongoengine import *
+from mongoengine import signals
 from datetime import datetime, timedelta
 
 connect(db="monitor", host=MONGODB_HOST)
+
+class Schedule(Document):
+    """ schedules info """
+    site            =   StringField()
+    method          =   StringField()
+    description     =   StringField()
+    minutes         =   StringField()
+    hours           =   StringField()
+    dayofmonth      =   StringField()
+    month           =   StringField()
+    dayofweek       =   StringField()
+    enabled         =   BooleanField(default=False)
+
+    def timematch(self):
+        t = datetime.utcnow()
+        tsets = self._time_sets()
+        return  t.minute in tsets['minutes'] and \
+                t.hour in tsets['hours'] and \
+                t.day in tsets['dayofmonth'] and \
+                t.month in tsets['month'] and \
+                t.weekday() in tsets['dayofweek']
+
+    def _time_sets(self):
+        wholes = {'minutes':60, 'hours':24, 'dayofmonth':31, 'month':12, 'dayofweek':7}
+        names = ['minutes', 'hours', 'dayofmonth', 'month', 'dayofweek']
+        for name in names:
+            if not getattr(self, name):
+                setattr(self, name, "*")
+        
+        tsets = {} 
+        for name in names:
+            nsets = set()
+            for e in getattr(self, name).split(','):
+                if '/' in e:
+                    # */3
+                    star, div = e.rsplit('/',1)
+                    if star != '*':
+                        raise ValueError('valid syntax: */n')
+                    nsets.update(filter(lambda x:x%int(div)==0, range(0,wholes[name])))
+                elif '-' in e:
+                    # 1-5
+                    f, t = e.split('-')
+                    nsets.update(range(int(f),int(t)+1))
+                elif e == '*':
+                    nsets.update(range(0, wholes[name]+1))
+                else:
+                    # 7
+                    nsets.add(int(e))
+
+            tsets[ name ] = nsets
+    
+        return tsets
 
 class Fail(Document):
     """ stores failures """
@@ -38,6 +91,7 @@ class Task(Document):
 
     # timing
     started_at      =   DateTimeField()
+    updated_at      =   DateTimeField(default=datetime.utcnow())
     ended_at        =   DateTimeField()
     status          =   IntField() # READY, RUNNING, PAUSED, FAILED, FINISHED
 
@@ -56,7 +110,7 @@ class Task(Document):
 
     # meta
     meta        =   {
-        "indexes":  [("status", "site", "method"), "started_at"],
+        "indexes":  [("status", "site", "method"), "started_at", "updated_at"],
     }
 
     def __str__(self):
@@ -67,9 +121,19 @@ class Task(Document):
             'name':         self.site+'.'+self.method,
             'status':       Task.inverse_status(self.status),
             'started_at':   self.started_at.isoformat() if self.started_at else 'undefined',
+            'updated_at':   self.updated_at.isoformat() if self.updated_at else 'undefined',
             'fails':        len(self.fails),
             'dones':        self.num_finish,
             'updates':      self.num_update,
             'news':         self.num_new,
             'fail_details': [f.to_json() for f in self.fails],
         }
+
+    @classmethod
+    def pre_save(cls, sender, document, **kwargs):
+         document.updated_at = datetime.utcnow()
+
+signals.pre_save.connect(Task.pre_save, sender=Task)
+
+if __name__ == '__main__':
+    Schedule().timematch()

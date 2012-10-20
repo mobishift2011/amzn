@@ -15,11 +15,11 @@ def warning_info_print(sender, **kwargs):
 
 @category_saved.bind
 def on_category_saved(sender, **kwargs):
-    logger.debug('{0}'.format(kwargs.items()))
+    logger.debug('category{0}'.format(kwargs.items()))
 
 @product_saved.bind
 def on_product_save(sender, **kwargs):
-    logger.debug('{0}'.format(kwargs.items()))
+    logger.debug('product{0}'.format(kwargs.items()))
 
 @category_failed.bind
 def on_category_failed(sender, **kwargs):

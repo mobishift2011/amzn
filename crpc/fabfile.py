@@ -39,7 +39,7 @@ def setup_env():
             run("mkvirtualenv "+ENV_NAME)
             with prefix("workon "+ENV_NAME):
                 run("pip install cython"+USE_INDEX)
-                run("pip install zerorpc lxml requests pymongo mongoengine redis redisco pytz mock selenium"+USE_INDEX) 
+                run("pip install zerorpc lxml requests pymongo mongoengine redis redisco pytz mock selenium blinker"+USE_INDEX) 
 
 def deploy_rpc():
     """ deploy rpc server code to host """
@@ -82,7 +82,7 @@ def _deploy_rpc(host_string):
     with settings(host_string=host_string):
         with cd("/opt/crpc/crawlers/common"):
             with prefix("source /usr/local/bin/virtualenvwrapper.sh"):
-                with prefix(". ../../env.sh"):
+                with prefix(". ../../env.sh TEST"):
                     with prefix("ulimit -s 1024"):
                         with prefix("ulimit -n 4096"):
                             _runbg("python rpcserver.py", sockname="crawlercommon")

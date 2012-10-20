@@ -5,7 +5,6 @@
 import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
-#import httplib2
 import Queue
 import lxml.html
 import requests
@@ -14,38 +13,30 @@ from datetime import datetime, timedelta
 #from settings import *
 #from models import *
 
-from selenium import webdriver
-class myhabitLogin(object):
-    def __init__(self, email=None, passwd=None):
-        if email:
-            self.email, self.passwd = email, passwd
-        else:
-            return
-        try:
-            self.browser = webdriver.Chrome()
-        except:
-            self.browser = webdriver.Firefox()
-            self.browser.set_page_load_timeout(5)
+ss = requests.Session()
+
+class zulilyLogin(object):
+    def __init__(self):
+        self.email = 'huanzhu@favbuy.com'
+        self.passwd = '4110050209'
+        self.data = {'login[username]': self.email,'login[password]': self.passwd}
 
     def login(self):
-        self.browser.get('http://www.myhabit.com')
-        self.browser.find_element_by_id('ap_email').send_keys(email)
-        self.browser.find_element_by_id('ap_password').send_keys(passwd)
-        signin_button = self.browser.find_element_by_id('signInSubmit')
-        signin_button.submit()
+        ss.post('https://www.zulily.com/auth', data=self.data)
+
+    def check(self):
+        return ss.get('http://www.zulily.com/?tab=girls').url == 'http://www.zulily.com/?tab=girls'
 
     def crawl_category(self):
-        depts = ['women', 'men', 'kids', 'home', 'designer']
+        depts = ['girls', 'boys', 'women', 'baby-maternity', 'toys-playtime', 'home']
         self.queue = Queue.Queue()
         self.upcoming_queue = Queue.Queue()
 
         for dept in depts:
-            link = 'http://www.myhabit.com/homepage?#page=g&dept={0}&ref=qd_nav_tab_{0}'.format(dept)
+            link = 'http://www.zulily.com/index.php?tab={0}'.format(dept)
             self.get_brand_list(dept, link)
         self.cycle_crawl_category()
 
-        while not self.queue.empty():
-            print self.queue.get()
 
     def get_brand_list(self, dept, url):
         self.browser.get(url)
@@ -219,9 +210,7 @@ if __name__ == '__main__':
 #    listing()
 #    product()
 
-    email = 'freesupper_fangren@yahoo.com.cn'
-    passwd = 'forke@me'
-    lgin = myhabitLogin(email, passwd)
+    lgin = zulilyLogin()
     lgin.login()
-    lgin.crawl_category()
+    print lgin.check()
 

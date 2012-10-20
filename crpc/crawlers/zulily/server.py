@@ -22,17 +22,68 @@ import pytz
 
 from urllib import quote, unquote
 from datetime import datetime, timedelta
-from selenium import webdriver
-from selenium.webdriver.support.ui import WebDriverWait
-#from selenium.webdriver.common.action_chains import ActionChains
 
 from models import *
 from crawlers.common.events import *
 from crawlers.common.stash import *
 
-TIMEOUT = 12
+TIMEOUT = 9
+headers = { 'User-Agent': 'Mozilla 5.0/Firefox 16.0.1', }
+config = { 
+    'max_retries': 3,
+    'pool_connections': 10, 
+    'pool_maxsize': 10, 
+}
+req = requests.Session(prefetch=True, timeout=15, config=config, headers=headers)
 
-class Server:
+
+class zulilyLogin(object):
+    """.. :py:class:: zulilyLogin
+        login, check whether login, fetch page.
+    """
+    def __init__(self):
+        """.. :py:method::
+            variables need to be used
+        """
+        self.login_url = 'https://www.zulily.com/auth'
+        self.email = 'huanzhu@favbuy.com'
+        self.passwd = '4110050209'
+        self.data = {
+            'login[username]': self.email,
+            'login[password]': self.passwd
+        }
+        self.reg_check = re.compile(r'https://www.zulily.com/auth/create.*')
+        self._signin = False
+
+    def login_account(self):
+        """.. :py:method::
+            use post method to login
+        """
+        req.post(self.login_url, data=self.data)
+        self._signin = True
+
+    def check_signin(self):
+        """.. :py:method::
+            check whether the account is login
+        """
+        if not self._signin:
+            self.login_account()
+
+    def fetch_page(url):
+        """.. :py:method::
+            fetch page.
+            check whether the account is login, if not, login and fetch again
+        """
+        ret = req.get(url)
+
+        if self.reg_check.match(ret.url) is not None: # need to authentication
+            self.login_account()
+            ret = req.get(url)
+        if ret.ok: return ret.content
+
+
+
+class Server(object):
     """.. :py:class:: Server
     
     This is zeroRPC server class for ec2 instance to crawl pages.
@@ -40,76 +91,26 @@ class Server:
     """
     def __init__(self):
         self.siteurl = 'http://www.zulily.com'
-        self.email = 'huanzhu@favbuy.com'
-        self.passwd = '4110050209'
-        self._signin = False
-#        webdriver.support.wait.POLL_FREQUENCY = 0.05
-
-    def login(self, email=None, passwd=None):
-        """.. :py:method::
-            login
-
-        :param email: login email
-        :param passwd: login passwd
-        """
-        if not email:
-            email, passwd = self.email, self.passwd
-        self.browser = webdriver.Firefox()
-#        self.browser.set_page_load_timeout(5)
-#        self.browser.implicitly_wait(1)
-
-        self.download_page(self.siteurl + '/auth')
-        self.fill_login_form()
-
-
-    def fill_login_form(self):
-        """.. :py:method:
-            fill in login form when firefox driver is open
-        """
-        self.browser.find_element_by_id('ap_email').send_keys(email)
-        self.browser.find_element_by_id('ap_password').send_keys(passwd)
-        self.browser.find_element_by_id('signInSubmit').submit()
-        self._signin = True
-
-
-    def check_signin(self):
-        if not self._signin:
-            self.login(self.email, self.passwd)
-
-
-
-    def download_page(self, url):
-        """.. :py:method::
-            download the url
-        :param url: the url need to download
-        """
-        try:
-            self.browser.get(url)
-            if self.browser.title == u'Amazon.com Sign In':
-                self.fill_login_form()
-            WebDriverWait(self.browser, TIMEOUT, 0.05).until(lambda driver: driver.execute_script('return $.active') == 0)
-        except:
-            print 'Time Out url --> ', url
-            return 1
+        self.upcoming_url = 'http://www.zulily.com/upcoming_events'
+        self.net = zulilyLogin()
+        self.extract_event_re = re.compile(r'(http://www.zulily.com/e/(.*).html).*')
+        self.extract_image_re = re.compile(r'(http://mcdn.zulily.com/images/cache/event/)\d+x\d+/(.+)')
 
 
     def crawl_category(self):
         """.. :py:method::
-            From top depts, get all the brands
+            From top depts, get all the events
         """
-        self.check_signin()
-        depts = ['women', 'men', 'kids', 'home', 'designer']
+        depts = ['girls', 'boys', 'women', 'baby-maternity', 'toys-playtime', 'home']
         self.queue = Queue.Queue()
         self.upcoming_queue = Queue.Queue()
         debug_info.send(sender=DB + '.category.begin')
 
         for dept in depts:
-            link = 'http://www.myhabit.com/homepage?#page=g&dept={0}&ref=qd_nav_tab_{0}'.format(dept)
+            link = 'http://www.zulily.com/?tab={0}'.format(dept)
             self.get_brand_list(dept, link)
         self.cycle_crawl_category()
         debug_info.send(sender=DB + '.category.end')
-        self.browser.quit()
-        self._signin = False
 
     def get_brand_list(self, dept, url):
         """.. :py:method::
@@ -119,44 +120,59 @@ class Server:
         :param dept: dept in the page
         :param url: the dept's url
         """
-        self.download_page(url)
-        nodes = self.browser.find_elements_by_xpath('//div[@id="main"]/div[@id="page-content"]/div[@id="currentSales"]/div[starts-with(@id, "privateSale")]')
-        print self.browser.current_url
+        cont = self.net.fetch_page(url)
+        tree = lxml.html.fromstring(cont)
+        nodes = tree.xpath('//div[@class="container"]/div[@id="main"]/div[@id="home-page-content"]/div//div[starts-with(@id, "eid_")]')
+        
         for node in nodes:
-            a_title = node.find_element_by_xpath('./div[@class="caption"]/a')
-            l = a_title.get_attribute('href')
-            link = l if l.startswith('http') else 'http://www.myhabit.com/homepage' + l
-            sale_id = self.url2saleid(link)
+            link = node.xpath('./a[@class="wrapped-link"]').get('href')
+            link, lug = self.extract_event_re.match(link).groups()
 
-            image = node.find_element_by_xpath('./div[@class="image"]/a/img').get_attribute('src')
-            try: # if can't be found, cost a long time and raise NoSuchElementException
-                node.find_element_by_xpath('./div[@class="image"]/a/div[@class="soldout"]')
-            except:
-                soldout = False
-            else:
-                soldout = True
-
-            brand, is_new = Category.objects.get_or_create(sale_id=sale_id)
+            brand, is_new = Category.objects.get_or_create(lug=lug)
             if is_new:
-                brand.sale_title = a_title.text
-                brand.image_url = image
-            if dept not in brand.dept: brand.dept.append(dept) # for designer dept
-            brand.soldout = soldout
+                image = node.xpath('./a/span[@class="homepage-image"]/img').get('src')
+                text = node.xpath('./a/span[@class="txt"]')
+                sale_title = text.xpath('./span[@class="category-name"]/span/text')
+                desc = text.xpath('.//span[@class="description-highlights"]/text')
+                start_end_date = text.xpath('./span[@class="description"]/span[@class="start-end-date"]/span').text_content()
+
+                brand.image_urls = [image]
+                brand.sale_title = sale_title
+                brand.short_desc = desc
+                brand.start_end_date = start_end_date
+            if dept not in brand.dept: brand.dept.append(dept) # events are mixed in different category
             brand.update_time = datetime.utcnow()
             brand.save()
-            category_saved.send(sender=DB + '.get_brand_list', site=DB, key=sale_id, is_new=is_new, is_updated=not is_new)
+            category_saved.send(sender=DB + '.get_brand_list', site=DB, key=lug, is_new=is_new, is_updated=not is_new)
 
-            if dept != 'designer':
-                self.queue.put( (dept, link) )
 
-        # upcoming brand
-        nodes = self.browser.find_elements_by_xpath('//div[@id="main"]/div[@id="page-content"]/div[@id="upcomingSales"]//div[@class="fourColumnSales"]//div[@class="caption"]/a')
+    def upcoming_proc(self):
+        """.. :py:method::
+            Get all the upcoming brands info 
+        """
+        upcoming_list = []
+        cont = self.net.fetch_page(self.upcoming_url)
+        tree = lxml.html.fromstring(cont)
+        nodes = tree.xpath('//div[@class="event-content-list-wrapper"]/ul/li/a')
         for node in nodes:
-            l = node.get_attribute('href')
-            link = l if l.startswith('http') else 'http://www.myhabit.com/homepage' + l 
-#            title = node.text
-            self.upcoming_queue.put( (dept, link) )
+            link = node.get('href')
+            text = node.text_content()
+            upcoming_list.append( (text, link) )
+        upcoming_detail(upcoming_list)
 
+
+    def upcoming_detail(self, upcoming_list):
+        """.. :py:method::
+        """
+        for pair in upcoming_list:
+            cont = self.net.fetch_page(pair[1])
+            tree = lxml.html.fromstring(cont)
+            img = tree.xpath('//div[ends-with(@class, "event-content-image")]/img/@src')
+            image = ''.join( self.extract_image_re.match(img) )
+            sale_title = tree.xpath('//div[ends-with(@class, "event-content-copy")]/h1/text')
+            sale_description = tree.xpath('//div[ends-with(@class, "event-content-copy")]/div[@id="desc-with-expanded"]').text_content()
+            start_time = tree.xpath('//div[ends-with(@class, "upcoming-date-reminder")]//span[@class="reminder-text"]/text')
+            
 
 
     def url2saleid(self, url):

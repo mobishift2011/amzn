@@ -137,6 +137,9 @@ class KeywordSearch(object):
     def search(self, keywords):
         if not isinstance(keywords, collections.Iterable):
             keywords = [keywords]
+
+        if not self.pool:
+            raise ValueError("No usable account!")
            
         num_left = pagenum = (len(keywords)-1)/MAX_BATCH+1
         for i in range(pagenum):
@@ -171,6 +174,9 @@ class KeywordSearch(object):
                 break
 
         result = aa.find_keyword_volumes(keywords)
+        if result == {}:
+            aa.ff.quit()
+            self.pool.remove(aa)
         print 'got result', result
         self.rq.put(result)
     

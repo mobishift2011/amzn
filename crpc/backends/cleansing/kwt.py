@@ -29,18 +29,21 @@ CREDENTIALS = [
     ('kwtools3464@gmail.com','1qaz2wsx!@'),
     ('kwtools3465@gmail.com','1qaz2wsx!@'),
     ('kwtools3466@gmail.com','1qaz2wsx!@'),
+    ('kwtools3467@gmail.com','1qaz2wsx!@'),
+    ('kwtools3468@gmail.com','1qaz2wsx!@'),
 ]
 
 class AdwordsAutomater(object):
-    def __init__(self, email, passwd):
+    def __init__(self, email, passwd, timeout=10):
         self.email = email
         self.passwd = passwd
         try:
             self.ff = webdriver.Chrome()
         except:
             self.ff = webdriver.Firefox()
-            self.ff.set_page_load_timeout(15)
-        self.ff.implicitly_wait(10)
+            self.ff.set_page_load_timeout(timeout)
+        self.ff.implicitly_wait(timeout)
+        self.bad_network = timeout - 10
         self.busy = False
         self.is_login = False
         self.on_keyword_page = False
@@ -62,6 +65,7 @@ class AdwordsAutomater(object):
         except TimeoutException:
             pass
         self.is_login = True
+        time.sleep(self.bad_network)
         try:
             search = re.compile(r'(\?[^#]*)#').search(self.ff.current_url).group(1)
             self.kwurl = 'https://adwords.google.com/o/Targeting/Explorer'+search+'&__o=cues&ideaRequestType=KEYWORD_IDEAS';
@@ -82,7 +86,10 @@ class AdwordsAutomater(object):
         print 'visiting keyword tools'
         self.ff.get(self.kwurl)
 
-        kwinput = self.ff.find_element_by_class_name("sEAB")
+        try:
+            kwinput = self.ff.find_element_by_class_name("sEAB")
+        except:
+            return ret
         kwinput.send_keys('\n'.join(keywords))
 
         self.ff.find_element_by_css_selector("button.gwt-Button").click()
@@ -130,6 +137,9 @@ class KeywordSearch(object):
     def search(self, keywords):
         if not isinstance(keywords, collections.Iterable):
             keywords = [keywords]
+
+        if not self.pool:
+            raise ValueError("No usable account!")
            
         num_left = pagenum = (len(keywords)-1)/MAX_BATCH+1
         for i in range(pagenum):
@@ -164,6 +174,9 @@ class KeywordSearch(object):
                 break
 
         result = aa.find_keyword_volumes(keywords)
+        if result == {}:
+            aa.ff.quit()
+            self.pool.remove(aa)
         print 'got result', result
         self.rq.put(result)
     

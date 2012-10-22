@@ -16,10 +16,10 @@ from mongoengine import *
 from settings import MONGODB_HOST
 connect(db=DB, host=MONGODB_HOST)
 
-from crawlers.common.models import BaseBrand, BaseProduct
+from crawlers.common.models import BaseEvent, BaseProduct
 
 
-class Category(BaseBrand):
+class Category(BaseEvent):
     sale_id = StringField(unique=True)
     dept = StringField()
     upcoming_title_img = DictField()

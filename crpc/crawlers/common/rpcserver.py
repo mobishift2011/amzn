@@ -38,7 +38,6 @@ class RPCServer(object):
             path = join(CRPC_ROOT, "crawlers", name)
             if name not in excludes and isdir(path):
                 service = self.get_service(name)
-                print name, service
                 if service:
                     self.crawlers[name] = service
 

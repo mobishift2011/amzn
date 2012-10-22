@@ -77,7 +77,8 @@ class Server:
         """.. :py:method::
             From top depts, get all the brands
         """
-        depts = ['women', 'men', 'kids', 'home', 'designer']
+#        depts = ['women', 'men', 'kids', 'home', 'designer']
+        depts = ['designer']
         self.queue = Queue.Queue()
         self.upcoming_queue = Queue.Queue()
         debug_info.send(sender=DB + '.category.begin')
@@ -97,7 +98,7 @@ class Server:
         :param url: the dept's url
         """
         self.browser.get(url)
-        nodes = self.browser.find_elements_by_xpath('//div[@id="main"]/div[@id="page-content"]/div[@id="currentSales"]/div[starts-with(@id, "privateSale")]/div[@class="caption"]/a')
+        nodes = self.browser.find_elements_by_xpath('//div[@id="main"]/div[@id="page-content"]/div[@id="currentSales"]/div[starts-with(@id, "privateSale")]')
         for node in nodes:
             try: # if can't be found, cost a long time and raise NoSuchElementException
                 node.find_element_by_xpath('./div[@class="image"]/a/div[@class="soldout"]')
@@ -111,7 +112,7 @@ class Server:
             link = l if l.startswith('http') else 'http://www.myhabit.com/homepage' + l
             sale_id = self.url2saleid(link)
 
-            brand, is_new = Category.objects.get_or_create(pk=sale_id)
+            brand, is_new = Category.objects.get_or_create(sale_id=sale_id)
             if is_new:
                 brand.dept = dept
                 brand.sale_title = a_title.text
@@ -155,10 +156,11 @@ class Server:
 
         :param timeover: timeout in queue.get
         """
-        self.queue_get_parse(self.upcoming_queue, upcoming=True)
-        self.queue_get_parse(self.queue)
+        self.queue_get_parse(self.upcoming_queue, timeover, upcoming=True)
+        debug_info.send(sender="myhabit.cycle_crawl_category:upcoming event finished.")
+        self.queue_get_parse(self.queue, timeover)
 
-    def queue_get_parse(self, queue, upcoming=False):
+    def queue_get_parse(self, queue, timeover, upcoming=False):
         """.. :py:method::
             get queue and parse the brand page
         :param queue: upcoming brand queue or brand page queue
@@ -202,6 +204,7 @@ class Server:
         utc_begintime = self.time_proc(begin_date + ' ' + begin_time.replace('PT', ''))
         brand_info = path.find_element_by_id('upcomingSaleBlurb').text
         img = path.find_element_by_xpath('./div[@class="upcomingSaleHero"]/img[@class="main-image"]').get_attribute('src')
+        sale_title = path.find_element_by_xpath('./div[@class="upcomingSaleHero"]/img[@class="main-image"]').get_attribute('alt')
         subs = {}
         for sub in path.find_elements_by_xpath('./div[@id="asinbox"]/ul/li'):
             sub_title = sub.find_element_by_class_name('title')
@@ -209,10 +212,10 @@ class Server:
             subs[sub_title] = sub_img
 
         sale_id = self.url2saleid(url)
-        brand, is_new = Category.objects.get_or_create(pk=sale_id)
+        brand, is_new = Category.objects.get_or_create(sale_id=sale_id)
         if is_new:
             brand.dept = dept
-            brand.sale_title = None # TODO
+            brand.sale_title = sale_title
             brand.image_url = img
             brand.events_begin = utc_begintime
             brand.sale_description = brand_info
@@ -228,6 +231,7 @@ class Server:
         :param dept: dept in the page
         :param url: url in the page
         """
+        debug_info.send(sender="myhabit.parse_category", dept=dept, url=url)
         try:
             node = self.browser.find_elements_by_xpath('//div[@id="main"]/div[@id="page-content"]/div/div[@id="top"]/div[@id="salePageDescription"]')
         except:
@@ -247,7 +251,7 @@ class Server:
         num = int(num.split()[0])
         sale_id = self.url2saleid(url)
 
-        brand, is_new = Category.objects.get_or_create(pk=sale_id)
+        brand, is_new = Category.objects.get_or_create(sale_id=sale_id)
         # crawl infor before, so always not new
         brand.sale_description = sale_description
         brand.events_end = utc_endtime
@@ -259,10 +263,10 @@ class Server:
 
         elements = node[0].find_elements_by_xpath('../../div[@id="asinbox"]/ul/li[starts-with(@id, "result_")]')
         for ele in elements:
-            self.parse_category_product(ele, sale_title)
+            self.parse_category_product(ele, sale_id, sale_title, dept)
 
 
-    def parse_category_product(self, element, sale_title):
+    def parse_category_product(self, element, sale_id, sale_title, dept):
         """.. :py:method::
             Brand page, product parsing
 

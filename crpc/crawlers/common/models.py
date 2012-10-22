@@ -37,7 +37,7 @@ class BaseCategory(Document):
     def url(self):
         raise NotImplementedError("should implemented in sub classes!")
 
-class BaseBrand(BaseCategory):
+class BaseEvent(BaseCategory):
     """ :py:class:crawlers.common.models.BaseBrand
     
     common brand info

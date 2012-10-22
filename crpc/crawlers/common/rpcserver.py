@@ -38,6 +38,7 @@ class RPCServer(object):
             path = join(CRPC_ROOT, "crawlers", name)
             if name not in excludes and isdir(path):
                 service = self.get_service(name)
+                print name, service
                 if service:
                     self.crawlers[name] = service
 
@@ -51,8 +52,7 @@ class RPCServer(object):
             m = __import__("crawlers."+name+".server", fromlist=['Server'])
             service = m.Server()
         except Exception as e:
-            pass
-            #self.logger.exception(e.message)
+            self.logger.exception(e.message)
         else:
             return service
 

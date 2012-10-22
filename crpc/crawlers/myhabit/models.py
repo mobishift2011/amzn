@@ -20,7 +20,7 @@ from crawlers.common.models import BaseBrand, BaseProduct
 
 
 class Category(BaseBrand):
-    sale_id = StringField(primary_key=True)
+    sale_id = StringField(unique=True)
     dept = StringField()
     upcoming_title_img = DictField()
     meta = {

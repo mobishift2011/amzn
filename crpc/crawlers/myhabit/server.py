@@ -7,8 +7,8 @@ crawlers.myhabit.server
 This is the server part of zeroRPC module. Call by client automatically, run on many differen ec2 instances.
 
 """
-import gevent
-gevent.monkey.patch_all()
+from gevent import monkey
+monkey.patch_all()
 from gevent.pool import Pool
 
 import os
@@ -275,7 +275,7 @@ class Server:
             soldout = False
         else: soldout = True
         l = element.find_element_by_class_name('evt-prdtDesc-a').get_attribute('href')
-        link = l if l startswith('http') else 'http://www.myhabit.com/homepage' + l
+        link = l if l.startswith('http') else 'http://www.myhabit.com/homepage' + l
         title = element.find_element_by_class_name('title').text
         listprice = element.find_element_by_class_name('listprice').text.replace('$', '').replace(',', '')
         ourprice = element.find_element_by_class_name('ourprice').text.replace('$', '').replace(',', '')

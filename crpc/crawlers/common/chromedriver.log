@@ -1,0 +1,327 @@
+[0.000][INFO]:      ChromeDriver 23.0.1240.0 /usr/bin/chromedriver
+[0.996][FINE]:      Initializing session with capabilities {
+   "browserName": "chrome",
+   "chromeOptions": {
+      "args": [  ],
+      "binary": "",
+      "extensions": [  ]
+   },
+   "javascriptEnabled": true,
+   "platform": "ANY",
+   "version": ""
+}
+
+[0.997][INFO]:      Launching chrome: /usr/bin/google-chrome --enable-logging --log-level=1 --disable-hang-monitor --disable-prompt-on-repost --dom-automation --full-memory-crash-report --no-default-browser-check --no-first-run --disable-background-networking --disable-sync --disable-translate --disable-web-resources --safebrowsing-disable-auto-update --safebrowsing-disable-download-protection --disable-client-side-phishing-detection --disable-component-update --disable-default-apps --password-store=basic --ignore-certificate-errors about:blank
+[1.504][INFO]:      Connected to Chrome successfully. Version: 22.0.1229.94
+[1.523][FINE]:      Command received (/session/3ce7ec92b273a9df12136ba0d3f932cc)
+[1.523][FINE]:      Command finished (/session/3ce7ec92b273a9df12136ba0d3f932cc) with response {
+   "sessionId": "3ce7ec92b273a9df12136ba0d3f932cc",
+   "status": 0,
+   "value": {
+      "acceptSslCerts": false,
+      "applicationCacheEnabled": false,
+      "browserConnectionEnabled": false,
+      "browserName": "chrome",
+      "chrome.chromedriverVersion": "23.0.1240.0",
+      "chrome.nativeEvents": false,
+      "cssSelectorsEnabled": true,
+      "databaseEnabled": false,
+      "handlesAlerts": true,
+      "javascriptEnabled": true,
+      "locationContextEnabled": false,
+      "nativeEvents": true,
+      "platform": "linux",
+      "rotatable": false,
+      "takesScreenshot": true,
+      "version": "22.0.1229.94",
+      "webStorageEnabled": true
+   }
+}
+
+[1.536][FINE]:      Command received (/session/3ce7ec92b273a9df12136ba0d3f932cc/url) with params {
+   "sessionId": "3ce7ec92b273a9df12136ba0d3f932cc",
+   "url": "http://www.myhabit.com"
+}
+
+[1.536][FINER]:     Waiting for all views to stop loading...
+[1.545][FINER]:     Done waiting for all views to stop loading
+[2.705][FINER]:     Waiting for all views to stop loading...
+[16.871][FINER]:    Done waiting for all views to stop loading
+[16.871][FINE]:     Command finished (/session/3ce7ec92b273a9df12136ba0d3f932cc/url) with response {
+   "sessionId": "3ce7ec92b273a9df12136ba0d3f932cc",
+   "status": 0,
+   "value": {
+
+   }
+}
+
+[16.873][FINE]:     Command received (/session/3ce7ec92b273a9df12136ba0d3f932cc/element) with params {
+   "sessionId": "3ce7ec92b273a9df12136ba0d3f932cc",
+   "using": "id",
+   "value": "ap_email"
+}
+
+[16.873][FINER]:    Waiting for all views to stop loading...
+[16.873][FINER]:    Done waiting for all views to stop loading
+[16.887][FINER]:    Waiting for all views to stop loading...
+[16.888][FINER]:    Done waiting for all views to stop loading
+[16.888][FINE]:     Command finished (/session/3ce7ec92b273a9df12136ba0d3f932cc/element) with response {
+   "sessionId": "3ce7ec92b273a9df12136ba0d3f932cc",
+   "status": 0,
+   "value": {
+      "ELEMENT": ":wdc:1350884324983"
+   }
+}
+
+[16.889][FINE]:     Command received (/session/3ce7ec92b273a9df12136ba0d3f932cc/element/:wdc:1350884324983/value) with params {
+   "id": ":wdc:1350884324983",
+   "sessionId": "3ce7ec92b273a9df12136ba0d3f932cc",
+   "value": [ "h", "u", "a", "n", "z", "h", "u", "@", "f", "a", "v", "b", "u", "y", ".", "c", "o", "m" ]
+}
+
+[16.889][FINER]:    Waiting for all views to stop loading...
+[16.890][FINER]:    Done waiting for all views to stop loading
+[17.051][FINER]:    Waiting for all views to stop loading...
+[17.051][FINER]:    Done waiting for all views to stop loading
+[17.051][FINE]:     Command finished (/session/3ce7ec92b273a9df12136ba0d3f932cc/element/:wdc:1350884324983/value) with response {
+   "sessionId": "3ce7ec92b273a9df12136ba0d3f932cc",
+   "status": 0,
+   "value": {
+
+   }
+}
+
+[17.053][FINE]:     Command received (/session/3ce7ec92b273a9df12136ba0d3f932cc/element) with params {
+   "sessionId": "3ce7ec92b273a9df12136ba0d3f932cc",
+   "using": "id",
+   "value": "ap_password"
+}
+
+[17.053][FINER]:    Waiting for all views to stop loading...
+[17.054][FINER]:    Done waiting for all views to stop loading
+[17.070][FINER]:    Waiting for all views to stop loading...
+[17.070][FINER]:    Done waiting for all views to stop loading
+[17.070][FINE]:     Command finished (/session/3ce7ec92b273a9df12136ba0d3f932cc/element) with response {
+   "sessionId": "3ce7ec92b273a9df12136ba0d3f932cc",
+   "status": 0,
+   "value": {
+      "ELEMENT": ":wdc:1350884324984"
+   }
+}
+
+[17.072][FINE]:     Command received (/session/3ce7ec92b273a9df12136ba0d3f932cc/element/:wdc:1350884324984/value) with params {
+   "id": ":wdc:1350884324984",
+   "sessionId": "3ce7ec92b273a9df12136ba0d3f932cc",
+   "value": [ "4", "1", "1", "0", "0", "5", "0", "2", "0", "9" ]
+}
+
+[17.072][FINER]:    Waiting for all views to stop loading...
+[17.072][FINER]:    Done waiting for all views to stop loading
+[17.152][FINER]:    Waiting for all views to stop loading...
+[17.153][FINER]:    Done waiting for all views to stop loading
+[17.153][FINE]:     Command finished (/session/3ce7ec92b273a9df12136ba0d3f932cc/element/:wdc:1350884324984/value) with response {
+   "sessionId": "3ce7ec92b273a9df12136ba0d3f932cc",
+   "status": 0,
+   "value": {
+
+   }
+}
+
+[17.154][FINE]:     Command received (/session/3ce7ec92b273a9df12136ba0d3f932cc/element) with params {
+   "sessionId": "3ce7ec92b273a9df12136ba0d3f932cc",
+   "using": "id",
+   "value": "signInSubmit"
+}
+
+[17.154][FINER]:    Waiting for all views to stop loading...
+[17.154][FINER]:    Done waiting for all views to stop loading
+[17.167][FINER]:    Waiting for all views to stop loading...
+[17.167][FINER]:    Done waiting for all views to stop loading
+[17.167][FINE]:     Command finished (/session/3ce7ec92b273a9df12136ba0d3f932cc/element) with response {
+   "sessionId": "3ce7ec92b273a9df12136ba0d3f932cc",
+   "status": 0,
+   "value": {
+      "ELEMENT": ":wdc:1350884324985"
+   }
+}
+
+[17.168][FINE]:     Command received (/session/3ce7ec92b273a9df12136ba0d3f932cc/element/:wdc:1350884324985/submit) with params {
+   "id": ":wdc:1350884324985",
+   "sessionId": "3ce7ec92b273a9df12136ba0d3f932cc"
+}
+
+[17.169][FINER]:    Waiting for all views to stop loading...
+[17.169][FINER]:    Done waiting for all views to stop loading
+[17.204][FINER]:    Waiting for all views to stop loading...
+[103.477][FINER]:   Done waiting for all views to stop loading
+[103.477][FINE]:    Command finished (/session/3ce7ec92b273a9df12136ba0d3f932cc/element/:wdc:1350884324985/submit) with response {
+   "sessionId": "3ce7ec92b273a9df12136ba0d3f932cc",
+   "status": 0,
+   "value": null
+}
+
+[103.490][FINE]:    Command received (/session/3ce7ec92b273a9df12136ba0d3f932cc/url) with params {
+   "sessionId": "3ce7ec92b273a9df12136ba0d3f932cc",
+   "url": "http://www.myhabit.com/homepage?#page=g&dept=women&ref=qd_nav_tab_women"
+}
+
+[103.490][FINER]:   Waiting for all views to stop loading...
+[103.490][FINER]:   Done waiting for all views to stop loading
+[103.499][FINER]:   Waiting for all views to stop loading...
+[103.508][FINER]:   Done waiting for all views to stop loading
+[103.509][FINE]:    Command finished (/session/3ce7ec92b273a9df12136ba0d3f932cc/url) with response {
+   "sessionId": "3ce7ec92b273a9df12136ba0d3f932cc",
+   "status": 0,
+   "value": {
+
+   }
+}
+
+[103.510][FINE]:    Command received (/session/3ce7ec92b273a9df12136ba0d3f932cc/elements) with params {
+   "sessionId": "3ce7ec92b273a9df12136ba0d3f932cc",
+   "using": "xpath",
+   "value": "//div[@id=\"main\"]/div[@id=\"page-content\"]/div[@id=\"currentSales\"]/div[starts-with(@id, \"privateSa..."
+}
+
+[103.510][FINER]:   Waiting for all views to stop loading...
+[103.511][FINER]:   Done waiting for all views to stop loading
+[103.588][FINER]:   Waiting for all views to stop loading...
+[103.588][FINER]:   Done waiting for all views to stop loading
+[103.588][FINE]:    Command finished (/session/3ce7ec92b273a9df12136ba0d3f932cc/elements) with response {
+   "sessionId": "3ce7ec92b273a9df12136ba0d3f932cc",
+   "status": 0,
+   "value": [ {
+      "ELEMENT": ":wdc:1350884411682"
+   }, {
+      "ELEMENT": ":wdc:1350884411683"
+   }, {
+      "ELEMENT": ":wdc:1350884411684"
+   }, {
+      "ELEMENT": ":wdc:1350884411685"
+   }, {
+      "ELEMENT": ":wdc:1350884411686"
+   }, {
+      "ELEMENT": ":wdc:1350884411687"
+   }, {
+      "ELEMENT": ":wdc:1350884411688"
+   }, {
+      "ELEMENT": ":wdc:1350884411689"
+   }, {
+      "ELEMENT": ":wdc:1350884411690"
+   }, {
+      "ELEMENT": ":wdc:1350884411691"
+   }, {
+      "ELEMENT": ":wdc:1350884411692"
+   }, {
+      "ELEMENT": ":wdc:1350884411693"
+   }, {
+      "ELEMENT": ":wdc:1350884411694"
+   }, {
+      "ELEMENT": ":wdc:1350884411695"
+   }, {
+      "ELEMENT": ":wdc:1350884411696"
+   }, {
+      "ELEMENT": ":wdc:1350884411697"
+   }, {
+      "ELEMENT": ":wdc:1350884411698"
+   }, {
+      "ELEMENT": ":wdc:1350884411699"
+   }, {
+      "ELEMENT": ":wdc:1350884411700"
+   }, {
+      "ELEMENT": ":wdc:1350884411701"
+   }, {
+      "ELEMENT": ":wdc:1350884411702"
+   }, {
+      "ELEMENT": ":wdc:1350884411703"
+   }, {
+      "ELEMENT": ":wdc:1350884411704"
+   }, {
+      "ELEMENT": ":wdc:1350884411705"
+   }, {
+      "ELEMENT": ":wdc:1350884411706"
+   }, {
+      "ELEMENT": ":wdc:1350884411707"
+   }, {
+      "ELEMENT": ":wdc:1350884411708"
+   }, {
+      "ELEMENT": ":wdc:1350884411709"
+   }, {
+      "ELEMENT": ":wdc:1350884411710"
+   }, {
+      "ELEMENT": ":wdc:1350884411711"
+   }, {
+      "ELEMENT": ":wdc:1350884411712"
+   }, {
+      "ELEMENT": ":wdc:1350884411713"
+   }, {
+      "ELEMENT": ":wdc:1350884411714"
+   }, {
+      "ELEMENT": ":wdc:1350884411715"
+   }, {
+      "ELEMENT": ":wdc:1350884411716"
+   }, {
+      "ELEMENT": ":wdc:1350884411717"
+   }, {
+      "ELEMENT": ":wdc:1350884411718"
+   }, {
+      "ELEMENT": ":wdc:1350884411719"
+   }, {
+      "ELEMENT": ":wdc:1350884411720"
+   }, {
+      "ELEMENT": ":wdc:1350884411721"
+   }, {
+      "ELEMENT": ":wdc:1350884411722"
+   }, {
+      "ELEMENT": ":wdc:1350884411723"
+   }, {
+      "ELEMENT": ":wdc:1350884411724"
+   }, {
+      "ELEMENT": ":wdc:1350884411725"
+   }, {
+      "ELEMENT": ":wdc:1350884411726"
+   }, {
+      "ELEMENT": ":wdc:1350884411727"
+   }, {
+      "ELEMENT": ":wdc:1350884411728"
+   } ]
+}
+
+[103.590][FINE]:    Command received (/session/3ce7ec92b273a9df12136ba0d3f932cc/element/:wdc:1350884411682/element) with params {
+   "id": ":wdc:1350884411682",
+   "sessionId": "3ce7ec92b273a9df12136ba0d3f932cc",
+   "using": "xpath",
+   "value": "./div[@class=\"image\"]/a/div[@class=\"soldout\"]"
+}
+
+[103.590][FINER]:   Waiting for all views to stop loading...
+[103.590][FINER]:   Done waiting for all views to stop loading
+[103.605][FINER]:   Waiting for all views to stop loading...
+[103.605][FINER]:   Done waiting for all views to stop loading
+[103.605][WARNING]: Command finished (/session/3ce7ec92b273a9df12136ba0d3f932cc/element/:wdc:1350884411682/element) with response {
+   "sessionId": "3ce7ec92b273a9df12136ba0d3f932cc",
+   "status": 7,
+   "value": {
+      "message": "The element could not be found"
+   }
+}
+
+[103.607][FINE]:    Command received (/session/3ce7ec92b273a9df12136ba0d3f932cc/element/:wdc:1350884411682/element) with params {
+   "id": ":wdc:1350884411682",
+   "sessionId": "3ce7ec92b273a9df12136ba0d3f932cc",
+   "using": "xpath",
+   "value": "./div[@class=\"image\"]/a/img"
+}
+
+[103.607][FINER]:   Waiting for all views to stop loading...
+[103.607][FINER]:   Done waiting for all views to stop loading
+[103.620][FINER]:   Waiting for all views to stop loading...
+[103.621][FINER]:   Done waiting for all views to stop loading
+[103.621][WARNING]: Command finished (/session/3ce7ec92b273a9df12136ba0d3f932cc/element/:wdc:1350884411682/element) with response {
+   "sessionId": "3ce7ec92b273a9df12136ba0d3f932cc",
+   "status": 7,
+   "value": {
+      "message": "The element could not be found"
+   }
+}
+

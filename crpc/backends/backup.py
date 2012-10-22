@@ -19,7 +19,7 @@ import traceback
 from cStringIO import StringIO
 from datetime import datetime, timedelta
 
-DUMP_FILE = '/tmp/dump.tar.gz'
+DUMP_FILE = '/tmp/dump{0}.tar.gz'.format(datetime.now().date().isoformat())
 DUMP_DIR = '/tmp/mongodump'
 DBPATH = '/var/lib/mongodb'
     

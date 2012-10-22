@@ -66,6 +66,12 @@ class Server:
         signin_button = self.browser.find_element_by_id('signInSubmit')
         signin_button.submit()
 
+        self._signin = True
+
+
+    def check_signin(self):
+        if not self._signin:
+            self.login(self.email, self.passwd)
 
     def crawl_category(self):
         """.. :py:method::

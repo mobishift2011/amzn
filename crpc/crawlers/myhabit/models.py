@@ -1,52 +1,56 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # Author: bishop Liu <miracle (at) gmail.com>
+"""
+crawlers.myhabit.models
+~~~~~~~~~~~~~~~~~~~~~~
 
-from mongoengine import *
+Implements Product and Category Model for myhabit 
+"""
+
+DB = 'myhabit'
+TIMEOUT = 60
+
 from datetime import datetime, timedelta
+from mongoengine import *
+from settings import MONGODB_HOST
+connect(db=DB, host=MONGODB_HOST)
 
-class Brand(Document):
+from crawlers.common.models import BaseEvent, BaseProduct
+
+
+class Category(BaseEvent):
+    sale_id = StringField(unique=True)
     dept = StringField()
-    brand_name = StringField()
-    brand_link = StringField()
-    brand_info = StringField()
-
-    leaf = BooleanField(default=False)
-    update_time = DateTimeField(default=datetime.utcnow)
-    spout_time = DateTimeField()
-    catn = IntField(unique=True)
-    num = IntField()
+    upcoming_title_img = DictField()
     meta = {
-        "indexes": ["leaf", "catn"],
+        "indexes": ["soldout"],
     }
 
     def url(self):
-        if self.leaf:
-            return 'http://www.dickssportinggoods.com/family/index.jsp?categoryId={0}'.format(self.catn)
-        return 'http://www.dickssportinggoods.com/category/index.jsp?categoryId={0}'.format(self.catn)
+        return 'http://www.myhabit.com/homepage#page=b&dept={0}&sale={1}'.format(self.dept, self.sale_id)
 
 
-class Product(Document):
-    itemNO = StringField(primary_key=True)
-    list_update_time = DateTimeField(default=datetime.utcnow)
-    full_update_time = DateTimeField()
-    title = StringField()
-    image = StringField()
-    price = StringField()
-    shipping = StringField()
-    available = StringField()
-    rating = FloatField()
-    reviews = IntField()
-    sell_rank = IntField()
-    description = StringField()
-    model = StringField()
-    updated = BooleanField()
-    also_like = ListField()
-    comment = ListField()
-    catstrs = ListField(StringField())
+class Product(BaseProduct):
+#    key = StringField(unique=True, spare=True)
+    dept = StringField()
+    sale_id = StringField()
+    asin = StringField()
+    listprice = StringField()
+    soldout = BooleanField()
+
+    list_info = ListField(StringField())
+    color = StringField()
+    sizes = ListField(StringField())
+
+    video = StringField()
+    international_shipping = StringField()
+    returned = StringField()
+    scarcity = StringField()
+
     meta = {
         "indexes": ["updated"]
     }
 
     def url(self):
-        return 'http://www.dickssportinggoods.com/product/index.jsp?productId={0}'.format(self.itemNO)
+        return 'http://www.myhabit.com/homepage#page=d&dept={0}&sale={1}&asin={2}&cAsin={3}'.format(self.dept, self.sale_id, self.asin, self.key)

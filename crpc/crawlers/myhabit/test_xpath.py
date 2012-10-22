@@ -5,7 +5,8 @@
 import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
-import httplib2
+#import httplib2
+import Queue
 import lxml.html
 import requests
 import re
@@ -25,7 +26,6 @@ class myhabitLogin(object):
         except:
             self.browser = webdriver.Firefox()
             self.browser.set_page_load_timeout(5)
-        self.browser.implicitly_wait(5)
 
     def login(self):
         self.browser.get('http://www.myhabit.com')
@@ -34,6 +34,47 @@ class myhabitLogin(object):
         signin_button = self.browser.find_element_by_id('signInSubmit')
         signin_button.submit()
 
+    def crawl_category(self):
+        depts = ['women', 'men', 'kids', 'home', 'designer']
+        self.queue = Queue.Queue()
+        self.upcoming_queue = Queue.Queue()
+
+        for dept in depts:
+            link = 'http://www.myhabit.com/homepage?#page=g&dept={0}&ref=qd_nav_tab_{0}'.format(dept)
+            self.get_brand_list(dept, link)
+        self.cycle_crawl_category()
+
+        while not self.queue.empty():
+            print self.queue.get()
+
+    def get_brand_list(self, dept, url):
+        self.browser.get(url)
+        nodes = self.browser.find_elements_by_xpath('//div[@id="main"]/div[@id="page-content"]/div[@id="currentSales"]/div[starts-with(@id, "privateSale")]/div[@class="caption"]/a')
+        for node in nodes:
+            try: # if can't be found, cost a long time and raise NoSuchElementException
+                node.find_element_by_xpath('./div[@class="image"]/a/div[@class="soldout"]')
+            except:
+                soldout = False
+            else:
+                soldout = True
+            print soldout
+            image = node.find_element_by_xpath('./div[@class="image"]/a/img').get_attribute('src')
+            a_title = node.find_element_by_xpath('./div[@class="caption"]/a')
+            l = a_title.get_attribute('href')
+            link = l if l.startswith('http') else 'http://www.myhabit.com/homepage' + l
+            sale_id = self.url2saleid(link)
+
+            brand, is_new = Category.objects.get_or_create(pk=sale_id)
+            if is_new:
+                brand.dept = dept
+                brand.sale_title = a_title.text
+                brand.image_url = image
+            brand.soldout = soldout
+            brand.update_time = datetime.utcnow()
+            brand.save()
+            category_saved.send(sender=DB + '.get_brand_list', site=DB, key=sale_id, is_new=is_new, is_updated=not is_new)
+
+            self.queue.put( (dept, link) )
 
 def iurl_otree(url):
     http = httplib2.Http()
@@ -182,4 +223,5 @@ if __name__ == '__main__':
     passwd = 'forke@me'
     lgin = myhabitLogin(email, passwd)
     lgin.login()
+    lgin.crawl_category()
 

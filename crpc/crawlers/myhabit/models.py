@@ -16,19 +16,13 @@ from mongoengine import *
 from settings import MONGODB_HOST
 connect(db=DB, host=MONGODB_HOST)
 
-from crawlers.common.models import BaseCategory, BaseProduct
+from crawlers.common.models import BaseEvent, BaseProduct
 
 
-class Category(BaseCategory):
-    sale_id = StringField(primary_key=True)
+class Category(BaseEvent):
+    sale_id = StringField(unique=True)
     dept = StringField()
-    sale_title = StringField()
-    image_url = StringField()
-    soldout = BooleanField()
-    sale_description = StringField()
-    events_begin = DateTimeField()
-    events_end = DateTimeField()
-    brand_link = StringField()
+    upcoming_title_img = DictField()
     meta = {
         "indexes": ["soldout"],
     }
@@ -38,6 +32,7 @@ class Category(BaseCategory):
 
 
 class Product(BaseProduct):
+#    key = StringField(unique=True, spare=True)
     dept = StringField()
     sale_id = StringField()
     asin = StringField()

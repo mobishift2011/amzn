@@ -51,8 +51,7 @@ class RPCServer(object):
             m = __import__("crawlers."+name+".server", fromlist=['Server'])
             service = m.Server()
         except Exception as e:
-            pass
-            #self.logger.exception(e.message)
+            self.logger.exception(e.message)
         else:
             return service
 

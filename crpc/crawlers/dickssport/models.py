@@ -8,7 +8,7 @@ crawlers.dickssport.models
 Implements Product and Category Model for dickssport 
 """
 
-DB = "dickssport"
+DB = "dicksspor"
 TIMEOUT = 60
 
 from mongoengine import *

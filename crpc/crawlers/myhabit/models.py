@@ -8,24 +8,15 @@ crawlers.myhabit.models
 Implements Product and Category Model for myhabit 
 """
 
-DB = 'myhabit'
-TIMEOUT = 60
-
 from datetime import datetime, timedelta
-from mongoengine import *
-from settings import MONGODB_HOST
-connect(db=DB, host=MONGODB_HOST)
-
 from crawlers.common.models import BaseEvent, BaseProduct
+from mongoengine import *
 
 
 class Category(BaseEvent):
     sale_id = StringField(unique=True)
     dept = StringField()
-    upcoming_title_img = DictField()
-    meta = {
-        "indexes": ["soldout"],
-    }
+    upcoming_title_img = ListField()
 
     def url(self):
         return 'http://www.myhabit.com/homepage#page=b&dept={0}&sale={1}'.format(self.dept, self.sale_id)

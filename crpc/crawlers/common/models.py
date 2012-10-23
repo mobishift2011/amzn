@@ -27,7 +27,7 @@ class BaseCategory(Document):
     pagesize    =   IntField()
     meta        =   {
         "allow_inheritance": True,
-        "collection": "caetgory",
+        "collection": "category",
         "indexes":  ["cats", ("is_leaf", "update_time"), "num", ],
     }
 
@@ -55,6 +55,10 @@ class BaseEvent(BaseCategory):
     brand_link = StringField()
     image_url = StringField()
     sale_description = StringField()
+
+    meta = {
+        "indexes": ["soldout"],
+    }
 
 
 class BaseReview(Document):

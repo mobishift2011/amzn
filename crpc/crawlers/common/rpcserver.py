@@ -31,7 +31,7 @@ class RPCServer(object):
     -  a class named "Server" must exists in that file
     """
     def __init__(self):
-        excludes = ['common']
+        excludes = ['common', 'ecost', 'bhphotovideo', 'bestbuy', 'dickssport', 'overstock', 'cabelas']
         self.logger = log.getlogger("crawlers.common.rpcserver.RPCServer")
         self.crawlers = {}
         for name in listdir(join(CRPC_ROOT, "crawlers")):
@@ -57,9 +57,11 @@ class RPCServer(object):
 
     def call(self, crawler, method, *args, **kwargs):
         """ this is a router function for crawlers """
-        service = self.crawlers.get(crawler)
+#        service = self.crawlers[crawler]
+        service = self.get_service(crawler)
 
         if service:
+            service.connect()
             return getattr(service, method)(*args, **kwargs)
         else:
             raise ValueError("{crawler} does not seems to a valid crawler".format(**locals()))

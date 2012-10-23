@@ -1,0 +1,206 @@
+[0.000][INFO]:      ChromeDriver 23.0.1240.0 /usr/bin/chromedriver
+[1.005][FINE]:      Initializing session with capabilities {
+   "browserName": "chrome",
+   "chromeOptions": {
+      "args": [  ],
+      "binary": "",
+      "extensions": [  ]
+   },
+   "javascriptEnabled": true,
+   "platform": "ANY",
+   "version": ""
+}
+
+[1.006][INFO]:      Launching chrome: /usr/bin/google-chrome --enable-logging --log-level=1 --disable-hang-monitor --disable-prompt-on-repost --dom-automation --full-memory-crash-report --no-default-browser-check --no-first-run --disable-background-networking --disable-sync --disable-translate --disable-web-resources --safebrowsing-disable-auto-update --safebrowsing-disable-download-protection --disable-client-side-phishing-detection --disable-component-update --disable-default-apps --password-store=basic --ignore-certificate-errors about:blank
+[1.536][INFO]:      Connected to Chrome successfully. Version: 22.0.1229.94
+[1.562][FINE]:      Command received (/session/d323c5afbd6dbaabfd3a7ad679ac5f3a)
+[1.565][FINE]:      Command finished (/session/d323c5afbd6dbaabfd3a7ad679ac5f3a) with response {
+   "sessionId": "d323c5afbd6dbaabfd3a7ad679ac5f3a",
+   "status": 0,
+   "value": {
+      "acceptSslCerts": false,
+      "applicationCacheEnabled": false,
+      "browserConnectionEnabled": false,
+      "browserName": "chrome",
+      "chrome.chromedriverVersion": "23.0.1240.0",
+      "chrome.nativeEvents": false,
+      "cssSelectorsEnabled": true,
+      "databaseEnabled": false,
+      "handlesAlerts": true,
+      "javascriptEnabled": true,
+      "locationContextEnabled": false,
+      "nativeEvents": true,
+      "platform": "linux",
+      "rotatable": false,
+      "takesScreenshot": true,
+      "version": "22.0.1229.94",
+      "webStorageEnabled": true
+   }
+}
+
+[1.583][FINE]:      Command received (/session/d323c5afbd6dbaabfd3a7ad679ac5f3a/url) with params {
+   "sessionId": "d323c5afbd6dbaabfd3a7ad679ac5f3a",
+   "url": "http://www.myhabit.com"
+}
+
+[1.583][FINER]:     Waiting for all views to stop loading...
+[1.590][FINER]:     Done waiting for all views to stop loading
+[2.645][FINER]:     Waiting for all views to stop loading...
+[10.653][FINER]:    Done waiting for all views to stop loading
+[10.654][FINE]:     Command finished (/session/d323c5afbd6dbaabfd3a7ad679ac5f3a/url) with response {
+   "sessionId": "d323c5afbd6dbaabfd3a7ad679ac5f3a",
+   "status": 0,
+   "value": {
+
+   }
+}
+
+[10.655][FINE]:     Command received (/session/d323c5afbd6dbaabfd3a7ad679ac5f3a/element) with params {
+   "sessionId": "d323c5afbd6dbaabfd3a7ad679ac5f3a",
+   "using": "id",
+   "value": "ap_email"
+}
+
+[10.655][FINER]:    Waiting for all views to stop loading...
+[10.657][FINER]:    Done waiting for all views to stop loading
+[10.671][FINER]:    Waiting for all views to stop loading...
+[10.671][FINER]:    Done waiting for all views to stop loading
+[10.671][FINE]:     Command finished (/session/d323c5afbd6dbaabfd3a7ad679ac5f3a/element) with response {
+   "sessionId": "d323c5afbd6dbaabfd3a7ad679ac5f3a",
+   "status": 0,
+   "value": {
+      "ELEMENT": ":wdc:1350902369987"
+   }
+}
+
+[10.673][FINE]:     Command received (/session/d323c5afbd6dbaabfd3a7ad679ac5f3a/element/:wdc:1350902369987/value) with params {
+   "id": ":wdc:1350902369987",
+   "sessionId": "d323c5afbd6dbaabfd3a7ad679ac5f3a",
+   "value": [ "h", "u", "a", "n", "z", "h", "u", "@", "f", "a", "v", "b", "u", "y", ".", "c", "o", "m" ]
+}
+
+[10.673][FINER]:    Waiting for all views to stop loading...
+[10.673][FINER]:    Done waiting for all views to stop loading
+[10.797][FINER]:    Waiting for all views to stop loading...
+[10.798][FINER]:    Done waiting for all views to stop loading
+[10.798][FINE]:     Command finished (/session/d323c5afbd6dbaabfd3a7ad679ac5f3a/element/:wdc:1350902369987/value) with response {
+   "sessionId": "d323c5afbd6dbaabfd3a7ad679ac5f3a",
+   "status": 0,
+   "value": {
+
+   }
+}
+
+[10.801][FINE]:     Command received (/session/d323c5afbd6dbaabfd3a7ad679ac5f3a/element) with params {
+   "sessionId": "d323c5afbd6dbaabfd3a7ad679ac5f3a",
+   "using": "id",
+   "value": "ap_password"
+}
+
+[10.801][FINER]:    Waiting for all views to stop loading...
+[10.802][FINER]:    Done waiting for all views to stop loading
+[10.822][FINER]:    Waiting for all views to stop loading...
+[10.822][FINER]:    Done waiting for all views to stop loading
+[10.823][FINE]:     Command finished (/session/d323c5afbd6dbaabfd3a7ad679ac5f3a/element) with response {
+   "sessionId": "d323c5afbd6dbaabfd3a7ad679ac5f3a",
+   "status": 0,
+   "value": {
+      "ELEMENT": ":wdc:1350902369988"
+   }
+}
+
+[10.827][FINE]:     Command received (/session/d323c5afbd6dbaabfd3a7ad679ac5f3a/element/:wdc:1350902369988/value) with params {
+   "id": ":wdc:1350902369988",
+   "sessionId": "d323c5afbd6dbaabfd3a7ad679ac5f3a",
+   "value": [ "4", "1", "1", "0", "0", "5", "0", "2", "0", "9" ]
+}
+
+[10.828][FINER]:    Waiting for all views to stop loading...
+[10.828][FINER]:    Done waiting for all views to stop loading
+[10.932][FINER]:    Waiting for all views to stop loading...
+[10.933][FINER]:    Done waiting for all views to stop loading
+[10.933][FINE]:     Command finished (/session/d323c5afbd6dbaabfd3a7ad679ac5f3a/element/:wdc:1350902369988/value) with response {
+   "sessionId": "d323c5afbd6dbaabfd3a7ad679ac5f3a",
+   "status": 0,
+   "value": {
+
+   }
+}
+
+[10.935][FINE]:     Command received (/session/d323c5afbd6dbaabfd3a7ad679ac5f3a/element) with params {
+   "sessionId": "d323c5afbd6dbaabfd3a7ad679ac5f3a",
+   "using": "id",
+   "value": "signInSubmit"
+}
+
+[10.935][FINER]:    Waiting for all views to stop loading...
+[10.935][FINER]:    Done waiting for all views to stop loading
+[10.950][FINER]:    Waiting for all views to stop loading...
+[10.950][FINER]:    Done waiting for all views to stop loading
+[10.950][FINE]:     Command finished (/session/d323c5afbd6dbaabfd3a7ad679ac5f3a/element) with response {
+   "sessionId": "d323c5afbd6dbaabfd3a7ad679ac5f3a",
+   "status": 0,
+   "value": {
+      "ELEMENT": ":wdc:1350902369989"
+   }
+}
+
+[10.952][FINE]:     Command received (/session/d323c5afbd6dbaabfd3a7ad679ac5f3a/element/:wdc:1350902369989/submit) with params {
+   "id": ":wdc:1350902369989",
+   "sessionId": "d323c5afbd6dbaabfd3a7ad679ac5f3a"
+}
+
+[10.952][FINER]:    Waiting for all views to stop loading...
+[10.952][FINER]:    Done waiting for all views to stop loading
+[10.980][FINER]:    Waiting for all views to stop loading...
+[52.698][FINER]:    Done waiting for all views to stop loading
+[52.699][FINE]:     Command finished (/session/d323c5afbd6dbaabfd3a7ad679ac5f3a/element/:wdc:1350902369989/submit) with response {
+   "sessionId": "d323c5afbd6dbaabfd3a7ad679ac5f3a",
+   "status": 0,
+   "value": null
+}
+
+[52.700][FINE]:     Command received (/session/d323c5afbd6dbaabfd3a7ad679ac5f3a/url) with params {
+   "sessionId": "d323c5afbd6dbaabfd3a7ad679ac5f3a",
+   "url": "http://www.myhabit.com/homepage?#page=b&dept=designer&sale=A1GDYWQZYH0D6V"
+}
+
+[52.700][FINER]:    Waiting for all views to stop loading...
+[52.701][FINER]:    Done waiting for all views to stop loading
+[52.723][FINER]:    Waiting for all views to stop loading...
+[52.743][FINER]:    Done waiting for all views to stop loading
+[52.743][FINE]:     Command finished (/session/d323c5afbd6dbaabfd3a7ad679ac5f3a/url) with response {
+   "sessionId": "d323c5afbd6dbaabfd3a7ad679ac5f3a",
+   "status": 0,
+   "value": {
+
+   }
+}
+
+[52.746][FINE]:     Command received (/session/d323c5afbd6dbaabfd3a7ad679ac5f3a/elements) with params {
+   "sessionId": "d323c5afbd6dbaabfd3a7ad679ac5f3a",
+   "using": "xpath",
+   "value": "//div[@id=\"main\"]/div[@id=\"page-content\"]/div/div[@id=\"top\"]/div[@id=\"salePageDescription\"]"
+}
+
+[52.746][FINER]:    Waiting for all views to stop loading...
+[52.747][FINER]:    Done waiting for all views to stop loading
+[52.763][FINER]:    Waiting for all views to stop loading...
+[52.763][FINER]:    Done waiting for all views to stop loading
+[52.763][FINE]:     Command finished (/session/d323c5afbd6dbaabfd3a7ad679ac5f3a/elements) with response {
+   "sessionId": "d323c5afbd6dbaabfd3a7ad679ac5f3a",
+   "status": 0,
+   "value": [  ]
+}
+
+                                            [3084.963][FINE]:   Command received (/session/dc0471e4c5e09366d8175212d95696dd/url)
+[3084.996][FINER]:  Waiting for all views to stop loading...
+[3085.294][FINER]:  Done waiting for all views to stop loading
+[3085.312][FINER]:  Waiting for all views to stop loading...
+[3085.313][FINER]:  Done waiting for all views to stop loading
+[3085.313][FINE]:   Command finished (/session/dc0471e4c5e09366d8175212d95696dd/url) with response {
+   "sessionId": "dc0471e4c5e09366d8175212d95696dd",
+   "status": 0,
+   "value": "http://www.myhabit.com/homepage?#page=b&dept=designer&sale=A1TBD229T91EA2"
+}
+

@@ -23,13 +23,16 @@ import pytz
 from urllib import quote, unquote
 from datetime import datetime, timedelta
 from selenium import webdriver
-from selenium.webdriver.common.action_chains import ActionChains
+#from selenium.webdriver.common.action_chains import ActionChains
 #from selenium.webdriver.support.ui import WebDriverWait
 
+from settings import MONGODB_HOST
+import mongoengine
 from models import *
 from crawlers.common.events import *
 from crawlers.common.stash import *
 
+DB = 'myhabit'
 
 class Server:
     """.. :py:class:: Server
@@ -54,11 +57,11 @@ class Server:
         if not email:
             email, passwd = self.email, self.passwd
         try:
-            self.browser = webdriver.Chrome()
-        except:
             self.browser = webdriver.Firefox()
             self.browser.set_page_load_timeout(5)
-#        self.browser.implicitly_wait(5)
+        except:
+            self.browser = webdriver.Chrome()
+        self.browser.implicitly_wait(1)
 
         self.browser.get(self.siteurl)
         self.browser.find_element_by_id('ap_email').send_keys(email)
@@ -73,12 +76,18 @@ class Server:
         if not self._signin:
             self.login(self.email, self.passwd)
 
+    def connect(self):
+        """.. :py:method::
+            connect to the database explicitly
+        """
+        mongoengine.connect(db=DB, host=MONGODB_HOST)
+
+
     def crawl_category(self):
         """.. :py:method::
             From top depts, get all the brands
         """
-#        depts = ['women', 'men', 'kids', 'home', 'designer']
-        depts = ['designer']
+        depts = ['women', 'men', 'kids', 'home', 'designer']
         self.queue = Queue.Queue()
         self.upcoming_queue = Queue.Queue()
         debug_info.send(sender=DB + '.category.begin')
@@ -99,6 +108,7 @@ class Server:
         """
         self.browser.get(url)
         nodes = self.browser.find_elements_by_xpath('//div[@id="main"]/div[@id="page-content"]/div[@id="currentSales"]/div[starts-with(@id, "privateSale")]')
+        print self.browser.current_url
         for node in nodes:
             try: # if can't be found, cost a long time and raise NoSuchElementException
                 node.find_element_by_xpath('./div[@class="image"]/a/div[@class="soldout"]')
@@ -157,7 +167,6 @@ class Server:
         :param timeover: timeout in queue.get
         """
         self.queue_get_parse(self.upcoming_queue, timeover, upcoming=True)
-        debug_info.send(sender="myhabit.cycle_crawl_category:upcoming event finished.")
         self.queue_get_parse(self.queue, timeover)
 
     def queue_get_parse(self, queue, timeover, upcoming=False):
@@ -167,17 +176,17 @@ class Server:
         :param upcoming: flag to shwo whether it is the upcoming queue or not
         """
         while not queue.empty():
-            try:
-                job = queue.get(timeout=timeover)
-                self.browser.get(job[1])
-                if upcoming:
-                    self.parse_upcoming(job[0], job[1])
-                else:
-                    self.parse_category(job[0], job[1])
-            except Queue.Empty:
-                debug_info.send(sender="{0}.category:Queue waiting {1} seconds without response!".format(DB, timeover))
-            except:
-                debug_info.send(sender=DB + ".category", tracebackinfo=sys.exc_info())
+#            try:
+            job = queue.get(timeout=timeover)
+#                self.browser.get(job[1])
+            if upcoming:
+                self.parse_upcoming(job[0], job[1])
+            else:
+                self.parse_category(job[0], job[1])
+#            except Queue.Empty:
+#                debug_info.send(sender="{0}.category:Queue waiting {1} seconds without response!".format(DB, timeover))
+#            except:
+#                debug_info.send(sender=DB + ".category", tracebackinfo=sys.exc_info())
 
 
     def time_proc(self, time_str):
@@ -198,18 +207,19 @@ class Server:
         :param dept: dept in the page
         :param url: url in the page
         """
+        self.browser.get(url)
         path = self.browser.find_element_by_xpath('//div[@id="main"]/div[@id="page-content"]/div[@id="top-content"]')
         begin_date = path.find_element_by_xpath('./div[@id="startHeader"]/span[@class="date"]').text # SAT OCT 20
         begin_time = path.find_element_by_xpath('./div[@id="startHeader"]/span[@class="time"]').text # 9 AM PT
         utc_begintime = self.time_proc(begin_date + ' ' + begin_time.replace('PT', ''))
         brand_info = path.find_element_by_id('upcomingSaleBlurb').text
-        img = path.find_element_by_xpath('./div[@class="upcomingSaleHero"]/img[@class="main-image"]').get_attribute('src')
-        sale_title = path.find_element_by_xpath('./div[@class="upcomingSaleHero"]/img[@class="main-image"]').get_attribute('alt')
-        subs = {}
+        img = path.find_element_by_xpath('./div[@class="upcomingSaleHero"]/div[@class="image"]/img').get_attribute('src')
+        sale_title = path.find_element_by_xpath('./div[@class="upcomingSaleHero"]/div[@class="image"]/img').get_attribute('alt')
+        subs = []
         for sub in path.find_elements_by_xpath('./div[@id="asinbox"]/ul/li'):
-            sub_title = sub.find_element_by_class_name('title')
+            sub_title = sub.find_element_by_class_name('title').text
             sub_img = sub.find_element_by_xpath('./img').get_attribute('src')
-            subs[sub_title] = sub_img
+            subs.append([sub_title, sub_img])
 
         sale_id = self.url2saleid(url)
         brand, is_new = Category.objects.get_or_create(sale_id=sale_id)
@@ -232,22 +242,25 @@ class Server:
         :param url: url in the page
         """
         debug_info.send(sender="myhabit.parse_category", dept=dept, url=url)
-        try:
-            node = self.browser.find_elements_by_xpath('//div[@id="main"]/div[@id="page-content"]/div/div[@id="top"]/div[@id="salePageDescription"]')
-        except:
-            category_failed.send(sender=DB + '.brand_page', site=DB, url=url, reason='Url can not be parsed.')
-            return
+        self.browser.get(url)
+#        try:
+#        node = self.browser.find_elements_by_xpath('//div[@id="main"]/div[@id="page-content"]/div/div[@id="top"]/div[@id="salePageDescription"]')
+        node = self.browser.find_elements_by_xpath('//div[@id="main"]/div[@id="page-content"]/div/div[@id="top"]')
+#        except:
+#            category_failed.send(sender=DB + '.brand_page', site=DB, url=url, reason='Url can not be parsed.')
+#            return
 
-        sale_title = node[0].find_element_by_xpath('./div[@id="saleTitle"]').text
-        sale_description = node[0].find_element_by_xpath('./div[@id="saleDescription"]').text
-        end_date = node[0].find_element_by_xpath('./div[@id="saleEndTime"]/span[@class="date"]').text # SAT OCT 20
-        end_time = node[0].find_element_by_xpath('./div[@id="saleEndTime"]/span[@class="time"]').text # 9 AM PT
+        print node, url
+        sale_title = node[0].find_element_by_xpath('.//div[@id="saleTitle"]').text
+        sale_description = node[0].find_element_by_xpath('.//div[@id="saleDescription"]').text
+        end_date = node[0].find_element_by_xpath('.//div[@id="saleEndTime"]/span[@class="date"]').text # SAT OCT 20
+        end_time = node[0].find_element_by_xpath('.//div[@id="saleEndTime"]/span[@class="time"]').text # 9 AM PT
         utc_endtime = self.time_proc(end_date + ' ' + end_time.replace('PT', ''))
         try:
-            sale_brand_link = node[0].find_element_by_xpath('./div[@id="saleBrandLink"]/a').get_attribute('href')
+            sale_brand_link = node[0].find_element_by_xpath('.//div[@id="saleBrandLink"]/a').get_attribute('href')
         except:
             sale_brand_link = ''
-        num = node[0].find_element_by_xpath('../../div[@id="middle"]/div[@id="middleCenter"]/div[@id="numResults"]').text
+        num = node[0].find_element_by_xpath('../div[@id="middle"]/div[@id="middleCenter"]/div[@id="numResults"]').text
         num = int(num.split()[0])
         sale_id = self.url2saleid(url)
 
@@ -261,7 +274,7 @@ class Server:
         brand.save()
         category_saved.send(sender=DB + '.parse_category', site=DB, key=sale_id, is_new=is_new, is_updated=not is_new)
 
-        elements = node[0].find_elements_by_xpath('../../div[@id="asinbox"]/ul/li[starts-with(@id, "result_")]')
+        elements = node[0].find_elements_by_xpath('../div[@id="asinbox"]/ul/li[starts-with(@id, "result_")]')
         for ele in elements:
             self.parse_category_product(ele, sale_id, sale_title, dept)
 
@@ -300,6 +313,7 @@ class Server:
         product.list_update_time = datetime.utcnow()
         product.save()
         product_saved.send(sender=DB + '.parse_category', site=DB, key=casin, is_new=is_new, is_updated=not is_new)
+        debug_info.send(sender="myhabit.parse_category_product", dept=dept, asin=asin, casin=casin)
 
 
     def crawl_listing(self):
@@ -381,3 +395,6 @@ if __name__ == '__main__':
     server = zerorpc.Server(Server())
     server.bind("tcp://0.0.0.0:{0}".format(RPC_PORT))
     server.run()
+#    s = Server()
+#    s.parse_category('designer', 'http://www.myhabit.com/homepage?#page=b&dept=designer&sale=A1TBD229T91EA2&ref=qd_g_designer_es_9_A1TBD229T91EA2_t_b')
+#    s.parse_category('designer', 'http://www.myhabit.com/homepage?#page=b&dept=designer&sale=A1GDYWQZYH0D6V')

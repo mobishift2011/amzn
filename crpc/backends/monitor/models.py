@@ -5,10 +5,7 @@ from settings import MONGODB_HOST
 from mongoengine import *
 from datetime import datetime, timedelta
 
-def connect()
-    connect(db="monitor", host=MONGODB_HOST)
-
-connect()
+connect(db="monitor", host=MONGODB_HOST)
 
 class Fail(Document):
     """ stores failures """

@@ -15,7 +15,7 @@ from mongoengine import *
 
 class Category(BaseEvent):
     sale_id = StringField(unique=True)
-    dept = StringField()
+    dept = ListField(StringField())
     upcoming_title_img = ListField()
 
     def url(self):
@@ -24,7 +24,6 @@ class Category(BaseEvent):
 
 class Product(BaseProduct):
 #    key = StringField(unique=True, spare=True)
-    dept = StringField()
     sale_id = StringField()
     asin = StringField()
     listprice = StringField()

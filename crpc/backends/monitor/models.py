@@ -1,11 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from settings import MONGODB_HOST
-from mongoengine import *
 
+from mongoengine import *
 from datetime import datetime, timedelta
 
-connect(db="controller", host=MONGODB_HOST)
+def connect()
+    connect(db="monitor", host=MONGODB_HOST)
+
+connect()
 
 class Fail(Document):
     """ stores failures """
@@ -26,7 +29,7 @@ class Task(Document):
     # timing
     started_at      =   DateTimeField()
     ended_at        =   DateTimeField()
-    status          =   IntField() # READY, RUNNING, PAUSED, STOPPED, FAILED, FINISHED
+    status          =   IntField() # READY, RUNNING, PAUSED, FAILED, FINISHED
 
     # meta
     site            =   StringField()

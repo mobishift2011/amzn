@@ -7,5 +7,6 @@ sudo pip install virtualenvwrapper
 source /usr/local/bin/virtualenvwrapper.sh
 mkvirtualenv crpc
 workon crpc
+easy_install readline
 pip install --upgrade cython
 pip install -r requirements.txt

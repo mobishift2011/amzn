@@ -44,7 +44,7 @@ class Server:
         self.passwd = '4110050209'
         connect_db()
         self.login(self.email, self.passwd)
-        webdriver.support.wait.POLL_FREQUENCY = 0.05
+#        webdriver.support.wait.POLL_FREQUENCY = 0.05
 
     def login(self, email=None, passwd=None):
         """.. :py:method::
@@ -68,16 +68,18 @@ class Server:
 
         self._signin = True
 
-
     def check_signin(self):
+        print self._signin
         if not self._signin:
             self.login(self.email, self.passwd)
+
 
 
     def crawl_category(self):
         """.. :py:method::
             From top depts, get all the brands
         """
+        self.check_signin()
         depts = ['women', 'men', 'kids', 'home', 'designer']
         self.queue = Queue.Queue()
         self.upcoming_queue = Queue.Queue()
@@ -88,6 +90,8 @@ class Server:
             self.get_brand_list(dept, link)
         self.cycle_crawl_category()
         debug_info.send(sender=DB + '.category.end')
+        self.browser.quit()
+        self._signin = False
 
     def get_brand_list(self, dept, url):
         """.. :py:method::
@@ -326,6 +330,7 @@ class Server:
 
         :param url: product url
         """
+        self.check_signin()
         self.browser.get(url)
         WebDriverWait(self.browser, TIMEOUT, 0.05).until(lambda driver: driver.execute_script('return $.active') == 0)
         node = self.browser.find_element_by_xpath('//div[@id="main"]/div[@id="page-content"]/div[@id="detail-page"]/div[@id="dpLeftCol"]')
@@ -334,7 +339,7 @@ class Server:
         international_shipping = node.find_element_by_id('intlShippableBullet').text
         returned = node.find_element_by_id('returnPolicyBullet').text
 
-        already_have = [shortDesc, internaltional_shipping, returned]
+        already_have = [shortDesc, international_shipping, returned]
         bullets = node.find_elements_by_tag_name('li')
         info_table = []
         for bullet in bullets:

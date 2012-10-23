@@ -11,7 +11,12 @@ Implements Product and Category Model for myhabit
 from datetime import datetime, timedelta
 from crawlers.common.models import BaseEvent, BaseProduct
 from mongoengine import *
+from settings import MONGODB_HOST
 
+DB = 'myhabit'
+
+def connect_db():
+    connect(db=DB, host=MONGODB_HOST)
 
 class Category(BaseEvent):
     sale_id = StringField(unique=True)
@@ -24,6 +29,7 @@ class Category(BaseEvent):
 
 class Product(BaseProduct):
 #    key = StringField(unique=True, spare=True)
+    dept = StringField()
     sale_id = StringField()
     asin = StringField()
     listprice = StringField()

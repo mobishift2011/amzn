@@ -26,13 +26,10 @@ from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 #from selenium.webdriver.common.action_chains import ActionChains
 
-from settings import MONGODB_HOST
-import mongoengine
 from models import *
 from crawlers.common.events import *
 from crawlers.common.stash import *
 
-DB = 'myhabit'
 TIMEOUT = 9
 
 class Server:
@@ -45,6 +42,9 @@ class Server:
         self.siteurl = 'http://www.myhabit.com'
         self.email = 'huanzhu@favbuy.com'
         self.passwd = '4110050209'
+        connect_db()
+        self.login(self.email, self.passwd)
+        webdriver.support.wait.POLL_FREQUENCY = 0.05
 
     def login(self, email=None, passwd=None):
         """.. :py:method::
@@ -72,14 +72,6 @@ class Server:
     def check_signin(self):
         if not self._signin:
             self.login(self.email, self.passwd)
-
-    def connect(self):
-        """.. :py:method::
-            connect to the database explicitly
-        """
-        mongoengine.connect(db=DB, host=MONGODB_HOST)
-        self.login(self.email, self.passwd)
-        webdriver.support.wait.POLL_FREQUENCY = 0.05
 
 
     def crawl_category(self):
@@ -162,7 +154,7 @@ class Server:
         """
         return re.compile(r'http://www.myhabit.com/homepage\??#page=d&dept=\w+&sale=\w+&asin=(\w+)&cAsin=(\w+)').match(url).groups()
 
-    def cycle_crawl_category(self, timeover=60):
+    def cycle_crawl_category(self, timeover=30):
         """.. :py:method::
             read (category, link) tuple from queue, crawl sub-category, insert into the queue
 
@@ -239,6 +231,7 @@ class Server:
             if dept not in brand.dept:
                 brand.dept.append(dept)
                 brand.save()
+        category_saved.send(sender=DB + '.parse_upcoming', site=DB, key=sale_id, is_new=is_new, is_updated=not is_new)
 
 
     def parse_category(self, dept, url):
@@ -248,7 +241,6 @@ class Server:
         :param dept: dept in the page
         :param url: url in the page
         """
-        debug_info.send(sender="myhabit.parse_category", dept=dept, url=url)
 #        try:
 #        node = self.browser.find_elements_by_xpath('//div[@id="main"]/div[@id="page-content"]/div/div[@id="top"]/div[@id="salePageDescription"]')
         node = self.browser.find_elements_by_xpath('//div[@id="main"]/div[@id="page-content"]/div/div[@id="top"]')
@@ -282,10 +274,10 @@ class Server:
 
         elements = node[0].find_elements_by_xpath('../div[@id="asinbox"]/ul/li[starts-with(@id, "result_")]')
         for ele in elements:
-            self.parse_category_product(ele, sale_id, sale_title)
+            self.parse_category_product(ele, sale_id, sale_title, dept)
 
 
-    def parse_category_product(self, element, sale_id, sale_title):
+    def parse_category_product(self, element, sale_id, sale_title, dept):
         """.. :py:method::
             Brand page, product parsing
 
@@ -307,6 +299,7 @@ class Server:
         asin, casin = self.url2asin(link)
         product, is_new = Product.objects.get_or_create(pk=casin)
         if is_new:
+            product.dept = dept
             product.sale_id = sale_id
             product.brand = sale_title
             product.asin = asin

@@ -395,6 +395,3 @@ if __name__ == '__main__':
     server = zerorpc.Server(Server())
     server.bind("tcp://0.0.0.0:{0}".format(RPC_PORT))
     server.run()
-#    s = Server()
-#    s.parse_category('designer', 'http://www.myhabit.com/homepage?#page=b&dept=designer&sale=A1TBD229T91EA2&ref=qd_g_designer_es_9_A1TBD229T91EA2_t_b')
-#    s.parse_category('designer', 'http://www.myhabit.com/homepage?#page=b&dept=designer&sale=A1GDYWQZYH0D6V')

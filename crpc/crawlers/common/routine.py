@@ -48,8 +48,6 @@ def spout_category(site, category):
             yield {'url': c.link, 'catstr': c.cat_str, 'num': c.num}
         else:
             yield {'url': c.link, 'catstr': c.cat_str}
-    elif site == 'myhabit':
-        yield {'url': c.url(), 'casin': c.key}
     else:
         pages = (c.num-1)/c.pagesize+10
         for p in range(1, min(pages+1,MAX_PAGE+1)):
@@ -66,6 +64,8 @@ def spout_product(site):
     for p in chain(p1, p2):
         if site == 'ecost':
             yield {'url': p.url(), 'ecost': p.key}
+        elif site == 'myhabit':
+            yield {'url': p.url(), 'casin': p.key}
         else:
             yield {'url': p.url()}
 
@@ -137,5 +137,6 @@ if __name__ == '__main__':
     from rpcserver import RPCServer
     rpc = RPCServer() 
     #update_category('amazon', rpc) 
-    update_listing('amazon', rpc)
+    #update_listing('amazon', rpc)
     #update_product('amazon', rpc)
+    update_product('myhabit', rpc)

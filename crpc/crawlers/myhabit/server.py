@@ -33,7 +33,7 @@ from crawlers.common.events import *
 from crawlers.common.stash import *
 
 DB = 'myhabit'
-TIMEOUT = 5
+TIMEOUT = 9
 
 class Server:
     """.. :py:class:: Server

@@ -23,8 +23,8 @@ import pytz
 from urllib import quote, unquote
 from datetime import datetime, timedelta
 from selenium import webdriver
+from selenium.webdriver.support.ui import WebDriverWait
 #from selenium.webdriver.common.action_chains import ActionChains
-#from selenium.webdriver.support.ui import WebDriverWait
 
 from settings import MONGODB_HOST
 import mongoengine
@@ -33,6 +33,7 @@ from crawlers.common.events import *
 from crawlers.common.stash import *
 
 DB = 'myhabit'
+TIMEOUT = 5
 
 class Server:
     """.. :py:class:: Server
@@ -54,14 +55,12 @@ class Server:
         """
         if not email:
             email, passwd = self.email, self.passwd
-        try:
-            self.browser = webdriver.Firefox()
-            self.browser.set_page_load_timeout(5)
-        except:
-            self.browser = webdriver.Chrome()
-        self.browser.implicitly_wait(1)
+        self.browser = webdriver.Firefox()
+        self.browser.set_page_load_timeout(5)
+#        self.browser.implicitly_wait(1)
 
         self.browser.get(self.siteurl)
+        WebDriverWait(self.browser, TIMEOUT, 0.05).until(lambda driver: driver.execute_script('return $.active') == 0)
         self.browser.find_element_by_id('ap_email').send_keys(email)
         self.browser.find_element_by_id('ap_password').send_keys(passwd)
         signin_button = self.browser.find_element_by_id('signInSubmit')
@@ -80,6 +79,7 @@ class Server:
         """
         mongoengine.connect(db=DB, host=MONGODB_HOST)
         self.login(self.email, self.passwd)
+        webdriver.support.wait.POLL_FREQUENCY = 0.05
 
 
     def crawl_category(self):
@@ -106,6 +106,7 @@ class Server:
         :param url: the dept's url
         """
         self.browser.get(url)
+        WebDriverWait(self.browser, TIMEOUT, 0.05).until(lambda driver: driver.execute_script('return $.active') == 0)
         nodes = self.browser.find_elements_by_xpath('//div[@id="main"]/div[@id="page-content"]/div[@id="currentSales"]/div[starts-with(@id, "privateSale")]')
         print self.browser.current_url
         for node in nodes:
@@ -179,7 +180,8 @@ class Server:
         while not queue.empty():
 #            try:
             job = queue.get(timeout=timeover)
-#                self.browser.get(job[1])
+            self.browser.get(job[1])
+            WebDriverWait(self.browser, TIMEOUT, 0.05).until(lambda driver: driver.execute_script('return $.active') == 0)
             if upcoming:
                 self.parse_upcoming(job[0], job[1])
             else:
@@ -209,7 +211,6 @@ class Server:
         :param dept: dept in the page
         :param url: url in the page
         """
-        self.browser.get(url)
         sale_id = self.url2saleid(url)
         brand, is_new = Category.objects.get_or_create(sale_id=sale_id)
         if is_new:
@@ -248,7 +249,6 @@ class Server:
         :param url: url in the page
         """
         debug_info.send(sender="myhabit.parse_category", dept=dept, url=url)
-        self.browser.get(url)
 #        try:
 #        node = self.browser.find_elements_by_xpath('//div[@id="main"]/div[@id="page-content"]/div/div[@id="top"]/div[@id="salePageDescription"]')
         node = self.browser.find_elements_by_xpath('//div[@id="main"]/div[@id="page-content"]/div/div[@id="top"]')
@@ -334,6 +334,7 @@ class Server:
         :param url: product url
         """
         self.browser.get(url)
+        WebDriverWait(self.browser, TIMEOUT, 0.05).until(lambda driver: driver.execute_script('return $.active') == 0)
         node = self.browser.find_element_by_xpath('//div[@id="main"]/div[@id="page-content"]/div[@id="detail-page"]/div[@id="dpLeftCol"]')
         shortDesc = node.find_element_by_class_name('shortDesc').text
 

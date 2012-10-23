@@ -44,8 +44,6 @@ class Server:
         self.siteurl = 'http://www.myhabit.com'
         self.email = 'huanzhu@favbuy.com'
         self.passwd = '4110050209'
-        self.login(self.email, self.passwd)
-
 
     def login(self, email=None, passwd=None):
         """.. :py:method::
@@ -81,6 +79,7 @@ class Server:
             connect to the database explicitly
         """
         mongoengine.connect(db=DB, host=MONGODB_HOST)
+        self.login(self.email, self.passwd)
 
 
     def crawl_category(self):

@@ -55,8 +55,6 @@ class Server:
 #        self.browser.implicitly_wait(1)
 
         self.download_page(self.siteurl)
-        self.fill_login_form()
-
 
     def fill_login_form(self):
         """.. :py:method:
@@ -70,7 +68,6 @@ class Server:
     def check_signin(self):
         if not self._signin:
             self.login()
-
 
 
     def download_page(self, url):

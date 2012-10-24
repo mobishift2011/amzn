@@ -42,6 +42,7 @@ class Server:
         self.siteurl = 'http://www.myhabit.com'
         self.email = 'huanzhu@favbuy.com'
         self.passwd = '4110050209'
+        self._signin = False
         connect_db()
         self.login(self.email, self.passwd)
 #        webdriver.support.wait.POLL_FREQUENCY = 0.05
@@ -84,6 +85,7 @@ class Server:
             WebDriverWait(self.browser, TIMEOUT, 0.05).until(lambda driver: driver.execute_script('return $.active') == 0)
         except:
             print 'Time Out url --> ', url
+            return 1
 
 
     def crawl_category(self):
@@ -188,7 +190,8 @@ class Server:
         while not queue.empty():
 #            try:
             job = queue.get(timeout=timeover)
-            self.download_page(job[1])
+            if self.download_page(job[1]) == 1:
+                continue
             if upcoming:
                 self.parse_upcoming(job[0], job[1])
             else:
@@ -345,7 +348,7 @@ class Server:
         :param url: product url
         """
         self.check_signin()
-        self.download_page(url)
+        if self.download_page(url) == 1: return
         node = self.browser.find_element_by_xpath('//div[@id="main"]/div[@id="page-content"]/div[@id="detail-page"]/div[@id="dpLeftCol"]')
         shortDesc = node.find_element_by_class_name('shortDesc').text
 

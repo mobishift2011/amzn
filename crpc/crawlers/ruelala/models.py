@@ -40,6 +40,7 @@ class Product(BaseProduct):
     list_info = ListField(StringField())
     sizes = ListField(StringField())
     soldout_sizes = ListField(StringField())
+    end_time = DateTimeField()
 
     meta = {
         "indexes": ["updated"]

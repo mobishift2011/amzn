@@ -15,7 +15,6 @@ from gevent.pool import Pool
 import os
 import time
 import zerorpc
-from datetime import datetime, timedelta
 from selenium import webdriver
 from selenium.common.exceptions import *
 #from selenium.webdriver.support.ui import WebDriverWait
@@ -24,6 +23,7 @@ from models import *
 from crawlers.common.events import *
 from crawlers.common.stash import *
 #selenium.webdriver.support.wait.POLL_FREQUENCY = 0.05
+import datetime
 
 class Server:
     """.. :py:class:: Server
@@ -139,6 +139,28 @@ class Server:
         :param dept: dept in the page
         :param url: the dept's url
         """
+
+        def get_end_time(str):
+            str =  str.replace('CLOSING IN ','').replace(' ','')
+            if 'DAYS' in str:
+                i = str.split('DAYS,')
+            else:
+                i = str.split('DAY,')
+
+            days = int(i[0])
+            j = i[1].split(':')
+            hours = int(j[0])
+            minutes = int(j[1])
+            seconds = int(j[2])
+            print 'd',days
+            print 'h',hours
+            print 'm',minutes
+            print 's',seconds
+            now = datetime.datetime.now()
+            delta = datetime.timedelta(days=days,hours=hours,minutes=minutes,seconds=seconds)
+            date = now + delta
+            return '%s' %date
+
         self.browser.get(url)
         result = []
 
@@ -162,6 +184,15 @@ class Server:
             if not a_title:
                 continue
 
+            footer =  node.find_element_by_xpath('./footer')
+            clock = footer.find_element_by_xpath('./a/div[@class="closing clock"]').text
+            try:
+                end_time = get_end_time(clock)
+            except ValueError:
+                print 'error>>> clock time',clock
+            else:
+                event.end_time = end_time
+
             image = node.find_element_by_xpath('./a/img').get_attribute('src')
             a_link = node.find_element_by_xpath('./a[@class="eventDoorLink"]').get_attribute('href')
             a_url = self.format_url(a_link)
@@ -172,7 +203,7 @@ class Server:
                 event.category_name = category_name
                 event.sale_title = a_title.text
 
-            event.update_time = datetime.utcnow()
+            event.update_time = datetime.datetime.utcnow()
             event.save()
             category_saved.send(sender=DB + '._get_event_list', site=DB, key=sale_id, is_new=is_new, is_updated=not is_new)
             result.append((sale_id,a_url))
@@ -312,7 +343,7 @@ class Server:
 
 
         product.updated = True
-        product.full_update_time = datetime.utcnow()
+        product.full_update_time = datetime.datetime.utcnow()
         product.save()
         """
         print 'size',sizes
@@ -369,7 +400,7 @@ if __name__ == '__main__':
         url = 'http://www.ruelala.com/event/product/58602/1411832058/1/DEFAULT'
         result = server._crawl_product_detail(product_id,url)
 
-    if 1:
+    if 0:
         sale_id = '54082'
         event_url = 'http://www.ruelala.com/event/54082'
         sale_id = '58887'
@@ -380,6 +411,11 @@ if __name__ == '__main__':
         product_id = '1411832058'
         url = 'http://www.ruelala.com/event/product/58602/1411832058/1/DEFAULT'
         result = server.crawl_product(product_id,url)
+
+    if 1:
+        print '>>>>>>'
+        category = 'women'
+        server._get_event_list('women','http://www.ruelala.com/category/women')
 
     if 0:
         server.crawl()

@@ -30,7 +30,7 @@ from models import *
 from crawlers.common.events import *
 from crawlers.common.stash import *
 
-TIMEOUT = 10
+TIMEOUT = 12
 
 class Server:
     """.. :py:class:: Server
@@ -43,8 +43,6 @@ class Server:
         self.email = 'huanzhu@favbuy.com'
         self.passwd = '4110050209'
         self._signin = False
-        connect_db()
-        self.login(self.email, self.passwd)
 #        webdriver.support.wait.POLL_FREQUENCY = 0.05
 
     def login(self, email=None, passwd=None):
@@ -69,7 +67,6 @@ class Server:
         self._signin = True
 
     def check_signin(self):
-        print self._signin
         if not self._signin:
             self.login(self.email, self.passwd)
 

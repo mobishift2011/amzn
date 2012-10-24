@@ -8,5 +8,5 @@ import crawllog
 
 if __name__ == '__main__':
     rpc = RPCServer()
-    update_category('myhabit', rpc)
-#    update_product('myhabit', rpc)
+#    update_category('myhabit', rpc)
+    update_product('myhabit', rpc)

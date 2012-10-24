@@ -57,11 +57,9 @@ class RPCServer(object):
 
     def call(self, crawler, method, *args, **kwargs):
         """ this is a router function for crawlers """
-#        service = self.crawlers[crawler]
-        service = self.get_service(crawler)
+        service = self.crawlers[crawler]
 
         if service:
-            service.connect()
             return getattr(service, method)(*args, **kwargs)
         else:
             raise ValueError("{crawler} does not seems to a valid crawler".format(**locals()))

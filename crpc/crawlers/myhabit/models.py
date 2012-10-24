@@ -10,18 +10,20 @@ Implements Product and Category Model for myhabit
 
 from datetime import datetime, timedelta
 from crawlers.common.models import BaseEvent, BaseProduct
+
 from mongoengine import *
 from settings import MONGODB_HOST
-
 DB = 'myhabit'
-
-def connect_db():
-    connect(db=DB, host=MONGODB_HOST)
+connect(db=DB, alias='myhabit', host=MONGODB_HOST)
 
 class Category(BaseEvent):
     sale_id = StringField(unique=True)
     dept = ListField(StringField())
     upcoming_title_img = ListField()
+
+    meta = {
+        "db_alias": "myhabit",
+    }
 
     def url(self):
         return 'http://www.myhabit.com/homepage#page=b&dept={0}&sale={1}'.format(self.dept, self.sale_id)
@@ -45,7 +47,8 @@ class Product(BaseProduct):
     scarcity = StringField()
 
     meta = {
-        "indexes": ["updated"]
+        "indexes": ["updated"],
+        "db_alias": "myhabit",
     }
 
     def url(self):

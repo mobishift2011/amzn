@@ -6,13 +6,15 @@ crawlers.ruelala.models
 Implements Product and Category Model for ruelala
 """
 
-DB = 'ruelala_test1'
+DB = 'ruelala'
 TIMEOUT = 60
+
+def connect_db():
+    connect(db=DB, host=MONGODB_HOST)
 
 from datetime import datetime, timedelta
 from mongoengine import *
 from settings import MONGODB_HOST
-connect(db=DB, host=MONGODB_HOST)
 
 from crawlers.common.models import BaseEvent, BaseProduct
 

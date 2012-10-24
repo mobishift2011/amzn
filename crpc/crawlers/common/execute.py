@@ -5,9 +5,12 @@
 from rpcserver import RPCServer
 from routine import *
 import crawllog
+import sys
 
 if __name__ == '__main__':
     rpc = RPCServer()
-    #update_category('myhabit', rpc)
-    #update_product('myhabit', rpc)
-    update_category('ruelala', rpc)
+    if sys.argv[1] == 'myhabit':
+        update_category('myhabit', rpc)
+        update_product('myhabit', rpc)
+    else:
+        update_category('ruelala', rpc)

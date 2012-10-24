@@ -258,13 +258,6 @@ class Server:
             strike_price = node.find_element_by_xpath('./div/span[@class="strikePrice"]').text
             product_price = node.find_element_by_xpath('./div/span[@class="productPrice"]').text
             
-            try:
-                s = node.find_elements_by_tag_name('span')[1]
-            except IndexError:
-                pass
-            else:
-                if s.get_attribute('class') == 'soldOutOverlay swiEnabled':
-                    product.sold_out = True
 
             """
             print 'node a',a
@@ -279,6 +272,14 @@ class Server:
             product,is_new = Product.objects.get_or_create(key=str(product_id))
             if not is_new:
                 product.url = url
+
+            try:
+                s = node.find_elements_by_tag_name('span')[1]
+            except IndexError:
+                pass
+            else:
+                if s.get_attribute('class') == 'soldOutOverlay swiEnabled':
+                    product.sold_out = True
 
             product.updated = True
             product.title = title

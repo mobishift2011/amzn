@@ -166,7 +166,7 @@ class Server:
         :param url: the product's url
         :rtype: string of asin, cAsin
         """
-        m = re.compile(r'http://www.myhabit.com/homepage\??#page=d&dept=\w+&sale=\w+&asin=(\w+)&cAsin=(\w+)').match(url)
+        m = re.compile(r'http://www.myhabit.com/homepage.*#page=d&dept=\w+&sale=\w+&asin=(\w+)&cAsin=(\w+)').match(url)
         if not m: print url
         return m.groups()
 

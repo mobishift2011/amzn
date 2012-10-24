@@ -30,7 +30,7 @@ from models import *
 from crawlers.common.events import *
 from crawlers.common.stash import *
 
-TIMEOUT = 9
+TIMEOUT = 10
 
 class Server:
     """.. :py:class:: Server
@@ -56,11 +56,10 @@ class Server:
         if not email:
             email, passwd = self.email, self.passwd
         self.browser = webdriver.Firefox()
-        self.browser.set_page_load_timeout(5)
+#        self.browser.set_page_load_timeout(5)
 #        self.browser.implicitly_wait(1)
 
-        self.browser.get(self.siteurl)
-        WebDriverWait(self.browser, TIMEOUT, 0.05).until(lambda driver: driver.execute_script('return $.active') == 0)
+        self.download_page(self.siteurl)
         self.browser.find_element_by_id('ap_email').send_keys(email)
         self.browser.find_element_by_id('ap_password').send_keys(passwd)
         signin_button = self.browser.find_element_by_id('signInSubmit')
@@ -73,6 +72,18 @@ class Server:
         if not self._signin:
             self.login(self.email, self.passwd)
 
+
+
+    def download_page(self, url):
+        """.. :py:method::
+            download the url
+        :param url: the url need to download
+        """
+        try:
+            self.browser.get(url)
+            WebDriverWait(self.browser, TIMEOUT, 0.05).until(lambda driver: driver.execute_script('return $.active') == 0)
+        except:
+            print 'Time Out url --> ', url
 
 
     def crawl_category(self):
@@ -101,8 +112,7 @@ class Server:
         :param dept: dept in the page
         :param url: the dept's url
         """
-        self.browser.get(url)
-        WebDriverWait(self.browser, TIMEOUT, 0.05).until(lambda driver: driver.execute_script('return $.active') == 0)
+        self.download_page(url)
         nodes = self.browser.find_elements_by_xpath('//div[@id="main"]/div[@id="page-content"]/div[@id="currentSales"]/div[starts-with(@id, "privateSale")]')
         print self.browser.current_url
         for node in nodes:
@@ -156,7 +166,9 @@ class Server:
         :param url: the product's url
         :rtype: string of asin, cAsin
         """
-        return re.compile(r'http://www.myhabit.com/homepage\??#page=d&dept=\w+&sale=\w+&asin=(\w+)&cAsin=(\w+)').match(url).groups()
+        m = re.compile(r'http://www.myhabit.com/homepage.*#page=d&dept=\w+&sale=\w+&asin=(\w+)&cAsin=(\w+)').match(url)
+        if not m: print url
+        return m.groups()
 
     def cycle_crawl_category(self, timeover=30):
         """.. :py:method::
@@ -176,8 +188,7 @@ class Server:
         while not queue.empty():
 #            try:
             job = queue.get(timeout=timeover)
-            self.browser.get(job[1])
-            WebDriverWait(self.browser, TIMEOUT, 0.05).until(lambda driver: driver.execute_script('return $.active') == 0)
+            self.download_page(job[1])
             if upcoming:
                 self.parse_upcoming(job[0], job[1])
             else:
@@ -296,7 +307,10 @@ class Server:
         l = element.find_element_by_class_name('evt-prdtDesc-a').get_attribute('href')
         link = l if l.startswith('http') else 'http://www.myhabit.com/homepage' + l
         title = element.find_element_by_class_name('title').text
-        listprice = element.find_element_by_class_name('listprice').text.replace('$', '').replace(',', '')
+        try:
+            listprice = element.find_element_by_class_name('listprice').text.replace('$', '').replace(',', '')
+        except:
+            listprice = ''
         ourprice = element.find_element_by_class_name('ourprice').text.replace('$', '').replace(',', '')
 #        img = element.find_element_by_class_name('iImg').get_attribute('src')
 
@@ -309,7 +323,7 @@ class Server:
             product.asin = asin
             product.title = title
         product.price = ourprice
-        product.listprice = listprice
+        if listprice: product.listprice = listprice
         product.soldout = soldout
         product.updated = False
         product.list_update_time = datetime.utcnow()
@@ -331,8 +345,7 @@ class Server:
         :param url: product url
         """
         self.check_signin()
-        self.browser.get(url)
-        WebDriverWait(self.browser, TIMEOUT, 0.05).until(lambda driver: driver.execute_script('return $.active') == 0)
+        self.download_page(url)
         node = self.browser.find_element_by_xpath('//div[@id="main"]/div[@id="page-content"]/div[@id="detail-page"]/div[@id="dpLeftCol"]')
         shortDesc = node.find_element_by_class_name('shortDesc').text
 

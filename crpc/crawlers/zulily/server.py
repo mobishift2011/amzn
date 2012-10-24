@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-crawlers.myhabit.server
+crawlers.zulily.server
 ~~~~~~~~~~~~~~~~~~~
 
 This is the server part of zeroRPC module. Call by client automatically, run on many differen ec2 instances.
@@ -39,7 +39,7 @@ class Server:
 
     """
     def __init__(self):
-        self.siteurl = 'http://www.myhabit.com'
+        self.siteurl = 'http://www.zulily.com'
         self.email = 'huanzhu@favbuy.com'
         self.passwd = '4110050209'
         self._signin = False
@@ -47,7 +47,7 @@ class Server:
 
     def login(self, email=None, passwd=None):
         """.. :py:method::
-            login myhabit
+            login
 
         :param email: login email
         :param passwd: login passwd
@@ -58,7 +58,7 @@ class Server:
 #        self.browser.set_page_load_timeout(5)
 #        self.browser.implicitly_wait(1)
 
-        self.download_page(self.siteurl)
+        self.download_page(self.siteurl + '/auth')
         self.fill_login_form()
 
 
@@ -70,6 +70,7 @@ class Server:
         self.browser.find_element_by_id('ap_password').send_keys(passwd)
         self.browser.find_element_by_id('signInSubmit').submit()
         self._signin = True
+
 
     def check_signin(self):
         if not self._signin:

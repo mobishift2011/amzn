@@ -48,6 +48,8 @@ def spout_category(site, category):
             yield {'url': c.link, 'catstr': c.cat_str, 'num': c.num}
         else:
             yield {'url': c.link, 'catstr': c.cat_str}
+    elif site == 'ruelala':
+        yield {'category':c.cat_str}
     else:
         pages = (c.num-1)/c.pagesize+10
         for p in range(1, min(pages+1,MAX_PAGE+1)):
@@ -64,10 +66,13 @@ def spout_product(site):
     for p in chain(p1, p2):
         if site == 'ecost':
             yield {'url': p.url(), 'ecost': p.key}
+        elif site == 'ruelala':
+            yield {'product_id':p.key,'product_url':p.url()}
         elif site == 'myhabit':
             yield {'url': p.url(), 'casin': p.key}
         else:
             yield {'url': p.url()}
+
 
 class UpdateContext(object):
     """ the context manager for monitoring 
@@ -102,12 +107,10 @@ class UpdateContext(object):
                                     method = self.method,
                                     complete = False,
                                     reason = reason)
-            
 
 def update_category(site, rpc, concurrency=30):
     with UpdateContext(site=site, method='update_category'):
         rpc.call(site, 'crawl_category')
-                                
 
 def update_listing(site, rpc, concurrency=30):
     with UpdateContext(site=site, method='update_listing'):

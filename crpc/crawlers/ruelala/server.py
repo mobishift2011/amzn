@@ -64,9 +64,7 @@ class Server:
         
         # click the login link
         node = self.browser.find_element_by_id('pendingTab')
-        debug_info.send('debug: get node %s' %node)
         node.click()
-        debug_info.send('debug: click node %s' %node)
 
         a = self.browser.find_element_by_id('txtEmailLogin')
         a.click()
@@ -99,24 +97,44 @@ class Server:
 
         for category in categorys:
             url = 'http://www.ruelala.com/category/%s' %category
-            self.event_list += self.get_event_list(category,url)
+            self.event_list += self._get_event_list(category,url)
 
         while self.event_list:
             event = self.event_list.pop()
             sale_id =  event[0]
             event_url =  event[1]
-            self.product_list += self.get_product_list(sale_id,event_url)
+            self.product_list += self._get_product_list(sale_id,event_url)
 
         for product in self.product_list:
             product_id = product[0]
             product_url = product[1]
-            self.crawl_product_detail(product_id,product_url)
+            self._crawl_product_detail(product_id,product_url)
             product_count += 1
 
-        print '>>>>>>>>>>>>>>>>>>>count:',product_count
         debug_info.send(sender=DB + '.category.end')
 
-    def get_event_list(self,category_name,url):
+    def crawl_category(self,category):
+        url = 'http://www.ruelala.com/category/%s' %category
+        self._get_event_list(category,url)
+
+    def crawl_listing(self,sale_id,event_url):
+        event_list = [(sale_id,event_url)]
+        while event_list:
+            event = self.event_list.pop()
+            sale_id =  event[0]
+            event_url =  event[1]
+            get_product_list(sale_id,event_url)
+        return
+
+    def crawl_product(self,product_id,product_url):
+        product_list = [(product_id,product_url)]
+        for product in product_list:
+            product_id = product[0]
+            product_url = product[1]
+            self._crawl_product_detail(product_id,product_url)
+        return
+
+    def _get_event_list(self,category_name,url):
         """.. :py:method::
             Get all the brands from brand list.
             Brand have a list of product.
@@ -150,7 +168,7 @@ class Server:
             image = node.find_element_by_xpath('./a/img').get_attribute('src')
             a_link = node.find_element_by_xpath('./a[@class="eventDoorLink"]').get_attribute('href')
             a_url = self.format_url(a_link)
-            sale_id = self.url2saleid(a_link)
+            sale_id = self._url2saleid(a_link)
             event,is_new = Event.objects.get_or_create(sale_id=sale_id)
 
             if is_new:
@@ -159,18 +177,12 @@ class Server:
 
             event.update_time = datetime.utcnow()
             event.save()
-            #event_saved.send(sender=DB + '.get_brand_list', site=DB, key=sale_id, is_new=is_new, is_updated=not is_new)
+            event_saved.send(sender=DB + '._get_event_list', site=DB, key=sale_id, is_new=is_new, is_updated=not is_new)
             result.append((sale_id,a_url))
 
         return result
 
-    def format_url(self,url):
-        if url.startswith('http://'):
-            return url
-        else:
-            return os.path.join(self.site_url,url)
-
-    def get_product_list(self,sale_id,event_url):
+    def _get_product_list(self,sale_id,event_url):
         self.browser.get(event_url)
 
         try:
@@ -191,8 +203,6 @@ class Server:
         if not nodes:
             nodes = self.browser.find_elements_by_xpath('//article[@class="column eventDoor halfDoor grid-one-third alpha"]')
 
-        print 'nodes',nodes
-
         if not nodes:
 
             """
@@ -209,13 +219,12 @@ class Server:
         for node in nodes:
             if not node.is_displayed():
                 continue
-            print 'node .text',node.text
-            print 'event url',event_url
+            #print 'node .text',node.text
+            #print 'event url',event_url
             a = node.find_element_by_xpath('./a')
             href = a.get_attribute('href')
 
             # patch 
-            #print ">>>>>>>>>>> pathc"
             if href.split('/')[-2] == 'event':
                 self.event_list.append(self.format_url(href))
                 continue
@@ -223,7 +232,7 @@ class Server:
             img = node.find_element_by_xpath('./a/img')
             title = img.get_attribute('alt')
             url = self.format_url(href)
-            product_id = self.url2product_id(url)
+            product_id = self._url2product_id(url)
             strike_price = node.find_element_by_xpath('./div/span[@class="strikePrice"]').text
             product_price = node.find_element_by_xpath('./div/span[@class="productPrice"]').text
             """
@@ -249,32 +258,7 @@ class Server:
             result.append((product_id,url))
         return result
 
-    def url2saleid(self, url):
-        """.. :py:method::
-
-        :param url: the brand's url
-        :rtype: string of sale_id
-        """
-        id = url.split('/')[-1]
-        try:
-            id = str(id)
-        except:
-            raise ValueError('sale id error @ url %s' %url)
-        else:
-            return id
-
-    def url2product_id(self,url):
-        if not url.startswith('http://'):
-            raise ValueError('url is not start with http @url:%s in function `server.url2product_id`' %url)
-
-        try:
-            id = url.split('/')[-3]
-            id = str(id)
-            return id
-        except:
-            raise ValueError('split url error @url:%s' %url)
-
-    def crawl_product_detail(self,product_id,url):
+    def _crawl_product_detail(self,product_id,url):
         """.. :py:method::
             Got all the product information and save into the database
 
@@ -295,12 +279,12 @@ class Server:
         soldout_size = []
         for a in self.browser.find_elements_by_xpath('//ul[@id="sizeSwatches"]/li/a[@class="normal"]'):
             if a.get_attribute('class') == 'normal':
-                sizes.append(li.text)
+                sizes.append(a.text)
             else:
-                soldout_size.append(li.text)
+                soldout_size.append(a.text)
 
-        #price = self.browser.find_element_by_xpath('./span[@id="salePrice"]').text
-        #listprice  = self.browser.find_element_by_xpath('./span[@id="strikePrice"]').text
+        price = self.browser.find_element_by_id('salePrice').text
+        listprice  = self.browser.find_element_by_id('strikePrice').text
         _shipping = self.browser.find_elements_by_xpath('//section[@id="shipping"]/p')
         shipping = _shipping[0].text
         returns = _shipping[1].text
@@ -321,8 +305,8 @@ class Server:
             product.list_info = info_table
             if sizes: product.sizes = sizes
 
-        #product.price = price
-        #product.listprice = listprice
+        product.price = price
+        product.listprice = listprice
         product.shipping = shipping
         if left == False:
             pass
@@ -333,33 +317,74 @@ class Server:
         product.updated = True
         product.full_update_time = datetime.utcnow()
         product.save()
+        """
         print 'size',sizes
         print 'shipping',shipping
         print 'returns',returns
         print 'left',left
         print 'list info',list_info 
         print 'image urls',image_urls
+        """
         
-        #product_saved.send(sender=DB + '.parse_product_detail', site=DB, key=casin, is_new=is_new, is_updated=not is_new)
+        product_saved.send(sender=DB + '.parse_product_detail', site=DB, key=product_id, is_new=is_new, is_updated=not is_new)
+
+    def _url2saleid(self, url):
+        """.. :py:method::
+
+        :param url: the brand's url
+        :rtype: string of sale_id
+        """
+        id = url.split('/')[-1]
+        try:
+            id = str(id)
+        except:
+            raise ValueError('sale id error @ url %s' %url)
+        else:
+            return id
+
+    def _url2product_id(self,url):
+        if not url.startswith('http://'):
+            raise ValueError('url is not start with http @url:%s in function `server.url2product_id`' %url)
+
+        try:
+            id = url.split('/')[-3]
+            id = str(id)
+            return id
+        except:
+            raise ValueError('split url error @url:%s' %url)
+
+    def format_url(self,url):
+        if url.startswith('http://'):
+            return url
+        else:
+            return os.path.join(self.site_url,url)
 
 if __name__ == '__main__':
     server = Server()
-    if 1: 
+    if 0: 
         sale_id = '54082'
         event_url = 'http://www.ruelala.com/event/54082'
-        product_list = server.get_product_list(sale_id,event_url)
+        product_list = server._get_product_list(sale_id,event_url)
         print 'result >>>>>>>>>>',len(product_list)
 
     if 0:
         product_id = '1411832058'
         url = 'http://www.ruelala.com/event/product/58602/1411832058/1/DEFAULT'
-        result = server.crawl_product_detail(product_id,url)
+        result = server._crawl_product_detail(product_id,url)
 
-    server.crawl(['women'])
+    if 0:
+        sale_id = '54082'
+        event_url = 'http://www.ruelala.com/event/54082'
+        server.crawl_listing(sale_id,event_url)
 
-    #s = server.get_product_list('58602','http://www.ruelala.com/event/58602')
-    #s = server.crawl_product_detail('1411832058','http://www.ruelala.com/event/product/58602/1411832058/1/DEFAULT')
-    #server.crawl()
+    if 0:
+        product_id = '1411832058'
+        url = 'http://www.ruelala.com/event/product/58602/1411832058/1/DEFAULT'
+        result = server.crawl_product(product_id,url)
+
+    if 1:
+        server.crawl()
+
     #server = zerorpc.Server(Server())
     #server.bind("tcp://0.0.0.0:{0}".format(RPC_PORT))
     #server.run()

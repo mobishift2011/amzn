@@ -6,7 +6,7 @@ crawlers.ruelala.models
 Implements Product and Category Model for ruelala
 """
 
-DB = 'ruelala_test1'
+DB = 'ruelala'
 TIMEOUT = 60
 
 from datetime import datetime, timedelta

@@ -33,7 +33,6 @@ class Server:
     """
 
     def __init__(self):
-        connect_db()
         self.siteurl = 'http://www.ruelala.com'
         self.email = 'huanzhu@favbuy.com'
         self.passwd = '4110050209'
@@ -93,7 +92,9 @@ class Server:
         """
         categorys = target_categorys or ['women', 'men', 'living','kids','todays-fix']
         debug_info.send(sender=DB + '.category.begin')
+
         product_count = 0
+        event_count = 0
 
         for category in categorys:
             url = 'http://www.ruelala.com/category/%s' %category
@@ -103,6 +104,8 @@ class Server:
             event = self.event_list.pop(0)
             sale_id =  event[0]
             event_url =  event[1]
+            event_count += 1
+            print '>>event count',event_count
             self.product_list += self._get_product_list(sale_id,event_url)
 
         while self.product_list:
@@ -111,6 +114,7 @@ class Server:
             product_url = product[1]
             self._crawl_product_detail(product_id,product_url)
             product_count += 1
+            print '>>product count',product_count
 
         debug_info.send(sender=DB + '.category.end')
 
@@ -157,8 +161,11 @@ class Server:
             date = now + delta
             return '%s' %date
 
-        self.browser.get(url)
         result = []
+        try:
+            self.browser.get(url)
+        except TimeoutException:
+            return  result
 
         try:
             span = self.browser.find_element_by_xpath('//span[@class="viewAll"]')
@@ -207,7 +214,11 @@ class Server:
         return result
 
     def _get_product_list(self,sale_id,event_url):
-        self.browser.get(event_url)
+        result = []
+        try:
+            self.browser.get(event_url)
+        except TimeoutException:
+            return  result
 
         try:
             span = self.browser.find_element_by_xpath('//span[@class="viewAll"]')
@@ -220,7 +231,6 @@ class Server:
                 # just have 1 page
                 pass
 
-        result = []
         nodes = []
         if not nodes:
             nodes = self.browser.find_elements_by_xpath('//article[@class="product"]')
@@ -296,7 +306,11 @@ class Server:
 
         :param url: product url
         """
-        self.browser.get(url)
+        try:
+            self.browser.get(url)
+        except TimeoutException:
+            return False
+
         image_urls = []
         for image in self.browser.find_elements_by_xpath('//div[@id="imageViews"]/img'):
             href = image.get_attribute('src')
@@ -404,7 +418,7 @@ if __name__ == '__main__':
         url = 'http://www.ruelala.com/event/product/58602/1411832058/1/DEFAULT'
         result = server._crawl_product_detail(product_id,url)
 
-    if 1:
+    if 0:
         id= '59022'
         url= 'http://www.ruelala.com/event/59022'
         server.crawl_listing(id,url)
@@ -419,6 +433,6 @@ if __name__ == '__main__':
         category = 'women'
         server._get_event_list('women','http://www.ruelala.com/category/women')
 
-    if 0:
-        server.crawl()
+    if 1:
+        server.crawl_category(['women'])
 

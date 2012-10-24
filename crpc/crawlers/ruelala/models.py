@@ -1,14 +1,12 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Author: bishop Liu <miracle (at) gmail.com>
 """
-crawlers.myhabit.models
+crawlers.ruelala.models
 ~~~~~~~~~~~~~~~~~~~~~~
 
-Implements Product and Category Model for myhabit 
+Implements Product and Category Model for ruelala
 """
 
-DB = 'ruelala'
+DB = 'ruelala_test1'
 TIMEOUT = 60
 
 from datetime import datetime, timedelta
@@ -16,10 +14,10 @@ from mongoengine import *
 from settings import MONGODB_HOST
 connect(db=DB, host=MONGODB_HOST)
 
-from crawlers.common.models import BaseBrand, BaseProduct
+from crawlers.common.models import BaseEvent, BaseProduct
 
-class Event(BaseBrand):
-    sale_id = IntField(primary_key=True)
+class Event(BaseEvent):
+    sale_id = StringField(unique=True)
     category_name = StringField()
     meta = {
         "indexes": ["soldout"],
@@ -35,14 +33,15 @@ class Product(BaseProduct):
     sale_id = StringField()
     fall_name = StringField()
     url = StringField()
-    left = IntField()
+    scarcity = StringField()
     listprice = StringField()
     list_info = ListField(StringField())
     sizes = ListField(StringField())
+    soldout_sizes = ListField(StringField())
 
     meta = {
         "indexes": ["updated"]
     }
 
     def url(self):
-        return 'http://www.ruelala.com/event/%s/product/%s/1/DEFAULT' %(sale_id,product_id)
+        return 'http://www.ruelala.com/event/%s/product/%s/1/DEFAULT' %(self.sale_id,self.key)

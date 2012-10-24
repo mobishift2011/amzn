@@ -107,6 +107,9 @@ class Server:
             event_count += 1
             print '>>event count',event_count
             self.product_list += self._get_product_list(sale_id,event_url)
+            product_count += len(self.product_list)
+            print '>>product count',product_count
+
 
         while self.product_list:
             product = self.product_list.pop(0)
@@ -114,7 +117,6 @@ class Server:
             product_url = product[1]
             self._crawl_product_detail(product_id,product_url)
             product_count += 1
-            print '>>product count',product_count
 
         debug_info.send(sender=DB + '.category.end')
 

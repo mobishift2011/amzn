@@ -45,15 +45,11 @@ class Server:
         self._signin = False
 #        webdriver.support.wait.POLL_FREQUENCY = 0.05
 
-    def login(self, email=None, passwd=None):
+    def login(self):
         """.. :py:method::
             login myhabit
 
-        :param email: login email
-        :param passwd: login passwd
         """
-        if not email:
-            email, passwd = self.email, self.passwd
         self.browser = webdriver.Firefox()
 #        self.browser.set_page_load_timeout(5)
 #        self.browser.implicitly_wait(1)
@@ -66,14 +62,14 @@ class Server:
         """.. :py:method:
             fill in login form when firefox driver is open
         """
-        self.browser.find_element_by_id('ap_email').send_keys(email)
-        self.browser.find_element_by_id('ap_password').send_keys(passwd)
+        self.browser.find_element_by_id('ap_email').send_keys(self.email)
+        self.browser.find_element_by_id('ap_password').send_keys(self.passwd)
         self.browser.find_element_by_id('signInSubmit').submit()
         self._signin = True
 
     def check_signin(self):
         if not self._signin:
-            self.login(self.email, self.passwd)
+            self.login()
 
 
 

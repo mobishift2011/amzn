@@ -13,24 +13,16 @@ monkey.patch_all()
 from gevent.pool import Pool
 
 import os
-import re
-import sys
 import time
-import Queue
 import zerorpc
-import lxml.html
-import pytz
-
-from urllib import quote, unquote
 from datetime import datetime, timedelta
 from selenium import webdriver
-from selenium.webdriver.common.action_chains import ActionChains
+from selenium.common.exceptions import *
 #from selenium.webdriver.support.ui import WebDriverWait
 
 from models import *
 from crawlers.common.events import *
 from crawlers.common.stash import *
-import logging
 #import selenium
 #selenium.webdriver.support.wait.POLL_FREQUENCY = 0.05
 
@@ -46,6 +38,8 @@ class Server:
         self.email = 'huanzhu@favbuy.com'
         self.passwd = '4110050209'
         self.login(self.email, self.passwd)
+        self.event_list = []
+        self.product_list = []
 
     def login(self, email=None, passwd=None):
         """.. :py:method::
@@ -76,7 +70,6 @@ class Server:
 
         a = self.browser.find_element_by_id('txtEmailLogin')
         a.click()
-        #a.execute_script("$('#textEmailLogin').val('fuck'))")
         a.send_keys(email)
 
         b = self.browser.find_element_by_id('txtPass')
@@ -106,18 +99,19 @@ class Server:
 
         for category in categorys:
             url = 'http://www.ruelala.com/category/%s' %category
-            event_list = self.get_event_list(category,url)
+            self.event_list += self.get_event_list(category,url)
 
-            for event in event_list:
-                sale_id =  event[0]
-                event_url =  event[1]
-                product_list = self.get_product_list(sale_id,event_url)
+        while self.event_list:
+            event = self.event_list.pop()
+            sale_id =  event[0]
+            event_url =  event[1]
+            self.product_list += self.get_product_list(sale_id,event_url)
 
-                for product in product_list:
-                    product_id = product[0]
-                    product_url = product[1]
-                    self.crawl_product_detail(product_id,product_url)
-                    product_count += 1
+        for product in self.product_list:
+            product_id = product[0]
+            product_url = product[1]
+            self.crawl_product_detail(product_id,product_url)
+            product_count += 1
 
         print '>>>>>>>>>>>>>>>>>>>count:',product_count
         debug_info.send(sender=DB + '.category.end')
@@ -132,10 +126,28 @@ class Server:
         """
         self.browser.get(url)
         result = []
-        nodes = self.browser.find_elements_by_xpath('//section[@id="alsoOnDoors"]/article')
+
+        try:
+            span = self.browser.find_element_by_xpath('//span[@class="viewAll"]')
+        except:
+            pass
+        else:
+            span.click()
+
+        nodes = []
+        if not nodes:
+            nodes = self.browser.find_elements_by_xpath('//section[@id="alsoOnDoors"]/article')
+
         for node in nodes:
-            image = node.find_element_by_xpath('./a/img').get_attribute('src')
+            # pass the hiden element
+            if not node.is_displayed():
+                continue
+
             a_title = node.find_element_by_xpath('./footer/a[@class="eventDoorLink centerMe eventDoorContent"]/div[@class="eventName"]')
+            if not a_title:
+                continue
+
+            image = node.find_element_by_xpath('./a/img').get_attribute('src')
             a_link = node.find_element_by_xpath('./a[@class="eventDoorLink"]').get_attribute('href')
             a_url = self.format_url(a_link)
             sale_id = self.url2saleid(a_link)
@@ -160,31 +172,61 @@ class Server:
 
     def get_product_list(self,sale_id,event_url):
         self.browser.get(event_url)
+
         try:
             span = self.browser.find_element_by_xpath('//span[@class="viewAll"]')
         except:
             pass
         else:
-            span.click()
+            try:
+                span.click()
+            except selenium.common.exceptions.WebDriverException:
+                # just have 1 page
+                pass
 
         result = []
-        nodes = self.browser.find_elements_by_xpath('//article[@class="product"]')
-        print 'nodes',nodes
+        nodes = []
         if not nodes:
-            raise ValueError('can not find product @url:%s sale id:%s' %(event_url,sale_id))
+            nodes = self.browser.find_elements_by_xpath('//article[@class="product"]')
+        if not nodes:
+            nodes = self.browser.find_elements_by_xpath('//article[@class="column eventDoor halfDoor grid-one-third alpha"]')
+
+        print 'nodes',nodes
+
+        if not nodes:
+
+            """
+            patch:
+            some event url (like:http://www.ruelala.com/event/57961) will 301 redirect to product detail page:
+            http://www.ruelala.com/product/detail/eventId/57961/styleNum/4112913877/viewAll/0
+            """
+            url_301 = self.browser.current_url
+            if url_301 <>  event_url:
+                self.product_list.append(url_301)
+            else:
+                raise ValueError('can not find product @url:%s sale id:%s' %(event_url,sale_id))
 
         for node in nodes:
             if not node.is_displayed():
                 continue
             print 'node .text',node.text
+            print 'event url',event_url
             a = node.find_element_by_xpath('./a')
+            href = a.get_attribute('href')
+
+            # patch 
+            #print ">>>>>>>>>>> pathc"
+            if href.split('/')[-2] == 'event':
+                self.event_list.append(self.format_url(href))
+                continue
+
             img = node.find_element_by_xpath('./a/img')
             title = img.get_attribute('alt')
-            href = a.get_attribute('href')
             url = self.format_url(href)
             product_id = self.url2product_id(url)
             strike_price = node.find_element_by_xpath('./div/span[@class="strikePrice"]').text
             product_price = node.find_element_by_xpath('./div/span[@class="productPrice"]').text
+            """
             print 'node a',a
             print 'title',title
             print 'href',href
@@ -192,9 +234,9 @@ class Server:
             print 'product id',product_id,type(product_id)
             print 'x price',strike_price
             print 'price',product_price
+            """
             # get base product info
             product,is_new = Product.objects.get_or_create(key=str(product_id))
-            #product.key = product_id
             if not is_new:
                 product.url = url
 
@@ -302,9 +344,9 @@ class Server:
 
 if __name__ == '__main__':
     server = Server()
-    if 0: 
-        sale_id = '58602'
-        event_url = 'http://www.ruelala.com/event/58602'
+    if 1: 
+        sale_id = '54082'
+        event_url = 'http://www.ruelala.com/event/54082'
         product_list = server.get_product_list(sale_id,event_url)
         print 'result >>>>>>>>>>',len(product_list)
 

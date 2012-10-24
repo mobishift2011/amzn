@@ -307,7 +307,10 @@ class Server:
         l = element.find_element_by_class_name('evt-prdtDesc-a').get_attribute('href')
         link = l if l.startswith('http') else 'http://www.myhabit.com/homepage' + l
         title = element.find_element_by_class_name('title').text
-        listprice = element.find_element_by_class_name('listprice').text.replace('$', '').replace(',', '')
+        try:
+            listprice = element.find_element_by_class_name('listprice').text.replace('$', '').replace(',', '')
+        except:
+            listprice = ''
         ourprice = element.find_element_by_class_name('ourprice').text.replace('$', '').replace(',', '')
 #        img = element.find_element_by_class_name('iImg').get_attribute('src')
 
@@ -320,7 +323,7 @@ class Server:
             product.asin = asin
             product.title = title
         product.price = ourprice
-        product.listprice = listprice
+        if listprice: product.listprice = listprice
         product.soldout = soldout
         product.updated = False
         product.list_update_time = datetime.utcnow()

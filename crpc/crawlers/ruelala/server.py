@@ -257,6 +257,15 @@ class Server:
             product_id = self._url2product_id(url)
             strike_price = node.find_element_by_xpath('./div/span[@class="strikePrice"]').text
             product_price = node.find_element_by_xpath('./div/span[@class="productPrice"]').text
+            
+            try:
+                s = node.find_elements_by_tag_name('span')[1]
+            except IndexError:
+                pass
+            else:
+                if s.get_attribute('class') == 'soldOutOverlay swiEnabled':
+                    product.sold_out = True
+
             """
             print 'node a',a
             print 'title',title
@@ -394,19 +403,17 @@ if __name__ == '__main__':
         url = 'http://www.ruelala.com/event/product/58602/1411832058/1/DEFAULT'
         result = server._crawl_product_detail(product_id,url)
 
-    if 0:
-        sale_id = '54082'
-        event_url = 'http://www.ruelala.com/event/54082'
-        sale_id = '58887'
-        event_url = 'http://www.ruelala.com/event/58887'
-        server.crawl_listing(sale_id,event_url)
+    if 1:
+        id= '59022'
+        url= 'http://www.ruelala.com/event/59022'
+        server.crawl_listing(id,url)
 
     if 0:
         product_id = '1411832058'
         url = 'http://www.ruelala.com/event/product/58602/1411832058/1/DEFAULT'
         result = server.crawl_product(product_id,url)
 
-    if 1:
+    if 0:
         print '>>>>>>'
         category = 'women'
         server._get_event_list('women','http://www.ruelala.com/category/women')
@@ -414,6 +421,3 @@ if __name__ == '__main__':
     if 0:
         server.crawl()
 
-    #server = zerorpc.Server(Server())
-    #server.bind("tcp://0.0.0.0:{0}".format(RPC_PORT))
-    #server.run()

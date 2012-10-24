@@ -9,8 +9,7 @@ Implements Product and Category Model for ruelala
 DB = 'ruelala'
 TIMEOUT = 60
 
-def connect_db():
-    connect(db=DB, host=MONGODB_HOST)
+connect(db=DB, alias=DB, host=MONGODB_HOST)
 
 from datetime import datetime, timedelta
 from mongoengine import *
@@ -23,6 +22,7 @@ class Event(BaseEvent):
     category_name = StringField()
     meta = {
         "indexes": ["soldout"],
+        "db_alias": DB,
     }
 
     def url(self):
@@ -44,7 +44,8 @@ class Product(BaseProduct):
     sold_out = BooleanField()
 
     meta = {
-        "indexes": ["updated"]
+        "indexes": ["updated"],
+        "db_alias": DB,
     }
 
     def url(self):

@@ -6,7 +6,7 @@ crawlers.ruelala.models
 Implements Product and Category Model for ruelala
 """
 
-DB = 'ruelala'
+DB = 'ruelala_test1'
 TIMEOUT = 60
 
 from datetime import datetime, timedelta
@@ -33,14 +33,15 @@ class Product(BaseProduct):
     sale_id = StringField()
     fall_name = StringField()
     url = StringField()
-    left = IntField()
+    scarcity = StringField()
     listprice = StringField()
     list_info = ListField(StringField())
     sizes = ListField(StringField())
+    soldout_sizes = ListField(StringField())
 
     meta = {
         "indexes": ["updated"]
     }
 
     def url(self):
-        return 'http://www.ruelala.com/event/%s/product/%s/1/DEFAULT' %(sale_id,product_id)
+        return 'http://www.ruelala.com/event/%s/product/%s/1/DEFAULT' %(self.sale_id,self.key)

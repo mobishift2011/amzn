@@ -79,6 +79,8 @@ class Server:
         """
         try:
             self.browser.get(url)
+            if self.browser.title == u'Amazon.com Sign In':
+                self.login(self.email, self.passwd)
             WebDriverWait(self.browser, TIMEOUT, 0.05).until(lambda driver: driver.execute_script('return $.active') == 0)
         except:
             print 'Time Out url --> ', url

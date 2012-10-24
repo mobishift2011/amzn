@@ -23,7 +23,6 @@ from selenium.common.exceptions import *
 from models import *
 from crawlers.common.events import *
 from crawlers.common.stash import *
-#import selenium
 #selenium.webdriver.support.wait.POLL_FREQUENCY = 0.05
 
 class Server:
@@ -34,6 +33,7 @@ class Server:
     """
 
     def __init__(self):
+        connect_db()
         self.siteurl = 'http://www.ruelala.com'
         self.email = 'huanzhu@favbuy.com'
         self.passwd = '4110050209'
@@ -87,7 +87,7 @@ class Server:
         if not self._signin:
             self.login(self.email, self.passwd)
 
-    def crawl(self,target_categorys=[]):
+    def crawl_category(self,target_categorys=[]):
         """.. :py:method::
             From top depts, get all the brands
         """
@@ -100,12 +100,13 @@ class Server:
             self.event_list += self._get_event_list(category,url)
 
         while self.event_list:
-            event = self.event_list.pop()
+            event = self.event_list.pop(0)
             sale_id =  event[0]
             event_url =  event[1]
             self.product_list += self._get_product_list(sale_id,event_url)
 
-        for product in self.product_list:
+        while self.product_list:
+            product = self.product_list.pop(0)
             product_id = product[0]
             product_url = product[1]
             self._crawl_product_detail(product_id,product_url)
@@ -113,17 +114,13 @@ class Server:
 
         debug_info.send(sender=DB + '.category.end')
 
-    def crawl_category(self,category):
-        url = 'http://www.ruelala.com/category/%s' %category
-        self._get_event_list(category,url)
-
     def crawl_listing(self,sale_id,event_url):
         event_list = [(sale_id,event_url)]
         while event_list:
-            event = self.event_list.pop()
+            event = event_list.pop()
             sale_id =  event[0]
             event_url =  event[1]
-            get_product_list(sale_id,event_url)
+            self._get_product_list(sale_id,event_url)
         return
 
     def crawl_product(self,product_id,product_url):
@@ -177,7 +174,7 @@ class Server:
 
             event.update_time = datetime.utcnow()
             event.save()
-            event_saved.send(sender=DB + '._get_event_list', site=DB, key=sale_id, is_new=is_new, is_updated=not is_new)
+            category_saved.send(sender=DB + '._get_event_list', site=DB, key=sale_id, is_new=is_new, is_updated=not is_new)
             result.append((sale_id,a_url))
 
         return result
@@ -250,7 +247,7 @@ class Server:
                 product.url = url
 
             product.updated = True
-            product.title = str(title)
+            product.title = title
             product.price = str(product_price)
             product.list_price = str(strike_price)
             product.sale_id = str(sale_id)
@@ -372,9 +369,11 @@ if __name__ == '__main__':
         url = 'http://www.ruelala.com/event/product/58602/1411832058/1/DEFAULT'
         result = server._crawl_product_detail(product_id,url)
 
-    if 0:
+    if 1:
         sale_id = '54082'
         event_url = 'http://www.ruelala.com/event/54082'
+        sale_id = '58887'
+        event_url = 'http://www.ruelala.com/event/58887'
         server.crawl_listing(sale_id,event_url)
 
     if 0:
@@ -382,7 +381,7 @@ if __name__ == '__main__':
         url = 'http://www.ruelala.com/event/product/58602/1411832058/1/DEFAULT'
         result = server.crawl_product(product_id,url)
 
-    if 1:
+    if 0:
         server.crawl()
 
     #server = zerorpc.Server(Server())

@@ -7,8 +7,7 @@ crawlers.common.rpcserver
 Provides a meta programmed integrated RPC call for all callers
 
 """
-from settings import RPC_PORT, CRPC_ROOT
-
+from settings import RPC_PORT, CRPC_ROOT, MONGODB_HOST
 from os import listdir
 from os.path import join, abspath, dirname, isdir
 
@@ -31,7 +30,7 @@ class RPCServer(object):
     -  a class named "Server" must exists in that file
     """
     def __init__(self):
-        excludes = ['common', 'ecost', 'bhphotovideo', 'bestbuy', 'dickssport', 'overstock', 'cabelas', 'amazon', 'newegg']
+        excludes = ['common', 'ecost', 'bhphotovideo', 'bestbuy', 'dickssport', 'overstock', 'cabelas', 'ruelala', 'myhabit']
         self.logger = log.getlogger("crawlers.common.rpcserver.RPCServer")
         self.crawlers = {}
         for name in listdir(join(CRPC_ROOT, "crawlers")):
@@ -66,5 +65,5 @@ class RPCServer(object):
         
 if __name__ == "__main__":
     zs = RPCServer()
-    print zs.call('amazon', 'test')
-    print zs.call('newegg', 'test')
+    #print zs.call('amazon', 'test')
+    #print zs.call('newegg', 'test')

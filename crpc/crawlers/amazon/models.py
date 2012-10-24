@@ -9,7 +9,7 @@ Implements Product and Category Model for Amazon
 from settings import MONGODB_HOST
 
 from mongoengine import *
-connect(db="amazon", host=MONGODB_HOST)
+connect(db="amazon", alias="amazon", host=MONGODB_HOST)
 
 import re
 from urllib import quote, unquote
@@ -46,6 +46,10 @@ class Category(BaseCategory):
 
     def url(self):
         return catn2url(self.catn)+'&page={0}'
+    
+    meta        =   {
+        "db_alias": "amazon",
+    }
 
 class Product(BaseProduct):
     catns               =   ListField(StringField())
@@ -54,3 +58,7 @@ class Product(BaseProduct):
 
     def url(self):
         return "http://www.amazon.com/{slug}/dp/{key}/".format(slug=self.slug, key=self.key)
+
+    meta                =   {
+        "db_alias": "amazon",
+    }

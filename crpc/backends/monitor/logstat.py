@@ -1,9 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from crawlers.common.events import *
+
 from helpers.log import getlogger
-from models import Task, Fail
+
+from backends.monitor.models import Task, Fail
 from datetime import datetime, timedelta
+from gevent.event import Event
+
+
+log_event =  Event()
 
 logger = getlogger("crawlerlog")
 
@@ -22,6 +28,14 @@ def get_or_create_task(site, method):
             t.status = Task.RUNNING
             t.started_at = datetime.utcnow()
     return t
+
+def task_all():
+    tasks = Task.objects().select_related()
+    return {"tasks":tasks}
+
+def task_updates():
+    tasks = Task.objects(status=Task.RUNNING).select_related()
+    return {"tasks":tasks}
 
 @pre_general_update.bind
 def stat_pre_general_update(sender, **kwargs):
@@ -43,7 +57,7 @@ def stat_post_general_update(sender, **kwargs):
     t = get_or_create_task(site, method)
     t.status = Task.FINISHED if complete else Task.FAILED
     if not complete:
-        t.fails.append( fail(site, methdo, None, reason) )
+        t.fails.append( fail(site, method, None, reason) )
     t.save()
 
 @category_saved.bind
@@ -65,7 +79,10 @@ def stat_category_save(sender, **kwargs):
     else:
         t.num_finish += 1
     
-    t.save()    
+    t.save() 
+
+    log_event.set()
+    log_event.clear()
 
 @product_saved.bind
 def stat_product_save(sender, **kwargs):
@@ -83,6 +100,12 @@ def stat_category_failed(sender, **kwargs):
     if t:
         t.update_one(push__fails=fail(site, None, url, reason))
 
+    log_event.set()
+    log_event.clear()
+
 @product_failed.bind
 def stat_product_failed(sender, **kwargs):
     on_category_failed(sender, **kwargs)
+
+if __name__ == '__main__':
+    print task_updates()

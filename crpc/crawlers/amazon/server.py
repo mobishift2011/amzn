@@ -16,8 +16,8 @@ import lxml.html
 from urllib import quote, unquote
 from datetime import datetime, timedelta
 
-from models import *
 from settings import *
+from .models import *
 
 from crawlers.common.events import category_saved, category_failed, category_deleted
 from crawlers.common.events import product_saved, product_failed, product_deleted
@@ -93,6 +93,7 @@ class Server:
                     break
 
             c.updated = True
+            print 'is_new', is_new
             c.save()
             category_saved.send(sender = 'amazon.crawl_category',
                                 site = self.site,

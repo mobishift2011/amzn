@@ -44,7 +44,7 @@ def spout_category(site, category):
     if c.spout_time and c.spout_time > datetime.utcnow()-timedelta(hours=12):
         return
     if site == 'ecost':
-        if c.num: # not None
+        if c.num: # not None or 0
             yield {'url': c.link, 'catstr': c.cat_str, 'num': c.num}
         else:
             yield {'url': c.link, 'catstr': c.cat_str}
@@ -139,7 +139,7 @@ def update_product(site, rpc, concurrency=30):
 if __name__ == '__main__':
     from rpcserver import RPCServer
     rpc = RPCServer() 
-    #update_category('amazon', rpc) 
+    update_category('amazon', rpc) 
     #update_listing('amazon', rpc)
     #update_product('amazon', rpc)
-    update_product('myhabit', rpc)
+    #update_product('myhabit', rpc)

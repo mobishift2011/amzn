@@ -92,7 +92,9 @@ class Server:
         """
         categorys = target_categorys or ['women', 'men', 'living','kids','todays-fix']
         debug_info.send(sender=DB + '.category.begin')
+
         product_count = 0
+        event_count = 0
 
         for category in categorys:
             url = 'http://www.ruelala.com/category/%s' %category
@@ -102,6 +104,8 @@ class Server:
             event = self.event_list.pop(0)
             sale_id =  event[0]
             event_url =  event[1]
+            event_count += 1
+            print '>>event count',event_count
             self.product_list += self._get_product_list(sale_id,event_url)
 
         while self.product_list:

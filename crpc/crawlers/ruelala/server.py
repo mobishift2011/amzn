@@ -152,10 +152,6 @@ class Server:
             hours = int(j[0])
             minutes = int(j[1])
             seconds = int(j[2])
-            print 'd',days
-            print 'h',hours
-            print 'm',minutes
-            print 's',seconds
             now = datetime.datetime.now()
             delta = datetime.timedelta(days=days,hours=hours,minutes=minutes,seconds=seconds)
             date = now + delta
@@ -189,7 +185,7 @@ class Server:
             try:
                 end_time = get_end_time(clock)
             except ValueError:
-                print 'error>>> clock time',clock
+                pass
             else:
                 event.end_time = end_time
 
@@ -247,8 +243,6 @@ class Server:
         for node in nodes:
             if not node.is_displayed():
                 continue
-            #print 'node .text',node.text
-            #print 'event url',event_url
             a = node.find_element_by_xpath('./a')
             href = a.get_attribute('href')
 

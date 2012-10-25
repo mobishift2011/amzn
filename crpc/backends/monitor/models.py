@@ -32,6 +32,9 @@ class Task(Document):
 
     """
     READY, RUNNING, PAUSED, FAILED, FINISHED = 101, 102, 103, 104, 105
+    @staticmethod
+    def inverse_status(st):
+        return {101:'READY',102:'RUNNING',103:'PAUSED',104:'FAILED',105:'FINISHED'}.get(st,'UNDEFINED')
 
     # timing
     started_at      =   DateTimeField()
@@ -62,8 +65,8 @@ class Task(Document):
     def to_json(self):
         return {
             'name':         self.site+'.'+self.method,
-            'status':       self.status,
-            'started_at':   self.started_at.isoformat(),
+            'status':       Task.inverse_status(self.status),
+            'started_at':   self.started_at.isoformat() if self.started_at else 'undefined',
             'fails':        len(self.fails),
             'dones':        self.num_finish,
             'updates':      self.num_update,

@@ -25,6 +25,7 @@
     <thead>
         <tr>
             <th>Task</th>
+            <th>Status</th>
             <th>Started At</th>
             <th>Dones</th>
             <th>Updates</th>
@@ -35,7 +36,8 @@
     <tbody>
         <tr ng-repeat="task in tasks">
             <td>{{LB}}task.name{{RB}}</td>
-            <td>{{LB}}task.time{{RB}}</td>
+            <td>{{LB}}task.status{{RB}}</td>
+            <td>{{LB}}task.started_at{{RB}}</td>
             <td>{{LB}}task.dones{{RB}}</td>
             <td>{{LB}}task.updates{{RB}}</td>
             <td>{{LB}}task.news{{RB}}</td>

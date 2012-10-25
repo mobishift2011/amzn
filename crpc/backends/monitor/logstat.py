@@ -64,7 +64,7 @@ def stat_post_general_update(sender, **kwargs):
 def stat_category_save(sender, **kwargs):
     logger.debug('SECOND{0}'.format(kwargs.items()))
     site = kwargs.get('site')
-    method = kwargs.get('method', 'category_saved')
+    method = kwargs.get('method', 'update_category')
     key = kwargs.get('key')
     assert site is not None and method is not None and key is not None, u"argument error"
 
@@ -74,10 +74,9 @@ def stat_category_save(sender, **kwargs):
 
     if is_new:
         t.num_new += 1
-    elif is_updated:
+    if is_updated:
         t.num_update += 1
-    else:
-        t.num_finish += 1
+    t.num_finish += 1
     
     t.save() 
 
@@ -86,7 +85,7 @@ def stat_category_save(sender, **kwargs):
 
 @product_saved.bind
 def stat_product_save(sender, **kwargs):
-    kwargs.update({'method':'product_saved'})
+    kwargs.update({'method':'update_product'})
     on_category_save(sender, **kwargs)
 
 @category_failed.bind

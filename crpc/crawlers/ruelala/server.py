@@ -196,13 +196,13 @@ class Server:
             else:
                 event.end_time = end_time
 
-            image = node.find_element_by_xpath('./a/img').get_attribute('src')
+            #image = node.find_element_by_xpath('./a/img').get_attribute('src')
             a_link = node.find_element_by_xpath('./a[@class="eventDoorLink"]').get_attribute('href')
             a_url = self.format_url(a_link)
             sale_id = self._url2saleid(a_link)
             event,is_new = Event.objects.get_or_create(sale_id=sale_id)
-
             if is_new:
+                event.img_url= 'http://www.ruelala.com/images/content/events/%s_doormini.jpg' %sale_id
                 event.category_name = category_name
                 event.sale_title = a_title.text
 

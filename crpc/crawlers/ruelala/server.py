@@ -10,6 +10,8 @@ This is the server part of zeroRPC module. Call by client automatically, run on 
 from gevent import monkey
 monkey.patch_all()
 from gevent.pool import Pool
+from gevent.coros import Semaphore
+lock = Semaphore()
 
 import os
 import zerorpc
@@ -25,6 +27,16 @@ from crawlers.common.events import *
 from crawlers.common.stash import *
 import lxml
 import datetime
+import time
+
+def safe_lock(func,*arg,**kwargs):
+    def wrapper(*arg,**kwargs):
+        lock.acquire()
+        res = func(*arg,**kwargs)
+        lock.release()
+        return res
+    return wrapper
+
 
 class Server:
     """.. :py:class:: Server
@@ -32,7 +44,7 @@ class Server:
     This is zeroRPC server class for ec2 instance to crawl pages.
 
     """
-
+    
     def __init__(self):
         self.siteurl = 'http://www.ruelala.com'
         self.email = 'huanzhu@favbuy.com'
@@ -64,18 +76,19 @@ class Server:
         try:
             self.browser = webdriver.Chrome()
         except:
-            #self.browser = webdriver.Firefox()
-            self.browser = webdriver.Chrome()
+            self.browser = webdriver.Firefox()
             self.browser.set_page_load_timeout(10)
             #self.profile = webdriver.FirefoxProfile()
             #self.profile.set_preference("general.useragent.override","Mozilla/5.0 (iPhone; CPU iPhone OS 5_1_1 like Mac OS X) AppleWebKit/534.46 (KHTML, like Gecko) Version/5.1 Mobile/9B206 Safari/7534.48.3")
 
         #self.browser.implicitly_wait(2)
         self.browser.get(self.siteurl)
+        time.sleep(3)
         
         # click the login link
         node = self.browser.find_element_by_id('pendingTab')
         node.click()
+        time.sleep(2)
 
         a = self.browser.find_element_by_id('txtEmailLogin')
         a.click()
@@ -97,7 +110,8 @@ class Server:
     def check_signin(self):
         if not self._signin:
             self.login(self.email, self.passwd)
-
+    
+    @safe_lock
     def crawl_category(self,target_categorys=[]):
         """.. :py:method::
             From top depts, get all the events
@@ -134,6 +148,7 @@ class Server:
 
         debug_info.send(sender=DB + '.category.end')
 
+    @safe_lock
     def crawl_listing(self,sale_id,event_url):
         event_list = [(sale_id,event_url)]
         while event_list:
@@ -143,6 +158,7 @@ class Server:
             self._get_product_list(sale_id,event_url)
         return
 
+    @safe_lock
     def crawl_product(self,product_id,product_url):
         product_list = [(product_id,product_url)]
         for product in product_list:
@@ -183,6 +199,7 @@ class Server:
             pass
         else:
             span.click()
+            time.sleep(1)
 
         nodes = []
         if not nodes:
@@ -235,6 +252,7 @@ class Server:
         else:
             try:
                 span.click()
+                time.sleep(1)
             except selenium.common.exceptions.WebDriverException:
                 # just have 1 page
                 pass
@@ -442,5 +460,5 @@ if __name__ == '__main__':
         server._get_event_list('women','http://www.ruelala.com/category/women')
 
     if 1:
-        server.crawl_category(['women'])
+        server.crawl_category()
 

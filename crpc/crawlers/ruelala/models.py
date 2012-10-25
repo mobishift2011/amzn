@@ -18,6 +18,7 @@ from crawlers.common.models import BaseEvent, BaseProduct
 class Event(BaseEvent):
     sale_id = StringField(unique=True)
     category_name = StringField()
+    img_url  = StringField()
     meta = {
         "indexes": ["soldout"],
         "db_alias": DB,

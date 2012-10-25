@@ -216,7 +216,7 @@ class Server:
         try:
             self.browser.get(event_url)
         except TimeoutException:
-            print 'time out url:',url
+            print 'time out url:',event_url
             return  result
 
         try:

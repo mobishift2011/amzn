@@ -6,6 +6,7 @@ PyMySQL==0.5
 SQLAlchemy==0.7.9
 argparse==1.2.1
 async==0.6.1
+blinker==1.2
 bottle==0.11.3
 clint==0.3.1
 gevent==0.13.8

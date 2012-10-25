@@ -39,6 +39,7 @@ def task_updates():
 
 @pre_general_update.bind
 def stat_pre_general_update(sender, **kwargs):
+    logger.warning('pre_general_update')
     site = kwargs.get('site')
     method = kwargs.get('method')
     assert site != None and method != None, u"argument error"
@@ -48,6 +49,7 @@ def stat_pre_general_update(sender, **kwargs):
 
 @post_general_update.bind
 def stat_post_general_update(sender, **kwargs):
+    logger.warning('post_general_update')
     site = kwargs.get('site')
     method = kwargs.get('method')
     complete = kwargs.get('complete', False)

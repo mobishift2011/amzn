@@ -103,7 +103,7 @@ class UpdateContext(object):
         post_general_update.send(sender = self.sender,
                                     site = self.site,
                                     method = self.method,
-                                    complete = False,
+                                    complete = complete,
                                     reason = reason)
 
 def callrpc(rpc, site, method, *args, **kwargs):

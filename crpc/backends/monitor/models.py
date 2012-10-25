@@ -3,6 +3,7 @@
 from settings import MONGODB_HOST
 
 from mongoengine import *
+from mongoengine import signals
 from datetime import datetime, timedelta
 
 connect(db="monitor", host=MONGODB_HOST)
@@ -38,6 +39,7 @@ class Task(Document):
 
     # timing
     started_at      =   DateTimeField()
+    updated_at      =   DateTimeField(default=datetime.utcnow())
     ended_at        =   DateTimeField()
     status          =   IntField() # READY, RUNNING, PAUSED, FAILED, FINISHED
 
@@ -73,3 +75,10 @@ class Task(Document):
             'news':         self.num_new,
             'fail_details': [f.to_json() for f in self.fails],
         }
+
+    @classmethod
+    def pre_save(cls, sender, document, **kwargs):
+         document.updated_at = datetime.utcnow()
+
+signals.pre_save.connect(Task.pre_save, sender=Task)
+

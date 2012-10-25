@@ -9,6 +9,7 @@ This module is a common function collections used by all the crawlers.
 
 """
 import requests
+import re
 
 
 headers = { 
@@ -35,4 +36,10 @@ def fetch_page(url):
         return
 
     if ret.ok: return ret.content
+
+def login_page(url, data):
+    """
+        data = {key1: value1, key2: value2}
+    """
+    request.post(url, data=data)
 

@@ -147,7 +147,7 @@ class Server:
             brand, is_new = Category.objects.get_or_create(sale_id=sale_id)
             if is_new:
                 brand.sale_title = a_title.text
-                brand.image_url = image
+                brand.image_urls = [image]
             if dept not in brand.dept: brand.dept.append(dept) # for designer dept
             brand.soldout = soldout
             brand.update_time = datetime.utcnow()
@@ -254,7 +254,7 @@ class Server:
 
             brand.dept = [dept]
             brand.sale_title = sale_title
-            brand.image_url = img
+            brand.image_urls = [img]
             brand.events_begin = utc_begintime
             brand.sale_description = brand_info
             brand.upcoming_title_img = subs

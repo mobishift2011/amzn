@@ -53,7 +53,7 @@ class BaseEvent(BaseCategory):
     soldout = BooleanField()
     sale_title = StringField()
     brand_link = StringField()
-    image_url = StringField()
+    image_urls = ListField(StringField())
     sale_description = StringField()
 
     meta = {

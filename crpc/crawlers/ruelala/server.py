@@ -106,6 +106,8 @@ class Server:
             event_count += 1
             print '>>event count',event_count
             result = self._get_product_list(sale_id,event_url)
+            if len(result) == 0:
+                print '>>empty product in event ',event_url
             self.product_list +=  result
             product_count += len(result)
             print '>>product count',product_count
@@ -408,7 +410,7 @@ if __name__ == '__main__':
         sale_id = '54082'
         event_url = 'http://www.ruelala.com/event/54082'
         product_list = server._get_product_list(sale_id,event_url)
-        print 'result >>>>>>>>>>',len(product_list)
+        print 'result >>',len(product_list)
 
     if 0:
         product_id = '1411832058'

@@ -15,6 +15,7 @@ import os
 import zerorpc
 from selenium import webdriver
 from selenium.common.exceptions import *
+from selenium.webdriver.support.ui import WebDriverWait
 #from selenium.webdriver.common.action_chains import ActionChains
 #from selenium.webdriver.support.ui import WebDriverWait
 #selenium.webdriver.support.wait.POLL_FREQUENCY = 0.05
@@ -22,6 +23,7 @@ from selenium.common.exceptions import *
 from models import *
 from crawlers.common.events import *
 from crawlers.common.stash import *
+import lxml
 import datetime
 
 class Server:
@@ -39,6 +41,16 @@ class Server:
         self.event_list = []
         self.product_list = []
 
+    def get(self,url):
+        try:
+            self.browser.get(url)
+        except TimeoutException:
+            print 'time out >> ',url
+            return False
+        else:
+            return True
+            #return lxml.html.fromstring(self.browser.content)
+
     def login(self, email=None, passwd=None):
         """.. :py:method::
             login urelala
@@ -52,12 +64,13 @@ class Server:
         try:
             self.browser = webdriver.Chrome()
         except:
-            self.browser = webdriver.Firefox()
+            #self.browser = webdriver.Firefox()
+            self.browser = webdriver.Chrome()
             self.browser.set_page_load_timeout(10)
             #self.profile = webdriver.FirefoxProfile()
             #self.profile.set_preference("general.useragent.override","Mozilla/5.0 (iPhone; CPU iPhone OS 5_1_1 like Mac OS X) AppleWebKit/534.46 (KHTML, like Gecko) Version/5.1 Mobile/9B206 Safari/7534.48.3")
 
-        self.browser.implicitly_wait(2)
+        #self.browser.implicitly_wait(2)
         self.browser.get(self.siteurl)
         
         # click the login link
@@ -161,11 +174,8 @@ class Server:
             return '%s' %date
 
         result = []
-        try:
-            self.browser.get(url)
-        except TimeoutException:
-            print 'time out url:',url
-            return  result
+        if not self.get(url):
+            return result
 
         try:
             span = self.browser.find_element_by_xpath('//span[@class="viewAll"]')
@@ -215,10 +225,7 @@ class Server:
 
     def _get_product_list(self,sale_id,event_url):
         result = []
-        try:
-            self.browser.get(event_url)
-        except TimeoutException:
-            print 'time out url:',event_url
+        if not self.get(event_url):
             return  result
 
         try:
@@ -305,7 +312,9 @@ class Server:
         """.. :py:method::
             Got all the product basic information and save into the database
         """
-        self.browser.get(url)
+        if not self.get(url):
+            return False
+
         image_urls = []
         for image in self.browser.find_elements_by_xpath('//div[@id="imageViews"]/img'):
             href = image.get_attribute('src')

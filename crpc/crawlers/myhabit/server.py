@@ -82,7 +82,7 @@ class Server:
             if self.browser.title == u'Amazon.com Sign In':
                 self.fill_login_form()
             WebDriverWait(self.browser, TIMEOUT, 0.05).until(lambda driver: driver.find_element_by_class_name('happeningSalesShoveler'))
-        except Exception, e:
+        except Exception as e:
             print '{0}, Timeout or exception --> {1}'.format(e, url)
             return 1
 
@@ -92,7 +92,7 @@ class Server:
             if self.browser.title == u'Amazon.com Sign In':
                 self.fill_login_form()
             WebDriverWait(self.browser, TIMEOUT, 0.05).until(lambda driver: driver.execute_script('return $.active') == 0)
-        except Exception, e:
+        except Exception as e:
             print '{0}, Timeout or exception --> {1}'.format(e, url)
             return 1
 

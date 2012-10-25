@@ -258,6 +258,7 @@ class Server:
         :param dept: dept in the page
         :param url: url in the page
         """
+        time.sleep(0.5)
 #        try:
 #        node = self.browser.find_elements_by_xpath('//div[@id="main"]/div[@id="page-content"]/div/div[@id="top"]/div[@id="salePageDescription"]')
         node = self.browser.find_elements_by_xpath('//div[@id="main"]/div[@id="page-content"]/div/div[@id="top"]')

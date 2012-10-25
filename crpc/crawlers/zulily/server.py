@@ -22,15 +22,12 @@ import pytz
 
 from urllib import quote, unquote
 from datetime import datetime, timedelta
-from selenium import webdriver
-from selenium.webdriver.support.ui import WebDriverWait
-#from selenium.webdriver.common.action_chains import ActionChains
 
 from models import *
 from crawlers.common.events import *
 from crawlers.common.stash import *
 
-TIMEOUT = 12
+TIMEOUT = 9
 
 class Server:
     """.. :py:class:: Server
@@ -43,20 +40,12 @@ class Server:
         self.email = 'huanzhu@favbuy.com'
         self.passwd = '4110050209'
         self._signin = False
-#        webdriver.support.wait.POLL_FREQUENCY = 0.05
 
-    def login(self, email=None, passwd=None):
+    def login(self):
         """.. :py:method::
             login
 
-        :param email: login email
-        :param passwd: login passwd
         """
-        if not email:
-            email, passwd = self.email, self.passwd
-        self.browser = webdriver.Firefox()
-#        self.browser.set_page_load_timeout(5)
-#        self.browser.implicitly_wait(1)
 
         self.download_page(self.siteurl + '/auth')
         self.fill_login_form()
@@ -66,16 +55,12 @@ class Server:
         """.. :py:method:
             fill in login form when firefox driver is open
         """
-        self.browser.find_element_by_id('ap_email').send_keys(email)
-        self.browser.find_element_by_id('ap_password').send_keys(passwd)
-        self.browser.find_element_by_id('signInSubmit').submit()
         self._signin = True
 
 
     def check_signin(self):
         if not self._signin:
-            self.login(self.email, self.passwd)
-
+            self.login()
 
 
     def download_page(self, url):

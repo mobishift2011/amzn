@@ -225,7 +225,7 @@ class Server:
             time.sleep(1)
 #            begin_date = path.find_element_by_xpath('./div[@id="startHeader"]/span[@class="date"]').text # SAT OCT 20
             begin_date = path.find_element_by_css_selector('div#startHeader span.date').text
-            begin_time = path.find_element_by_css_selector('./div[@id="startHeader"]/span[@class="time"]').text # 9 AM PT
+            begin_time = path.find_element_by_xpath('./div[@id="startHeader"]/span[@class="time"]').text # 9 AM PT
             utc_begintime = self.time_proc(begin_date + ' ' + begin_time.replace('PT', ''))
             brand_info = path.find_element_by_id('upcomingSaleBlurb').text
             img = path.find_element_by_xpath('./div[@class="upcomingSaleHero"]/div[@class="image"]/img').get_attribute('src')

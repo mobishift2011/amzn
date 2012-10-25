@@ -8,18 +8,17 @@ Implements Product and Category Model for ruelala
 
 DB = 'ruelala'
 TIMEOUT = 60
-
-connect(db=DB, alias=DB, host=MONGODB_HOST)
-
-from datetime import datetime, timedelta
 from mongoengine import *
+from mongoengine import connect
 from settings import MONGODB_HOST
+connect(db=DB, alias=DB, host=MONGODB_HOST)
 
 from crawlers.common.models import BaseEvent, BaseProduct
 
 class Event(BaseEvent):
     sale_id = StringField(unique=True)
     category_name = StringField()
+    img_url  = StringField()
     meta = {
         "indexes": ["soldout"],
         "db_alias": DB,

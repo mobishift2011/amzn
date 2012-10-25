@@ -7,23 +7,36 @@ crawlers.ruelala.server
 This is the server part of zeroRPC module. Call by client automatically, run on many differen ec2 instances.
 
 """
-from selenium.webdriver.common.action_chains import ActionChains
 from gevent import monkey
 monkey.patch_all()
 from gevent.pool import Pool
+from gevent.coros import Semaphore
+lock = Semaphore()
 
 import os
-import time
 import zerorpc
 from selenium import webdriver
 from selenium.common.exceptions import *
+from selenium.webdriver.support.ui import WebDriverWait
+#from selenium.webdriver.common.action_chains import ActionChains
 #from selenium.webdriver.support.ui import WebDriverWait
+#selenium.webdriver.support.wait.POLL_FREQUENCY = 0.05
 
 from models import *
 from crawlers.common.events import *
 from crawlers.common.stash import *
-#selenium.webdriver.support.wait.POLL_FREQUENCY = 0.05
+import lxml
 import datetime
+import time
+
+def safe_lock(func,*arg,**kwargs):
+    def wrapper(*arg,**kwargs):
+        lock.acquire()
+        res = func(*arg,**kwargs)
+        lock.release()
+        return res
+    return wrapper
+
 
 class Server:
     """.. :py:class:: Server
@@ -31,9 +44,8 @@ class Server:
     This is zeroRPC server class for ec2 instance to crawl pages.
 
     """
-
+    
     def __init__(self):
-        connect_db()
         self.siteurl = 'http://www.ruelala.com'
         self.email = 'huanzhu@favbuy.com'
         self.passwd = '4110050209'
@@ -41,9 +53,19 @@ class Server:
         self.event_list = []
         self.product_list = []
 
+    def get(self,url):
+        try:
+            self.browser.get(url)
+        except TimeoutException:
+            print 'time out >> ',url
+            return False
+        else:
+            return True
+            #return lxml.html.fromstring(self.browser.content)
+
     def login(self, email=None, passwd=None):
         """.. :py:method::
-            login myhabit
+            login urelala
 
         :param email: login email
         :param passwd: login passwd
@@ -59,12 +81,14 @@ class Server:
             #self.profile = webdriver.FirefoxProfile()
             #self.profile.set_preference("general.useragent.override","Mozilla/5.0 (iPhone; CPU iPhone OS 5_1_1 like Mac OS X) AppleWebKit/534.46 (KHTML, like Gecko) Version/5.1 Mobile/9B206 Safari/7534.48.3")
 
-        self.browser.implicitly_wait(2)
+        #self.browser.implicitly_wait(2)
         self.browser.get(self.siteurl)
+        time.sleep(3)
         
         # click the login link
         node = self.browser.find_element_by_id('pendingTab')
         node.click()
+        time.sleep(2)
 
         a = self.browser.find_element_by_id('txtEmailLogin')
         a.click()
@@ -86,14 +110,17 @@ class Server:
     def check_signin(self):
         if not self._signin:
             self.login(self.email, self.passwd)
-
+    
+    @safe_lock
     def crawl_category(self,target_categorys=[]):
         """.. :py:method::
-            From top depts, get all the brands
+            From top depts, get all the events
         """
         categorys = target_categorys or ['women', 'men', 'living','kids','todays-fix']
         debug_info.send(sender=DB + '.category.begin')
+
         product_count = 0
+        event_count = 0
 
         for category in categorys:
             url = 'http://www.ruelala.com/category/%s' %category
@@ -103,17 +130,25 @@ class Server:
             event = self.event_list.pop(0)
             sale_id =  event[0]
             event_url =  event[1]
-            self.product_list += self._get_product_list(sale_id,event_url)
+            event_count += 1
+            print '>>event count',event_count
+            result = self._get_product_list(sale_id,event_url)
+            if len(result) == 0:
+                print '>>empty product in event ',event_url
+            self.product_list +=  result
+            product_count += len(result)
+            print '>>product count',product_count
+
 
         while self.product_list:
             product = self.product_list.pop(0)
             product_id = product[0]
             product_url = product[1]
             self._crawl_product_detail(product_id,product_url)
-            product_count += 1
 
         debug_info.send(sender=DB + '.category.end')
 
+    @safe_lock
     def crawl_listing(self,sale_id,event_url):
         event_list = [(sale_id,event_url)]
         while event_list:
@@ -123,6 +158,7 @@ class Server:
             self._get_product_list(sale_id,event_url)
         return
 
+    @safe_lock
     def crawl_product(self,product_id,product_url):
         product_list = [(product_id,product_url)]
         for product in product_list:
@@ -133,11 +169,7 @@ class Server:
 
     def _get_event_list(self,category_name,url):
         """.. :py:method::
-            Get all the brands from brand list.
-            Brand have a list of product.
-
-        :param dept: dept in the page
-        :param url: the dept's url
+            Get all the events from event list.
         """
 
         def get_end_time(str):
@@ -152,13 +184,14 @@ class Server:
             hours = int(j[0])
             minutes = int(j[1])
             seconds = int(j[2])
-            now = datetime.datetime.now()
+            now = datetime.datetime.utcnow()
             delta = datetime.timedelta(days=days,hours=hours,minutes=minutes,seconds=seconds)
             date = now + delta
             return '%s' %date
 
-        self.browser.get(url)
         result = []
+        if not self.get(url):
+            return result
 
         try:
             span = self.browser.find_element_by_xpath('//span[@class="viewAll"]')
@@ -166,6 +199,7 @@ class Server:
             pass
         else:
             span.click()
+            time.sleep(1)
 
         nodes = []
         if not nodes:
@@ -189,13 +223,13 @@ class Server:
             else:
                 event.end_time = end_time
 
-            image = node.find_element_by_xpath('./a/img').get_attribute('src')
+            #image = node.find_element_by_xpath('./a/img').get_attribute('src')
             a_link = node.find_element_by_xpath('./a[@class="eventDoorLink"]').get_attribute('href')
             a_url = self.format_url(a_link)
             sale_id = self._url2saleid(a_link)
             event,is_new = Event.objects.get_or_create(sale_id=sale_id)
-
             if is_new:
+                event.img_url= 'http://www.ruelala.com/images/content/events/%s_doormini.jpg' %sale_id
                 event.category_name = category_name
                 event.sale_title = a_title.text
 
@@ -207,7 +241,9 @@ class Server:
         return result
 
     def _get_product_list(self,sale_id,event_url):
-        self.browser.get(event_url)
+        result = []
+        if not self.get(event_url):
+            return  result
 
         try:
             span = self.browser.find_element_by_xpath('//span[@class="viewAll"]')
@@ -216,11 +252,11 @@ class Server:
         else:
             try:
                 span.click()
+                time.sleep(1)
             except selenium.common.exceptions.WebDriverException:
                 # just have 1 page
                 pass
 
-        result = []
         nodes = []
         if not nodes:
             nodes = self.browser.find_elements_by_xpath('//article[@class="product"]')
@@ -292,11 +328,11 @@ class Server:
 
     def _crawl_product_detail(self,product_id,url):
         """.. :py:method::
-            Got all the product information and save into the database
-
-        :param url: product url
+            Got all the product basic information and save into the database
         """
-        self.browser.get(url)
+        if not self.get(url):
+            return False
+
         image_urls = []
         for image in self.browser.find_elements_by_xpath('//div[@id="imageViews"]/img'):
             href = image.get_attribute('src')
@@ -386,6 +422,10 @@ class Server:
             raise ValueError('split url error @url:%s' %url)
 
     def format_url(self,url):
+        """
+        ensure the url is start with `http://www.xxx.com`
+        """
+
         if url.startswith('http://'):
             return url
         else:
@@ -397,14 +437,14 @@ if __name__ == '__main__':
         sale_id = '54082'
         event_url = 'http://www.ruelala.com/event/54082'
         product_list = server._get_product_list(sale_id,event_url)
-        print 'result >>>>>>>>>>',len(product_list)
+        print 'result >>',len(product_list)
 
     if 0:
         product_id = '1411832058'
         url = 'http://www.ruelala.com/event/product/58602/1411832058/1/DEFAULT'
         result = server._crawl_product_detail(product_id,url)
 
-    if 1:
+    if 0:
         id= '59022'
         url= 'http://www.ruelala.com/event/59022'
         server.crawl_listing(id,url)
@@ -419,6 +459,6 @@ if __name__ == '__main__':
         category = 'women'
         server._get_event_list('women','http://www.ruelala.com/category/women')
 
-    if 0:
-        server.crawl()
+    if 1:
+        server.crawl_category()
 

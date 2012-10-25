@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-crawlers.myhabit.server
+crawlers.zulily.server
 ~~~~~~~~~~~~~~~~~~~
 
 This is the server part of zeroRPC module. Call by client automatically, run on many differen ec2 instances.
@@ -20,20 +20,14 @@ import zerorpc
 import lxml.html
 import pytz
 
-from gevent.coros import BoundedSemaphore
 from urllib import quote, unquote
 from datetime import datetime, timedelta
-import selenium
-from selenium import webdriver
-from selenium.webdriver.support.ui import WebDriverWait
-#from selenium.webdriver.common.action_chains import ActionChains
 
 from models import *
 from crawlers.common.events import *
 from crawlers.common.stash import *
 
 TIMEOUT = 9
-sem = BoundedSemaphore()
 
 class Server:
     """.. :py:class:: Server
@@ -42,31 +36,27 @@ class Server:
 
     """
     def __init__(self):
-        self.siteurl = 'http://www.myhabit.com'
+        self.siteurl = 'http://www.zulily.com'
         self.email = 'huanzhu@favbuy.com'
         self.passwd = '4110050209'
         self._signin = False
-#        webdriver.support.wait.POLL_FREQUENCY = 0.05
 
     def login(self):
         """.. :py:method::
-            login myhabit
-            Using Firefox will cause Xvfb memory leaf and program broke.
+            login
 
         """
-        self.browser = webdriver.Chrome()
-#        self.browser.set_page_load_timeout(5)
-#        self.browser.implicitly_wait(1)
-        self.download_page(self.siteurl)
+
+        self.download_page(self.siteurl + '/auth')
+        self.fill_login_form()
+
 
     def fill_login_form(self):
         """.. :py:method:
             fill in login form when firefox driver is open
         """
-        self.browser.find_element_by_id('ap_email').send_keys(self.email)
-        self.browser.find_element_by_id('ap_password').send_keys(self.passwd)
-        self.browser.find_element_by_id('signInSubmit').submit()
         self._signin = True
+
 
     def check_signin(self):
         if not self._signin:
@@ -82,42 +72,29 @@ class Server:
             self.browser.get(url)
             if self.browser.title == u'Amazon.com Sign In':
                 self.fill_login_form()
-            WebDriverWait(self.browser, TIMEOUT, 0.05).until(lambda driver: driver.find_element_by_class_name('happeningSalesShoveler'))
-        except selenium.common.exceptions.TimeoutException:
-            try:
-                WebDriverWait(self.browser, TIMEOUT, 0.05).until(lambda driver: driver.execute_script('return $.active') == 0)
-            except selenium.common.exceptions.TimeoutException:
-                print 'Timeout --> {1}'.format(url)
-                return 1
-
-    def download_page_for_product(self, url):
-        try:
-            self.browser.get(url)
-            if self.browser.title == u'Amazon.com Sign In':
-                self.fill_login_form()
             WebDriverWait(self.browser, TIMEOUT, 0.05).until(lambda driver: driver.execute_script('return $.active') == 0)
-        except Exception as e:
-            print '{0}, Timeout or exception --> {1}'.format(e, url)
+        except:
+            print 'Time Out url --> ', url
             return 1
+
 
     def crawl_category(self):
         """.. :py:method::
             From top depts, get all the brands
         """
-        with sem:
-            self.check_signin()
-            depts = ['women', 'men', 'kids', 'home', 'designer']
-            self.queue = Queue.Queue()
-            self.upcoming_queue = Queue.Queue()
-            debug_info.send(sender=DB + '.category.begin')
+        self.check_signin()
+        depts = ['women', 'men', 'kids', 'home', 'designer']
+        self.queue = Queue.Queue()
+        self.upcoming_queue = Queue.Queue()
+        debug_info.send(sender=DB + '.category.begin')
 
-            for dept in depts:
-                link = 'http://www.myhabit.com/homepage?#page=g&dept={0}&ref=qd_nav_tab_{0}'.format(dept)
-                self.get_brand_list(dept, link)
-            self.cycle_crawl_category()
-            debug_info.send(sender=DB + '.category.end')
-            self.browser.quit()
-            self._signin = False
+        for dept in depts:
+            link = 'http://www.myhabit.com/homepage?#page=g&dept={0}&ref=qd_nav_tab_{0}'.format(dept)
+            self.get_brand_list(dept, link)
+        self.cycle_crawl_category()
+        debug_info.send(sender=DB + '.category.end')
+        self.browser.quit()
+        self._signin = False
 
     def get_brand_list(self, dept, url):
         """.. :py:method::
@@ -238,9 +215,7 @@ class Server:
         brand, is_new = Category.objects.get_or_create(sale_id=sale_id)
         if is_new:
             path = self.browser.find_element_by_xpath('//div[@id="main"]/div[@id="page-content"]/div[@id="top-content"]')
-#            time.sleep(1)
-#            begin_date = path.find_element_by_xpath('./div[@id="startHeader"]/span[@class="date"]').text # SAT OCT 20
-            begin_date = path.find_element_by_css_selector('div#startHeader span.date').text
+            begin_date = path.find_element_by_xpath('./div[@id="startHeader"]/span[@class="date"]').text # SAT OCT 20
             begin_time = path.find_element_by_xpath('./div[@id="startHeader"]/span[@class="time"]').text # 9 AM PT
             utc_begintime = self.time_proc(begin_date + ' ' + begin_time.replace('PT', ''))
             brand_info = path.find_element_by_id('upcomingSaleBlurb').text
@@ -274,7 +249,6 @@ class Server:
         :param dept: dept in the page
         :param url: url in the page
         """
-#        time.sleep(0.5)
 #        try:
 #        node = self.browser.find_elements_by_xpath('//div[@id="main"]/div[@id="page-content"]/div/div[@id="top"]/div[@id="salePageDescription"]')
         node = self.browser.find_elements_by_xpath('//div[@id="main"]/div[@id="page-content"]/div/div[@id="top"]')
@@ -363,63 +337,67 @@ class Server:
 
         :param url: product url
         """
-        with sem:
-            self.check_signin()
-            if self.download_page_for_product(url) == 1: return
-            product, is_new = Product.objects.get_or_create(pk=casin)
-            node = self.browser.find_element_by_xpath('//div[@id="main"]/div[@id="page-content"]/div[@id="detail-page"]/div[@id="dpLeftCol"]')
-            right_col = node.find_element_by_xpath('../div[@id="dpRightCol"]/div[@id="innerRightCol"]')
-            if is_new:
-                info_table, image_urls, video = [], [], ''
-                shortDesc = node.find_element_by_class_name('shortDesc').text
-                international_shipping = node.find_element_by_id('intlShippableBullet').text
-                returned = node.find_element_by_id('returnPolicyBullet').text
-                already_have = [shortDesc, international_shipping, returned]
+        self.check_signin()
+        if self.download_page(url) == 1: return
+        node = self.browser.find_element_by_xpath('//div[@id="main"]/div[@id="page-content"]/div[@id="detail-page"]/div[@id="dpLeftCol"]')
+        shortDesc = node.find_element_by_class_name('shortDesc').text
 
-                for bullet in node.find_elements_by_tag_name('li'):
-                    if bullet.text and bullet.text not in already_have:
-                        info_table.append(bullet.text)
+        international_shipping = node.find_element_by_id('intlShippableBullet').text
+        returned = node.find_element_by_id('returnPolicyBullet').text
 
-                for img in node.find_elements_by_xpath('.//div[@id="altImgContainer"]/div'):
-                    try:
-                        picture = img.find_element_by_class_name('zoomImageL2').get_attribute('value')
-                        image_urls.append(picture)
-                    except:
-                        video = img.find_element_by_class_name('videoURL').get_attribute('value')
+        already_have = [shortDesc, international_shipping, returned]
+        bullets = node.find_elements_by_tag_name('li')
+        info_table = []
+        for bullet in bullets:
+            if bullet.text and bullet.text not in already_have:
+                info_table.append(bullet.text)
 
-                try:
-                    color = right_col.find_element_by_xpath('.//div[@class="dimensionAltText variationSelectOn"]').text
-                except:
-                    color = ''
-                try:
-                    sizes = right_col.find_elements_by_xpath('./div[@id="dpVariationMatrix"]//select[@class="variationDropdown"]/option')
-                    size = [s for s in sizes if not s.text.startswith('Please')]
-                except:
-                    sizes = [] 
+        image_urls = []
+        video = ''
+        imgs = node.find_elements_by_xpath('.//div[@id="altImgContainer"]/div')
+        for img in imgs:
+            try:
+                picture = img.find_element_by_class_name('zoomImageL2').get_attribute('value')
+                image_urls.append(picture)
+            except:
+                video = img.find_element_by_class_name('videoURL').get_attribute('value')
 
-                product.summary = shortDesc
-                product.list_info = info_table
-                product.image_urls = image_urls
-                if video: product.video = video
-                if international_shipping: product.international_shipping = international_shipping
-                if returned: product.returned = returned
-                if color: product.color = color
-                if sizes: product.sizes = sizes
 
-            listprice = right_col.find_element_by_id('listPrice').text.replace('$', '').replace(',', '')
-            ourprice = right_col.find_element_by_id('ourPrice').text.replace('$', '').replace(',', '')
-            scarcity = right_col.find_element_by_id('scarcity').text
-            shipping = '; '.join( [a.text for a in right_col.find_elements_by_class_name('dpRightColLabel') if a.text] )
+        right_col = node.find_element_by_xpath('../div[@id="dpRightCol"]/div[@id="innerRightCol"]')
+        try:
+            color = right_col.find_element_by_xpath('.//div[@class="dimensionAltText variationSelectOn"]').text
+        except:
+            color = ''
+        try:
+            sizes = right_col.find_elements_by_xpath('./div[@id="dpVariationMatrix"]//select[@class="variationDropdown"]/option')
+            size = [s for s in sizes if not s.text.startswith('Please')]
+        except:
+            sizes = [] 
 
-            product.price = ourprice
-            product.listprice = listprice
-            product.shipping = shipping
-            if scarcity: product.scarcity = scarcity
-            product.updated = True
-            product.full_update_time = datetime.utcnow()
-            product.save()
-            
-            product_saved.send(sender=DB + '.parse_product_detail', site=DB, key=casin, is_new=is_new, is_updated=not is_new)
+        listprice = right_col.find_element_by_id('listPrice').text.replace('$', '').replace(',', '')
+        ourprice = right_col.find_element_by_id('ourPrice').text.replace('$', '').replace(',', '')
+        scarcity = right_col.find_element_by_id('scarcity').text
+        shipping = '; '.join( [a.text for a in right_col.find_elements_by_class_name('dpRightColLabel') if a.text] )
+
+        product, is_new = Product.objects.get_or_create(pk=casin)
+        if is_new:
+            product.summary = shortDesc
+            product.image_urls = image_urls
+            product.list_info = info_table
+            if video: product.video = video
+            if color: product.color = color
+            if sizes: product.sizes = sizes
+            if international_shipping: product.international_shipping = international_shipping
+            if returned: product.returned = returned
+        product.price = ourprice
+        product.listprice = listprice
+        product.shipping = shipping
+        if scarcity: product.scarcity = scarcity
+        product.updated = True
+        product.full_update_time = datetime.utcnow()
+        product.save()
+        
+        product_saved.send(sender=DB + '.parse_product_detail', site=DB, key=casin, is_new=is_new, is_updated=not is_new)
 
         
 

@@ -30,7 +30,7 @@ from models import *
 from crawlers.common.events import *
 from crawlers.common.stash import *
 
-TIMEOUT = 12
+TIMEOUT = 9
 
 class Server:
     """.. :py:class:: Server
@@ -50,7 +50,7 @@ class Server:
             login myhabit
 
         """
-        self.browser = webdriver.Firefox()
+        self.browser = webdriver.Chrome()
 #        self.browser.set_page_load_timeout(5)
 #        self.browser.implicitly_wait(1)
 
@@ -80,8 +80,8 @@ class Server:
             if self.browser.title == u'Amazon.com Sign In':
                 self.fill_login_form()
             WebDriverWait(self.browser, TIMEOUT, 0.05).until(lambda driver: driver.execute_script('return $.active') == 0)
-        except:
-            print 'Time Out url --> ', url
+        except Exception, e:
+            print e, url
             return 1
 
 

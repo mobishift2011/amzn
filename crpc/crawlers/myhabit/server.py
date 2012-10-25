@@ -81,11 +81,20 @@ class Server:
             self.browser.get(url)
             if self.browser.title == u'Amazon.com Sign In':
                 self.fill_login_form()
-            WebDriverWait(self.browser, TIMEOUT, 0.05).until(lambda driver: driver.execute_script('return $.active') == 0)
+            WebDriverWait(self.browser, TIMEOUT, 0.05).until(lambda driver: driver.find_element_by_class_name('happeningSalesShoveler'))
         except Exception, e:
             print '{0}, Timeout or exception --> {1}'.format(e, url)
             return 1
 
+    def download_page_for_product(self, url):
+        try:
+            self.browser.get(url)
+            if self.browser.title == u'Amazon.com Sign In':
+                self.fill_login_form()
+            WebDriverWait(self.browser, TIMEOUT, 0.05).until(lambda driver: driver.execute_script('return $.active') == 0)
+        except Exception, e:
+            print '{0}, Timeout or exception --> {1}'.format(e, url)
+            return 1
 
     def crawl_category(self):
         """.. :py:method::
@@ -225,7 +234,7 @@ class Server:
         brand, is_new = Category.objects.get_or_create(sale_id=sale_id)
         if is_new:
             path = self.browser.find_element_by_xpath('//div[@id="main"]/div[@id="page-content"]/div[@id="top-content"]')
-            time.sleep(1)
+#            time.sleep(1)
 #            begin_date = path.find_element_by_xpath('./div[@id="startHeader"]/span[@class="date"]').text # SAT OCT 20
             begin_date = path.find_element_by_css_selector('div#startHeader span.date').text
             begin_time = path.find_element_by_xpath('./div[@id="startHeader"]/span[@class="time"]').text # 9 AM PT
@@ -261,7 +270,7 @@ class Server:
         :param dept: dept in the page
         :param url: url in the page
         """
-        time.sleep(0.5)
+#        time.sleep(0.5)
 #        try:
 #        node = self.browser.find_elements_by_xpath('//div[@id="main"]/div[@id="page-content"]/div/div[@id="top"]/div[@id="salePageDescription"]')
         node = self.browser.find_elements_by_xpath('//div[@id="main"]/div[@id="page-content"]/div/div[@id="top"]')
@@ -352,7 +361,7 @@ class Server:
         """
         with sem:
             self.check_signin()
-            if self.download_page(url) == 1: return
+            if self.download_page_for_product(url) == 1: return
             product, is_new = Product.objects.get_or_create(pk=casin)
             node = self.browser.find_element_by_xpath('//div[@id="main"]/div[@id="page-content"]/div[@id="detail-page"]/div[@id="dpLeftCol"]')
             right_col = node.find_element_by_xpath('../div[@id="dpRightCol"]/div[@id="innerRightCol"]')

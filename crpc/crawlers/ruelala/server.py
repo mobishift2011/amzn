@@ -158,7 +158,7 @@ class Server:
             hours = int(j[0])
             minutes = int(j[1])
             seconds = int(j[2])
-            now = datetime.datetime.now()
+            now = datetime.datetime.utcnow()
             delta = datetime.timedelta(days=days,hours=hours,minutes=minutes,seconds=seconds)
             date = now + delta
             return '%s' %date

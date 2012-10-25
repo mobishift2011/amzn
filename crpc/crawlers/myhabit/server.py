@@ -23,6 +23,7 @@ import pytz
 from gevent.coros import BoundedSemaphore
 from urllib import quote, unquote
 from datetime import datetime, timedelta
+import selenium
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 #from selenium.webdriver.common.action_chains import ActionChains
@@ -82,9 +83,12 @@ class Server:
             if self.browser.title == u'Amazon.com Sign In':
                 self.fill_login_form()
             WebDriverWait(self.browser, TIMEOUT, 0.05).until(lambda driver: driver.find_element_by_class_name('happeningSalesShoveler'))
-        except Exception as e:
-            print '{0}, Timeout or exception --> {1}'.format(e, url)
-            return 1
+        except selenium.common.exceptions.TimeoutException:
+            try:
+                WebDriverWait(self.browser, TIMEOUT, 0.05).until(lambda driver: driver.execute_script('return $.active') == 0)
+            except selenium.common.exceptions.TimeoutException:
+                print 'Timeout --> {1}'.format(url)
+                return 1
 
     def download_page_for_product(self, url):
         try:

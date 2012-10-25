@@ -106,6 +106,8 @@ class Server:
             event_count += 1
             print '>>event count',event_count
             result = self._get_product_list(sale_id,event_url)
+            if len(result) == 0:
+                print '>>empty product in event ',event_url
             self.product_list +=  result
             product_count += len(result)
             print '>>product count',product_count
@@ -194,13 +196,13 @@ class Server:
             else:
                 event.end_time = end_time
 
-            image = node.find_element_by_xpath('./a/img').get_attribute('src')
+            #image = node.find_element_by_xpath('./a/img').get_attribute('src')
             a_link = node.find_element_by_xpath('./a[@class="eventDoorLink"]').get_attribute('href')
             a_url = self.format_url(a_link)
             sale_id = self._url2saleid(a_link)
             event,is_new = Event.objects.get_or_create(sale_id=sale_id)
-
             if is_new:
+                event.img_url= 'http://www.ruelala.com/images/content/events/%s_doormini.jpg' %sale_id
                 event.category_name = category_name
                 event.sale_title = a_title.text
 
@@ -408,7 +410,7 @@ if __name__ == '__main__':
         sale_id = '54082'
         event_url = 'http://www.ruelala.com/event/54082'
         product_list = server._get_product_list(sale_id,event_url)
-        print 'result >>>>>>>>>>',len(product_list)
+        print 'result >>',len(product_list)
 
     if 0:
         product_id = '1411832058'

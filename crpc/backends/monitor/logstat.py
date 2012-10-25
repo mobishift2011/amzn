@@ -31,11 +31,11 @@ def get_or_create_task(site, method):
 
 def task_all():
     tasks = Task.objects().select_related()
-    return {"tasks":tasks}
+    return {"tasks":[t.to_json() for t in tasks]}
 
 def task_updates():
     tasks = Task.objects(status=Task.RUNNING).select_related()
-    return {"tasks":tasks}
+    return {"tasks":[t.to_json() for t in tasks]}
 
 @pre_general_update.bind
 def stat_pre_general_update(sender, **kwargs):
@@ -108,4 +108,4 @@ def stat_product_failed(sender, **kwargs):
     on_category_failed(sender, **kwargs)
 
 if __name__ == '__main__':
-    print task_updates()
+    print task_all()

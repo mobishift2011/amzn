@@ -167,6 +167,7 @@ class Server:
         try:
             self.browser.get(url)
         except TimeoutException:
+            print 'time out url:',url
             return  result
 
         try:
@@ -220,6 +221,7 @@ class Server:
         try:
             self.browser.get(event_url)
         except TimeoutException:
+            print 'time out url:',url
             return  result
 
         try:
@@ -308,11 +310,7 @@ class Server:
 
         :param url: product url
         """
-        try:
-            self.browser.get(url)
-        except TimeoutException:
-            return False
-
+        self.browser.get(url)
         image_urls = []
         for image in self.browser.find_elements_by_xpath('//div[@id="imageViews"]/img'):
             href = image.get_attribute('src')

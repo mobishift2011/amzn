@@ -48,12 +48,12 @@ class Server:
     def login(self):
         """.. :py:method::
             login myhabit
+            Using Firefox will cause Xvfb memory leaf and program broke.
 
         """
         self.browser = webdriver.Chrome()
 #        self.browser.set_page_load_timeout(5)
 #        self.browser.implicitly_wait(1)
-
         self.download_page(self.siteurl)
 
     def fill_login_form(self):
@@ -81,7 +81,7 @@ class Server:
                 self.fill_login_form()
             WebDriverWait(self.browser, TIMEOUT, 0.05).until(lambda driver: driver.execute_script('return $.active') == 0)
         except Exception, e:
-            print e, url
+            print '{0}, Timeout or exception --> {1}'.format(e, url)
             return 1
 
 
@@ -222,8 +222,10 @@ class Server:
         brand, is_new = Category.objects.get_or_create(sale_id=sale_id)
         if is_new:
             path = self.browser.find_element_by_xpath('//div[@id="main"]/div[@id="page-content"]/div[@id="top-content"]')
-            begin_date = path.find_element_by_xpath('./div[@id="startHeader"]/span[@class="date"]').text # SAT OCT 20
-            begin_time = path.find_element_by_xpath('./div[@id="startHeader"]/span[@class="time"]').text # 9 AM PT
+            time.sleep(1)
+#            begin_date = path.find_element_by_xpath('./div[@id="startHeader"]/span[@class="date"]').text # SAT OCT 20
+            begin_date = path.find_element_by_css_selector('div#startHeader span.date').text
+            begin_time = path.find_element_by_css_selector('./div[@id="startHeader"]/span[@class="time"]').text # 9 AM PT
             utc_begintime = self.time_proc(begin_date + ' ' + begin_time.replace('PT', ''))
             brand_info = path.find_element_by_id('upcomingSaleBlurb').text
             img = path.find_element_by_xpath('./div[@class="upcomingSaleHero"]/div[@class="image"]/img').get_attribute('src')

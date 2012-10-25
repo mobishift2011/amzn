@@ -7,22 +7,21 @@ crawlers.ruelala.server
 This is the server part of zeroRPC module. Call by client automatically, run on many differen ec2 instances.
 
 """
-from selenium.webdriver.common.action_chains import ActionChains
 from gevent import monkey
 monkey.patch_all()
 from gevent.pool import Pool
 
 import os
-import time
 import zerorpc
 from selenium import webdriver
 from selenium.common.exceptions import *
+#from selenium.webdriver.common.action_chains import ActionChains
 #from selenium.webdriver.support.ui import WebDriverWait
+#selenium.webdriver.support.wait.POLL_FREQUENCY = 0.05
 
 from models import *
 from crawlers.common.events import *
 from crawlers.common.stash import *
-#selenium.webdriver.support.wait.POLL_FREQUENCY = 0.05
 import datetime
 
 class Server:
@@ -42,7 +41,7 @@ class Server:
 
     def login(self, email=None, passwd=None):
         """.. :py:method::
-            login myhabit
+            login urelala
 
         :param email: login email
         :param passwd: login passwd
@@ -88,7 +87,7 @@ class Server:
 
     def crawl_category(self,target_categorys=[]):
         """.. :py:method::
-            From top depts, get all the brands
+            From top depts, get all the events
         """
         categorys = target_categorys or ['women', 'men', 'living','kids','todays-fix']
         debug_info.send(sender=DB + '.category.begin')
@@ -139,11 +138,7 @@ class Server:
 
     def _get_event_list(self,category_name,url):
         """.. :py:method::
-            Get all the brands from brand list.
-            Brand have a list of product.
-
-        :param dept: dept in the page
-        :param url: the dept's url
+            Get all the events from event list.
         """
 
         def get_end_time(str):
@@ -306,9 +301,7 @@ class Server:
 
     def _crawl_product_detail(self,product_id,url):
         """.. :py:method::
-            Got all the product information and save into the database
-
-        :param url: product url
+            Got all the product basic information and save into the database
         """
         self.browser.get(url)
         image_urls = []
@@ -400,6 +393,10 @@ class Server:
             raise ValueError('split url error @url:%s' %url)
 
     def format_url(self,url):
+        """
+        ensure the url is start with `http://www.xxx.com`
+        """
+
         if url.startswith('http://'):
             return url
         else:

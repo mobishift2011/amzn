@@ -9,7 +9,7 @@ import sys
 
 if __name__ == '__main__':
     rpc = RPCServer()
-    if sys.argv[1] == 'myhabit':
+    if sys.argv[1] and sys.argv[1] == 'myhabit':
         update_category('myhabit', rpc)
         update_product('myhabit', rpc)
     else:

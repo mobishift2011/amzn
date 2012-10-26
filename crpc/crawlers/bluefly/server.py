@@ -106,202 +106,43 @@ class Server:
         else:
             self._signin = False
 
-    def check_signin(self):
-        if not self._signin:
-            self.login(self.email, self.passwd)
+    def get_navs(self):
+        self.get(self.site_url)
+        result = []
+        for i in self.browser.get_elements_by_xpath('//ul[@id="siteNav1"]/li')[0:-3]:
+            a  = i.get_element_by_tag_name('a')
+            name = a.text
+            url = self.format_url(a.get_attribute('href'))
+            result.append((name,url))
+        return result
     
     @safe_lock
     def crawl_category(self,target_categorys=[]):
         """.. :py:method::
             From top depts, get all the events
         """
-        categorys = target_categorys or ['women', 'men', 'living','kids','todays-fix']
-        debug_info.send(sender=DB + '.category.begin')
+        all_category = []
+        all_product = []
 
-        for category in categorys:
-            url = 'http://www.ruelala.com/category/%s' %category
-            self._get_event_list(category,url)
-        debug_info.send(sender=DB + '.category.end')
+        navs = get_navs()
+        for i in navs:
+            nav,url = i
+            all_category = self.get_all_category(nav,url)
+
+            for j in all_category:
+                name,url = j
+                all_product = self.get_all_product(name,url)
+
+                for k in all_product:
+                    self.crawl_prodect_detail(k)
 
     @safe_lock
     def crawl_listing(self,sale_id,event_url):
-        event_list = [(sale_id,event_url)]
-        while event_list:
-            event = event_list.pop()
-            sale_id =  event[0]
-            event_url =  event[1]
-            self._get_product_list(sale_id,event_url)
-        return
+        pass
 
     @safe_lock
     def crawl_product(self,product_id,product_url):
-        product_list = [(product_id,product_url)]
-        for product in product_list:
-            product_id = product[0]
-            product_url = product[1]
-            self._crawl_product_detail(product_id,product_url)
-        return
-
-    def _get_event_list(self,category_name,url):
-        """.. :py:method::
-            Get all the events from event list.
-        """
-
-        def get_end_time(str):
-            str =  str.replace('CLOSING IN ','').replace(' ','')
-            if 'DAYS' in str:
-                i = str.split('DAYS,')
-            else:
-                i = str.split('DAY,')
-
-            days = int(i[0])
-            j = i[1].split(':')
-            hours = int(j[0])
-            minutes = int(j[1])
-            seconds = int(j[2])
-            now = datetime.datetime.utcnow()
-            delta = datetime.timedelta(days=days,hours=hours,minutes=minutes,seconds=seconds)
-            date = now + delta
-            return '%s' %date
-
-        result = []
-        if not self.get(url):
-            return result
-
-        try:
-            span = self.browser.find_element_by_xpath('//span[@class="viewAll"]')
-        except:
-            pass
-        else:
-            span.click()
-            time.sleep(1)
-
-        nodes = []
-        if not nodes:
-            nodes = self.browser.find_elements_by_xpath('//section[@id="alsoOnDoors"]/article')
-
-        for node in nodes:
-            # pass the hiden element
-            if not node.is_displayed():
-                continue
-
-            a_title = node.find_element_by_xpath('./footer/a[@class="eventDoorLink centerMe eventDoorContent"]/div[@class="eventName"]')
-            if not a_title:
-                continue
-
-
-            #image = node.find_element_by_xpath('./a/img').get_attribute('src')
-            a_link = node.find_element_by_xpath('./a[@class="eventDoorLink"]').get_attribute('href')
-            a_url = self.format_url(a_link)
-            sale_id = self._url2saleid(a_link)
-            category,is_new = Category.objects.get_or_create(sale_id=sale_id)
-
-            footer =  node.find_element_by_xpath('./footer')
-            clock = footer.find_element_by_xpath('./a/div[@class="closing clock"]').text
-            try:
-                end_time = get_end_time(clock)
-            except ValueError:
-                pass
-            else:
-                category.end_time = end_time
-
-            if is_new:
-                category.img_url= 'http://www.ruelala.com/images/content/events/%s_doormini.jpg' %sale_id
-                category.category_name = category_name
-                category.sale_title = a_title.text
-            
-            category.update_time = datetime.datetime.utcnow()
-            category.save()
-            category_saved.send(sender=DB + '._get_event_list', site=DB, key=sale_id, is_new=is_new, is_updated=not is_new)
-            result.append((sale_id,a_url))
-
-        return result
-
-    def _get_product_list(self,sale_id,event_url):
-        result = []
-        if not self.get(event_url):
-            return  result
-
-        try:
-            span = self.browser.find_element_by_xpath('//span[@class="viewAll"]')
-        except:
-            pass
-        else:
-            try:
-                span.click()
-                time.sleep(1)
-            except selenium.common.exceptions.WebDriverException:
-                # just have 1 page
-                pass
-
-        nodes = []
-        if not nodes:
-            nodes = self.browser.find_elements_by_xpath('//article[@class="product"]')
-        if not nodes:
-            nodes = self.browser.find_elements_by_xpath('//article[@class="column eventDoor halfDoor grid-one-third alpha"]')
-
-        if not nodes:
-
-            """
-            patch:
-            some event url (like:http://www.ruelala.com/event/57961) will 301 redirect to product detail page:
-            http://www.ruelala.com/product/detail/eventId/57961/styleNum/4112913877/viewAll/0
-            """
-            url_301 = self.browser.current_url
-            if url_301 <>  event_url:
-                self.product_list.append(url_301)
-            else:
-                raise ValueError('can not find product @url:%s sale id:%s' %(event_url,sale_id))
-
-        for node in nodes:
-            if not node.is_displayed():
-                continue
-            a = node.find_element_by_xpath('./a')
-            href = a.get_attribute('href')
-
-            # patch 
-            if href.split('/')[-2] == 'event':
-                self.event_list.append(self.format_url(href))
-                continue
-
-            img = node.find_element_by_xpath('./a/img')
-            title = img.get_attribute('alt')
-            url = self.format_url(href)
-            product_id = self._url2product_id(url)
-            strike_price = node.find_element_by_xpath('./div/span[@class="strikePrice"]').text
-            product_price = node.find_element_by_xpath('./div/span[@class="productPrice"]').text
-            
-
-            """
-            print 'node a',a
-            print 'title',title
-            print 'href',href
-            print 'url',url
-            print 'product id',product_id,type(product_id)
-            print 'x price',strike_price
-            print 'price',product_price
-            """
-            # get base product info
-            product,is_new = Product.objects.get_or_create(key=str(product_id))
-            if not is_new:
-                product.url = url
-
-            try:
-                s = node.find_elements_by_tag_name('span')[1]
-            except IndexError:
-                pass
-            else:
-                if s.get_attribute('class') == 'soldOutOverlay swiEnabled':
-                    product.sold_out = True
-
-            product.updated = True
-            product.title = title
-            product.price = str(product_price)
-            product.list_price = str(strike_price)
-            product.sale_id = str(sale_id)
-            product.save()
-            result.append((product_id,url))
-        return result
+        pass
 
     def _crawl_product_detail(self,product_id,url):
         """.. :py:method::

@@ -110,7 +110,6 @@ class Server(object):
             count += 1
         print count
             
-#        self.upcoming_proc()
             
     def upcoming_proc(self):
         """.. :py:method::
@@ -123,23 +122,27 @@ class Server(object):
         for node in nodes:
             link = node.get('href')
             text = node.text_content()
-            print link, text
             upcoming_list.append( (text, link) )
         self.upcoming_detail(upcoming_list)
 
     def upcoming_detail(self, upcoming_list):
         """.. :py:method::
         """
-        print True
         for pair in upcoming_list:
             cont = self.net.fetch_page(pair[1])
             tree = lxml.html.fromstring(cont)
-            img = tree.xpath('//div[ends-with(@class, "event-content-image")]/img/@src')[0]
+#            img = tree.xpath('//div[ends-with(@class, "event-content-image")]/img/@src')[0]
+            img = tree.cssselect('div.event-content-wrapper div.event-content-image img')[0].get('src')
             image = ''.join( self.extract_image_re.match(img).groups() )
-            sale_title = tree.xpath('//div[ends-with(@class, "event-content-copy")]/h1/text()')[0]
-            sale_description = tree.xpath('//div[ends-with(@class, "event-content-copy")]/div[@id="desc-with-expanded"]')[0].text_content()
-            start_time = tree.xpath('//div[ends-with(@class, "upcoming-date-reminder")]//span[@class="reminder-text"]/text()')[0]
-            print [image]
+#            sale_title = tree.xpath('//div[@class="span-5 event-content-copy"]/h1/text()')[0]
+#            sale_description = tree.xpath('//div[@class="span-5 event-content-copy"]/div[@id="desc-with-expanded"]')[0].text_content().strip()
+#            start_time = tree.xpath('//div[@class="pan-9 upcoming-date-reminder]//span[@class="reminder-text"]/text()')[0]
+            sale_title = tree.cssselect('div.event-content-wrapper div.event-content-copy h1')[0].text_content()
+            sale_description = tree.cssselect('div.event-content-wrapper div.event-content-copy div#desc-with-expanded')[0].text_content().strip()
+            start_time = tree.cssselect('div.event-content-wrapper div.upcoming-date-reminder span.reminder-text')[0].text_content()
+            begin = start_time.split('-')[0].split(' ', 1)[1]
+#            print [image], [sale_title], [sale_description], [begin]
+            print [begin]
 
 
 if __name__ == '__main__':

@@ -36,7 +36,7 @@ class RPCServer(object):
     -  a class named "Server" must exists in that file
     """
     def __init__(self):
-        excludes = ['common', 'ecost', 'bhphotovideo', 'bestbuy', 'dickssport', 'overstock', 'cabelas', 'bluefly' ]
+        excludes = ['common', 'ecost', 'bhphotovideo', 'bestbuy', 'dickssport', 'overstock', 'cabelas', 'bluefly', 'ruelala' ]
         self.logger = log.getlogger("crawlers.common.rpcserver.RPCServer")
         self.crawlers = {}
         for name in listdir(join(CRPC_ROOT, "crawlers")):

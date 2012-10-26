@@ -129,7 +129,7 @@ class Server(object):
 
             brand, is_new = Category.objects.get_or_create(lug=lug)
             if is_new:
-                img = node.xpath('./a/span[@class="homepage-image"]/img')[0].get('src')
+                img = node.xpath('./a/span[@class="homepage-image"]/img/@src')[0]
                 image = ''.join( self.extract_image_re.match(img).groups() )
                 text = node.xpath('./a/span[@class="txt"]')[0]
                 sale_title = text.xpath('./span[@class="category-name"]/span/text()')[0]
@@ -158,7 +158,7 @@ class Server(object):
             link = node.get('href')
             text = node.text_content()
             upcoming_list.append( (text, link) )
-        upcoming_detail(upcoming_list)
+        self.upcoming_detail(upcoming_list)
 
 
     def upcoming_detail(self, upcoming_list):
@@ -167,11 +167,11 @@ class Server(object):
         for pair in upcoming_list:
             cont = self.net.fetch_page(pair[1])
             tree = lxml.html.fromstring(cont)
-            img = tree.xpath('//div[ends-with(@class, "event-content-image")]/img/@src')
-            image = ''.join( self.extract_image_re.match(img) )
-            sale_title = tree.xpath('//div[ends-with(@class, "event-content-copy")]/h1/text()')
-            sale_description = tree.xpath('//div[ends-with(@class, "event-content-copy")]/div[@id="desc-with-expanded"]').text_content()
-            start_time = tree.xpath('//div[ends-with(@class, "upcoming-date-reminder")]//span[@class="reminder-text"]/text()')
+            img = tree.xpath('//div[ends-with(@class, "event-content-image")]/img/@src')[0]
+            image = ''.join( self.extract_image_re.match(img).groups() )
+            sale_title = tree.xpath('//div[ends-with(@class, "event-content-copy")]/h1/text()')[0]
+            sale_description = tree.xpath('//div[ends-with(@class, "event-content-copy")]/div[@id="desc-with-expanded"]')[0].text_content()
+            start_time = tree.xpath('//div[ends-with(@class, "upcoming-date-reminder")]//span[@class="reminder-text"]/text()')[0]
             
 
 

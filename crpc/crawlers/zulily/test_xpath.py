@@ -80,18 +80,15 @@ class Server(object):
         self.extract_event_re = re.compile(r'(http://www.zulily.com/e/(.*).html).*')
         self.extract_image_re = re.compile(r'(http://mcdn.zulily.com/images/cache/event/)\d+x\d+/(.+)')
 
-
     def crawl_category(self):
         depts = ['girls', 'boys', 'women', 'baby-maternity', 'toys-playtime', 'home']
         self.queue = Queue.Queue()
         self.get_brand_list('girls', 'http://www.zulily.com/?tab=women')
-        exit()
 
-        for dept in depts:
-            link = 'http://www.zulily.com/index.php?tab={0}'.format(dept)
-            self.get_brand_list(dept, link)
-        self.cycle_crawl_category()
-
+#        for dept in depts:
+#            link = 'http://www.zulily.com/index.php?tab={0}'.format(dept)
+#            self.get_brand_list(dept, link)
+#        self.cycle_crawl_category()
 
     def get_brand_list(self, dept, url):
         cont = self.net.fetch_page(url)
@@ -103,7 +100,7 @@ class Server(object):
             link = node.xpath('./a[@class="wrapped-link"]')[0].get('href')
             link, lug = self.extract_event_re.match(link).groups()
 
-            img = node.xpath('./a/span[@class="homepage-image"]/img')[0].get('src')
+            img = node.xpath('./a/span[@class="homepage-image"]/img/@src')[0]
             image = ''.join( self.extract_image_re.match(img).groups() )
             text = node.xpath('./a/span[@class="txt"]')[0]
             sale_title = text.xpath('./span[@class="category-name"]/span/text()')[0]
@@ -113,9 +110,8 @@ class Server(object):
             count += 1
         print count
             
+#        self.upcoming_proc()
             
-
-
     def upcoming_proc(self):
         """.. :py:method::
             Get all the upcoming brands info 
@@ -127,23 +123,26 @@ class Server(object):
         for node in nodes:
             link = node.get('href')
             text = node.text_content()
+            print link, text
             upcoming_list.append( (text, link) )
-        upcoming_detail(upcoming_list)
-
+        self.upcoming_detail(upcoming_list)
 
     def upcoming_detail(self, upcoming_list):
         """.. :py:method::
         """
+        print True
         for pair in upcoming_list:
             cont = self.net.fetch_page(pair[1])
             tree = lxml.html.fromstring(cont)
-            img = tree.xpath('//div[ends-with(@class, "event-content-image")]/img/@src')
-            image = ''.join( self.extract_image_re.match(img) )
-            sale_title = tree.xpath('//div[ends-with(@class, "event-content-copy")]/h1/text')
-            sale_description = tree.xpath('//div[ends-with(@class, "event-content-copy")]/div[@id="desc-with-expanded"]').text_content()
-            start_time = tree.xpath('//div[ends-with(@class, "upcoming-date-reminder")]//span[@class="reminder-text"]/text')
+            img = tree.xpath('//div[ends-with(@class, "event-content-image")]/img/@src')[0]
+            image = ''.join( self.extract_image_re.match(img).groups() )
+            sale_title = tree.xpath('//div[ends-with(@class, "event-content-copy")]/h1/text()')[0]
+            sale_description = tree.xpath('//div[ends-with(@class, "event-content-copy")]/div[@id="desc-with-expanded"]')[0].text_content()
+            start_time = tree.xpath('//div[ends-with(@class, "upcoming-date-reminder")]//span[@class="reminder-text"]/text()')[0]
+            print [image]
 
 
 if __name__ == '__main__':
     s = Server()
     s.crawl_category()
+    s.upcoming_proc()

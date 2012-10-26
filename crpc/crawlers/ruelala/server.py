@@ -449,9 +449,10 @@ if __name__ == '__main__':
 
     if 1:
         count = 0
+        error_count = 0
         start = time.time()
         ps =  Product.objects.all()
-        print 'len',len(ps)
+        total = len(ps)
         server = Server()
         for p in ps:
             print p.key
@@ -459,9 +460,12 @@ if __name__ == '__main__':
                 server._crawl_product_detail(p.key,p.url())
             except:
                 print 'error ',p.url()
-                continue
+                error_count +=1
+            else:
+                count += 1
 
-            count += 1
             print 'key',p.key
+            print 'total',total
             print 'count',count
-            print 'total time',time.time() - start
+            print 'error count',error_count
+            print 'used time',time.time() - start

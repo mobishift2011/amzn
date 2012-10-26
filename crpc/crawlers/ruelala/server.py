@@ -133,14 +133,12 @@ class Server:
             self._get_product_list(sale_id,event_url)
         return
 
-    @safe_lock
     def crawl_product(self,product_id,product_url):
         product_list = [(product_id,product_url)]
         for product in product_list:
             product_id = product[0]
             product_url = product[1]
             self._crawl_product_detail(product_id,product_url)
-        return
 
     def _get_event_list(self,category_name,url):
         """.. :py:method::
@@ -410,7 +408,6 @@ class Server:
             return s
 
 if __name__ == '__main__':
-    server = Server()
     if 0: 
         sale_id = '54082'
         event_url = 'http://www.ruelala.com/event/54082'
@@ -437,6 +434,34 @@ if __name__ == '__main__':
         category = 'women'
         server._get_event_list('women','http://www.ruelala.com/category/women')
 
-    if 1:
+    if 0:
         server.crawl_category()
 
+    if 0:
+        count = 0
+        start = time.time()
+        for event in Category.objects.all():
+            server.crawl_listing(event.sale_id,event.url())
+            count += 1
+
+        print 'count',count
+        print 'total time',time.time() - star
+
+    if 1:
+        count = 0
+        start = time.time()
+        ps =  Product.objects.all()
+        print 'len',len(ps)
+        server = Server()
+        for p in ps:
+            print p.key
+            try:
+                server._crawl_product_detail(p.key,p.url())
+            except:
+                print 'error ',p.url()
+                continue
+
+            count += 1
+            print 'key',p.key
+            print 'count',count
+            print 'total time',time.time() - start

@@ -48,4 +48,4 @@ class Product(BaseProduct):
     }
 
     def url(self):
-        return 'http://www.ruelala.com/event/%s/product/%s/1/DEFAULT' %(self.sale_id,self.key)
+        return 'http://www.ruelala.com/event/product/%s/%s/1/DEFAULT' %(self.sale_id,self.key)

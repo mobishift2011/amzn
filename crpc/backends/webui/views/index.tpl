@@ -74,6 +74,7 @@
               <th>Task</th>
               <th>Status</th>
               <th>Started At</th>
+              <th>Updated At</th>
               <th>Dones</th>
               <th>Updates</th>
               <th>News</th>
@@ -85,6 +86,7 @@
               <td>{{LB}}task.name{{RB}}</td>
               <td>{{LB}}task.status{{RB}}</td>
               <td>{{LB}}task.started_at{{RB}}</td>
+              <td>{{LB}}task.updated_at{{RB}}</td>
               <td>{{LB}}task.dones{{RB}}</td>
               <td>{{LB}}task.updates{{RB}}</td>
               <td>{{LB}}task.news{{RB}}</td>

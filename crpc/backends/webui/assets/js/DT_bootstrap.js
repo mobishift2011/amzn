@@ -153,6 +153,6 @@ $(document).ready(function() {
 		"oLanguage": {
 			"sLengthMenu": "_MENU_ records per page"
 		},
-		"aaSorting": [[ 2, "desc"]]
+		"aaSorting": [[ 3, "desc"]]
 	} );
 } );

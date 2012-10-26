@@ -57,7 +57,7 @@ class Server:
         self.browser = webdriver.Chrome()
 #        self.browser.set_page_load_timeout(5)
 #        self.browser.implicitly_wait(1)
-        self.download_page(self.siteurl)
+        self.download_page('http://www.myhabit.com/my-account')
 
     def fill_login_form(self):
         """.. :py:method:
@@ -93,14 +93,16 @@ class Server:
         print 'time download benchmark: ', time.time() - time_begin_benchmark
 
     def download_page_for_product(self, url):
+        time_begin_benchmark = time.time()
         try:
             self.browser.get(url)
             if self.browser.title == u'Amazon.com Sign In':
                 self.fill_login_form()
             WebDriverWait(self.browser, TIMEOUT, 0.05).until(lambda driver: driver.execute_script('return $.active') == 0)
-        except Exception as e:
-            print '{0}, Timeout or exception --> {1}'.format(e, url)
+        except selenium.common.exceptions.TimeoutException:
+            print 'Timeout --> {0}'.format(url)
             return 1
+        print 'time download benchmark: ', time.time() - time_begin_benchmark
 
     def crawl_category(self):
         """.. :py:method::
@@ -131,7 +133,7 @@ class Server:
         """
         self.download_page_for_product(url)
         nodes = self.browser.find_elements_by_xpath('//div[@id="main"]/div[@id="page-content"]/div[@id="currentSales"]/div[starts-with(@id, "privateSale")]')
-        print self.browser.current_url
+#        print self.browser.current_url
         for node in nodes:
             a_title = node.find_element_by_xpath('./div[@class="caption"]/a')
             l = a_title.get_attribute('href')
@@ -184,7 +186,7 @@ class Server:
         :rtype: string of asin, cAsin
         """
         m = re.compile(r'http://www.myhabit.com/homepage.*#page=d&dept=\w+&sale=\w+&asin=(\w+)&cAsin=(\w+)').match(url)
-        if not m: print url
+        if not m: print 'Can not parse detail product url: ', url
         return m.groups()
 
     def cycle_crawl_category(self, timeover=30):
@@ -279,7 +281,7 @@ class Server:
 #        node = self.browser.find_element_by_xpath('//div[@id="main"]/div[@id="page-content"]/div/div[@id="top"]/div[@id="salePageDescription"]')
         node = self.browser.find_element_by_css_selector('div#main div#page-content div')
 
-        print node, url
+#        print node, url
         time_begin_benchmark = time.time()
 #        sale_title = node.find_element_by_xpath('.//div[@id="saleTitle"]').text
 #        sale_description = node.find_element_by_xpath('.//div[@id="saleDescription"]').text
@@ -369,9 +371,16 @@ class Server:
         with sem:
             self.check_signin()
             if self.download_page_for_product(url) == 1: return
+#            print url
+            time_begin_benchmark = time.time()
             product, is_new = Product.objects.get_or_create(pk=casin)
-            node = self.browser.find_element_by_xpath('//div[@id="main"]/div[@id="page-content"]/div[@id="detail-page"]/div[@id="dpLeftCol"]')
-            right_col = node.find_element_by_xpath('../div[@id="dpRightCol"]/div[@id="innerRightCol"]')
+            try:
+                pre = self.browser.find_element_by_css_selector('div#main div#page-content div#detail-page')
+            except selenium.common.exceptions.NoSuchElementException:
+                time.sleep(0.3)
+                pre = self.browser.find_element_by_css_selector('div#main div#page-content div#detail-page')
+            node = pre.find_element_by_css_selector('div#dpLeftCol')
+            right_col = pre.find_element_by_css_selector('div#dpRightCol div#innerRightCol')
             if is_new:
                 info_table, image_urls, video = [], [], ''
                 shortDesc = node.find_element_by_class_name('shortDesc').text
@@ -423,6 +432,7 @@ class Server:
             product.save()
             
             product_saved.send(sender=DB + '.parse_product_detail', site=DB, key=casin, is_new=is_new, is_updated=not is_new)
+            print 'time product process benchmark: ', time.time() - time_begin_benchmark
 
         
 

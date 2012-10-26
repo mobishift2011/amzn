@@ -438,7 +438,6 @@ if __name__ == '__main__':
     if 1:
         count = 0
         error_count = 0
-        start = time.time()
         server = Server()
         server._get_event_list('women','http://www.ruelala.com/category/women')
 
@@ -447,6 +446,7 @@ if __name__ == '__main__':
 
         ps =  Product.objects.all()
         total = len(ps)
+        start = time.time()
         for p in ps:
             print p.key
             try:

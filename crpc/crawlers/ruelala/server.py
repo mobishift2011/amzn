@@ -37,7 +37,6 @@ def safe_lock(func,*arg,**kwargs):
         return res
     return wrapper
 
-
 class Server:
     """.. :py:class:: Server
     
@@ -119,33 +118,9 @@ class Server:
         categorys = target_categorys or ['women', 'men', 'living','kids','todays-fix']
         debug_info.send(sender=DB + '.category.begin')
 
-        product_count = 0
-        event_count = 0
-
         for category in categorys:
             url = 'http://www.ruelala.com/category/%s' %category
-            self.event_list += self._get_event_list(category,url)
-
-        while self.event_list:
-            event = self.event_list.pop(0)
-            sale_id =  event[0]
-            event_url =  event[1]
-            event_count += 1
-            print '>>event count',event_count
-            result = self._get_product_list(sale_id,event_url)
-            if len(result) == 0:
-                print '>>empty product in event ',event_url
-            self.product_list +=  result
-            product_count += len(result)
-            print '>>product count',product_count
-
-
-        while self.product_list:
-            product = self.product_list.pop(0)
-            product_id = product[0]
-            product_url = product[1]
-            self._crawl_product_detail(product_id,product_url)
-
+            self._get_event_list(category,url)
         debug_info.send(sender=DB + '.category.end')
 
     @safe_lock
@@ -214,6 +189,13 @@ class Server:
             if not a_title:
                 continue
 
+
+            #image = node.find_element_by_xpath('./a/img').get_attribute('src')
+            a_link = node.find_element_by_xpath('./a[@class="eventDoorLink"]').get_attribute('href')
+            a_url = self.format_url(a_link)
+            sale_id = self._url2saleid(a_link)
+            category,is_new = Category.objects.get_or_create(sale_id=sale_id)
+
             footer =  node.find_element_by_xpath('./footer')
             clock = footer.find_element_by_xpath('./a/div[@class="closing clock"]').text
             try:
@@ -221,20 +203,15 @@ class Server:
             except ValueError:
                 pass
             else:
-                event.end_time = end_time
+                category.end_time = end_time
 
-            #image = node.find_element_by_xpath('./a/img').get_attribute('src')
-            a_link = node.find_element_by_xpath('./a[@class="eventDoorLink"]').get_attribute('href')
-            a_url = self.format_url(a_link)
-            sale_id = self._url2saleid(a_link)
-            event,is_new = Event.objects.get_or_create(sale_id=sale_id)
             if is_new:
-                event.img_url= 'http://www.ruelala.com/images/content/events/%s_doormini.jpg' %sale_id
-                event.category_name = category_name
-                event.sale_title = a_title.text
-
-            event.update_time = datetime.datetime.utcnow()
-            event.save()
+                category.img_url= 'http://www.ruelala.com/images/content/events/%s_doormini.jpg' %sale_id
+                category.category_name = category_name
+                category.sale_title = a_title.text
+            
+            category.update_time = datetime.datetime.utcnow()
+            category.save()
             category_saved.send(sender=DB + '._get_event_list', site=DB, key=sale_id, is_new=is_new, is_updated=not is_new)
             result.append((sale_id,a_url))
 

@@ -60,7 +60,7 @@ class RPCServer(object):
         else:
             return service
 
-    def call(self, crawler, method, args, kwargs):
+    def call(self, crawler, method, args=(), kwargs={}):
         """ this is a router function for crawlers """
         service = self.crawlers[crawler]
 

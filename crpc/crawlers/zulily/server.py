@@ -69,7 +69,7 @@ class zulilyLogin(object):
         if not self._signin:
             self.login_account()
 
-    def fetch_page(url):
+    def fetch_page(self, url):
         """.. :py:method::
             fetch page.
             check whether the account is login, if not, login and fetch again
@@ -103,7 +103,6 @@ class Server(object):
         """
         depts = ['girls', 'boys', 'women', 'baby-maternity', 'toys-playtime', 'home']
         self.queue = Queue.Queue()
-        self.upcoming_queue = Queue.Queue()
         debug_info.send(sender=DB + '.category.begin')
 
         for dept in depts:
@@ -122,19 +121,20 @@ class Server(object):
         """
         cont = self.net.fetch_page(url)
         tree = lxml.html.fromstring(cont)
-        nodes = tree.xpath('//div[@class="container"]/div[@id="main"]/div[@id="home-page-content"]/div//div[starts-with(@id, "eid_")]')
+        nodes = tree.xpath('//div[@class="container"]/div[@id="main"]/div[@id="home-page-content"]/div[@class="clearfix"]//div[starts-with(@id, "eid_")]')
         
         for node in nodes:
-            link = node.xpath('./a[@class="wrapped-link"]').get('href')
+            link = node.xpath('./a[@class="wrapped-link"]')[0].get('href')
             link, lug = self.extract_event_re.match(link).groups()
 
             brand, is_new = Category.objects.get_or_create(lug=lug)
             if is_new:
-                image = node.xpath('./a/span[@class="homepage-image"]/img').get('src')
-                text = node.xpath('./a/span[@class="txt"]')
-                sale_title = text.xpath('./span[@class="category-name"]/span/text')
-                desc = text.xpath('.//span[@class="description-highlights"]/text')
-                start_end_date = text.xpath('./span[@class="description"]/span[@class="start-end-date"]/span').text_content()
+                img = node.xpath('./a/span[@class="homepage-image"]/img')[0].get('src')
+                image = ''.join( self.extract_image_re.match(img).groups() )
+                text = node.xpath('./a/span[@class="txt"]')[0]
+                sale_title = text.xpath('./span[@class="category-name"]/span/text()')[0]
+                desc = text.xpath('.//span[@class="description-highlights"]/text()')[0].strip()
+                start_end_date = text.xpath('./span[@class="description"]/span[@class="start-end-date"]/span')[0].text_content().strip()
 
                 brand.image_urls = [image]
                 brand.sale_title = sale_title
@@ -169,9 +169,9 @@ class Server(object):
             tree = lxml.html.fromstring(cont)
             img = tree.xpath('//div[ends-with(@class, "event-content-image")]/img/@src')
             image = ''.join( self.extract_image_re.match(img) )
-            sale_title = tree.xpath('//div[ends-with(@class, "event-content-copy")]/h1/text')
+            sale_title = tree.xpath('//div[ends-with(@class, "event-content-copy")]/h1/text()')
             sale_description = tree.xpath('//div[ends-with(@class, "event-content-copy")]/div[@id="desc-with-expanded"]').text_content()
-            start_time = tree.xpath('//div[ends-with(@class, "upcoming-date-reminder")]//span[@class="reminder-text"]/text')
+            start_time = tree.xpath('//div[ends-with(@class, "upcoming-date-reminder")]//span[@class="reminder-text"]/text()')
             
 
 

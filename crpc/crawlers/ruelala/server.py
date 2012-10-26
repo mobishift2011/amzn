@@ -111,11 +111,11 @@ class Server:
             self.login(self.email, self.passwd)
     
     @safe_lock
-    def crawl_category(self,target_categorys=[]):
+    def crawl_category(self):
         """.. :py:method::
             From top depts, get all the events
         """
-        categorys = target_categorys or ['women', 'men', 'living','kids','todays-fix']
+        categorys = ['women', 'men', 'living','kids','todays-fix']
         debug_info.send(sender=DB + '.category.begin')
 
         for category in categorys:
@@ -189,7 +189,6 @@ class Server:
             if not a_title:
                 continue
 
-
             #image = node.find_element_by_xpath('./a/img').get_attribute('src')
             a_link = node.find_element_by_xpath('./a[@class="eventDoorLink"]').get_attribute('href')
             a_url = self.format_url(a_link)
@@ -211,6 +210,7 @@ class Server:
                 category.sale_title = a_title.text
             
             category.update_time = datetime.datetime.utcnow()
+            category.is_leaf = True
             category.save()
             category_saved.send(sender=DB + '._get_event_list', site=DB, key=sale_id, is_new=is_new, is_updated=not is_new)
             result.append((sale_id,a_url))

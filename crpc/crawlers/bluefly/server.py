@@ -181,7 +181,7 @@ class Server(BaseServer):
 if __name__ == '__main__':
     server = Server()
     #server._get_all_category('test','http://www.bluefly.com/a/shoes')
-    #server.crawl_category()
+    server.crawl_category()
     #print server.get_navs()
-    url = 'http://www.bluefly.com/Designer-Loafers-Flats/_/N-fs8/list.fly'
-    print server.crawl_listing(url)
+    #url = 'http://www.bluefly.com/Designer-Loafers-Flats/_/N-fs8/list.fly'
+    #print server.crawl_listing(url)

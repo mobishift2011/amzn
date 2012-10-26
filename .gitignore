@@ -1,5 +1,6 @@
 .py[cod]
 *.pyc
+env.sh
 
 # C extensions
 *.so

@@ -442,8 +442,8 @@ if __name__ == '__main__':
         server = Server()
         server._get_event_list('women','http://www.ruelala.com/category/women')
 
-        for c in Category.objects.al():
-            server._get_product_list(c.key,c.url())
+        for c in Category.objects.all():
+            print 'product list',server._get_product_list(c.sale_id,c.url())
 
         ps =  Product.objects.all()
         total = len(ps)

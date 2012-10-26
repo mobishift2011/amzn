@@ -82,7 +82,7 @@ def _deploy_rpc(host_string):
     with settings(host_string=host_string):
         with cd("/opt/crpc/crawlers/common"):
             with prefix("source /usr/local/bin/virtualenvwrapper.sh"):
-                with prefix(". ../../env.sh"):
+                with prefix(". ../../env.sh TEST"):
                     with prefix("ulimit -s 1024"):
                         with prefix("ulimit -n 4096"):
                             _runbg("python rpcserver.py", sockname="crawlercommon")

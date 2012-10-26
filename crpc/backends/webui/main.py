@@ -31,4 +31,4 @@ def table_update():
 def table():
     return template('angular')
 
-run(server='gevent', host='localhost', port=8080)
+run(server='gevent', host='0.0.0.0', port=1317)

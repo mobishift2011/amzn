@@ -23,7 +23,6 @@ pymongo==2.3
 pytz==2012f
 pyzmq==2.2.0.1
 pyzmq-static==2.2
-readline==6.2.4
 redis==2.7.1
 redisco==0.1.4
 requests==0.14.1

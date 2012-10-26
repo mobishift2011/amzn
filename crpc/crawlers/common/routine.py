@@ -122,7 +122,9 @@ def callrpc(rpc, site, method, *args, **kwargs):
 
 def update_category(site, rpc, concurrency=30):
     with UpdateContext(site=site, method='update_category'):
-        rpc.call(site, 'crawl_category')
+        rpcs = [rpc] if not isinstance(rpc, list) else rpc
+        rpc = random.choice(rpcs)
+        rpc.call(site, 'crawl_category', (), {})
 
 def update_listing(site, rpc, concurrency=30):
     with UpdateContext(site=site, method='update_listing'):

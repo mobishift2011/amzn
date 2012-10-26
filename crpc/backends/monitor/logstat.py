@@ -62,8 +62,7 @@ def stat_post_general_update(sender, **kwargs):
         t.fails.append( fail(site, method, None, reason) )
     t.save()
 
-@category_saved.bind
-def stat_category_save(sender, **kwargs):
+def stat_save(sender, **kwargs):
     logger.debug('SECOND{0}'.format(kwargs.items()))
     site = kwargs.get('site')
     method = kwargs.get('method', 'update_category')
@@ -85,13 +84,17 @@ def stat_category_save(sender, **kwargs):
     log_event.set()
     log_event.clear()
 
+@category_saved.bind
+def stat_category_save(sender, **kwargs):
+    kwargs.update({'method':'update_category'})
+    stat_save(sender, **kwargs)
+
 @product_saved.bind
 def stat_product_save(sender, **kwargs):
     kwargs.update({'method':'update_product'})
-    on_category_save(sender, **kwargs)
+    stat_save(sender, **kwargs)
 
-@category_failed.bind
-def stat_category_failed(sender, **kwargs):
+def stat_failed(sender, **kwargs):
     logger.error('SECOND{0}'.format(kwargs.items()))
     site = kwargs.get('site')
     url  = kwargs.get('url')
@@ -105,9 +108,13 @@ def stat_category_failed(sender, **kwargs):
     log_event.set()
     log_event.clear()
 
+@category_failed.bind
+def stat_category_failed(sender, **kwargs):
+    stat_failed(sender, **kwargs)
+
 @product_failed.bind
 def stat_product_failed(sender, **kwargs):
-    on_category_failed(sender, **kwargs)
+    stat_failed(sender, **kwargs)
 
 if __name__ == '__main__':
     print task_all()

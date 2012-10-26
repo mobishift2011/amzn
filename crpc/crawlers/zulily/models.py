@@ -17,8 +17,10 @@ DB = 'zulily'
 connect(db=DB, alias='zulily', host=MONGODB_HOST)
 
 class Category(BaseEvent):
-    sale_id = StringField(unique=True)
+    lug = StringField(unique=True)
     dept = ListField(StringField())
+    short_desc = StringField()
+    start_end_date = StringField()
     upcoming_title_img = ListField()
 
     meta = {
@@ -26,7 +28,7 @@ class Category(BaseEvent):
     }
 
     def url(self):
-        return 'http://www.myhabit.com/homepage#page=b&dept={0}&sale={1}'.format(self.dept, self.sale_id)
+        return 'http://www.zulily.com/e/{0}'.format(self.lug)
 
 
 class Product(BaseProduct):

@@ -52,7 +52,6 @@ class BaseEvent(BaseCategory):
     events_end = DateTimeField()
     soldout = BooleanField()
     sale_title = StringField()
-    brand_link = StringField()
     image_urls = ListField(StringField())
     sale_description = StringField()
 

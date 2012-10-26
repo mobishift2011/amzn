@@ -34,11 +34,12 @@ def task_all():
     return {"tasks":[t.to_json() for t in tasks]}
 
 def task_updates():
-    tasks = Task.objects(status=Task.RUNNING).select_related()
+    tasks = Task.objects(updated_at__gt=datetime.utcnow()-timedelta(seconds=60)).select_related()
     return {"tasks":[t.to_json() for t in tasks]}
 
 @pre_general_update.bind
 def stat_pre_general_update(sender, **kwargs):
+    logger.warning('pre_general_update')
     site = kwargs.get('site')
     method = kwargs.get('method')
     assert site != None and method != None, u"argument error"
@@ -48,6 +49,7 @@ def stat_pre_general_update(sender, **kwargs):
 
 @post_general_update.bind
 def stat_post_general_update(sender, **kwargs):
+    logger.warning('post_general_update')
     site = kwargs.get('site')
     method = kwargs.get('method')
     complete = kwargs.get('complete', False)
@@ -60,11 +62,10 @@ def stat_post_general_update(sender, **kwargs):
         t.fails.append( fail(site, method, None, reason) )
     t.save()
 
-@category_saved.bind
-def stat_category_save(sender, **kwargs):
+def stat_save(sender, **kwargs):
     logger.debug('SECOND{0}'.format(kwargs.items()))
     site = kwargs.get('site')
-    method = kwargs.get('method')
+    method = kwargs.get('method', 'update_category')
     key = kwargs.get('key')
     assert site is not None and method is not None and key is not None, u"argument error"
 
@@ -74,22 +75,26 @@ def stat_category_save(sender, **kwargs):
 
     if is_new:
         t.num_new += 1
-    elif is_updated:
+    if is_updated:
         t.num_update += 1
-    else:
-        t.num_finish += 1
+    t.num_finish += 1
     
     t.save() 
 
     log_event.set()
     log_event.clear()
 
+@category_saved.bind
+def stat_category_save(sender, **kwargs):
+    kwargs.update({'method':'update_category'})
+    stat_save(sender, **kwargs)
+
 @product_saved.bind
 def stat_product_save(sender, **kwargs):
-    on_category_save(sender, **kwargs)
+    kwargs.update({'method':'update_product'})
+    stat_save(sender, **kwargs)
 
-@category_failed.bind
-def stat_category_failed(sender, **kwargs):
+def stat_failed(sender, **kwargs):
     logger.error('SECOND{0}'.format(kwargs.items()))
     site = kwargs.get('site')
     url  = kwargs.get('url')
@@ -103,9 +108,13 @@ def stat_category_failed(sender, **kwargs):
     log_event.set()
     log_event.clear()
 
+@category_failed.bind
+def stat_category_failed(sender, **kwargs):
+    stat_failed(sender, **kwargs)
+
 @product_failed.bind
 def stat_product_failed(sender, **kwargs):
-    on_category_failed(sender, **kwargs)
+    stat_failed(sender, **kwargs)
 
 if __name__ == '__main__':
     print task_all()

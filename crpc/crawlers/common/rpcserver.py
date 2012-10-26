@@ -60,7 +60,7 @@ class RPCServer(object):
         else:
             return service
 
-    def call(self, crawler, method, *args, **kwargs):
+    def call(self, crawler, method, args, kwargs):
         """ this is a router function for crawlers """
         service = self.crawlers[crawler]
 
@@ -68,6 +68,7 @@ class RPCServer(object):
             return getattr(service, method)(*args, **kwargs)
         else:
             raise ValueError("{crawler} does not seems to a valid crawler".format(**locals()))
+<<<<<<< HEAD
 
 def safe_lock(func,*arg,**kwargs):
     def wrapper(*arg,**kwargs):
@@ -142,3 +143,12 @@ class BaseServer:
 if __name__ == '__main__':
     server = Server()
 
+=======
+        
+if __name__ == "__main__":
+    from gevent import monkey; monkey.patch_all()
+    import zerorpc
+    zs = zerorpc.Server(RPCServer())
+    zs.bind('tcp://0.0.0.0:1234')
+    zs.run()
+>>>>>>> 985c17dac28e4459eaeaf82d50fb14de92809eb8

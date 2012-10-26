@@ -377,6 +377,7 @@ class Server:
             try:
                 pre = self.browser.find_element_by_css_selector('div#main div#page-content div#detail-page')
             except selenium.common.exceptions.NoSuchElementException:
+                time.sleep(0.3)
                 pre = self.browser.find_element_by_css_selector('div#main div#page-content div#detail-page')
             node = pre.find_element_by_css_selector('div#dpLeftCol')
             right_col = pre.find_element_by_css_selector('div#dpRightCol div#innerRightCol')

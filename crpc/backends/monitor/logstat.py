@@ -34,7 +34,7 @@ def task_all():
     return {"tasks":[t.to_json() for t in tasks]}
 
 def task_updates():
-    tasks = Task.objects(status=Task.RUNNING).select_related()
+    tasks = Task.objects(updated_at__gt=datetime.utcnow()-timedelta(seconds=60)).select_related()
     return {"tasks":[t.to_json() for t in tasks]}
 
 @pre_general_update.bind

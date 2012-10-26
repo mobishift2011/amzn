@@ -58,7 +58,7 @@ class Task(Document):
 
     # meta
     meta        =   {
-        "indexes":  [("status", "site", "method"), "started_at"],
+        "indexes":  [("status", "site", "method"), "started_at", "updated_at"],
     }
 
     def __str__(self):
@@ -69,6 +69,7 @@ class Task(Document):
             'name':         self.site+'.'+self.method,
             'status':       Task.inverse_status(self.status),
             'started_at':   self.started_at.isoformat() if self.started_at else 'undefined',
+            'updated_at':   self.updated_at.isoformat() if self.updated_at else 'undefined',
             'fails':        len(self.fails),
             'dones':        self.num_finish,
             'updates':      self.num_update,
@@ -81,4 +82,3 @@ class Task(Document):
          document.updated_at = datetime.utcnow()
 
 signals.pre_save.connect(Task.pre_save, sender=Task)
-

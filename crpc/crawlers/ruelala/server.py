@@ -434,26 +434,19 @@ if __name__ == '__main__':
         category = 'women'
         server._get_event_list('women','http://www.ruelala.com/category/women')
 
-    if 0:
-        server.crawl_category()
-
-    if 0:
-        count = 0
-        start = time.time()
-        for event in Category.objects.all():
-            server.crawl_listing(event.sale_id,event.url())
-            count += 1
-
-        print 'count',count
-        print 'total time',time.time() - star
 
     if 1:
         count = 0
         error_count = 0
-        start = time.time()
+        server = Server()
+        server._get_event_list('women','http://www.ruelala.com/category/women')
+
+        for c in Category.objects.all():
+            print 'product list',server._get_product_list(c.sale_id,c.url())
+
         ps =  Product.objects.all()
         total = len(ps)
-        server = Server()
+        start = time.time()
         for p in ps:
             print p.key
             try:

@@ -115,10 +115,11 @@ def callrpc(rpc, site, method, *args, **kwargs):
             name = 'category_failed'
         else:
             name = 'product_failed'
+        import traceback
         globals()[name].send(sender="{0}.{1}".format(site,method),
                             site = site,
                             url = kwargs['url'],
-                            reason = e.message)
+                            reason = repr(e) + traceback.format_exc())
 
 def update_category(site, rpc, concurrency=30):
     with UpdateContext(site=site, method='update_category'):

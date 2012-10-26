@@ -32,7 +32,7 @@ from models import *
 from crawlers.common.events import *
 from crawlers.common.stash import *
 
-TIMEOUT = 9
+TIMEOUT = 5
 sem = BoundedSemaphore()
 
 class Server:
@@ -78,17 +78,19 @@ class Server:
             download the url
         :param url: the url need to download
         """
+        time_begin_benchmark = time.time()
         try:
             self.browser.get(url)
             if self.browser.title == u'Amazon.com Sign In':
                 self.fill_login_form()
-            WebDriverWait(self.browser, TIMEOUT, 0.05).until(lambda driver: driver.find_element_by_css_selector('div#body div#main div#page-content div div#bottom-content'))
+            WebDriverWait(self.browser, TIMEOUT, 0.05).until(lambda driver: driver.find_element_by_css_selector('div#body div#main div#page-content div#bottom-content'))
         except selenium.common.exceptions.TimeoutException:
             try:
                 WebDriverWait(self.browser, TIMEOUT, 0.05).until(lambda driver: driver.execute_script('return $.active') == 0)
             except selenium.common.exceptions.TimeoutException:
                 print 'Timeout --> {0}'.format(url)
                 return 1
+        print 'time download benchmark: ', time.time() - time_begin_benchmark
 
     def download_page_for_product(self, url):
         try:
@@ -127,7 +129,7 @@ class Server:
         :param dept: dept in the page
         :param url: the dept's url
         """
-        self.download_page(url)
+        self.download_page_for_product(url)
         nodes = self.browser.find_elements_by_xpath('//div[@id="main"]/div[@id="page-content"]/div[@id="currentSales"]/div[starts-with(@id, "privateSale")]')
         print self.browser.current_url
         for node in nodes:
@@ -237,10 +239,9 @@ class Server:
         sale_id = self.url2saleid(url)
         brand, is_new = Category.objects.get_or_create(sale_id=sale_id)
         if is_new:
-            path = self.browser.find_element_by_xpath('//div[@id="main"]/div[@id="page-content"]/div[@id="top-content"]')
+            path = self.browser.find_element_by_css_selector('div#main div#page-content div#top-content')
 #            time.sleep(1)
-#            begin_date = path.find_element_by_xpath('./div[@id="startHeader"]/span[@class="date"]').text # SAT OCT 20
-            begin_date = path.find_element_by_css_selector('div#startHeader span.date').text
+            begin_date = path.find_element_by_css_selector('div#startHeader span.date').text # SAT OCT 20
             begin_time = path.find_element_by_xpath('./div[@id="startHeader"]/span[@class="time"]').text # 9 AM PT
             utc_begintime = self.time_proc(begin_date + ' ' + begin_time.replace('PT', ''))
             brand_info = path.find_element_by_id('upcomingSaleBlurb').text
@@ -275,24 +276,25 @@ class Server:
         :param url: url in the page
         """
 #        time.sleep(0.5)
-#        try:
-#        node = self.browser.find_elements_by_xpath('//div[@id="main"]/div[@id="page-content"]/div/div[@id="top"]/div[@id="salePageDescription"]')
-        node = self.browser.find_elements_by_xpath('//div[@id="main"]/div[@id="page-content"]/div/div[@id="top"]')
-#        except:
-#            category_failed.send(sender=DB + '.brand_page', site=DB, url=url, reason='Url can not be parsed.')
-#            return
+#        node = self.browser.find_element_by_xpath('//div[@id="main"]/div[@id="page-content"]/div/div[@id="top"]/div[@id="salePageDescription"]')
+        node = self.browser.find_element_by_css_selector('div#main div#page-content div')
 
         print node, url
-        sale_title = node[0].find_element_by_xpath('.//div[@id="saleTitle"]').text
-        sale_description = node[0].find_element_by_xpath('.//div[@id="saleDescription"]').text
-        end_date = node[0].find_element_by_xpath('.//div[@id="saleEndTime"]/span[@class="date"]').text # SAT OCT 20
-        end_time = node[0].find_element_by_xpath('.//div[@id="saleEndTime"]/span[@class="time"]').text # 9 AM PT
+        time_begin_benchmark = time.time()
+#        sale_title = node.find_element_by_xpath('.//div[@id="saleTitle"]').text
+#        sale_description = node.find_element_by_xpath('.//div[@id="saleDescription"]').text
+#        end_date = node.find_element_by_xpath('.//div[@id="saleEndTime"]/span[@class="date"]').text # SAT OCT 20
+#        end_time = node.find_element_by_xpath('.//div[@id="saleEndTime"]/span[@class="time"]').text # 9 AM PT
+        sale_title = node.find_element_by_css_selector('div#top div#saleTitle').text
+        sale_description = node.find_element_by_css_selector('div#top div#saleDescription').text
+        end_date = node.find_element_by_css_selector('div#top div#saleEndTime span.date').text # SAT OCT 20
+        end_time = node.find_element_by_css_selector('div#top div#saleEndTime span.time').text # 9 AM PT
         utc_endtime = self.time_proc(end_date + ' ' + end_time.replace('PT', ''))
         try:
-            sale_brand_link = node[0].find_element_by_xpath('.//div[@id="saleBrandLink"]/a').get_attribute('href')
+            sale_brand_link = node.find_element_by_xpath('.//div[@id="saleBrandLink"]/a').get_attribute('href')
         except:
             sale_brand_link = ''
-        num = node[0].find_element_by_xpath('../div[@id="middle"]/div[@id="middleCenter"]/div[@id="numResults"]').text
+        num = node.find_element_by_css_selector('div#middle div#middleCenter div#numResults').text
         num = int(num.split()[0])
         sale_id = self.url2saleid(url)
 
@@ -306,10 +308,11 @@ class Server:
         brand.save()
         category_saved.send(sender=DB + '.parse_category', site=DB, key=sale_id, is_new=is_new, is_updated=not is_new)
 
-        elements = node[0].find_elements_by_xpath('../div[@id="asinbox"]/ul/li[starts-with(@id, "result_")]')
+        elements = node.find_elements_by_xpath('./div[@id="asinbox"]/ul/li[starts-with(@id, "result_")]')
         for ele in elements:
             self.parse_category_product(ele, sale_id, sale_title, dept)
 
+        print 'time proc brand list: ', time.time() - time_begin_benchmark
 
     def parse_category_product(self, element, sale_id, sale_title, dept):
         """.. :py:method::

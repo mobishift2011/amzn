@@ -10,8 +10,12 @@ Provides a meta programmed integrated RPC call for all callers
 from settings import RPC_PORT, CRPC_ROOT, MONGODB_HOST
 from os import listdir
 from os.path import join, abspath, dirname, isdir
-
 from helpers import log
+
+from gevent.coros import Semaphore
+lock = Semaphore()
+from selenium.common.exceptions import *
+import lxml
 
 class RPCServer(object):
     """ :py:class:crawlers.common.rpcserver.RPCServer
@@ -62,8 +66,76 @@ class RPCServer(object):
             return getattr(service, method)(*args, **kwargs)
         else:
             raise ValueError("{crawler} does not seems to a valid crawler".format(**locals()))
-        
-if __name__ == "__main__":
-    zs = RPCServer()
-    #print zs.call('amazon', 'test')
-    #print zs.call('newegg', 'test')
+
+def safe_lock(func,*arg,**kwargs):
+    def wrapper(*arg,**kwargs):
+        lock.acquire()
+        res = func(*arg,**kwargs)
+        lock.release()
+        return res
+    return wrapper
+
+class BaseServer:
+    """.. :py:class:: Server
+    
+    This is zeroRPC server class for ec2 instance to crawl pages.
+
+    """
+    siteurl = ''
+    email = 'huanzhu@favbuy.com'
+    passwd = '4110050209'
+    session.headers = {'Accept-Encoding': 'identity, deflate, compress, gzip',
+                        'Accept': '*/*', 'User-Agent': 'Mozilla/5.0 '}
+
+    def bopen(self,url):
+        """ open url with browser
+        """
+        try:
+            self.browser.get(url)
+        except TimeoutException:
+            return False
+        else:
+            self.html = self.browser.content
+            self.tree = lxml.html.fromstring(self.html)
+            return True
+
+    def ropen(self,url):
+        """ open url with requests
+        """
+        res = self.session.get(url)
+        status_code = res.status_code
+
+        if status_code in [200,301]:
+            self.html = res.text
+            self.tree = lxml.html.fromstring(self.html)
+            return self.tree
+        else:
+            raise HttpError(status_code,url)
+
+    def login(self, email=None, passwd=None):
+        pass
+    
+    @safe_lock
+    def crawl_category(self,target_categorys=[]):
+        """.. :py:method::
+            From top depts, get all the events
+        """
+        pass
+
+    @safe_lock
+    def crawl_listing(self,sale_id,event_url):
+        pass
+
+    @safe_lock
+    def crawl_product(self,product_id,product_url):
+        pass
+
+    def format_url(self,url):
+        if url.startswith('http://'):
+            return url
+        else:
+            return  urllib.basejoin(self.siteurl,url)
+
+if __name__ == '__main__':
+    server = Server()
+

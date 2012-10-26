@@ -68,7 +68,7 @@ class myhabitLogin(object):
             if is_new:
                 brand.dept = dept
                 brand.sale_title = a_title.text
-                brand.image_url = image
+                brand.image_urls = [image]
             brand.soldout = soldout
             brand.update_time = datetime.utcnow()
             brand.save()

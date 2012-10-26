@@ -19,9 +19,13 @@ class zulilyLogin(object):
     def __init__(self):
         self.email = 'huanzhu@favbuy.com'
         self.passwd = '4110050209'
+        self.data = {'login[username]': self.email,'login[password]': self.passwd}
 
     def login(self):
-        ss.get('http://www.zulily.com/auth')
+        ss.post('https://www.zulily.com/auth', data=self.data)
+
+    def check(self):
+        return ss.get('http://www.zulily.com/?tab=girls').url == 'http://www.zulily.com/?tab=girls'
 
     def crawl_category(self):
         depts = ['girls', 'boys', 'women', 'baby-maternity', 'toys-playtime', 'home']
@@ -206,9 +210,7 @@ if __name__ == '__main__':
 #    listing()
 #    product()
 
-    email = 'freesupper_fangren@yahoo.com.cn'
-    passwd = 'forke@me'
-    lgin = myhabitLogin(email, passwd)
+    lgin = zulilyLogin()
     lgin.login()
-    lgin.crawl_category()
+    print lgin.check()
 

@@ -19,6 +19,7 @@ connect(db=DB, alias='myhabit', host=MONGODB_HOST)
 class Category(BaseEvent):
     sale_id = StringField(unique=True)
     dept = ListField(StringField())
+    brand_link = StringField()
     upcoming_title_img = ListField()
 
     meta = {

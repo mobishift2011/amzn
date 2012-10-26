@@ -126,34 +126,51 @@ class Server(BaseServer):
             self._get_all_category(nav,url)
     
     def crawl_listing(self,url):
-        category_key = self.url2category_key(url)
         tree = self.ropen(url)
         for item in tree.xpath('//div[starts-with(@class,"productContainer")]'):
-            brand = item.xpath('.//div[@class="listBrand"]/a')[0].text_content()
             link = item.xpath('.//div[@class="productShortName"]/a')[0]
-            name = link.text_content()
             href = link.get('href')
-            url = self.format_url(href)
             key  = self.url2product_id(href)
+            url = self.format_url(href)
+            product,is_new = Product.objects.get_or_create(pk=key)
+
+            if is_new:
+                product.brand = item.xpath('.//div[@class="listBrand"]/a')[0].text_content()
+                product.category_key = self.url2category_key(url)
+                product.name = link.text_content()
+
             price_spans = item.xpath('.//span')
             for span in price_spans:
                 class_name = span.get('class')
                 value = span.text.replace('\n','').replace(' ','')
                 if class_name == 'priceRetailvalue':
-                    listprice = value
+                    product.listprice = value
                 elif class_name == 'priceBlueflyFinalvalue':
-                    price = value
+                    product.price = value
                 elif class_name == 'priceBlueflyvalue':
-                    bluefly_price =  value
+                    product.bluefly_price =  value
                 
+            soldout = False
             for div in item.xpath('.//div'):
                 if div.get('class') == 'listOutOfStock':
-                    sold_out = True
+                    soldout = True
                     break
+            product.soldout = soldout
+            product.image_urls = ['http://cdn.is.bluefly.com/mgen/Bluefly/eqzoom85.ms?img=%s.pct&outputx=738&outputy=700&level=1&ver=6' %key]
+            debug_info.send(sender=DB + str(product.image_urls))
+            try:
+                product.save()
+            except:
+                raise ValueError("validation failed")
+            else:
+                product_saved.send(sender = "bluefly.parse_listing", 
+                                    site = self.site,
+                                    key = product.key,
+                                    is_new = is_new,                        
+                                    is_updated = not is_new)
 
     def url2product_id(self,href):
         return href.split('/')[-2]
-
 
     def _crawl_product_detail(self,product_id,url):
         """.. :py:method::

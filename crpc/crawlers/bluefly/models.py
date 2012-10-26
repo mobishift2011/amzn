@@ -30,6 +30,7 @@ class Product(BaseProduct):
     name = StringField()
     url = StringField()
     listprice = StringField()
+    product = StringField()
 
     def url(self):
         return url

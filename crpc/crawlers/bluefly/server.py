@@ -26,14 +26,6 @@ import urllib
 import lxml.html
 import time
 
-def safe_lock(func,*arg,**kwargs):
-    def wrapper(*arg,**kwargs):
-        lock.acquire()
-        res = func(*arg,**kwargs)
-        lock.release()
-        return res
-    return wrapper
-
 class Server(BaseServer):
     """.. :py:class:: Server
     This is zeroRPC server class for ec2 instance to crawl pages.
@@ -89,7 +81,6 @@ class Server(BaseServer):
             result.append((name,url))
         return result
 
-
     def url2category_key(self,href):
         return  href.split('/')[-2]
 
@@ -123,7 +114,6 @@ class Server(BaseServer):
                                 is_new = is_new,
                                 is_updated = not is_new)
 
-    @safe_lock
     def crawl_category(self):
         """.. :py:method::
             From top depts, get all the events
@@ -136,9 +126,10 @@ class Server(BaseServer):
             self._get_all_category(nav,url)
     
     def crawl_listig(self,url):
-        key = self.url2category_key(url)
-        category ,is_new = Category.objects.get_or_create(key=key)
-        pass
+        category_key = self.url2category_key(url)
+        tree = self.ropen(url)
+        for item in tree.xpath('//div[@class="productContainer"]'):
+            print 'itme',item
 
     def _crawl_product_detail(self,product_id,url):
         """.. :py:method::
@@ -149,5 +140,6 @@ class Server(BaseServer):
 if __name__ == '__main__':
     server = Server()
     #server._get_all_category('test','http://www.bluefly.com/a/shoes')
-    server.crawl_category()
+    #server.crawl_category()
     #print server.get_navs()
+    print server.crawl_listing('http://www.bluefly.com/Designer-Women/_/N-1pqkZapsz/newarrivals.fly')

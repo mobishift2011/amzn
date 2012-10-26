@@ -26,13 +26,13 @@ class Category(BaseCategory):
     }
 
 class Product(BaseProduct):
-    catns               =   ListField(StringField())
-    sales_rank          =   StringField()
-    vartitle            =   StringField()
+    category_key = StringField()
+    name = StringField()
+    url = StringField()
 
     def url(self):
-        return "http://www.amazon.com/{slug}/dp/{key}/".format(slug=self.slug, key=self.key)
+        return url
 
     meta                =   {
-        "db_alias": "amazon",
+        "db_alias": DB,
     }

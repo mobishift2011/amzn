@@ -120,7 +120,7 @@ class BaseServer:
         pass
     
     @safe_lock
-    def crawl_category(self,target_categorys=[]):
+    def crawl_category(self,*args,**kwargs):
         """.. :py:method::
             From top depts, get all the events
         """

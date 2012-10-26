@@ -406,7 +406,8 @@ class Server:
         if url.startswith('http://'):
             return url
         else:
-            return os.path.join(self.site_url,url)
+            s = urllib.basejoin(self.siteurl,url)
+            return s
 
 if __name__ == '__main__':
     server = Server()

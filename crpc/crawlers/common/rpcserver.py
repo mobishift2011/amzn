@@ -15,7 +15,9 @@ from helpers import log
 from gevent.coros import Semaphore
 lock = Semaphore()
 from selenium.common.exceptions import *
-import lxml
+import lxml.html
+import requests
+import urllib
 
 class RPCServer(object):
     """ :py:class:crawlers.common.rpcserver.RPCServer
@@ -84,6 +86,7 @@ class BaseServer:
     siteurl = ''
     email = 'huanzhu@favbuy.com'
     passwd = '4110050209'
+    session = requests.session()
     session.headers = {'Accept-Encoding': 'identity, deflate, compress, gzip',
                         'Accept': '*/*', 'User-Agent': 'Mozilla/5.0 '}
 

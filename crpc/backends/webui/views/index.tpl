@@ -1,6 +1,7 @@
 
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+%LB, RB = '{{', '}}'
+<html lang="en" ng-app>
   <head>
     <meta charset="utf-8">
     <title>Crawler Monitor, from Favbuy</title>
@@ -17,17 +18,20 @@
     </style>
     <link href="../assets/css/bootstrap-responsive.css" rel="stylesheet">
 
+
+    <script type="text/javascript" charset="utf-8" language="javascript" src="/assets/js/jquery-1.8.2.min.js"></script>
+    <script type="text/javascript" charset="utf-8" language="javascript" src="/assets/js/jquery.dataTables.min.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="/assets/css/DT_bootstrap.css">
+    <script src="/assets/js/angular.min.js"></script>
+    <script src="/assets/js/table.js"></script>
+    <script type="text/javascript" charset="utf-8" language="javascript" src="/assets/js/DT_bootstrap.js"></script>
+
     <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
     <!--[if lt IE 9]>
       <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
 
-    <!-- Le fav and touch icons -->
-    <link rel="shortcut icon" href="../assets/ico/favicon.ico">
-    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="../assets/ico/apple-touch-icon-144-precomposed.png">
-    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="../assets/ico/apple-touch-icon-114-precomposed.png">
-    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="../assets/ico/apple-touch-icon-72-precomposed.png">
-    <link rel="apple-touch-icon-precomposed" href="../assets/ico/apple-touch-icon-57-precomposed.png">
   </head>
 
   <body>
@@ -63,13 +67,39 @@
         <li><a href="#">Control</a></li>
       </ul>
 
+      <div class="container" style="margin-top: 10px" ng-controller="TableCtrl"> 
+        <table cellpadding="0" cellspacing="0" border="0" class="table table-striped table-bordered" id="example">
+          <thead>
+            <tr>
+              <th>Task</th>
+              <th>Status</th>
+              <th>Started At</th>
+              <th>Updated At</th>
+              <th>Dones</th>
+              <th>Updates</th>
+              <th>News</th>
+              <th>Fails</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr ng-repeat="task in tasks">
+              <td>{{LB}}task.name{{RB}}</td>
+              <td>{{LB}}task.status{{RB}}</td>
+              <td>{{LB}}task.started_at{{RB}}</td>
+              <td>{{LB}}task.updated_at{{RB}}</td>
+              <td>{{LB}}task.dones{{RB}}</td>
+              <td>{{LB}}task.updates{{RB}}</td>
+              <td>{{LB}}task.news{{RB}}</td>
+              <td>{{LB}}task.fails{{RB}}</td>
+            </tr>
+          </tbody>
+        </table>            
+      </div>
     </div> <!-- /container -->
 
     <!-- Le javascript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
-    <script src="../assets/js/jquery-1.8.2.min.js"></script>
-    <script src="../assets/js/bootstrap.min.js"></script>
 
   </body>
 </html>

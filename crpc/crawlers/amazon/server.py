@@ -33,88 +33,98 @@ class Server:
         """ crawl all category info """
         catns1 = ROOT_CATN.itervalues()
         catns2 = (c.catn for c in Category.objects().only('catn'))
+        pool = Pool(30)
         for catn in chain(catns1, catns2):
-            url = catn2url(catn)+'&page=1'
+            pool.spawn(self._crawl_category, catn)
 
-            content = self.fetch_page(url)
-            t = lxml.html.fromstring(content)
+    def _crawl_category(self, catn):
+        url = catn2url(catn)+'&page=1'
 
-            is_new = False
-            c = Category.objects(catn=catn).first()
-            if not c:
-                c = Category(catn=catn)
-                is_new = True
+        content = self.fetch_page(url)
+        t = lxml.html.fromstring(content)
 
-            c.update_time = datetime.utcnow()
+        is_new = False
+        c = Category.objects(catn=catn).first()
+        if not c:
+            c = Category(catn=catn)
+            is_new = True
+
+        c.update_time = datetime.utcnow()
         
-            delimitter = u'\xa0'
+        delimitter = u'\xa0'
         
+        try:
             catlist = t.xpath('//div[@id="leftNavContainer"]//ul')[0].xpath(".//li")
-            if delimitter not in catlist[-1].text_content():
-                c.is_leaf = True
+        except Exception as e:
+            category_failed.send(sender = 'category_failed',
+                                    site = 'amazon',
+                                    key = url,
+                                    reason = repr(e))
+            return
+        if delimitter not in catlist[-1].text_content():
+            c.is_leaf = True
         
-            # format1: Showing 25 - 48 of 496 Results
-            # format2: Showing 4 Results
-            try:
-                resultcount = t.xpath('//*[@id="resultCount"]')[0].text_content()
-            except:
-                # format3: Should Get Page2 to get this info
-                url = url[:-1]+'2'
-                content = self.s.get(url).content
-                t = lxml.html.fromstring(content)
-                resultcount = t.xpath('//*[@id="resultCount"]')[0].text_content()
+        # format1: Showing 25 - 48 of 496 Results
+        # format2: Showing 4 Results
+        try:
+            resultcount = t.xpath('//*[@id="resultCount"]')[0].text_content()
+        except:
+            # format3: Should Get Page2 to get this info
+            url = url[:-1]+'2'
+            content = self.s.get(url).content
+            t = lxml.html.fromstring(content)
+            resultcount = t.xpath('//*[@id="resultCount"]')[0].text_content()
 
-            m = re.compile(r'Showing \d+ - (\d+) of ([0-9,]+) Results').search(resultcount)
-            if not m:
-                m = re.compile(r'Showing (\d+) Results?').search(resultcount)
-                num = int(m.group(1))
-                pagesize = 24
+        m = re.compile(r'Showing \d+ - (\d+) of ([0-9,]+) Results').search(resultcount)
+        if not m:
+            m = re.compile(r'Showing (\d+) Results?').search(resultcount)
+            num = int(m.group(1))
+            pagesize = 24
+        else:
+            pagesize = int(m.group(1))/2
+            num = int(m.group(2).replace(',',''))
+
+        is_updated = False
+        for name in ['num', 'pagesize']:
+            if getattr(c, name) != locals()[name]:
+                setattr(c, name, locals()[name])
+                is_updated = True
+
+        # extracting cats info
+        c.cats = []
+        for cat in catlist:
+            catraw = cat.text_content().strip()
+            if delimitter in catraw:
+                c.cats.append(catraw[catraw.find(delimitter)+1:])
             else:
-                pagesize = int(m.group(1))/2
-                num = int(m.group(2).replace(',',''))
+                c.cats.append(catraw)
 
-            is_updated = False
-            for name in ['num', 'pagesize']:
-                if getattr(c, name) != locals()[name]:
-                    setattr(c, name, locals()[name])
-                    is_updated = True
+                # if delimitter not in catraw
+                # it's the end of category tree
+                break
 
-            # extracting cats info
-            c.cats = []
-            for cat in catlist:
-                catraw = cat.text_content().strip()
-                if delimitter in catraw:
-                    c.cats.append(catraw[catraw.find(delimitter)+1:])
-                else:
-                    c.cats.append(catraw)
+        c.updated = True
+        c.save()
+        category_saved.send(sender = 'amazon.crawl_category',
+                            site = self.site,
+                            key = catn,
+                            is_new = is_new,
+                            is_updated = is_updated)
 
-                    # if delimitter not in catraw
-                    # it's the end of category tree
-                    break
-
-            c.updated = True
-            print 'is_new', is_new
-            c.save()
-            category_saved.send(sender = 'amazon.crawl_category',
-                                site = self.site,
-                                key = catn,
-                                is_new = is_new,
-                                is_updated = is_updated)
-
-            # adding all incomplete categories that can be found in this page
-            for cat in catlist:
-                a = cat.xpath(".//a")
-                if a:
-                    url = a[0].get("href")
-                    catn = url2catn(url)
-                    if not Category.objects(catn=catn):
-                        c = Category(catn=catn)
-                        c.save()
-                        category_saved.send(sender = 'amazon.crawl_category',
-                                            site = self.site,
-                                            key = catn,
-                                            is_new = True,
-                                            is_updated = False)
+        # adding all incomplete categories that can be found in this page
+        for cat in catlist:
+            a = cat.xpath(".//a")
+            if a:
+                url = a[0].get("href")
+                catn = url2catn(url)
+                if not Category.objects(catn=catn):
+                    c = Category(catn=catn)
+                    c.save()
+                    category_saved.send(sender = 'amazon.crawl_category',
+                                        site = self.site,
+                                        key = catn,
+                                        is_new = True,
+                                        is_updated = False)
 
     def crawl_listing(self, url):
         """ crawl listing page """

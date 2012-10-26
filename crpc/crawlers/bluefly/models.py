@@ -29,6 +29,7 @@ class Product(BaseProduct):
     category_key = StringField()
     name = StringField()
     url = StringField()
+    listprice = StringField()
 
     def url(self):
         return url

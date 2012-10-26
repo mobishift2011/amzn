@@ -125,11 +125,35 @@ class Server(BaseServer):
             print nav,url
             self._get_all_category(nav,url)
     
-    def crawl_listig(self,url):
+    def crawl_listing(self,url):
         category_key = self.url2category_key(url)
         tree = self.ropen(url)
-        for item in tree.xpath('//div[@class="productContainer"]'):
-            print 'itme',item
+        for item in tree.xpath('//div[starts-with(@class,"productContainer")]'):
+            brand = item.xpath('.//div[@class="listBrand"]/a')[0].text_content()
+            link = item.xpath('.//div[@class="productShortName"]/a')[0]
+            name = link.text_content()
+            href = link.get('href')
+            url = self.format_url(href)
+            key  = self.url2product_id(href)
+            price_spans = item.xpath('.//span')
+            for span in price_spans:
+                class_name = span.get('class')
+                value = span.text.replace('\n','').replace(' ','')
+                if class_name == 'priceRetailvalue':
+                    listprice = value
+                elif class_name == 'priceBlueflyFinalvalue':
+                    price = value
+                elif class_name == 'priceBlueflyvalue':
+                    bluefly_price =  value
+                
+            for div in item.xpath('.//div'):
+                if div.get('class') == 'listOutOfStock':
+                    sold_out = True
+                    break
+
+    def url2product_id(self,href):
+        return href.split('/')[-2]
+
 
     def _crawl_product_detail(self,product_id,url):
         """.. :py:method::
@@ -142,4 +166,5 @@ if __name__ == '__main__':
     #server._get_all_category('test','http://www.bluefly.com/a/shoes')
     #server.crawl_category()
     #print server.get_navs()
-    print server.crawl_listing('http://www.bluefly.com/Designer-Women/_/N-1pqkZapsz/newarrivals.fly')
+    url = 'http://www.bluefly.com/Designer-Loafers-Flats/_/N-fs8/list.fly'
+    print server.crawl_listing(url)

@@ -82,7 +82,7 @@ class Server:
             self.browser.get(url)
             if self.browser.title == u'Amazon.com Sign In':
                 self.fill_login_form()
-            WebDriverWait(self.browser, TIMEOUT, 0.05).until(lambda driver: driver.find_element_by_class_name('happeningSalesShoveler'))
+            WebDriverWait(self.browser, TIMEOUT, 0.05).until(lambda driver: driver.find_element_by_css_selector('div#body div#main div#page-content div div#bottom-content'))
         except selenium.common.exceptions.TimeoutException:
             try:
                 WebDriverWait(self.browser, TIMEOUT, 0.05).until(lambda driver: driver.execute_script('return $.active') == 0)

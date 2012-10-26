@@ -172,6 +172,7 @@ class Server(object):
             sale_title = tree.xpath('//div[ends-with(@class, "event-content-copy")]/h1/text')
             sale_description = tree.xpath('//div[ends-with(@class, "event-content-copy")]/div[@id="desc-with-expanded"]').text_content()
             start_time = tree.xpath('//div[ends-with(@class, "upcoming-date-reminder")]//span[@class="reminder-text"]/text')
+            
 
 
     def url2saleid(self, url):

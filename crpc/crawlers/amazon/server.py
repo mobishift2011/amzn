@@ -49,7 +49,10 @@ class Server:
         
             delimitter = u'\xa0'
         
-            catlist = t.xpath('//div[@id="leftNavContainer"]//ul')[0].xpath(".//li")
+            try:
+                catlist = t.xpath('//div[@id="leftNavContainer"]//ul')[0].xpath(".//li")
+            except:
+                continue   
             if delimitter not in catlist[-1].text_content():
                 c.is_leaf = True
         
@@ -93,7 +96,6 @@ class Server:
                     break
 
             c.updated = True
-            print 'is_new', is_new
             c.save()
             category_saved.send(sender = 'amazon.crawl_category',
                                 site = self.site,

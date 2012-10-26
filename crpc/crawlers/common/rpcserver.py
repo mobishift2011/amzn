@@ -54,7 +54,7 @@ class RPCServer(object):
         else:
             return service
 
-    def call(self, crawler, method, *args, **kwargs):
+    def call(self, crawler, method, args, kwargs):
         """ this is a router function for crawlers """
         service = self.crawlers[crawler]
 
@@ -64,6 +64,8 @@ class RPCServer(object):
             raise ValueError("{crawler} does not seems to a valid crawler".format(**locals()))
         
 if __name__ == "__main__":
-    zs = RPCServer()
-    #print zs.call('amazon', 'test')
-    #print zs.call('newegg', 'test')
+    from gevent import monkey; monkey.patch_all()
+    import zerorpc
+    zs = zerorpc.Server(RPCServer())
+    zs.bind('tcp://0.0.0.0:1234')
+    zs.run()

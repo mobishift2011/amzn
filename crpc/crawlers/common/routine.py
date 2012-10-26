@@ -131,6 +131,7 @@ def update_listing(site, rpc, concurrency=30):
         rpcs = [rpc] if not isinstance(rpc, list) else rpc
         pool = Pool(len(rpcs)*concurrency)
         for category in spout_listing(site):
+            print 'category',category
             for kwargs in spout_category(site, category):
                 rpc = random.choice(rpcs)
                 pool.spawn(callrpc, rpc,  site, 'crawl_listing', **kwargs)
@@ -145,8 +146,11 @@ def update_product(site, rpc, concurrency=30):
 
 if __name__ == '__main__':
     from rpcserver import RPCServer
+    site = 'ruelala'
+    print spout_listing(site)
     rpc = RPCServer() 
-    update_category('amazon', rpc) 
-    #update_listing('amazon', rpc)
+    update_category(site,rpc)
+    #update_listing('amazon',rpc)
+    #pdate_listing('amazon', rpc)
     #update_product('amazon', rpc)
-    #update_product('myhabit', rpc)
+    #update_category('myhabit', rpc)

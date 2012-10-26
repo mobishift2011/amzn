@@ -125,24 +125,24 @@ class Server(object):
         for node in nodes:
             link = node.xpath('./a[@class="wrapped-link"]').get('href')
             link, lug = self.extract_re.match(link).groups()
-            image = node.xpath('./a/span[@class="homepage-image"]/img').get('src')
-            text = node.xpath('./a/span[@class="txt"]')
-            sale_title = text.xpath('./span[@class="category-name"]/span/text')
-            desc = text.xpath('.//span[@class="description-highlights"]/text')
-            start_end_date = text.xpath('./span[@class="description"]/span[@class="start-end-date"]/span').text_content()
 
-            brand, is_new = Category.objects.get_or_create(sale_id=sale_id)
+            brand, is_new = Category.objects.get_or_create(lug=lug)
             if is_new:
-                brand.sale_title = a_title.text
-                brand.image_url = image
-            if dept not in brand.dept: brand.dept.append(dept) # for designer dept
-            brand.soldout = soldout
+                image = node.xpath('./a/span[@class="homepage-image"]/img').get('src')
+                text = node.xpath('./a/span[@class="txt"]')
+                sale_title = text.xpath('./span[@class="category-name"]/span/text')
+                desc = text.xpath('.//span[@class="description-highlights"]/text')
+                start_end_date = text.xpath('./span[@class="description"]/span[@class="start-end-date"]/span').text_content()
+
+                brand.image_urls = [image]
+                brand.sale_title = sale_title
+                brand.short_desc = desc
+                brand.start_end_date = start_end_date
+            if dept not in brand.dept: brand.dept.append(dept) # events are mixed in different category
             brand.update_time = datetime.utcnow()
             brand.save()
-            category_saved.send(sender=DB + '.get_brand_list', site=DB, key=sale_id, is_new=is_new, is_updated=not is_new)
+            category_saved.send(sender=DB + '.get_brand_list', site=DB, key=lug, is_new=is_new, is_updated=not is_new)
 
-            if dept != 'designer':
-                self.queue.put( (dept, link) )
 
         # upcoming brand
         nodes = self.browser.find_elements_by_xpath('//div[@id="main"]/div[@id="page-content"]/div[@id="upcomingSales"]//div[@class="fourColumnSales"]//div[@class="caption"]/a')

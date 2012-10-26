@@ -91,8 +91,10 @@ class Server(object):
     """
     def __init__(self):
         self.siteurl = 'http://www.zulily.com'
+        self.upcoming_url = 'http://www.zulily.com/upcoming_events'
         self.net = zulilyLogin()
-        self.extract_re = re.compile(r'(http://www.zulily.com/e/(.*).html).*')
+        self.extract_event_re = re.compile(r'(http://www.zulily.com/e/(.*).html).*')
+        self.extract_image_re = re.compile(r'(http://mcdn.zulily.com/images/cache/event/)\d+x\d+/(.+)')
 
 
     def crawl_category(self):
@@ -124,7 +126,7 @@ class Server(object):
         
         for node in nodes:
             link = node.xpath('./a[@class="wrapped-link"]').get('href')
-            link, lug = self.extract_re.match(link).groups()
+            link, lug = self.extract_event_re.match(link).groups()
 
             brand, is_new = Category.objects.get_or_create(lug=lug)
             if is_new:
@@ -144,14 +146,32 @@ class Server(object):
             category_saved.send(sender=DB + '.get_brand_list', site=DB, key=lug, is_new=is_new, is_updated=not is_new)
 
 
-        # upcoming brand
-        nodes = self.browser.find_elements_by_xpath('//div[@id="main"]/div[@id="page-content"]/div[@id="upcomingSales"]//div[@class="fourColumnSales"]//div[@class="caption"]/a')
+    def upcoming_proc(self):
+        """.. :py:method::
+            Get all the upcoming brands info 
+        """
+        upcoming_list = []
+        cont = self.net.fetch_page(self.upcoming_url)
+        tree = lxml.html.fromstring(cont)
+        nodes = tree.xpath('//div[@class="event-content-list-wrapper"]/ul/li/a')
         for node in nodes:
-            l = node.get_attribute('href')
-            link = l if l.startswith('http') else 'http://www.myhabit.com/homepage' + l 
-#            title = node.text
-            self.upcoming_queue.put( (dept, link) )
+            link = node.get('href')
+            text = node.text_content()
+            upcoming_list.append( (text, link) )
+        upcoming_detail(upcoming_list)
 
+
+    def upcoming_detail(self, upcoming_list):
+        """.. :py:method::
+        """
+        for pair in upcoming_list:
+            cont = self.net.fetch_page(pair[1])
+            tree = lxml.html.fromstring(cont)
+            img = tree.xpath('//div[ends-with(@class, "event-content-image")]/img/@src')
+            image = ''.join( self.extract_image_re.match(img) )
+            sale_title = tree.xpath('//div[ends-with(@class, "event-content-copy")]/h1/text')
+            sale_description = tree.xpath('//div[ends-with(@class, "event-content-copy")]/div[@id="desc-with-expanded"]').text_content()
+            start_time = tree.xpath('//div[ends-with(@class, "upcoming-date-reminder")]//span[@class="reminder-text"]/text')
 
 
     def url2saleid(self, url):

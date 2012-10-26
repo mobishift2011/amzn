@@ -87,7 +87,7 @@ class Server:
             try:
                 WebDriverWait(self.browser, TIMEOUT, 0.05).until(lambda driver: driver.execute_script('return $.active') == 0)
             except selenium.common.exceptions.TimeoutException:
-                print 'Timeout --> {1}'.format(url)
+                print 'Timeout --> {0}'.format(url)
                 return 1
 
     def download_page_for_product(self, url):

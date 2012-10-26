@@ -127,11 +127,11 @@ class BaseServer:
         pass
 
     @safe_lock
-    def crawl_listing(self,sale_id,event_url):
+    def crawl_listing(self,*args,**kwargs):
         pass
 
     @safe_lock
-    def crawl_product(self,product_id,product_url):
+    def crawl_product(self,*args,**kwargs):
         pass
 
     def format_url(self,url):

@@ -117,13 +117,13 @@ class Server:
 
             for dept in depts:
                 link = 'http://www.myhabit.com/homepage?#page=g&dept={0}&ref=qd_nav_tab_{0}'.format(dept)
-                self.get_brand_list(dept, link)
+                self.get_event_list(dept, link)
             self.cycle_crawl_category()
             debug_info.send(sender=DB + '.category.end')
             self.browser.quit()
             self._signin = False
 
-    def get_brand_list(self, dept, url):
+    def get_event_list(self, dept, url):
         """.. :py:method::
             Get all the brands from brand list.
             Brand have a list of product.
@@ -156,7 +156,7 @@ class Server:
             brand.soldout = soldout
             brand.update_time = datetime.utcnow()
             brand.save()
-            category_saved.send(sender=DB + '.get_brand_list', site=DB, key=sale_id, is_new=is_new, is_updated=not is_new)
+            category_saved.send(sender=DB + '.get_event_list', site=DB, key=sale_id, is_new=is_new, is_updated=not is_new)
 
             if dept != 'designer':
                 self.queue.put( (dept, link) )
@@ -225,9 +225,10 @@ class Server:
         :param time_str: u'SAT OCT 20 9 AM '
         :rtype: datetime type utc time
         """
+        time_format = '%a %b %d %I %p %Y'
         pt = pytz.timezone('US/Pacific')
         tinfo = time_str + str(pt.normalize(datetime.now(tz=pt)).year)
-        endtime = datetime.strptime(tinfo, '%a %b %d %I %p %Y').replace(tzinfo=pt)
+        endtime = datetime.strptime(tinfo, time_format).replace(tzinfo=pt)
         return pt.normalize(endtime).astimezone(pytz.utc)
     
     def parse_upcoming(self, dept, url):
@@ -381,7 +382,7 @@ class Server:
             try:
                 pre = self.browser.find_element_by_css_selector('div#main div#page-content div#detail-page')
             except selenium.common.exceptions.NoSuchElementException:
-                time.sleep(0.2)
+                time.sleep(0.3)
                 pre = self.browser.find_element_by_css_selector('div#main div#page-content div#detail-page')
             node = pre.find_element_by_css_selector('div#dpLeftCol')
             right_col = pre.find_element_by_css_selector('div#dpRightCol div#innerRightCol')

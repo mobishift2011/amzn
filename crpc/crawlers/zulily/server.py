@@ -107,11 +107,11 @@ class Server(object):
 
         for dept in depts:
             link = 'http://www.zulily.com/?tab={0}'.format(dept)
-            self.get_brand_list(dept, link)
+            self.get_event_list(dept, link)
         self.cycle_crawl_category()
         debug_info.send(sender=DB + '.category.end')
 
-    def get_brand_list(self, dept, url):
+    def get_event_list(self, dept, url):
         """.. :py:method::
             Get all the brands from brand list.
             Brand have a list of product.
@@ -143,7 +143,7 @@ class Server(object):
             if dept not in brand.dept: brand.dept.append(dept) # events are mixed in different category
             brand.update_time = datetime.utcnow()
             brand.save()
-            category_saved.send(sender=DB + '.get_brand_list', site=DB, key=lug, is_new=is_new, is_updated=not is_new)
+            category_saved.send(sender=DB + '.get_event_list', site=DB, key=lug, is_new=is_new, is_updated=not is_new)
 
 
     def upcoming_proc(self):
@@ -166,33 +166,27 @@ class Server(object):
         """
         for pair in upcoming_list:
             cont = self.net.fetch_page(pair[1])
-            tree = lxml.html.fromstring(cont)
-            img = tree.cssselect('div.event-content-wrapper div.event-content-image img')[0].get('src')
+            node = lxml.html.fromstring(cont).cssselect('div.event-content-wrapper')[0]
+            img = node.cssselect('div.event-content-image img')[0].get('src')
             image = ''.join( self.extract_image_re.match(img).groups() )
-            sale_title = tree.cssselect('div.event-content-wrapper div.event-content-copy h1')[0].text_content()
-            sale_description = tree.cssselect('div.event-content-wrapper div.event-content-copy div#desc-with-expanded')[0].text_content().strip()
-            start_time = tree.cssselect('div.event-content-wrapper div.upcoming-date-reminder span.reminder-text')[0].text_content()
-            begin = start_time.split('-')[0].split(' ', 1)[1]
+            sale_title = node.cssselect('div.event-content-copy h1')[0].text_content()
+            sale_description = node.cssselect('div.event-content-copy div#desc-with-expanded')[0].text_content().strip()
+            start_time = node.cssselect('div.upcoming-date-reminder span.reminder-text')[0].text_content() # 'Starts Sat 10/27 6am pt - SET REMINDER'
+            events_begin = self.time_proc( ' '.join( start_time.split(' ', 4)[1:-1] ) )
+
             
-
-
-    def url2saleid(self, url):
+    def time_proc(self, time_str):
         """.. :py:method::
 
-        :param url: the brand's url
-        :rtype: string of sale_id
+        :param time_str: 'Sat 10/27 6am'
+        :rtype: datetime type utc time
         """
-        return re.compile(r'http://www.myhabit.com/homepage\??#page=b&dept=\w+&sale=(\w+)').match(url).group(1)
+        time_format = '%a %m/%d %I%p%Y'
+        pt = pytz.timezone('US/Pacific')
+        tinfo = time_str + str(pt.normalize(datetime.now(tz=pt)).year)
+        endtime = datetime.strptime(tinfo, time_format).replace(tzinfo=pt)
+        return pt.normalize(endtime).astimezone(pytz.utc)
 
-    def url2asin(self, url):
-        """.. :py:method::
-
-        :param url: the product's url
-        :rtype: string of asin, cAsin
-        """
-        m = re.compile(r'http://www.myhabit.com/homepage.*#page=d&dept=\w+&sale=\w+&asin=(\w+)&cAsin=(\w+)').match(url)
-        if not m: print url
-        return m.groups()
 
     def cycle_crawl_category(self, timeover=30):
         """.. :py:method::
@@ -210,7 +204,6 @@ class Server(object):
         :param upcoming: flag to shwo whether it is the upcoming queue or not
         """
         while not queue.empty():
-#            try:
             job = queue.get(timeout=timeover)
             if self.download_page(job[1]) == 1:
                 continue
@@ -218,22 +211,8 @@ class Server(object):
                 self.parse_upcoming(job[0], job[1])
             else:
                 self.parse_category(job[0], job[1])
-#            except Queue.Empty:
-#                debug_info.send(sender="{0}.category:Queue waiting {1} seconds without response!".format(DB, timeover))
-#            except:
-#                debug_info.send(sender=DB + ".category", tracebackinfo=sys.exc_info())
 
 
-    def time_proc(self, time_str):
-        """.. :py:method::
-
-        :param time_str: u'SAT OCT 20 9 AM '
-        :rtype: datetime type utc time
-        """
-        pt = pytz.timezone('US/Pacific')
-        tinfo = time_str + str(pt.normalize(datetime.now(tz=pt)).year)
-        endtime = datetime.strptime(tinfo, '%a %b %d %I %p %Y').replace(tzinfo=pt)
-        return pt.normalize(endtime).astimezone(pytz.utc)
     
     def parse_upcoming(self, dept, url):
         """.. :py:method::

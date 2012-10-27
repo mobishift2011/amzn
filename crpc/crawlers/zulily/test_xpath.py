@@ -129,20 +129,20 @@ class Server(object):
         """
         for pair in upcoming_list:
             cont = self.net.fetch_page(pair[1])
-            tree = lxml.html.fromstring(cont)
+            node = lxml.html.fromstring(cont).cssselect('div.event-content-wrapper')[0]
 #            img = tree.xpath('//div[ends-with(@class, "event-content-image")]/img/@src')[0]
-            img = tree.cssselect('div.event-content-wrapper div.event-content-image img')[0].get('src')
-            image = ''.join( self.extract_image_re.match(img).groups() )
 #            sale_title = tree.xpath('//div[@class="span-5 event-content-copy"]/h1/text()')[0]
 #            sale_description = tree.xpath('//div[@class="span-5 event-content-copy"]/div[@id="desc-with-expanded"]')[0].text_content().strip()
 #            start_time = tree.xpath('//div[@class="pan-9 upcoming-date-reminder]//span[@class="reminder-text"]/text()')[0]
-            sale_title = tree.cssselect('div.event-content-wrapper div.event-content-copy h1')[0].text_content()
-            sale_description = tree.cssselect('div.event-content-wrapper div.event-content-copy div#desc-with-expanded')[0].text_content().strip()
-            start_time = tree.cssselect('div.event-content-wrapper div.upcoming-date-reminder span.reminder-text')[0].text_content() # 'Starts Sat 10/27 6am pt - SET REMINDER'
-            begin_time = ' '.join( start_time.split(' ', 4)[1:-1] )
-            print self.time_proc(begin_time)
+#
+            img = node.cssselect('div.event-content-image img')[0].get('src')
+            image = ''.join( self.extract_image_re.match(img).groups() )
+            sale_title = node.cssselect('div.event-content-copy h1')[0].text_content()
+            sale_description = node.cssselect('div.event-content-copy div#desc-with-expanded')[0].text_content().strip()
+            start_time = node.cssselect('div.upcoming-date-reminder span.reminder-text')[0].text_content() # 'Starts Sat 10/27 6am pt - SET REMINDER'
+            events_begin = self.time_proc( ' '.join( start_time.split(' ', 4)[1:-1] ) )
             
-#            print [image], [sale_title], [sale_description], [begin_time]
+            print [image], [sale_title], [sale_description], [events_begin]
 
 
     def time_proc(self, time_str):
@@ -151,9 +151,10 @@ class Server(object):
         :param time_str: 'Sat 10/27 6am'
         :rtype: datetime type utc time
         """
+        time_format = '%a %m/%d %I%p%Y'
         pt = pytz.timezone('US/Pacific')
         tinfo = time_str + str(pt.normalize(datetime.now(tz=pt)).year)
-        endtime = datetime.strptime(tinfo, '%a %m/%d %I%p%Y').replace(tzinfo=pt)
+        endtime = datetime.strptime(tinfo, time_format).replace(tzinfo=pt)
         return pt.normalize(endtime).astimezone(pytz.utc)
 
 

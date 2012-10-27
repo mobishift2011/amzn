@@ -242,8 +242,12 @@ class Server:
         brand, is_new = Category.objects.get_or_create(sale_id=sale_id)
         if is_new:
             path = self.browser.find_element_by_css_selector('div#main div#page-content div#top-content')
-#            time.sleep(1)
-            begin_date = path.find_element_by_css_selector('div#startHeader span.date').text # SAT OCT 20
+            try:
+                begin_date = path.find_element_by_css_selector('div#startHeader span.date').text # SAT OCT 20
+            except selenium.common.exceptions.NoSuchElementException:
+                time.sleep(1)
+                path = self.browser.find_element_by_css_selector('div#main div#page-content div#top-content')
+                begin_date = path.find_element_by_css_selector('div#startHeader span.date').text # SAT OCT 20
             begin_time = path.find_element_by_xpath('./div[@id="startHeader"]/span[@class="time"]').text # 9 AM PT
             utc_begintime = self.time_proc(begin_date + ' ' + begin_time.replace('PT', ''))
             brand_info = path.find_element_by_id('upcomingSaleBlurb').text

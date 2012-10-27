@@ -10,8 +10,7 @@ import lxml.html
 import requests
 import re
 from datetime import datetime, timedelta
-#from settings import *
-#from models import *
+import pytz
 
 headers = { 'User-Agent': 'Mozilla 5.0/Firefox 16.0.1', }
 config = { 
@@ -19,7 +18,7 @@ config = {
     'pool_connections': 10, 
     'pool_maxsize': 10, 
 }
-req = requests.Session(prefetch=True, timeout=15, config=config, headers=headers)
+req = requests.Session(prefetch=True, timeout=20, config=config, headers=headers)
 
 
 class zulilyLogin(object):
@@ -139,10 +138,24 @@ class Server(object):
 #            start_time = tree.xpath('//div[@class="pan-9 upcoming-date-reminder]//span[@class="reminder-text"]/text()')[0]
             sale_title = tree.cssselect('div.event-content-wrapper div.event-content-copy h1')[0].text_content()
             sale_description = tree.cssselect('div.event-content-wrapper div.event-content-copy div#desc-with-expanded')[0].text_content().strip()
-            start_time = tree.cssselect('div.event-content-wrapper div.upcoming-date-reminder span.reminder-text')[0].text_content()
-            begin = start_time.split('-')[0].split(' ', 1)[1]
-#            print [image], [sale_title], [sale_description], [begin]
-            print [begin]
+            start_time = tree.cssselect('div.event-content-wrapper div.upcoming-date-reminder span.reminder-text')[0].text_content() # 'Starts Sat 10/27 6am pt - SET REMINDER'
+            begin_time = ' '.join( start_time.split(' ', 4)[1:-1] )
+            print self.time_proc(begin_time)
+            
+#            print [image], [sale_title], [sale_description], [begin_time]
+
+
+    def time_proc(self, time_str):
+        """.. :py:method::
+
+        :param time_str: 'Sat 10/27 6am'
+        :rtype: datetime type utc time
+        """
+        pt = pytz.timezone('US/Pacific')
+        tinfo = time_str + str(pt.normalize(datetime.now(tz=pt)).year)
+        endtime = datetime.strptime(tinfo, '%a %m/%d %I%p%Y').replace(tzinfo=pt)
+        return pt.normalize(endtime).astimezone(pytz.utc)
+
 
 
 if __name__ == '__main__':

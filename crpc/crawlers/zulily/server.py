@@ -34,7 +34,7 @@ config = {
     'pool_connections': 10, 
     'pool_maxsize': 10, 
 }
-req = requests.Session(prefetch=True, timeout=15, config=config, headers=headers)
+req = requests.Session(prefetch=True, timeout=17, config=config, headers=headers)
 
 
 class zulilyLogin(object):

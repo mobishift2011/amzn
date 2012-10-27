@@ -12,10 +12,10 @@ if __name__ == '__main__':
     rpc = RPCServer()
     begin = time.time()
     if sys.argv[1] and sys.argv[1] == 'myhabit':
-#        update_category('myhabit', rpc)
+        update_category(sys.argv[1], rpc)
         category_cost = time.time() - begin
         print '\n\n--++ {0} ++--\n\n'.format(category_cost)
-        update_product('myhabit', rpc)
+        update_product(sys.argv[1], rpc)
         product_cost = time.time() - begin
         print '\n\n--++ {0} ++--\n\n'.format(product_cost)
     else:

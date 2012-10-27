@@ -20,7 +20,7 @@ config = {
     'pool_connections': 10, 
     'pool_maxsize': 10, 
 }
-request = requests.Session(prefetch=True, timeout=15, config=config, headers=headers)
+request = requests.Session(prefetch=True, timeout=17, config=config, headers=headers)
 
 
 def progress(msg='.'):

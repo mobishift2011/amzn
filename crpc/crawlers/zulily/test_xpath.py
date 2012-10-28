@@ -146,7 +146,7 @@ class Server(object):
             ics_file = self.net.fetch_page(calendar_file)
             m = re.compile(r'URL:http://www.zulily.com/e/(.+).html.*').search(ics_file)
             lug = m.group(1)
-            print [image], [sale_title], [sale_description], [events_begin]
+            print [image], [sale_title], [sale_description], [events_begin], [lug]
 
 
     def time_proc(self, time_str):

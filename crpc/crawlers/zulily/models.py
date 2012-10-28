@@ -21,14 +21,13 @@ class Category(BaseEvent):
     dept = ListField(StringField())
     short_desc = StringField()
     start_end_date = StringField()
-    upcoming_title_img = ListField()
 
     meta = {
         "db_alias": DB,
     }
 
     def url(self):
-        return 'http://www.zulily.com/e/{0}'.format(self.lug)
+        return 'http://www.zulily.com/e/{0}.html'.format(self.lug)
 
 
 class Product(BaseProduct):

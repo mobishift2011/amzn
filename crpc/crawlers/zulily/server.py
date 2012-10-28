@@ -105,6 +105,7 @@ class Server(object):
         self.queue = Queue.Queue()
         debug_info.send(sender=DB + '.category.begin')
 
+        self.upcoming_proc()
         for dept in depts:
             link = 'http://www.zulily.com/?tab={0}'.format(dept)
             self.get_event_list(dept, link)
@@ -133,14 +134,15 @@ class Server(object):
                 image = ''.join( self.extract_image_re.match(img).groups() )
                 text = node.xpath('./a/span[@class="txt"]')[0]
                 sale_title = text.xpath('./span[@class="category-name"]/span/text()')[0]
-                desc = text.xpath('.//span[@class="description-highlights"]/text()')[0].strip()
-                start_end_date = text.xpath('./span[@class="description"]/span[@class="start-end-date"]/span')[0].text_content().strip()
 
                 brand.image_urls = [image]
                 brand.sale_title = sale_title
-                brand.short_desc = desc
-                brand.start_end_date = start_end_date
             if dept not in brand.dept: brand.dept.append(dept) # events are mixed in different category
+            desc = text.xpath('.//span[@class="description-highlights"]/text()')[0].strip()
+            start_end_date = text.xpath('./span[@class="description"]/span[@class="start-end-date"]/span')[0].text_content().strip()
+            brand.short_desc = desc
+            brand.start_end_date = start_end_date
+            brand,is_leaf = True
             brand.update_time = datetime.utcnow()
             brand.save()
             category_saved.send(sender=DB + '.get_event_list', site=DB, key=lug, is_new=is_new, is_updated=not is_new)
@@ -167,14 +169,25 @@ class Server(object):
         for pair in upcoming_list:
             cont = self.net.fetch_page(pair[1])
             node = lxml.html.fromstring(cont).cssselect('div.event-content-wrapper')[0]
-            img = node.cssselect('div.event-content-image img')[0].get('src')
-            image = ''.join( self.extract_image_re.match(img).groups() )
-            sale_title = node.cssselect('div.event-content-copy h1')[0].text_content()
-            sale_description = node.cssselect('div.event-content-copy div#desc-with-expanded')[0].text_content().strip()
-            start_time = node.cssselect('div.upcoming-date-reminder span.reminder-text')[0].text_content() # 'Starts Sat 10/27 6am pt - SET REMINDER'
-            events_begin = self.time_proc( ' '.join( start_time.split(' ', 4)[1:-1] ) )
             calendar_file = node.cssselect('div.upcoming-date-reminder a.reminder-ical')[0].get('href')
             ics_file = self.net.fetch_page(calendar_file)
+            lug = re.compile(r'URL:http://www.zulily.com/e/(.+).html.*').search(ics_file).group(1)
+            brand, is_new = Category.objects.get_or_create(lug=lug)
+            if is_new:
+                img = node.cssselect('div.event-content-image img')[0].get('src')
+                image = ''.join( self.extract_image_re.match(img).groups() )
+                sale_title = node.cssselect('div.event-content-copy h1')[0].text_content()
+                sale_description = node.cssselect('div.event-content-copy div#desc-with-expanded')[0].text_content().strip()
+                start_time = node.cssselect('div.upcoming-date-reminder span.reminder-text')[0].text_content() # 'Starts Sat 10/27 6am pt - SET REMINDER'
+                events_begin = self.time_proc( ' '.join( start_time.split(' ', 4)[1:-1] ) )
+
+                brand.image_urls = [image]
+                brand.sale_title = sale_title 
+                brand.sale_description = sale_description
+                brand.events_begin = events_begin
+                brand.update_time = datetime.utcnow()
+                brand.save()
+                category_saved.send(sender=DB + '.upcoming_detail', site=DB, key=lug, is_new=is_new, is_updated=not is_new)
 
             
     def time_proc(self, time_str):
@@ -190,71 +203,6 @@ class Server(object):
         return endtime.astimezone(pytz.utc)
 
 
-    def cycle_crawl_category(self, timeover=30):
-        """.. :py:method::
-            read (category, link) tuple from queue, crawl sub-category, insert into the queue
-
-        :param timeover: timeout in queue.get
-        """
-        self.queue_get_parse(self.upcoming_queue, timeover, upcoming=True)
-        self.queue_get_parse(self.queue, timeover)
-
-    def queue_get_parse(self, queue, timeover, upcoming=False):
-        """.. :py:method::
-            get queue and parse the brand page
-        :param queue: upcoming brand queue or brand page queue
-        :param upcoming: flag to shwo whether it is the upcoming queue or not
-        """
-        while not queue.empty():
-            job = queue.get(timeout=timeover)
-            if self.download_page(job[1]) == 1:
-                continue
-            if upcoming:
-                self.parse_upcoming(job[0], job[1])
-            else:
-                self.parse_category(job[0], job[1])
-
-
-    
-    def parse_upcoming(self, dept, url):
-        """.. :py:method::
-            upcoming brand page parsing
-            upcoming brand also have duplicate designer
-
-        :param dept: dept in the page
-        :param url: url in the page
-        """
-        sale_id = self.url2saleid(url)
-        brand, is_new = Category.objects.get_or_create(sale_id=sale_id)
-        if is_new:
-            path = self.browser.find_element_by_xpath('//div[@id="main"]/div[@id="page-content"]/div[@id="top-content"]')
-            begin_date = path.find_element_by_xpath('./div[@id="startHeader"]/span[@class="date"]').text # SAT OCT 20
-            begin_time = path.find_element_by_xpath('./div[@id="startHeader"]/span[@class="time"]').text # 9 AM PT
-            utc_begintime = self.time_proc(begin_date + ' ' + begin_time.replace('PT', ''))
-            brand_info = path.find_element_by_id('upcomingSaleBlurb').text
-            img = path.find_element_by_xpath('./div[@class="upcomingSaleHero"]/div[@class="image"]/img').get_attribute('src')
-            sale_title = path.find_element_by_xpath('./div[@class="upcomingSaleHero"]/div[@class="image"]/img').get_attribute('alt')
-            subs = []
-            for sub in path.find_elements_by_xpath('./div[@id="asinbox"]/ul/li'):
-                sub_title = sub.find_element_by_class_name('title').text
-                sub_img = sub.find_element_by_xpath('./img').get_attribute('src')
-                subs.append([sub_title, sub_img])
-
-            brand.dept = [dept]
-            brand.sale_title = sale_title
-            brand.image_url = img
-            brand.events_begin = utc_begintime
-            brand.sale_description = brand_info
-            brand.upcoming_title_img = subs
-            brand.update_time = datetime.utcnow()
-            brand.save()
-        else:
-            if dept not in brand.dept:
-                brand.dept.append(dept)
-                brand.save()
-        category_saved.send(sender=DB + '.parse_upcoming', site=DB, key=sale_id, is_new=is_new, is_updated=not is_new)
-
-
     def parse_category(self, dept, url):
         """.. :py:method::
             Brand page parsing
@@ -262,14 +210,7 @@ class Server(object):
         :param dept: dept in the page
         :param url: url in the page
         """
-#        try:
-#        node = self.browser.find_elements_by_xpath('//div[@id="main"]/div[@id="page-content"]/div/div[@id="top"]/div[@id="salePageDescription"]')
         node = self.browser.find_elements_by_xpath('//div[@id="main"]/div[@id="page-content"]/div/div[@id="top"]')
-#        except:
-#            category_failed.send(sender=DB + '.brand_page', site=DB, url=url, reason='Url can not be parsed.')
-#            return
-
-        print node, url
         sale_title = node[0].find_element_by_xpath('.//div[@id="saleTitle"]').text
         sale_description = node[0].find_element_by_xpath('.//div[@id="saleDescription"]').text
         end_date = node[0].find_element_by_xpath('.//div[@id="saleEndTime"]/span[@class="date"]').text # SAT OCT 20
@@ -338,7 +279,7 @@ class Server(object):
         debug_info.send(sender="myhabit.parse_category_product", title=title, sale_id=sale_id, asin=asin, casin=casin)
 
 
-    def crawl_listing(self):
+    def crawl_listing(self, url):
         """.. :py:method::
             not implement
         """
@@ -415,6 +356,8 @@ class Server(object):
         
 
 if __name__ == '__main__':
-    server = zerorpc.Server(Server())
-    server.bind("tcp://0.0.0.0:{0}".format(RPC_PORT))
-    server.run()
+#    server = zerorpc.Server(Server())
+#    server.bind("tcp://0.0.0.0:{0}".format(RPC_PORT))
+#    server.run()
+    s = Server()
+    s.crawl_category()

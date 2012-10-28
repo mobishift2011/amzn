@@ -228,8 +228,8 @@ class Server:
         time_format = '%a %b %d %I %p %Y'
         pt = pytz.timezone('US/Pacific')
         tinfo = time_str + str(pt.normalize(datetime.now(tz=pt)).year)
-        endtime = datetime.strptime(tinfo, time_format).replace(tzinfo=pt)
-        return pt.normalize(endtime).astimezone(pytz.utc)
+        endtime = pt.localize(datetime.strptime(tinfo, time_format))
+        return endtime.astimezone(pytz.utc)
     
     def parse_upcoming(self, dept, url):
         """.. :py:method::

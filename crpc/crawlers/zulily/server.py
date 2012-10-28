@@ -173,6 +173,8 @@ class Server(object):
             sale_description = node.cssselect('div.event-content-copy div#desc-with-expanded')[0].text_content().strip()
             start_time = node.cssselect('div.upcoming-date-reminder span.reminder-text')[0].text_content() # 'Starts Sat 10/27 6am pt - SET REMINDER'
             events_begin = self.time_proc( ' '.join( start_time.split(' ', 4)[1:-1] ) )
+            calendar_file = node.cssselect('div.upcoming-date-reminder a.reminder-ical')[0].get('href')
+            ics_file = self.net.fetch_page(calendar_file)
 
             
     def time_proc(self, time_str):
@@ -184,8 +186,8 @@ class Server(object):
         time_format = '%a %m/%d %I%p%Y'
         pt = pytz.timezone('US/Pacific')
         tinfo = time_str + str(pt.normalize(datetime.now(tz=pt)).year)
-        endtime = datetime.strptime(tinfo, time_format).replace(tzinfo=pt)
-        return pt.normalize(endtime).astimezone(pytz.utc)
+        endtime =  pt.localize(datetime.strptime(tinfo, time_format))
+        return endtime.astimezone(pytz.utc)
 
 
     def cycle_crawl_category(self, timeover=30):

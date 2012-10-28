@@ -142,6 +142,10 @@ class Server(object):
             start_time = node.cssselect('div.upcoming-date-reminder span.reminder-text')[0].text_content() # 'Starts Sat 10/27 6am pt - SET REMINDER'
             events_begin = self.time_proc( ' '.join( start_time.split(' ', 4)[1:-1] ) )
             
+            calendar_file = node.cssselect('div.upcoming-date-reminder a.reminder-ical')[0].get('href')
+            ics_file = self.net.fetch_page(calendar_file)
+            m = re.compile(r'URL:http://www.zulily.com/e/(.+).html.*').search(ics_file)
+            lug = m.group(1)
             print [image], [sale_title], [sale_description], [events_begin]
 
 
@@ -154,8 +158,8 @@ class Server(object):
         time_format = '%a %m/%d %I%p%Y'
         pt = pytz.timezone('US/Pacific')
         tinfo = time_str + str(pt.normalize(datetime.now(tz=pt)).year)
-        endtime = datetime.strptime(tinfo, time_format).replace(tzinfo=pt)
-        return pt.normalize(endtime).astimezone(pytz.utc)
+        endtime = pt.localize(datetime.strptime(tinfo, time_format))
+        return endtime.astimezone(pytz.utc)
 
 
 

@@ -93,9 +93,10 @@ class Server(object):
         self.siteurl = 'http://www.zulily.com'
         self.upcoming_url = 'http://www.zulily.com/upcoming_events'
         self.net = zulilyLogin()
-        self.extract_event_re = re.compile(r'(http://www.zulily.com/e/(.*).html).*')
-        self.extract_image_re = re.compile(r'(http://mcdn.zulily.com/images/cache/event/)\d+x\d+/(.+)')
-
+        self.extract_event_lug = re.compile(r'(http://www.zulily.com/e/(.*).html).*')
+        self.extract_event_img = re.compile(r'(http://mcdn.zulily.com/images/cache/event/)\d+x\d+/(.+)')
+        self.extract_product_img = re.compile(r'(http://mcdn.zulily.com/images/cache/product/)\d+x\d+/(.+)')
+        self.extract_product_re = re.compile(r'http://www.zulily.com/p/(.+).html.*')
 
     def crawl_category(self):
         """.. :py:method::
@@ -109,7 +110,6 @@ class Server(object):
         for dept in depts:
             link = 'http://www.zulily.com/?tab={0}'.format(dept)
             self.get_event_list(dept, link)
-        self.cycle_crawl_category()
         debug_info.send(sender=DB + '.category.end')
 
     def get_event_list(self, dept, url):
@@ -126,12 +126,12 @@ class Server(object):
         
         for node in nodes:
             link = node.xpath('./a[@class="wrapped-link"]')[0].get('href')
-            link, lug = self.extract_event_re.match(link).groups()
+            link, lug = self.extract_event_lug.match(link).groups()
 
             brand, is_new = Category.objects.get_or_create(lug=lug)
             if is_new:
                 img = node.xpath('./a/span[@class="homepage-image"]/img/@src')[0]
-                image = ''.join( self.extract_image_re.match(img).groups() )
+                image = ''.join( self.extract_event_img.match(img).groups() )
                 text = node.xpath('./a/span[@class="txt"]')[0]
                 sale_title = text.xpath('./span[@class="category-name"]/span/text()')[0]
 
@@ -162,7 +162,6 @@ class Server(object):
             upcoming_list.append( (text, link) )
         self.upcoming_detail(upcoming_list)
 
-
     def upcoming_detail(self, upcoming_list):
         """.. :py:method::
         """
@@ -175,7 +174,7 @@ class Server(object):
             brand, is_new = Category.objects.get_or_create(lug=lug)
             if is_new:
                 img = node.cssselect('div.event-content-image img')[0].get('src')
-                image = ''.join( self.extract_image_re.match(img).groups() )
+                image = ''.join( self.extract_event_img.match(img).groups() )
                 sale_title = node.cssselect('div.event-content-copy h1')[0].text_content()
                 sale_description = node.cssselect('div.event-content-copy div#desc-with-expanded')[0].text_content().strip()
                 start_time = node.cssselect('div.upcoming-date-reminder span.reminder-text')[0].text_content() # 'Starts Sat 10/27 6am pt - SET REMINDER'
@@ -188,7 +187,6 @@ class Server(object):
                 brand.update_time = datetime.utcnow()
                 brand.save()
                 category_saved.send(sender=DB + '.upcoming_detail', site=DB, key=lug, is_new=is_new, is_updated=not is_new)
-
             
     def time_proc(self, time_str):
         """.. :py:method::
@@ -203,87 +201,66 @@ class Server(object):
         return endtime.astimezone(pytz.utc)
 
 
-    def parse_category(self, dept, url):
+    def crawl_listing(self, url):
         """.. :py:method::
-            Brand page parsing
-
-        :param dept: dept in the page
-        :param url: url in the page
+            from url get listing page.
+            from listing page get Eventi's description, endtime, number of products.
+            Get all product's image, url, title, price, soldout
         """
-        node = self.browser.find_elements_by_xpath('//div[@id="main"]/div[@id="page-content"]/div/div[@id="top"]')
-        sale_title = node[0].find_element_by_xpath('.//div[@id="saleTitle"]').text
-        sale_description = node[0].find_element_by_xpath('.//div[@id="saleDescription"]').text
-        end_date = node[0].find_element_by_xpath('.//div[@id="saleEndTime"]/span[@class="date"]').text # SAT OCT 20
-        end_time = node[0].find_element_by_xpath('.//div[@id="saleEndTime"]/span[@class="time"]').text # 9 AM PT
-        utc_endtime = self.time_proc(end_date + ' ' + end_time.replace('PT', ''))
-        try:
-            sale_brand_link = node[0].find_element_by_xpath('.//div[@id="saleBrandLink"]/a').get_attribute('href')
-        except:
-            sale_brand_link = ''
-        num = node[0].find_element_by_xpath('../div[@id="middle"]/div[@id="middleCenter"]/div[@id="numResults"]').text
-        num = int(num.split()[0])
-        sale_id = self.url2saleid(url)
+        cont = self.net.fetch_page(url)
+        tree = lxml.html.fromstring(cont)
+        node = tree.cssselect('div.container>div#main>div#category-view')[0]
+        lug = self.extract_event_lug.match(url).group(2)
+        brand, is_new = Category.objects.get_or_create(lug=lug)
+        if is_new or brand.sale_description is None:
+            brand.sale_description = node.cssselect('div#category-description>div#desc-with-expanded')[0].text_content().strip()
 
-        brand, is_new = Category.objects.get_or_create(sale_id=sale_id)
-        # crawl infor before, so always not new
-        brand.sale_description = sale_description
-        brand.events_end = utc_endtime
-        if sale_brand_link: brand.brand_link = sale_brand_link
-        brand.num = num
+        items = node.cssselect('div#products-grid li.item'):
+        end_date = node.cssselect('div#new-content-header>div.end-date')[0].text_content().strip()
+        end_date = end_date[end_date.find('in')+2:].strip() # '2 hours' or '1 day(s) 3 hours'
+        days = int(end_date.split()[0]) if 'day' in end_date else 0
+        hours = int(end_date.split()[-2]) if 'hour' in end_date else 0
+        brand.events_end = datetime.utcnow() + timedelta(days=days, hours=hours)
+        brand.num = len(items)
         brand.update_time = datetime.utcnow()
         brand.save()
-        category_saved.send(sender=DB + '.parse_category', site=DB, key=sale_id, is_new=is_new, is_updated=not is_new)
+        category_saved.send(sender=DB + '.crawl_listing', site=DB, key=lug, is_new=is_new, is_updated=not is_new)
 
-        elements = node[0].find_elements_by_xpath('../div[@id="asinbox"]/ul/li[starts-with(@id, "result_")]')
-        for ele in elements:
-            self.parse_category_product(ele, sale_id, sale_title, dept)
+        for item in items:
+            self.crawl_list_product(item)
 
 
-    def parse_category_product(self, element, sale_id, sale_title, dept):
+    def crawl_list_product(self, item)
         """.. :py:method::
-            Brand page, product parsing
+            Get all product's image, url, title, price, soldout
 
-        :param element: product's xpath element
-        :param sale_title: as brand pass to product
+        :param item: item of xml node
         """
-        try:
-            element.find_element_by_class_name('soldout')
-        except:
-            soldout = False
-        else: soldout = True
-        l = element.find_element_by_class_name('evt-prdtDesc-a').get_attribute('href')
-        link = l if l.startswith('http') else 'http://www.myhabit.com/homepage' + l
-        title = element.find_element_by_class_name('title').text
-        try:
-            listprice = element.find_element_by_class_name('listprice').text.replace('$', '').replace(',', '')
-        except:
-            listprice = ''
-        ourprice = element.find_element_by_class_name('ourprice').text.replace('$', '').replace(',', '')
-#        img = element.find_element_by_class_name('iImg').get_attribute('src')
-
-        asin, casin = self.url2asin(link)
-        product, is_new = Product.objects.get_or_create(pk=casin)
+        title_link = item.cssselect('div.product-name>a[title]')[0]
+        title = title_link.get('title')
+        link = title_link.get('href')
+        lug = self.extract_product_re.match(link).group(1)
+        product, is_new = Product.objects.get_or_create(pk=lug)
         if is_new:
-            product.dept = dept
-            product.sale_id = sale_id
-            product.brand = sale_title
-            product.asin = asin
+            img = item.cssselect('a.product-image>img')[0].get('src')
+            image = ''.join( self.extract_product_img.match(img).groups() )
+            product.image_urls = [image]
             product.title = title
-        product.price = ourprice
-        if listprice: product.listprice = listprice
-        product.soldout = soldout
+
+        price_box = item.cssselect('a>div.price-boxConfig')[0]
+        special_price = price_box.cssselect('div.special-price')[0].strip().replace('$','').replace(',','')
+        listprice = price_box.cssselect('div.old-price')[0].replace('original','').strip().replace('$','').replace(',','')
+        soldout = item.cssselect('a.product-image>span.sold-out')
+#        product.brand = sale_title
+        product.price = special_price
+        product.listprice = listprice
+        if soldout: product.soldout = True
         product.updated = False
         product.list_update_time = datetime.utcnow()
         product.save()
-        product_saved.send(sender=DB + '.parse_category', site=DB, key=casin, is_new=is_new, is_updated=not is_new)
-        debug_info.send(sender="myhabit.parse_category_product", title=title, sale_id=sale_id, asin=asin, casin=casin)
+        product_saved.send(sender=DB + '.crawl_listing', site=DB, key=lug, is_new=is_new, is_updated=not is_new)
+        debug_info.send(sender=DB + ".crawl_listing", url=url)
 
-
-    def crawl_listing(self, url):
-        """.. :py:method::
-            not implement
-        """
-        pass
 
     def crawl_product(self, url, casin):
         """.. :py:method::
@@ -291,11 +268,6 @@ class Server(object):
 
         :param url: product url
         """
-        self.check_signin()
-        if self.download_page(url) == 1: return
-        node = self.browser.find_element_by_xpath('//div[@id="main"]/div[@id="page-content"]/div[@id="detail-page"]/div[@id="dpLeftCol"]')
-        shortDesc = node.find_element_by_class_name('shortDesc').text
-
         international_shipping = node.find_element_by_id('intlShippableBullet').text
         returned = node.find_element_by_id('returnPolicyBullet').text
 

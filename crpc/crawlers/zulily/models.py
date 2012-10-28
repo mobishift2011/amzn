@@ -32,9 +32,6 @@ class Category(BaseEvent):
 
 class Product(BaseProduct):
 #    key = StringField(unique=True, spare=True)
-    dept = StringField()
-    sale_id = StringField()
-    asin = StringField()
     listprice = StringField()
     soldout = BooleanField()
 
@@ -42,7 +39,6 @@ class Product(BaseProduct):
     color = StringField()
     sizes = ListField(StringField())
 
-    video = StringField()
     international_shipping = StringField()
     returned = StringField()
     scarcity = StringField()
@@ -53,4 +49,4 @@ class Product(BaseProduct):
     }
 
     def url(self):
-        return 'http://www.myhabit.com/homepage#page=d&dept={0}&sale={1}&asin={2}&cAsin={3}'.format(self.dept, self.sale_id, self.asin, self.key)
+        return 'http://www.zulily.com/p/{0}.html'.format(self.key)

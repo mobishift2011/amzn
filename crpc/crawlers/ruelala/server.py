@@ -78,11 +78,11 @@ class Server:
             #self.browser = webdriver.Firefox()
         except:
             self.browser = webdriver.Firefox()
-            self.browser.set_page_load_timeout(10)
+            #self.browser.set_page_load_timeout(10)
             #self.profile = webdriver.FirefoxProfile()
             #self.profile.set_preference("general.useragent.override","Mozilla/5.0 (iPhone; CPU iPhone OS 5_1_1 like Mac OS X) AppleWebKit/534.46 (KHTML, like Gecko) Version/5.1 Mobile/9B206 Safari/7534.48.3")
 
-        #self.browser.implicitly_wait(2)
+        self.browser.implicitly_wait(2)
         self.browser.get(self.siteurl)
         time.sleep(3)
         
@@ -165,7 +165,7 @@ class Server:
             return '%s' %date
 
         result = []
-        if not self.get(url):
+        if not self.browser.get(url):
             return result
 
         try:
@@ -332,26 +332,29 @@ class Server:
         except:
             time.sleep(3)
         
-        start = time.time()
+        point1= time.time()
         image_urls = []
         # TODO imgDetail
         imgs_node = self.browser.find_element_by_css_selector('section#productImages')
         first_img_url = imgs_node.find_element_by_css_selector('img#imgZoom').get_attribute('href')
-
         try:
             img_count = len(imgs_node.find_elements_by_css_selector('div#imageThumbWrapper img'))
         except:
             img_count = 1
         img_urls = self._make_img_urls(product_id,img_count)
-
+        print 'parse img urls used',time.time() - point1
+        
+        point2 = time.time()
         list_info = []
         for li in self.browser.find_elements_by_css_selector('section#info ul li'):
             list_info.append(li.text)
+        print 'parse list info used',time.time() - point2
         
         #########################
         # section 2 productAttributes
         #########################
-
+        
+        point3 = time.time()
         attribute_node = self.browser.find_elements_by_css_selector('section#productAttributes.floatLeft')[0]
         sizes = {}
         for a in attribute_node.find_elements_by_css_selector('ul#sizeSwatches li.swatch a.normal'):
@@ -364,18 +367,23 @@ class Server:
             sizes.update({key:left})
 
         print 'sizes',sizes
+        print 'parse sizes used ',time.time() - point3
+        
+        point4 = time.time()
         shipping = attribute_node.find_element_by_id('readyToShip').text
         limit = attribute_node.find_element_by_css_selector('div#cartLimit').text
         price = attribute_node.find_element_by_id('salePrice').text
         listprice  = attribute_node.find_element_by_id('strikePrice').text
+        print 'parse other userd',time.time() - point4
         
+        point5 = time.time()
         product, is_new = Product.objects.get_or_create(key=str(product_id))
         if is_new:
             product.shipping = shipping
             product.image_urls = image_urls
             product.list_info = info_table
 
-        product.sizes = sizes
+        product.sizes_scarcity = sizes
         product.price = price
         product.listprice = listprice
         product.shipping = shipping
@@ -383,7 +391,9 @@ class Server:
         product.updated = True
         product.full_update_time = datetime.datetime.utcnow()
         product.save()
-        print 'parse detail used:',time.time() - start
+        print 'save data used ',time.time() - point5
+        print 'parse product detail used',time.time() - point1
+
         """
         print 'size',sizes
         print 'shipping',shipping

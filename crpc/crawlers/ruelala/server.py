@@ -53,12 +53,14 @@ class Server:
         self.product_list = []
 
     def get(self,url):
+        start = time.time()
         try:
             self.browser.get(url)
         except TimeoutException:
             print 'time out >> ',url
             return False
         else:
+            print 'load page used:',time.time() - start
             return True
             #return lxml.html.fromstring(self.browser.content)
 
@@ -307,7 +309,8 @@ class Server:
         """
         if not self.get(url):
             return False
-
+        
+        start = time.time()
         image_urls = []
         for image in self.browser.find_elements_by_xpath('//div[@id="imageViews"]/img'):
             href = image.get_attribute('src')
@@ -360,6 +363,7 @@ class Server:
         product.updated = True
         product.full_update_time = datetime.datetime.utcnow()
         product.save()
+        print 'parse detail used:',time.time() - start
         """
         print 'size',sizes
         print 'shipping',shipping
@@ -440,9 +444,10 @@ if __name__ == '__main__':
         error_count = 0
         server = Server()
         server._get_event_list('women','http://www.ruelala.com/category/women')
-
+        start = time.time()
         for c in Category.objects.all():
             print 'product list',server._get_product_list(c.sale_id,c.url())
+        print '>>>>>>end',time.time() - start
 
         ps =  Product.objects.all()
         total = len(ps)

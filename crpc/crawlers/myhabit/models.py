@@ -35,10 +35,7 @@ class Product(BaseProduct):
     dept = StringField()
     sale_id = StringField()
     asin = StringField()
-    listprice = StringField()
-    soldout = BooleanField()
 
-    list_info = ListField(StringField())
     color = StringField()
     sizes = ListField(StringField())
 

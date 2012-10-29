@@ -9,12 +9,10 @@ This is the server part of zeroRPC module. Call by client automatically, run on 
 """
 from gevent import monkey
 monkey.patch_all()
-from gevent.pool import Pool
 from gevent.coros import Semaphore
 lock = Semaphore()
 
 import os
-import zerorpc
 from selenium import webdriver
 from selenium.common.exceptions import *
 from selenium.webdriver.support.ui import WebDriverWait
@@ -28,6 +26,7 @@ from crawlers.common.stash import *
 import lxml
 import datetime
 import time
+import urllib
 
 def safe_lock(func,*arg,**kwargs):
     def wrapper(*arg,**kwargs):
@@ -79,11 +78,11 @@ class Server:
             #self.browser = webdriver.Firefox()
         except:
             self.browser = webdriver.Firefox()
-            self.browser.set_page_load_timeout(10)
+            #self.browser.set_page_load_timeout(10)
             #self.profile = webdriver.FirefoxProfile()
             #self.profile.set_preference("general.useragent.override","Mozilla/5.0 (iPhone; CPU iPhone OS 5_1_1 like Mac OS X) AppleWebKit/534.46 (KHTML, like Gecko) Version/5.1 Mobile/9B206 Safari/7534.48.3")
 
-        #self.browser.implicitly_wait(2)
+        self.browser.implicitly_wait(2)
         self.browser.get(self.siteurl)
         time.sleep(3)
         
@@ -166,7 +165,7 @@ class Server:
             return '%s' %date
 
         result = []
-        if not self.get(url):
+        if not self.browser.get(url):
             return result
 
         try:
@@ -304,70 +303,97 @@ class Server:
             result.append((product_id,url))
         return result
 
+    def _make_img_urls(slef,product_key,img_count):
+        """
+        the keyworld `RLLZ` in url  meaning large size(about 800*1000), `RLLD` meaning small size (about 400 *500)
+        http://www.ruelala.com/images/product/131385/1313856984_RLLZ_1.jpg
+        http://www.ruelala.com/images/product/131385/1313856984_RLLZ_2.jpg
+        
+        http://www.ruelala.com/images/product/131385/1313856984_RLLZ_1.jpg
+        http://www.ruelala.com/images/product/131385/1313856984_RLLZ_2.jpg
+        """
+        urls = []
+        prefix = 'http://www.ruelala.com/images/product/'
+        for i in range(0,img_count):
+            subfix = '%s/%s_RLLZ_%d.jpg'%(product_key[:6],product_key,i+1)
+            url = urllib.basejoin(prefix,subfix)
+            urls.append(url)
+        return urls
+
     def _crawl_product_detail(self,product_id,url):
         """.. :py:method::
             Got all the product basic information and save into the database
         """
         if not self.get(url):
             return False
+
+        try:
+            self.browser.find_element_by_css_selector('div#optionsLoadingIndicator.row')
+        except:
+            time.sleep(3)
         
-        start = time.time()
+        point1= time.time()
         image_urls = []
         # TODO imgDetail
-        image_tag = self.browser.find_element_by_css_selector('img#imgDetail')
-        print 'img tag',image_tag
-        for image in self.browser.find_elements_by_xpath('//div[@id="imageViews"]/img'):
-            href = image.get_attribute('src')
-            url = os.path.join(self.siteurl,href)
-            image_urls.append(url)
-
-        list_info = []
-        for li in self.browser.find_elements_by_xpath('//section[@id="info"]/ul/li'):
-            list_info.append(li.text)
-
-        sizes = []
-        soldout_size = []
-        for a in self.browser.find_elements_by_xpath('//ul[@id="sizeSwatches"]/li/a[@class="normal"]'):
-            if a.get_attribute('class') == 'normal':
-                sizes.append(a.text)
-            else:
-                soldout_size.append(a.text)
-
-        price = self.browser.find_element_by_id('salePrice').text
-        listprice  = self.browser.find_element_by_id('strikePrice').text
-        _shipping = self.browser.find_elements_by_xpath('//section[@id="shipping"]/p')
-        shipping = _shipping[0].text
-        returns = _shipping[1].text
-        left = False
+        imgs_node = self.browser.find_element_by_css_selector('section#productImages')
+        first_img_url = imgs_node.find_element_by_css_selector('img#imgZoom').get_attribute('href')
         try:
-            #span = self.browser.find_element_by_xpath('./section/span[@id="inventoryAvailable"]')
-            span = self.browser.find_element_by_id('inventoryAvailable')
-        except :
-            pass
-        else:
-            left = span.text.split(' ')[0]
+            img_count = len(imgs_node.find_elements_by_css_selector('div#imageThumbWrapper img'))
+        except:
+            img_count = 1
+        img_urls = self._make_img_urls(product_id,img_count)
+        print 'parse img urls used',time.time() - point1
         
+        point2 = time.time()
+        list_info = []
+        for li in self.browser.find_elements_by_css_selector('section#info ul li'):
+            list_info.append(li.text)
+        print 'parse list info used',time.time() - point2
+        
+        #########################
+        # section 2 productAttributes
+        #########################
+        
+        point3 = time.time()
+        attribute_node = self.browser.find_elements_by_css_selector('section#productAttributes.floatLeft')[0]
+        sizes = {}
+        for a in attribute_node.find_elements_by_css_selector('ul#sizeSwatches li.swatch a.normal'):
+            a.click()
+            key = a.text
+            left = ''
+            span = attribute_node.find_element_by_id('inventoryAvailable')
+            left = span.text.split(' ')[0]
+            print 'left',left
+            sizes.update({key:left})
+
+        print 'sizes',sizes
+        print 'parse sizes used ',time.time() - point3
+        
+        point4 = time.time()
+        shipping = attribute_node.find_element_by_id('readyToShip').text
+        limit = attribute_node.find_element_by_css_selector('div#cartLimit').text
+        price = attribute_node.find_element_by_id('salePrice').text
+        listprice  = attribute_node.find_element_by_id('strikePrice').text
+        print 'parse other userd',time.time() - point4
+        
+        point5 = time.time()
         product, is_new = Product.objects.get_or_create(key=str(product_id))
         if is_new:
-            product.returns = returns
             product.shipping = shipping
             product.image_urls = image_urls
             product.list_info = info_table
-            if sizes: product.sizes = sizes
 
+        product.sizes_scarcity = sizes
         product.price = price
         product.listprice = listprice
         product.shipping = shipping
-        if left == False:
-            pass
-        else:
-            product.scarcity = left
-
 
         product.updated = True
         product.full_update_time = datetime.datetime.utcnow()
         product.save()
-        print 'parse detail used:',time.time() - start
+        print 'save data used ',time.time() - point5
+        print 'parse product detail used',time.time() - point1
+
         """
         print 'size',sizes
         print 'shipping',shipping
@@ -434,9 +460,9 @@ if __name__ == '__main__':
 
     if 1:
         server = Server()
-        product_id = '6020927409'
-        url = 'http://www.ruelala.com/event/product/59117/6020927409/1/DEFAULT'
-        result = server.crawl_product(product_id,url)
+        product_id = '1313856978'
+        url = 'http://www.ruelala.com/event/product/59326/1313856978/1/DEFAULT'
+        result = server._crawl_product_detail(product_id,url)
 
     if 0:
         print '>>>>>>'

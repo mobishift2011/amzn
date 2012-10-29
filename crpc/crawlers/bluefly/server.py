@@ -23,7 +23,7 @@ from crawlers.common.stash import *
 import urllib
 import lxml.html
 import time
-import dateutil
+from dateutil import parser as dt_parser
 
 class Server(BaseServer):
     """.. :py:class:: Server
@@ -105,6 +105,7 @@ class Server(BaseServer):
             category ,is_new = Category.objects.get_or_create(key=key)
             category.name = name
             category.url = url
+            print 'category.url',url
             category.save()
             # send singnal
             category_saved.send(sender = 'bluefly.crawl_category',
@@ -186,6 +187,8 @@ class Server(BaseServer):
         """.. :py:method::
             Got all the product basic information and save into the database
         """
+        point1 = time.time()
+
         tree = self.ropen(url)
         key = self.url2product_id(url)
         main = tree.xpath('//section[@id="main-product-detail"]')[0]
@@ -198,16 +201,18 @@ class Server(BaseServer):
 
         product.summary = main.xpath('//div[@class="product-description"]')[0].text
         product.shipping = main.xpath('//div[@class="shipping-policy"]/a')[0].text
-        product.return_policy  = main.xpath('//div[@class="return-policy"]/a')[0].text
+        product.returned  = main.xpath('//div[@class="return-policy"]/a')[0].text
         product.color =  main.xpath('//div[@class="pdp-label product-variation-label"]/em')[0].text
         image_count = len(main.xpath('//div[@class="image-thumbnail-container"]/a'))
         product.image_urls = self._make_image_urls(key,image_count)
         num_reviews = main.xpath('//a[@class="review-count"]')[0].text.split('reviews')[0]
+        print 'parse by request,used ',time.time() - point1
         
         ########################
         # section 2
         ########################
 
+        point2 = time.time()
         self.bopen(url)
         sizes = []
         for li in self.browser.find_elements_by_css_selector('div.size-picker ul.product-size li'):
@@ -235,22 +240,46 @@ class Server(BaseServer):
             review.title = self.browser.find_element_by_xpath('//h5[@class="review-title"]').text
             review.content =  self.browser.find_element_by_xpath('//div[@class="text-preview"]').text
             post_time =  self.browser.find_element_by_xpath('//div[@class="review-date"]').text.replace('?','-')[:-1]
-            review.post_time = dateutile.parser.parse(post_time)
+            review.post_time = dt_parser.parse(post_time)
             review.username = self.browser.find_element_by_xpath('//div[@class="review-author"]/a').text
             review.save()
             reviews.append(review)
 
-
-        product_saved.send(sender=DB + '.parse_product_detail', site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
+        print 'parse by seleunim used ',time.time() - point2
         product.save()
+        print 'parse product total used',time.time() - point1
+        product_saved.send(sender=DB + '.parse_product_detail', site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
 
 
 if __name__ == '__main__':
     server = Server()
+    import time
     #server._get_all_category('test','http://www.bluefly.com/a/shoes')
-    #server.crawl_category()
-    #print server.get_navs()
-    #url = 'http://www.bluefly.com/Designer-Loafers-Flats/_/N-fs8/list.fly'
-    #print server.crawl_listing(url)
-    url = 'http://www.bluefly.com/Charles-David-black-leather-Proper-tall-boots/p/314091701/detail.fly'
-    server.crawl_product(url)
+    if 1:
+        point1 = time.time()
+        server.crawl_category()
+        print 'category count',Category.objects.all().count()
+        print 'crawl category used',time.time() - point1
+        
+        point2 = time.time()
+        for c in Category.objects.all():
+            print 'c.url',c.url
+            server.crawl_listing(c.url)
+        print 'product count',Product.objects.all().count()
+        print 'crawl all lising used',time.time() - point2
+
+
+        point3 = time.time()
+        for p in Product.objects.all():
+            server.crawl_product(p.url)
+        print 'product count',Product.objects.all().count()
+        print 'crawl all lising used',time.time() - point3
+        
+        print '>>end'
+        print 'total time',time.time() - point1
+
+        #print server.get_navs()
+    if 0:
+        url = 'http://www.bluefly.com/Designer-Loafers-Flats/_/N-fs8/list.fly'
+        print server.crawl_listing(url)
+

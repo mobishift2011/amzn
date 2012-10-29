@@ -90,6 +90,7 @@ class BaseProduct(Document):
 
     """
     key                 =   StringField(primary_key=True)
+    sale_id             =   StringField() # associate to Category's unique key
 
     # meta infomation for record keeping
     updated             =   BooleanField(default=False)

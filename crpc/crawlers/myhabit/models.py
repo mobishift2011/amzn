@@ -33,7 +33,6 @@ class Category(BaseEvent):
 class Product(BaseProduct):
 #    key = StringField(unique=True, spare=True)
     dept = StringField()
-    sale_id = StringField()
     asin = StringField()
 
     color = StringField()

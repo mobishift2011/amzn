@@ -9,7 +9,7 @@ Implements Product and Category Model for zulily
 """
 
 from datetime import datetime, timedelta
-from crawlers.common.models import BaseEvent, BaseProduct
+from crawlers.common.models import BaseEvent, LuxuryProduct
 
 from mongoengine import *
 from settings import MONGODB_HOST

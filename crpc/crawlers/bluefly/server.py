@@ -13,8 +13,6 @@ from gevent.coros import Semaphore
 lock = Semaphore()
 from crawlers.common.rpcserver import BaseServer
 
-import os
-from selenium import webdriver
 from selenium.common.exceptions import *
 from crawlers.common.events import category_saved, category_failed, category_deleted
 from crawlers.common.events import product_saved, product_failed, product_deleted
@@ -25,6 +23,7 @@ from crawlers.common.stash import *
 import urllib
 import lxml.html
 import time
+import dateutil
 
 class Server(BaseServer):
     """.. :py:class:: Server
@@ -136,8 +135,8 @@ class Server(BaseServer):
 
             if is_new:
                 product.brand = item.xpath('.//div[@class="listBrand"]/a')[0].text_content()
-                product.category_key = self.url2category_key(url)
-                product.name = link.text_content()
+                product.sail_id = self.url2category_key(url)
+                product.designer = link.text_content()
 
             price_spans = item.xpath('.//span')
             for span in price_spans:
@@ -172,16 +171,86 @@ class Server(BaseServer):
     def url2product_id(self,href):
         return href.split('/')[-2]
 
-    def _crawl_product_detail(self,product_id,url):
+    def _make_image_urls(self,product_key,image_count):
+        urls = []
+        for i in range(0,image_count):
+            if i == 0:
+                url = 'http://cdn.is.bluefly.com/mgen/Bluefly/eqzoom85.ms?img=%s.pct&outputx=738&outputy=700&level=1&ver=6' %product_key
+            else:
+                url = 'http://cdn.is.bluefly.com/mgen/Bluefly/eqzoom85.ms?img=%s_alt0%s.pct&outputx=738&outputy=700&level=1&ver=6' %(product_key,i)
+
+            urls.append(url)
+        return urls
+
+    def crawl_product(self,url):
         """.. :py:method::
             Got all the product basic information and save into the database
         """
-        pass
+        tree = self.ropen(url)
+        key = self.url2product_id(url)
+        main = tree.xpath('//section[@id="main-product-detail"]')[0]
+        product,is_new = Product.objects.get_or_create(key=key)
+
+        product.title = main.xpath('//h2[starts-with(@class,"product-name")]')[0].text
+        list_info = [] 
+        for li in main.xpath('//ul[@class="property-list"]/li'):
+            list_info.append(li.text)
+
+        product.summary = main.xpath('//div[@class="product-description"]')[0].text
+        product.shipping = main.xpath('//div[@class="shipping-policy"]/a')[0].text
+        product.return_policy  = main.xpath('//div[@class="return-policy"]/a')[0].text
+        product.color =  main.xpath('//div[@class="pdp-label product-variation-label"]/em')[0].text
+        image_count = len(main.xpath('//div[@class="image-thumbnail-container"]/a'))
+        product.image_urls = self._make_image_urls(key,image_count)
+        num_reviews = main.xpath('//a[@class="review-count"]')[0].text.split('reviews')[0]
+        
+        ########################
+        # section 2
+        ########################
+
+        self.bopen(url)
+        sizes = []
+        for li in self.browser.find_elements_by_css_selector('div.size-picker ul.product-size li'):
+            size = li.get_attribute('data-size')
+            if li.get_attribute("class") == 'size-sku-waitlist':
+                continue
+            else:
+                sizes.append(size)
+        product.sizes = sizes
+        
+        # if not have now reviews,do nothing
+        if not is_new and product.num_reviews == num_reviews:
+            return
+        
+        product.num_reviews = num_reviews
+        Review.objects.filter(product_key=key).delete()
+        reviews = []
+        main = self.browser.find_element_by_xpath('//div[@class="ratings-reviews active"]')
+        show_more = self.browser.find_element_by_link_text('SHOW MORE').click()
+        if show_more:
+            show_more.click()
+
+        for article in main.find_elements_by_tag_name('article'):
+            review = Review()
+            review.title = self.browser.find_element_by_xpath('//h5[@class="review-title"]').text
+            review.content =  self.browser.find_element_by_xpath('//div[@class="text-preview"]').text
+            post_time =  self.browser.find_element_by_xpath('//div[@class="review-date"]').text.replace('?','-')[:-1]
+            review.post_time = dateutile.parser.parse(post_time)
+            review.username = self.browser.find_element_by_xpath('//div[@class="review-author"]/a').text
+            review.save()
+            reviews.append(review)
+
+
+        product_saved.send(sender=DB + '.parse_product_detail', site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
+        product.save()
+
 
 if __name__ == '__main__':
     server = Server()
     #server._get_all_category('test','http://www.bluefly.com/a/shoes')
-    server.crawl_category()
+    #server.crawl_category()
     #print server.get_navs()
     #url = 'http://www.bluefly.com/Designer-Loafers-Flats/_/N-fs8/list.fly'
     #print server.crawl_listing(url)
+    url = 'http://www.bluefly.com/Charles-David-black-leather-Proper-tall-boots/p/314091701/detail.fly'
+    server.crawl_product(url)

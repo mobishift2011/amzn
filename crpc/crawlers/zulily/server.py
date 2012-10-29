@@ -304,22 +304,21 @@ class Server(object):
 
         :param url: product url
         """
-        cont = self.net.fetch_page(url + page_text)
+        cont = self.net.fetch_page(url)
         tree = lxml.html.fromstring(cont)
         node = tree.cssselect('div.container>div#main>div#product-view')[0]
         info = node.cssselect('div#product-info')[0]
+        list_info, image_urls, out_of_stocks, also_like, sizes_scarcity = [], [], [], [], {}
 
         summary = info.cssselect('div#product-description>div.description>p:first-child')[0].text_content()
-        list_info, image_urls, sizes, out_of_stocks = [], [], [], []
         for info in info.cssselect('div#product-description>div.description>ul>li'):
             list_info.append(info.text_content())
         return_shipping = info.cssselect('ul#product-bullets>li')
         returned = return_shipping[0].text_content()
         shipping = return_shipping[1].text_content()
-        scarcity = info.cssselect('div.options-container-big div[id^="low-inventory"]')[0].text
-        size_info = info.cssselect('div.options-container-big div#product-size-dropdown>select>option[class]')
-        for size in size_info:
-            sizes.append(size.text_content().strip())
+        size_scarcity = info.cssselect('div.options-container-big div#product-size-dropdown>select>option[data-inventory-available]')
+        for s_s in size_scarcity:
+            sizes_scarcity[s_s.text_content().strip()] = s_s.get('data-inventory-available')
         for out_of_stock in info.cssselect('div#out-of-stock-notices>div.size-out-of-stock'):
             out_of_stocks.append( out.stock.text )
 
@@ -327,21 +326,20 @@ class Server(object):
         for img in images:
             picture = ''.join( self.extract_product_img.match(img).groups() )
             image_urls.append(picture)
+        also_like_items = node.cssselect('div#product-media>div#you-may-also-like>ul>li>a')
+        for a_l in also_like_items:
+            also_like.append( (a_l.get('title'), a_l.get('href')) )
 
-        also_like = node.cssselect('div#product-media>div#you-may-also-like>ul>li>a')
-
-        product, is_new = Product.objects.get_or_create(pk=casin)
-        if is_new:
-            product.summary = shortDesc
-            product.image_urls = image_urls
-            product.list_info = info_table
-            if video: product.video = video
-            if color: product.color = color
-            if sizes: product.sizes = sizes
-            if international_shipping: product.international_shipping = international_shipping
-            if returned: product.returned = returned
+        lug = self.extract_product_re.match(url).group(1)
+        product, is_new = Product.objects.get_or_create(pk=lug)
+        product.summary = summary
+        if list_info: product.list_info = list_info
+        product.returned = returned
         product.shipping = shipping
-        if scarcity: product.scarcity = scarcity
+        if sizes_scarcity: product.sizes_scarcity = sizes_scarcity
+        if out_of_stocks: product.out_of_stocks = out_of_stocks
+        if image_urls: product.image_urls = image_urls
+
         product.updated = True
         product.full_update_time = datetime.utcnow()
         product.save()
@@ -350,8 +348,6 @@ class Server(object):
         
 
 if __name__ == '__main__':
-#    server = zerorpc.Server(Server())
-#    server.bind("tcp://0.0.0.0:{0}".format(RPC_PORT))
-#    server.run()
-    s = Server()
-    s.crawl_category()
+    server = zerorpc.Server(Server())
+    server.bind("tcp://0.0.0.0:{0}".format(RPC_PORT))
+    server.run()

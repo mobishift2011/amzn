@@ -31,8 +31,6 @@ class Category(BaseEvent):
 
 
 class Product(LuxuryProduct):
-#    key = StringField(unique=True, spare=True)
-
     also_like = ListField()
 
     meta = {

@@ -31,12 +31,7 @@ class Category(BaseEvent):
 
 
 class Product(LuxuryProduct):
-#    key = StringField(unique=True, spare=True)
-
-    color = StringField()
-
-    international_shipping = StringField()
-    scarcity = StringField()
+    also_like = ListField()
 
     meta = {
         "indexes": ["updated"],

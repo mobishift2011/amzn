@@ -25,7 +25,7 @@ def setup_env():
     """
     run("apt-get update")
     run("apt-get -y upgrade")
-    run("apt-get -y install build-essential python-dev libevent-dev libxslt-dev uuid-dev python-setuptools dtach libzmq-dev redis-server firefox")
+    run("apt-get -y install build-essential python-dev libevent-dev libxslt-dev uuid-dev python-setuptools dtach libzmq-dev redis-server firefox xvfb")
     run("easy_install pip")
     run("pip install virtualenvwrapper")
     run("mkdir -p /opt/crpc")
@@ -39,7 +39,7 @@ def setup_env():
             run("mkvirtualenv "+ENV_NAME)
             with prefix("workon "+ENV_NAME):
                 run("pip install cython"+USE_INDEX)
-                run("pip install zerorpc lxml requests pymongo mongoengine redis redisco pytz mock selenium blinker"+USE_INDEX) 
+                run("pip install zerorpc lxml requests pymongo mongoengine redis redisco pytz mock selenium blinker cssselect"+USE_INDEX) 
 
 def deploy_rpc():
     """ deploy rpc server code to host """

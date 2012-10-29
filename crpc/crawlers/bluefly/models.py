@@ -26,14 +26,14 @@ class Category(BaseCategory):
     }
 
 class Product(BaseProduct):
+    designer = StringField()
     category_key = StringField()
     name = StringField()
     url = StringField()
     listprice = StringField()
-    product = StringField()
 
     def url(self):
-        return url
+        return self.url
 
     meta                =   {
         "db_alias": DB,

@@ -33,9 +33,7 @@ class Category(BaseEvent):
 class Product(BaseProduct):
     sale_id = StringField()
     url = StringField()
-    scarcity = StringField()
-    sizes = ListField(StringField())
-    soldout_sizes = ListField(StringField())
+    limit= StringField()
     end_time = DateTimeField()
 
     meta = {

@@ -264,7 +264,7 @@ if __name__ == '__main__':
         point2 = time.time()
         for c in Category.objects.all():
             print 'c.url',c.url
-            server.crawl_listing(c.url())
+            server.crawl_listing(c.url)
         print 'product count',Product.objects.all().count()
         print 'crawl all lising used',time.time() - point2
 

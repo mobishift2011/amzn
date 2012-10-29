@@ -316,6 +316,7 @@ class Server(object):
         return_shipping = info.cssselect('ul#product-bullets>li')
         returned = return_shipping[0].text_content()
         shipping = return_shipping[1].text_content()
+        scarcity = info.cssselect('div.options-container-big div[id^="low-inventory"]')[0].text
         size_info = info.cssselect('div.options-container-big div#product-size-dropdown>select>option[class]')
         for size in size_info:
             sizes.append(size.text_content().strip())
@@ -328,10 +329,6 @@ class Server(object):
             image_urls.append(picture)
 
         also_like = node.cssselect('div#product-media>div#you-may-also-like>ul>li>a')
-
-
-        scarcity = ('scarcity').text
-        shipping = '; '.join( [a.text for a in right_col.find_elements_by_class_name('dpRightColLabel') if a.text] )
 
         product, is_new = Product.objects.get_or_create(pk=casin)
         if is_new:
@@ -348,8 +345,7 @@ class Server(object):
         product.updated = True
         product.full_update_time = datetime.utcnow()
         product.save()
-        
-        product_saved.send(sender=DB + '.parse_product_detail', site=DB, key=casin, is_new=is_new, is_updated=not is_new)
+        product_saved.send(sender=DB + '.crawl_product', site=DB, key=lug, is_new=is_new, is_updated=not is_new)
 
         
 

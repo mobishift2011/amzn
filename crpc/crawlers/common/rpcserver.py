@@ -18,6 +18,7 @@ from selenium.common.exceptions import *
 import lxml.html
 import requests
 import urllib
+from selenium import webdriver
 
 class RPCServer(object):
     """ :py:class:crawlers.common.rpcserver.RPCServer
@@ -87,19 +88,29 @@ class BaseServer:
     email = 'huanzhu@favbuy.com'
     passwd = '4110050209'
     session = requests.session()
+    browser = ''
     session.headers = {'Accept-Encoding': 'identity, deflate, compress, gzip',
                         'Accept': '*/*', 'User-Agent': 'Mozilla/5.0 '}
 
     def bopen(self,url):
         """ open url with browser
         """
+        if not self.browser:
+            try:
+                self.browser = webdriver.Chrome()
+                #self.browser = webdriver.Firefox()
+            except:
+                self.browser = webdriver.Firefox()
+                self.browser.set_page_load_timeout(10)
+
+
         try:
             self.browser.get(url)
         except TimeoutException:
             return False
         else:
-            self.html = self.browser.content
-            self.tree = lxml.html.fromstring(self.html)
+            #self.html = self.browser.content
+            #self.tree = lxml.html.fromstring(self.html)
             return True
 
     def ropen(self,url):

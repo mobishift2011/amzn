@@ -59,7 +59,6 @@ class BaseEvent(BaseCategory):
         "indexes": ["soldout"],
     }
 
-
 class BaseReview(Document):
     """ :py:class:crawlers.common.models.BaseReview
 

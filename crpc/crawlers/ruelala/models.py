@@ -6,7 +6,7 @@ crawlers.ruelala.models
 Implements Product and Category Model for ruelala
 """
 
-DB = 'ruelala'
+DB = 'ruelala_test'
 TIMEOUT = 60
 from mongoengine import *
 from mongoengine import connect
@@ -32,15 +32,11 @@ class Category(BaseEvent):
 
 class Product(BaseProduct):
     sale_id = StringField()
-    fall_name = StringField()
     url = StringField()
     scarcity = StringField()
-    listprice = StringField()
-    list_info = ListField(StringField())
     sizes = ListField(StringField())
     soldout_sizes = ListField(StringField())
     end_time = DateTimeField()
-    sold_out = BooleanField()
 
     meta = {
         "indexes": ["updated"],

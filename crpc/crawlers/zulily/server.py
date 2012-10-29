@@ -206,6 +206,8 @@ class Server(object):
             from url get listing page.
             from listing page get Eventi's description, endtime, number of products.
             Get all product's image, url, title, price, soldout
+
+        :param url: listing page url
         """
         cont = self.net.fetch_page(url)
         tree = lxml.html.fromstring(cont)
@@ -226,14 +228,47 @@ class Server(object):
         brand.save()
         category_saved.send(sender=DB + '.crawl_listing', site=DB, key=lug, is_new=is_new, is_updated=not is_new)
 
-        for item in items:
-            self.crawl_list_product(item)
+        for item in items: self.crawl_list_product(lug, item)
+        page_num = 1
+        if self.detect_list_next(node, page_num + 1) is True:
+            self.crawl_list_next(url, next_page[-1].get('href'), page_num + 1, lug)
 
-
-    def crawl_list_product(self, item)
+    def detect_list_next(self, node, page_num):
         """.. :py:method::
-            Get all product's image, url, title, price, soldout
+            detect whether the listing page have a next page
 
+        :param node: the node generate by crawl_listing
+        :param page_num: page number of this event
+        """
+        next_page = node.cssselect('div#pagination>a[href]'): # if have next page
+        if next_page:
+            next_page_relative_url = next_page[-1].get('href')
+            if str(page_num) in next_page_relative_url:
+                return True
+
+    def crawl_list_next(self, url, page_text, page_num, sale_id):
+        """.. :py:method::
+            crawl listing page's next page, that is page 2, 3, 4, ...
+
+        :param url: listing page url
+        :param page_text: this page's relative url
+        :param page_num: page number of this event
+        :param sale_id: unique key in Category, which we can associate product with event
+        """
+        cont = self.net.fetch_page(url + page_text)
+        tree = lxml.html.fromstring(cont)
+        node = tree.cssselect('div.container>div#main>div#category-view')[0]
+        items = node.cssselect('div#products-grid li.item'):
+
+        for item in items: self.crawl_list_product(sale_id, item)
+        if self.detect_list_next(node, page_num + 1) is True:
+            self.crawl_list_next(url, next_page[-1].get('href'), page_num + 1, sale_id)
+
+    def crawl_list_product(self, sale_id, item)
+        """.. :py:method::
+            In listing page, Get all product's image, url, title, price, soldout
+
+        :param sale_id: unique key in Category, which we can associate product with event
         :param item: item of xml node
         """
         title_link = item.cssselect('div.product-name>a[title]')[0]
@@ -242,6 +277,7 @@ class Server(object):
         lug = self.extract_product_re.match(link).group(1)
         product, is_new = Product.objects.get_or_create(pk=lug)
         if is_new:
+            product.sale_id = sale_id
             img = item.cssselect('a.product-image>img')[0].get('src')
             image = ''.join( self.extract_product_img.match(img).groups() )
             product.image_urls = [image]
@@ -262,7 +298,7 @@ class Server(object):
         debug_info.send(sender=DB + ".crawl_listing", url=url)
 
 
-    def crawl_product(self, url, casin):
+    def crawl_product(self, url):
         """.. :py:method::
             Got all the product information and save into the database
 

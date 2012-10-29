@@ -89,6 +89,7 @@ class BaseProduct(Document):
 
     """
     key                 =   StringField(primary_key=True)
+    sale_id             =   StringField() # associate to Category's unique key
 
     # meta infomation for record keeping
     updated             =   BooleanField(default=False)
@@ -103,7 +104,9 @@ class BaseProduct(Document):
     model               =   StringField()
     models              =   ListField()
     price               =   StringField()
+    listprice           =   StringField()
     sell_rank           =   IntField()
+    soldout             =   BooleanField()
 
     # text info
     title               =   StringField()
@@ -111,9 +114,7 @@ class BaseProduct(Document):
     summary             =   StringField() 
     shipping            =   StringField()
     available           =   StringField()
-    listprice = StringField()
-    list_info = ListField(StringField())
-    soldout = BooleanField()
+    list_info           =   ListField(StringField())
 
     # reviews
     num_reviews         =   StringField()

@@ -58,6 +58,9 @@ def spout_category(site, category):
             url = c.url().format(p)
             yield {'url': url}
 
+    c.spout_time = datetime.utcnow()
+    c.save()
+
 def spout_product(site):
     """ return a generator spouting product url """
     m = get_site_module(site)

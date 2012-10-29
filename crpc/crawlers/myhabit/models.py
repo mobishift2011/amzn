@@ -23,29 +23,26 @@ class Category(BaseEvent):
     upcoming_title_img = ListField()
 
     meta = {
-        "db_alias": "myhabit",
+        "db_alias": DB,
     }
 
     def url(self):
         return 'http://www.myhabit.com/homepage#page=b&dept={0}&sale={1}'.format(self.dept, self.sale_id)
 
 
-class Product(BaseProduct):
+class Product(LuxuryProduct):
 #    key = StringField(unique=True, spare=True)
     dept = StringField()
     asin = StringField()
 
     color = StringField()
-    sizes = ListField(StringField())
-
     video = StringField()
     international_shipping = StringField()
-    returned = StringField()
     scarcity = StringField()
 
     meta = {
         "indexes": ["updated"],
-        "db_alias": "myhabit",
+        "db_alias": DB,
     }
 
     def url(self):

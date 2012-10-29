@@ -30,14 +30,12 @@ class Category(BaseEvent):
         return 'http://www.zulily.com/e/{0}.html'.format(self.lug)
 
 
-class Product(BaseProduct):
+class Product(LuxuryProduct):
 #    key = StringField(unique=True, spare=True)
 
     color = StringField()
-    sizes = ListField(StringField())
 
     international_shipping = StringField()
-    returned = StringField()
     scarcity = StringField()
 
     meta = {

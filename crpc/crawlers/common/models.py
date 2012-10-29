@@ -90,7 +90,6 @@ class BaseProduct(Document):
 
     """
     key                 =   StringField(primary_key=True)
-    sale_id             =   StringField() # associate to Category's unique key
 
     # meta infomation for record keeping
     updated             =   BooleanField(default=False)
@@ -105,9 +104,7 @@ class BaseProduct(Document):
     model               =   StringField()
     models              =   ListField()
     price               =   StringField()
-    listprice           =   StringField()
     sell_rank           =   IntField()
-    soldout             =   BooleanField()
 
     # text info
     title               =   StringField()
@@ -115,7 +112,6 @@ class BaseProduct(Document):
     summary             =   StringField() 
     shipping            =   StringField()
     available           =   StringField()
-    list_info           =   ListField(StringField())
 
     # reviews
     num_reviews         =   StringField()
@@ -133,3 +129,23 @@ class BaseProduct(Document):
     def url(self):
         raise NotImplementedError("should implemented in sub classes!")
 
+
+class LuxuryProduct(BaseProduct):
+    """ :py:class:crawlers.common.models.LuxuryProduct
+
+    luxury product info
+    crawlers should inherit from this base class
+
+    >>> from crawlers.common.models import LuxuryProduct
+    >>> class Product(LuxuryProduct):
+    ...     pass
+
+    """
+    # associate to Category's unique key
+    sale_id             =   StringField()
+
+    listprice           =   StringField()
+    soldout             =   BooleanField()
+    list_info           =   ListField(StringField())
+    returned            =   StringField()
+    sizes               =   ListField(StringField())

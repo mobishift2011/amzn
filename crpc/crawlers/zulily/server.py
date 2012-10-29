@@ -304,41 +304,33 @@ class Server(object):
 
         :param url: product url
         """
-        international_shipping = node.find_element_by_id('intlShippableBullet').text
-        returned = node.find_element_by_id('returnPolicyBullet').text
+        cont = self.net.fetch_page(url + page_text)
+        tree = lxml.html.fromstring(cont)
+        node = tree.cssselect('div.container>div#main>div#product-view')[0]
+        info = node.cssselect('div#product-info')[0]
 
-        already_have = [shortDesc, international_shipping, returned]
-        bullets = node.find_elements_by_tag_name('li')
-        info_table = []
-        for bullet in bullets:
-            if bullet.text and bullet.text not in already_have:
-                info_table.append(bullet.text)
+        summary = info.cssselect('div#product-description>div.description>p:first-child')[0].text_content()
+        list_info, image_urls, sizes, out_of_stocks = [], [], [], []
+        for info in info.cssselect('div#product-description>div.description>ul>li'):
+            list_info.append(info.text_content())
+        return_shipping = info.cssselect('ul#product-bullets>li')
+        returned = return_shipping[0].text_content()
+        shipping = return_shipping[1].text_content()
+        size_info = info.cssselect('div.options-container-big div#product-size-dropdown>select>option[class]')
+        for size in size_info:
+            sizes.append(size.text_content().strip())
+        for out_of_stock in info.cssselect('div#out-of-stock-notices>div.size-out-of-stock'):
+            out_of_stocks.append( out.stock.text )
 
-        image_urls = []
-        video = ''
-        imgs = node.find_elements_by_xpath('.//div[@id="altImgContainer"]/div')
-        for img in imgs:
-            try:
-                picture = img.find_element_by_class_name('zoomImageL2').get_attribute('value')
-                image_urls.append(picture)
-            except:
-                video = img.find_element_by_class_name('videoURL').get_attribute('value')
+        images = node.cssselect('div#product-media>div#MagicToolboxSelectorsContainer>ul.reset>li>a>img')
+        for img in images:
+            picture = ''.join( self.extract_product_img.match(img).groups() )
+            image_urls.append(picture)
+
+        also_like = node.cssselect('div#product-media>div#you-may-also-like>ul>li>a')
 
 
-        right_col = node.find_element_by_xpath('../div[@id="dpRightCol"]/div[@id="innerRightCol"]')
-        try:
-            color = right_col.find_element_by_xpath('.//div[@class="dimensionAltText variationSelectOn"]').text
-        except:
-            color = ''
-        try:
-            sizes = right_col.find_elements_by_xpath('./div[@id="dpVariationMatrix"]//select[@class="variationDropdown"]/option')
-            size = [s for s in sizes if not s.text.startswith('Please')]
-        except:
-            sizes = [] 
-
-        listprice = right_col.find_element_by_id('listPrice').text.replace('$', '').replace(',', '')
-        ourprice = right_col.find_element_by_id('ourPrice').text.replace('$', '').replace(',', '')
-        scarcity = right_col.find_element_by_id('scarcity').text
+        scarcity = ('scarcity').text
         shipping = '; '.join( [a.text for a in right_col.find_elements_by_class_name('dpRightColLabel') if a.text] )
 
         product, is_new = Product.objects.get_or_create(pk=casin)
@@ -351,8 +343,6 @@ class Server(object):
             if sizes: product.sizes = sizes
             if international_shipping: product.international_shipping = international_shipping
             if returned: product.returned = returned
-        product.price = ourprice
-        product.listprice = listprice
         product.shipping = shipping
         if scarcity: product.scarcity = scarcity
         product.updated = True

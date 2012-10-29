@@ -76,6 +76,7 @@ class Server:
             email, passwd = self.email, self.passwd
         try:
             self.browser = webdriver.Chrome()
+            #self.browser = webdriver.Firefox()
         except:
             self.browser = webdriver.Firefox()
             self.browser.set_page_load_timeout(10)
@@ -292,7 +293,7 @@ class Server:
                 pass
             else:
                 if s.get_attribute('class') == 'soldOutOverlay swiEnabled':
-                    product.sold_out = True
+                    product.soldout = True
 
             product.updated = True
             product.title = title
@@ -312,6 +313,9 @@ class Server:
         
         start = time.time()
         image_urls = []
+        # TODO imgDetail
+        image_tag = self.browser.find_element_by_css_selector('img#imgDetail')
+        print 'img tag',image_tag
         for image in self.browser.find_elements_by_xpath('//div[@id="imageViews"]/img'):
             href = image.get_attribute('src')
             url = os.path.join(self.siteurl,href)
@@ -346,7 +350,7 @@ class Server:
         product, is_new = Product.objects.get_or_create(key=str(product_id))
         if is_new:
             product.returns = returns
-            priduct.shipping = shipping
+            product.shipping = shipping
             product.image_urls = image_urls
             product.list_info = info_table
             if sizes: product.sizes = sizes
@@ -428,9 +432,10 @@ if __name__ == '__main__':
         url= 'http://www.ruelala.com/event/59022'
         server.crawl_listing(id,url)
 
-    if 0:
-        product_id = '1411832058'
-        url = 'http://www.ruelala.com/event/product/58602/1411832058/1/DEFAULT'
+    if 1:
+        server = Server()
+        product_id = '6020927409'
+        url = 'http://www.ruelala.com/event/product/59117/6020927409/1/DEFAULT'
         result = server.crawl_product(product_id,url)
 
     if 0:
@@ -438,8 +443,7 @@ if __name__ == '__main__':
         category = 'women'
         server._get_event_list('women','http://www.ruelala.com/category/women')
 
-
-    if 1:
+    if 0:
         count = 0
         error_count = 0
         server = Server()

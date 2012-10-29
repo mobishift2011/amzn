@@ -112,6 +112,9 @@ class BaseProduct(Document):
     summary             =   StringField() 
     shipping            =   StringField()
     available           =   StringField()
+    listprice = StringField()
+    list_info = ListField(StringField())
+    soldout = BooleanField()
 
     # reviews
     num_reviews         =   StringField()

@@ -2,9 +2,10 @@
 # -*- coding: utf-8 -*-
 from gevent import monkey; monkey.patch_all()
 
-from bottle import route, run, template, static_file
+from bottle import route, post, request, run, template, static_file, redirect
 from os.path import join, dirname
 from backends.monitor.logstat import log_event, task_updates, task_all
+from backends.monitor.scheduler import update_schedule, get_all_schedules, delete_schedule
 
 @route('/assets/<filepath:path>')
 def server_static(filepath):
@@ -12,11 +13,11 @@ def server_static(filepath):
 
 @route('/')
 def index():
-    return template('index')
+    redirect('/task')
 
-@route('/table')
-def table():
-    return template('table')
+@route('/task')
+def task():
+    return template('task')
 
 @route('/table/all')
 def table_all():
@@ -32,8 +33,20 @@ def table_update():
         pass
 	return task_updates()
 
-@route('/angular')
-def table():
-    return template('angular')
+@route('/control')
+def control():
+    return template('control')
+
+@route('/control/all')
+def all_schedule():
+    return {'schedules': get_all_schedules()}
+
+@post('/control/save')
+def save_schedule():
+    return update_schedule(request.json)
+
+@post('/control/del')
+def del_schedule():
+    return delete_schedule(request.json)
 
 run(server='gevent', host='0.0.0.0', port=1317)

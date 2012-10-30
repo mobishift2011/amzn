@@ -147,4 +147,4 @@ class LuxuryProduct(BaseProduct):
     soldout             =   BooleanField()
     list_info           =   ListField(StringField())
     returned            =   StringField()
-    sizes_scarcity      =   DictField()
+    sizes_scarcity      =   ListField()

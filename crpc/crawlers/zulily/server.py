@@ -31,8 +31,8 @@ TIMEOUT = 9
 headers = { 'User-Agent': 'Mozilla 5.0/Firefox 16.0.1', }
 config = { 
     'max_retries': 3,
-    'pool_connections': 10, 
-    'pool_maxsize': 10, 
+    'pool_connections': 50, 
+    'pool_maxsize': 50, 
 }
 req = requests.Session(prefetch=True, timeout=17, config=config, headers=headers)
 
@@ -80,6 +80,7 @@ class zulilyLogin(object):
             self.login_account()
             ret = req.get(url)
         if ret.ok: return ret.content
+        return ret.status_code
 
 
 
@@ -97,6 +98,9 @@ class Server(object):
         self.extract_event_img = re.compile(r'(http://mcdn.zulily.com/images/cache/event/)\d+x\d+/(.+)')
         self.extract_product_img = re.compile(r'(http://mcdn.zulily.com/images/cache/product/)\d+x\d+/(.+)')
         self.extract_product_re = re.compile(r'http://www.zulily.com/p/(.+).html.*')
+
+        self.returned_re = re.compile(r'<strong>Return Policy:</strong>(.*)<a')
+        self.shipping_re = re.compile(r'<strong>Shipping:</strong>(.*)<a')
 
     def crawl_category(self):
         """.. :py:method::
@@ -231,8 +235,9 @@ class Server(object):
 
         for item in items: self.crawl_list_product(lug, item)
         page_num = 1
-        if self.detect_list_next(node, page_num + 1) is True:
-            self.crawl_list_next(url, next_page[-1].get('href'), page_num + 1, lug)
+        next_page_url = self.detect_list_next(node, page_num + 1)
+        if next_page_url:
+            self.crawl_list_next(url, next_page_url, page_num + 1, lug)
         debug_info.send(sender=DB + '.crawl_list.end')
 
     def detect_list_next(self, node, page_num):
@@ -246,7 +251,7 @@ class Server(object):
         if next_page:
             next_page_relative_url = next_page[-1].get('href')
             if str(page_num) in next_page_relative_url:
-                return True
+                return next_page_relative_url
 
     def crawl_list_next(self, url, page_text, page_num, sale_id):
         """.. :py:method::
@@ -263,8 +268,9 @@ class Server(object):
         items = node.cssselect('div#products-grid li.item')
 
         for item in items: self.crawl_list_product(sale_id, item)
-        if self.detect_list_next(node, page_num + 1) is True:
-            self.crawl_list_next(url, next_page[-1].get('href'), page_num + 1, sale_id)
+        next_page_url = self.detect_list_next(node, page_num + 1)
+        if next_page_url:
+            self.crawl_list_next(url, next_page_url, page_num + 1, sale_id)
 
     def crawl_list_product(self, sale_id, item):
         """.. :py:method::
@@ -274,7 +280,7 @@ class Server(object):
         :param item: item of xml node
         """
         title_link = item.cssselect('div.product-name>a[title]')[0]
-        title = title_link.get('title')
+        title = title_link.get('title').strip()
         link = title_link.get('href')
         lug = self.extract_product_re.match(link).group(1)
         product, is_new = Product.objects.get_or_create(pk=lug)
@@ -288,7 +294,6 @@ class Server(object):
         price_box = item.cssselect('a>div.price-boxConfig')[0]
         special_price = price_box.cssselect('div.special-price')[0].text.strip().replace('$','').replace(',','')
         listprice = price_box.cssselect('div.old-price')[0].text.replace('original','').strip().replace('$','').replace(',','')
-        print sale_id, special_price, list_price
         soldout = item.cssselect('a.product-image>span.sold-out')
 #        product.brand = sale_title
         product.price = special_price
@@ -298,7 +303,7 @@ class Server(object):
         product.list_update_time = datetime.utcnow()
         product.save()
         product_saved.send(sender=DB + '.crawl_listing', site=DB, key=lug, is_new=is_new, is_updated=not is_new)
-        debug_info.send(sender=DB + ".crawl_listing", url=url)
+        debug_info.send(sender=DB + ".crawl_listing", url=self.siteurl + '/e/' + sale_id + '.html')
 
 
     def crawl_product(self, url):
@@ -308,27 +313,34 @@ class Server(object):
         :param url: product url
         """
         cont = self.net.fetch_page(url)
+        if isinstance(cont, int):
+            product_failed.send(sender=DB + 'crawl_product.download_error', site=DB, url=url, reason=cont)
+            return
         tree = lxml.html.fromstring(cont)
         node = tree.cssselect('div.container>div#main>div#product-view')[0]
         info = node.cssselect('div#product-info')[0]
-        list_info, image_urls, out_of_stocks, also_like, sizes_scarcity = [], [], [], [], {}
+        list_info, image_urls, out_of_stocks, also_like, sizes_scarcity = [], [], [], [], []
 
-        summary = info.cssselect('div#product-description>div.description>p:first-child')[0].text_content()
+#        summary = info.cssselect('div#product-description>div.description p:first-child')[0].text_content()
+        summary = info.cssselect('div#product-description>div.description')
+        description = summary[0].text_content().strip() if summary else ''
         for info in info.cssselect('div#product-description>div.description>ul>li'):
             list_info.append(info.text_content())
-        return_shipping = info.cssselect('ul#product-bullets>li')
-        print url, summary, return_shipping
-        returned = return_shipping[0].text_content()
-        shipping = return_shipping[1].text_content()
+#        return_shipping = info.cssselect('ul#product-bullets>li')  # not work
+#        returned = return_shipping[0].text_content()
+#        shipping = return_shipping[1].text_content()
+        returned = self.returned_re.search(cont).group(1).strip()
+        m = self.shipping_re.search(cont)
+        shipping = m.group(1).strip() if m else ''
         size_scarcity = info.cssselect('div.options-container-big div#product-size-dropdown>select>option[data-inventory-available]')
         for s_s in size_scarcity:
-            sizes_scarcity[s_s.text_content().strip()] = s_s.get('data-inventory-available')
+            sizes_scarcity.append( (s_s.text_content().strip(), s_s.get('data-inventory-available')) )
         for out_of_stock in info.cssselect('div#out-of-stock-notices>div.size-out-of-stock'):
-            out_of_stocks.append( out.stock.text )
+            out_of_stocks.append( out_of_stock.text )
 
         images = node.cssselect('div#product-media>div#MagicToolboxSelectorsContainer>ul.reset>li>a>img')
         for img in images:
-            picture = ''.join( self.extract_product_img.match(img).groups() )
+            picture = ''.join( self.extract_product_img.match(img.get('src')).groups() )
             image_urls.append(picture)
         also_like_items = node.cssselect('div#product-media>div#you-may-also-like>ul>li>a')
         for a_l in also_like_items:
@@ -336,10 +348,10 @@ class Server(object):
 
         lug = self.extract_product_re.match(url).group(1)
         product, is_new = Product.objects.get_or_create(pk=lug)
-        product.summary = summary
+        if description: product.summary = description
         if list_info: product.list_info = list_info
         product.returned = returned
-        product.shipping = shipping
+        if shipping: product.shipping = shipping
         if sizes_scarcity: product.sizes_scarcity = sizes_scarcity
         if out_of_stocks: product.out_of_stocks = out_of_stocks
         if image_urls: product.image_urls = image_urls

@@ -25,7 +25,7 @@ def setup_env():
     """
     run("apt-get update")
     run("apt-get -y upgrade")
-    run("apt-get -y install build-essential python-dev libevent-dev libxslt-dev uuid-dev python-setuptools dtach libzmq-dev redis-server firefox xvfb")
+    run("apt-get -y install build-essential python-dev libevent-dev libxslt-dev uuid-dev python-setuptools dtach libzmq-dev redis-server firefox chromium-browser xvfb")
     run("easy_install pip")
     run("pip install virtualenvwrapper")
     run("mkdir -p /opt/crpc")

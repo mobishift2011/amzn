@@ -41,8 +41,8 @@ def spout_listing(site):
 def spout_category(site, category):
     """ return a generator spouting category parameters """
     c = category
-    if c.spout_time and c.spout_time > datetime.utcnow()-timedelta(hours=12):
-        return
+#    if c.spout_time and c.spout_time > datetime.utcnow()-timedelta(hours=12):
+#        return
     if site == 'ecost':
         if c.num: # not None or 0
             yield {'url': c.link, 'catstr': c.cat_str, 'num': c.num}
@@ -139,7 +139,6 @@ def update_listing(site, rpc, concurrency=30):
         for category in spout_listing(site):
 #            print 'category', category
             for kwargs in spout_category(site, category):
-                print kwargs
                 rpc = random.choice(rpcs)
                 pool.spawn(callrpc, rpc,  site, 'crawl_listing', **kwargs)
 

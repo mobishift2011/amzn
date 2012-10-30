@@ -94,11 +94,16 @@ class Server(BaseServer):
             event.image_urls = [img_url]
             event.events_end = date_obj
             event.save()
-            category_saved.send(sender=DB + '.crawl_category', site=DB, key=sale_id, is_new=is_new, is_updated=not is_new)
+            category_saved.send(sender=DB + '.crawl_category1', site=DB, key=sale_id, is_new=is_new, is_updated=not is_new)
 
         ###########################
         # section 2, parse category
         ###########################
+        categorys = ['women','men','home','electronics','kids','lifestyle']
+        for name in categorys:
+            url = 'http://nomorerack.com/daily_deals/category/%s' %name
+            category ,is_new = Category.objects.get_or_create(key=name)
+            category_saved.send(sender=DB + '.crawl_category2', site=DB, key=name, is_new=is_new, is_updated=not is_new)
 
     def url2sale_id(self,url):
         return url.split('/')[-1]

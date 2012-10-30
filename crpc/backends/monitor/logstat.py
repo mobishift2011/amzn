@@ -29,7 +29,7 @@ def get_or_create_task(site, method):
             t.started_at = datetime.utcnow()
     return t
 
-def task_all():
+def task_all_tasks():
     tasks = Task.objects().select_related()
     return {"tasks":[t.to_json() for t in tasks]}
 

@@ -4,7 +4,7 @@ from gevent import monkey; monkey.patch_all()
 
 from bottle import route, post, request, run, template, static_file, redirect
 from os.path import join, dirname
-from backends.monitor.logstat import log_event, task_updates, task_all
+from backends.monitor.logstat import log_event, task_updates, task_all_tasks
 from backends.monitor.scheduler import update_schedule, get_all_schedules, delete_schedule
 
 @route('/assets/<filepath:path>')
@@ -19,12 +19,12 @@ def index():
 def task():
     return template('task')
 
-@route('/table/all')
-def table_all():
-	return task_all()
+@route('/task/all')
+def task_all():
+	return task_all_tasks()
 
-@route('/table/update')
-def table_update():
+@route('/task/update')
+def task_update():
     try:
 	    log_event.wait(timeout=10)
     except:

@@ -23,7 +23,7 @@ function TaskCtrl($scope) {
     // initiate table arguments
     init: function() {
         $.ajax({
-            url: "/table/all",
+            url: "/task/all",
             type: "GET",
             dataType: "json",
             success: function(response){
@@ -35,7 +35,7 @@ function TaskCtrl($scope) {
     poll: function() {
         $.ajax({
             timeout: 16000,
-            url: "/table/update", 
+            url: "/task/update", 
             type: "GET", 
             dataType: "json",
             success: updater.onSuccess,

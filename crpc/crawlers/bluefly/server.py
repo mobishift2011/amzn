@@ -138,6 +138,7 @@ class Server(BaseServer):
                 product.brand = item.xpath('.//div[@class="listBrand"]/a')[0].text_content()
                 product.sail_id = self.url2category_key(url)
                 product.designer = link.text_content()
+                product.url = url
 
             price_spans = item.xpath('.//span')
             for span in price_spans:
@@ -155,6 +156,7 @@ class Server(BaseServer):
                 if div.get('class') == 'listOutOfStock':
                     soldout = True
                     break
+
             product.soldout = soldout
             product.image_urls = ['http://cdn.is.bluefly.com/mgen/Bluefly/eqzoom85.ms?img=%s.pct&outputx=738&outputy=700&level=1&ver=6' %key]
             debug_info.send(sender=DB + str(product.image_urls))
@@ -206,6 +208,7 @@ class Server(BaseServer):
         image_count = len(main.xpath('//div[@class="image-thumbnail-container"]/a'))
         product.image_urls = self._make_image_urls(key,image_count)
         num_reviews = main.xpath('//a[@class="review-count"]')[0].text.split('reviews')[0]
+        print 'review ',num_reviews
         print 'parse by request,used ',time.time() - point1
         
         ########################
@@ -255,7 +258,7 @@ if __name__ == '__main__':
     server = Server()
     import time
     #server._get_all_category('test','http://www.bluefly.com/a/shoes')
-    if 1:
+    if 0:
         point1 = time.time()
         server.crawl_category()
         print 'category count',Category.objects.all().count()
@@ -267,7 +270,6 @@ if __name__ == '__main__':
             server.crawl_listing(c.url)
         print 'product count',Product.objects.all().count()
         print 'crawl all lising used',time.time() - point2
-
 
         point3 = time.time()
         for p in Product.objects.all():
@@ -282,4 +284,7 @@ if __name__ == '__main__':
     if 0:
         url = 'http://www.bluefly.com/Designer-Loafers-Flats/_/N-fs8/list.fly'
         print server.crawl_listing(url)
+    if 1:
+        url = 'http://www.bluefly.com/Plan-B-black-stretch-jersey-leggings/p/305120701/detail.fly'
+        print server.crawl_product(url)
 

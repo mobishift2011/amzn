@@ -82,7 +82,7 @@ class Server:
             #self.profile = webdriver.FirefoxProfile()
             #self.profile.set_preference("general.useragent.override","Mozilla/5.0 (iPhone; CPU iPhone OS 5_1_1 like Mac OS X) AppleWebKit/534.46 (KHTML, like Gecko) Version/5.1 Mobile/9B206 Safari/7534.48.3")
 
-        self.browser.implicitly_wait(2)
+        #self.browser.implicitly_wait(1)
         self.browser.get(self.siteurl)
         time.sleep(3)
         
@@ -354,24 +354,28 @@ class Server:
         # section 2 productAttributes
         #########################
         
-        point3 = time.time()
         attribute_node = self.browser.find_elements_by_css_selector('section#productAttributes.floatLeft')[0]
+        point3 = time.time()
         sizes = {}
-        for a in attribute_node.find_elements_by_css_selector('ul#sizeSwatches li.swatch a.normal'):
-            a.click()
-            key = a.text
-            left = ''
-            span = attribute_node.find_element_by_id('inventoryAvailable')
-            left = span.text.split(' ')[0]
-            print 'left',left
-            sizes.update({key:left})
+        size_list = attribute_node.find_elements_by_css_selector('ul#sizeSwatches li.swatch a.normal')
+        if size_list:
+            for a in size_list:
+                a.click()
+                key = a.text
+                left = ''
+                span = attribute_node.find_element_by_id('inventoryAvailable')
+                left = span.text.split(' ')[0]
+                print 'left',left
+                sizes.update({key:left})
+        else:
+            left =  attribute_node.find_element_by_css_selector('span#inventoryAvailable.active').text
+            sizes = {'std':left}
 
         print 'sizes',sizes
         print 'parse sizes used ',time.time() - point3
         
         point4 = time.time()
         shipping = attribute_node.find_element_by_id('readyToShip').text
-        limit = attribute_node.find_element_by_css_selector('div#cartLimit').text
         price = attribute_node.find_element_by_id('salePrice').text
         listprice  = attribute_node.find_element_by_id('strikePrice').text
         print 'parse other userd',time.time() - point4
@@ -442,23 +446,29 @@ class Server:
             return s
 
 if __name__ == '__main__':
+    server = Server()
+    if 0:
+        server.crawl_category()
     if 0: 
-        sale_id = '54082'
-        event_url = 'http://www.ruelala.com/event/54082'
+        sale_id = '59118'
+        event_url ='http://www.ruelala.com/event/59118'
         product_list = server._get_product_list(sale_id,event_url)
         print 'result >>',len(product_list)
+        ps =  Product.objects.all()
+        print 'ps',ps
 
     if 0:
-        product_id = '1411832058'
-        url = 'http://www.ruelala.com/event/product/58602/1411832058/1/DEFAULT'
+        product_id = '1111892369'
+        url = 'http://www.ruelala.com/event/product/59118/1111892369/1/DEFAULT'
         result = server._crawl_product_detail(product_id,url)
 
     if 0:
+        server = Server()
         id= '59022'
         url= 'http://www.ruelala.com/event/59022'
         server.crawl_listing(id,url)
 
-    if 1:
+    if 0:
         server = Server()
         product_id = '1313856978'
         url = 'http://www.ruelala.com/event/product/59326/1313856978/1/DEFAULT'
@@ -469,7 +479,7 @@ if __name__ == '__main__':
         category = 'women'
         server._get_event_list('women','http://www.ruelala.com/category/women')
 
-    if 0:
+    if 1:
         count = 0
         error_count = 0
         server = Server()
@@ -480,6 +490,7 @@ if __name__ == '__main__':
         print '>>>>>>end',time.time() - start
 
         ps =  Product.objects.all()
+        print 'ps',ps
         total = len(ps)
         start = time.time()
         for p in ps:

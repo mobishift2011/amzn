@@ -24,6 +24,7 @@ import urllib
 import lxml.html
 import time
 import datetime
+from dateutil import parser as dt_parser
 
 class Server(BaseServer):
     """.. :py:class:: Server
@@ -274,9 +275,11 @@ class Server(BaseServer):
                 review = Review()
                 review.title = self.browser.find_element_by_xpath('//h5[@class="review-title"]').text
                 review.content =  self.browser.find_element_by_xpath('//div[@class="text-preview"]').text
-                date_str=  self.browser.find_element_by_xpath('//div[@class="review-date"]').text.replace('?','-')[:-1]
-                date_obj = datetime.datetime.strptime(date_str, '%Y-%m-%d')
-                print '>>>>date obj',date_obj
+                date_str=  self.browser.find_element_by_xpath('//div[@class="review-date"]').text
+                # patch
+                if '?' in date_str:
+                    date_str = date_str[:-1]
+                date_obj = dt_parser.parse(date_str)
                 review.post_time = date_obj
                 review.username = self.browser.find_element_by_xpath('//div[@class="review-author"]/a').text
                 review.save()

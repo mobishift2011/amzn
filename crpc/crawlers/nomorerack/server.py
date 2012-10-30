@@ -23,7 +23,7 @@ from crawlers.common.stash import *
 import urllib
 import lxml.html
 import time
-from dateutil import parser as dt_parser
+import datetime
 
 class Server(BaseServer):
     """.. :py:class:: Server
@@ -83,19 +83,25 @@ class Server(BaseServer):
                 continue
 
             a =  e.find_element_by_css_selector('div.image a.image_tag')
-            img =  e.find_element_by_css_selector('div.image a.image_tag img')
             expires_on = e.find_element_by_css_selector('div.countdown').get_attribute('expires_on')
-            expires_date_str = time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(int(expires_on[:10])))
-            expires_date = dt_parser.parse(expires_date_str)
-            print 'img url',img.get_attribute('src')
-            print 'href',a.get_attribute('href')
-            print 'expires on',expires_date
-            pass
+            date_obj = datetime.datetime.fromtimestamp(int(expires_on[:10]))
+            href = a.get_attribute('href')
+            url = self.format_url(href)
+            sale_id = self.url2sale_id(url) # return a string
+            img_url = 'http://nmr.allcdn.net/images/events/all/banners/event-%s-medium.jpg' %sale_id
+            event ,is_new = Event.objects.get_or_create(sale_id=sale_id)
+            event.title = title
+            event.image_urls = [img_url]
+            event.events_end = date_obj
+            event.save()
+            category_saved.send(sender=DB + '.crawl_category', site=DB, key=sale_id, is_new=is_new, is_updated=not is_new)
 
         ###########################
         # section 2, parse category
         ###########################
-    
+
+    def url2sale_id(self,url):
+        return url.split('/')[-1]
     
     def crawl_listing(self,url):
         tree = self.ropen(url)

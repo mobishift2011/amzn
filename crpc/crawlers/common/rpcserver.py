@@ -154,5 +154,7 @@ class BaseServer:
             return  urllib.basejoin(self.siteurl,url)
 
 if __name__ == '__main__':
-    server = Server()
+    zs = Zerorpc.Server(RPCServer()) 
+    zs.bind("tcp://0.0.0.0:{0}".format(RPC_PORT))
+    zs.run()
 

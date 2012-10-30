@@ -89,7 +89,8 @@ def _deploy_rpc(host_string):
                     with prefix("ulimit -s 1024"):
                         with prefix("ulimit -n 4096"):
                             _runbg("Xvfb :99 -screen 0 1024x768x8 -ac +extension GLX +render -noreset", sockname="graphicXvfb")
-                            _runbg("DISPLAY=:99 python rpcserver.py", sockname="crawlercommon")
+	                    with prefix("export DISPLAY=:99"):
+                                _runbg("python rpcserver.py", sockname="crawlercommon")
 
 def _runbg(cmd, sockname="dtach"):
     """ A helper function to run command in background """

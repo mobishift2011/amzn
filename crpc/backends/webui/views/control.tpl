@@ -45,7 +45,7 @@
             <td>
                 <label ng-click="editSchedule4(s)">{{LB}}s.enabled{{RB}}</label>
             </td>
-            <td><a href="#" ng-click="removeSchedule(s)">Delete</a>&nbsp;|&nbsp;<a herf="#">Run</a></td>
+            <td><a href="#" ng-click="removeSchedule(s)">Delete</a>&nbsp;|&nbsp;<a herf="#" ng-click="runSchedule(s)">Run</a></td>
         </tr>
     </tbody>
 </table>

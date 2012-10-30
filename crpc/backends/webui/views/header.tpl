@@ -17,6 +17,7 @@
     <script type="text/javascript" charset="utf-8" language="javascript" src="/assets/js/libs/jquery-1.8.2.min.js"></script>
     <script type="text/javascript" charset="utf-8" language="javascript" src="/assets/js/libs/jquery.dataTables.min.js"></script>
     <script src="/assets/js/libs/angular.min.js"></script>
+    <script src="/assets/js/libs/bootstrap.min.js"></script>
     <script src="/assets/js/monitor.js"></script>
 
     % for scriptpath in scripts:

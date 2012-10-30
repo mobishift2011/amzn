@@ -23,7 +23,7 @@ function TaskCtrl($scope) {
     // initiate table arguments
     init: function() {
         $.ajax({
-            url: "/table/all",
+            url: "/task/all",
             type: "GET",
             dataType: "json",
             success: function(response){
@@ -35,7 +35,7 @@ function TaskCtrl($scope) {
     poll: function() {
         $.ajax({
             timeout: 16000,
-            url: "/table/update", 
+            url: "/task/update", 
             type: "GET", 
             dataType: "json",
             success: updater.onSuccess,
@@ -66,7 +66,26 @@ function TaskCtrl($scope) {
     updateTasks: function(tasks) {
         var task2row = function(t) {
             $scope.tasks.push(t);
-            return [t.name, t.status, t.started_at, t.updated_at, t.dones, t.updates, t.news, t.fails];
+            // modal for errors
+            var taskid = t.updated_at.replace(/:/g,'').replace(/\./g,'').replace(/-/g,'');
+            var tabletrs = "";
+            for (var i=0; i<t.fail_details.length; i++){
+                tabletrs += "<tr><td>"+t.fail_details[i].time+"</td>"+
+                                "<td>"+t.fail_details[i].name+"</td>"+
+                                "<td>"+t.fail_details[i].message+"</td></tr>";
+            }
+            var failsdiv = "<div id='"+taskid+"'class='modal hide fade' role='dialog' style='display:none;'>"+
+                        "<div class='modal-header'><button type='button' class='close' data-dismiss='modal' aria-hidden='true'>x</button><h3>Fails</h3></div>" +
+                        "<div class='modal-body'>"+
+                            "<table class='table table-striped'>"+
+                                "<thead><tr><th>Time</th><th>Caller</th><th>Message</th></tr></thead>"+
+                                "<tbody>"+tabletrs+"</tbody>"+
+                            "</table>"+
+                        "</div>"+
+                        "<div class='modal-footer'><button class='btn' data-dismiss='modal'>Close</button></div>"+
+                    "</div>"
+                    + "<div><a href='#"+taskid+"' data-toggle='modal'>"+t.fails+"</div>";
+            return [t.name, t.status, t.started_at, t.updated_at, t.dones, t.updates, t.news, failsdiv];
         }
 
         $scope.$apply(function(){

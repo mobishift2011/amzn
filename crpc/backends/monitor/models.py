@@ -13,25 +13,28 @@ class Schedule(Document):
     site            =   StringField()
     method          =   StringField()
     description     =   StringField()
-    minutes         =   StringField()
-    hours           =   StringField()
+    minute         =   StringField()
+    hour           =   StringField()
     dayofmonth      =   StringField()
     month           =   StringField()
     dayofweek       =   StringField()
     enabled         =   BooleanField(default=False)
 
+    def get_crontab_arguments(self):
+        return "{0} {1} {2} {3} {4}".format(self.minute, self.hour, self.dayofmonth, self.month, self.dayofweek)
+
     def timematch(self):
         t = datetime.utcnow()
         tsets = self._time_sets()
-        return  t.minute in tsets['minutes'] and \
-                t.hour in tsets['hours'] and \
+        return  t.minute in tsets['minute'] and \
+                t.hour in tsets['hour'] and \
                 t.day in tsets['dayofmonth'] and \
                 t.month in tsets['month'] and \
                 t.weekday() in tsets['dayofweek']
 
     def _time_sets(self):
-        wholes = {'minutes':60, 'hours':24, 'dayofmonth':31, 'month':12, 'dayofweek':7}
-        names = ['minutes', 'hours', 'dayofmonth', 'month', 'dayofweek']
+        wholes = {'minute':60, 'hour':24, 'dayofmonth':31, 'month':12, 'dayofweek':7}
+        names = ['minute', 'hour', 'dayofmonth', 'month', 'dayofweek']
         for name in names:
             if not getattr(self, name):
                 setattr(self, name, "*")

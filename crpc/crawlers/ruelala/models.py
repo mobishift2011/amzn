@@ -6,7 +6,7 @@ crawlers.ruelala.models
 Implements Product and Category Model for ruelala
 """
 
-DB = 'ruelala_test'
+DB = 'ruelala_test1'
 TIMEOUT = 60
 from mongoengine import *
 from mongoengine import connect

@@ -1,22 +1,23 @@
-function TableCtrl($scope) {
+
+/*
+ *   Angular Scripts and Controllers
+ */
+
+function TaskCtrl($scope) {
   $scope.tasks = [
   ];
 
-$(document).ready(function(){
-    if (!window.console) window.console = {};
-    if (!window.console.log) window.console.log = function() {};
-
-
+  $(document).ready(function(){
     updater.init();
     updater.poll();
-});
+  });
 
-function getCookie(name) {
+  function getCookie(name) {
     var r = document.cookie.match("\\b" + name + "=([^;]*)\\b");
     return r ? r[1] : undefined;
-}
+  }
 
-var updater = {
+  var updater = {
     errorSleepTime: 500,
 
     // initiate table arguments
@@ -100,6 +101,5 @@ var updater = {
 
         $.fn.oTable.fnDraw();
     },
-};
-
-}
+  }; /* Updater */
+} /* TaskCtrl */

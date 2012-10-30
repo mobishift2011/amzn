@@ -356,7 +356,7 @@ class Server:
         
         attribute_node = self.browser.find_elements_by_css_selector('section#productAttributes.floatLeft')[0]
         point3 = time.time()
-        sizes = {}
+        sizes = []
         size_list = attribute_node.find_elements_by_css_selector('ul#sizeSwatches li.swatch a.normal')
         if size_list:
             for a in size_list:
@@ -365,15 +365,12 @@ class Server:
                 left = ''
                 span = attribute_node.find_element_by_id('inventoryAvailable')
                 left = span.text.split(' ')[0]
-                print 'left',left
-                sizes.update({key:left})
+                sizes.append((key,left))
         else:
             left =  attribute_node.find_element_by_css_selector('span#inventoryAvailable.active').text
-            sizes = {'std':left}
+            sizes = [('std',left)]
 
-        print 'sizes',sizes
         print 'parse sizes used ',time.time() - point3
-        
         point4 = time.time()
         shipping = attribute_node.find_element_by_id('readyToShip').text
         price = attribute_node.find_element_by_id('salePrice').text

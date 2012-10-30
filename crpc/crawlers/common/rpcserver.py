@@ -19,6 +19,7 @@ import lxml.html
 import requests
 import urllib
 from selenium import webdriver
+import time
 
 class RPCServer(object):
     """ :py:class:crawlers.common.rpcserver.RPCServer
@@ -95,6 +96,7 @@ class BaseServer:
     def bopen(self,url):
         """ open url with browser
         """
+        start = time.time()
         if not self.browser:
             try:
                 self.browser = webdriver.Chrome()
@@ -102,8 +104,6 @@ class BaseServer:
             except:
                 self.browser = webdriver.Firefox()
                 self.browser.set_page_load_timeout(10)
-
-
         try:
             self.browser.get(url)
         except TimeoutException:
@@ -111,17 +111,20 @@ class BaseServer:
         else:
             #self.html = self.browser.content
             #self.tree = lxml.html.fromstring(self.html)
+            print 'bopen used',time.time() - start
             return True
 
     def ropen(self,url):
         """ open url with requests
         """
+        start = time.time()
         res = self.session.get(url)
         status_code = res.status_code
 
         if status_code in [200,301]:
             self.html = res.text
             self.tree = lxml.html.fromstring(self.html)
+            print 'ropen used',time.time() - start
             return self.tree
         else:
             raise HttpError(status_code,url)

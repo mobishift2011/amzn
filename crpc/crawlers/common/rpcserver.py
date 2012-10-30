@@ -20,6 +20,7 @@ import requests
 import urllib
 from selenium import webdriver
 import time
+import zerorpc
 
 class RPCServer(object):
     """ :py:class:crawlers.common.rpcserver.RPCServer
@@ -27,7 +28,7 @@ class RPCServer(object):
     gathers information in crawlers/crawlername/server.py 
     generates callback for remote procedure call
     
-    >>> zs = Zerorpc.Server(RPCServer()) 
+    >>> zs = zerorpc.Server(RPCServer()) 
     >>> zs.bind("tcp://0.0.0.0:{0}".format(RPC_PORT))
     >>> zs.run()
 
@@ -154,7 +155,7 @@ class BaseServer:
             return  urllib.basejoin(self.siteurl,url)
 
 if __name__ == '__main__':
-    zs = Zerorpc.Server(RPCServer()) 
+    zs = zerorpc.Server(RPCServer()) 
     zs.bind("tcp://0.0.0.0:{0}".format(RPC_PORT))
     zs.run()
 

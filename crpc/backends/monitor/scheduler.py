@@ -74,7 +74,8 @@ class Scheduler(object):
 
     def run(self):
         while True:
-            for s in get_schedules():
+            for s in self.get_schedules():
                 if s.timematch():
                     gevent.spawn(globals()[s.method], s.site, get_rpcs())
             gevent.sleep(60)
+

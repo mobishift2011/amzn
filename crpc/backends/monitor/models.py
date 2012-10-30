@@ -72,7 +72,7 @@ class Fail(Document):
     message         =   StringField()
 
     def __str__(self):
-        return self.to_json()
+        return str(self.to_json())
 
     def to_json(self):
         return {
@@ -117,7 +117,7 @@ class Task(Document):
     }
 
     def __str__(self):
-        return self.to_json()
+        return str(self.to_json())
 
     def to_json(self):
         return {

@@ -285,6 +285,7 @@ class Server:
             product,is_new = Product.objects.get_or_create(key=str(product_id))
             if not is_new:
                 product.url = url
+                product.sale_id = [str(sale_id)]
 
             try:
                 s = node.find_elements_by_tag_name('span')[1]
@@ -298,7 +299,11 @@ class Server:
             product.title = title
             product.price = str(product_price)
             product.list_price = str(strike_price)
-            product.sale_id = str(sale_id)
+            if str(sale_id) in product.sale_id:
+                pass
+            else:
+                product.sale_id.append(str(sale_id))
+
             product.save()
             result.append((product_id,url))
         return result

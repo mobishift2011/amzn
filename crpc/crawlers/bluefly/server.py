@@ -23,7 +23,7 @@ from crawlers.common.stash import *
 import urllib
 import lxml.html
 import time
-from dateutil import parser as dt_parser
+import datetime
 
 class Server(BaseServer):
     """.. :py:class:: Server
@@ -225,7 +225,6 @@ class Server(BaseServer):
         except NoSuchElementException:
             num_reviews = '0'
         
-
         point2 = time.time()
         sizes = []
         try:
@@ -256,29 +255,34 @@ class Server(BaseServer):
         product.sizes = sizes
         # if not have now reviews,do nothing
         if not is_new and product.num_reviews == num_reviews:
-            return
-        
-        product.num_reviews = num_reviews
-        Review.objects.filter(product_key=key).delete()
-        reviews = []
-        main = self.browser.find_element_by_xpath('//div[@class="ratings-reviews active"]')
-        try:
-            show_more = self.browser.find_element_by_link_text('SHOW MORE')
-        except NoSuchElementException:
-            show_more = False
+            pass
+        else:
+            product.num_reviews = num_reviews
+            reviews = []
+            main = self.browser.find_element_by_xpath('//div[@class="ratings-reviews active"]')
+            try:
+                show_more = self.browser.find_element_by_link_text('SHOW MORE')
+            except NoSuchElementException:
+                show_more = False
 
-        if show_more:
-            show_more.click()
+            if show_more:
+                show_more.click()
 
-        for article in main.find_elements_by_tag_name('article'):
-            review = Review()
-            review.title = self.browser.find_element_by_xpath('//h5[@class="review-title"]').text
-            review.content =  self.browser.find_element_by_xpath('//div[@class="text-preview"]').text
-            post_time =  self.browser.find_element_by_xpath('//div[@class="review-date"]').text.replace('?','-')[:-1]
-            review.post_time = dt_parser.parse(post_time)
-            review.username = self.browser.find_element_by_xpath('//div[@class="review-author"]/a').text
-            review.save()
-            reviews.append(review)
+            # remove the old reviews
+            Review.objects.filter(product_key=key).delete()
+            for article in main.find_elements_by_tag_name('article'):
+                review = Review()
+                review.title = self.browser.find_element_by_xpath('//h5[@class="review-title"]').text
+                review.content =  self.browser.find_element_by_xpath('//div[@class="text-preview"]').text
+                date_str=  self.browser.find_element_by_xpath('//div[@class="review-date"]').text.replace('?','-')[:-1]
+                date_obj = datetime.datetime.strptime(date_str, '%Y-%m-%d')
+                print '>>>>date obj',date_obj
+                review.post_time = date_obj
+                review.username = self.browser.find_element_by_xpath('//div[@class="review-author"]/a').text
+                review.save()
+                reviews.append(review)
+            print 'reviews',reviews
+            product.reviews = reviews
 
         print 'parse by seleunim used ',time.time() - point2
         product.save()
@@ -290,7 +294,7 @@ if __name__ == '__main__':
     server = Server()
     import time
     #server._get_all_category('test','http://www.bluefly.com/a/shoes')
-    if 1:
+    if 0:
         point1 = time.time()
         server.crawl_category()
         print 'category count',Category.objects.all().count()
@@ -321,7 +325,7 @@ if __name__ == '__main__':
     if 0:
         url = 'http://www.bluefly.com/Designer-Loafers-Flats/_/N-fs8/list.fly'
         print server.crawl_listing(url)
-    if 0:
-        url = 'http://www.bluefly.com/Plan-B-black-stretch-footed-leggings/p/305120801/detail.fly'
+    if 1:
+        url = 'http://www.bluefly.com/Charles-David-black-leather-Proper-tall-boots/p/314091701/detail.fly'
         print server.crawl_product(url)
 

@@ -25,21 +25,21 @@ def setup_env():
     """
     run("apt-get update")
     run("apt-get -y upgrade")
-    run("apt-get -y install build-essential python-dev libevent-dev libxslt-dev uuid-dev python-setuptools dtach libzmq-dev redis-server firefox chromium-browser xvfb unzip")
+    run("apt-get -y install build-essential python-dev libevent-dev libxslt-dev uuid-dev python-setuptools dtach libzmq-dev redis-server chromium-browser xvfb unzip")
     run("easy_install pip")
     run("pip install virtualenvwrapper")
     run("mkdir -p /opt/crpc")
-    run("ln -s /usr/bin/chromium-browser /usr/bin/google-chrome")
     run("wget -q -c http://chromedriver.googlecode.com/files/chromedriver_linux64_23.0.1240.0.zip -O tmp.zip && unzip tmp.zip && rm tmp.zip")
     run("chmod a+x chromedriver && mv chromedriver /usr/bin/")
 
     with settings(warn_only=True):
         run("kill -9 `pgrep -f rpc.py`")
         run("kill -9 `pgrep -f {0}`".format(ENV_NAME))
+        run("ln -s /usr/bin/chromium-browser /usr/bin/google-chrome")
 
     with cd("/opt/crpc"):
         with prefix("source /usr/local/bin/virtualenvwrapper.sh"):
-            run("mkvirtualenv "+ENV_NAME)
+#            run("mkvirtualenv "+ENV_NAME)
             with prefix("workon "+ENV_NAME):
                 run("pip install cython"+USE_INDEX)
                 run("pip install zerorpc lxml requests pymongo mongoengine redis redisco pytz mock selenium blinker cssselect"+USE_INDEX) 

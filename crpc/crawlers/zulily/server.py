@@ -27,12 +27,11 @@ from models import *
 from crawlers.common.events import *
 from crawlers.common.stash import *
 
-TIMEOUT = 9
 headers = { 'User-Agent': 'Mozilla 5.0/Firefox 16.0.1', }
 config = { 
-    'max_retries': 3,
-    'pool_connections': 50, 
-    'pool_maxsize': 50, 
+    'max_retries': 5,
+    'pool_connections': 10, 
+    'pool_maxsize': 10, 
 }
 req = requests.Session(prefetch=True, timeout=17, config=config, headers=headers)
 

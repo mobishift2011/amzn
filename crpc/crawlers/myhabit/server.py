@@ -31,9 +31,9 @@ from selenium.webdriver.support.ui import WebDriverWait
 from models import *
 from crawlers.common.events import *
 from crawlers.common.stash import *
+from crawlers.common.rpcserver import safe_lock
 
 TIMEOUT = 5
-sem = BoundedSemaphore()
 
 class Server:
     """.. :py:class:: Server
@@ -104,24 +104,24 @@ class Server:
             return 1
         print 'time download benchmark: ', time.time() - time_begin_benchmark
 
+    @safe_lock
     def crawl_category(self):
         """.. :py:method::
             From top depts, get all the brands
         """
-        with sem:
-            self.check_signin()
-            depts = ['women', 'men', 'kids', 'home', 'designer']
-            self.queue = Queue.Queue()
-            self.upcoming_queue = Queue.Queue()
-            debug_info.send(sender=DB + '.category.begin')
+        self.check_signin()
+        depts = ['women', 'men', 'kids', 'home', 'designer']
+        self.queue = Queue.Queue()
+        self.upcoming_queue = Queue.Queue()
+        debug_info.send(sender=DB + '.category.begin')
 
-            for dept in depts:
-                link = 'http://www.myhabit.com/homepage?#page=g&dept={0}&ref=qd_nav_tab_{0}'.format(dept)
-                self.get_event_list(dept, link)
-            self.cycle_crawl_category()
-            debug_info.send(sender=DB + '.category.end')
-            self.browser.quit()
-            self._signin = False
+        for dept in depts:
+            link = 'http://www.myhabit.com/homepage?#page=g&dept={0}&ref=qd_nav_tab_{0}'.format(dept)
+            self.get_event_list(dept, link)
+        self.cycle_crawl_category()
+        debug_info.send(sender=DB + '.category.end')
+        self.browser.quit()
+        self._signin = False
 
     def get_event_list(self, dept, url):
         """.. :py:method::
@@ -369,77 +369,77 @@ class Server:
         """
         pass
 
+    @safe_lock
     def crawl_product(self, url, casin):
         """.. :py:method::
             Got all the product information and save into the database
 
         :param url: product url
         """
-        with sem:
-            self.check_signin()
-            if self.download_page_for_product(url) == 1: return
+        self.check_signin()
+        if self.download_page_for_product(url) == 1: return
 #            print url
-            time_begin_benchmark = time.time()
-            product, is_new = Product.objects.get_or_create(pk=casin)
+        time_begin_benchmark = time.time()
+        product, is_new = Product.objects.get_or_create(pk=casin)
+        try:
+            pre = self.browser.find_element_by_css_selector('div#main div#page-content div#detail-page')
+        except selenium.common.exceptions.NoSuchElementException:
+            time.sleep(0.3)
+            pre = self.browser.find_element_by_css_selector('div#main div#page-content div#detail-page')
+        node = pre.find_element_by_css_selector('div#dpLeftCol')
+        right_col = pre.find_element_by_css_selector('div#dpRightCol div#innerRightCol')
+        if is_new:
+            info_table, image_urls, video = [], [], ''
+            shortDesc = node.find_element_by_class_name('shortDesc').text
+            international_shipping = node.find_element_by_id('intlShippableBullet').text
+            returned = node.find_element_by_id('returnPolicyBullet').text
+            already_have = [shortDesc, international_shipping, returned]
+
+            for bullet in node.find_elements_by_tag_name('li'):
+                if bullet.text and bullet.text not in already_have:
+                    info_table.append(bullet.text)
+
+            for img in node.find_elements_by_xpath('.//div[@id="altImgContainer"]/div'):
+                try:
+                    picture = img.find_element_by_class_name('zoomImageL2').get_attribute('value')
+                    image_urls.append(picture)
+                except:
+                    video = img.find_element_by_class_name('videoURL').get_attribute('value')
+
             try:
-                pre = self.browser.find_element_by_css_selector('div#main div#page-content div#detail-page')
-            except selenium.common.exceptions.NoSuchElementException:
-                time.sleep(0.3)
-                pre = self.browser.find_element_by_css_selector('div#main div#page-content div#detail-page')
-            node = pre.find_element_by_css_selector('div#dpLeftCol')
-            right_col = pre.find_element_by_css_selector('div#dpRightCol div#innerRightCol')
-            if is_new:
-                info_table, image_urls, video = [], [], ''
-                shortDesc = node.find_element_by_class_name('shortDesc').text
-                international_shipping = node.find_element_by_id('intlShippableBullet').text
-                returned = node.find_element_by_id('returnPolicyBullet').text
-                already_have = [shortDesc, international_shipping, returned]
+                color = right_col.find_element_by_xpath('.//div[@class="dimensionAltText variationSelectOn"]').text
+            except:
+                color = ''
+            try:
+                sizes = right_col.find_elements_by_xpath('./div[@id="dpVariationMatrix"]//select[@class="variationDropdown"]/option')
+                size = [s for s in sizes if not s.text.startswith('Please')]
+            except:
+                sizes = [] 
 
-                for bullet in node.find_elements_by_tag_name('li'):
-                    if bullet.text and bullet.text not in already_have:
-                        info_table.append(bullet.text)
+            product.summary = shortDesc
+            product.list_info = info_table
+            product.image_urls = image_urls
+            if video: product.video = video
+            if international_shipping: product.international_shipping = international_shipping
+            if returned: product.returned = returned
+            if color: product.color = color
+            if sizes: product.sizes = sizes
 
-                for img in node.find_elements_by_xpath('.//div[@id="altImgContainer"]/div'):
-                    try:
-                        picture = img.find_element_by_class_name('zoomImageL2').get_attribute('value')
-                        image_urls.append(picture)
-                    except:
-                        video = img.find_element_by_class_name('videoURL').get_attribute('value')
+        listprice = right_col.find_element_by_id('listPrice').text.replace('$', '').replace(',', '')
+        ourprice = right_col.find_element_by_id('ourPrice').text.replace('$', '').replace(',', '')
+        scarcity = right_col.find_element_by_id('scarcity').text
+        shipping = '; '.join( [a.text for a in right_col.find_elements_by_class_name('dpRightColLabel') if a.text] )
 
-                try:
-                    color = right_col.find_element_by_xpath('.//div[@class="dimensionAltText variationSelectOn"]').text
-                except:
-                    color = ''
-                try:
-                    sizes = right_col.find_elements_by_xpath('./div[@id="dpVariationMatrix"]//select[@class="variationDropdown"]/option')
-                    size = [s for s in sizes if not s.text.startswith('Please')]
-                except:
-                    sizes = [] 
-
-                product.summary = shortDesc
-                product.list_info = info_table
-                product.image_urls = image_urls
-                if video: product.video = video
-                if international_shipping: product.international_shipping = international_shipping
-                if returned: product.returned = returned
-                if color: product.color = color
-                if sizes: product.sizes = sizes
-
-            listprice = right_col.find_element_by_id('listPrice').text.replace('$', '').replace(',', '')
-            ourprice = right_col.find_element_by_id('ourPrice').text.replace('$', '').replace(',', '')
-            scarcity = right_col.find_element_by_id('scarcity').text
-            shipping = '; '.join( [a.text for a in right_col.find_elements_by_class_name('dpRightColLabel') if a.text] )
-
-            product.price = ourprice
-            product.listprice = listprice
-            product.shipping = shipping
-            if scarcity: product.scarcity = scarcity
-            product.updated = True
-            product.full_update_time = datetime.utcnow()
-            product.save()
-            
-            product_saved.send(sender=DB + '.parse_product_detail', site=DB, key=casin, is_new=is_new, is_updated=not is_new)
-            print 'time product process benchmark: ', time.time() - time_begin_benchmark
+        product.price = ourprice
+        product.listprice = listprice
+        product.shipping = shipping
+        if scarcity: product.scarcity = scarcity
+        product.updated = True
+        product.full_update_time = datetime.utcnow()
+        product.save()
+        
+        product_saved.send(sender=DB + '.parse_product_detail', site=DB, key=casin, is_new=is_new, is_updated=not is_new)
+        print 'time product process benchmark: ', time.time() - time_begin_benchmark
 
         
 

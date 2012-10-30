@@ -17,7 +17,7 @@ class Category(BaseCategory):
     key =   StringField(unique=True)
     name = StringField()
     url = StringField()
-    
+
     meta        =   {
         "db_alias": DB,
     }

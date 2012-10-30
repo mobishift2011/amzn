@@ -14,6 +14,7 @@ lock = Semaphore()
 from crawlers.common.rpcserver import BaseServer
 
 from selenium.common.exceptions import *
+from selenium import webdriver
 from crawlers.common.events import category_saved, category_failed, category_deleted
 from crawlers.common.events import product_saved, product_failed, product_deleted
 
@@ -35,6 +36,26 @@ class Server(BaseServer):
         self.siteurl = 'http://www.bluefly.com'
         self.site ='bluefly'
         #self.login(self.email, self.passwd)
+        try:
+            self.browser = webdriver.Chrome()
+        except:
+            self.browser = webdriver.Firefox()
+            self.browser.set_page_load_timeout(10)
+
+
+    def bopen(self,url):
+        """ open url with browser
+        """
+        start = time.time()
+        try:
+            self.browser.get(url)
+        except TimeoutException:
+            return False
+        else:
+            #self.html = self.browser.content
+            #self.tree = lxml.html.fromstring(self.html)
+            print 'bopen used',time.time() - start
+            return True
 
     def login(self, email=None, passwd=None):
         """.. :py:method::
@@ -85,8 +106,6 @@ class Server(BaseServer):
         return  href.split('/')[-2]
 
     def _get_all_category(self,nav,url):
-
-            
         tree = self.ropen(url)
         for div in tree.xpath('//div[@id="deptLeftnavContainer"]'):
             h3 = div.xpath('.//h3')[0].text_content()
@@ -130,16 +149,15 @@ class Server(BaseServer):
         tree = self.ropen(url)
         for item in tree.xpath('//div[starts-with(@class,"productContainer")]'):
             link = item.xpath('.//div[@class="productShortName"]/a')[0]
+            title = link.text
             href = link.get('href')
             key  = self.url2product_id(href)
             url = self.format_url(href)
+            sale_id = [self.url2category_key(url)]
+            brand = item.xpath('.//div[@class="listBrand"]/a')[0].text_content()
+            designer = link.text_content()
+            print 'key',key,type(key)
             product,is_new = Product.objects.get_or_create(pk=key)
-
-            if is_new:
-                product.brand = item.xpath('.//div[@class="listBrand"]/a')[0].text_content()
-                product.sail_id = self.url2category_key(url)
-                product.designer = link.text_content()
-                product.url = url
 
             price_spans = item.xpath('.//span')
             for span in price_spans:
@@ -158,15 +176,20 @@ class Server(BaseServer):
                     soldout = True
                     break
 
+            if is_new:
+                product.sale_id = sale_id
+            else:
+                product.sale_id = list(set(product.sale_id + sale_id))
+
+            product.title = title
             product.soldout = soldout
             product.image_urls = ['http://cdn.is.bluefly.com/mgen/Bluefly/eqzoom85.ms?img=%s.pct&outputx=738&outputy=700&level=1&ver=6' %key]
-            debug_info.send(sender=DB + str(product.image_urls))
             try:
                 product.save()
             except:
-                raise ValueError("validation failed")
-            else:
-                product_saved.send(sender = "bluefly.parse_listing", 
+                product.reviews = []
+                product.save()
+            product_saved.send(sender = "bluefly.parse_listing", 
                                     site = self.site,
                                     key = product.key,
                                     is_new = is_new,                        
@@ -285,7 +308,8 @@ class Server(BaseServer):
                 review.save()
                 reviews.append(review)
             print 'reviews',reviews
-            product.reviews = reviews
+            if reviews:
+                product.reviews = reviews
 
         print 'parse by seleunim used ',time.time() - point2
         product.save()
@@ -298,8 +322,11 @@ if __name__ == '__main__':
     import time
     #server._get_all_category('test','http://www.bluefly.com/a/shoes')
     if 0:
+        pass
+
+    if 0:
         point1 = time.time()
-        server.crawl_category()
+        #server.crawl_category()
         print 'category count',Category.objects.all().count()
         print 'parse category used',time.time() - point1
         
@@ -307,11 +334,12 @@ if __name__ == '__main__':
         for c in Category.objects.all():
             print 'c.url',c.url
             server.crawl_listing(c.url)
-        print 'product count',Product.objects.all().count()
-        print 'crawl all lising used',time.time() - point2
 
         point3 = time.time()
         total_count = Product.objects.all().count()
+        print '>>>total time',time.time() - point1
+        print '>>total product',total_count
+
         count = 0
         for p in Product.objects.all():
             server.crawl_product(p.url)
@@ -325,10 +353,13 @@ if __name__ == '__main__':
         print 'total time',time.time() - point1
 
         #print server.get_navs()
-    if 0:
-        url = 'http://www.bluefly.com/Designer-Loafers-Flats/_/N-fs8/list.fly'
-        print server.crawl_listing(url)
     if 1:
+        for c in Category.objects.all():
+            url = c.url
+            print '>>>> url',url
+            url = 'http://www.bluefly.com/Designer-Leggings/_/N-fkg/list.fly'
+            print server.crawl_listing(url)
+    if 0:
         url = 'http://www.bluefly.com/Charles-David-black-leather-Proper-tall-boots/p/314091701/detail.fly'
         print server.crawl_product(url)
 

@@ -285,11 +285,14 @@ class Server(object):
         lug = self.extract_product_re.match(link).group(1)
         product, is_new = Product.objects.get_or_create(pk=lug)
         if is_new:
-            product.sale_id = sale_id
+            product.sale_id = [sale_id]
             img = item.cssselect('a.product-image>img')[0].get('src')
             image = ''.join( self.extract_product_img.match(img).groups() )
             product.image_urls = [image]
             product.title = title
+        else:
+            if sale_id not in product.sale_id:
+                product.sale_id.append(sale_id)
 
         price_box = item.cssselect('a>div.price-boxConfig')[0]
         special_price = price_box.cssselect('div.special-price')[0].text.strip().replace('$','').replace(',','')

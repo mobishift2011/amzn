@@ -347,10 +347,12 @@ class Server:
         product, is_new = Product.objects.get_or_create(pk=casin)
         if is_new:
             product.dept = dept
-            product.sale_id = sale_id
+            product.sale_id = [sale_id]
             product.brand = sale_title
             product.asin = asin
             product.title = title
+        else:
+            if sale_id not in product.sale_id: product.sale_id.append(sale_id)
         product.price = ourprice
         if listprice: product.listprice = listprice
         product.soldout = soldout

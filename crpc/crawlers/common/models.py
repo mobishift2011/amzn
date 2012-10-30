@@ -141,7 +141,7 @@ class LuxuryProduct(BaseProduct):
 
     """
     # associate to Category's unique key
-    sale_id             =   StringField()
+    sale_id             =   ListField(StringField())
 
     listprice           =   StringField()
     soldout             =   BooleanField()

@@ -144,6 +144,8 @@ function ScheduleCtrl($scope) {
                 console.log(response);
                 if (response['status'] == 'error'){
                     alert(response['reason']);
+                }else{
+                    alert(response['status']);
                 }
             }
         });

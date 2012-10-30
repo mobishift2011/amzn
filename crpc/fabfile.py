@@ -25,10 +25,13 @@ def setup_env():
     """
     run("apt-get update")
     run("apt-get -y upgrade")
-    run("apt-get -y install build-essential python-dev libevent-dev libxslt-dev uuid-dev python-setuptools dtach libzmq-dev redis-server firefox chromium-browser xvfb")
+    run("apt-get -y install build-essential python-dev libevent-dev libxslt-dev uuid-dev python-setuptools dtach libzmq-dev redis-server firefox chromium-browser xvfb unzip")
     run("easy_install pip")
     run("pip install virtualenvwrapper")
     run("mkdir -p /opt/crpc")
+    run("ln -s /usr/bin/chromium-browser /usr/bin/google-chrome")
+    run("wget -q -c http://chromedriver.googlecode.com/files/chromedriver_linux64_23.0.1240.0.zip -O tmp.zip && unzip tmp.zip && rm tmp.zip")
+    run("chmod a+x chromedriver && mv chromedriver /usr/bin/")
 
     with settings(warn_only=True):
         run("kill -9 `pgrep -f rpc.py`")
@@ -85,7 +88,8 @@ def _deploy_rpc(host_string):
                 with prefix(". ../../env.sh TEST"):
                     with prefix("ulimit -s 1024"):
                         with prefix("ulimit -n 4096"):
-                            _runbg("python rpcserver.py", sockname="crawlercommon")
+                            _runbg("Xvfb :99 -screen 0 1024x768x8 -ac +extension GLX +render -noreset", sockname="graphicXvfb")
+                            _runbg("DISPLAY=:99 python rpcserver.py", sockname="crawlercommon")
 
 def _runbg(cmd, sockname="dtach"):
     """ A helper function to run command in background """

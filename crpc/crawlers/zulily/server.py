@@ -127,22 +127,22 @@ class Server(object):
         for node in nodes:
             link = node.xpath('./a[@class="wrapped-link"]')[0].get('href')
             link, lug = self.extract_event_lug.match(link).groups()
+            text = node.xpath('./a/span[@class="txt"]')[0]
 
             brand, is_new = Category.objects.get_or_create(lug=lug)
             if is_new:
                 img = node.xpath('./a/span[@class="homepage-image"]/img/@src')[0]
                 image = ''.join( self.extract_event_img.match(img).groups() )
-                text = node.xpath('./a/span[@class="txt"]')[0]
                 sale_title = text.xpath('./span[@class="category-name"]/span/text()')[0]
 
                 brand.image_urls = [image]
                 brand.sale_title = sale_title
             if dept not in brand.dept: brand.dept.append(dept) # events are mixed in different category
             desc = text.xpath('.//span[@class="description-highlights"]/text()')[0].strip()
-            start_end_date = text.xpath('./span[@class="description"]/span[@class="start-end-date"]/span')[0].text_content().strip()
+            start_end_date = text.xpath('./span[@class="description"]/span[@class="start-end-date"]')[0].text_content().strip()
             brand.short_desc = desc
             brand.start_end_date = start_end_date
-            brand,is_leaf = True
+            brand.is_leaf = True
             brand.update_time = datetime.utcnow()
             brand.save()
             category_saved.send(sender=DB + '.get_event_list', site=DB, key=lug, is_new=is_new, is_updated=not is_new)
@@ -209,6 +209,7 @@ class Server(object):
 
         :param url: listing page url
         """
+        debug_info.send(sender=DB + '.crawl_list.begin')
         cont = self.net.fetch_page(url)
         tree = lxml.html.fromstring(cont)
         node = tree.cssselect('div.container>div#main>div#category-view')[0]
@@ -217,7 +218,7 @@ class Server(object):
         if is_new or brand.sale_description is None:
             brand.sale_description = node.cssselect('div#category-description>div#desc-with-expanded')[0].text_content().strip()
 
-        items = node.cssselect('div#products-grid li.item'):
+        items = node.cssselect('div#products-grid li.item')
         end_date = node.cssselect('div#new-content-header>div.end-date')[0].text_content().strip()
         end_date = end_date[end_date.find('in')+2:].strip() # '2 hours' or '1 day(s) 3 hours'
         days = int(end_date.split()[0]) if 'day' in end_date else 0
@@ -232,6 +233,7 @@ class Server(object):
         page_num = 1
         if self.detect_list_next(node, page_num + 1) is True:
             self.crawl_list_next(url, next_page[-1].get('href'), page_num + 1, lug)
+        debug_info.send(sender=DB + '.crawl_list.end')
 
     def detect_list_next(self, node, page_num):
         """.. :py:method::
@@ -240,7 +242,7 @@ class Server(object):
         :param node: the node generate by crawl_listing
         :param page_num: page number of this event
         """
-        next_page = node.cssselect('div#pagination>a[href]'): # if have next page
+        next_page = node.cssselect('div#pagination>a[href]') # if have next page
         if next_page:
             next_page_relative_url = next_page[-1].get('href')
             if str(page_num) in next_page_relative_url:
@@ -258,13 +260,13 @@ class Server(object):
         cont = self.net.fetch_page(url + page_text)
         tree = lxml.html.fromstring(cont)
         node = tree.cssselect('div.container>div#main>div#category-view')[0]
-        items = node.cssselect('div#products-grid li.item'):
+        items = node.cssselect('div#products-grid li.item')
 
         for item in items: self.crawl_list_product(sale_id, item)
         if self.detect_list_next(node, page_num + 1) is True:
             self.crawl_list_next(url, next_page[-1].get('href'), page_num + 1, sale_id)
 
-    def crawl_list_product(self, sale_id, item)
+    def crawl_list_product(self, sale_id, item):
         """.. :py:method::
             In listing page, Get all product's image, url, title, price, soldout
 
@@ -284,8 +286,9 @@ class Server(object):
             product.title = title
 
         price_box = item.cssselect('a>div.price-boxConfig')[0]
-        special_price = price_box.cssselect('div.special-price')[0].strip().replace('$','').replace(',','')
-        listprice = price_box.cssselect('div.old-price')[0].replace('original','').strip().replace('$','').replace(',','')
+        special_price = price_box.cssselect('div.special-price')[0].text.strip().replace('$','').replace(',','')
+        listprice = price_box.cssselect('div.old-price')[0].text.replace('original','').strip().replace('$','').replace(',','')
+        print sale_id, special_price, list_price
         soldout = item.cssselect('a.product-image>span.sold-out')
 #        product.brand = sale_title
         product.price = special_price
@@ -314,6 +317,7 @@ class Server(object):
         for info in info.cssselect('div#product-description>div.description>ul>li'):
             list_info.append(info.text_content())
         return_shipping = info.cssselect('ul#product-bullets>li')
+        print url, summary, return_shipping
         returned = return_shipping[0].text_content()
         shipping = return_shipping[1].text_content()
         size_scarcity = info.cssselect('div.options-container-big div#product-size-dropdown>select>option[data-inventory-available]')

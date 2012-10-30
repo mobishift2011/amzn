@@ -137,8 +137,9 @@ def update_listing(site, rpc, concurrency=30):
         rpcs = [rpc] if not isinstance(rpc, list) else rpc
         pool = Pool(len(rpcs)*concurrency)
         for category in spout_listing(site):
-            print 'category',category
+#            print 'category', category
             for kwargs in spout_category(site, category):
+                print kwargs
                 rpc = random.choice(rpcs)
                 pool.spawn(callrpc, rpc,  site, 'crawl_listing', **kwargs)
 

@@ -8,15 +8,28 @@ import crawllog
 import sys
 import time
 
+def run(rpc, site):
+    begin = time.time()
+
+    update_category(site, rpc)
+    category_cost = time.time() - begin
+    print '\n\n--++ {0} ++--\n\n'.format(category_cost)
+
+    update_listing(site, rpc)
+    list_cost = time.time() - begin
+    print '\n\n--++ {0} ++--\n\n'.format(list_cost)
+
+    update_product(site, rpc)
+    product_cost = time.time() - begin
+    print '\n\n--++ {0} ++--\n\n'.format(product_cost)
+
+
 if __name__ == '__main__':
     rpc = RPCServer()
-    begin = time.time()
-    if sys.argv[1] and sys.argv[1] == 'myhabit':
-        update_category(sys.argv[1], rpc)
-        category_cost = time.time() - begin
-        print '\n\n--++ {0} ++--\n\n'.format(category_cost)
-        update_product(sys.argv[1], rpc)
-        product_cost = time.time() - begin
-        print '\n\n--++ {0} ++--\n\n'.format(product_cost)
+    if sys.argv[1]:
+        if sys.argv[1] == 'myhabit':
+            run(rpc, sys.argv[1])
+        elif sys.argv[1] == 'zulily':
+            run(rpc, sys.argv[1])
     else:
         update_category('ruelala', rpc)

@@ -6,7 +6,7 @@ crawlers.bluefly.models
 
 Implements Product and Category Model for Amazon
 """
-DB = 'bluefly-test'
+DB = 'bluefly-test1'
 from settings import MONGODB_HOST
 from mongoengine import *
 connect(db=DB, alias=DB, host=MONGODB_HOST)
@@ -29,9 +29,6 @@ class Product(LuxuryProduct):
     listprice = StringField()
     return_policy  = StringField()
     color = StringField()
-
-    def url(self):
-        return self.url
 
     meta                =   {
         "db_alias": DB,

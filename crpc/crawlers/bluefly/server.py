@@ -279,8 +279,7 @@ class Server(BaseServer):
                 # patch
                 if '?' in date_str:
                     date_str = date_str[:-1]
-                date_obj = dt_parser.pase(date_str)
-                print '>>>>date obj',date_obj
+                date_obj = dt_parser.parse(date_str)
                 review.post_time = date_obj
                 review.username = self.browser.find_element_by_xpath('//div[@class="review-author"]/a').text
                 review.save()

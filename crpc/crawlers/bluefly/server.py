@@ -189,43 +189,71 @@ class Server(BaseServer):
         """.. :py:method::
             Got all the product basic information and save into the database
         """
+        print 'start parse product ',url
         point1 = time.time()
-
-        tree = self.ropen(url)
+        #tree = self.ropen(url)
+        self.bopen(url)
         key = self.url2product_id(url)
-        main = tree.xpath('//section[@id="main-product-detail"]')[0]
+        main = self.browser.find_element_by_css_selector('section#main-product-detail')
         product,is_new = Product.objects.get_or_create(key=key)
+        product.title = main.find_element_by_xpath('//h2[starts-with(@class,"product-name")]').text
 
-        product.title = main.xpath('//h2[starts-with(@class,"product-name")]')[0].text
         list_info = [] 
-        for li in main.xpath('//ul[@class="property-list"]/li'):
+        for li in main.find_elements_by_css_selector('ul.property-list li'):
             list_info.append(li.text)
 
-        product.summary = main.xpath('//div[@class="product-description"]')[0].text
-        product.shipping = main.xpath('//div[@class="shipping-policy"]/a')[0].text
-        product.returned  = main.xpath('//div[@class="return-policy"]/a')[0].text
-        product.color =  main.xpath('//div[@class="pdp-label product-variation-label"]/em')[0].text
-        image_count = len(main.xpath('//div[@class="image-thumbnail-container"]/a'))
+        product.summary = main.find_element_by_css_selector('div.product-description').text
+        try:
+            product.shipping = main.find_element_by_css_selector('div.shipping-policy a').text
+        except NoSuchElementException:
+            pass
+
+        try:
+            product.returned  = main.find_element_by_css_selector('div.return-policy a').text
+        except NoSuchElementException:
+            pass
+
+        try:
+            product.color =  main.find_element_by_xpath('//div[@class="pdp-label product-variation-label"]/em').text
+        except NoSuchElementException:
+            pass
+
+        image_count = len(main.find_elements_by_css_selector('div.image-thumbnail-container a'))
         product.image_urls = self._make_image_urls(key,image_count)
-        num_reviews = main.xpath('//a[@class="review-count"]')[0].text.split('reviews')[0]
-        print 'review ',num_reviews
-        print 'parse by request,used ',time.time() - point1
+        try:
+            num_reviews = main.find_element_by_css_selector('a.review-count').text.split('reviews')[0]
+        except NoSuchElementException:
+            num_reviews = '0'
         
-        ########################
-        # section 2
-        ########################
 
         point2 = time.time()
-        self.bopen(url)
         sizes = []
-        for li in self.browser.find_elements_by_css_selector('div.size-picker ul.product-size li'):
-            size = li.get_attribute('data-size')
-            if li.get_attribute("class") == 'size-sku-waitlist':
-                continue
-            else:
-                sizes.append(size)
+        try:
+            bt = self.browser.find_element_by_css_selector('span.selection')
+        except NoSuchElementException:
+            left = self.browser.find_element_by_css_selector('div.size-error-message').text
+            sizes = [('',left)]
+        else:
+            for li in self.browser.find_elements_by_css_selector('div.size-picker ul.product-size li'):
+                bt.click()
+                size = li.get_attribute('data-size')
+                if li.get_attribute("class") == 'size-sku-waitlist':
+                    continue
+                else:
+                    # find the left count
+                    try:
+                        if li.is_displayed():
+                            li.click()
+                            left = self.browser.find_element_by_css_selector('span.size-info').text
+                        else:
+                            continue
+                    except NoSuchElementException:
+                        i = (size,'')
+                    else:
+                        i = (size,left)
+                    sizes.append(i)
+
         product.sizes = sizes
-        
         # if not have now reviews,do nothing
         if not is_new and product.num_reviews == num_reviews:
             return
@@ -234,7 +262,11 @@ class Server(BaseServer):
         Review.objects.filter(product_key=key).delete()
         reviews = []
         main = self.browser.find_element_by_xpath('//div[@class="ratings-reviews active"]')
-        show_more = self.browser.find_element_by_link_text('SHOW MORE').click()
+        try:
+            show_more = self.browser.find_element_by_link_text('SHOW MORE')
+        except NoSuchElementException:
+            show_more = False
+
         if show_more:
             show_more.click()
 
@@ -258,11 +290,11 @@ if __name__ == '__main__':
     server = Server()
     import time
     #server._get_all_category('test','http://www.bluefly.com/a/shoes')
-    if 0:
+    if 1:
         point1 = time.time()
         server.crawl_category()
         print 'category count',Category.objects.all().count()
-        print 'crawl category used',time.time() - point1
+        print 'parse category used',time.time() - point1
         
         point2 = time.time()
         for c in Category.objects.all():
@@ -272,11 +304,16 @@ if __name__ == '__main__':
         print 'crawl all lising used',time.time() - point2
 
         point3 = time.time()
+        total_count = Product.objects.all().count()
+        count = 0
         for p in Product.objects.all():
             server.crawl_product(p.url)
-        print 'product count',Product.objects.all().count()
+            count += 1 
+            print 'total product',total_count
+            print 'parsed product ',count
+            print 'parse product detail used time',time.time() - point3
+
         print 'crawl all lising used',time.time() - point3
-        
         print '>>end'
         print 'total time',time.time() - point1
 
@@ -284,7 +321,7 @@ if __name__ == '__main__':
     if 0:
         url = 'http://www.bluefly.com/Designer-Loafers-Flats/_/N-fs8/list.fly'
         print server.crawl_listing(url)
-    if 1:
-        url = 'http://www.bluefly.com/Plan-B-black-stretch-jersey-leggings/p/305120701/detail.fly'
+    if 0:
+        url = 'http://www.bluefly.com/Plan-B-black-stretch-footed-leggings/p/305120801/detail.fly'
         print server.crawl_product(url)
 

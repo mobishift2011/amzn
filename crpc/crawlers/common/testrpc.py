@@ -14,5 +14,5 @@ def get_rpcs():
 if __name__ == '__main__':
     rpc = get_rpcs()
     update_category('amazon', rpc, concurrency=30)
-    update_product('amazon', rpc, concurrency=5)
-    update_listing('amazon', rpc, concurrency=10)
+    #update_listing('amazon', rpc, concurrency=20)
+    #update_product('amazon', rpc, concurrency=30)

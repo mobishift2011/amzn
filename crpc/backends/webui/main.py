@@ -6,7 +6,8 @@ import gevent
 from bottle import route, post, request, run, template, static_file, redirect
 from os.path import join, dirname
 from backends.monitor.logstat import log_event, task_updates, task_all_tasks
-from backends.monitor.scheduler import update_schedule, get_all_schedules, delete_schedule, Scheduler
+from backends.monitor.scheduler import update_schedule, get_all_schedules, delete_schedule, Scheduler, get_rpcs
+from crawlers.common.routine import update_category, update_listing, update_product
 
 @route('/assets/<filepath:path>')
 def server_static(filepath):
@@ -49,6 +50,19 @@ def save_schedule():
 @post('/control/del')
 def del_schedule():
     return delete_schedule(request.json)
+
+@post('/control/run')
+def run_command():
+    try:
+        method = request.json['method']
+        site = request.json['site']
+        if globals().get(method):
+            gevent.spawn(globals()[method], site, get_rpcs())
+            return {'status':'ok'}
+        else:
+            return {'status':'error', 'reason':'method not found: '+method}
+    except Exception as e:
+        return {'status':'error', 'reason':repr(e)}
 
 gevent.spawn(Scheduler().run)
 

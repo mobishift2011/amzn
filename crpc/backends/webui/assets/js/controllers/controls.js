@@ -130,6 +130,24 @@ function ScheduleCtrl($scope) {
 		$scope.schedules.push(s);
   		$scope.saveSchedule(s);
   	}
+
+    $scope.runSchedule = function(schedule) {
+        var site, method;
+        site = schedule.name.split('.')[0];
+        method = schedule.name.split('.')[1];
+        $.ajax({
+            url:    '/control/run',
+            type:   'POST',
+  			contentType: "application/json; charset=utf-8",
+  			data: JSON.stringify({'site':site,'method':method}),
+            success: function(response) {
+                console.log(response);
+                if (response['status'] == 'error'){
+                    alert(response['reason']);
+                }
+            }
+        });
+    }
 }
 
 monitor.directive('ctrlFocus', function( $timeout ) {

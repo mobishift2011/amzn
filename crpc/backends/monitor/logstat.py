@@ -97,13 +97,13 @@ def stat_product_save(sender, **kwargs):
 def stat_failed(sender, **kwargs):
     logger.error('SECOND{0}'.format(kwargs.items()))
     site = kwargs.get('site')
-    url  = kwargs.get('url')
+    url  = kwargs.get('key')
     reason = kwargs.get('reason')
     assert site is not None and url is not None and reason is not None, u"argument error"
 
     t = Task.objects(status=Task.RUNNING, site=site).first()
     if t:
-        t.update_one(push__fails=fail(site, None, url, reason))
+        t.update(push__fails=fail(site, None, url, reason))
 
     log_event.set()
     log_event.clear()
@@ -117,4 +117,4 @@ def stat_product_failed(sender, **kwargs):
     stat_failed(sender, **kwargs)
 
 if __name__ == '__main__':
-    print task_all()
+    print task_updates()

@@ -1,11 +1,12 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 from gevent import monkey; monkey.patch_all()
+import gevent
 
 from bottle import route, post, request, run, template, static_file, redirect
 from os.path import join, dirname
 from backends.monitor.logstat import log_event, task_updates, task_all_tasks
-from backends.monitor.scheduler import update_schedule, get_all_schedules, delete_schedule
+from backends.monitor.scheduler import update_schedule, get_all_schedules, delete_schedule, Scheduler
 
 @route('/assets/<filepath:path>')
 def server_static(filepath):
@@ -26,12 +27,12 @@ def task_all():
 @route('/task/update')
 def task_update():
     try:
-	    log_event.wait(timeout=10)
+	    log_event.wait(timeout=5)
     except:
         # we shouldn't hang the user fovever
         # after 10 seconds, if no event occur, return empty
         pass
-	return task_updates()
+    return task_updates()
 
 @route('/control')
 def control():
@@ -48,5 +49,7 @@ def save_schedule():
 @post('/control/del')
 def del_schedule():
     return delete_schedule(request.json)
+
+gevent.spawn(Scheduler().run)
 
 run(server='gevent', host='0.0.0.0', port=1317)

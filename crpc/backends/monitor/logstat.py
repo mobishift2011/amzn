@@ -31,9 +31,8 @@ def get_or_create_task(ctx):
 
 def mark_all_failed():
     for t in Task.objects():
-        if t.status != Task.FAILED:
-            t.status = Task.FAILED
-            t.save()
+        if t.status == Task.RUNNING:
+            t.update(set__status=Task.FAILED, push__fails=fail(t.site, t.method, '', '', 'Monitor Restart'))
 
 def task_all_tasks():
     tasks = Task.objects().select_related()

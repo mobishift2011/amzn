@@ -104,7 +104,7 @@ class Server(BaseServer):
     def url2category_key(self,href):
         return  href.split('/')[-2]
 
-    def _get_all_category(self,nav,url,ctx):
+    def _get_all_category(self,nav,url,ctx=False):
         tree = self.ropen(url)
         for div in tree.xpath('//div[@id="deptLeftnavContainer"]'):
             h3 = div.xpath('.//h3')[0].text_content()
@@ -143,7 +143,7 @@ class Server(BaseServer):
             print nav,url
             self._get_all_category(nav,url,ctx)
     
-    def crawl_listing(self,url,ctx):
+    def crawl_listing(self,url,ctx=False):
         tree = self.ropen(url)
         for item in tree.xpath('//div[starts-with(@class,"productContainer")]'):
             link = item.xpath('.//div[@class="productShortName"]/a')[0]

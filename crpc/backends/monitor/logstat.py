@@ -3,30 +3,30 @@
 from crawlers.common.events import *
 
 from helpers.log import getlogger
+import traceback
 
 from backends.monitor.models import Task, Fail
 from datetime import datetime, timedelta
 from gevent.event import Event
 
-
 log_event =  Event()
 
 logger = getlogger("crawlerlog")
 
-def fail(site, method, key=None, message="undefined"):
-    f = Fail(site=site, method=method, key=key, message=message)
+def fail(site, method, key='', url='', message="undefined"):
+    f = Fail(site=site, method=method, key=key, url=url, message=message)
     f.save()
     return f
 
-def get_or_create_task(site, method):
-    t = Task.objects(status=Task.RUNNING, site=site, method=method).first()
+def get_or_create_task(ctx):
+    t = Task.objects(ctx=ctx).first()
     if not t:
-        t = Task.objects(status=Task.READY, site=site, method=method).first()
-        if not t:
-            t = Task(status=Task.READY, site=site, method=method)
-        else:
-            t.status = Task.RUNNING
-            t.started_at = datetime.utcnow()
+        t = Task(ctx=ctx)
+        t.site, t.method, dummy = ctx.split('.')
+        t.started_at = datetime.utcnow()
+    else:
+        t.status = Task.RUNNING
+    t.save()
     return t
 
 def task_all_tasks():
@@ -39,82 +39,74 @@ def task_updates():
 
 @pre_general_update.bind
 def stat_pre_general_update(sender, **kwargs):
-    logger.warning('pre_general_update')
-    site = kwargs.get('site')
-    method = kwargs.get('method')
-    assert site != None and method != None, u"argument error"
-
-    t = get_or_create_task(site, method)
-    t.save()
+    try:
+        site, method, dummy = sender.split('.')
+        t = get_or_create_task(sender)
+        t.save()
+    except Exception as e:
+        logger.exception(e.message)
+        fail(site, method, kwargs.get('key',''), kwargs.get('url',''), traceback.format_exc())
+        
 
 @post_general_update.bind
 def stat_post_general_update(sender, **kwargs):
-    logger.warning('post_general_update')
-    site = kwargs.get('site')
-    method = kwargs.get('method')
     complete = kwargs.get('complete', False)
     reason = kwargs.get('reason', 'undefined')
-    assert site != None and method != None, u"argument error"
+    key = kwargs.get('key','')
+    url = kwargs.get('url','')
+    try:
+        site, method, dummy = sender.split('.')
+        t = get_or_create_task(sender)
+        t.status = Task.FINISHED if complete else Task.FAILED
+        if not complete:
+            t.fails.append( fail(site, method, key, url, reason) )
+        t.save()
+    except Exception as e:
+        logger.exception(e.message)
+        fail(site, method, key, url, traceback.format_exc())
 
-    t = get_or_create_task(site, method)
-    t.status = Task.FINISHED if complete else Task.FAILED
-    if not complete:
-        t.fails.append( fail(site, method, None, reason) )
-    t.save()
-
+@common_saved.bind
 def stat_save(sender, **kwargs):
-    logger.debug('SECOND{0}'.format(kwargs.items()))
-    site = kwargs.get('site')
-    method = kwargs.get('method', 'update_category')
-    key = kwargs.get('key')
-    assert site is not None and method is not None and key is not None, u"argument error"
-
+    logger.debug('{0} -> {1}'.format(sender,kwargs.items()))
+    key = kwargs.get('key','')
+    url = kwargs.get('url','')
     is_new = kwargs.get('is_new', False)
     is_updated = kwargs.get('is_updated', False)
-    t = get_or_create_task(site, method)
 
-    if is_new:
-        t.num_new += 1
-    if is_updated:
-        t.num_update += 1
-    t.num_finish += 1
+    try:
+        site, method, dummy = sender.split('.')
+        t = get_or_create_task(sender)
+
+        if is_new:
+            t.num_new += 1
+        if is_updated:
+            t.num_update += 1
+        t.num_finish += 1
     
-    t.save() 
+        t.save() 
+        log_event.set()
+        log_event.clear()
+    except Exception as e:
+        logger.exception(e.message)
+        fail(site, method, key, url, traceback.format_exc())
 
-    log_event.set()
-    log_event.clear()
-
-@category_saved.bind
-def stat_category_save(sender, **kwargs):
-    kwargs.update({'method':'update_category'})
-    stat_save(sender, **kwargs)
-
-@product_saved.bind
-def stat_product_save(sender, **kwargs):
-    kwargs.update({'method':'update_product'})
-    stat_save(sender, **kwargs)
-
+@common_failed.bind
 def stat_failed(sender, **kwargs):
-    logger.error('SECOND{0}'.format(kwargs.items()))
-    site = kwargs.get('site')
-    url  = kwargs.get('key')
-    reason = kwargs.get('reason')
-    assert site is not None and url is not None and reason is not None, u"argument error"
+    logger.error('{0} -> {1}'.format(sender,kwargs.items()))
+    key  = kwargs.get('key', '')
+    url  = kwargs.get('url', '')
+    reason = kwargs.get('reason', 'undefined')
 
-    t = Task.objects(status=Task.RUNNING, site=site).first()
-    if t:
-        t.update(push__fails=fail(site, None, url, reason))
+    try:
+        site, method, dummy = sender.split('.')
+        t = get_or_create_task(sender)
+        t.update(push__fails=fail(site, method, key, url, reason))
 
-    log_event.set()
-    log_event.clear()
-
-@category_failed.bind
-def stat_category_failed(sender, **kwargs):
-    stat_failed(sender, **kwargs)
-
-@product_failed.bind
-def stat_product_failed(sender, **kwargs):
-    stat_failed(sender, **kwargs)
+        log_event.set()
+        log_event.clear()
+    except Exception as e:
+        logger.exception(e.message)
+        fail(site, method, key, url, traceback.format_exc())
 
 if __name__ == '__main__':
     print task_updates()

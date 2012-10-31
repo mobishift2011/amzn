@@ -26,7 +26,7 @@ from itertools import chain
     
 class Server:
     def __init__(self):
-        self.s = requests.session(headers={'User-Agent':'Mozilla 5.0/b'})
+        self.s = requests.session(headers={'User-Agent':'Mozilla 5.0/b'}, timeout=30)
         self.site = "amazon"
         
     def crawl_category(self, ctx):

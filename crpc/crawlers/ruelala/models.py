@@ -34,7 +34,6 @@ class Product(BaseProduct):
     sale_id = StringField()
     url = StringField()
     limit= StringField()
-    end_time = DateTimeField()
 
     meta = {
         "indexes": ["updated"],

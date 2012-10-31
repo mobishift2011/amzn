@@ -109,10 +109,6 @@ class Server:
         else:
             self._signin = False
 
-    def check_signin(self):
-        if not self._signin:
-            self.login(self.email, self.passwd)
-    
     def crawl_category(self,ctx):
         """.. :py:method::
             From top depts, get all the events
@@ -200,7 +196,7 @@ class Server:
             except ValueError:
                 pass
             else:
-                category.end_time = end_time
+                category.events_end = end_time
 
             if is_new:
                 category.img_url= 'http://www.ruelala.com/images/content/events/%s_doormini.jpg' %sale_id

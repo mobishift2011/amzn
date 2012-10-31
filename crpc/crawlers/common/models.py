@@ -44,7 +44,7 @@ class BaseEvent(BaseCategory):
     luxury crawlers should inherit from this this basic class
     
     >>> from crawlers.common.models import BaseBrand
-    >>> class Category(BaseBrand):
+    >>> class Event(BaseEvent):
     ...     pass
 
     """
@@ -140,7 +140,7 @@ class LuxuryProduct(BaseProduct):
     ...     pass
 
     """
-    # associate to Category's unique key
+    # associate to Event's unique key
     sale_id             =   ListField(StringField())
 
     listprice           =   StringField()

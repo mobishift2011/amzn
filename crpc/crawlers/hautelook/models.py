@@ -16,8 +16,8 @@ from settings import MONGODB_HOST
 DB = 'hautelook'
 connect(db=DB, alias=DB, host=MONGODB_HOST)
 
-class Category(BaseEvent):
-    sale_id = StringField(unique=True, spare=True)
+class Event(BaseEvent):
+    sale_id = StringField(unique=True)
     dept = ListField(StringField())
     brand_link = StringField()
     upcoming_title_img = ListField()

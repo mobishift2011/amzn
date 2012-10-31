@@ -16,7 +16,7 @@ from settings import MONGODB_HOST
 DB = 'myhabit'
 connect(db=DB, alias='myhabit', host=MONGODB_HOST)
 
-class Category(BaseEvent):
+class Event(BaseEvent):
     is_leaf = BooleanField(default=True)
     sale_id = StringField(unique=True)
     dept = ListField(StringField())

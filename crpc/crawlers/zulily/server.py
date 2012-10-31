@@ -130,7 +130,7 @@ class Server(object):
             link, lug = self.extract_event_lug.match(link).groups()
             text = node.xpath('./a/span[@class="txt"]')[0]
 
-            brand, is_new = Category.objects.get_or_create(lug=lug)
+            brand, is_new = Event.objects.get_or_create(lug=lug)
             if is_new:
                 img = node.xpath('./a/span[@class="homepage-image"]/img/@src')[0]
                 image = ''.join( self.extract_event_img.match(img).groups() )
@@ -172,7 +172,7 @@ class Server(object):
             calendar_file = node.cssselect('div.upcoming-date-reminder a.reminder-ical')[0].get('href')
             ics_file = self.net.fetch_page(calendar_file)
             lug = re.compile(r'URL:http://www.zulily.com/e/(.+).html.*').search(ics_file).group(1)
-            brand, is_new = Category.objects.get_or_create(lug=lug)
+            brand, is_new = Event.objects.get_or_create(lug=lug)
             if is_new:
                 img = node.cssselect('div.event-content-image img')[0].get('src')
                 image = ''.join( self.extract_event_img.match(img).groups() )
@@ -215,7 +215,7 @@ class Server(object):
         tree = lxml.html.fromstring(cont)
         node = tree.cssselect('div.container>div#main>div#category-view')[0]
         lug = self.extract_event_lug.match(url).group(2)
-        brand, is_new = Category.objects.get_or_create(lug=lug)
+        brand, is_new = Event.objects.get_or_create(lug=lug)
         if is_new or brand.sale_description is None:
             brand.sale_description = node.cssselect('div#category-description>div#desc-with-expanded')[0].text_content().strip()
 
@@ -257,7 +257,7 @@ class Server(object):
         :param url: listing page url
         :param page_text: this page's relative url
         :param page_num: page number of this event
-        :param sale_id: unique key in Category, which we can associate product with event
+        :param sale_id: unique key in Event, which we can associate product with event
         """
         cont = self.net.fetch_page(url + page_text)
         tree = lxml.html.fromstring(cont)
@@ -273,7 +273,7 @@ class Server(object):
         """.. :py:method::
             In listing page, Get all product's image, url, title, price, soldout
 
-        :param sale_id: unique key in Category, which we can associate product with event
+        :param sale_id: unique key in Event, which we can associate product with event
         :param item: item of xml node
         """
         title_link = item.cssselect('div.product-name>a[title]')[0]

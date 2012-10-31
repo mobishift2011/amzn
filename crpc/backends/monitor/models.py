@@ -69,6 +69,7 @@ class Fail(Document):
     site            =   StringField()
     method          =   StringField()
     key             =   StringField()
+    url             =   StringField()
     message         =   StringField()
 
     def __str__(self):
@@ -76,7 +77,7 @@ class Fail(Document):
 
     def to_json(self):
         return {
-            'name':     self.site+'.'+str(self.method)+'.'+str(self.key),
+            'name':     self.site+'.'+str(self.method)+'.'+str(self.key)+'.'+str(self.url),
             'time':     self.time.isoformat(),
             'message':  self.message,
         }
@@ -99,6 +100,7 @@ class Task(Document):
     status          =   IntField() # READY, RUNNING, PAUSED, FAILED, FINISHED
 
     # meta
+    ctx             =   StringField(unique=True)
     site            =   StringField()
     method          =   StringField() 
     fails           =   ListField(ReferenceField(Fail), default=[])

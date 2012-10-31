@@ -42,7 +42,6 @@ class Server(BaseServer):
             self.browser = webdriver.Firefox()
             self.browser.set_page_load_timeout(10)
 
-
     def bopen(self,url):
         """ open url with browser
         """
@@ -139,8 +138,6 @@ class Server(BaseServer):
             From top depts, get all the events
         """
         for i in self.get_navs():
-            import time
-            time.sleep(2)
             nav,url = i
             print nav,url
             self._get_all_category(nav,url)

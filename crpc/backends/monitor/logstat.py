@@ -29,6 +29,11 @@ def get_or_create_task(ctx):
     t.save()
     return t
 
+def mark_all_failed():
+    for t in Task.objects():
+        if t.status == Task.RUNNING:
+            t.update(set__status=Task.FAILED, push__fails=fail(t.site, t.method, '', '', 'Monitor Restart'))
+
 def task_all_tasks():
     tasks = Task.objects().select_related()
     return {"tasks":[t.to_json() for t in tasks]}

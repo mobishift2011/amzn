@@ -109,30 +109,16 @@ class Server:
         else:
             self._signin = False
 
-    def check_signin(self):
-        if not self._signin:
-            self.login(self.email, self.passwd)
-    
-    def crawl_category(self):
+    def crawl_category(self,ctx=False):
         """.. :py:method::
             From top depts, get all the events
         """
         categorys = ['women', 'men', 'living','kids','todays-fix']
-        debug_info.send(sender=DB + '.category.begin')
 
         for category in categorys:
             url = 'http://www.ruelala.com/category/%s' %category
-            self._get_event_list(category,url)
-        debug_info.send(sender=DB + '.category.end')
+            self._get_event_list(category,url,ctx)
 
-    def crawl_listing(self,sale_id,event_url):
-        event_list = [(sale_id,event_url)]
-        while event_list:
-            event = event_list.pop()
-            sale_id =  event[0]
-            event_url =  event[1]
-            self._get_product_list(sale_id,event_url)
-        return
 
     def crawl_product(self,product_id,product_url):
         product_list = [(product_id,product_url)]
@@ -141,7 +127,7 @@ class Server:
             product_url = product[1]
             self._crawl_product_detail(product_id,product_url)
 
-    def _get_event_list(self,category_name,url):
+    def _get_event_list(self,category_name,url,ctx):
         """.. :py:method::
             Get all the events from event list.
         """
@@ -193,7 +179,6 @@ class Server:
             a_url = self.format_url(a_link)
             sale_id = self._url2saleid(a_link)
             category,is_new = Category.objects.get_or_create(sale_id=sale_id)
-
             footer =  node.find_element_by_xpath('./footer')
             clock = footer.find_element_by_xpath('./a/div[@class="closing clock"]').text
             try:
@@ -201,7 +186,7 @@ class Server:
             except ValueError:
                 pass
             else:
-                category.end_time = end_time
+                category.events_end = end_time
 
             if is_new:
                 category.img_url= 'http://www.ruelala.com/images/content/events/%s_doormini.jpg' %sale_id
@@ -211,12 +196,15 @@ class Server:
             category.update_time = datetime.datetime.utcnow()
             category.is_leaf = True
             category.save()
-            category_saved.send(sender=DB + '._get_event_list', site=DB, key=sale_id, is_new=is_new, is_updated=not is_new)
+            if ctx:
+                category_saved.send(sender=ctx, site=DB, key=sale_id, is_new=is_new, is_updated=not is_new)
+
+
             result.append((sale_id,a_url))
 
         return result
 
-    def _get_product_list(self,sale_id,event_url):
+    def crawl_listing(self,sale_id,event_url,ctx=False):
         result = []
         if not self.get(event_url):
             return  result
@@ -304,6 +292,8 @@ class Server:
                 product.sale_id.append(str(sale_id))
 
             product.save()
+            if ctx:
+                product_save.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
             result.append((product_id,url))
         return result
 
@@ -324,7 +314,7 @@ class Server:
             urls.append(url)
         return urls
 
-    def _crawl_product_detail(self,product_id,url):
+    def _crawl_product_detail(self,product_id,url,ctx=False):
         """.. :py:method::
             Got all the product basic information and save into the database
         """
@@ -340,7 +330,7 @@ class Server:
         image_urls = []
         # TODO imgDetail
         imgs_node = self.browser.find_element_by_css_selector('section#productImages')
-        first_img_url = imgs_node.find_element_by_css_selector('img#imgZoom').get_attribute('href')
+        #first_img_url = imgs_node.find_element_by_css_selector('img#imgZoom').get_attribute('href')
         try:
             img_count = len(imgs_node.find_elements_by_css_selector('div#imageThumbWrapper img'))
         except:
@@ -408,7 +398,8 @@ class Server:
         print 'image urls',image_urls
         """
         
-        product_saved.send(sender=DB + '.parse_product_detail', site=DB, key=product_id, is_new=is_new, is_updated=not is_new)
+        if ctx:
+            product_saved.send(sender=ctx, site=DB, key=casin, is_new=is_new, is_updated=not is_new)
 
     def _url2saleid(self, url):
         """.. :py:method::
@@ -463,7 +454,7 @@ if __name__ == '__main__':
         url = 'http://www.ruelala.com/event/product/59118/1111892369/1/DEFAULT'
         result = server._crawl_product_detail(product_id,url)
 
-    if 0:
+    if 1:
         server = Server()
         id= '59022'
         url= 'http://www.ruelala.com/event/59022'
@@ -480,7 +471,7 @@ if __name__ == '__main__':
         category = 'women'
         server._get_event_list('women','http://www.ruelala.com/category/women')
 
-    if 1:
+    if 0:
         count = 0
         error_count = 0
         server = Server()

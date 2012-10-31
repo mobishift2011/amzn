@@ -104,7 +104,7 @@ class Server(BaseServer):
     def url2category_key(self,href):
         return  href.split('/')[-2]
 
-    def _get_all_category(self,nav,url):
+    def _get_all_category(self,nav,url,ctx=False):
         tree = self.ropen(url)
         for div in tree.xpath('//div[@id="deptLeftnavContainer"]'):
             h3 = div.xpath('.//h3')[0].text_content()
@@ -127,22 +127,19 @@ class Server(BaseServer):
             print 'category.url',url
             category.save()
             # send singnal
-            category_saved.send(sender = 'bluefly.crawl_category',
-                                site = self.site,
-                                key = key,
-                                is_new = is_new,
-                                is_updated = not is_new)
+            if ctx:
+                category_saved.send(sender=ctx, site=DB, key=category.key, is_new=is_new, is_updated=not is_new)
 
-    def crawl_category(self):
+    def crawl_category(self,ctx=False):
         """.. :py:method::
             From top depts, get all the events
         """
         for i in self.get_navs():
             nav,url = i
             print nav,url
-            self._get_all_category(nav,url)
+            self._get_all_category(nav,url,ctx)
     
-    def crawl_listing(self,url):
+    def crawl_listing(self,url,ctx=False):
         tree = self.ropen(url)
         for item in tree.xpath('//div[starts-with(@class,"productContainer")]'):
             link = item.xpath('.//div[@class="productShortName"]/a')[0]
@@ -186,11 +183,8 @@ class Server(BaseServer):
             except:
                 product.reviews = []
                 product.save()
-            product_saved.send(sender = "bluefly.parse_listing", 
-                                    site = self.site,
-                                    key = product.key,
-                                    is_new = is_new,                        
-                                    is_updated = not is_new)
+            if ctx:
+                product_save.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
 
     def url2product_id(self,href):
         return href.split('/')[-2]
@@ -206,7 +200,7 @@ class Server(BaseServer):
             urls.append(url)
         return urls
 
-    def crawl_product(self,url):
+    def crawl_product(self,url,ctx=False):
         """.. :py:method::
             Got all the product basic information and save into the database
         """
@@ -311,8 +305,8 @@ class Server(BaseServer):
         print 'parse by seleunim used ',time.time() - point2
         product.save()
         print 'parse product total used',time.time() - point1
-        product_saved.send(sender=DB + '.parse_product_detail', site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
-
+        if ctx:
+            product_save.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
 
 if __name__ == '__main__':
     server = Server()

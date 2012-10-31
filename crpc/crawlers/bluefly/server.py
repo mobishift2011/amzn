@@ -26,6 +26,7 @@ import lxml.html
 import time
 import datetime
 from dateutil import parser as dt_parser
+from crawlers.common.events import common_saved, common_failed
 
 class Server(BaseServer):
     """.. :py:class:: Server
@@ -127,7 +128,7 @@ class Server(BaseServer):
             print 'category.url',url
             category.save()
             # send singnal
-            category_saved.send(sender=ctx, site=DB, key=category.key, is_new=is_new, is_updated=not is_new)
+            common_saved.send(sender=ctx, site=DB, key=category.key, is_new=is_new, is_updated=not is_new)
 
     def crawl_category(self,ctx=False):
         """.. :py:method::
@@ -182,7 +183,7 @@ class Server(BaseServer):
             except:
                 product.reviews = []
                 product.save()
-            product_save.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
+            common_saved.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
 
     def url2product_id(self,href):
         return href.split('/')[-2]
@@ -303,7 +304,7 @@ class Server(BaseServer):
         print 'parse by seleunim used ',time.time() - point2
         product.save()
         print 'parse product total used',time.time() - point1
-        product_save.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
+        common_saved.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
 
 if __name__ == '__main__':
     server = Server()

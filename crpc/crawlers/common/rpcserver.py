@@ -13,7 +13,6 @@ from os.path import join, abspath, dirname, isdir
 from helpers import log
 
 from gevent.coros import Semaphore
-lock = Semaphore()
 from selenium.common.exceptions import *
 import lxml.html
 import requests
@@ -71,14 +70,31 @@ class RPCServer(object):
         else:
             raise ValueError("{crawler} does not seems to a valid crawler".format(**locals()))
 
+locked = {}
+def exclusive_lock(name):
+    """.. :py:method::
+    A common lock for selenium or other crawlers when crawling category.
+    
+    @exclusive_lock(self.__class__.__name__)
+    def crawl_category(self):
+        pass
 
-def safe_lock(func,*arg,**kwargs):
-    def wrapper(*arg,**kwargs):
-        lock.acquire()
-        res = func(*arg,**kwargs)
-        lock.release()
-        return res
-    return wrapper
+    @exclusive_lock('myhabit')
+    def crawl_product(self):
+        pass
+
+    """
+    if name not in locked:
+        locked[name] = Semaphore()
+
+    def safe_lock(func, *arg, **kwargs):
+        def wrapper(*arg, **kwargs):
+            with locked[name]:
+                ret = func(*arg,**kwargs)
+                return ret
+        return wrapper
+    return safe_lock
+
 
 class BaseServer:
     """.. :py:class:: Server

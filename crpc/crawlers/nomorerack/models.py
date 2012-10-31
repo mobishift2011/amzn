@@ -20,7 +20,9 @@ class Event(BaseEvent):
 class Category(BaseCategory):
     """ we generates category by catn identifier """
     key =   StringField(unique=True)
-    url = StringField()
+
+    def url(self):
+        return 'http://nomorerack.com/daily_deals/category/%s' %key
     
     meta        =   {
         "db_alias": DB,

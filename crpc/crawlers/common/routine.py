@@ -52,7 +52,7 @@ def spout_category(site, category):
             yield {'url': c.link, 'catstr': c.cat_str}
     elif site == 'ruelala':
         yield {}
-    elif site == 'zulily':
+    elif site == 'zulily' or 'myhabit':
         yield {'url': c.url()}
     else:
         pages = (c.num-1)/c.pagesize+10

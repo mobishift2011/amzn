@@ -17,6 +17,7 @@ DB = 'myhabit'
 connect(db=DB, alias='myhabit', host=MONGODB_HOST)
 
 class Category(BaseEvent):
+    is_leaf = BooleanField(default=True)
     sale_id = StringField(unique=True)
     dept = ListField(StringField())
     brand_link = StringField()
@@ -32,7 +33,6 @@ class Category(BaseEvent):
 
 class Product(LuxuryProduct):
 #    key = StringField(unique=True, spare=True)
-    dept = StringField()
     asin = StringField()
 
     color = StringField()
@@ -47,4 +47,4 @@ class Product(LuxuryProduct):
     }
 
     def url(self):
-        return 'http://www.myhabit.com/homepage#page=d&dept={0}&sale={1}&asin={2}&cAsin={3}'.format(self.dept, self.sale_id[0], self.asin, self.key)
+        return 'http://www.myhabit.com/homepage#page=d&sale={0}&asin={1}&cAsin={2}'.format(self.sale_id[0], self.asin, self.key)

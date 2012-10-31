@@ -15,7 +15,6 @@ import os
 import re
 import sys
 import time
-import Queue
 import zerorpc
 import lxml.html
 import pytz
@@ -101,21 +100,20 @@ class Server(object):
         self.returned_re = re.compile(r'<strong>Return Policy:</strong>(.*)<a')
         self.shipping_re = re.compile(r'<strong>Shipping:</strong>(.*)<a')
 
-    def crawl_category(self):
+    def crawl_category(self, ctx):
         """.. :py:method::
             From top depts, get all the events
         """
         depts = ['girls', 'boys', 'women', 'baby-maternity', 'toys-playtime', 'home']
-        self.queue = Queue.Queue()
         debug_info.send(sender=DB + '.category.begin')
 
-        self.upcoming_proc()
+        self.upcoming_proc(ctx)
         for dept in depts:
             link = 'http://www.zulily.com/?tab={0}'.format(dept)
-            self.get_event_list(dept, link)
+            self.get_event_list(dept, link, ctx)
         debug_info.send(sender=DB + '.category.end')
 
-    def get_event_list(self, dept, url):
+    def get_event_list(self, dept, url, ctx):
         """.. :py:method::
             Get all the brands from brand list.
             Brand have a list of product.
@@ -148,10 +146,10 @@ class Server(object):
             brand.is_leaf = True
             brand.update_time = datetime.utcnow()
             brand.save()
-            category_saved.send(sender=DB + '.get_event_list', site=DB, key=lug, is_new=is_new, is_updated=not is_new)
+            common_saved.send(sender=ctx, key=lug, url=url, is_new=is_new, is_updated=not is_new)
 
 
-    def upcoming_proc(self):
+    def upcoming_proc(self, ctx):
         """.. :py:method::
             Get all the upcoming brands info 
         """
@@ -163,9 +161,9 @@ class Server(object):
             link = node.get('href')
             text = node.text_content()
             upcoming_list.append( (text, link) )
-        self.upcoming_detail(upcoming_list)
+        self.upcoming_detail(upcoming_list, ctx)
 
-    def upcoming_detail(self, upcoming_list):
+    def upcoming_detail(self, upcoming_list, ctx):
         """.. :py:method::
         """
         for pair in upcoming_list:
@@ -189,7 +187,7 @@ class Server(object):
                 brand.events_begin = events_begin
                 brand.update_time = datetime.utcnow()
                 brand.save()
-                category_saved.send(sender=DB + '.upcoming_detail', site=DB, key=lug, is_new=is_new, is_updated=not is_new)
+                common_saved.send(sender=ctx, key=lug, url=url, is_new=is_new, is_updated=not is_new)
             
     def time_proc(self, time_str):
         """.. :py:method::
@@ -204,7 +202,7 @@ class Server(object):
         return endtime.astimezone(pytz.utc)
 
 
-    def crawl_listing(self, url):
+    def crawl_listing(self, url, ctx):
         """.. :py:method::
             from url get listing page.
             from listing page get Eventi's description, endtime, number of products.
@@ -230,13 +228,13 @@ class Server(object):
         brand.num = len(items)
         brand.update_time = datetime.utcnow()
         brand.save()
-        category_saved.send(sender=DB + '.crawl_listing', site=DB, key=lug, is_new=is_new, is_updated=not is_new)
+        common_saved.send(sender=ctx, key=lug, url=url, is_new=is_new, is_updated=not is_new)
 
-        for item in items: self.crawl_list_product(lug, item)
+        for item in items: self.crawl_list_product(lug, item, ctx)
         page_num = 1
         next_page_url = self.detect_list_next(node, page_num + 1)
         if next_page_url:
-            self.crawl_list_next(url, next_page_url, page_num + 1, lug)
+            self.crawl_list_next(url, next_page_url, page_num + 1, lug, ctx)
         debug_info.send(sender=DB + '.crawl_list.end')
 
     def detect_list_next(self, node, page_num):
@@ -252,7 +250,7 @@ class Server(object):
             if str(page_num) in next_page_relative_url:
                 return next_page_relative_url
 
-    def crawl_list_next(self, url, page_text, page_num, sale_id):
+    def crawl_list_next(self, url, page_text, page_num, sale_id, ctx):
         """.. :py:method::
             crawl listing page's next page, that is page 2, 3, 4, ...
 
@@ -266,12 +264,12 @@ class Server(object):
         node = tree.cssselect('div.container>div#main>div#category-view')[0]
         items = node.cssselect('div#products-grid li.item')
 
-        for item in items: self.crawl_list_product(sale_id, item)
+        for item in items: self.crawl_list_product(sale_id, item, ctx)
         next_page_url = self.detect_list_next(node, page_num + 1)
         if next_page_url:
-            self.crawl_list_next(url, next_page_url, page_num + 1, sale_id)
+            self.crawl_list_next(url, next_page_url, page_num + 1, sale_id, ctx)
 
-    def crawl_list_product(self, sale_id, item):
+    def crawl_list_product(self, sale_id, item, ctx):
         """.. :py:method::
             In listing page, Get all product's image, url, title, price, soldout
 
@@ -304,11 +302,11 @@ class Server(object):
         product.updated = False
         product.list_update_time = datetime.utcnow()
         product.save()
-        product_saved.send(sender=DB + '.crawl_listing', site=DB, key=lug, is_new=is_new, is_updated=not is_new)
+        common_saved.send(sender=ctx, key=lug, url=self.siteurl + '/e/' + sale_id + '.html', is_new=is_new, is_updated=not is_new)
         debug_info.send(sender=DB + ".crawl_listing", url=self.siteurl + '/e/' + sale_id + '.html')
 
 
-    def crawl_product(self, url):
+    def crawl_product(self, url, ctx):
         """.. :py:method::
             Got all the product information and save into the database
 
@@ -361,7 +359,7 @@ class Server(object):
         product.updated = True
         product.full_update_time = datetime.utcnow()
         product.save()
-        product_saved.send(sender=DB + '.crawl_product', site=DB, key=lug, is_new=is_new, is_updated=not is_new)
+        common_saved.send(sender=ctx, key=lug, url=url, is_new=is_new, is_updated=not is_new)
 
         
 

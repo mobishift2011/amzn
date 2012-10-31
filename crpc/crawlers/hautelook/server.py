@@ -14,6 +14,7 @@ import time
 import Queue
 import zerorpc
 import lxml.html
+import urllib2
 import pytz
 
 from urllib import quote, unquote
@@ -41,6 +42,7 @@ class Server(object):
         self._signin = False
 
         self.extract_eventid_re = re.compile(r'http://www.hautelook.com/event/(\d+).*')
+        self.extract_eventimg_re = re.compile(r'/py/resizer/\d+x\d+(/assets/.*)')
 
     def login(self):
         """.. :py:method::
@@ -64,8 +66,18 @@ class Server(object):
         self._signin = True
 
     def check_signin(self):
+        """.. :py:method:
+            If _signin flag is OK.
+            But Chrome is not open by webdriver, the .title will raise a :
+                URLError: <urlopen error [Errno 111] Connection refused>
+        """
         if not self._signin:
             self.login()
+        else:
+            try:
+                self.browser.title
+            except urllib2.URLError:
+                self.login()
 
 
     def download_page(self, url):
@@ -97,25 +109,31 @@ class Server(object):
 
 
     @exclusive_lock(DB)
-    def crawl_category(self):
+    def crawl_category(self, ctx):
         """.. :py:method::
             From top depts, get all the brands
         """
         self.check_signin()
-        print self.browser.current_url
         depts = ['women', 'beauty', 'home', 'kids', 'men']
-        depts = ['women', ]
         debug_info.send(sender=DB + '.category.begin')
 
+        self.upcoming_proc()
         for dept in depts:
             link = 'http://www.hautelook.com/events#{0}'.format(dept)
-            self.get_event_list(dept, link)
+            self.get_event_list(dept, link, ctx)
 #        self.cycle_crawl_category()
-        debug_info.send(sender=DB + '.category.end')
         self.browser.quit()
         self._signin = False
+        debug_info.send(sender=DB + '.category.end')
 
-    def get_event_list(self, dept, url):
+    def upcoming_proc(self):
+        """.. :py:method::
+            Get all the upcoming brands info 
+        """
+        tree = lxml.html.fromstring(self.browser.page_source)
+        node = tree.cssselect('div#container > div#body_content > div#upcoming_events > div#module_coming_soon > div[id^=block_]')[0]
+
+    def get_event_list(self, dept, url, ctx):
         """.. :py:method::
             Get all the brands from brand list.
             Brand have a list of product.
@@ -132,23 +150,28 @@ class Server(object):
             sale_id = self.extract_eventid_re.match(link).group(1)
             
             sale_title = node.cssselect('a.hero-link > div.caption > .title')[0].text
-            image = node.cssselect('a.hero-link > img.hero')[0].get('src')
-            print [sale_title], [image], [link]
+            img = node.cssselect('a.hero-link > img.hero')[0].get('src')
+            if not img.startswith('http'):
+                img = self.siteurl + self.extract_eventimg_re.match(img).group(1)
+            # pop-medium, pop-large.jpg; event-large.jpg < grid-large.jpg
+            img = re.sub(r'(.*)(small|med).jpg', '\\1large.jpg', img)
+            image = re.sub(r'(.*)event(-large.jpg)', '\\1grid\\2', img)
 
+            brand, is_new = Category.objects.get_or_create(sale_id=sale_id)
+            if is_new:
+                brand.sale_title = sale_title
+                brand.image_urls = [image]
+                brand.dept = [dept]
+            else:
+                if image not in brand.image_urls: brand.image_urls.append(image)
+                if dept not in brand.dept: brand.dept.append(dept) # for designer dept
+            brand.update_time = datetime.utcnow()
+            brand.save()
+            print is_new
+            common_saved.send(sender=ctx, key=sale_id, url=url, is_new=is_new, is_updated=not is_new)
 
-#            brand, is_new = Category.objects.get_or_create(sale_id=sale_id)
-#            if is_new:
-#                brand.sale_title = a_title.text
-#                brand.image_urls = [image]
-#            if dept not in brand.dept: brand.dept.append(dept) # for designer dept
-#            brand.soldout = soldout
-#            brand.update_time = datetime.utcnow()
-#            brand.save()
-#            category_saved.send(sender=DB + '.get_event_list', site=DB, key=sale_id, is_new=is_new, is_updated=not is_new)
-#
-#
 #        # upcoming brand
-#        nodes = self.browser.find_elements_by_xpath('//div[@id="main"]/div[@id="page-content"]/div[@id="upcomingSales"]//div[@class="fourColumnSales"]//div[@class="caption"]/a')
+#        nodes = tree.xpath('//div[@id="main"]/div[@id="page-content"]/div[@id="upcomingSales"]//div[@class="fourColumnSales"]//div[@class="caption"]/a')
 #        for node in nodes:
 #            l = node.get_attribute('href')
 #            link = l if l.startswith('http') else 'http://www.myhabit.com/homepage' + l 
@@ -431,7 +454,7 @@ class Server(object):
 
 if __name__ == '__main__':
     server = Server()
-    server.crawl_category()
+    server.crawl_category(DB)
 #    server = zerorpc.Server(Server())
 #    server.bind("tcp://0.0.0.0:{0}".format(RPC_PORT))
 #    server.run()

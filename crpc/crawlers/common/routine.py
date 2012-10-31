@@ -13,21 +13,23 @@ the following functions are supposed to be called from other module
 - update_product(site, rpc, concurrency)
 
 site:           name of the crawler's directory
-rpc:            an RPCServer instance 
-concurrency:    how much concurrency should be achieved 
+rpc:            an RPCServer instance
+concurrency:    how much concurrency should be achieved
 
 """
 from settings import *
 from gevent.pool import Pool
 
+import uuid
 import time
 import random
+import traceback
 
 from itertools import chain
 
 from crawlers.common.events import category_failed, product_failed, pre_general_update, post_general_update
 from datetime import datetime, timedelta
-    
+
 MAX_PAGE = 400
 
 def get_site_module(site):
@@ -89,21 +91,22 @@ class UpdateContext(object):
 
     """
     def __init__(self, site, method):
-        self.sender = "commonupdate"
         self.site = site
         self.method = method
+        self.sender = "{0}.{1}.{2}".format(self.site, self.method, uuid.uuid4().hex)
 
     def __enter__(self):
         pre_general_update.send(sender = self.sender,
                                     site = self.site,
-                                    method = self.method) 
+                                    method = self.method)
+        return self.sender
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(self, exc_type, exc_value, exc_traceback):
         complete = True
         reason = ''
         if exc_type:
             complete = False
-            reason = repr(exc_value)
+            reason = '\n'.join(traceback.format_tb(exc_traceback))
 
         post_general_update.send(sender = self.sender,
                                     site = self.site,
@@ -114,39 +117,36 @@ class UpdateContext(object):
 def callrpc(rpc, site, method, *args, **kwargs):
     """ rpc call with failure protection """
     try:
-        rpc.call(site, method, args, kwargs) 
+        rpc.call(site, method, args, kwargs)
     except Exception as e:
-        if 'category' in method:
-            name = 'category_failed'
-        else:
-            name = 'product_failed'
-        import traceback
-        globals()[name].send(sender="{0}.{1}".format(site,method),
+        common_fail.send(sender=kwargs['ctx'],
                             site = site,
-                            url = kwargs['url'],
-                            reason = repr(e) + traceback.format_exc())
+                            key = kwargs.get('key'),
+                            url = kwargs.get('url'),
+                            reason = traceback.format_exc())
 
 def update_category(site, rpc, concurrency=30):
-    with UpdateContext(site=site, method='update_category'):
+    with UpdateContext(site=site, method='update_category') as ctx:
         rpcs = [rpc] if not isinstance(rpc, list) else rpc
         rpc = random.choice(rpcs)
-        rpc.call(site, 'crawl_category', (), {})
+        callrpc(rpc, site, 'crawl_category', (), {'ctx':ctx})
 
 def update_listing(site, rpc, concurrency=30):
-    with UpdateContext(site=site, method='update_listing'):
+    with UpdateContext(site=site, method='update_listing') as ctx:
         rpcs = [rpc] if not isinstance(rpc, list) else rpc
         pool = Pool(len(rpcs)*concurrency)
         for category in spout_listing(site):
-#            print 'category', category
             for kwargs in spout_category(site, category):
+                kwargs['ctx'] = ctx
                 rpc = random.choice(rpcs)
-                pool.spawn(callrpc, rpc,  site, 'crawl_listing', **kwargs)
+                pool.spawn(callrpc, rpc, site, 'crawl_listing', **kwargs)
 
 def update_product(site, rpc, concurrency=30):
-    with UpdateContext(site=site, method='update_product'):
+    with UpdateContext(site=site, method='update_product') as ctx:
         rpcs = [rpc] if not isinstance(rpc, list) else rpc
         pool = Pool(len(rpcs)*concurrency)
         for kwargs in spout_product(site):
+            kwargs['ctx'] = ctx
             rpc = random.choice(rpcs)
             pool.spawn(callrpc, rpc, site, 'crawl_product', **kwargs)
 

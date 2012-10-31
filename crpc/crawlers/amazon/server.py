@@ -11,6 +11,7 @@ import time
 import redis
 import zerorpc
 import requests
+import traceback
 import lxml.html
 
 from urllib import quote, unquote
@@ -19,8 +20,7 @@ from datetime import datetime, timedelta
 from settings import *
 from .models import *
 
-from crawlers.common.events import category_saved, category_failed, category_deleted
-from crawlers.common.events import product_saved, product_failed, product_deleted
+from crawlers.common.events import common_saved, common_failed
 
 from itertools import chain
     
@@ -29,15 +29,15 @@ class Server:
         self.s = requests.session(headers={'User-Agent':'Mozilla 5.0/b'})
         self.site = "amazon"
         
-    def crawl_category(self):
+    def crawl_category(self, ctx):
         """ crawl all category info """
         catns1 = ROOT_CATN.itervalues()
         catns2 = (c.catn for c in Category.objects().only('catn'))
         pool = Pool(30)
         for catn in chain(catns1, catns2):
-            pool.spawn(self._crawl_category, catn)
+            pool.spawn(self._crawl_category, catn, ctx)
 
-    def _crawl_category(self, catn):
+    def _crawl_category(self, catn, ctx):
         url = catn2url(catn)+'&page=1'
 
         content = self.fetch_page(url)
@@ -56,10 +56,10 @@ class Server:
         try:
             catlist = t.xpath('//div[@id="leftNavContainer"]//ul')[0].xpath(".//li")
         except Exception as e:
-            category_failed.send(sender = 'category_failed',
+            common_failed.send(sender = ctx,
                                     site = 'amazon',
-                                    key = url,
-                                    reason = repr(e))
+                                    url = url,
+                                    reason = traceback.format_exc())
             return
         if delimitter not in catlist[-1].text_content():
             c.is_leaf = True
@@ -105,9 +105,10 @@ class Server:
 
         c.updated = True
         c.save()
-        category_saved.send(sender = 'amazon.crawl_category',
+        category_saved.send(sender = ctx,
                             site = self.site,
                             key = catn,
+                            url = url,
                             is_new = is_new,
                             is_updated = is_updated)
 
@@ -120,21 +121,22 @@ class Server:
                 if not Category.objects(catn=catn):
                     c = Category(catn=catn)
                     c.save()
-                    category_saved.send(sender = 'amazon.crawl_category',
+                    category_saved.send(sender = ctx,
                                         site = self.site,
                                         key = catn,
+                                        url = url,
                                         is_new = True,
                                         is_updated = False)
 
-    def crawl_listing(self, url):
+    def crawl_listing(self, url, ctx):
         """ crawl listing page """
         content = self.fetch_page(url)
-        self.parse_listing(url, content)
+        self.parse_listing(url, content, ctx)
         
-    def crawl_product(self, url):
+    def crawl_product(self, url, ctx):
         """ crawl product page """
         content = self.fetch_page(url)
-        self.parse_product(url, content)
+        self.parse_product(url, content, ctx)
         
     def fetch_page(self, url):
         r = self.s.get(url)
@@ -145,13 +147,13 @@ class Server:
         else:
             raise ValueError('the crawler seems to be banned!!')
     
-    def parse_listing(self, url, content):
+    def parse_listing(self, url, content, ctx):
         """ index info about each product -> db """
         t = lxml.html.fromstring(content)
         for block in t.xpath('//div[starts-with(@id,"result_")]'):
-            self._parse_block(block, url)
+            self._parse_block(block, url, ctx)
 
-    def _parse_block(self, block, url):
+    def _parse_block(self, block, url, ctx):
         """ parse and save product info for a block of listing page """
         try:
             link = block.xpath(".//a")[0].get("href")
@@ -202,13 +204,14 @@ class Server:
             except Exception as e:
                 raise ValueError("validation failed")
             else:
-                product_saved.send(sender = "amazon.parse_listing", 
+                common_saved.send(sender = ctx, 
                                     site = self.site,
                                     key = p.key,
+                                    url = p.url(),
                                     is_new = is_new,                        
                                     is_updated = is_updated)
     
-    def parse_product(self, url, content):
+    def parse_product(self, url, content, ctx):
         if url.endswith('/'):
             key = url.split('/')[-2] 
         else:
@@ -268,9 +271,10 @@ class Server:
         except Exception as e:
             raise ValueError("validation failed")
         else:
-            product_saved.send(sender = "amazon.parse_listing", 
+            common_saved.send(sender = ctx, 
                                 site = self.site,
                                 key = p.key,
+                                url = url,
                                 is_new = is_new,                        
                                 is_updated = is_updated)
 

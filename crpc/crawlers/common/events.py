@@ -2,52 +2,19 @@
 # -*- coding: utf-8 -*-
 from helpers.signals import Signal
 
-""" pre_general_update kwargs:
-
-site        =   site
-method      =   method
-
-"""
+""" site, method """
 pre_general_update = Signal("pre_general_update")
 
-""" post_general_update kwargs:
-
-site        =   site
-method      =   method
-complete    =   True
-reason      =   ...
-
-"""
+""" site, method, complete, reason """
 post_general_update = Signal("post_general_update")
 
-""" product_saved kwargs:
+""" site, key, url, is_new, is_updated, reason"""
+common_saved = Signal("common_saved")
+common_failed = Signal("common_failed")
 
-site        =   site         (amazon, newegg, ...)
-key         =   key          
-is_new      =   False
-is_updated  =   False 
 
-"""
 product_saved = Signal("product_saved")
-
-
-""" product_failed kwargs:
-
-site    =   site         (amazon, newegg, ...)
-url     =   url        
-resaon  =   ...
-
-"""
 product_failed = Signal("product_failed")
-
-
-""" product_deleted kwargs:
-
-site    =   site         (amazon, newegg, ...)
-key     =   key          
-resaon  =   ...
-
-"""
 product_deleted = Signal("product_deleted")
 
 category_saved = Signal("category_saved")

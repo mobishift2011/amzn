@@ -314,7 +314,7 @@ class Server(object):
         """
         cont = self.net.fetch_page(url)
         if isinstance(cont, int):
-            product_failed.send(sender=DB + 'crawl_product.download_error', site=DB, url=url, reason=cont)
+            common_failed.send(sender=ctx, url=url, reason=cont)
             return
         tree = lxml.html.fromstring(cont)
         node = tree.cssselect('div.container>div#main>div#product-view')[0]

@@ -12,12 +12,9 @@ from os import listdir
 from os.path import join, abspath, dirname, isdir
 from helpers import log
 
-from gevent.coros import Semaphore
-from selenium.common.exceptions import *
 import lxml.html
 import requests
 import urllib
-from selenium import webdriver
 import time
 import zerorpc
 

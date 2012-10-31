@@ -16,7 +16,7 @@ from settings import MONGODB_HOST
 DB = 'zulily'
 connect(db=DB, alias='zulily', host=MONGODB_HOST)
 
-class Category(BaseEvent):
+class Event(BaseEvent):
     lug = StringField(unique=True)
     dept = ListField(StringField())
     short_desc = StringField()

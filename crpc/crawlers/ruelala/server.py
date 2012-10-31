@@ -109,7 +109,7 @@ class Server:
         else:
             self._signin = False
 
-    def crawl_category(self,ctx):
+    def crawl_category(self,ctx=False):
         """.. :py:method::
             From top depts, get all the events
         """
@@ -206,12 +206,13 @@ class Server:
             category.update_time = datetime.datetime.utcnow()
             category.is_leaf = True
             category.save()
-            ctx.send(sender=DB + '._get_event_list', site=DB, key=sale_id, is_new=is_new, is_updated=not is_new)
+            if ctx:
+                ctx.send(sender=DB + '._get_event_list', site=DB, key=sale_id, is_new=is_new, is_updated=not is_new)
             result.append((sale_id,a_url))
 
         return result
 
-    def _get_product_list(self,sale_id,event_url,ctx):
+    def _get_product_list(self,sale_id,event_url,ctx=False):
         result = []
         if not self.get(event_url):
             return  result
@@ -299,7 +300,8 @@ class Server:
                 product.sale_id.append(str(sale_id))
 
             product.save()
-            ctx.send(sender=DB + '.parse_product_detail', site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
+            if ctx:
+                ctx.send(sender=DB + '.parse_product_detail', site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
             result.append((product_id,url))
         return result
 
@@ -320,7 +322,7 @@ class Server:
             urls.append(url)
         return urls
 
-    def _crawl_product_detail(self,product_id,url,ctx):
+    def _crawl_product_detail(self,product_id,url,ctx=False):
         """.. :py:method::
             Got all the product basic information and save into the database
         """
@@ -404,7 +406,8 @@ class Server:
         print 'image urls',image_urls
         """
         
-        ctx.send(sender=DB + '.parse_product_detail', site=DB, key=product_id, is_new=is_new, is_updated=not is_new)
+        if ctx:
+            ctx.send(sender=DB + '.parse_product_detail', site=DB, key=product_id, is_new=is_new, is_updated=not is_new)
 
     def _url2saleid(self, url):
         """.. :py:method::

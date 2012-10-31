@@ -127,13 +127,14 @@ class Server(BaseServer):
             print 'category.url',url
             category.save()
             # send singnal
-            ctx.send(sender = 'bluefly.crawl_category',
+            if ctx:
+                ctx.send(sender = 'bluefly.crawl_category',
                                 site = self.site,
                                 key = key,
                                 is_new = is_new,
                                 is_updated = not is_new)
 
-    def crawl_category(self,ctx):
+    def crawl_category(self,ctx=False):
         """.. :py:method::
             From top depts, get all the events
         """
@@ -186,7 +187,8 @@ class Server(BaseServer):
             except:
                 product.reviews = []
                 product.save()
-            ctx.send(sender = "bluefly.parse_listing", 
+            if ctx:
+                ctx.send(sender = "bluefly.parse_listing", 
                                     site = self.site,
                                     key = product.key,
                                     is_new = is_new,                        
@@ -206,7 +208,7 @@ class Server(BaseServer):
             urls.append(url)
         return urls
 
-    def crawl_product(self,url,ctx):
+    def crawl_product(self,url,ctx=False):
         """.. :py:method::
             Got all the product basic information and save into the database
         """
@@ -311,7 +313,8 @@ class Server(BaseServer):
         print 'parse by seleunim used ',time.time() - point2
         product.save()
         print 'parse product total used',time.time() - point1
-        ctx.send(sender=DB + '.parse_product_detail', site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
+        if ctx:
+            ctx.send(sender=DB + '.parse_product_detail', site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
 
 
 if __name__ == '__main__':

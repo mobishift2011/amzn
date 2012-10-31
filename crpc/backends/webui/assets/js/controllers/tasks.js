@@ -4,8 +4,7 @@
  */
 
 function TaskCtrl($scope) {
-  $scope.tasks = [
-  ];
+  $scope.tasks = [];
 
   $(document).ready(function(){
     updater.init();
@@ -47,7 +46,11 @@ function TaskCtrl($scope) {
         try {
             console.log(response);
             var tasks = response['tasks'];
-            updater.updateTasks(tasks);
+            // we will block updates if we are viewing fails
+            // canUpdate is a global variable (I apologize for that)
+            if (tasks!=[] && canUpdate){
+                updater.updateTasks(tasks);
+            }
         } catch (e) {
             updater.onError();
             return;
@@ -72,19 +75,19 @@ function TaskCtrl($scope) {
             for (var i=0; i<t.fail_details.length; i++){
                 tabletrs += "<tr><td>"+t.fail_details[i].time+"</td>"+
                                 "<td>"+t.fail_details[i].name+"</td>"+
-                                "<td>"+t.fail_details[i].message+"</td></tr>";
+                                "<td>"+t.fail_details[i].message.replace(/\n/g,'<br/>')+"</td></tr>";
             }
             var failsdiv = "<div id='"+taskid+"'class='modal hide fade' role='dialog' style='display:none;'>"+
-                        "<div class='modal-header'><button type='button' class='close' data-dismiss='modal' aria-hidden='true'>x</button><h3>Fails</h3></div>" +
+                        "<div class='modal-header'><button type='button' class='close' data-dismiss='modal' aria-hidden='true' onclick='toggleCanUpdate()'>x</button><h3>Fails</h3></div>" +
                         "<div class='modal-body'>"+
                             "<table class='table table-striped'>"+
                                 "<thead><tr><th>Time</th><th>Caller</th><th>Message</th></tr></thead>"+
                                 "<tbody>"+tabletrs+"</tbody>"+
                             "</table>"+
                         "</div>"+
-                        "<div class='modal-footer'><button class='btn' data-dismiss='modal'>Close</button></div>"+
+                        "<div class='modal-footer'><button class='btn' data-dismiss='modal' onclick='toggleCanUpdate()'>Close</button></div>"+
                     "</div>"
-                    + "<div><a href='#"+taskid+"' data-toggle='modal'>"+t.fails+"</div>";
+                    + "<div><a href='#"+taskid+"' data-toggle='modal' onclick='toggleCanUpdate()'>"+t.fails+"</div>";
             return [t.name, t.status, t.started_at, t.updated_at, t.dones, t.updates, t.news, failsdiv];
         }
 
@@ -122,3 +125,11 @@ function TaskCtrl($scope) {
     },
   }; /* Updater */
 } /* TaskCtrl */
+
+
+// dirty works
+var canUpdate = true;
+var toggleCanUpdate = function(){
+    canUpdate = !canUpdate;
+}
+

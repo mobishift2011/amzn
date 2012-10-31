@@ -77,19 +77,20 @@ class Server:
             self.browser = webdriver.Chrome()
             #self.browser = webdriver.Firefox()
         except:
-            self.browser = webdriver.Firefox()
+            #self.browser = webdriver.Firefox()
+            self.browser = webdriver.Chrome()
             #self.browser.set_page_load_timeout(10)
             #self.profile = webdriver.FirefoxProfile()
             #self.profile.set_preference("general.useragent.override","Mozilla/5.0 (iPhone; CPU iPhone OS 5_1_1 like Mac OS X) AppleWebKit/534.46 (KHTML, like Gecko) Version/5.1 Mobile/9B206 Safari/7534.48.3")
 
         #self.browser.implicitly_wait(1)
         self.browser.get(self.siteurl)
-        time.sleep(3)
+        time.sleep(1)
         
         # click the login link
         node = self.browser.find_element_by_id('pendingTab')
         node.click()
-        time.sleep(2)
+        time.sleep(1)
 
         a = self.browser.find_element_by_id('txtEmailLogin')
         a.click()

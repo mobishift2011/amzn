@@ -119,14 +119,6 @@ class Server:
             url = 'http://www.ruelala.com/category/%s' %category
             self._get_event_list(category,url,ctx)
 
-    def crawl_listing(self,sale_id,event_url,ctx):
-        event_list = [(sale_id,event_url)]
-        while event_list:
-            event = event_list.pop()
-            sale_id =  event[0]
-            event_url =  event[1]
-            self._get_product_list(sale_id,event_url,ctx)
-        return
 
     def crawl_product(self,product_id,product_url):
         product_list = [(product_id,product_url)]
@@ -212,7 +204,7 @@ class Server:
 
         return result
 
-    def _get_product_list(self,sale_id,event_url,ctx=False):
+    def crawl_listing(self,sale_id,event_url,ctx=False):
         result = []
         if not self.get(event_url):
             return  result
@@ -462,7 +454,7 @@ if __name__ == '__main__':
         url = 'http://www.ruelala.com/event/product/59118/1111892369/1/DEFAULT'
         result = server._crawl_product_detail(product_id,url)
 
-    if 0:
+    if 1:
         server = Server()
         id= '59022'
         url= 'http://www.ruelala.com/event/59022'
@@ -479,7 +471,7 @@ if __name__ == '__main__':
         category = 'women'
         server._get_event_list('women','http://www.ruelala.com/category/women')
 
-    if 1:
+    if 0:
         count = 0
         error_count = 0
         server = Server()

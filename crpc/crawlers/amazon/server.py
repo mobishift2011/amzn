@@ -36,6 +36,7 @@ class Server:
         pool = Pool(30)
         for catn in chain(catns1, catns2):
             pool.spawn(self._crawl_category, catn, ctx)
+        pool.join()
 
     def _crawl_category(self, catn, ctx):
         url = catn2url(catn)+'&page=1'
@@ -71,7 +72,7 @@ class Server:
         except:
             # format3: Should Get Page2 to get this info
             url = url[:-1]+'2'
-            content = self.s.get(url).content
+            content = self.s.get(url, timeout=30).content
             t = lxml.html.fromstring(content)
             resultcount = t.xpath('//*[@id="resultCount"]')[0].text_content()
 
@@ -139,7 +140,7 @@ class Server:
         self.parse_product(url, content, ctx)
         
     def fetch_page(self, url):
-        r = self.s.get(url)
+        r = self.s.get(url, timeout=30)
         if r.status_code == 200:
             return r.content
         elif r.status_code == 404:

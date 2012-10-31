@@ -143,6 +143,7 @@ def update_listing(site, rpc, concurrency=30):
                 kwargs['ctx'] = ctx
                 rpc = random.choice(rpcs)
                 pool.spawn(callrpc, rpc, site, 'crawl_listing', **kwargs)
+        pool.join()
 
 def update_product(site, rpc, concurrency=30):
     with UpdateContext(site=site, method='update_product') as ctx:
@@ -152,6 +153,8 @@ def update_product(site, rpc, concurrency=30):
             kwargs['ctx'] = ctx
             rpc = random.choice(rpcs)
             pool.spawn(callrpc, rpc, site, 'crawl_product', **kwargs)
+        pool.join()
+
 
 if __name__ == '__main__':
     from rpcserver import RPCServer

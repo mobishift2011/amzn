@@ -24,7 +24,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 from models import *
 from crawlers.common.events import *
-from crawlers.common.rpcserver import exclusive_lock
+from crawlers.common.stash import *
 
 TIMEOUT = 5
 
@@ -50,8 +50,9 @@ class Server(object):
         """
         self.browser = webdriver.Chrome()
 #        self.browser.implicitly_wait(1)
-        self.browser.get('https://www.hautelook.com/login')
+        self.browser.get('http://www.hautelook.com/login')
         self.fill_login_form()
+        WebDriverWait(self.browser, TIMEOUT, 0.1).until(lambda driver: driver.execute_script('return $.active') == 0)
 
     def fill_login_form(self):
         """.. :py:method:
@@ -75,10 +76,10 @@ class Server(object):
         time_begin_benchmark = time.time()
         try:
             self.browser.get(url)
-            WebDriverWait(self.browser, TIMEOUT, 0.05).until(lambda driver: driver.find_element_by_css_selector('div#body div#main div#page-content div#bottom-content'))
+            WebDriverWait(self.browser, TIMEOUT, 0.1).until(lambda driver: driver.find_element_by_css_selector('div#body div#main div#page-content div#bottom-content'))
         except selenium.common.exceptions.TimeoutException:
             try:
-                WebDriverWait(self.browser, TIMEOUT, 0.05).until(lambda driver: driver.execute_script('return $.active') == 0)
+                WebDriverWait(self.browser, TIMEOUT, 0.1).until(lambda driver: driver.execute_script('return $.active') == 0)
             except selenium.common.exceptions.TimeoutException:
                 print 'Timeout --> {0}'.format(url)
                 return 1
@@ -92,7 +93,7 @@ class Server(object):
         except selenium.common.exceptions.TimeoutException:
             print 'Timeout --> {0}'.format(url)
             return 1
-        print 'time download benchmark: ', time.time() - time_begin_benchmark
+        print 'time download_regular_page benchmark: ', time.time() - time_begin_benchmark
 
 
     @exclusive_lock(DB)
@@ -101,6 +102,7 @@ class Server(object):
             From top depts, get all the brands
         """
         self.check_signin()
+        print self.browser.current_url
         depts = ['women', 'beauty', 'home', 'kids', 'men']
         depts = ['women', ]
         debug_info.send(sender=DB + '.category.begin')
@@ -121,16 +123,17 @@ class Server(object):
         :param dept: dept in the page
         :param url: the dept's url
         """
-        self.download_regular_product(url)
+        self.download_regular_page(url)
         tree = lxml.html.fromstring(self.browser.page_source)
         nodes = tree.cssselect('div#container > div#body_content > div#module_event_tiles > div > div.tile')
         for node in nodes:
-            l = node.cssselect('a.hero-link').get('href')
+            l = node.cssselect('a.hero-link')[0].get('href')
             link = l if l.startswith('http') else self.siteurl + l
             sale_id = self.extract_eventid_re.match(link).group(1)
             
-            sale_title = node.cssselect('a.hero-link > div.caption > .title').text
-            image = node.cssselect('a.hero-link > img.hero').get('src')
+            sale_title = node.cssselect('a.hero-link > div.caption > .title')[0].text
+            image = node.cssselect('a.hero-link > img.hero')[0].get('src')
+            print [sale_title], [image], [link]
 
 
 #            brand, is_new = Category.objects.get_or_create(sale_id=sale_id)

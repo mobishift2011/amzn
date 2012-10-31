@@ -25,7 +25,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 from models import *
 from crawlers.common.events import *
-from crawlers.common.rpcserver import exclusive_lock
+from crawlers.common.stash import *
 
 TIMEOUT = 5
 

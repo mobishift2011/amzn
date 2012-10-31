@@ -29,6 +29,12 @@ def get_or_create_task(ctx):
     t.save()
     return t
 
+def mark_all_failed():
+    for t in Task.objects():
+        if t.status != Task.FAILED:
+            t.status = Task.FAILED
+            t.save()
+
 def task_all_tasks():
     tasks = Task.objects().select_related()
     return {"tasks":[t.to_json() for t in tasks]}

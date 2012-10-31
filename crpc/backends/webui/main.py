@@ -5,7 +5,7 @@ import gevent
 
 from bottle import route, post, request, run, template, static_file, redirect
 from os.path import join, dirname
-from backends.monitor.logstat import log_event, task_updates, task_all_tasks
+from backends.monitor.logstat import log_event, task_updates, task_all_tasks, mark_all_failed
 from backends.monitor.scheduler import update_schedule, get_all_schedules, delete_schedule, Scheduler, get_rpcs
 from crawlers.common.routine import update_category, update_listing, update_product
 
@@ -65,5 +65,7 @@ def run_command():
         return {'status':'error', 'reason':repr(e)}
 
 gevent.spawn(Scheduler().run)
+
+mark_all_failed()
 
 run(server='gevent', host='0.0.0.0', port=1317)

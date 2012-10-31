@@ -17,7 +17,7 @@ DB = 'hautelook'
 connect(db=DB, alias=DB, host=MONGODB_HOST)
 
 class Category(BaseEvent):
-    sale_id = StringField(unique=True)
+    sale_id = StringField(unique=True, spare=True)
     dept = ListField(StringField())
     brand_link = StringField()
     upcoming_title_img = ListField()
@@ -31,15 +31,11 @@ class Category(BaseEvent):
 
 
 class Product(LuxuryProduct):
-#    key = StringField(unique=True, spare=True)
     dept = StringField()
     asin = StringField()
 
     color = StringField()
     video = StringField()
-    international_shipping = StringField()
-    sizes = ListField(StringField())
-    scarcity = StringField()
 
     meta = {
         "indexes": ["updated"],

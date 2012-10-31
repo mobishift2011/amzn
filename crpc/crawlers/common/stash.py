@@ -61,10 +61,10 @@ def exclusive_lock(name):
     if name not in locked:
         locked[name] = Semaphore()
 
-    def safe_lock(func, *arg, **kwargs):
-        def wrapper(*arg, **kwargs):
+    def safe_lock(func, *args, **kwargs):
+        def wrapper(*args, **kwargs):
             with locked[name]:
-                ret = func(*arg,**kwargs)
-                return ret
+                return func(*args, **kwargs)
         return wrapper
     return safe_lock
+

@@ -98,26 +98,27 @@ class Server:
             return 1
         print 'time download benchmark: ', time.time() - time_begin_benchmark
 
+
+
     @exclusive_lock(DB)
-    def crawl_category(self):
+    def crawl_category(self, ctx):
         """.. :py:method::
             From top depts, get all the brands
         """
         self.check_signin()
         depts = ['women', 'men', 'kids', 'home', 'designer']
-        self.queue = Queue.Queue()
         self.upcoming_queue = Queue.Queue()
         debug_info.send(sender=DB + '.category.begin')
 
         for dept in depts:
             link = 'http://www.myhabit.com/homepage?#page=g&dept={0}&ref=qd_nav_tab_{0}'.format(dept)
-            self.get_event_list(dept, link)
-        self.cycle_crawl_category()
-        debug_info.send(sender=DB + '.category.end')
+            self.get_event_list(dept, link, ctx)
+        self.cycle_crawl_category(ctx)
         self.browser.quit()
         self._signin = False
+        debug_info.send(sender=DB + '.category.end')
 
-    def get_event_list(self, dept, url):
+    def get_event_list(self, dept, url, ctx):
         """.. :py:method::
             Get all the brands from brand list.
             Brand have a list of product.
@@ -150,10 +151,7 @@ class Server:
             brand.soldout = soldout
             brand.update_time = datetime.utcnow()
             brand.save()
-            category_saved.send(sender=DB + '.get_event_list', site=DB, key=sale_id, is_new=is_new, is_updated=not is_new)
-
-            if dept != 'designer':
-                self.queue.put( (dept, link) )
+            common_saved.send(sender=ctx, key=sale_id, url=url, is_new=is_new, is_updated=not is_new)
 
         # upcoming brand
         nodes = self.browser.find_elements_by_xpath('//div[@id="main"]/div[@id="page-content"]/div[@id="upcomingSales"]//div[@class="fourColumnSales"]//div[@class="caption"]/a')
@@ -163,68 +161,24 @@ class Server:
 #            title = node.text
             self.upcoming_queue.put( (dept, link) )
 
-
-
-    def url2saleid(self, url):
-        """.. :py:method::
-
-        :param url: the brand's url
-        :rtype: string of sale_id
-        """
-        return re.compile(r'http://www.myhabit.com/homepage\??#page=b&dept=\w+&sale=(\w+)').match(url).group(1)
-
-    def url2asin(self, url):
-        """.. :py:method::
-
-        :param url: the product's url
-        :rtype: string of asin, cAsin
-        """
-        m = re.compile(r'http://www.myhabit.com/homepage.*#page=d&dept=\w+&sale=\w+&asin=(\w+)&cAsin=(\w+)').match(url)
-        if not m: print 'Can not parse detail product url: ', url
-        return m.groups()
-
     def cycle_crawl_category(self, timeover=30):
         """.. :py:method::
             read (category, link) tuple from queue, crawl sub-category, insert into the queue
+            get queue and parse the brand page
 
         :param timeover: timeout in queue.get
         """
-        self.queue_get_parse(self.upcoming_queue, timeover, upcoming=True)
-        self.queue_get_parse(self.queue, timeover)
-
-    def queue_get_parse(self, queue, timeover, upcoming=False):
-        """.. :py:method::
-            get queue and parse the brand page
-        :param queue: upcoming brand queue or brand page queue
-        :param upcoming: flag to shwo whether it is the upcoming queue or not
-        """
-        while not queue.empty():
+        while not self.upcoming_queue.empty():
 #            try:
-            job = queue.get(timeout=timeover)
+            job = self.upcoming_queue.get(timeout=timeover)
             if self.download_page(job[1]) == 1:
                 continue
-            if upcoming:
-                self.parse_upcoming(job[0], job[1])
-            else:
-                self.parse_category(job[0], job[1])
+            self.parse_upcoming(job[0], job[1])
 #            except Queue.Empty:
 #                debug_info.send(sender="{0}.category:Queue waiting {1} seconds without response!".format(DB, timeover))
 #            except:
 #                debug_info.send(sender=DB + ".category", tracebackinfo=sys.exc_info())
 
-
-    def time_proc(self, time_str):
-        """.. :py:method::
-
-        :param time_str: u'SAT OCT 20 9 AM '
-        :rtype: datetime type utc time
-        """
-        time_format = '%a %b %d %I %p %Y'
-        pt = pytz.timezone('US/Pacific')
-        tinfo = time_str + str(pt.normalize(datetime.now(tz=pt)).year)
-        endtime = pt.localize(datetime.strptime(tinfo, time_format))
-        return endtime.astimezone(pytz.utc)
-    
     def parse_upcoming(self, dept, url):
         """.. :py:method::
             upcoming brand page parsing
@@ -237,12 +191,11 @@ class Server:
         brand, is_new = Category.objects.get_or_create(sale_id=sale_id)
         if is_new:
             path = self.browser.find_element_by_css_selector('div#main div#page-content div#top-content')
-            try:
-                begin_date = path.find_element_by_css_selector('div#startHeader span.date').text # SAT OCT 20
-            except selenium.common.exceptions.NoSuchElementException:
-                time.sleep(1)
+            if path == []:
+                time.sleep(0.5)
                 path = self.browser.find_element_by_css_selector('div#main div#page-content div#top-content')
-                begin_date = path.find_element_by_css_selector('div#startHeader span.date').text # SAT OCT 20
+#            except selenium.common.exceptions.NoSuchElementException:
+            begin_date = path.find_element_by_css_selector('div#startHeader span.date').text # SAT OCT 20
             begin_time = path.find_element_by_xpath('./div[@id="startHeader"]/span[@class="time"]').text # 9 AM PT
             utc_begintime = self.time_proc(begin_date + ' ' + begin_time.replace('PT', ''))
             brand_info = path.find_element_by_id('upcomingSaleBlurb').text
@@ -261,31 +214,58 @@ class Server:
             brand.sale_description = brand_info
             brand.upcoming_title_img = subs
             brand.update_time = datetime.utcnow()
-            brand.save()
         else:
-            if dept not in brand.dept:
-                brand.dept.append(dept)
-                brand.save()
-        category_saved.send(sender=DB + '.parse_upcoming', site=DB, key=sale_id, is_new=is_new, is_updated=not is_new)
+            if dept not in brand.dept: brand.dept.append(dept)
+        brand.save()
+        common_saved.send(sender=ctx, key=sale_id, url=url, is_new=is_new, is_updated=not is_new)
 
 
-    def parse_category(self, dept, url):
+    def time_proc(self, time_str):
+        """.. :py:method::
+
+        :param time_str: u'SAT OCT 20 9 AM '
+        :rtype: datetime type utc time
+        """
+        time_format = '%a %b %d %I %p %Y'
+        pt = pytz.timezone('US/Pacific')
+        tinfo = time_str + str(pt.normalize(datetime.now(tz=pt)).year)
+        endtime = pt.localize(datetime.strptime(tinfo, time_format))
+        return endtime.astimezone(pytz.utc)
+
+    def url2saleid(self, url):
+        """.. :py:method::
+
+        :param url: the brand's url
+        :rtype: string of sale_id
+        """
+        return re.compile(r'http://www.myhabit.com/homepage\??#page=b&dept=\w+&sale=(\w+)').match(url).group(1)
+
+    def url2asin(self, url):
+        """.. :py:method::
+
+        :param url: the product's url
+        :rtype: string of asin, cAsin
+        """
+        m = re.compile(r'http://www.myhabit.com/homepage.*#page=d&dept=\w+&sale=\w+&asin=(\w+)&cAsin=(\w+)').match(url)
+        if not m: print 'Can not parse detail product url: ', url
+        return m.groups()
+    
+
+    @exclusive_lock(DB)
+    def crawl_listing(self, url, ctx):
         """.. :py:method::
             Brand page parsing
 
-        :param dept: dept in the page
         :param url: url in the page
         """
-#        time.sleep(0.5)
+        time_begin_benchmark = time.time()
 #        node = self.browser.find_element_by_xpath('//div[@id="main"]/div[@id="page-content"]/div/div[@id="top"]/div[@id="salePageDescription"]')
         node = self.browser.find_element_by_css_selector('div#main div#page-content div')
+        if node == []:
+            time.sleep(0.5)
+            node = self.browser.find_element_by_css_selector('div#main div#page-content div')
 
 #        print node, url
-        time_begin_benchmark = time.time()
-#        sale_title = node.find_element_by_xpath('.//div[@id="saleTitle"]').text
-#        sale_description = node.find_element_by_xpath('.//div[@id="saleDescription"]').text
-#        end_date = node.find_element_by_xpath('.//div[@id="saleEndTime"]/span[@class="date"]').text # SAT OCT 20
-#        end_time = node.find_element_by_xpath('.//div[@id="saleEndTime"]/span[@class="time"]').text # 9 AM PT
         sale_title = node.find_element_by_css_selector('div#top div#saleTitle').text
         sale_description = node.find_element_by_css_selector('div#top div#saleDescription').text
         end_date = node.find_element_by_css_selector('div#top div#saleEndTime span.date').text # SAT OCT 20
@@ -307,15 +287,15 @@ class Server:
         brand.num = num
         brand.update_time = datetime.utcnow()
         brand.save()
-        category_saved.send(sender=DB + '.parse_category', site=DB, key=sale_id, is_new=is_new, is_updated=not is_new)
+        common_saved.send(sender=ctx, key=sale_id, url=url, is_new=is_new, is_updated=not is_new)
 
         elements = node.find_elements_by_xpath('./div[@id="asinbox"]/ul/li[starts-with(@id, "result_")]')
         for ele in elements:
-            self.parse_category_product(ele, sale_id, sale_title, dept)
-
+            self.parse_category_product(ele, sale_id, sale_title, ctx)
         print 'time proc brand list: ', time.time() - time_begin_benchmark
 
-    def parse_category_product(self, element, sale_id, sale_title, dept):
+
+    def parse_category_product(self, element, sale_id, sale_title, ctx):
         """.. :py:method::
             Brand page, product parsing
 
@@ -340,7 +320,6 @@ class Server:
         asin, casin = self.url2asin(link)
         product, is_new = Product.objects.get_or_create(pk=casin)
         if is_new:
-            product.dept = dept
             product.sale_id = [sale_id]
             product.brand = sale_title
             product.asin = asin
@@ -353,18 +332,12 @@ class Server:
         product.updated = False
         product.list_update_time = datetime.utcnow()
         product.save()
-        product_saved.send(sender=DB + '.parse_category', site=DB, key=casin, is_new=is_new, is_updated=not is_new)
+        common_saved.send(sender=ctx, key=casin, url='', is_new=is_new, is_updated=not is_new)
         debug_info.send(sender="myhabit.parse_category_product", title=title, sale_id=sale_id, asin=asin, casin=casin)
 
 
-    def crawl_listing(self):
-        """.. :py:method::
-            not implement
-        """
-        pass
-
     @exclusive_lock(DB)
-    def crawl_product(self, url, casin):
+    def crawl_product(self, url, casin, ctx):
         """.. :py:method::
             Got all the product information and save into the database
 
@@ -432,7 +405,7 @@ class Server:
         product.full_update_time = datetime.utcnow()
         product.save()
         
-        product_saved.send(sender=DB + '.parse_product_detail', site=DB, key=casin, is_new=is_new, is_updated=not is_new)
+        common_saved.send(sender=ctx, key=casin, url=url, is_new=is_new, is_updated=not is_new)
         print 'time product process benchmark: ', time.time() - time_begin_benchmark
 
         

@@ -96,7 +96,7 @@ def exclusive_lock(name):
     return safe_lock
 
 
-class BaseServer:
+class BaseServer(object):
     """.. :py:class:: Server
     
     This is zeroRPC server class for ec2 instance to crawl pages.
@@ -149,18 +149,18 @@ class BaseServer:
     def login(self, email=None, passwd=None):
         pass
     
-    @safe_lock
+    @exclusive_lock(siteurl)
     def crawl_category(self,*args,**kwargs):
         """.. :py:method::
             From top depts, get all the events
         """
         pass
 
-    @safe_lock
+    @exclusive_lock(siteurl)
     def crawl_listing(self,*args,**kwargs):
         pass
 
-    @safe_lock
+    @exclusive_lock(siteurl)
     def crawl_product(self,*args,**kwargs):
         pass
 

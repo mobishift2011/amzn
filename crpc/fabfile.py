@@ -34,7 +34,7 @@ def setup_env():
 
     with settings(warn_only=True):
         run("kill -9 `pgrep -f rpc.py`")
-        run("kill -9 `pgrep -f {0}`".format(ENV_NAME))
+        #run("kill -9 `pgrep -f {0}`".format(ENV_NAME))
         run("ln -s /usr/bin/chromium-browser /usr/bin/google-chrome")
 
     with cd("/opt/crpc"):
@@ -95,97 +95,6 @@ def _deploy_rpc(host_string):
 def _runbg(cmd, sockname="dtach"):
     """ A helper function to run command in background """
     return run('dtach -n /tmp/{0}.sock {1}'.format(sockname,cmd))
-
-def amazon_listing():
-    import time
-    from crawlers.amazon.client import RPC_PORT, crawl_listing, crawl_product
-    peers = [ "tcp://{0}:{1}".format(x.split('@')[-1], RPC_PORT) for x in PEERS ]
-    while True:
-        t = time.time()
-        crawl_listing(peers)
-        print time.time() - t
-        time.sleep(3600)
-
-def amazon_product():
-    import time
-    from crawlers.amazon.client import RPC_PORT, crawl_listing, crawl_product
-    peers = [ "tcp://{0}:{1}".format(x.split('@')[-1], RPC_PORT) for x in PEERS ]
-    while True:
-        t = time.time()
-        crawl_product(peers)
-        print time.time() - t
-        time.sleep(3600)
-
-def newegg_product():
-    import time
-    from crawlers.newegg.client import RPC_PORT, crawl_product
-    peers = [ "tcp://{0}:{1}".format(x.split('@')[-1], RPC_PORT) for x in PEERS ]
-    while True:
-        t = time.time()
-        crawl_product(peers)
-        print time.time() - t
-        time.sleep(3600)
-try:
-    from crawlers.bestbuy.client import crawl_category as bestbuy_category
-    from crawlers.bhphotovideo.client import crawl_category as bhphotovideo_category
-    from crawlers.dickssport.client import crawl_category as dickssport_category
-except:
-    pass
-
-def bestbuy_listing():
-    import time
-    from crawlers.bestbuy.client import RPC_PORT, crawl_category, crawl_listing, crawl_product
-    peers = [ "tcp://{0}:{1}".format(x.split('@')[-1], RPC_PORT) for x in PEERS ]
-    while True:
-        t = time.time()
-        crawl_listing(peers)
-        print 'Crawl listing cost: {0} seconds.'.format(time.time() - t)
-        bestbuy_product()
-        time.sleep(3600)
-
-def bestbuy_product():
-    """ suggest to run bestbuy_listing(), we can crawl all of the fields.
-    """
-    import time
-    from crawlers.bestbuy.client import RPC_PORT, crawl_category, crawl_listing, crawl_product
-    peers = [ "tcp://{0}:{1}".format(x.split('@')[-1], RPC_PORT) for x in PEERS ]
-    t = time.time()
-    crawl_product(peers)
-    print 'Crawl product cost: {0} seconds.'.format(time.time() - t)
-
-
-def dickssport_listing():
-    import time
-    from crawlers.dickssport.client import RPC_PORT, crawl_category, crawl_listing, crawl_product
-    peers = [ "tcp://{0}:{1}".format(x.split('@')[-1], RPC_PORT) for x in PEERS ]
-    while True:
-        t = time.time()
-        crawl_listing(peers)
-        print 'Crawl listing cost: {0} seconds.'.format(time.time() - t)
-        dickssport_product()
-        time.sleep(3600)
-
-def dickssport_product():
-    """ suggest to run dickssport_listing(), we can crawl all of the fields.
-    """
-    import time
-    from crawlers.dickssport.client import RPC_PORT, crawl_category, crawl_listing, crawl_product
-    peers = [ "tcp://{0}:{1}".format(x.split('@')[-1], RPC_PORT) for x in PEERS ]
-    t = time.time()
-    crawl_product(peers)
-    print 'Crawl product cost: {0} seconds.'.format(time.time() - t)
-
-def dickssport_update(*targs):
-    """ update product with specific fields
-        useful_param = ['price', 'available', 'shipping', 'rating', 'reviews']
-    """
-    import time
-    from crawlers.dickssport.client import RPC_PORT, crawl_category, crawl_listing, crawl_product, update_product
-    peers = [ "tcp://{0}:{1}".format(x.split('@')[-1], RPC_PORT) for x in PEERS ]
-    t = time.time()
-    update_product(peers, *targs)
-    print 'Update product cost: {0} seconds.'.format(time.time() - t)
-
 
 if __name__ == "__main__":
     pass

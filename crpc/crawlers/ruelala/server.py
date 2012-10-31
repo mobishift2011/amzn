@@ -196,12 +196,8 @@ class Server:
             category.update_time = datetime.datetime.utcnow()
             category.is_leaf = True
             category.save()
-            if ctx:
-                category_saved.send(sender=ctx, site=DB, key=sale_id, is_new=is_new, is_updated=not is_new)
-
-
+            category_saved.send(sender=ctx, site=DB, key=sale_id, is_new=is_new, is_updated=not is_new)
             result.append((sale_id,a_url))
-
         return result
 
     def crawl_listing(self,sale_id,event_url,ctx=False):
@@ -292,8 +288,7 @@ class Server:
                 product.sale_id.append(str(sale_id))
 
             product.save()
-            if ctx:
-                product_save.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
+            product_save.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
             result.append((product_id,url))
         return result
 
@@ -388,18 +383,7 @@ class Server:
         product.save()
         print 'save data used ',time.time() - point5
         print 'parse product detail used',time.time() - point1
-
-        """
-        print 'size',sizes
-        print 'shipping',shipping
-        print 'returns',returns
-        print 'left',left
-        print 'list info',list_info 
-        print 'image urls',image_urls
-        """
-        
-        if ctx:
-            product_saved.send(sender=ctx, site=DB, key=casin, is_new=is_new, is_updated=not is_new)
+        product_saved.send(sender=ctx, site=DB, key=casin, is_new=is_new, is_updated=not is_new)
 
     def _url2saleid(self, url):
         """.. :py:method::

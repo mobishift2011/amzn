@@ -127,8 +127,7 @@ class Server(BaseServer):
             print 'category.url',url
             category.save()
             # send singnal
-            if ctx:
-                category_saved.send(sender=ctx, site=DB, key=category.key, is_new=is_new, is_updated=not is_new)
+            category_saved.send(sender=ctx, site=DB, key=category.key, is_new=is_new, is_updated=not is_new)
 
     def crawl_category(self,ctx=False):
         """.. :py:method::
@@ -183,8 +182,7 @@ class Server(BaseServer):
             except:
                 product.reviews = []
                 product.save()
-            if ctx:
-                product_save.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
+            product_save.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
 
     def url2product_id(self,href):
         return href.split('/')[-2]
@@ -305,8 +303,7 @@ class Server(BaseServer):
         print 'parse by seleunim used ',time.time() - point2
         product.save()
         print 'parse product total used',time.time() - point1
-        if ctx:
-            product_save.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
+        product_save.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
 
 if __name__ == '__main__':
     server = Server()

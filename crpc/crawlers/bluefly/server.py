@@ -11,7 +11,7 @@ from gevent import monkey
 monkey.patch_all()
 from gevent.coros import Semaphore
 lock = Semaphore()
-from crawlers.common.rpcserver import BaseServer
+from crawlers.common.baseserver import BaseServer
 
 from selenium.common.exceptions import *
 from selenium import webdriver

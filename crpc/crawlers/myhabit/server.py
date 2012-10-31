@@ -7,10 +7,6 @@ crawlers.myhabit.server
 This is the server part of zeroRPC module. Call by client automatically, run on many differen ec2 instances.
 
 """
-from gevent import monkey
-monkey.patch_all()
-from gevent.pool import Pool
-
 import os
 import re
 import sys
@@ -20,7 +16,6 @@ import zerorpc
 import lxml.html
 import pytz
 
-from gevent.coros import BoundedSemaphore
 from urllib import quote, unquote
 from datetime import datetime, timedelta
 import selenium
@@ -31,7 +26,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 from models import *
 from crawlers.common.events import *
 from crawlers.common.stash import *
-from crawlers.common.rpcserver import safe_lock
 
 TIMEOUT = 5
 
@@ -104,7 +98,7 @@ class Server:
             return 1
         print 'time download benchmark: ', time.time() - time_begin_benchmark
 
-    @safe_lock
+    @exclusive_lock(DB)
     def crawl_category(self):
         """.. :py:method::
             From top depts, get all the brands
@@ -369,7 +363,7 @@ class Server:
         """
         pass
 
-    @safe_lock
+    @exclusive_lock(DB)
     def crawl_product(self, url, casin):
         """.. :py:method::
             Got all the product information and save into the database

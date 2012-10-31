@@ -10,7 +10,7 @@ This module is a common function collections used by all the crawlers.
 """
 import requests
 import re
-
+from gevent.coros import Semaphore
 
 headers = { 
     'User-Agent': 'Mozilla 5.0/Firefox 16.0.1',
@@ -43,3 +43,28 @@ def login_page(url, data):
     """
     request.post(url, data=data)
 
+
+locked = {}
+def exclusive_lock(name):
+    """.. :py:method::
+    A common lock for selenium or other crawlers when crawling category.
+    
+    @exclusive_lock(self.__class__.__name__)
+    def crawl_category(self):
+        pass
+
+    @exclusive_lock('myhabit')
+    def crawl_product(self):
+        pass
+
+    """
+    if name not in locked:
+        locked[name] = Semaphore()
+
+    def safe_lock(func, *arg, **kwargs):
+        def wrapper(*arg, **kwargs):
+            with locked[name]:
+                ret = func(*arg,**kwargs)
+                return ret
+        return wrapper
+    return safe_lock

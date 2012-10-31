@@ -23,6 +23,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from models import *
 from crawlers.common.events import *
 from crawlers.common.stash import *
+from crawlers.common.events import common_saved, common_failed
 import lxml
 import datetime
 import time
@@ -196,7 +197,7 @@ class Server:
             category.update_time = datetime.datetime.utcnow()
             category.is_leaf = True
             category.save()
-            category_saved.send(sender=ctx, site=DB, key=sale_id, is_new=is_new, is_updated=not is_new)
+            common_saved.send(sender=ctx, site=DB, key=sale_id, is_new=is_new, is_updated=not is_new)
             result.append((sale_id,a_url))
         return result
 
@@ -288,7 +289,7 @@ class Server:
                 product.sale_id.append(str(sale_id))
 
             product.save()
-            product_save.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
+            common_saved.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
             result.append((product_id,url))
         return result
 
@@ -383,7 +384,7 @@ class Server:
         product.save()
         print 'save data used ',time.time() - point5
         print 'parse product detail used',time.time() - point1
-        product_saved.send(sender=ctx, site=DB, key=casin, is_new=is_new, is_updated=not is_new)
+        common_saved.send(sender=ctx, site=DB, key=casin, is_new=is_new, is_updated=not is_new)
 
     def _url2saleid(self, url):
         """.. :py:method::

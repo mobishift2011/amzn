@@ -33,12 +33,12 @@ from datetime import datetime, timedelta
 MAX_PAGE = 400
 
 def get_site_module(site):
-    return __import__('crawlers.'+site+'.models', fromlist=['Category', 'Product'])
+    return __import__('crawlers.'+site+'.models', fromlist=['Event', 'Product'])
 
 def spout_listing(site):
     """ return a generator spouting listing pages """
     m = get_site_module(site)
-    return m.Category.objects(is_leaf=True).order_by('-update_time').timeout(False)
+    return m.Event.objects(is_leaf=True).order_by('-update_time').timeout(False)
 
 def spout_category(site, category):
     """ return a generator spouting category parameters """

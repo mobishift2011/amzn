@@ -143,7 +143,7 @@ class Server:
             else:
                 soldout = True
 
-            brand, is_new = Category.objects.get_or_create(sale_id=sale_id)
+            brand, is_new = Event.objects.get_or_create(sale_id=sale_id)
             if is_new:
                 brand.sale_title = a_title.text
                 brand.image_urls = [image]
@@ -188,7 +188,7 @@ class Server:
         :param url: url in the page
         """
         sale_id = self.url2saleid(url)
-        brand, is_new = Category.objects.get_or_create(sale_id=sale_id)
+        brand, is_new = Event.objects.get_or_create(sale_id=sale_id)
         if is_new:
             path = self.browser.find_element_by_css_selector('div#main div#page-content div#top-content')
             if path == []:
@@ -279,7 +279,7 @@ class Server:
         num = int(num.split()[0])
         sale_id = self.url2saleid(url)
 
-        brand, is_new = Category.objects.get_or_create(sale_id=sale_id)
+        brand, is_new = Event.objects.get_or_create(sale_id=sale_id)
         # crawl infor before, so always not new
         brand.sale_description = sale_description
         brand.events_end = utc_endtime

@@ -128,11 +128,7 @@ class Server(BaseServer):
             category.save()
             # send singnal
             if ctx:
-                ctx.send(sender = 'bluefly.crawl_category',
-                                site = self.site,
-                                key = key,
-                                is_new = is_new,
-                                is_updated = not is_new)
+                category_saved.send(sender=ctx, site=DB, key=category.key, is_new=is_new, is_updated=not is_new)
 
     def crawl_category(self,ctx=False):
         """.. :py:method::
@@ -188,11 +184,7 @@ class Server(BaseServer):
                 product.reviews = []
                 product.save()
             if ctx:
-                ctx.send(sender = "bluefly.parse_listing", 
-                                    site = self.site,
-                                    key = product.key,
-                                    is_new = is_new,                        
-                                    is_updated = not is_new)
+                product_save.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
 
     def url2product_id(self,href):
         return href.split('/')[-2]
@@ -314,8 +306,7 @@ class Server(BaseServer):
         product.save()
         print 'parse product total used',time.time() - point1
         if ctx:
-            ctx.send(sender=DB + '.parse_product_detail', site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
-
+            product_save.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
 
 if __name__ == '__main__':
     server = Server()

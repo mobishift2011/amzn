@@ -114,12 +114,10 @@ class Server:
             From top depts, get all the events
         """
         categorys = ['women', 'men', 'living','kids','todays-fix']
-        debug_info.send(sender=DB + '.category.begin')
 
         for category in categorys:
             url = 'http://www.ruelala.com/category/%s' %category
             self._get_event_list(category,url,ctx)
-        debug_info.send(sender=DB + '.category.end')
 
     def crawl_listing(self,sale_id,event_url,ctx):
         event_list = [(sale_id,event_url)]
@@ -207,7 +205,9 @@ class Server:
             category.is_leaf = True
             category.save()
             if ctx:
-                ctx.send(sender=DB + '._get_event_list', site=DB, key=sale_id, is_new=is_new, is_updated=not is_new)
+                category_saved.send(sender=ctx, site=DB, key=sale_id, is_new=is_new, is_updated=not is_new)
+
+
             result.append((sale_id,a_url))
 
         return result
@@ -301,7 +301,7 @@ class Server:
 
             product.save()
             if ctx:
-                ctx.send(sender=DB + '.parse_product_detail', site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
+                product_save.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
             result.append((product_id,url))
         return result
 
@@ -407,7 +407,7 @@ class Server:
         """
         
         if ctx:
-            ctx.send(sender=DB + '.parse_product_detail', site=DB, key=product_id, is_new=is_new, is_updated=not is_new)
+            product_saved.send(sender=ctx, site=DB, key=casin, is_new=is_new, is_updated=not is_new)
 
     def _url2saleid(self, url):
         """.. :py:method::

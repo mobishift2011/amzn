@@ -75,7 +75,7 @@ function TaskCtrl($scope) {
             for (var i=0; i<t.fail_details.length; i++){
                 tabletrs += "<tr><td>"+t.fail_details[i].time+"</td>"+
                                 "<td>"+t.fail_details[i].name+"</td>"+
-                                "<td>"+t.fail_details[i].message.replace(/\n/g,'<br/>')+"</td></tr>";
+                                "<td>"+t.fail_details[i].message.replace(/\n/g,'<br/>').replace(/ /g,'&nbsp;')+"</td></tr>";
             }
             var failsdiv = "<div id='"+taskid+"'class='modal hide fade' role='dialog' style='display:none;'>"+
                         "<div class='modal-header'><button type='button' class='close' data-dismiss='modal' aria-hidden='true' onclick='toggleCanUpdate()'>x</button><h3>Fails</h3></div>" +

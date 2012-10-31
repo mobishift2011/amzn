@@ -105,7 +105,7 @@ class Server:
 
         c.updated = True
         c.save()
-        category_saved.send(sender = ctx,
+        common_saved.send(sender = ctx,
                             site = self.site,
                             key = catn,
                             url = url,
@@ -121,7 +121,7 @@ class Server:
                 if not Category.objects(catn=catn):
                     c = Category(catn=catn)
                     c.save()
-                    category_saved.send(sender = ctx,
+                    common_saved.send(sender = ctx,
                                         site = self.site,
                                         key = catn,
                                         url = url,

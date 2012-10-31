@@ -27,7 +27,7 @@ import traceback
 
 from itertools import chain
 
-from crawlers.common.events import category_failed, product_failed, pre_general_update, post_general_update
+from crawlers.common.events import pre_general_update, post_general_update, common_failed
 from datetime import datetime, timedelta
 
 MAX_PAGE = 400
@@ -106,7 +106,7 @@ class UpdateContext(object):
         reason = ''
         if exc_type:
             complete = False
-            reason = '\n'.join(traceback.format_tb(exc_traceback))
+            reason = ''.join(traceback.format_tb(exc_traceback))+'{0!r}'.format(exc_value)
 
         post_general_update.send(sender = self.sender,
                                     site = self.site,
@@ -119,17 +119,20 @@ def callrpc(rpc, site, method, *args, **kwargs):
     try:
         rpc.call(site, method, args, kwargs)
     except Exception as e:
-        common_fail.send(sender=kwargs['ctx'],
+        common_failed.send(sender=kwargs['ctx'],
                             site = site,
                             key = kwargs.get('key'),
                             url = kwargs.get('url'),
                             reason = traceback.format_exc())
 
+def gevent_exception_handler():
+    pass
+
 def update_category(site, rpc, concurrency=30):
     with UpdateContext(site=site, method='update_category') as ctx:
         rpcs = [rpc] if not isinstance(rpc, list) else rpc
         rpc = random.choice(rpcs)
-        callrpc(rpc, site, 'crawl_category', (), {'ctx':ctx})
+        callrpc(rpc, site, 'crawl_category', ctx=ctx)
 
 def update_listing(site, rpc, concurrency=30):
     with UpdateContext(site=site, method='update_listing') as ctx:
@@ -152,11 +155,9 @@ def update_product(site, rpc, concurrency=30):
 
 if __name__ == '__main__':
     from rpcserver import RPCServer
-    site = 'ruelala'
-    print spout_listing(site)
+    site = 'amazon'
     rpc = RPCServer() 
-    update_category(site,rpc)
+    #update_category(site,rpc)
     #update_listing('amazon',rpc)
-    #pdate_listing('amazon', rpc)
-    #update_product('amazon', rpc)
+    update_product('amazon', rpc)
     #update_category('myhabit', rpc)

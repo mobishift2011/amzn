@@ -113,7 +113,7 @@ class Server:
         if not self._signin:
             self.login(self.email, self.passwd)
     
-    def crawl_category(self):
+    def crawl_category(self,ctx):
         """.. :py:method::
             From top depts, get all the events
         """
@@ -122,16 +122,16 @@ class Server:
 
         for category in categorys:
             url = 'http://www.ruelala.com/category/%s' %category
-            self._get_event_list(category,url)
+            self._get_event_list(category,url,ctx)
         debug_info.send(sender=DB + '.category.end')
 
-    def crawl_listing(self,sale_id,event_url):
+    def crawl_listing(self,sale_id,event_url,ctx):
         event_list = [(sale_id,event_url)]
         while event_list:
             event = event_list.pop()
             sale_id =  event[0]
             event_url =  event[1]
-            self._get_product_list(sale_id,event_url)
+            self._get_product_list(sale_id,event_url,ctx)
         return
 
     def crawl_product(self,product_id,product_url):
@@ -141,7 +141,7 @@ class Server:
             product_url = product[1]
             self._crawl_product_detail(product_id,product_url)
 
-    def _get_event_list(self,category_name,url):
+    def _get_event_list(self,category_name,url,ctx):
         """.. :py:method::
             Get all the events from event list.
         """
@@ -193,7 +193,6 @@ class Server:
             a_url = self.format_url(a_link)
             sale_id = self._url2saleid(a_link)
             category,is_new = Category.objects.get_or_create(sale_id=sale_id)
-
             footer =  node.find_element_by_xpath('./footer')
             clock = footer.find_element_by_xpath('./a/div[@class="closing clock"]').text
             try:
@@ -211,12 +210,12 @@ class Server:
             category.update_time = datetime.datetime.utcnow()
             category.is_leaf = True
             category.save()
-            category_saved.send(sender=DB + '._get_event_list', site=DB, key=sale_id, is_new=is_new, is_updated=not is_new)
+            ctx.send(sender=DB + '._get_event_list', site=DB, key=sale_id, is_new=is_new, is_updated=not is_new)
             result.append((sale_id,a_url))
 
         return result
 
-    def _get_product_list(self,sale_id,event_url):
+    def _get_product_list(self,sale_id,event_url,ctx):
         result = []
         if not self.get(event_url):
             return  result
@@ -304,6 +303,7 @@ class Server:
                 product.sale_id.append(str(sale_id))
 
             product.save()
+            ctx.send(sender=DB + '.parse_product_detail', site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
             result.append((product_id,url))
         return result
 
@@ -324,7 +324,7 @@ class Server:
             urls.append(url)
         return urls
 
-    def _crawl_product_detail(self,product_id,url):
+    def _crawl_product_detail(self,product_id,url,ctx):
         """.. :py:method::
             Got all the product basic information and save into the database
         """
@@ -340,7 +340,7 @@ class Server:
         image_urls = []
         # TODO imgDetail
         imgs_node = self.browser.find_element_by_css_selector('section#productImages')
-        first_img_url = imgs_node.find_element_by_css_selector('img#imgZoom').get_attribute('href')
+        #first_img_url = imgs_node.find_element_by_css_selector('img#imgZoom').get_attribute('href')
         try:
             img_count = len(imgs_node.find_elements_by_css_selector('div#imageThumbWrapper img'))
         except:
@@ -408,7 +408,7 @@ class Server:
         print 'image urls',image_urls
         """
         
-        product_saved.send(sender=DB + '.parse_product_detail', site=DB, key=product_id, is_new=is_new, is_updated=not is_new)
+        ctx.send(sender=DB + '.parse_product_detail', site=DB, key=product_id, is_new=is_new, is_updated=not is_new)
 
     def _url2saleid(self, url):
         """.. :py:method::

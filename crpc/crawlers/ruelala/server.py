@@ -112,7 +112,6 @@ class Server:
         if not self._signin:
             self.login(self.email, self.passwd)
     
-    @safe_lock
     def crawl_category(self):
         """.. :py:method::
             From top depts, get all the events
@@ -125,7 +124,6 @@ class Server:
             self._get_event_list(category,url)
         debug_info.send(sender=DB + '.category.end')
 
-    @safe_lock
     def crawl_listing(self,sale_id,event_url):
         event_list = [(sale_id,event_url)]
         while event_list:

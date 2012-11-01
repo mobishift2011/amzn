@@ -134,6 +134,7 @@ class Server(BaseServer):
         """.. :py:method::
             From top depts, get all the events
         """
+        print 'start category'
         for i in self.get_navs():
             nav,url = i
             print nav,url

@@ -207,8 +207,7 @@ class Server:
     def crawl_listing(self,sale_id,event_url,ctx=False):
         self.login(self.email, self.passwd)
         result = []
-        if not self.get(event_url):
-            return  result
+        self.get(event_url)
 
         try:
             span = self.browser.find_element_by_xpath('//span[@class="viewAll"]')

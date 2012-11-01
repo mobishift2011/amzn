@@ -13,7 +13,7 @@ from mongoengine import connect
 from settings import MONGODB_HOST
 connect(db=DB, alias=DB, host=MONGODB_HOST)
 
-from crawlers.common.models import BaseEvent, BaseProduct
+from crawlers.common.models import BaseEvent, BaseProduct,LuxuryProduct
 
 class Event(BaseEvent):
     event_id = StringField(unique=True)
@@ -29,14 +29,12 @@ class Event(BaseEvent):
     def img_url(self):
         return 'http://www.ruelala.com/images/content/events/%s_doormini.jpg' %self.event_id
 
-class Product(BaseProduct):
-    url = StringField()
+class Product(LuxuryProduct):
     limit= StringField()
-
     meta = {
         "indexes": ["updated"],
         "db_alias": DB,
     }
 
     def url(self):
-        return 'http://www.ruelala.com/event/product/%s/%s/1/DEFAULT' %(self.event_id,self.key)
+        return 'http://www.ruelala.com/event/product/%s/%s/1/DEFAULT' %(self.event_id[0],self.key)

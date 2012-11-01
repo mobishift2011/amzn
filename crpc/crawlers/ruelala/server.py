@@ -119,7 +119,7 @@ class Server:
         for category in categorys:
             url = 'http://www.ruelala.com/category/%s' %category
             print 'go to ',url
-            print 'res',self._get_event_list(
+            print 'res',self._get_event_list(category,url,ctx)
 
 
     def crawl_product(self,product_id,product_url):

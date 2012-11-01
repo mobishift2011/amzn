@@ -36,4 +36,3 @@ def common_saved_print(sender, **kwargs):
 @common_failed.bind
 def common_failed_print(sender, **kwargs):
     logger.debug('<{0}> -- {1}'.format(sender, kwargs.items()))
-

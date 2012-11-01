@@ -21,14 +21,13 @@ class Event(BaseEvent):
     dept = ListField(StringField())
     brand_link = StringField()
     upcoming_title_img = ListField()
-    is_leaf = BooleanField(default=True)
 
     meta = {
         "db_alias": DB,
     }
 
     def url(self):
-        return 'http://www.myhabit.com/homepage#page=b&dept={0}&sale={1}'.format(self.dept[0], self.event_id)
+        return 'http://www.myhabit.com/homepage#page=b&sale={0}'.format(self.event_id)
 
 
 class Product(LuxuryProduct):

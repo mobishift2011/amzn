@@ -188,6 +188,7 @@ class Server(BaseServer):
             product.title = title
             product.soldout = soldout
             product.image_urls = ['http://cdn.is.bluefly.com/mgen/Bluefly/eqzoom85.ms?img=%s.pct&outputx=738&outputy=700&level=1&ver=6' %key]
+            product.url = url
             try:
                 product.save()
             except Exception,e:

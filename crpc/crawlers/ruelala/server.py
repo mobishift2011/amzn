@@ -49,8 +49,6 @@ class Server:
         self.siteurl = 'http://www.ruelala.com'
         self.email = 'huanzhu@favbuy.com'
         self.passwd = '4110050209'
-        self.event_list = []
-        self.product_list = []
 
     def get(self,url):
         start = time.time()
@@ -121,14 +119,6 @@ class Server:
             url = 'http://www.ruelala.com/category/%s' %category
             print 'go to ',url
             print 'res',self._get_event_list(category,url,ctx)
-
-    def crawl_product(self,product_id,product_url):
-        self.login(self.email, self.passwd)
-        product_list = [(product_id,product_url)]
-        for product in product_list:
-            product_id = product[0]
-            product_url = product[1]
-            self._crawl_product_detail(product_id,product_url)
 
     def _get_event_list(self,category_name,url,ctx):
         """.. :py:method::
@@ -231,14 +221,15 @@ class Server:
 
         if not nodes:
 
-            """
-            patch:
-            some event url (like:http://www.ruelala.com/event/57961) will 301 redirect to product detail page:
-            http://www.ruelala.com/product/detail/eventId/57961/styleNum/4112913877/viewAll/0
-            """
+            #patch:
+            #some event url (like:http://www.ruelala.com/event/57961) will 301 redirect to product detail page:
+            #http://www.ruelala.com/product/detail/eventId/57961/styleNum/4112913877/viewAll/0
             url_301 = self.browser.current_url
             if url_301 <>  event_url:
-                self.product_list.append(url_301)
+                # TODO 
+                product_id = self._url2product_id(url_301)
+                #self.product_list.append(url_301)
+                pass
             else:
                 raise ValueError('can not find product @url:%s sale id:%s' %(event_url,event_id))
 
@@ -315,10 +306,11 @@ class Server:
             urls.append(url)
         return urls
 
-    def _crawl_product_detail(self,product_id,url,ctx=False):
+    def crawl_product(self,url,ctx=False):
         """.. :py:method::
             Got all the product basic information and save into the database
         """
+        product_id = self._url2product_id
         if not self.get(url):
             return False
 

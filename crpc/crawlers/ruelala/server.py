@@ -315,9 +315,9 @@ class Server:
         """.. :py:method::
             Got all the product basic information and save into the database
         """
+        self.login(self.email, self.passwd)
         product_id = self._url2product_id
-        if not self.get(url):
-            return False
+        self.get(event_url)
 
         try:
             self.browser.find_element_by_css_selector('div#optionsLoadingIndicator.row')

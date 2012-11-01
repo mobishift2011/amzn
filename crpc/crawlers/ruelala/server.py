@@ -48,7 +48,6 @@ class Server:
         self.siteurl = 'http://www.ruelala.com'
         self.email = 'huanzhu@favbuy.com'
         self.passwd = '4110050209'
-        self.login(self.email, self.passwd)
         self.event_list = []
         self.product_list = []
 
@@ -114,14 +113,17 @@ class Server:
         """.. :py:method::
             From top depts, get all the events
         """
+        self.login(self.email, self.passwd)
         categorys = ['women', 'men', 'living','kids','todays-fix']
 
         for category in categorys:
             url = 'http://www.ruelala.com/category/%s' %category
-            self._get_event_list(category,url,ctx)
+            print 'go to ',url
+            print 'res',self._get_event_list(category,url,ctx)
 
 
     def crawl_product(self,product_id,product_url):
+        self.login(self.email, self.passwd)
         product_list = [(product_id,product_url)]
         for product in product_list:
             product_id = product[0]
@@ -148,11 +150,11 @@ class Server:
             now = datetime.datetime.utcnow()
             delta = datetime.timedelta(days=days,hours=hours,minutes=minutes,seconds=seconds)
             date = now + delta
-            return '%s' %date
+            return date
 
         result = []
-        if not self.browser.get(url):
-            return result
+        print 'go to 2',url
+        self.browser.get(url)
 
         try:
             span = self.browser.find_element_by_xpath('//span[@class="viewAll"]')
@@ -165,6 +167,7 @@ class Server:
         nodes = []
         if not nodes:
             nodes = self.browser.find_elements_by_xpath('//section[@id="alsoOnDoors"]/article')
+        print 'nodes',nodes
 
         for node in nodes:
             # pass the hiden element
@@ -202,6 +205,7 @@ class Server:
         return result
 
     def crawl_listing(self,sale_id,event_url,ctx=False):
+        self.login(self.email, self.passwd)
         result = []
         if not self.get(event_url):
             return  result
@@ -424,7 +428,7 @@ class Server:
 
 if __name__ == '__main__':
     server = Server()
-    if 0:
+    if 1:
         server.crawl_category()
     if 0: 
         sale_id = '59118'
@@ -439,7 +443,7 @@ if __name__ == '__main__':
         url = 'http://www.ruelala.com/event/product/59118/1111892369/1/DEFAULT'
         result = server._crawl_product_detail(product_id,url)
 
-    if 1:
+    if 0:
         server = Server()
         id= '59022'
         url= 'http://www.ruelala.com/event/59022'

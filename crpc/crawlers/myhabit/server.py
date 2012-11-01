@@ -131,7 +131,7 @@ class Server:
             a_title = node.find_element_by_xpath('./div[@class="caption"]/a')
             l = a_title.get_attribute('href')
             link = l if l.startswith('http') else 'http://www.myhabit.com/homepage' + l
-            sale_id = self.url2saleid(link)
+            event_id = self.url2saleid(link)
 
             image = node.find_element_by_xpath('./div[@class="image"]/a/img').get_attribute('src')
             try: # if can't be found, cost a long time and raise NoSuchElementException
@@ -141,7 +141,7 @@ class Server:
             else:
                 soldout = True
 
-            brand, is_new = Event.objects.get_or_create(sale_id=sale_id)
+            brand, is_new = Event.objects.get_or_create(event_id=event_id)
             if is_new:
                 brand.sale_title = a_title.text
                 brand.image_urls = [image]
@@ -149,7 +149,7 @@ class Server:
             brand.soldout = soldout
             brand.update_time = datetime.utcnow()
             brand.save()
-            common_saved.send(sender=ctx, key=sale_id, url=url, is_new=is_new, is_updated=not is_new)
+            common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=not is_new)
 
         # upcoming brand
         nodes = self.browser.find_elements_by_xpath('//div[@id="main"]/div[@id="page-content"]/div[@id="upcomingSales"]//div[@class="fourColumnSales"]//div[@class="caption"]/a')
@@ -185,8 +185,8 @@ class Server:
         :param dept: dept in the page
         :param url: url in the page
         """
-        sale_id = self.url2saleid(url)
-        brand, is_new = Event.objects.get_or_create(sale_id=sale_id)
+        event_id = self.url2saleid(url)
+        brand, is_new = Event.objects.get_or_create(event_id=event_id)
         if is_new:
             path = self.browser.find_element_by_css_selector('div#main div#page-content div#top-content')
             if path == []:
@@ -215,7 +215,7 @@ class Server:
         else:
             if dept not in brand.dept: brand.dept.append(dept)
         brand.save()
-        common_saved.send(sender=ctx, key=sale_id, url=url, is_new=is_new, is_updated=not is_new)
+        common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=not is_new)
 
 
     def time_proc(self, time_str):
@@ -234,7 +234,7 @@ class Server:
         """.. :py:method::
 
         :param url: the brand's url
-        :rtype: string of sale_id
+        :rtype: string of event_id
         """
         return re.compile(r'http://www.myhabit.com/homepage\??#page=b&dept=\w+&sale=(\w+)').match(url).group(1)
 
@@ -275,9 +275,9 @@ class Server:
             sale_brand_link = ''
         num = node.find_element_by_css_selector('div#middle div#middleCenter div#numResults').text
         num = int(num.split()[0])
-        sale_id = self.url2saleid(url)
+        event_id = self.url2saleid(url)
 
-        brand, is_new = Event.objects.get_or_create(sale_id=sale_id)
+        brand, is_new = Event.objects.get_or_create(event_id=event_id)
         # crawl infor before, so always not new
         brand.sale_description = sale_description
         brand.events_end = utc_endtime
@@ -285,15 +285,15 @@ class Server:
         brand.num = num
         brand.update_time = datetime.utcnow()
         brand.save()
-        common_saved.send(sender=ctx, key=sale_id, url=url, is_new=is_new, is_updated=not is_new)
+        common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=not is_new)
 
         elements = node.find_elements_by_xpath('./div[@id="asinbox"]/ul/li[starts-with(@id, "result_")]')
         for ele in elements:
-            self.parse_category_product(ele, sale_id, sale_title, ctx)
+            self.parse_category_product(ele, event_id, sale_title, ctx)
         print 'time proc brand list: ', time.time() - time_begin_benchmark
 
 
-    def parse_category_product(self, element, sale_id, sale_title, ctx):
+    def parse_category_product(self, element, event_id, sale_title, ctx):
         """.. :py:method::
             Brand page, product parsing
 
@@ -318,12 +318,12 @@ class Server:
         asin, casin = self.url2asin(link)
         product, is_new = Product.objects.get_or_create(pk=casin)
         if is_new:
-            product.sale_id = [sale_id]
+            product.event_id = [event_id]
             product.brand = sale_title
             product.asin = asin
             product.title = title
         else:
-            if sale_id not in product.sale_id: product.sale_id.append(sale_id)
+            if event_id not in product.event_id: product.event_id.append(event_id)
         product.price = ourprice
         if listprice: product.listprice = listprice
         product.soldout = soldout
@@ -331,7 +331,7 @@ class Server:
         product.list_update_time = datetime.utcnow()
         product.save()
         common_saved.send(sender=ctx, key=casin, url='', is_new=is_new, is_updated=not is_new)
-        debug_info.send(sender="myhabit.parse_category_product", title=title, sale_id=sale_id, asin=asin, casin=casin)
+        debug_info.send(sender="myhabit.parse_category_product", title=title, event_id=event_id, asin=asin, casin=casin)
 
 
     @exclusive_lock(DB)

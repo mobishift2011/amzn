@@ -205,7 +205,7 @@ class Server:
             result.append((event_id,a_url))
         return result
 
-    def crawl_listing(self,event_url,ctx=False):
+    def crawl_listing(self,event_url,ctx):
         event_id = self._url2saleid(event_url)
         self.login(self.email, self.passwd)
         result = []
@@ -439,15 +439,15 @@ if __name__ == '__main__':
         ps =  Product.objects.all()
         print 'ps',ps
 
-    if 1:
+    if 0:
         product_id = '1411892550'
         url = 'http://www.ruelala.com/event/product/53652/1411892550/1/DEFAULT'
         result = server.crawl_product(product_id,url)
 
-    if 0:
+    if 1:
         server = Server()
         url = 'http://www.ruelala.com/event/53652'
-        server.crawl_listing(url)
+        server.crawl_listing(url,'x')
 
     if 0:
         server = Server()

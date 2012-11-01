@@ -214,7 +214,7 @@ class Server(BaseServer):
         """.. :py:method::
             Got all the product basic information and save into the database
         """
-
+        if not url:return
         if not self.browser:
             try:
                 self.browser = webdriver.Chrome()

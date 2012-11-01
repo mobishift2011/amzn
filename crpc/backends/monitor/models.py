@@ -131,7 +131,7 @@ class Task(Document):
             'dones':        self.num_finish,
             'updates':      self.num_update,
             'news':         self.num_new,
-            'fail_details': [f.to_json() for f in self.fails][:10],
+            'fail_details': [f.to_json() for f in self.fails][-10:],
         }
 
     @classmethod

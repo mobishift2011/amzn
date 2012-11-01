@@ -131,6 +131,7 @@ class Server(BaseServer):
             # send singnal
             common_saved.send(sender=ctx, site=DB, key=category.key, is_new=is_new, is_updated=not is_new)
 
+    @exclusive_lock(DB)
     def crawl_category(self,ctx=False):
         """.. :py:method::
             From top depts, get all the events
@@ -141,6 +142,7 @@ class Server(BaseServer):
             print nav,url
             self._get_all_category(nav,url,ctx)
     
+    @exclusive_lock(DB)
     def crawl_listing(self,url,ctx=False):
         tree = self.ropen(url)
         for item in tree.xpath('//div[starts-with(@class,"productContainer")]'):
@@ -149,7 +151,7 @@ class Server(BaseServer):
             href = link.get('href')
             key  = self.url2product_id(href)
             url = self.format_url(href)
-            sale_id = [self.url2category_key(url)]
+            event_id = [self.url2category_key(url)]
             brand = item.xpath('.//div[@class="listBrand"]/a')[0].text_content()
             designer = link.text_content()
             print 'key',key,type(key)
@@ -173,9 +175,9 @@ class Server(BaseServer):
                     break
 
             if is_new:
-                product.sale_id = sale_id
+                product.event_id = event_id
             else:
-                product.sale_id = list(set(product.sale_id + sale_id))
+                product.event_id = list(set(product.event_id + event_id))
 
             product.title = title
             product.soldout = soldout
@@ -315,7 +317,7 @@ if __name__ == '__main__':
     if 0:
         pass
 
-    if 1:
+    if 0:
         point1 = time.time()
         server.crawl_category()
         print 'category count',Category.objects.all().count()
@@ -344,7 +346,7 @@ if __name__ == '__main__':
         print 'total time',time.time() - point1
 
         #print server.get_navs()
-    if 0:
+    if 1:
         for c in Category.objects.all():
             url = c.url
             print '>>>> url',url

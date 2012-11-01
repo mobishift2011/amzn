@@ -317,7 +317,7 @@ if __name__ == '__main__':
 
     if 1:
         point1 = time.time()
-        #server.crawl_category()
+        server.crawl_category()
         print 'category count',Category.objects.all().count()
         print 'parse category used',time.time() - point1
         

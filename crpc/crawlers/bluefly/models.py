@@ -30,6 +30,7 @@ class Product(LuxuryProduct):
     return_policy  = StringField()
     color = StringField()
 
+
     meta                =   {
         "db_alias": DB,
     }

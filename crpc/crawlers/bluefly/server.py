@@ -214,6 +214,14 @@ class Server(BaseServer):
         """.. :py:method::
             Got all the product basic information and save into the database
         """
+
+        if not self.browser:
+            try:
+                self.browser = webdriver.Chrome()
+            except:
+                self.browser = webdriver.Firefox()
+                self.browser.set_page_load_timeout(10)
+
         print 'start parse product ',url
         point1 = time.time()
         #tree = self.ropen(url)

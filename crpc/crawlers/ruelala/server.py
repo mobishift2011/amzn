@@ -221,15 +221,12 @@ class Server:
 
         if not nodes:
 
-            #patch:
+            #patch 1:
             #some event url (like:http://www.ruelala.com/event/57961) will 301 redirect to product detail page:
             #http://www.ruelala.com/product/detail/eventId/57961/styleNum/4112913877/viewAll/0
             url_301 = self.browser.current_url
             if url_301 <>  event_url:
-                # TODO 
-                product_id = self._url2product_id(url_301)
-                #self.product_list.append(url_301)
-                pass
+                self.crawl_product(url)
             else:
                 raise ValueError('can not find product @url:%s sale id:%s' %(event_url,event_id))
 
@@ -239,9 +236,10 @@ class Server:
             a = node.find_element_by_xpath('./a')
             href = a.get_attribute('href')
 
-            # patch 
+            # patch 2
+            # the event have some sub events
             if href.split('/')[-2] == 'event':
-                self.event_list.append(self.format_url(href))
+                self.crawl_listing(self.format_url(href))
                 continue
 
             img = node.find_element_by_xpath('./a/img')

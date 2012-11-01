@@ -181,8 +181,8 @@ class Server:
             #image = node.find_element_by_xpath('./a/img').get_attribute('src')
             a_link = node.find_element_by_xpath('./a[@class="eventDoorLink"]').get_attribute('href')
             a_url = self.format_url(a_link)
-            sale_id = self._url2saleid(a_link)
-            event,is_new = Event.objects.get_or_create(sale_id=sale_id)
+            event_id = self._url2saleid(a_link)
+            event,is_new = Event.objects.get_or_create(event_id=event_id)
             footer =  node.find_element_by_xpath('./footer')
             clock = footer.find_element_by_xpath('./a/div[@class="closing clock"]').text
             try:
@@ -193,18 +193,18 @@ class Server:
                 event.events_end = end_time
 
             if is_new:
-                event.img_url= 'http://www.ruelala.com/images/content/events/%s_doormini.jpg' %sale_id
+                event.img_url= 'http://www.ruelala.com/images/content/events/%s_doormini.jpg' %event_id
                 event.dept = category_name
                 event.sale_title = a_title.text
             
             event.update_time = datetime.datetime.utcnow()
             event.is_leaf = True
             event.save()
-            common_saved.send(sender=ctx, site=DB, key=sale_id, is_new=is_new, is_updated=not is_new)
-            result.append((sale_id,a_url))
+            common_saved.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=not is_new)
+            result.append((event_id,a_url))
         return result
 
-    def crawl_listing(self,sale_id,event_url,ctx=False):
+    def crawl_listing(self,event_id,event_url,ctx=False):
         self.login(self.email, self.passwd)
         result = []
         self.get(event_url)
@@ -238,7 +238,7 @@ class Server:
             if url_301 <>  event_url:
                 self.product_list.append(url_301)
             else:
-                raise ValueError('can not find product @url:%s sale id:%s' %(event_url,sale_id))
+                raise ValueError('can not find product @url:%s sale id:%s' %(event_url,event_id))
 
         for node in nodes:
             if not node.is_displayed():
@@ -272,7 +272,7 @@ class Server:
             product,is_new = Product.objects.get_or_create(key=str(product_id))
             if not is_new:
                 product.url = url
-                product.sale_id = [str(sale_id)]
+                product.event_id = [str(event_id)]
 
             try:
                 s = node.find_elements_by_tag_name('span')[1]
@@ -286,10 +286,10 @@ class Server:
             product.title = title
             product.price = str(product_price)
             product.list_price = str(strike_price)
-            if str(sale_id) in product.sale_id:
+            if str(event_id) in product.event_id:
                 pass
             else:
-                product.sale_id.append(str(sale_id))
+                product.event_id.append(str(event_id))
 
             product.save()
             common_saved.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
@@ -430,7 +430,7 @@ if __name__ == '__main__':
     if 1:
         server.crawl_category()
     if 0: 
-        sale_id = '59118'
+        event_id = '59118'
         event_url ='http://www.ruelala.com/event/59118'
         product_list = server._get_product_list(sale_id,event_url)
         print 'result >>',len(product_list)

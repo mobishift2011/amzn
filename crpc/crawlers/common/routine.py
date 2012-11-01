@@ -51,7 +51,9 @@ def spout_category(site, category):
         else:
             yield {'url': c.link, 'catstr': c.cat_str}
     elif site == 'ruelala':
-        yield {}
+        yield {'url':c.url()}
+    elif site == 'bluefly':
+        yield {'url':c.url}
     elif site == 'zulily' or 'myhabit':
         yield {'url': c.url()}
     else:
@@ -74,6 +76,8 @@ def spout_product(site):
             yield {'url': p.url(), 'ecost': p.key}
         elif site == 'ruelala':
             yield {'product_id':p.key,'product_url':p.url()}
+        elif site == 'bluefly':
+            yield {'url':p.url}
         elif site == 'myhabit':
             yield {'url': p.url(), 'casin': p.key}
         else:

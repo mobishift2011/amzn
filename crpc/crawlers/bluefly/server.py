@@ -298,7 +298,8 @@ class Server(BaseServer):
                 date_str=  self.browser.find_element_by_xpath('//div[@class="review-date"]').text
                 # patch
                 if '?' in date_str:
-                    date_str = date_str[:-1]
+                    date_str = date_str[:-1].replace('?','')
+                print 'date str',date_str
                 date_obj = dt_parser.parse(date_str)
                 review.post_time = date_obj
                 review.username = self.browser.find_element_by_xpath('//div[@class="review-author"]/a').text

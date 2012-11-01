@@ -2,17 +2,11 @@
 # -*- coding: utf-8 -*-
 # Author: bishop Liu <miracle (at) gmail.com>
 
-import sys
-reload(sys)
-sys.setdefaultencoding('utf-8')
-import lxml.html
-import re
-from datetime import datetime, timedelta
-
-
 import requests
 import json
 import itertools
+from datetime import datetime, timedelta
+from crawlers.common.stash import *
 
 headers = { 
     'Accept': 'application/json',
@@ -40,6 +34,14 @@ request = requests.Session(prefetch=True, timeout=17, config=config, headers=hea
 #    http://www.hautelook.com/event/ + event_id    # event page
 #    http://www.hautelook.com/content/ + event_id  # event discription page
 
+def convert_time(date_str):
+    # '2012-10-31T08:00:00-07:00'
+    date, time = date_str.split('T')
+    time_str = date + '-' + time.split('-')[0]
+    fmt = "%Y-%m-%d-%X"
+    hours, minutes = time.split('-')[1].split(':')
+    return datetime.strptime(time_str, fmt) - timedelta(hours=int(hours), minutes=int(minutes))
+
 def fetch_json():
     url = 'http://www.hautelook.com/v3/events'
     upcoming_url = 'http://www.hautelook.com/v3/events?upcoming_soon_days=7'
@@ -63,11 +65,14 @@ def fetch_json():
         grid_img = 'http://www.hautelook.com/assets/{0}/grid-large.jpg'.format(event_code)
         info['image_url'] = [pop_img, grid_img]
 
+        begin = convert_time( info['start_date'] )
+        end = convert_time( info['end_date'] )
+
         sort_order = info['sort_order']
         tag = info['tagline']
         category = info['category']
 
 
 if __name__ == '__main__':
-    print fetch_json()
+    fetch_json()
 

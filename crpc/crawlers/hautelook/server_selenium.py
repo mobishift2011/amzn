@@ -1,44 +1,33 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-crawlers.hautelook.server
+crawlers.myhabit.server
 ~~~~~~~~~~~~~~~~~~~
 
 This is the server part of zeroRPC module. Call by client automatically, run on many differen ec2 instances.
 
 """
-from crawlers.common.stash import *
-from models import *
+import os
+import re
+import sys
+import time
+import Queue
+import zerorpc
+import lxml.html
+import urllib2
+import pytz
+
+from urllib import quote, unquote
 from datetime import datetime, timedelta
+import selenium
+from selenium import webdriver
+from selenium.webdriver.support.ui import WebDriverWait
 
-import requests
-import json
-import itertools
+from models import *
+from crawlers.common.events import *
+from crawlers.common.stash import *
 
-
-headers = { 
-    'Accept': 'application/json',
-    'Accept-Charset': 'UTF-8,*;q=0.5',
-    'Accept-Encoding': 'gzip,deflate,sdch',
-    'Accept-Language': 'zh-CN,en-US;q=0.8,en;q=0.6',
-    'Auth': 'HWS a5a4d56c84b8d8cd0e0a0920edb8994c',
-    'Connection': 'keep-alive',
-    'Content-encoding': 'gzip,deflate',
-    'Content-type': 'application/json',
-    'Host': 'www.hautelook.com',
-    'Referer': 'http://www.hautelook.com/events',
-    'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.4 (KHTML, like Gecko) Ubuntu/12.10 Chromium/22.0.1229.94 Chrome/22.0.1229.94 Safari/537.4',
-    'X-Requested-With': 'XMLHttpRequest',
-}
-
-config = { 
-    'max_retries': 3,
-    'pool_connections': 10, 
-    'pool_maxsize': 10, 
-}
-
-request = requests.Session(prefetch=True, timeout=17, config=config, headers=headers)
-
+TIMEOUT = 5
 
 class Server(object):
     """.. :py:class:: Server
@@ -48,34 +37,99 @@ class Server(object):
     """
     def __init__(self):
         self.siteurl = 'http://www.hautelook.com'
-        self._url = 'http://www.hautelook.com/v3/events?upcoming_soon_days=7'
+        self._signin = False
 
-    def convert_time(date_str):
+        self.extract_eventid_re = re.compile(r'http://www.hautelook.com/event/(\d+).*')
+        self.extract_eventimg_re = re.compile(r'/py/resizer/\d+x\d+(/assets/.*)')
+
+    def login(self):
         """.. :py:method::
-            covert time from the format into utcnow()
-            '2012-10-31T08:00:00-07:00'
-        """
-        date, Time = date_str.split('T')
-        time_str = date + '-' + Time.split('-')[0]
-        fmt = "%Y-%m-%d-%X"
-        hours, minutes = Time.split('-')[1].split(':')
-        return datetime.strptime(time_str, fmt) - timedelta(hours=int(hours), minutes=int(minutes))
+            login myhabit
+            Using Firefox will cause Xvfb memory leaf and program broke.
 
+        """
+        self.browser = webdriver.Chrome()
+#        self.browser.implicitly_wait(1)
+        self.browser.get('http://www.hautelook.com/login')
+        self.fill_login_form()
+        WebDriverWait(self.browser, TIMEOUT, 0.1).until(lambda driver: driver.execute_script('return $.active') == 0)
+
+    def fill_login_form(self):
+        """.. :py:method:
+            fill in login form when chrome driver is open
+        """
+        self.browser.find_element_by_css_selector('div#login_form_container > form#login_signin input#login_email').send_keys(login_email)
+        self.browser.find_element_by_css_selector('div#login_form_container > form#login_signin input.passwordInput').send_keys(login_passwd)
+        self.browser.find_element_by_css_selector('div#login_form_container > form#login_signin div#login_button_standard').click()
+        self._signin = True
+
+    def check_signin(self):
+        """.. :py:method:
+            If _signin flag is OK.
+            But Chrome is not open by webdriver, the .title will raise a :
+                URLError: <urlopen error [Errno 111] Connection refused>
+        """
+        if not self._signin:
+            self.login()
+        else:
+            try:
+                self.browser.title
+            except urllib2.URLError:
+                self.login()
+
+
+    def download_page(self, url):
+        """.. :py:method::
+            download the url
+        :param url: the url need to download
+        """
+        time_begin_benchmark = time.time()
+        try:
+            self.browser.get(url)
+            WebDriverWait(self.browser, TIMEOUT, 0.1).until(lambda driver: driver.find_element_by_css_selector('div#body div#main div#page-content div#bottom-content'))
+        except selenium.common.exceptions.TimeoutException:
+            try:
+                WebDriverWait(self.browser, TIMEOUT, 0.1).until(lambda driver: driver.execute_script('return $.active') == 0)
+            except selenium.common.exceptions.TimeoutException:
+                print 'Timeout --> {0}'.format(url)
+                return 1
+        print 'time download benchmark: ', time.time() - time_begin_benchmark
+
+    def download_regular_page(self, url):
+        time_begin_benchmark = time.time()
+        try:
+            self.browser.get(url)
+            WebDriverWait(self.browser, TIMEOUT, 0.1).until(lambda driver: driver.execute_script('return $.active') == 0)
+        except selenium.common.exceptions.TimeoutException:
+            print 'Timeout --> {0}'.format(url)
+            return 1
+        print 'time download_regular_page benchmark: ', time.time() - time_begin_benchmark
+
+
+    @exclusive_lock(DB)
     def crawl_category(self, ctx):
         """.. :py:method::
-            from self._url get all the events
-            http://www.hautelook.com/v3/catalog/20815
-            http://www.hautelook.com/v2/product/5446548
+            From top depts, get all the brands
         """
+        self.check_signin()
+        depts = ['women', 'beauty', 'home', 'kids', 'men']
         debug_info.send(sender=DB + '.category.begin')
 
-        resp = request.get(upcoming_url)
-        data = json.loads(resp.text)
-        lay1 = data['events']
-        lay2_upcoming, lay2_ending_soon, lay2_today = lay1['upcoming'], lay1['ending_soon'], lay1['today']
-
+        self.upcoming_proc()
+        for dept in depts:
+            link = 'http://www.hautelook.com/events#{0}'.format(dept)
+            self.get_event_list(dept, link, ctx)
+#        self.cycle_crawl_category()
+        self.browser.quit()
+        self._signin = False
         debug_info.send(sender=DB + '.category.end')
 
+    def upcoming_proc(self):
+        """.. :py:method::
+            Get all the upcoming brands info 
+        """
+        tree = lxml.html.fromstring(self.browser.page_source)
+        node = tree.cssselect('div#container > div#body_content > div#upcoming_events > div#module_coming_soon > div[id^=block_]')[0]
 
     def get_event_list(self, dept, url, ctx):
         """.. :py:method::

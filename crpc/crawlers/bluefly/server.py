@@ -226,7 +226,7 @@ class Server(BaseServer):
         print 'start parse product ',url
         point1 = time.time()
         #tree = self.ropen(url)
-        self.browser.open(url)
+        self.browser.get(url)
         key = self.url2product_id(url)
         main = self.browser.find_element_by_css_selector('section#main-product-detail')
         product,is_new = Product.objects.get_or_create(key=key)
@@ -338,7 +338,7 @@ if __name__ == '__main__':
     if 0:
         pass
 
-    if 0:
+    if 1:
         point1 = time.time()
         server.crawl_category()
         print 'category count',Category.objects.all().count()
@@ -373,7 +373,7 @@ if __name__ == '__main__':
             print '>>>> url',url
             url = 'http://www.bluefly.com/Designer-Leggings/_/N-fkg/list.fly'
             print server.crawl_listing(url)
-    if 1:
+    if 0:
         url = 'http://www.bluefly.com/Charles-David-black-leather-Proper-tall-boots/p/314091701/detail.fly'
         print server.crawl_product(url)
 

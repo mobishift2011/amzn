@@ -189,8 +189,12 @@ class Server:
             
             event.update_time = datetime.datetime.utcnow()
             event.is_leaf = True
-            event.save()
-            common_saved.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=not is_new)
+            try:
+                event.save()
+            except Exception,e:
+                common_failed.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=not is_new)
+            else:
+                common_saved.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=not is_new)
             result.append((event_id,a_url))
         return result
 
@@ -281,9 +285,12 @@ class Server:
                 pass
             else:
                 product.event_id.append(str(event_id))
-
-            product.save()
-            common_saved.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
+            try:
+                product.save()
+            except:
+                common_failed.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=not is_new)
+            else:
+                common_saved.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
             result.append((product_id,url))
         return result
 
@@ -376,10 +383,14 @@ class Server:
 
         product.updated = True
         product.full_update_time = datetime.datetime.utcnow()
-        product.save()
-        print 'save data used ',time.time() - point5
-        print 'parse product detail used',time.time() - point1
-        common_saved.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
+        try:
+            product.save()
+        except Exception,e:
+                common_failed.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=not is_new)
+        else:
+            print 'save data used ',time.time() - point5
+            print 'parse product detail used',time.time() - point1
+            common_saved.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
 
     def _url2saleid(self, url):
         """.. :py:method::

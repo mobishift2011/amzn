@@ -130,9 +130,12 @@ class Server(BaseServer):
             category.url = url
             category.is_leaf = True
             print 'category.url',url
-            category.save()
-            # send singnal
-            common_saved.send(sender=ctx, site=DB, key=category.key, is_new=is_new, is_updated=not is_new)
+            try:
+                category.save()
+            except Exception,e:
+                common_failed.send(sender=ctx, site=DB, key=category.key, is_new=is_new, is_updated=not is_new)
+            else:
+                common_saved.send(sender=ctx, site=DB, key=category.key, is_new=is_new, is_updated=not is_new)
 
     @exclusive_lock(DB)
     def crawl_category(self,ctx=False):
@@ -187,7 +190,7 @@ class Server(BaseServer):
             product.image_urls = ['http://cdn.is.bluefly.com/mgen/Bluefly/eqzoom85.ms?img=%s.pct&outputx=738&outputy=700&level=1&ver=6' %key]
             try:
                 product.save()
-            except:
+            except Exception,e:
                 product.reviews = []
                 product.save()
             common_saved.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
@@ -310,9 +313,13 @@ class Server(BaseServer):
                 product.reviews = reviews
 
         print 'parse by seleunim used ',time.time() - point2
-        product.save()
-        print 'parse product total used',time.time() - point1
-        common_saved.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
+        try:
+            product.save()
+        except Exception,e:
+            common_failed.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
+        else:
+            print 'parse product total used',time.time() - point1
+            common_saved.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
 
 if __name__ == '__main__':
     server = Server()

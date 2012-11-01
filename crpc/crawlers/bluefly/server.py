@@ -128,6 +128,7 @@ class Server(BaseServer):
             category ,is_new = Category.objects.get_or_create(key=key)
             category.name = name
             category.url = url
+            category.is_leaf = True
             print 'category.url',url
             category.save()
             # send singnal

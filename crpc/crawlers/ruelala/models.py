@@ -15,9 +15,8 @@ connect(db=DB, alias=DB, host=MONGODB_HOST)
 
 from crawlers.common.models import BaseEvent, BaseProduct
 
-class Category(BaseEvent):
-    sale_id = StringField(unique=True)
-    category_name = StringField()
+class Event(BaseEvent):
+    event_id = StringField(unique=True)
     img_url  = StringField()
     meta = {
         "indexes": ["soldout"],
@@ -25,13 +24,12 @@ class Category(BaseEvent):
     }
 
     def url(self):
-        return 'http://www.ruelala.com/event/%s' %self.sale_id
+        return 'http://www.ruelala.com/event/%s' %self.event_id
 
     def img_url(self):
-        return 'http://www.ruelala.com/images/content/events/%s_doormini.jpg' %self.sale_id
+        return 'http://www.ruelala.com/images/content/events/%s_doormini.jpg' %self.event_id
 
 class Product(BaseProduct):
-    sale_id = StringField()
     url = StringField()
     limit= StringField()
 
@@ -41,4 +39,4 @@ class Product(BaseProduct):
     }
 
     def url(self):
-        return 'http://www.ruelala.com/event/product/%s/%s/1/DEFAULT' %(self.sale_id,self.key)
+        return 'http://www.ruelala.com/event/product/%s/%s/1/DEFAULT' %(self.event_id,self.key)

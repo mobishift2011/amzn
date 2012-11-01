@@ -64,6 +64,12 @@ class Server:
         if not self._signin:
             self.login()
 
+    def close_browser(self):
+        """
+            close the webdriver browser
+        """
+        self.browser.quit()
+        self._signin = False
 
     def download_page(self, url):
         """.. :py:method::
@@ -112,8 +118,8 @@ class Server:
             link = 'http://www.myhabit.com/homepage?#page=g&dept={0}&ref=qd_nav_tab_{0}'.format(dept)
             self.get_event_list(dept, link, ctx)
         self.cycle_crawl_category(ctx)
-        self.browser.quit()
-        self._signin = False
+        
+        self.close_browser()
         debug_info.send(sender=DB + '.category.end')
 
     def get_event_list(self, dept, url, ctx):
@@ -148,6 +154,7 @@ class Server:
             if dept not in brand.dept: brand.dept.append(dept) # for designer dept
             brand.soldout = soldout
             brand.update_time = datetime.utcnow()
+            brand.is_leaf = True
             brand.save()
             common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=not is_new)
 
@@ -159,25 +166,27 @@ class Server:
 #            title = node.text
             self.upcoming_queue.put( (dept, link) )
 
-    def cycle_crawl_category(self, timeover=30):
+    def cycle_crawl_category(self, ctx, timeover=30):
         """.. :py:method::
             read (category, link) tuple from queue, crawl sub-category, insert into the queue
             get queue and parse the brand page
 
         :param timeover: timeout in queue.get
         """
+        debug_info.send(sender=DB + '.cycle_crawl_category.begin:queue size {0}'.formatr(self.upcoming_queue.qsize()))
         while not self.upcoming_queue.empty():
 #            try:
             job = self.upcoming_queue.get(timeout=timeover)
             if self.download_page(job[1]) == 1:
                 continue
-            self.parse_upcoming(job[0], job[1])
+            self.parse_upcoming(job[0], job[1], ctx)
 #            except Queue.Empty:
 #                debug_info.send(sender="{0}.category:Queue waiting {1} seconds without response!".format(DB, timeover))
 #            except:
 #                debug_info.send(sender=DB + ".category", tracebackinfo=sys.exc_info())
+        debug_info.send(sender=DB + '.cycle_crawl_category.end')
 
-    def parse_upcoming(self, dept, url):
+    def parse_upcoming(self, dept, url, ctx):
         """.. :py:method::
             upcoming brand page parsing
             upcoming brand also have duplicate designer
@@ -190,10 +199,17 @@ class Server:
         if is_new:
             path = self.browser.find_element_by_css_selector('div#main div#page-content div#top-content')
             if path == []:
-                time.sleep(0.5)
+                # sleep 2 second, can not be any faster.
+                time.sleep(2)
                 path = self.browser.find_element_by_css_selector('div#main div#page-content div#top-content')
 #            except selenium.common.exceptions.NoSuchElementException:
-            begin_date = path.find_element_by_css_selector('div#startHeader span.date').text # SAT OCT 20
+            try:
+                begin_date = path.find_element_by_css_selector('div#startHeader span.date').text # SAT OCT 20
+            except selenium.common.exceptions.NoSuchElementException:
+                print 'No such element in begin_date'
+                time.sleep(2)
+                path = self.browser.find_element_by_css_selector('div#main div#page-content div#top-content')
+                begin_date = path.find_element_by_css_selector('div#startHeader span.date').text # SAT OCT 20
             begin_time = path.find_element_by_xpath('./div[@id="startHeader"]/span[@class="time"]').text # 9 AM PT
             utc_begintime = self.time_proc(begin_date + ' ' + begin_time.replace('PT', ''))
             brand_info = path.find_element_by_id('upcomingSaleBlurb').text

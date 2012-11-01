@@ -77,7 +77,7 @@ def spout_product(site):
             yield {'url': p.url(), 'ecost': p.key}
         elif site == 'ruelala':
             yield {'product_id':p.key,'product_url':p.url()}
-        elif site == 'bluefly'
+        elif site == 'bluefly':
             yield {'url':p.url}
         elif site == 'myhabit':
             yield {'url': p.url(), 'casin': p.key}

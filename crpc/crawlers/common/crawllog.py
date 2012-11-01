@@ -28,3 +28,12 @@ def on_category_failed(sender, **kwargs):
 @product_failed.bind
 def on_product_failed(sender, **kwargs):
     logger.error('{0}'.format(kwargs.items()))
+
+@common_saved.bind
+def common_saved_print(sender, **kwargs):
+    logger.info('<{0}> -- {1}'.format(sender, kwargs.items()))
+
+@common_failed.bind
+def common_failed_print(sender, **kwargs):
+    logger.debug('<{0}> -- {1}'.format(sender, kwargs.items()))
+

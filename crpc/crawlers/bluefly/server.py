@@ -35,16 +35,20 @@ class Server(BaseServer):
     def __init__(self):
         self.siteurl = 'http://www.bluefly.com'
         self.site ='bluefly'
+        self.browser = False
         #self.login(self.email, self.passwd)
-        try:
-            self.browser = webdriver.Chrome()
-        except:
-            self.browser = webdriver.Firefox()
-            self.browser.set_page_load_timeout(10)
 
     def bopen(self,url):
         """ open url with browser
         """
+        if not self.browser:
+            try:
+                self.browser = webdriver.Chrome()
+            except:
+                self.browser = webdriver.Firefox()
+                self.browser.set_page_load_timeout(10)
+
+
         start = time.time()
         try:
             self.browser.get(url)
@@ -344,13 +348,13 @@ if __name__ == '__main__':
         print 'total time',time.time() - point1
 
         #print server.get_navs()
-    if 1:
+    if 0:
         for c in Category.objects.all():
             url = c.url
             print '>>>> url',url
             url = 'http://www.bluefly.com/Designer-Leggings/_/N-fkg/list.fly'
             print server.crawl_listing(url)
-    if 0:
+    if 1:
         url = 'http://www.bluefly.com/Charles-David-black-leather-Proper-tall-boots/p/314091701/detail.fly'
         print server.crawl_product(url)
 

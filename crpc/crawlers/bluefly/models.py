@@ -6,13 +6,13 @@ crawlers.bluefly.models
 
 Implements Product and Category Model for Amazon
 """
-DB = 'bluefly-test1'
+DB = 'bluefly-test2'
 from settings import MONGODB_HOST
 from mongoengine import *
 connect(db=DB, alias=DB, host=MONGODB_HOST)
 from crawlers.common.models import BaseCategory, BaseProduct,BaseReview,LuxuryProduct
 
-class Category(BaseCategory):
+class Event(BaseCategory):
     """ we generates category by catn identifier """
     key =   StringField(unique=True)
     name = StringField()

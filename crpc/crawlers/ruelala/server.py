@@ -205,7 +205,8 @@ class Server:
             result.append((event_id,a_url))
         return result
 
-    def crawl_listing(self,event_id,event_url,ctx=False):
+    def crawl_listing(self,event_url,ctx):
+        event_id = self._url2saleid(event_url)
         self.login(self.email, self.passwd)
         result = []
         self.get(event_url)
@@ -388,7 +389,7 @@ class Server:
         product.save()
         print 'save data used ',time.time() - point5
         print 'parse product detail used',time.time() - point1
-        common_saved.send(sender=ctx, site=DB, key=casin, is_new=is_new, is_updated=not is_new)
+        common_saved.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
 
     def _url2saleid(self, url):
         """.. :py:method::
@@ -428,7 +429,7 @@ class Server:
 
 if __name__ == '__main__':
     server = Server()
-    if 1:
+    if 0:
         server.crawl_category()
     if 0: 
         event_id = '59118'
@@ -439,15 +440,14 @@ if __name__ == '__main__':
         print 'ps',ps
 
     if 0:
-        product_id = '1111892369'
-        url = 'http://www.ruelala.com/event/product/59118/1111892369/1/DEFAULT'
-        result = server._crawl_product_detail(product_id,url)
+        product_id = '1411892550'
+        url = 'http://www.ruelala.com/event/product/53652/1411892550/1/DEFAULT'
+        result = server.crawl_product(product_id,url)
 
-    if 0:
+    if 1:
         server = Server()
-        id= '59022'
-        url= 'http://www.ruelala.com/event/59022'
-        server.crawl_listing(id,url)
+        url = 'http://www.ruelala.com/event/53652'
+        server.crawl_listing(url,'x')
 
     if 0:
         server = Server()

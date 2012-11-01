@@ -19,6 +19,7 @@ from crawlers.common.events import category_saved, category_failed, category_del
 from crawlers.common.events import product_saved, product_failed, product_deleted
 
 from models import *
+from models import Event as Category
 from crawlers.common.events import *
 from crawlers.common.stash import *
 import urllib
@@ -314,7 +315,7 @@ if __name__ == '__main__':
     if 0:
         pass
 
-    if 0:
+    if 1:
         point1 = time.time()
         #server.crawl_category()
         print 'category count',Category.objects.all().count()
@@ -343,7 +344,7 @@ if __name__ == '__main__':
         print 'total time',time.time() - point1
 
         #print server.get_navs()
-    if 1:
+    if 0:
         for c in Category.objects.all():
             url = c.url
             print '>>>> url',url

@@ -119,7 +119,7 @@ class Server:
         for category in categorys:
             url = 'http://www.ruelala.com/category/%s' %category
             print 'go to ',url
-            print 'res',self._get_event_list(category,url,ctx)
+            print 'res',self._get_event_list(
 
 
     def crawl_product(self,product_id,product_url):
@@ -182,7 +182,7 @@ class Server:
             a_link = node.find_element_by_xpath('./a[@class="eventDoorLink"]').get_attribute('href')
             a_url = self.format_url(a_link)
             sale_id = self._url2saleid(a_link)
-            category,is_new = Category.objects.get_or_create(sale_id=sale_id)
+            event,is_new = Event.objects.get_or_create(sale_id=sale_id)
             footer =  node.find_element_by_xpath('./footer')
             clock = footer.find_element_by_xpath('./a/div[@class="closing clock"]').text
             try:
@@ -190,16 +190,16 @@ class Server:
             except ValueError:
                 pass
             else:
-                category.events_end = end_time
+                event.events_end = end_time
 
             if is_new:
-                category.img_url= 'http://www.ruelala.com/images/content/events/%s_doormini.jpg' %sale_id
-                category.category_name = category_name
-                category.sale_title = a_title.text
+                event.img_url= 'http://www.ruelala.com/images/content/events/%s_doormini.jpg' %sale_id
+                event.dept = category_name
+                event.sale_title = a_title.text
             
-            category.update_time = datetime.datetime.utcnow()
-            category.is_leaf = True
-            category.save()
+            event.update_time = datetime.datetime.utcnow()
+            event.is_leaf = True
+            event.save()
             common_saved.send(sender=ctx, site=DB, key=sale_id, is_new=is_new, is_updated=not is_new)
             result.append((sale_id,a_url))
         return result

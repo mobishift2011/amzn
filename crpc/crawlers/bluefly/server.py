@@ -9,8 +9,6 @@ This is the server part of zeroRPC module. Call by client automatically, run on 
 
 from gevent import monkey
 monkey.patch_all()
-from gevent.coros import Semaphore
-lock = Semaphore()
 from crawlers.common.baseserver import BaseServer
 
 from selenium.common.exceptions import *

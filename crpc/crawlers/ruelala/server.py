@@ -122,7 +122,6 @@ class Server:
             print 'go to ',url
             print 'res',self._get_event_list(category,url,ctx)
 
-
     def crawl_product(self,product_id,product_url):
         self.login(self.email, self.passwd)
         product_list = [(product_id,product_url)]
@@ -205,7 +204,8 @@ class Server:
             result.append((event_id,a_url))
         return result
 
-    def crawl_listing(self,event_url,ctx):
+    def crawl_listing(self,url,ctx):
+        event_url = url
         event_id = self._url2saleid(event_url)
         self.login(self.email, self.passwd)
         result = []

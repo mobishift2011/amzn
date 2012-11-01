@@ -17,7 +17,7 @@ DB = 'zulily'
 connect(db=DB, alias='zulily', host=MONGODB_HOST)
 
 class Event(BaseEvent):
-    lug = StringField(unique=True)
+    event_id = StringField(unique=True)
     dept = ListField(StringField())
     short_desc = StringField()
     start_end_date = StringField()
@@ -27,7 +27,7 @@ class Event(BaseEvent):
     }
 
     def url(self):
-        return 'http://www.zulily.com/e/{0}.html'.format(self.lug)
+        return 'http://www.zulily.com/e/{0}.html'.format(self.event_id)
 
 
 class Product(LuxuryProduct):

@@ -44,11 +44,9 @@ class zulilyLogin(object):
             variables need to be used
         """
         self.login_url = 'https://www.zulily.com/auth'
-        self.email = 'huanzhu@favbuy.com'
-        self.passwd = '4110050209'
         self.data = {
-            'login[username]': self.email,
-            'login[password]': self.passwd
+            'login[username]': login_email,
+            'login[password]': login_passwd
         }
         self.reg_check = re.compile(r'https://www.zulily.com/auth/create.*')
         self._signin = False

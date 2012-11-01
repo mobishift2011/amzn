@@ -143,8 +143,10 @@ class LuxuryProduct(BaseProduct):
     # associate to Event's unique key
     sale_id             =   ListField(StringField())
 
-    listprice           =   StringField()
     soldout             =   BooleanField()
-    list_info           =   ListField(StringField())
+
+    listprice           =   StringField()
+    color               =   StringField()
     returned            =   StringField()
     sizes_scarcity      =   ListField()
+    list_info           =   ListField(StringField())

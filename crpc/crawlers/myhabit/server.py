@@ -37,8 +37,6 @@ class Server:
     """
     def __init__(self):
         self.siteurl = 'http://www.myhabit.com'
-        self.email = 'huanzhu@favbuy.com'
-        self.passwd = '4110050209'
         self._signin = False
 #        webdriver.support.wait.POLL_FREQUENCY = 0.05
 
@@ -57,8 +55,8 @@ class Server:
         """.. :py:method:
             fill in login form when firefox driver is open
         """
-        self.browser.find_element_by_id('ap_email').send_keys(self.email)
-        self.browser.find_element_by_id('ap_password').send_keys(self.passwd)
+        self.browser.find_element_by_id('ap_email').send_keys(login_email)
+        self.browser.find_element_by_id('ap_password').send_keys(login_passwd)
         self.browser.find_element_by_id('signInSubmit').submit()
         self._signin = True
 

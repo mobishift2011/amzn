@@ -12,6 +12,9 @@ import requests
 import re
 from gevent.coros import Semaphore
 
+login_email = 'huanzhu@favbuy.com'
+login_passwd = '4110050209'
+
 headers = { 
     'User-Agent': 'Mozilla 5.0/Firefox 16.0.1',
 }

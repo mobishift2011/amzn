@@ -37,8 +37,6 @@ class Server(object):
     """
     def __init__(self):
         self.siteurl = 'http://www.hautelook.com'
-        self.email = 'huanzhu@favbuy.com'
-        self.passwd = '4110050209'
         self._signin = False
 
         self.extract_eventid_re = re.compile(r'http://www.hautelook.com/event/(\d+).*')
@@ -60,8 +58,8 @@ class Server(object):
         """.. :py:method:
             fill in login form when chrome driver is open
         """
-        self.browser.find_element_by_css_selector('div#login_form_container > form#login_signin input#login_email').send_keys(self.email)
-        self.browser.find_element_by_css_selector('div#login_form_container > form#login_signin input.passwordInput').send_keys(self.passwd)
+        self.browser.find_element_by_css_selector('div#login_form_container > form#login_signin input#login_email').send_keys(login_email)
+        self.browser.find_element_by_css_selector('div#login_form_container > form#login_signin input.passwordInput').send_keys(login_passwd)
         self.browser.find_element_by_css_selector('div#login_form_container > form#login_signin div#login_button_standard').click()
         self._signin = True
 

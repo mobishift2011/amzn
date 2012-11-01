@@ -90,7 +90,7 @@ class Server(object):
         self.siteurl = 'http://www.zulily.com'
         self.upcoming_url = 'http://www.zulily.com/upcoming_events'
         self.net = zulilyLogin()
-        self.extract_event_lug = re.compile(r'(http://www.zulily.com/e/(.*).html).*')
+        self.extract_event_id = re.compile(r'(http://www.zulily.com/e/(.*).html).*')
         self.extract_event_img = re.compile(r'(http://mcdn.zulily.com/images/cache/event/)\d+x\d+/(.+)')
         self.extract_product_img = re.compile(r'(http://mcdn.zulily.com/images/cache/product/)\d+x\d+/(.+)')
         self.extract_product_re = re.compile(r'http://www.zulily.com/p/(.+).html.*')
@@ -125,10 +125,10 @@ class Server(object):
         
         for node in nodes:
             link = node.xpath('./a[@class="wrapped-link"]')[0].get('href')
-            link, lug = self.extract_event_lug.match(link).groups()
+            link, event_id = self.extract_event_id.match(link).groups()
             text = node.xpath('./a/span[@class="txt"]')[0]
 
-            brand, is_new = Event.objects.get_or_create(lug=lug)
+            brand, is_new = Event.objects.get_or_create(event_id=event_id)
             if is_new:
                 img = node.xpath('./a/span[@class="homepage-image"]/img/@src')[0]
                 image = ''.join( self.extract_event_img.match(img).groups() )
@@ -144,7 +144,7 @@ class Server(object):
             brand.is_leaf = True
             brand.update_time = datetime.utcnow()
             brand.save()
-            common_saved.send(sender=ctx, key=lug, url=url, is_new=is_new, is_updated=not is_new)
+            common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=not is_new)
 
 
     def upcoming_proc(self, ctx):
@@ -169,8 +169,8 @@ class Server(object):
             node = lxml.html.fromstring(cont).cssselect('div.event-content-wrapper')[0]
             calendar_file = node.cssselect('div.upcoming-date-reminder a.reminder-ical')[0].get('href')
             ics_file = self.net.fetch_page(calendar_file)
-            lug = re.compile(r'URL:http://www.zulily.com/e/(.+).html.*').search(ics_file).group(1)
-            brand, is_new = Event.objects.get_or_create(lug=lug)
+            event_id = re.compile(r'URL:http://www.zulily.com/e/(.+).html.*').search(ics_file).group(1)
+            brand, is_new = Event.objects.get_or_create(event_id=event_id)
             if is_new:
                 img = node.cssselect('div.event-content-image img')[0].get('src')
                 image = ''.join( self.extract_event_img.match(img).groups() )
@@ -185,7 +185,7 @@ class Server(object):
                 brand.events_begin = events_begin
                 brand.update_time = datetime.utcnow()
                 brand.save()
-                common_saved.send(sender=ctx, key=lug, url=url, is_new=is_new, is_updated=not is_new)
+                common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=not is_new)
             
     def time_proc(self, time_str):
         """.. :py:method::
@@ -212,8 +212,8 @@ class Server(object):
         cont = self.net.fetch_page(url)
         tree = lxml.html.fromstring(cont)
         node = tree.cssselect('div.container>div#main>div#category-view')[0]
-        lug = self.extract_event_lug.match(url).group(2)
-        brand, is_new = Event.objects.get_or_create(lug=lug)
+        event_id = self.extract_event_id.match(url).group(2)
+        brand, is_new = Event.objects.get_or_create(event_id=event_id)
         if is_new or brand.sale_description is None:
             brand.sale_description = node.cssselect('div#category-description>div#desc-with-expanded')[0].text_content().strip()
 
@@ -226,13 +226,13 @@ class Server(object):
         brand.num = len(items)
         brand.update_time = datetime.utcnow()
         brand.save()
-        common_saved.send(sender=ctx, key=lug, url=url, is_new=is_new, is_updated=not is_new)
+        common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=not is_new)
 
-        for item in items: self.crawl_list_product(lug, item, ctx)
+        for item in items: self.crawl_list_product(event_id, item, ctx)
         page_num = 1
         next_page_url = self.detect_list_next(node, page_num + 1)
         if next_page_url:
-            self.crawl_list_next(url, next_page_url, page_num + 1, lug, ctx)
+            self.crawl_list_next(url, next_page_url, page_num + 1, event_id, ctx)
         debug_info.send(sender=DB + '.crawl_list.end')
 
     def detect_list_next(self, node, page_num):
@@ -248,46 +248,46 @@ class Server(object):
             if str(page_num) in next_page_relative_url:
                 return next_page_relative_url
 
-    def crawl_list_next(self, url, page_text, page_num, sale_id, ctx):
+    def crawl_list_next(self, url, page_text, page_num, event_id, ctx):
         """.. :py:method::
             crawl listing page's next page, that is page 2, 3, 4, ...
 
         :param url: listing page url
         :param page_text: this page's relative url
         :param page_num: page number of this event
-        :param sale_id: unique key in Event, which we can associate product with event
+        :param event_id: unique key in Event, which we can associate product with event
         """
         cont = self.net.fetch_page(url + page_text)
         tree = lxml.html.fromstring(cont)
         node = tree.cssselect('div.container>div#main>div#category-view')[0]
         items = node.cssselect('div#products-grid li.item')
 
-        for item in items: self.crawl_list_product(sale_id, item, ctx)
+        for item in items: self.crawl_list_product(event_id, item, ctx)
         next_page_url = self.detect_list_next(node, page_num + 1)
         if next_page_url:
-            self.crawl_list_next(url, next_page_url, page_num + 1, sale_id, ctx)
+            self.crawl_list_next(url, next_page_url, page_num + 1, event_id, ctx)
 
-    def crawl_list_product(self, sale_id, item, ctx):
+    def crawl_list_product(self, event_id, item, ctx):
         """.. :py:method::
             In listing page, Get all product's image, url, title, price, soldout
 
-        :param sale_id: unique key in Event, which we can associate product with event
+        :param event_id: unique key in Event, which we can associate product with event
         :param item: item of xml node
         """
         title_link = item.cssselect('div.product-name>a[title]')[0]
         title = title_link.get('title').strip()
         link = title_link.get('href')
-        lug = self.extract_product_re.match(link).group(1)
-        product, is_new = Product.objects.get_or_create(pk=lug)
+        slug = self.extract_product_re.match(link).group(1)
+        product, is_new = Product.objects.get_or_create(pk=slug)
         if is_new:
-            product.sale_id = [sale_id]
+            product.event_id = [event_id]
             img = item.cssselect('a.product-image>img')[0].get('src')
             image = ''.join( self.extract_product_img.match(img).groups() )
             product.image_urls = [image]
             product.title = title
         else:
-            if sale_id not in product.sale_id:
-                product.sale_id.append(sale_id)
+            if event_id not in product.event_id:
+                product.event_id.append(event_id)
 
         price_box = item.cssselect('a>div.price-boxConfig')[0]
         special_price = price_box.cssselect('div.special-price')[0].text.strip().replace('$','').replace(',','')
@@ -300,8 +300,8 @@ class Server(object):
         product.updated = False
         product.list_update_time = datetime.utcnow()
         product.save()
-        common_saved.send(sender=ctx, key=lug, url=self.siteurl + '/e/' + sale_id + '.html', is_new=is_new, is_updated=not is_new)
-        debug_info.send(sender=DB + ".crawl_listing", url=self.siteurl + '/e/' + sale_id + '.html')
+        common_saved.send(sender=ctx, key=slug, url=self.siteurl + '/e/' + event_id + '.html', is_new=is_new, is_updated=not is_new)
+        debug_info.send(sender=DB + ".crawl_listing", url=self.siteurl + '/e/' + event_id + '.html')
 
 
     def crawl_product(self, url, ctx):
@@ -344,8 +344,8 @@ class Server(object):
         for a_l in also_like_items:
             also_like.append( (a_l.get('title'), a_l.get('href')) )
 
-        lug = self.extract_product_re.match(url).group(1)
-        product, is_new = Product.objects.get_or_create(pk=lug)
+        slug = self.extract_product_re.match(url).group(1)
+        product, is_new = Product.objects.get_or_create(pk=slug)
         if description: product.summary = description
         if list_info: product.list_info = list_info
         product.returned = returned
@@ -357,7 +357,7 @@ class Server(object):
         product.updated = True
         product.full_update_time = datetime.utcnow()
         product.save()
-        common_saved.send(sender=ctx, key=lug, url=url, is_new=is_new, is_updated=not is_new)
+        common_saved.send(sender=ctx, key=slug, url=url, is_new=is_new, is_updated=not is_new)
 
         
 

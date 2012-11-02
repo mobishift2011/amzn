@@ -11,41 +11,29 @@ from settings import MONGODB_HOST
 from mongoengine import *
 connect(db=DB, alias=DB, host=MONGODB_HOST)
 from crawlers.common.models import BaseCategory, BaseProduct,BaseReview,LuxuryProduct,BaseEvent
+
 class Event(BaseEvent):
-    sale_id = StringField(unique=True)
+    event_id = StringField(unique=True)
+
     meta        =   {
         "db_alias": DB,
     }
-
-class Category(BaseCategory):
-    """ we generates category by catn identifier """
-    key =   StringField(unique=True)
 
     def url(self):
-        return 'http://nomorerack.com/daily_deals/category/%s' %key
-    
-    meta        =   {
-        "db_alias": DB,
-    }
+        return 'http://nomorerack.com/events/view/%s' %self.event_id
 
 class Product(LuxuryProduct):
-    sale_id = StringField()
-    category_key = StringField()
+    event_id = StringField()
+    dept = StringField()
 
-    url = StringField()
     listprice = StringField()
     return_policy  = StringField()
     color = StringField()
 
     def url(self):
-        return self.url
+        return 'http://nomorerack.com/daily_deals/view/%d-product' %self.key
 
     meta                =   {
         "db_alias": DB,
     }
 
-class  Review(BaseReview):
-    product_key = StringField()
-    meta                =   {
-        "db_alias": DB,
-    }

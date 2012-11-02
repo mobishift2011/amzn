@@ -25,6 +25,7 @@ import lxml.html
 import time
 import datetime
 import re
+from dateutil import parser as dt_parser
 
 class Server(BaseServer):
     """.. :py:class:: Server
@@ -74,6 +75,7 @@ class Server(BaseServer):
         """.. :py:method::
             From top depts, get all the events
         """
+
         ###########################
         # section 1, parse events
         ###########################
@@ -88,30 +90,40 @@ class Server(BaseServer):
             date_obj = datetime.datetime.fromtimestamp(int(expires_on[:10]))
             href = a.get_attribute('href')
             url = self.format_url(href)
-            sale_id = self.url2sale_id(url) # return a string
-            img_url = 'http://nmr.allcdn.net/images/events/all/banners/event-%s-medium.jpg' %sale_id
-            event ,is_new = Event.objects.get_or_create(sale_id=sale_id)
+            event_id = self.url2event_id(url) # return a string
+            img_url = 'http://nmr.allcdn.net/images/events/all/banners/event-%s-medium.jpg' %event_id
+            event ,is_new = Event.objects.get_or_create(event_id=event_id)
             event.title = title
             event.image_urls = [img_url]
             event.events_end = date_obj
-            event.save()
-            if ctx:
-                ctx.send(sender=DB + '.crawl_category1', site=DB, key=sale_id, is_new=is_new, is_updated=not is_new)
+            try:
+                event.save()
+            except:
+                common_failed.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=not is_new)
+            else:
+                common_saved.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=not is_new)
 
         ###########################
-        # section 2, parse category
+        # section 2, parse deal products
         ###########################
         categorys = ['women','men','home','electronics','kids','lifestyle']
         for name in categorys:
             url = 'http://nomorerack.com/daily_deals/category/%s' %name
-            category ,is_new = Category.objects.get_or_create(key=name)
-            category_saved.send(sender=DB + '.crawl_category2', site=DB, key=name, is_new=is_new, is_updated=not is_new)
+            self.crawl_category_product(name,url)
 
     def url2product_id(self,url):
         m = re.compile(r'^http://nomorerack.com/daily_deals/view/(\d+)-').findall(url)
         return m[0]
+
+    def url2event_id(self,url):
+        m = re.compile(r'^http://nomorerack.com/events/view/(\d+)-').findall(url)
+        return m[0]
+
+    def make_image_urls(url,count):
+        m = re.compile(r'^http://nmr.allcdn.net/images/products/(\d+)-').findall(url)
+        return m[0]
     
-    def crawl_listing(self,url):
+    def crawl_listing(self,url,ctx=''):
         self.bopen(url)
         main = self.browser.find_element_by_xpath('//div[@class="raw_grid deals events_page"]')
         for item in main.find_elements_by_css_selector('div.deal'):
@@ -119,16 +131,62 @@ class Server(BaseServer):
             price = item.find_element_by_css_selector('div.pricing ins').text
             listprice = item.find_element_by_css_selector('div.pricing del').text
             href = item.find_element_by_css_selector('div.image a').get_attribute('href')
-            item_url = self.format_url(href)
+            #item_url = self.format_url(href)
             key = self.url2product_id(item_url)
+
+            product ,is_new = Product.objects.get_or_create(key=key)
+            product.price = price
+            product.listproce = listprice
+            product.title = title
             print 'local',locals()
-        pass
+            try:
+                product.save()
+            except:
+                common_failed.send(sender=ctx, site=DB, key=key, is_new=is_new, is_updated=not is_new)
+            else:
+                common_saved.send(sender=ctx, site=DB, key=key, is_new=is_new, is_updated=not is_new)
 
     def crawl_product(self,url):
         """.. :py:method::
             Got all the product basic information and save into the database
         """
-        pass
+        self.bopen(url)
+        node = self.brwoser.find_element_by_css_selector('div#products_view.standard')
+        summary = node.find_element_by_css_selector('p.description').text
+        thumbs = node.find_element_by_css_selector('div.thumbs')
+        image_count = len(thumbs.find_element_by_css_selector('img'))
+        image_url = thumbs.find_element_by_css_selector('img').get_attribute('src')
+        image_urls = self.make_image_urls(image_url,image_count)
+
+        attributes = node.find_elements_by_css_selector('div.select-cascade select')
+        colors = []
+        for op in attributes[0].find_elements_by_css_selector('option'):
+            if not op.get_attribute('value'):
+                continue
+            else:
+                colors.append(op.text)
+
+        sizes = []
+        for op in attributes[1].find_elements_by_css_selector('option'):
+            size = op.text
+            if not op.get_attribute('value'):
+                continue
+            else:
+                sizes.append({size:''})
+        date_str = self.brwoser.find_element_by_css_selector('div.ribbon-center p').text
+        date_obj = self.format_date_str(date_str)
+        price = node.find_element_by_css_selector('div.standard h3 span')
+        listprice = node.find_element_by_css_selector('div.standard p del')
+        print 'locals',locals()
+
+
+    def format_date_str(self,date_str):
+        """ translate the string to datetime object """
+
+        # date_str = 'This deal is only live until November 2nd 11:59 AM EST'
+        m = re.compile(r'^This deal is only live until (November 2nd 11:59 AM EST)$').findall(date_str)
+        str = m[0]
+        return dt_parser.parse(str)
 
 
 if __name__ == '__main__':
@@ -140,6 +198,10 @@ if __name__ == '__main__':
             url = event.url()
             server.crawl_lisging(url)
 
-    if 1:
+    if 0:
         url = 'http://nomorerack.com/events/view/1041'
         server.crawl_listing(url)
+
+    if 1:
+        url = 'http://nomorerack.com/daily_deals/view/125514-solid_satin_mens_dress_shirt___comes_with_tie___hankie'
+        server.crawl_product(url)

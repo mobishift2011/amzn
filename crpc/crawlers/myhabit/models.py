@@ -35,8 +35,6 @@ class Product(LuxuryProduct):
 
     video = StringField()
     international_shipping = StringField()
-    sizes = ListField(StringField())
-    scarcity = StringField()
 
     meta = {
         "indexes": ["updated"],

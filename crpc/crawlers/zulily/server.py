@@ -177,7 +177,7 @@ class Server(object):
                 sale_title = node.cssselect('div.event-content-copy h1')[0].text_content()
                 sale_description = node.cssselect('div.event-content-copy div#desc-with-expanded')[0].text_content().strip()
                 start_time = node.cssselect('div.upcoming-date-reminder span.reminder-text')[0].text_content() # 'Starts Sat 10/27 6am pt - SET REMINDER'
-                events_begin = self.time_proc( ' '.join( start_time.split(' ', 4)[1:-1] ) )
+                events_begin = time_convert( ' '.join( start_time.split(' ', 4)[1:-1] ), '%a %m/%d %I%p%Y' ) #'Sat 10/27 6am'
 
                 brand.image_urls = [image]
                 brand.sale_title = sale_title 
@@ -187,18 +187,6 @@ class Server(object):
                 brand.save()
                 common_saved.send(sender=ctx, key=event_id, url=pair[1], is_new=is_new, is_updated=not is_new)
             
-    def time_proc(self, time_str):
-        """.. :py:method::
-
-        :param time_str: 'Sat 10/27 6am'
-        :rtype: datetime type utc time
-        """
-        time_format = '%a %m/%d %I%p%Y'
-        pt = pytz.timezone('US/Pacific')
-        tinfo = time_str + str(pt.normalize(datetime.now(tz=pt)).year)
-        endtime =  pt.localize(datetime.strptime(tinfo, time_format))
-        return endtime.astimezone(pytz.utc)
-
 
     def crawl_listing(self, url, ctx):
         """.. :py:method::

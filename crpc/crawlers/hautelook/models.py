@@ -17,25 +17,29 @@ DB = 'hautelook'
 connect(db=DB, alias=DB, host=MONGODB_HOST)
 
 class Event(BaseEvent):
-    sale_id = StringField(unique=True)
-    dept = ListField(StringField())
-    brand_link = StringField()
-    upcoming_title_img = ListField()
+    event_id = StringField(unique=True)
+    is_leaf = BooleanField(default=True)
+    sort_order  = StringField()
+    tagline     = StringField()
 
     meta = {
         "db_alias": DB,
     }
 
     def url(self):
-        return 'http://www.myhabit.com/homepage#page=b&dept={0}&sale={1}'.format(self.dept, self.sale_id)
+        return 'http://www.hautelook.com/v3/catalog/{0}/availability'.format(self.event_id)
 
 
 class Product(LuxuryProduct):
-    dept = StringField()
-    asin = StringField()
+    scarcity = StringField()
 
-    color = StringField()
-    video = StringField()
+    additional_info = ListField(StringField())
+    care_info = StringField()
+    fiber = StringField()
+
+    international_ship = StringField()
+    delivery_date = StringField()
+    choke_hazard = StringField()
 
     meta = {
         "indexes": ["updated"],
@@ -43,4 +47,4 @@ class Product(LuxuryProduct):
     }
 
     def url(self):
-        return 'http://www.myhabit.com/homepage#page=d&dept={0}&sale={1}&asin={2}&cAsin={3}'.format(self.dept, self.sale_id[0], self.asin, self.key)
+        return 'http://www.hautelook.com/v2/product/{0}'.format(self.key)

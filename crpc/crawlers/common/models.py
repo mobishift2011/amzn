@@ -48,12 +48,13 @@ class BaseEvent(BaseCategory):
     ...     pass
 
     """
-    events_begin = DateTimeField()
-    events_end = DateTimeField()
-    soldout = BooleanField()
-    sale_title = StringField()
-    image_urls = ListField(StringField())
-    sale_description = StringField()
+    events_begin        = DateTimeField()
+    events_end          = DateTimeField()
+    soldout             = BooleanField()
+    sale_title          = StringField()
+    image_urls          = ListField(StringField())
+    sale_description    = StringField()
+    dept                = ListField(StringField())
 
     meta = {
         "indexes": ["soldout"],
@@ -141,7 +142,7 @@ class LuxuryProduct(BaseProduct):
 
     """
     # associate to Event's unique key
-    event_id             =   ListField(StringField())
+    event_id            =   ListField(StringField())
 
     soldout             =   BooleanField()
 

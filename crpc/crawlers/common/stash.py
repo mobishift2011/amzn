@@ -10,6 +10,8 @@ This module is a common function collections used by all the crawlers.
 """
 import requests
 import re
+import pytz
+from datetime import datetime
 from gevent.coros import Semaphore
 
 login_email = 'huanzhu@favbuy.com'
@@ -17,6 +19,7 @@ login_passwd = '4110050209'
 
 headers = { 
     'User-Agent': 'Mozilla 5.0/Firefox 16.0.1',
+    'Referer': 'http://docs.python-requests.org/en/latest/api/',
 }
 config = { 
     'max_retries': 3,
@@ -70,4 +73,17 @@ def exclusive_lock(name):
                 return func(*args, **kwargs)
         return wrapper
     return safe_lock
+
+
+def time_convert(time_str, time_format):
+    """.. :py:method::
+
+    :param time_str: u'SAT OCT 20 9 AM '
+    :param time_format: '%a %b %d %I %p %Y'
+    :rtype: datetime type utc time
+    """
+    pt = pytz.timezone('US/Pacific')
+    tinfo = time_str + str(pt.normalize(datetime.now(tz=pt)).year)
+    endtime = pt.localize(datetime.strptime(tinfo, time_format))
+    return endtime.astimezone(pytz.utc)
 

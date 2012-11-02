@@ -15,21 +15,19 @@ def run(rpc, site):
     category_cost = time.time() - begin
     print '\n\n--++ {0} ++--\n\n'.format(category_cost)
 
-#    update_listing(site, rpc)
-#    list_cost = time.time() - begin
-#    print '\n\n--++ {0} ++--\n\n'.format(list_cost)
-#
-#    update_product(site, rpc)
-#    product_cost = time.time() - begin
-#    print '\n\n--++ {0} ++--\n\n'.format(product_cost)
+    update_listing(site, rpc)
+    list_cost = time.time() - begin
+    print '\n\n--++ {0} ++--\n\n'.format(list_cost)
+
+    update_product(site, rpc)
+    product_cost = time.time() - begin
+    print '\n\n--++ {0} ++--\n\n'.format(product_cost)
 
 
 if __name__ == '__main__':
     rpc = RPCServer()
     if sys.argv[1]:
-        if sys.argv[1] == 'myhabit':
-            run(rpc, sys.argv[1])
-        elif sys.argv[1] == 'zulily':
+        if sys.argv[1] == 'myhabit' or 'zulily' or 'hautelook':
             run(rpc, sys.argv[1])
     else:
         update_category('ruelala', rpc)

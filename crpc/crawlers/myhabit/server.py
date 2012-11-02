@@ -17,7 +17,7 @@ import lxml.html
 import pytz
 
 from urllib import quote, unquote
-from datetime import datetime, timedelta
+from datetime import datetime
 import selenium
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
@@ -132,7 +132,6 @@ class Server:
         """
         self.download_page_for_product(url)
         nodes = self.browser.find_elements_by_xpath('//div[@id="main"]/div[@id="page-content"]/div[@id="currentSales"]/div[starts-with(@id, "privateSale")]')
-#        print self.browser.current_url
         for node in nodes:
             a_title = node.find_element_by_xpath('./div[@class="caption"]/a')
             l = a_title.get_attribute('href')
@@ -173,7 +172,7 @@ class Server:
 
         :param timeover: timeout in queue.get
         """
-        debug_info.send(sender=DB + '.cycle_crawl_category.begin:queue size {0}'.formatr(self.upcoming_queue.qsize()))
+        debug_info.send(sender='{0}.cycle_crawl_category.begin:queue size {1}'.format(DB, self.upcoming_queue.qsize()))
         while not self.upcoming_queue.empty():
 #            try:
             job = self.upcoming_queue.get(timeout=timeover)
@@ -206,12 +205,13 @@ class Server:
             try:
                 begin_date = path.find_element_by_css_selector('div#startHeader span.date').text # SAT OCT 20
             except selenium.common.exceptions.NoSuchElementException:
-                print 'No such element in begin_date'
+                print 'No such element in begin_date',
                 time.sleep(2)
                 path = self.browser.find_element_by_css_selector('div#main div#page-content div#top-content')
+                print path
                 begin_date = path.find_element_by_css_selector('div#startHeader span.date').text # SAT OCT 20
             begin_time = path.find_element_by_xpath('./div[@id="startHeader"]/span[@class="time"]').text # 9 AM PT
-            utc_begintime = self.time_proc(begin_date + ' ' + begin_time.replace('PT', ''))
+            utc_begintime = time_convert(begin_date + ' ' + begin_time.replace('PT', ''), '%a %b %d %I %p %Y') #u'SAT OCT 20 9 AM '
             brand_info = path.find_element_by_id('upcomingSaleBlurb').text
             img = path.find_element_by_xpath('./div[@class="upcomingSaleHero"]/div[@class="image"]/img').get_attribute('src')
             sale_title = path.find_element_by_xpath('./div[@class="upcomingSaleHero"]/div[@class="image"]/img').get_attribute('alt')
@@ -234,17 +234,7 @@ class Server:
         common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=not is_new)
 
 
-    def time_proc(self, time_str):
-        """.. :py:method::
-
-        :param time_str: u'SAT OCT 20 9 AM '
-        :rtype: datetime type utc time
-        """
-        time_format = '%a %b %d %I %p %Y'
-        pt = pytz.timezone('US/Pacific')
-        tinfo = time_str + str(pt.normalize(datetime.now(tz=pt)).year)
-        endtime = pt.localize(datetime.strptime(tinfo, time_format))
-        return endtime.astimezone(pytz.utc)
+        
 
     def url2saleid(self, url):
         """.. :py:method::
@@ -272,6 +262,8 @@ class Server:
 
         :param url: url in the page
         """
+        self.check_signin()
+        if self.download_page(url) == 1: return
         time_begin_benchmark = time.time()
 #        node = self.browser.find_element_by_xpath('//div[@id="main"]/div[@id="page-content"]/div/div[@id="top"]/div[@id="salePageDescription"]')
         node = self.browser.find_element_by_css_selector('div#main div#page-content div')
@@ -279,20 +271,18 @@ class Server:
             time.sleep(0.5)
             node = self.browser.find_element_by_css_selector('div#main div#page-content div')
 
-#        print node, url
         sale_title = node.find_element_by_css_selector('div#top div#saleTitle').text
         sale_description = node.find_element_by_css_selector('div#top div#saleDescription').text
         end_date = node.find_element_by_css_selector('div#top div#saleEndTime span.date').text # SAT OCT 20
         end_time = node.find_element_by_css_selector('div#top div#saleEndTime span.time').text # 9 AM PT
-        utc_endtime = self.time_proc(end_date + ' ' + end_time.replace('PT', ''))
+        utc_endtime = time_convert(end_date + ' ' + end_time.replace('PT', ''), '%a %b %d %I %p %Y') #u'SAT OCT 20 9 AM '
         try:
             sale_brand_link = node.find_element_by_xpath('.//div[@id="saleBrandLink"]/a').get_attribute('href')
         except:
             sale_brand_link = ''
         num = node.find_element_by_css_selector('div#middle div#middleCenter div#numResults').text
         num = int(num.split()[0])
-        event_id = self.url2saleid(url)
-
+        event_id = re.compile(r'http://www.myhabit.com/homepage\??#page=b&sale=(\w+)').match(url).group(1)
         brand, is_new = Event.objects.get_or_create(event_id=event_id)
         # crawl infor before, so always not new
         brand.sale_description = sale_description

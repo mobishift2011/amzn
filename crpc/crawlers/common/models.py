@@ -48,12 +48,13 @@ class BaseEvent(BaseCategory):
     ...     pass
 
     """
-    events_begin = DateTimeField()
-    events_end = DateTimeField()
-    soldout = BooleanField()
-    sale_title = StringField()
-    image_urls = ListField(StringField())
-    sale_description = StringField()
+    events_begin        = DateTimeField()
+    events_end          = DateTimeField()
+    soldout             = BooleanField()
+    sale_title          = StringField()
+    image_urls          = ListField(StringField())
+    sale_description    = StringField()
+    dept                = ListField(StringField())
 
     meta = {
         "indexes": ["soldout"],
@@ -128,7 +129,6 @@ class BaseProduct(Document):
     def url(self):
         raise NotImplementedError("should implemented in sub classes!")
 
-
 class LuxuryProduct(BaseProduct):
     """ :py:class:crawlers.common.models.LuxuryProduct
 
@@ -141,7 +141,7 @@ class LuxuryProduct(BaseProduct):
 
     """
     # associate to Event's unique key
-    event_id             =   ListField(StringField())
+    event_id            =   ListField(StringField())
 
     soldout             =   BooleanField()
 
@@ -149,4 +149,6 @@ class LuxuryProduct(BaseProduct):
     color               =   StringField()
     returned            =   StringField()
     sizes_scarcity      =   ListField()
+    sizes               =   ListField(StringField())
+    scarcity            =   StringField()
     list_info           =   ListField(StringField())

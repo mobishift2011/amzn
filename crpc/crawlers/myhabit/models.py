@@ -18,7 +18,6 @@ connect(db=DB, alias='myhabit', host=MONGODB_HOST)
 
 class Event(BaseEvent):
     event_id = StringField(unique=True)
-    dept = ListField(StringField())
     brand_link = StringField()
     upcoming_title_img = ListField()
 
@@ -36,8 +35,6 @@ class Product(LuxuryProduct):
 
     video = StringField()
     international_shipping = StringField()
-    sizes = ListField(StringField())
-    scarcity = StringField()
 
     meta = {
         "indexes": ["updated"],

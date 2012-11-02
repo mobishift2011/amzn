@@ -130,14 +130,38 @@ class Server(object):
         resp = request.get(url)
         data = json.loads(resp.text)['data']
         product, is_new = Product.objects.get_or_create(pk=url.split('/')[-1])
-#        data['brand_name'], data['collections'], data['prices']
 
         product.event_id = [str(data['event_id'])]
         product.title = data['title']
         product.list_info = data['copy'].split('\n')
-        product.additional_info = data['add_info'].split('\n')
+
+        if data['event_display_brand_name']:
+            if data['event_title'] != data['brand_name']:
+                product.brand = data['brand_name']
+
+        product.sizes = [sz['name'] for sz in data['collections']['size']] # OS -- no size
+        image_set = set()
+        for k,v in data['collections']['images'].iteritems():
+            for img in v['large']:
+                if 'noavail' not in img:
+                    image_set.add(img)
+        product.image_urls = list(image_set)
+
+        # same product with different colors, all in the same product id
+        price_flage = True
+        for k,v in data['prices'].iteritems():
+            if not price_flage: break
+            for size, val in v.iteritems():
+                if product.key == str(val['inventory_id']):
+                    product.price = str(val['sale_price'])
+                    product.listprice = str(val['retail_price'])
+                    price_flage = False
+                    break
+
+        if data['add_info']: product.additional_info = data['add_info'].split('\n')
         product.care_info = data['care']
         product.fiber = data['fiber']
+        product.arrives = data['arrives']
 
         product.returned = str(int(data['returnable'])) # bool
         product.international_ship = str(int(data['international'])) # bool
@@ -148,9 +172,7 @@ class Server(object):
         product.full_update_time = datetime.utcnow()
         product.save()
         common_saved.send(sender=ctx, key=url, url=url, is_new=is_new, is_updated=not is_new)
-        
 
-        
 
 if __name__ == '__main__':
     server = zerorpc.Server(Server())

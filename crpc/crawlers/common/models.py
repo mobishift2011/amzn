@@ -150,4 +150,6 @@ class LuxuryProduct(BaseProduct):
     color               =   StringField()
     returned            =   StringField()
     sizes_scarcity      =   ListField()
+    sizes               =   ListField(StringField())
+    scarcity            =   StringField()
     list_info           =   ListField(StringField())

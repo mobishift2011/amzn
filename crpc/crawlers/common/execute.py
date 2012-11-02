@@ -27,9 +27,7 @@ def run(rpc, site):
 if __name__ == '__main__':
     rpc = RPCServer()
     if sys.argv[1]:
-        if sys.argv[1] == 'myhabit':
-            run(rpc, sys.argv[1])
-        elif sys.argv[1] == 'zulily':
+        if sys.argv[1] == 'myhabit' or 'zulily' or 'hautelook':
             run(rpc, sys.argv[1])
     else:
         update_category('ruelala', rpc)

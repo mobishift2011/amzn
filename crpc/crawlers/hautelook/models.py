@@ -18,6 +18,7 @@ connect(db=DB, alias=DB, host=MONGODB_HOST)
 
 class Event(BaseEvent):
     event_id = StringField(unique=True)
+    is_leaf = BooleanField(default=True)
     sort_order  = StringField()
     tagline     = StringField()
 
@@ -30,8 +31,15 @@ class Event(BaseEvent):
 
 
 class Product(LuxuryProduct):
-    color = StringField()
     scarcity = StringField()
+
+    additional_info = ListField(StringField())
+    care_info = StringField()
+    fiber = StringField()
+
+    international_ship = StringField()
+    delivery_date = StringField()
+    choke_hazard = StringField()
 
     meta = {
         "indexes": ["updated"],

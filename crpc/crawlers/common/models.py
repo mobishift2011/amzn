@@ -142,7 +142,7 @@ class LuxuryProduct(BaseProduct):
 
     """
     # associate to Event's unique key
-    event_id             =   ListField(StringField())
+    event_id            =   ListField(StringField())
 
     soldout             =   BooleanField()
 

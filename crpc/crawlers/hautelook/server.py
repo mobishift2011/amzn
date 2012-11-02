@@ -7,6 +7,7 @@ crawlers.hautelook.server
 This is the server part of zeroRPC module. Call by client automatically, run on many differen ec2 instances.
 
 """
+from crawlers.common.events import *
 from crawlers.common.stash import *
 from models import *
 from datetime import datetime, timedelta
@@ -50,7 +51,7 @@ class Server(object):
         self.siteurl = 'http://www.hautelook.com'
         self.event_url = 'http://www.hautelook.com/v3/events?upcoming_soon_days=7'
 
-    def convert_time(date_str):
+    def convert_time(self, date_str):
         """.. :py:method::
             covert time from the format into utcnow()
             '2012-10-31T08:00:00-07:00'
@@ -90,11 +91,9 @@ class Server(object):
                 pop_img = 'http://www.hautelook.com/assets/{0}/pop-large.jpg'.format(event_code)
                 grid_img = 'http://www.hautelook.com/assets/{0}/grid-large.jpg'.format(event_code)
                 event.image_urls = [pop_img, grid_img]
-            else:
-                print is_new
-                if info['sort_order'] != event.sort_order:
-                    is_updated = True
-                    event.sort_order = info['sort_order']
+            if info['sort_order'] != event.sort_order:
+                is_updated = True
+                event.sort_order = info['sort_order']
             event.update_time = datetime.utcnow()
             event.save()
             common_saved.send(sender=ctx, key=event_id, url='{0}/event/{1}'.format(self.siteurl, event_id), is_new=is_new, is_updated=is_updated)
@@ -105,7 +104,7 @@ class Server(object):
     def crawl_listing(self, url, ctx):
         """.. :py:method::
             not useful
-        :param url: event_id actually
+        :param url: event url with event_id 
         """
         resp = request.get(url)
         data = json.loads(resp.text)
@@ -120,23 +119,35 @@ class Server(object):
             product.updated = False
             product.list_update_time = datetime.utcnow()
             product.save()
-        common_saved.send(sender=ctx, key=url, url=url, is_new=is_new, is_updated=is_updated)
+        common_saved.send(sender=ctx, key=url, url=url, is_new=is_new, is_updated=not is_new)
 
 
     def crawl_product(self, url, ctx):
         """.. :py:method::
             Got all the product information and save into the database
-
-            http://www.hautelook.com/v2/product/5446548
-        :param url: product url
+        :param url: product url, with product id
         """
         resp = request.get(url)
         data = json.loads(resp.text)['data']
-        data['brand_name']
-        data
+        product, is_new = Product.objects.get_or_create(pk=url.split('/')[-1])
+#        data['brand_name'], data['collections'], data['prices']
+
+        product.event_id = [str(data['event_id'])]
+        product.title = data['title']
+        product.list_info = data['copy'].split('\n')
+        product.additional_info = data['add_info'].split('\n')
+        product.care_info = data['care']
+        product.fiber = data['fiber']
+
+        product.returned = str(int(data['returnable'])) # bool
+        product.international_ship = str(int(data['international'])) # bool
+        product.delivery_date = ' to '.join((data['estimated_delivery']['start_date'], data['estimated_delivery']['end_date']))
+        product.choke_hazard = str(int(data['choke_hazard'])) # bool
 
         product.updated = True
         product.full_update_time = datetime.utcnow()
+        product.save()
+        common_saved.send(sender=ctx, key=url, url=url, is_new=is_new, is_updated=not is_new)
         
 
         

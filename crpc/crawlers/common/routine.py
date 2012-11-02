@@ -55,13 +55,13 @@ def spout_category(site, category):
         yield {'url':c.url()}
     elif site == 'bluefly':
         yield {'url':c.url}
-    elif site == 'zulily' or site == 'myhabit':
-        yield {'url': c.url()}
-    else:
+    elif site == 'amazon':
         pages = (c.num-1)/c.pagesize+10
         for p in range(1, min(pages+1,MAX_PAGE+1)):
             url = c.url().format(p)
             yield {'url': url}
+    else:
+        yield {'url': c.url()}
 
     c.spout_time = datetime.utcnow()
     c.save()

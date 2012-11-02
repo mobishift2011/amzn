@@ -112,6 +112,7 @@ class Task(Document):
     num_finish      =   IntField(default=0)
     num_update      =   IntField(default=0)
     num_new         =   IntField(default=0)
+    num_fails       =   IntField(default=0)
 
     # meta
     meta        =   {
@@ -127,7 +128,7 @@ class Task(Document):
             'status':       Task.inverse_status(self.status),
             'started_at':   self.started_at.isoformat() if self.started_at else 'undefined',
             'updated_at':   self.updated_at.isoformat() if self.updated_at else 'undefined',
-            'fails':        len(self.fails),
+            'fails':        self.num_fails,
             'dones':        self.num_finish,
             'updates':      self.num_update,
             'news':         self.num_new,

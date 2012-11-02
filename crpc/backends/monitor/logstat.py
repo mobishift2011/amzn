@@ -32,7 +32,7 @@ def get_or_create_task(ctx):
 def mark_all_failed():
     for t in Task.objects():
         if t.status == Task.RUNNING:
-            t.update(set__status=Task.FAILED, push__fails=fail(t.site, t.method, '', '', 'Monitor Restart'))
+            t.update(set__status=Task.FAILED, push__fails=fail(t.site, t.method, '', '', 'Monitor Restart'), inc__num_fails=1)
 
 def task_all_tasks():
     tasks = Task.objects().fields(slice__fails=-10).order_by('-updated_at').limit(100).select_related()
@@ -105,7 +105,7 @@ def stat_failed(sender, **kwargs):
     try:
         site, method, dummy = sender.split('.')
         t = get_or_create_task(sender)
-        t.update(push__fails=fail(site, method, key, url, reason))
+        t.update(push__fails=fail(site, method, key, url, reason), inc__num_fails=1)
 
         log_event.set()
         log_event.clear()

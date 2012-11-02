@@ -8,6 +8,11 @@ from datetime import datetime, timedelta
 
 connect(db="monitor", host=MONGODB_HOST)
 
+def fail(site, method, key='', url='', message="undefined"):
+    f = Fail(site=site, method=method, key=key, url=url, message=message)
+    f.save()
+    return f
+
 class Schedule(Document):
     """ schedules info """
     site            =   StringField()

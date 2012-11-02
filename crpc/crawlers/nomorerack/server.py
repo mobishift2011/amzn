@@ -117,7 +117,6 @@ class Server(BaseServer):
             url = 'http://nomorerack.com/daily_deals/category/%s' %name
             #self.crawl_category_product(name,url)
 
-
     def _crawl_category_product(name,url):
         self.bopen(url)
         self.browser.execute_script("""
@@ -254,9 +253,9 @@ class Server(BaseServer):
 if __name__ == '__main__':
     server = Server()
     import time
-    if 1:
-        server._crawl_category_product('women','')
     if 0:
+        server._crawl_category_product('women','')
+    if 1:
         server.crawl_category()
 
     if 0:

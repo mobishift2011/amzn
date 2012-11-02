@@ -57,7 +57,7 @@ class BaseServer(object):
     email = 'huanzhu@favbuy.com'
     passwd = '4110050209'
     session = requests.session()
-    browser = ''
+    browser = webdriver.Chrome()
     session.headers = {'Accept-Encoding': 'identity, deflate, compress, gzip',
                         'Accept': '*/*', 'User-Agent': 'Mozilla/5.0 '}
 
@@ -65,13 +65,6 @@ class BaseServer(object):
         """ open url with browser
         """
         start = time.time()
-        if not self.browser:
-            try:
-                self.browser = webdriver.Chrome()
-                #self.browser = webdriver.Firefox()
-            except:
-                self.browser = webdriver.Firefox()
-                self.browser.set_page_load_timeout(10)
         try:
             self.browser.get(url)
         except TimeoutException:

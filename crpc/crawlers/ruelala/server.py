@@ -49,6 +49,7 @@ class Server:
         self.siteurl = 'http://www.ruelala.com'
         self.email = 'huanzhu@favbuy.com'
         self.passwd = '4110050209'
+        self._signin = False
 
     def get(self,url):
         start = time.time()
@@ -69,6 +70,8 @@ class Server:
         :param email: login email
         :param passwd: login passwd
         """
+        if self._signin:
+            return
         
         if not email:
             email, passwd = self.email, self.passwd
@@ -120,11 +123,12 @@ class Server:
             print 'go to ',url
             print 'res',self._get_event_list(category,url,ctx)
 
+        self._signin = False
+
     def _get_event_list(self,category_name,url,ctx):
         """.. :py:method::
             Get all the events from event list.
         """
-
         def get_end_time(str):
             str =  str.replace('CLOSING IN ','').replace(' ','')
             if 'DAYS' in str:
@@ -198,6 +202,7 @@ class Server:
             result.append((event_id,a_url))
         return result
 
+    @exclusive_lock(DB)
     def crawl_listing(self,url,ctx):
         event_url = url
         event_id = self._url2saleid(event_url)
@@ -311,6 +316,7 @@ class Server:
             urls.append(url)
         return urls
 
+    @exclusive_lock(DB)
     def crawl_product(self,url,ctx=False):
         """.. :py:method::
             Got all the product basic information and save into the database

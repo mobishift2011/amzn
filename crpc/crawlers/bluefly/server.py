@@ -311,7 +311,7 @@ class Server(BaseServer):
                 date_str=  self.browser.find_element_by_xpath('//div[@class="review-date"]').text
                 # patch
                 if '?' in date_str:
-                    date_str = date_str[:-1].replace('?','')
+                    date_str = date_str[:-1].replace('?','-')
                 print 'date str',date_str
                 date_obj = dt_parser.parse(date_str)
                 review.post_time = date_obj
@@ -340,7 +340,7 @@ if __name__ == '__main__':
 
     if 1:
         point1 = time.time()
-        server.crawl_category()
+        print '>>>',server.crawl_category()
         print 'category count',Category.objects.all().count()
         print 'parse category used',time.time() - point1
         

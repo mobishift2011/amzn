@@ -91,13 +91,21 @@ class Server(BaseServer):
             date_obj = datetime.datetime.fromtimestamp(int(expires_on[:10]))
             href = a.get_attribute('href')
             url = self.format_url(href)
+            print 'href',href
+            print 'url',url
             event_id = self.url2event_id(url) # return a string
+            print 'event id',event_id
             img_url = 'http://nmr.allcdn.net/images/events/all/banners/event-%s-medium.jpg' %event_id
             event ,is_new = Event.objects.get_or_create(event_id=event_id)
+            if is_new:
+                event.event_id = [event_id]
+            else:
+                event.event_id = list(set(event.event_id.append(event_id)))
+
             event.title = title
             event.image_urls = [img_url]
             event.events_end = date_obj
-            event.update_time = datetime.utcnow()
+            event.update_time = datetime.datetime.utcnow()
             event.is_leaf = True
             try:
                 event.save()
@@ -112,15 +120,18 @@ class Server(BaseServer):
         categorys = ['women','men','home','electronics','kids','lifestyle']
         for name in categorys:
             url = 'http://nomorerack.com/daily_deals/category/%s' %name
-            self.crawl_category_product(name,url)
+            #self.crawl_category_product(name,url)
 
     def url2product_id(self,url):
-        m = re.compile(r'^http://nomorerack.com/daily_deals/view/(\d+)-').findall(url)
-        return m[0]
+        m = re.compile(r'^http://(.*)nomorerack.com/daily_deals/view/(\d+)-').findall(url)[0]
+        return m[-1]
 
     def url2event_id(self,url):
-        m = re.compile(r'^http://nomorerack.com/events/view/(\d+)-').findall(url)
-        return m[0]
+        # http://www.nomorerack.com/events/view/1018
+        m = re.compile(r'^http://(.*)nomorerack.com/events/view/(\d+)').findall(url)[0]
+        print 'm',m
+        print 'm[-1]',m[-1]
+        return m[-1]
 
     def make_image_urls(self,url,count):
         urls = []

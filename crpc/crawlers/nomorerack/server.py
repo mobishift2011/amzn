@@ -117,7 +117,7 @@ class Server(BaseServer):
             url = 'http://nomorerack.com/daily_deals/category/%s' %name
             #self.crawl_category_product(name,url)
 
-    def _crawl_category_product(name,url):
+    def _crawl_category_product(self,name,url):
         self.bopen(url)
         self.browser.execute_script("""
         (function () {
@@ -129,7 +129,7 @@ class Server(BaseServer):
                 if (y < document.body.scrollHeight) {
                     y += step;
                     window.scroll(0, y);
-                    setTimeout(f, 50);
+                    setTimeout(f, 150);
                 } else {
                     window.scroll(0, 0);
                     document.title += "scroll-done";
@@ -139,8 +139,20 @@ class Server(BaseServer):
             setTimeout(f, 1000);
         })();
     """)
+        print '>>>>'
+        ITEMS = set()
+        while True:
+            time.sleep(1)
+            items = set(self.browser.find_elements_by_xpath('div[@class="deal cell cell-2  standard"'))
+            new_items = ITEMS - items
+            if not new_items:
+                break
+            
+            for item in new_items:
+                print 'new item',item.text
 
-        pass
+        
+
 
     def url2product_id(self,url):
         m = re.compile(r'^http://(.*)nomorerack.com/daily_deals/view/(\d+)-').findall(url)[0]
@@ -253,9 +265,9 @@ class Server(BaseServer):
 if __name__ == '__main__':
     server = Server()
     import time
-    if 0:
-        server._crawl_category_product('women','')
     if 1:
+        server._crawl_category_product('women','http://nomorerack.com/daily_deals/category/women')
+    if 0:
         server.crawl_category()
 
     if 0:

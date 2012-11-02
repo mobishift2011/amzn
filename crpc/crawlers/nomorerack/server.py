@@ -16,6 +16,7 @@ from crawlers.common.baseserver import BaseServer
 from selenium.common.exceptions import *
 from crawlers.common.events import category_saved, category_failed, category_deleted
 from crawlers.common.events import product_saved, product_failed, product_deleted
+from crawlers.common.events import common_saved, common_failed
 
 from models import *
 from crawlers.common.events import *
@@ -96,6 +97,8 @@ class Server(BaseServer):
             event.title = title
             event.image_urls = [img_url]
             event.events_end = date_obj
+            event.update_time = datetime.utcnow()
+            event.is_leaf = True
             try:
                 event.save()
             except:
@@ -119,9 +122,14 @@ class Server(BaseServer):
         m = re.compile(r'^http://nomorerack.com/events/view/(\d+)-').findall(url)
         return m[0]
 
-    def make_image_urls(url,count):
+    def make_image_urls(self,url,count):
+        urls = []
         m = re.compile(r'^http://nmr.allcdn.net/images/products/(\d+)-').findall(url)
-        return m[0]
+        img_id = m[0]
+        for i in range(0,count):
+            url = 'http://nmr.allcdn.net/images/products/%s-%d-lg.jpg' %(img_id,i)
+            urls.append(url)
+        return urls
     
     def crawl_listing(self,url,ctx=''):
         self.bopen(url)
@@ -150,14 +158,18 @@ class Server(BaseServer):
         """.. :py:method::
             Got all the product basic information and save into the database
         """
+        key = self.url2product_id(url)
+        product,is_new = Product.objects.get_or_create(key=key)
+
         self.bopen(url)
-        node = self.brwoser.find_element_by_css_selector('div#products_view.standard')
+        node = self.browser.find_element_by_css_selector('div#products_view.standard')
+        dept = node.find_element_by_css_selector('div.right h5').text
+        title = node.find_element_by_css_selector('div.right h2').text
         summary = node.find_element_by_css_selector('p.description').text
         thumbs = node.find_element_by_css_selector('div.thumbs')
-        image_count = len(thumbs.find_element_by_css_selector('img'))
+        image_count = len(thumbs.find_elements_by_css_selector('img'))
         image_url = thumbs.find_element_by_css_selector('img').get_attribute('src')
         image_urls = self.make_image_urls(image_url,image_count)
-
         attributes = node.find_elements_by_css_selector('div.select-cascade select')
         colors = []
         for op in attributes[0].find_elements_by_css_selector('option'):
@@ -173,11 +185,30 @@ class Server(BaseServer):
                 continue
             else:
                 sizes.append({size:''})
-        date_str = self.brwoser.find_element_by_css_selector('div.ribbon-center p').text
+        date_str = self.browser.find_element_by_css_selector('div.ribbon-center p').text
         date_obj = self.format_date_str(date_str)
         price = node.find_element_by_css_selector('div.standard h3 span')
         listprice = node.find_element_by_css_selector('div.standard p del')
-        print 'locals',locals()
+
+        product.summary = summary
+        product.title = title
+        product.dept = dept
+        product.image_urls = image_urls
+        product.end_time = date_obj
+        product.price = price
+        product.listprice = listprice
+
+        try:
+            product.save()
+        except:
+            common_failed.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
+        else:
+            common_saved.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
+
+        for i in locals().items():
+            print 'i',i
+
+        return
 
 
     def format_date_str(self,date_str):
@@ -192,16 +223,17 @@ class Server(BaseServer):
 if __name__ == '__main__':
     server = Server()
     import time
-    #server.crawl_category()
+    if 1:
+        server.crawl_category()
+
     if 0:
         for event in Event.objects.all():
             url = event.url()
             server.crawl_lisging(url)
-
     if 0:
         url = 'http://nomorerack.com/events/view/1041'
         server.crawl_listing(url)
 
-    if 1:
-        url = 'http://nomorerack.com/daily_deals/view/125514-solid_satin_mens_dress_shirt___comes_with_tie___hankie'
+    if 0:
+        url = Product.objects.all()[10].url()
         server.crawl_product(url)

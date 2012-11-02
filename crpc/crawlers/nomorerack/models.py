@@ -14,7 +14,6 @@ from crawlers.common.models import BaseCategory, BaseProduct,BaseReview,LuxuryPr
 
 class Event(BaseEvent):
     event_id = StringField(unique=True)
-
     meta        =   {
         "db_alias": DB,
     }
@@ -25,10 +24,10 @@ class Event(BaseEvent):
 class Product(LuxuryProduct):
     event_id = StringField()
     dept = StringField()
-
     listprice = StringField()
     return_policy  = StringField()
     color = StringField()
+    end_time = DateTiemField()
 
     def url(self):
         return 'http://nomorerack.com/daily_deals/view/%d-product' %self.key

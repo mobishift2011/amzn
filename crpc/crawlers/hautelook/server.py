@@ -48,7 +48,7 @@ class Server(object):
     """
     def __init__(self):
         self.siteurl = 'http://www.hautelook.com'
-        self._url = 'http://www.hautelook.com/v3/events?upcoming_soon_days=7'
+        self.event_url = 'http://www.hautelook.com/v3/events?upcoming_soon_days=7'
 
     def convert_time(date_str):
         """.. :py:method::
@@ -63,240 +63,67 @@ class Server(object):
 
     def crawl_category(self, ctx):
         """.. :py:method::
-            from self._url get all the events
-            http://www.hautelook.com/v3/catalog/20815
-            http://www.hautelook.com/v2/product/5446548
+            from self.event_url get all the events
         """
         debug_info.send(sender=DB + '.category.begin')
 
-        resp = request.get(upcoming_url)
+        resp = request.get(self.event_url)
         data = json.loads(resp.text)
         lay1 = data['events']
         lay2_upcoming, lay2_ending_soon, lay2_today = lay1['upcoming'], lay1['ending_soon'], lay1['today']
 
+        for event in itertools.chain(lay2_upcoming, lay2_ending_soon, lay2_today):
+            info = event['event']
+            event_id = info['event_id']
+            event_code = info['event_code']
+            is_updated = False
+
+            event, is_new = Event.objects.get_or_create(event_id=event_id)
+            if is_new:
+                event.sale_title = info['title']
+                event.sale_description = requests.get(info['info']).text
+                event.dept = [i['name'] for i in info['event_types']]
+                event.events_begin = self.convert_time( info['start_date'] )
+                event.events_end = self.convert_time( info['end_date'] )
+                event.tagline = info['category']
+
+                pop_img = 'http://www.hautelook.com/assets/{0}/pop-large.jpg'.format(event_code)
+                grid_img = 'http://www.hautelook.com/assets/{0}/grid-large.jpg'.format(event_code)
+                event.image_urls = [pop_img, grid_img]
+            else:
+                print is_new
+                if info['sort_order'] != event.sort_order:
+                    is_updated = True
+                    event.sort_order = info['sort_order']
+            event.update_time = datetime.utcnow()
+            event.save()
+            common_saved.send(sender=ctx, key=event_id, url='{0}/event/{1}'.format(self.siteurl, event_id), is_new=is_new, is_updated=is_updated)
+
         debug_info.send(sender=DB + '.category.end')
 
 
-    def get_event_list(self, dept, url, ctx):
+    def crawl_listing(self, url, ctx):
         """.. :py:method::
-            Get all the brands from brand list.
-            Brand have a list of product.
-
-        :param dept: dept in the page
-        :param url: the dept's url
+            not useful
+        :param url: event_id actually
         """
-        self.download_regular_page(url)
-        tree = lxml.html.fromstring(self.browser.page_source)
-        nodes = tree.cssselect('div#container > div#body_content > div#module_event_tiles > div > div.tile')
-        for node in nodes:
-            l = node.cssselect('a.hero-link')[0].get('href')
-            link = l if l.startswith('http') else self.siteurl + l
-            sale_id = self.extract_eventid_re.match(link).group(1)
-            
-            sale_title = node.cssselect('a.hero-link > div.caption > .title')[0].text
-            img = node.cssselect('a.hero-link > img.hero')[0].get('src')
-            if not img.startswith('http'):
-                img = self.siteurl + self.extract_eventimg_re.match(img).group(1)
-            # pop-medium, pop-large.jpg; event-large.jpg < grid-large.jpg
-            img = re.sub(r'(.*)(small|med).jpg', '\\1large.jpg', img)
-            image = re.sub(r'(.*)event(-large.jpg)', '\\1grid\\2', img)
+        resp = request.get(url)
+        data = json.loads(resp.text)
+        for item in data['availabilities']:
+            info = item['availability']
+            info['inventory_id']
+            info['color']
+            info['']
 
-            brand, is_new = Category.objects.get_or_create(sale_id=sale_id)
-            if is_new:
-                brand.sale_title = sale_title
-                brand.image_urls = [image]
-                brand.dept = [dept]
-            else:
-                if image not in brand.image_urls: brand.image_urls.append(image)
-                if dept not in brand.dept: brand.dept.append(dept) # for designer dept
-            brand.update_time = datetime.utcnow()
-            brand.save()
-            print is_new
-            common_saved.send(sender=ctx, key=sale_id, url=url, is_new=is_new, is_updated=not is_new)
+        common_saved.send(sender=ctx, key=url, url=url, is_new=is_new, is_updated=is_updated)
 
-#        # upcoming brand
-#        nodes = tree.xpath('//div[@id="main"]/div[@id="page-content"]/div[@id="upcomingSales"]//div[@class="fourColumnSales"]//div[@class="caption"]/a')
-#        for node in nodes:
-#            l = node.get_attribute('href')
-#            link = l if l.startswith('http') else 'http://www.myhabit.com/homepage' + l 
-##            title = node.text
-#            self.upcoming_queue.put( (dept, link) )
-
-
-
-    def url2saleid(self, url):
+    def crawl_product(self, url, ctx):
         """.. :py:method::
+            Got all the product information and save into the database
 
-        :param url: the brand's url
-        :rtype: string of sale_id
+            http://www.hautelook.com/v2/product/5446548
+        :param url: product url
         """
-        return re.compile(r'http://www.myhabit.com/homepage\??#page=b&dept=\w+&sale=(\w+)').match(url).group(1)
-
-    def url2asin(self, url):
-        """.. :py:method::
-
-        :param url: the product's url
-        :rtype: string of asin, cAsin
-        """
-        m = re.compile(r'http://www.myhabit.com/homepage.*#page=d&dept=\w+&sale=\w+&asin=(\w+)&cAsin=(\w+)').match(url)
-        if not m: print 'Can not parse detail product url: ', url
-        return m.groups()
-
-    def cycle_crawl_category(self, timeover=30):
-        """.. :py:method::
-            read (category, link) tuple from queue, crawl sub-category, insert into the queue
-
-        :param timeover: timeout in queue.get
-        """
-        self.queue_get_parse(self.upcoming_queue, timeover, upcoming=True)
-        self.queue_get_parse(self.queue, timeover)
-
-    def queue_get_parse(self, queue, timeover, upcoming=False):
-        """.. :py:method::
-            get queue and parse the brand page
-        :param queue: upcoming brand queue or brand page queue
-        :param upcoming: flag to shwo whether it is the upcoming queue or not
-        """
-        while not queue.empty():
-#            try:
-            job = queue.get(timeout=timeover)
-            if self.download_page(job[1]) == 1:
-                continue
-            if upcoming:
-                self.parse_upcoming(job[0], job[1])
-            else:
-                self.parse_category(job[0], job[1])
-#            except Queue.Empty:
-#                debug_info.send(sender="{0}.category:Queue waiting {1} seconds without response!".format(DB, timeover))
-#            except:
-#                debug_info.send(sender=DB + ".category", tracebackinfo=sys.exc_info())
-
-
-    def time_proc(self, time_str):
-        """.. :py:method::
-
-        :param time_str: u'SAT OCT 20 9 AM '
-        :rtype: datetime type utc time
-        """
-        time_format = '%a %b %d %I %p %Y'
-        pt = pytz.timezone('US/Pacific')
-        tinfo = time_str + str(pt.normalize(datetime.now(tz=pt)).year)
-        endtime = pt.localize(datetime.strptime(tinfo, time_format))
-        return endtime.astimezone(pytz.utc)
-    
-    def parse_upcoming(self, dept, url):
-        """.. :py:method::
-            upcoming brand page parsing
-            upcoming brand also have duplicate designer
-
-        :param dept: dept in the page
-        :param url: url in the page
-        """
-        sale_id = self.url2saleid(url)
-        brand, is_new = Category.objects.get_or_create(sale_id=sale_id)
-        if is_new:
-            path = self.browser.find_element_by_css_selector('div#main div#page-content div#top-content')
-            try:
-                begin_date = path.find_element_by_css_selector('div#startHeader span.date').text # SAT OCT 20
-            except selenium.common.exceptions.NoSuchElementException:
-                time.sleep(1)
-                path = self.browser.find_element_by_css_selector('div#main div#page-content div#top-content')
-                begin_date = path.find_element_by_css_selector('div#startHeader span.date').text # SAT OCT 20
-            begin_time = path.find_element_by_xpath('./div[@id="startHeader"]/span[@class="time"]').text # 9 AM PT
-            utc_begintime = self.time_proc(begin_date + ' ' + begin_time.replace('PT', ''))
-            brand_info = path.find_element_by_id('upcomingSaleBlurb').text
-            img = path.find_element_by_xpath('./div[@class="upcomingSaleHero"]/div[@class="image"]/img').get_attribute('src')
-            sale_title = path.find_element_by_xpath('./div[@class="upcomingSaleHero"]/div[@class="image"]/img').get_attribute('alt')
-            subs = []
-            for sub in path.find_elements_by_xpath('./div[@id="asinbox"]/ul/li'):
-                sub_title = sub.find_element_by_class_name('title').text
-                sub_img = sub.find_element_by_xpath('./img').get_attribute('src')
-                subs.append([sub_title, sub_img])
-
-            brand.dept = [dept]
-            brand.sale_title = sale_title
-            brand.image_urls = [img]
-            brand.events_begin = utc_begintime
-            brand.sale_description = brand_info
-            brand.upcoming_title_img = subs
-            brand.update_time = datetime.utcnow()
-            brand.save()
-        else:
-            if dept not in brand.dept:
-                brand.dept.append(dept)
-                brand.save()
-        category_saved.send(sender=DB + '.parse_upcoming', site=DB, key=sale_id, is_new=is_new, is_updated=not is_new)
-
-
-    def parse_category(self, dept, url):
-        """.. :py:method::
-            Brand page parsing
-
-        :param dept: dept in the page
-        :param url: url in the page
-        """
-#        time.sleep(0.5)
-#        node = self.browser.find_element_by_xpath('//div[@id="main"]/div[@id="page-content"]/div/div[@id="top"]/div[@id="salePageDescription"]')
-        node = self.browser.find_element_by_css_selector('div#main div#page-content div')
-
-#        print node, url
-        time_begin_benchmark = time.time()
-#        sale_title = node.find_element_by_xpath('.//div[@id="saleTitle"]').text
-#        sale_description = node.find_element_by_xpath('.//div[@id="saleDescription"]').text
-#        end_date = node.find_element_by_xpath('.//div[@id="saleEndTime"]/span[@class="date"]').text # SAT OCT 20
-#        end_time = node.find_element_by_xpath('.//div[@id="saleEndTime"]/span[@class="time"]').text # 9 AM PT
-        sale_title = node.find_element_by_css_selector('div#top div#saleTitle').text
-        sale_description = node.find_element_by_css_selector('div#top div#saleDescription').text
-        end_date = node.find_element_by_css_selector('div#top div#saleEndTime span.date').text # SAT OCT 20
-        end_time = node.find_element_by_css_selector('div#top div#saleEndTime span.time').text # 9 AM PT
-        utc_endtime = self.time_proc(end_date + ' ' + end_time.replace('PT', ''))
-        try:
-            sale_brand_link = node.find_element_by_xpath('.//div[@id="saleBrandLink"]/a').get_attribute('href')
-        except:
-            sale_brand_link = ''
-        num = node.find_element_by_css_selector('div#middle div#middleCenter div#numResults').text
-        num = int(num.split()[0])
-        sale_id = self.url2saleid(url)
-
-        brand, is_new = Category.objects.get_or_create(sale_id=sale_id)
-        # crawl infor before, so always not new
-        brand.sale_description = sale_description
-        brand.events_end = utc_endtime
-        if sale_brand_link: brand.brand_link = sale_brand_link
-        brand.num = num
-        brand.update_time = datetime.utcnow()
-        brand.save()
-        category_saved.send(sender=DB + '.parse_category', site=DB, key=sale_id, is_new=is_new, is_updated=not is_new)
-
-        elements = node.find_elements_by_xpath('./div[@id="asinbox"]/ul/li[starts-with(@id, "result_")]')
-        for ele in elements:
-            self.parse_category_product(ele, sale_id, sale_title, dept)
-
-        print 'time proc brand list: ', time.time() - time_begin_benchmark
-
-    def parse_category_product(self, element, sale_id, sale_title, dept):
-        """.. :py:method::
-            Brand page, product parsing
-
-        :param element: product's xpath element
-        :param sale_title: as brand pass to product
-        """
-        try:
-            element.find_element_by_class_name('soldout')
-        except:
-            soldout = False
-        else: soldout = True
-        l = element.find_element_by_class_name('evt-prdtDesc-a').get_attribute('href')
-        link = l if l.startswith('http') else 'http://www.myhabit.com/homepage' + l
-        title = element.find_element_by_class_name('title').text
-        try:
-            listprice = element.find_element_by_class_name('listprice').text.replace('$', '').replace(',', '')
-        except:
-            listprice = ''
-        ourprice = element.find_element_by_class_name('ourprice').text.replace('$', '').replace(',', '')
-#        img = element.find_element_by_class_name('iImg').get_attribute('src')
-
-        asin, casin = self.url2asin(link)
         product, is_new = Product.objects.get_or_create(pk=casin)
         if is_new:
             product.dept = dept
@@ -306,99 +133,17 @@ class Server(object):
             product.title = title
         else:
             if sale_id not in product.sale_id: product.sale_id.append(sale_id)
-        product.price = ourprice
-        if listprice: product.listprice = listprice
-        product.soldout = soldout
         product.updated = False
         product.list_update_time = datetime.utcnow()
         product.save()
-        product_saved.send(sender=DB + '.parse_category', site=DB, key=casin, is_new=is_new, is_updated=not is_new)
-        debug_info.send(sender="myhabit.parse_category_product", title=title, sale_id=sale_id, asin=asin, casin=casin)
-
-
-    @exclusive_lock(DB)
-    def crawl_listing(self):
-        """.. :py:method::
-            not implement
-        """
-        pass
-
-    @exclusive_lock(DB)
-    def crawl_product(self, url, casin):
-        """.. :py:method::
-            Got all the product information and save into the database
-
-        :param url: product url
-        """
-        self.check_signin()
-        if self.download_page_for_product(url) == 1: return
-        time_begin_benchmark = time.time()
-        product, is_new = Product.objects.get_or_create(pk=casin)
-        try:
-            pre = self.browser.find_element_by_css_selector('div#main div#page-content div#detail-page')
-        except selenium.common.exceptions.NoSuchElementException:
-            time.sleep(0.3)
-            pre = self.browser.find_element_by_css_selector('div#main div#page-content div#detail-page')
-        node = pre.find_element_by_css_selector('div#dpLeftCol')
-        right_col = pre.find_element_by_css_selector('div#dpRightCol div#innerRightCol')
-        if is_new:
-            info_table, image_urls, video = [], [], ''
-            shortDesc = node.find_element_by_class_name('shortDesc').text
-            international_shipping = node.find_element_by_id('intlShippableBullet').text
-            returned = node.find_element_by_id('returnPolicyBullet').text
-            already_have = [shortDesc, international_shipping, returned]
-
-            for bullet in node.find_elements_by_tag_name('li'):
-                if bullet.text and bullet.text not in already_have:
-                    info_table.append(bullet.text)
-
-            for img in node.find_elements_by_xpath('.//div[@id="altImgContainer"]/div'):
-                try:
-                    picture = img.find_element_by_class_name('zoomImageL2').get_attribute('value')
-                    image_urls.append(picture)
-                except:
-                    video = img.find_element_by_class_name('videoURL').get_attribute('value')
-
-            try:
-                color = right_col.find_element_by_xpath('.//div[@class="dimensionAltText variationSelectOn"]').text
-            except:
-                color = ''
-            try:
-                sizes = right_col.find_elements_by_xpath('./div[@id="dpVariationMatrix"]//select[@class="variationDropdown"]/option')
-                size = [s for s in sizes if not s.text.startswith('Please')]
-            except:
-                sizes = [] 
-
-            product.summary = shortDesc
-            product.list_info = info_table
-            product.image_urls = image_urls
-            if video: product.video = video
-            if international_shipping: product.international_shipping = international_shipping
-            if returned: product.returned = returned
-            if color: product.color = color
-            if sizes: product.sizes = sizes
-
-        listprice = right_col.find_element_by_id('listPrice').text.replace('$', '').replace(',', '')
-        ourprice = right_col.find_element_by_id('ourPrice').text.replace('$', '').replace(',', '')
-        scarcity = right_col.find_element_by_id('scarcity').text
-        shipping = '; '.join( [a.text for a in right_col.find_elements_by_class_name('dpRightColLabel') if a.text] )
-
-        product.price = ourprice
-        product.listprice = listprice
-        product.shipping = shipping
-        if scarcity: product.scarcity = scarcity
         product.updated = True
         product.full_update_time = datetime.utcnow()
         product.save()
         
-        product_saved.send(sender=DB + '.parse_product_detail', site=DB, key=casin, is_new=is_new, is_updated=not is_new)
-        print 'time product process benchmark: ', time.time() - time_begin_benchmark
 
         
 
 if __name__ == '__main__':
-    server = Server()
-    server.crawl_category(DB)
-#    server = zerorpc.Server(Server())
-#    server.bind("tcp://0.0.0.0:{0}".format(RPC_PORT))
-#    server.run()
+    server = zerorpc.Server(Server())
+    server.bind("tcp://0.0.0.0:{0}".format(RPC_PORT))
+    server.run()

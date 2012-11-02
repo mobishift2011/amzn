@@ -48,12 +48,13 @@ class BaseEvent(BaseCategory):
     ...     pass
 
     """
-    events_begin = DateTimeField()
-    events_end = DateTimeField()
-    soldout = BooleanField()
-    sale_title = StringField()
-    image_urls = ListField(StringField())
-    sale_description = StringField()
+    events_begin        = DateTimeField()
+    events_end          = DateTimeField()
+    soldout             = BooleanField()
+    sale_title          = StringField()
+    image_urls          = ListField(StringField())
+    sale_description    = StringField()
+    dept                = ListField(StringField())
 
     meta = {
         "indexes": ["soldout"],

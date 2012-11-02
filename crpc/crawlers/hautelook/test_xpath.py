@@ -63,7 +63,7 @@ def fetch_json():
         event_code = info['event_code']
         pop_img = 'http://www.hautelook.com/assets/{0}/pop-large.jpg'.format(event_code)
         grid_img = 'http://www.hautelook.com/assets/{0}/grid-large.jpg'.format(event_code)
-        info['image_url'] = [pop_img, grid_img]
+        image_url = [pop_img, grid_img]
 
         begin = convert_time( info['start_date'] )
         end = convert_time( info['end_date'] )

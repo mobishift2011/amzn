@@ -6,7 +6,7 @@ crawlers.bluefly.models
 
 Implements Product and Category Model for Amazon
 """
-DB = 'nomorerack-test'
+DB = 'nomorerack'
 from settings import MONGODB_HOST
 from mongoengine import *
 connect(db=DB, alias=DB, host=MONGODB_HOST)
@@ -25,9 +25,8 @@ class Product(LuxuryProduct):
     event_id = StringField()
     dept = StringField()
     listprice = StringField()
-    return_policy  = StringField()
     color = StringField()
-    end_time = DateTiemField()
+    end_time = DateTimeField()
 
     def url(self):
         return 'http://nomorerack.com/daily_deals/view/%d-product' %self.key

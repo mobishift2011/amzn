@@ -286,7 +286,7 @@ class Server(BaseServer):
                         i = (size,left)
                     sizes.append(i)
 
-        product.sizes = sizes
+        product.sizes_scarcity = sizes
         # if not have now reviews,do nothing
         if not is_new and product.num_reviews == num_reviews:
             pass

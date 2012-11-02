@@ -129,7 +129,6 @@ class BaseProduct(Document):
     def url(self):
         raise NotImplementedError("should implemented in sub classes!")
 
-
 class LuxuryProduct(BaseProduct):
     """ :py:class:crawlers.common.models.LuxuryProduct
 

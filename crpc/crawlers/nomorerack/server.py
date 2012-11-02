@@ -91,13 +91,16 @@ class Server(BaseServer):
             date_obj = datetime.datetime.fromtimestamp(int(expires_on[:10]))
             href = a.get_attribute('href')
             url = self.format_url(href)
+            print 'href',href
+            print 'url',url
             event_id = self.url2event_id(url) # return a string
+            print 'event id',event_id
             img_url = 'http://nmr.allcdn.net/images/events/all/banners/event-%s-medium.jpg' %event_id
             event ,is_new = Event.objects.get_or_create(event_id=event_id)
             event.title = title
             event.image_urls = [img_url]
             event.events_end = date_obj
-            event.update_time = datetime.utcnow()
+            event.update_time = datetime.datetime.utcnow()
             event.is_leaf = True
             try:
                 event.save()
@@ -112,15 +115,44 @@ class Server(BaseServer):
         categorys = ['women','men','home','electronics','kids','lifestyle']
         for name in categorys:
             url = 'http://nomorerack.com/daily_deals/category/%s' %name
-            self.crawl_category_product(name,url)
+            #self.crawl_category_product(name,url)
+
+
+    def _crawl_category_product(name,url):
+        self.bopen(url)
+        self.browser.execute_script("""
+        (function () {
+            var y = 0;
+            var step = 100;
+            window.scroll(0, 0);
+
+            function f() {
+                if (y < document.body.scrollHeight) {
+                    y += step;
+                    window.scroll(0, y);
+                    setTimeout(f, 50);
+                } else {
+                    window.scroll(0, 0);
+                    document.title += "scroll-done";
+                }
+            }
+
+            setTimeout(f, 1000);
+        })();
+    """)
+
+        pass
 
     def url2product_id(self,url):
-        m = re.compile(r'^http://nomorerack.com/daily_deals/view/(\d+)-').findall(url)
-        return m[0]
+        m = re.compile(r'^http://(.*)nomorerack.com/daily_deals/view/(\d+)-').findall(url)[0]
+        return m[-1]
 
     def url2event_id(self,url):
-        m = re.compile(r'^http://nomorerack.com/events/view/(\d+)-').findall(url)
-        return m[0]
+        # http://www.nomorerack.com/events/view/1018
+        m = re.compile(r'^http://(.*)nomorerack.com/events/view/(\d+)').findall(url)[0]
+        print 'm',m
+        print 'm[-1]',m[-1]
+        return m[-1]
 
     def make_image_urls(self,url,count):
         urls = []
@@ -139,9 +171,8 @@ class Server(BaseServer):
             price = item.find_element_by_css_selector('div.pricing ins').text
             listprice = item.find_element_by_css_selector('div.pricing del').text
             href = item.find_element_by_css_selector('div.image a').get_attribute('href')
-            #item_url = self.format_url(href)
+            item_url = self.format_url(href)
             key = self.url2product_id(item_url)
-
             product ,is_new = Product.objects.get_or_create(key=key)
             product.price = price
             product.listproce = listprice
@@ -197,6 +228,7 @@ class Server(BaseServer):
         product.end_time = date_obj
         product.price = price
         product.listprice = listprice
+        product.pagesize    =   sizes
 
         try:
             product.save()
@@ -209,7 +241,6 @@ class Server(BaseServer):
             print 'i',i
 
         return
-
 
     def format_date_str(self,date_str):
         """ translate the string to datetime object """
@@ -224,12 +255,14 @@ if __name__ == '__main__':
     server = Server()
     import time
     if 1:
+        server._crawl_category_product('women','')
+    if 0:
         server.crawl_category()
 
     if 0:
         for event in Event.objects.all():
             url = event.url()
-            server.crawl_lisging(url)
+            server.crawl_listing(url)
     if 0:
         url = 'http://nomorerack.com/events/view/1041'
         server.crawl_listing(url)

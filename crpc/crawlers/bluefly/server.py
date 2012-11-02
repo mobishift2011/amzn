@@ -9,8 +9,6 @@ This is the server part of zeroRPC module. Call by client automatically, run on 
 
 from gevent import monkey
 monkey.patch_all()
-from gevent.coros import Semaphore
-lock = Semaphore()
 from crawlers.common.baseserver import BaseServer
 
 from selenium.common.exceptions import *
@@ -37,16 +35,20 @@ class Server(BaseServer):
     def __init__(self):
         self.siteurl = 'http://www.bluefly.com'
         self.site ='bluefly'
+        self.browser = False
         #self.login(self.email, self.passwd)
-        try:
-            self.browser = webdriver.Chrome()
-        except:
-            self.browser = webdriver.Firefox()
-            self.browser.set_page_load_timeout(10)
 
     def bopen(self,url):
         """ open url with browser
         """
+        if not self.browser:
+            try:
+                self.browser = webdriver.Chrome()
+            except:
+                self.browser = webdriver.Firefox()
+                self.browser.set_page_load_timeout(10)
+
+
         start = time.time()
         try:
             self.browser.get(url)
@@ -126,11 +128,16 @@ class Server(BaseServer):
             category ,is_new = Category.objects.get_or_create(key=key)
             category.name = name
             category.url = url
+            category.is_leaf = True
             print 'category.url',url
-            category.save()
-            # send singnal
-            common_saved.send(sender=ctx, site=DB, key=category.key, is_new=is_new, is_updated=not is_new)
+            try:
+                category.save()
+            except Exception,e:
+                common_failed.send(sender=ctx, site=DB, key=category.key, is_new=is_new, is_updated=not is_new)
+            else:
+                common_saved.send(sender=ctx, site=DB, key=category.key, is_new=is_new, is_updated=not is_new)
 
+    @exclusive_lock(DB)
     def crawl_category(self,ctx=False):
         """.. :py:method::
             From top depts, get all the events
@@ -141,6 +148,7 @@ class Server(BaseServer):
             print nav,url
             self._get_all_category(nav,url,ctx)
     
+    @exclusive_lock(DB)
     def crawl_listing(self,url,ctx=False):
         tree = self.ropen(url)
         for item in tree.xpath('//div[starts-with(@class,"productContainer")]'):
@@ -149,7 +157,7 @@ class Server(BaseServer):
             href = link.get('href')
             key  = self.url2product_id(href)
             url = self.format_url(href)
-            sale_id = [self.url2category_key(url)]
+            event_id = [self.url2category_key(url)]
             brand = item.xpath('.//div[@class="listBrand"]/a')[0].text_content()
             designer = link.text_content()
             print 'key',key,type(key)
@@ -173,16 +181,17 @@ class Server(BaseServer):
                     break
 
             if is_new:
-                product.sale_id = sale_id
+                product.event_id = event_id
             else:
-                product.sale_id = list(set(product.sale_id + sale_id))
+                product.event_id = list(set(product.event_id + event_id))
 
             product.title = title
             product.soldout = soldout
             product.image_urls = ['http://cdn.is.bluefly.com/mgen/Bluefly/eqzoom85.ms?img=%s.pct&outputx=738&outputy=700&level=1&ver=6' %key]
+            product.url = url
             try:
                 product.save()
-            except:
+            except Exception,e:
                 product.reviews = []
                 product.save()
             common_saved.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
@@ -205,10 +214,19 @@ class Server(BaseServer):
         """.. :py:method::
             Got all the product basic information and save into the database
         """
+
+        if not url:return
+        if not self.browser:
+            try:
+                self.browser = webdriver.Chrome()
+            except:
+                self.browser = webdriver.Firefox()
+                self.browser.set_page_load_timeout(10)
+
         print 'start parse product ',url
         point1 = time.time()
         #tree = self.ropen(url)
-        self.bopen(url)
+        self.browser.get(url)
         key = self.url2product_id(url)
         main = self.browser.find_element_by_css_selector('section#main-product-detail')
         product,is_new = Product.objects.get_or_create(key=key)
@@ -293,7 +311,8 @@ class Server(BaseServer):
                 date_str=  self.browser.find_element_by_xpath('//div[@class="review-date"]').text
                 # patch
                 if '?' in date_str:
-                    date_str = date_str[:-1]
+                    date_str = date_str[:-1].replace('?','-')
+                print 'date str',date_str
                 date_obj = dt_parser.parse(date_str)
                 review.post_time = date_obj
                 review.username = self.browser.find_element_by_xpath('//div[@class="review-author"]/a').text
@@ -304,9 +323,13 @@ class Server(BaseServer):
                 product.reviews = reviews
 
         print 'parse by seleunim used ',time.time() - point2
-        product.save()
-        print 'parse product total used',time.time() - point1
-        common_saved.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
+        try:
+            product.save()
+        except Exception,e:
+            common_failed.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
+        else:
+            print 'parse product total used',time.time() - point1
+            common_saved.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
 
 if __name__ == '__main__':
     server = Server()
@@ -317,7 +340,7 @@ if __name__ == '__main__':
 
     if 1:
         point1 = time.time()
-        server.crawl_category()
+        print '>>>',server.crawl_category()
         print 'category count',Category.objects.all().count()
         print 'parse category used',time.time() - point1
         

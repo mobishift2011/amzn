@@ -49,8 +49,7 @@ class Server:
         self.siteurl = 'http://www.ruelala.com'
         self.email = 'huanzhu@favbuy.com'
         self.passwd = '4110050209'
-        self.event_list = []
-        self.product_list = []
+        self._signin = False
 
     def get(self,url):
         start = time.time()
@@ -71,6 +70,8 @@ class Server:
         :param email: login email
         :param passwd: login passwd
         """
+        if self._signin:
+            return
         
         if not email:
             email, passwd = self.email, self.passwd
@@ -122,20 +123,12 @@ class Server:
             print 'go to ',url
             print 'res',self._get_event_list(category,url,ctx)
 
-
-    def crawl_product(self,product_id,product_url):
-        self.login(self.email, self.passwd)
-        product_list = [(product_id,product_url)]
-        for product in product_list:
-            product_id = product[0]
-            product_url = product[1]
-            self._crawl_product_detail(product_id,product_url)
+        self._signin = False
 
     def _get_event_list(self,category_name,url,ctx):
         """.. :py:method::
             Get all the events from event list.
         """
-
         def get_end_time(str):
             str =  str.replace('CLOSING IN ','').replace(' ','')
             if 'DAYS' in str:
@@ -200,12 +193,18 @@ class Server:
             
             event.update_time = datetime.datetime.utcnow()
             event.is_leaf = True
-            event.save()
-            common_saved.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=not is_new)
+            try:
+                event.save()
+            except Exception,e:
+                common_failed.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=not is_new)
+            else:
+                common_saved.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=not is_new)
             result.append((event_id,a_url))
         return result
 
-    def crawl_listing(self,event_url,ctx):
+    @exclusive_lock(DB)
+    def crawl_listing(self,url,ctx):
+        event_url = url
         event_id = self._url2saleid(event_url)
         self.login(self.email, self.passwd)
         result = []
@@ -231,14 +230,12 @@ class Server:
 
         if not nodes:
 
-            """
-            patch:
-            some event url (like:http://www.ruelala.com/event/57961) will 301 redirect to product detail page:
-            http://www.ruelala.com/product/detail/eventId/57961/styleNum/4112913877/viewAll/0
-            """
+            #patch 1:
+            #some event url (like:http://www.ruelala.com/event/57961) will 301 redirect to product detail page:
+            #http://www.ruelala.com/product/detail/eventId/57961/styleNum/4112913877/viewAll/0
             url_301 = self.browser.current_url
             if url_301 <>  event_url:
-                self.product_list.append(url_301)
+                self.crawl_product(url)
             else:
                 raise ValueError('can not find product @url:%s sale id:%s' %(event_url,event_id))
 
@@ -248,9 +245,10 @@ class Server:
             a = node.find_element_by_xpath('./a')
             href = a.get_attribute('href')
 
-            # patch 
+            # patch 2
+            # the event have some sub events
             if href.split('/')[-2] == 'event':
-                self.event_list.append(self.format_url(href))
+                self.crawl_listing(self.format_url(href))
                 continue
 
             img = node.find_element_by_xpath('./a/img')
@@ -292,9 +290,12 @@ class Server:
                 pass
             else:
                 product.event_id.append(str(event_id))
-
-            product.save()
-            common_saved.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
+            try:
+                product.save()
+            except:
+                common_failed.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=not is_new)
+            else:
+                common_saved.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
             result.append((product_id,url))
         return result
 
@@ -315,12 +316,14 @@ class Server:
             urls.append(url)
         return urls
 
-    def _crawl_product_detail(self,product_id,url,ctx=False):
+    @exclusive_lock(DB)
+    def crawl_product(self,url,ctx=False):
         """.. :py:method::
             Got all the product basic information and save into the database
         """
-        if not self.get(url):
-            return False
+        self.login(self.email, self.passwd)
+        product_id = self._url2product_id
+        self.get(event_url)
 
         try:
             self.browser.find_element_by_css_selector('div#optionsLoadingIndicator.row')
@@ -386,10 +389,14 @@ class Server:
 
         product.updated = True
         product.full_update_time = datetime.datetime.utcnow()
-        product.save()
-        print 'save data used ',time.time() - point5
-        print 'parse product detail used',time.time() - point1
-        common_saved.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
+        try:
+            product.save()
+        except Exception,e:
+                common_failed.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=not is_new)
+        else:
+            print 'save data used ',time.time() - point5
+            print 'parse product detail used',time.time() - point1
+            common_saved.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
 
     def _url2saleid(self, url):
         """.. :py:method::

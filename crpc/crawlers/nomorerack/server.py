@@ -117,6 +117,32 @@ class Server(BaseServer):
             url = 'http://nomorerack.com/daily_deals/category/%s' %name
             #self.crawl_category_product(name,url)
 
+
+    def _crawl_category_product(name,url):
+        self.bopen(url)
+        self.browser.execute_script("""
+        (function () {
+            var y = 0;
+            var step = 100;
+            window.scroll(0, 0);
+
+            function f() {
+                if (y < document.body.scrollHeight) {
+                    y += step;
+                    window.scroll(0, y);
+                    setTimeout(f, 50);
+                } else {
+                    window.scroll(0, 0);
+                    document.title += "scroll-done";
+                }
+            }
+
+            setTimeout(f, 1000);
+        })();
+    """)
+
+        pass
+
     def url2product_id(self,url):
         m = re.compile(r'^http://(.*)nomorerack.com/daily_deals/view/(\d+)-').findall(url)[0]
         return m[-1]
@@ -216,7 +242,6 @@ class Server(BaseServer):
 
         return
 
-
     def format_date_str(self,date_str):
         """ translate the string to datetime object """
 
@@ -229,10 +254,12 @@ class Server(BaseServer):
 if __name__ == '__main__':
     server = Server()
     import time
+    if 1:
+        server._crawl_category_product('women','')
     if 0:
         server.crawl_category()
 
-    if 1:
+    if 0:
         for event in Event.objects.all():
             url = event.url()
             server.crawl_listing(url)

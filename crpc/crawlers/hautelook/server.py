@@ -111,11 +111,17 @@ class Server(object):
         data = json.loads(resp.text)
         for item in data['availabilities']:
             info = item['availability']
-            info['inventory_id']
-            info['color']
-            info['']
-
+            key = info['inventory_id']
+            color = '' if info['color'].lower() == 'no color' else info['color']
+            product, is_new = Product.objects.get_or_create(pk=key)
+            if is_new:
+                if color: product.color = color
+            product.scarcity = str(info['sizes'][0]['size']['remaining'])
+            product.updated = False
+            product.list_update_time = datetime.utcnow()
+            product.save()
         common_saved.send(sender=ctx, key=url, url=url, is_new=is_new, is_updated=is_updated)
+
 
     def crawl_product(self, url, ctx):
         """.. :py:method::
@@ -124,21 +130,13 @@ class Server(object):
             http://www.hautelook.com/v2/product/5446548
         :param url: product url
         """
-        product, is_new = Product.objects.get_or_create(pk=casin)
-        if is_new:
-            product.dept = dept
-            product.sale_id = [sale_id]
-            product.brand = sale_title
-            product.asin = asin
-            product.title = title
-        else:
-            if sale_id not in product.sale_id: product.sale_id.append(sale_id)
-        product.updated = False
-        product.list_update_time = datetime.utcnow()
-        product.save()
+        resp = request.get(url)
+        data = json.loads(resp.text)['data']
+        data['brand_name']
+        data
+
         product.updated = True
         product.full_update_time = datetime.utcnow()
-        product.save()
         
 
         

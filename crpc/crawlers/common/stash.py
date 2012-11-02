@@ -11,7 +11,7 @@ This module is a common function collections used by all the crawlers.
 import requests
 import re
 import pytz
-from datetime import *
+from datetime import datetime
 from gevent.coros import Semaphore
 
 login_email = 'huanzhu@favbuy.com'
@@ -75,7 +75,7 @@ def exclusive_lock(name):
     return safe_lock
 
 
-def time_convert(self, time_str, time_format):
+def time_convert(time_str, time_format):
     """.. :py:method::
 
     :param time_str: u'SAT OCT 20 9 AM '

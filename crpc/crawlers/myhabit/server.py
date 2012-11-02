@@ -17,7 +17,7 @@ import lxml.html
 import pytz
 
 from urllib import quote, unquote
-from datetime import datetime, timedelta
+from datetime import datetime
 import selenium
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait

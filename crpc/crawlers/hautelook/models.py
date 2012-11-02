@@ -30,11 +30,8 @@ class Event(BaseEvent):
 
 
 class Product(LuxuryProduct):
-    dept = StringField()
-    asin = StringField()
-
     color = StringField()
-    video = StringField()
+    scarcity = StringField()
 
     meta = {
         "indexes": ["updated"],
@@ -42,4 +39,4 @@ class Product(LuxuryProduct):
     }
 
     def url(self):
-        return 'http://www.myhabit.com/homepage#page=d&dept={0}&sale={1}&asin={2}&cAsin={3}'.format(self.dept, self.sale_id[0], self.asin, self.key)
+        return 'http://www.hautelook.com/v2/product/{0}'.format(self.key)

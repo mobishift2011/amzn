@@ -11,9 +11,9 @@ import time
 def run(rpc, site):
     begin = time.time()
 
-#    update_category(site, rpc)
-#    category_cost = time.time() - begin
-#    print '\n\n--++ {0} ++--\n\n'.format(category_cost)
+    update_category(site, rpc)
+    category_cost = time.time() - begin
+    print '\n\n--++ {0} ++--\n\n'.format(category_cost)
 
     update_listing(site, rpc)
     list_cost = time.time() - begin

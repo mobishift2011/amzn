@@ -139,7 +139,7 @@ class Server(object):
             if data['event_title'] != data['brand_name']:
                 product.brand = data['brand_name']
 
-        product.sizes = [sz['name'] for sz in data['collections']['size']] # OS -- no size
+        product.sizes = [sz['name'] for sz in data['collections']['size']] # OS -- no size info
         image_set = set()
         for k,v in data['collections']['images'].iteritems():
             for img in v['large']:
@@ -159,8 +159,8 @@ class Server(object):
                     break
 
         if data['add_info']: product.additional_info = data['add_info'].split('\n')
-        product.care_info = data['care']
-        product.fiber = data['fiber']
+        if data['care']: product.care_info = data['care']
+        if data['fiber']: product.fiber = data['fiber']
         product.arrives = data['arrives']
 
         product.returned = str(int(data['returnable'])) # bool

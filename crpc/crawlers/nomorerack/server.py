@@ -97,11 +97,6 @@ class Server(BaseServer):
             print 'event id',event_id
             img_url = 'http://nmr.allcdn.net/images/events/all/banners/event-%s-medium.jpg' %event_id
             event ,is_new = Event.objects.get_or_create(event_id=event_id)
-            if is_new:
-                event.event_id = [event_id]
-            else:
-                event.event_id = list(set(event.event_id.append(event_id)))
-
             event.title = title
             event.image_urls = [img_url]
             event.events_end = date_obj
@@ -150,9 +145,8 @@ class Server(BaseServer):
             price = item.find_element_by_css_selector('div.pricing ins').text
             listprice = item.find_element_by_css_selector('div.pricing del').text
             href = item.find_element_by_css_selector('div.image a').get_attribute('href')
-            #item_url = self.format_url(href)
+            item_url = self.format_url(href)
             key = self.url2product_id(item_url)
-
             product ,is_new = Product.objects.get_or_create(key=key)
             product.price = price
             product.listproce = listprice
@@ -208,6 +202,7 @@ class Server(BaseServer):
         product.end_time = date_obj
         product.price = price
         product.listprice = listprice
+        product.pagesize    =   sizes
 
         try:
             product.save()
@@ -234,13 +229,13 @@ class Server(BaseServer):
 if __name__ == '__main__':
     server = Server()
     import time
-    if 1:
+    if 0:
         server.crawl_category()
 
-    if 0:
+    if 1:
         for event in Event.objects.all():
             url = event.url()
-            server.crawl_lisging(url)
+            server.crawl_listing(url)
     if 0:
         url = 'http://nomorerack.com/events/view/1041'
         server.crawl_listing(url)

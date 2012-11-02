@@ -19,13 +19,12 @@ class Event(BaseEvent):
     }
 
     def url(self):
-        return 'http://nomorerack.com/events/view/%s' %self.event_id[0]
+        return 'http://nomorerack.com/events/view/%s' %self.event_id
 
 class Product(LuxuryProduct):
     event_id = StringField()
     dept = StringField()
     listprice = StringField()
-    return_policy  = StringField()
     color = StringField()
     end_time = DateTimeField()
 

@@ -35,11 +35,11 @@ def mark_all_failed():
             t.update(set__status=Task.FAILED, push__fails=fail(t.site, t.method, '', '', 'Monitor Restart'))
 
 def task_all_tasks():
-    tasks = Task.objects().select_related()
+    tasks = Task.objects().fields(slice__fails=-10).order_by('-updated_at').limit(100).select_related()
     return {"tasks":[t.to_json() for t in tasks]}
 
 def task_updates():
-    tasks = Task.objects(updated_at__gt=datetime.utcnow()-timedelta(seconds=60)).select_related()
+    tasks = Task.objects(updated_at__gt=datetime.utcnow()-timedelta(seconds=60)).fields(slice__fails=-10).select_related()
     return {"tasks":[t.to_json() for t in tasks]}
 
 @pre_general_update.bind
@@ -114,4 +114,4 @@ def stat_failed(sender, **kwargs):
         fail(site, method, key, url, traceback.format_exc())
 
 if __name__ == '__main__':
-    print task_updates()
+    print task_all_tasks()

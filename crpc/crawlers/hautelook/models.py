@@ -31,11 +31,10 @@ class Event(BaseEvent):
 
 
 class Product(LuxuryProduct):
-    scarcity = StringField()
-
     additional_info = ListField(StringField())
     care_info = StringField()
     fiber = StringField()
+    arrives = StringField()
 
     international_ship = StringField()
     delivery_date = StringField()

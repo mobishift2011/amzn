@@ -35,7 +35,7 @@ def mark_all_failed():
             t.update(set__status=Task.FAILED, push__fails=fail(t.site, t.method, '', '', 'Monitor Restart'))
 
 def task_all_tasks():
-    tasks = Task.objects().fields(slice__fails=-10).order_by('-updated_at').limit(300).select_related()
+    tasks = Task.objects().fields(slice__fails=-10).order_by('-updated_at').limit(100).select_related()
     return {"tasks":[t.to_json() for t in tasks]}
 
 def task_updates():

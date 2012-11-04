@@ -315,7 +315,8 @@ class Server(BaseServer):
             if reviews:
                 product.reviews = reviews
 
-        print 'parse by seleunim used ',time.time() - point2
+        #print 'parse by seleunim used ',time.time() - point2
+        product.updated = True
         try:
             product.save()
         except Exception,e:

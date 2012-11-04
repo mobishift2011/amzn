@@ -70,8 +70,6 @@ def spout_product(site):
     p1 = m.Product.objects.filter(updated = False).timeout(False)
     p2 = m.Product.objects.filter(updated = True, 
             full_update_time__lt = datetime.utcnow()-timedelta(hours=24)).timeout(False)
-    print 'p1',p1
-    print 'p2',p2
     for p in chain(p1, p2):
         if site == 'ecost':
             yield {'url': p.url(), 'ecost': p.key}

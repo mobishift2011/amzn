@@ -77,6 +77,13 @@ class Server(BaseServer):
         """.. :py:method::
             From top depts, get all the events
         """
+        ###########################
+        # section 2, parse deal products
+        ###########################
+        categorys = ['women','men','home','electronics','lifestyle']
+        for name in categorys:
+            self._crawl_category_product(name,ctx)
+        self.crawl_listing('http://nomorerack.com/daily_deals/category/kids',ctx)
 
         ###########################
         # section 1, parse events
@@ -110,13 +117,6 @@ class Server(BaseServer):
             else:
                 common_saved.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=not is_new)
 
-        ###########################
-        # section 2, parse deal products
-        ###########################
-        categorys = ['women','men','home','electronics','lifestyle']
-        for name in categorys:
-            self._crawl_category_product(name,ctx)
-        self.crawl_listing('http://nomorerack.com/daily_deals/category/kids',ctx)
 
     def _crawl_category_product(self,name,ctx=''):
         _url = 'http://nomorerack.com/daily_deals/category_jxhrq/%s?sort=best_selling&offset=%d'

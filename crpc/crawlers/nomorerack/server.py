@@ -133,7 +133,7 @@ class Server(BaseServer):
             
             for div in  divs:
                 img_url = div.xpath('.//img')[0].get('src')
-                category = div.xpath('.//h4')[0].text
+                category = div.xpath('.//h4')[0].text or ''
                 price = div.xpath('.//div[@class="pricing"]/ins')[0].text
                 listprice = div.xpath('.//div[@class="pricing"]/del')[0].text
                 href = div.xpath('.//a')[0].get('href')

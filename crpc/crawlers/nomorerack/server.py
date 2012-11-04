@@ -116,33 +116,41 @@ class Server(BaseServer):
         ###########################
         categorys = ['women','men','home','electronics','lifestyle']
         for name in categorys:
-            self.crawl_category_product(name,ctx)
+            self._crawl_category_product(name,ctx)
         self.crawl_listing('http://nomorerack.com/daily_deals/category/kids',ctx)
 
     def _crawl_category_product(self,name,ctx=''):
         _url = 'http://nomorerack.com/daily_deals/category_jxhrq/%s?sort=best_selling&offset=%d'
         for i in range(0,10000):
-            time.sleep(2)
-            url = _url%(name,i*12)
-            print 'url',url
-            self.bopen(url)
+            if name == 'kids':
+                url = 'http://nomorerack.com/daily_deals/category/kids'
+            else:
+                url = _url%(name,i*12)
+            tree = self.ropen(url)
             try:
-                divs = self.browser.find_elements_by_css_selector('div.deal')
+                divs = tree.xpath('//div[starts-with(@class,"deal")]')
             except NoSuchElementException:
                 return
             
             for div in  divs:
-                img_url = div.find_element_by_css_selector('img').get_attribute('src')
-                category = div.find_element_by_css_selector('h4').text
-                price = div.find_element_by_css_selector('div.pricing ins').text
-                listprice = div.find_element_by_css_selector('div.pricing del').text
-                href = div.find_element_by_css_selector('a').get_attribute('href')
-                title = div.find_element_by_css_selector('div.info p').text
-                key = self.url2product_id(href)
+                img_url = div.xpath('.//img')[0].get('src')
+                category = div.xpath('.//h4')[0].text
+                price = div.xpath('.//div[@class="pricing"]/ins')[0].text
+                listprice = div.xpath('.//div[@class="pricing"]/del')[0].text
+                href = div.xpath('.//a')[0].get('href')
+                detail_url = self.format_url(href)
+                title = div.xpath('.//p')[0].text
+                key = self.url2product_id(detail_url)
+
                 for i in locals().items():
                     print 'i',i
 
                 product,is_new = Product.objects.get_or_create(pk=key)
+                if category.upper() == 'SOLD OUT':
+                    product.soldout = True
+                    product.cats = [name]
+                else:
+                    product.cates = [name,category]
                 product.image_urls = [img_url]
                 product.price = price
                 product.listprice = listprice
@@ -153,8 +161,13 @@ class Server(BaseServer):
                     common_failed.send(sender=ctx, site=DB, key=key, is_new=is_new, is_updated=not is_new)
                 else:
                     common_saved.send(sender=ctx, site=DB, key=key, is_new=is_new, is_updated=not is_new)
+            
+            # the kids category just have one page 
+            if name == 'kids':
+                return
 
     def url2product_id(self,url):
+        print 're.url',url
         m = re.compile(r'^http://(.*)nomorerack.com/daily_deals/view/(\d+)-').findall(url)[0]
         return m[-1]
 
@@ -265,9 +278,9 @@ class Server(BaseServer):
 if __name__ == '__main__':
     server = Server()
     import time
-    if 0:
-        server._crawl_category_product('women')
     if 1:
+        server._crawl_category_product('kids')
+    if 0:
         server.crawl_category()
 
     if 0:
@@ -275,7 +288,7 @@ if __name__ == '__main__':
             url = event.url()
             server.crawl_listing(url)
     if 0:
-        url = 'http://nomorerack.com/events/view/1041'
+        url = 'http://nomorerack.com/daily_deals/category/kids'
         server.crawl_listing(url)
 
     if 0:

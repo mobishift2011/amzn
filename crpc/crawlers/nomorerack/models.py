@@ -23,7 +23,6 @@ class Event(BaseEvent):
 
 class Product(LuxuryProduct):
     event_id = StringField()
-    dept = StringField()
     listprice = StringField()
     color = StringField()
     end_time = DateTimeField()

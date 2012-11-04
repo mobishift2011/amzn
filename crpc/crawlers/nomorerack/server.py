@@ -17,6 +17,7 @@ from selenium.common.exceptions import *
 from crawlers.common.events import category_saved, category_failed, category_deleted
 from crawlers.common.events import product_saved, product_failed, product_deleted
 from crawlers.common.events import common_saved, common_failed
+from selenium.webdriver.support.ui import WebDriverWait
 
 from models import *
 from crawlers.common.events import *
@@ -81,7 +82,8 @@ class Server(BaseServer):
         # section 1, parse events
         ###########################
         self.bopen(self.siteurl)
-        for e in self.browser.find_elements_by_css_selector('div.event'):
+        if 0:
+        #for e in self.browser.find_elements_by_css_selector('div.event'):
             title = e.text
             if title == 'VIEW EVENT':
                 continue
@@ -112,47 +114,45 @@ class Server(BaseServer):
         ###########################
         # section 2, parse deal products
         ###########################
-        categorys = ['women','men','home','electronics','kids','lifestyle']
+        categorys = ['women','men','home','electronics','lifestyle']
         for name in categorys:
-            url = 'http://nomorerack.com/daily_deals/category/%s' %name
-            #self.crawl_category_product(name,url)
+            self.crawl_category_product(name,ctx)
+        self.crawl_listing('http://nomorerack.com/daily_deals/category/kids',ctx)
 
-    def _crawl_category_product(self,name,url):
-        self.bopen(url)
-        self.browser.execute_script("""
-        (function () {
-            var y = 0;
-            var step = 100;
-            window.scroll(0, 0);
-
-            function f() {
-                if (y < document.body.scrollHeight) {
-                    y += step;
-                    window.scroll(0, y);
-                    setTimeout(f, 150);
-                } else {
-                    window.scroll(0, 0);
-                    document.title += "scroll-done";
-                }
-            }
-
-            setTimeout(f, 1000);
-        })();
-    """)
-        print '>>>>'
-        ITEMS = set()
-        while True:
-            time.sleep(1)
-            items = set(self.browser.find_elements_by_xpath('div[@class="deal cell cell-2  standard"'))
-            new_items = ITEMS - items
-            if not new_items:
-                break
+    def _crawl_category_product(self,name,ctx=''):
+        _url = 'http://nomorerack.com/daily_deals/category_jxhrq/%s?sort=best_selling&offset=%d'
+        for i in range(0,10000):
+            time.sleep(2)
+            url = _url%(name,i*12)
+            print 'url',url
+            self.bopen(url)
+            try:
+                divs = self.browser.find_elements_by_css_selector('div.deal')
+            except NoSuchElementException:
+                return
             
-            for item in new_items:
-                print 'new item',item.text
+            for div in  divs:
+                img_url = div.find_element_by_css_selector('img').get_attribute('src')
+                category = div.find_element_by_css_selector('h4').text
+                price = div.find_element_by_css_selector('div.pricing ins').text
+                listprice = div.find_element_by_css_selector('div.pricing del').text
+                href = div.find_element_by_css_selector('a').get_attribute('href')
+                title = div.find_element_by_css_selector('div.info p').text
+                key = self.url2product_id(href)
+                for i in locals().items():
+                    print 'i',i
 
-        
-
+                product,is_new = Product.objects.get_or_create(pk=key)
+                product.image_urls = [img_url]
+                product.price = price
+                product.listprice = listprice
+                product.title = title
+                try:
+                    product.save()
+                except:
+                    common_failed.send(sender=ctx, site=DB, key=key, is_new=is_new, is_updated=not is_new)
+                else:
+                    common_saved.send(sender=ctx, site=DB, key=key, is_new=is_new, is_updated=not is_new)
 
     def url2product_id(self,url):
         m = re.compile(r'^http://(.*)nomorerack.com/daily_deals/view/(\d+)-').findall(url)[0]
@@ -265,9 +265,9 @@ class Server(BaseServer):
 if __name__ == '__main__':
     server = Server()
     import time
-    if 1:
-        server._crawl_category_product('women','http://nomorerack.com/daily_deals/category/women')
     if 0:
+        server._crawl_category_product('women')
+    if 1:
         server.crawl_category()
 
     if 0:

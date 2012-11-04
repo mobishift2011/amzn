@@ -7,11 +7,6 @@ crawlers.common.rpcserver
 Provides a meta programmed integrated RPC call for all callers
 
 """
-from settings import RPC_PORT, CRPC_ROOT, MONGODB_HOST
-from os import listdir
-from os.path import join, abspath, dirname, isdir
-from helpers import log
-
 from gevent.coros import Semaphore
 from selenium.common.exceptions import *
 import lxml.html
@@ -19,7 +14,7 @@ import requests
 import urllib
 from selenium import webdriver
 import time
-import zerorpc
+#import zerorpc
 
 locked = {}
 def exclusive_lock(name):
@@ -115,7 +110,8 @@ class BaseServer(object):
             return  urllib.basejoin(self.siteurl,url)
 
 if __name__ == '__main__':
-    zs = zerorpc.Server(RPCServer()) 
-    zs.bind("tcp://0.0.0.0:{0}".format(RPC_PORT))
-    zs.run()
+    s = BaserServer()
+    #zs = zerorpc.Server(RPCServer()) 
+    #zs.bind("tcp://0.0.0.0:{0}".format(RPC_PORT))
+    #zs.run()
 

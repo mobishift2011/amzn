@@ -5,6 +5,11 @@ from helpers.log import getlogger
 
 logger = getlogger("crawlerlog")
 
+
+@pre_general_update.bind
+def debug(sender,**kwargs):
+    print '>>debug:',sender,kwargs.items()
+
 @debug_info.bind
 def debug_info_print(sender, **kwargs):
     logger.debug('<{0}> -- {1}'.format(sender, kwargs.items()))

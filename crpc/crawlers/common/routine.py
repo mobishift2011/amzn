@@ -44,15 +44,13 @@ def spout_listing(site):
 def spout_category(site, category):
     """ return a generator spouting category parameters """
     c = category
-#    if c.spout_time and c.spout_time > datetime.utcnow()-timedelta(hours=12):
-#        return
+    if c.spout_time and c.spout_time > datetime.utcnow()-timedelta(hours=12):
+        return
     if site == 'ecost':
         if c.num: # not None or 0
             yield {'url': c.link, 'catstr': c.cat_str, 'num': c.num}
         else:
             yield {'url': c.link, 'catstr': c.cat_str}
-    elif site == 'ruelala':
-        yield {'url':c.url()}
     elif site == 'bluefly':
         yield {'url':c.url}
     elif site == 'amazon':

@@ -26,8 +26,15 @@ def run(rpc, site):
 
 if __name__ == '__main__':
     rpc = RPCServer()
-    if sys.argv[1]:
-        if sys.argv[1] == 'myhabit' or 'zulily' or 'hautelook':
-            run(rpc, sys.argv[1])
+    site = sys.argv[1]
+    fun = sys.argv[2]  or 1
+    fun = int(fun)
+    if fun == 1:
+        print '>> update category'
+        update_category(site, rpc)
+    elif fun == 2:
+        print '>> update listing'
+        update_listing(site,rpc)
     else:
-        update_category('ruelala', rpc)
+        print '>> update product'
+        update_product(site,rpc)

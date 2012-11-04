@@ -268,6 +268,7 @@ class Server(BaseServer):
         product.price = price
         product.listprice = listprice
         product.pagesize    =   sizes
+        product.updated = True
 
         try:
             product.save()

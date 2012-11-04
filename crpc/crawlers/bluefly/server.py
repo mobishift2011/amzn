@@ -203,6 +203,7 @@ class Server(BaseServer):
             urls.append(url)
         return urls
 
+    @exclusive_lock(DB)
     def crawl_product(self,url,ctx=False):
         """.. :py:method::
             Got all the product basic information and save into the database

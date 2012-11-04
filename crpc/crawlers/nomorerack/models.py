@@ -28,7 +28,7 @@ class Product(LuxuryProduct):
     end_time = DateTimeField()
 
     def url(self):
-        return 'http://nomorerack.com/daily_deals/view/%d-product' %self.key
+        return 'http://nomorerack.com/daily_deals/view/%s-product' %self.key
 
     meta                =   {
         "db_alias": DB,

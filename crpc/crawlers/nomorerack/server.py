@@ -73,7 +73,7 @@ class Server(BaseServer):
         else:
             self._signin = False
 
-    def crawl_category(self,ctx=False):
+    def crawl_category(self,ctx=''):
         """.. :py:method::
             From top depts, get all the events
         """
@@ -208,7 +208,7 @@ class Server(BaseServer):
             else:
                 common_saved.send(sender=ctx, site=DB, key=key, is_new=is_new, is_updated=not is_new)
 
-    def crawl_product(self,url):
+    def crawl_product(self,url,ctx=''):
         """.. :py:method::
             Got all the product basic information and save into the database
         """

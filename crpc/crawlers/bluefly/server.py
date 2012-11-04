@@ -36,6 +36,7 @@ class Server(BaseServer):
         self.siteurl = 'http://www.bluefly.com'
         self.site ='bluefly'
         self.browser = False
+        self._signin = False
         #self.login(self.email, self.passwd)
 
     def bopen(self,url):
@@ -59,15 +60,6 @@ class Server(BaseServer):
             #self.tree = lxml.html.fromstring(self.html)
             print 'bopen used',time.time() - start
             return True
-
-    def login(self, email=None, passwd=None):
-        """.. :py:method::
-            login urelala
-
-        :param email: login email
-        :param passwd: login passwd
-        """
-        
 
         #self.browser.implicitly_wait(2)
         self.browser.get(self.siteurl)
@@ -147,6 +139,7 @@ class Server(BaseServer):
             nav,url = i
             print nav,url
             self._get_all_category(nav,url,ctx)
+
     
     @exclusive_lock(DB)
     def crawl_listing(self,url,ctx=False):
@@ -210,6 +203,7 @@ class Server(BaseServer):
             urls.append(url)
         return urls
 
+    @exclusive_lock(DB)
     def crawl_product(self,url,ctx=False):
         """.. :py:method::
             Got all the product basic information and save into the database
@@ -322,7 +316,8 @@ class Server(BaseServer):
             if reviews:
                 product.reviews = reviews
 
-        print 'parse by seleunim used ',time.time() - point2
+        #print 'parse by seleunim used ',time.time() - point2
+        product.updated = True
         try:
             product.save()
         except Exception,e:

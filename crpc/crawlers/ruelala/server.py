@@ -10,9 +10,6 @@ This is the server part of zeroRPC module. Call by client automatically, run on 
 """
 from gevent import monkey
 monkey.patch_all()
-from gevent.coros import Semaphore
-lock = Semaphore()
-
 import os
 from selenium import webdriver
 from selenium.common.exceptions import *
@@ -29,14 +26,7 @@ import lxml
 import datetime
 import time
 import urllib
-
-def safe_lock(func,*arg,**kwargs):
-    def wrapper(*arg,**kwargs):
-        lock.acquire()
-        res = func(*arg,**kwargs)
-        lock.release()
-        return res
-    return wrapper
+import re
 
 class Server:
     """.. :py:class:: Server
@@ -200,16 +190,19 @@ class Server:
             else:
                 common_saved.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=not is_new)
             result.append((event_id,a_url))
+            print 'is leaf',event.is_leaf
         return result
 
     @exclusive_lock(DB)
-    def crawl_listing(self,url,ctx):
+    def crawl_listing(self,url,ctx=''):
+        return self._crawl_listing(url,ctx)
+
+    def _crawl_listing(self,url,ctx):
         event_url = url
         event_id = self._url2saleid(event_url)
         self.login(self.email, self.passwd)
         result = []
         self.get(event_url)
-
         try:
             span = self.browser.find_element_by_xpath('//span[@class="viewAll"]')
         except:
@@ -235,7 +228,9 @@ class Server:
             #http://www.ruelala.com/product/detail/eventId/57961/styleNum/4112913877/viewAll/0
             url_301 = self.browser.current_url
             if url_301 <>  event_url:
-                self.crawl_product(url)
+                print '301,',url_301
+                self._crawl_product(url_301,ctx)
+                print '301 end'
             else:
                 raise ValueError('can not find product @url:%s sale id:%s' %(event_url,event_id))
 
@@ -248,7 +243,7 @@ class Server:
             # patch 2
             # the event have some sub events
             if href.split('/')[-2] == 'event':
-                self.crawl_listing(self.format_url(href))
+                self._crawl_listing(self.format_url(href),ctx)
                 continue
 
             img = node.find_element_by_xpath('./a/img')
@@ -273,6 +268,7 @@ class Server:
             if not is_new:
                 product.url = url
                 product.event_id = [str(event_id)]
+            print 'hhh'
 
             try:
                 s = node.find_elements_by_tag_name('span')[1]
@@ -282,7 +278,6 @@ class Server:
                 if s.get_attribute('class') == 'soldOutOverlay swiEnabled':
                     product.soldout = True
 
-            product.updated = True
             product.title = title
             product.price = str(product_price)
             product.list_price = str(strike_price)
@@ -297,6 +292,7 @@ class Server:
             else:
                 common_saved.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
             result.append((product_id,url))
+
         return result
 
     def _make_img_urls(slef,product_key,img_count):
@@ -308,6 +304,8 @@ class Server:
         http://www.ruelala.com/images/product/131385/1313856984_RLLZ_1.jpg
         http://www.ruelala.com/images/product/131385/1313856984_RLLZ_2.jpg
         """
+        print 'f.product key',product_key
+        print 'f.count',img_count
         urls = []
         prefix = 'http://www.ruelala.com/images/product/'
         for i in range(0,img_count):
@@ -317,43 +315,47 @@ class Server:
         return urls
 
     @exclusive_lock(DB)
-    def crawl_product(self,url,ctx=False):
+    def crawl_product(self,url,ctx=''):
+        return self._crawl_product(url,ctx)
+
+    def _crawl_product(self,url,ctx=''):
         """.. :py:method::
             Got all the product basic information and save into the database
         """
+        print 'aaa'
         self.login(self.email, self.passwd)
-        product_id = self._url2product_id
-        self.get(event_url)
+        print 'bbb'
+        product_id = self._url2product_id(url)
+        print 'product id',product_id
+        print 'ccc'
+        self.get(url)
+        print 'ddd'
 
         try:
             self.browser.find_element_by_css_selector('div#optionsLoadingIndicator.row')
         except:
             time.sleep(3)
+        print 'eee'
         
-        point1= time.time()
         image_urls = []
         # TODO imgDetail
         imgs_node = self.browser.find_element_by_css_selector('section#productImages')
         #first_img_url = imgs_node.find_element_by_css_selector('img#imgZoom').get_attribute('href')
+        print 'fff'
         try:
             img_count = len(imgs_node.find_elements_by_css_selector('div#imageThumbWrapper img'))
         except:
             img_count = 1
-        img_urls = self._make_img_urls(product_id,img_count)
-        print 'parse img urls used',time.time() - point1
-        
-        point2 = time.time()
+        image_urls = self._make_img_urls(product_id,img_count)
         list_info = []
         for li in self.browser.find_elements_by_css_selector('section#info ul li'):
             list_info.append(li.text)
-        print 'parse list info used',time.time() - point2
         
         #########################
         # section 2 productAttributes
         #########################
         
         attribute_node = self.browser.find_elements_by_css_selector('section#productAttributes.floatLeft')[0]
-        point3 = time.time()
         sizes = []
         size_list = attribute_node.find_elements_by_css_selector('ul#sizeSwatches li.swatch a.normal')
         if size_list:
@@ -368,34 +370,26 @@ class Server:
             left =  attribute_node.find_element_by_css_selector('span#inventoryAvailable.active').text
             sizes = [('std',left)]
 
-        print 'parse sizes used ',time.time() - point3
-        point4 = time.time()
         shipping = attribute_node.find_element_by_id('readyToShip').text
         price = attribute_node.find_element_by_id('salePrice').text
         listprice  = attribute_node.find_element_by_id('strikePrice').text
-        print 'parse other userd',time.time() - point4
-        
-        point5 = time.time()
         product, is_new = Product.objects.get_or_create(key=str(product_id))
         if is_new:
             product.shipping = shipping
             product.image_urls = image_urls
-            product.list_info = info_table
+            product.list_info = list_info
 
         product.sizes_scarcity = sizes
         product.price = price
         product.listprice = listprice
         product.shipping = shipping
-
         product.updated = True
         product.full_update_time = datetime.datetime.utcnow()
         try:
             product.save()
         except Exception,e:
-                common_failed.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=not is_new)
+                common_failed.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
         else:
-            print 'save data used ',time.time() - point5
-            print 'parse product detail used',time.time() - point1
             common_saved.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
 
     def _url2saleid(self, url):
@@ -404,24 +398,15 @@ class Server:
         :param url: the brand's url
         :rtype: string of sale_id
         """
-        id = url.split('/')[-1]
-        try:
-            id = str(id)
-        except:
-            raise ValueError('sale id error @ url %s' %url)
-        else:
-            return id
+        m = re.compile('.*/event/(\d{1,10})').findall(url)
+        return str(m[0])
 
     def _url2product_id(self,url):
-        if not url.startswith('http://'):
-            raise ValueError('url is not start with http @url:%s in function `server.url2product_id`' %url)
-
-        try:
-            id = url.split('/')[-3]
-            id = str(id)
-            return id
-        except:
-            raise ValueError('split url error @url:%s' %url)
+        # http://www.ruelala.com/event/product/60118/1411878707/0/DEFAULT
+        print 're.url',url
+        m = re.compile('http://.*ruelala.com/event/product/\d{1,10}/(\d{6,10})/\d{1}/DEFAULT').findall(url)
+        print 're.m',m
+        return str(m[0])
 
     def format_url(self,url):
         """
@@ -446,12 +431,11 @@ if __name__ == '__main__':
         ps =  Product.objects.all()
         print 'ps',ps
 
-    if 0:
-        product_id = '1411892550'
-        url = 'http://www.ruelala.com/event/product/53652/1411892550/1/DEFAULT'
-        result = server.crawl_product(product_id,url)
-
     if 1:
+        url = 'http://www.ruelala.com/event/product/60118/1411878707/0/DEFAULT'
+        result = server.crawl_product(url,'x')
+
+    if 0:
         server = Server()
         url = 'http://www.ruelala.com/event/53652'
         server.crawl_listing(url,'x')

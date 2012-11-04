@@ -10,9 +10,6 @@ This is the server part of zeroRPC module. Call by client automatically, run on 
 """
 from gevent import monkey
 monkey.patch_all()
-from gevent.coros import Semaphore
-lock = Semaphore()
-
 import os
 from selenium import webdriver
 from selenium.common.exceptions import *
@@ -29,14 +26,6 @@ import lxml
 import datetime
 import time
 import urllib
-
-def safe_lock(func,*arg,**kwargs):
-    def wrapper(*arg,**kwargs):
-        lock.acquire()
-        res = func(*arg,**kwargs)
-        lock.release()
-        return res
-    return wrapper
 
 class Server:
     """.. :py:class:: Server
@@ -200,16 +189,19 @@ class Server:
             else:
                 common_saved.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=not is_new)
             result.append((event_id,a_url))
+            print 'is leaf',event.is_leaf
         return result
 
     @exclusive_lock(DB)
-    def crawl_listing(self,url,ctx):
+    def crawl_listing(self,url,ctx=''):
+        return self._crawl_listing(url,ctx)
+
+    def _crawl_listing(self,url,ctx):
         event_url = url
         event_id = self._url2saleid(event_url)
         self.login(self.email, self.passwd)
         result = []
         self.get(event_url)
-
         try:
             span = self.browser.find_element_by_xpath('//span[@class="viewAll"]')
         except:
@@ -235,7 +227,9 @@ class Server:
             #http://www.ruelala.com/product/detail/eventId/57961/styleNum/4112913877/viewAll/0
             url_301 = self.browser.current_url
             if url_301 <>  event_url:
-                self.crawl_product(url)
+                print '301,',url_301
+                self._crawl_product(url_301,ctx)
+                print '301 end'
             else:
                 raise ValueError('can not find product @url:%s sale id:%s' %(event_url,event_id))
 
@@ -248,7 +242,7 @@ class Server:
             # patch 2
             # the event have some sub events
             if href.split('/')[-2] == 'event':
-                self.crawl_listing(self.format_url(href))
+                self._crawl_listing(self.format_url(href),ctx)
                 continue
 
             img = node.find_element_by_xpath('./a/img')
@@ -273,6 +267,7 @@ class Server:
             if not is_new:
                 product.url = url
                 product.event_id = [str(event_id)]
+            print 'hhh'
 
             try:
                 s = node.find_elements_by_tag_name('span')[1]
@@ -282,7 +277,6 @@ class Server:
                 if s.get_attribute('class') == 'soldOutOverlay swiEnabled':
                     product.soldout = True
 
-            product.updated = True
             product.title = title
             product.price = str(product_price)
             product.list_price = str(strike_price)
@@ -297,6 +291,7 @@ class Server:
             else:
                 common_saved.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
             result.append((product_id,url))
+
         return result
 
     def _make_img_urls(slef,product_key,img_count):
@@ -317,24 +312,33 @@ class Server:
         return urls
 
     @exclusive_lock(DB)
-    def crawl_product(self,url,ctx=False):
+    def crawl_product(self,url,ctx=''):
+        return self._crawl_product(url,ctx)
+
+    def _crawl_product(self,url,ctx=''):
         """.. :py:method::
             Got all the product basic information and save into the database
         """
+        print 'aaa'
         self.login(self.email, self.passwd)
+        print 'bbb'
         product_id = self._url2product_id
-        self.get(event_url)
+        print 'ccc'
+        self.get(url)
+        print 'ddd'
 
         try:
             self.browser.find_element_by_css_selector('div#optionsLoadingIndicator.row')
         except:
             time.sleep(3)
+        print 'eee'
         
         point1= time.time()
         image_urls = []
         # TODO imgDetail
         imgs_node = self.browser.find_element_by_css_selector('section#productImages')
         #first_img_url = imgs_node.find_element_by_css_selector('img#imgZoom').get_attribute('href')
+        print 'fff'
         try:
             img_count = len(imgs_node.find_elements_by_css_selector('div#imageThumbWrapper img'))
         except:
@@ -386,7 +390,6 @@ class Server:
         product.price = price
         product.listprice = listprice
         product.shipping = shipping
-
         product.updated = True
         product.full_update_time = datetime.datetime.utcnow()
         try:

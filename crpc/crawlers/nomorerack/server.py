@@ -82,8 +82,7 @@ class Server(BaseServer):
         # section 1, parse events
         ###########################
         self.bopen(self.siteurl)
-        if 0:
-        #for e in self.browser.find_elements_by_css_selector('div.event'):
+        for e in self.browser.find_elements_by_css_selector('div.event'):
             title = e.text
             if title == 'VIEW EVENT':
                 continue

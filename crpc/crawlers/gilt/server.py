@@ -52,8 +52,13 @@ class Server(object):
         """
         print(DB+'.product.{0}.begin'.format(url))
         try:
+            time.sleep(1.2)
             res = giltClient.request(url)
         except requests.exceptions.HTTPError, e:
+            print(DB+'.product.{0}.error: {1}'.format(url, str(e)))
+            common_failed.send(sender=ctx, url=url, reason=str(e))
+            return
+        except requests.exceptions.ConnectionError, e:
             print(DB+'.product.{0}.error: {1}'.format(url, str(e)))
             common_failed.send(sender=ctx, url=url, reason=str(e))
             return
@@ -73,17 +78,37 @@ class Server(object):
         product.image_urls = [urls[0].get('url') for urls in res.get('image_urls').values()]
         content = res.get('content')
         if content:
-            product.list_info = content.get('description').split('  ')
+            product.list_info = content.get('description').strip().split('  ')
             product.list_info.append('material: ' + (content.get('material') or ''))
             product.list_info.append('origin: ' + (content.get('origin') or ''))
         product.dept = res.get('categories')
-        #处理sku
+        
+        is_updated = False
+        soldout = True
+        product.soldout = True
+        for sku in res.get('skus'):
+            product.skus.append(sku.get('id'))
+            price = sku.get('msrp_price')
+            is_updated = True if not (product.price == price) else is_updated
+            product.price == price
+            
+            listprice = sku.get('sale_price')
+            is_updated = True if not (product.listprice == listprice) else is_updated
+            product.listprice = listprice
+            
+            if sku.get('inventory_status') == "for sale":
+                soldout = False
+                is_updated = True if not (product.soldout == soldout) else is_updated
+                product.soldout = soldout
+            else:
+                if sku.get('attributes'):
+                    product.sizes_scarcity.append(sku.get('attributes')[0].get('value'))
         product.updated = True
         product.full_update_time = datetime.datetime.utcnow()
         product.save()
         
         print(DB+'.product.{0}.end'.format(url))
-        common_saved.send(sender=ctx, key=product.product_key, url=url, is_new=is_new, is_updated=not is_new)
+        common_saved.send(sender=ctx, key=product.product_key, url=url, is_new=is_new, is_updated=is_updated)
     
     def crawl_sales(self, ctx, store=None):
         if store:
@@ -146,9 +171,9 @@ if __name__ == '__main__':
 #    server.run()
     timer=time.time()
     s = Server()
-    s.crawl_category('gilt')
+#    s.crawl_category('gilt')
     
-#    products = Product.objects.filter(updated=False)
-#    for product in products:
-#        s.crawl_product(product.url(), 'gilt')
+    products = Product.objects.filter(updated=False)
+    for product in products:
+        s.crawl_product(product.url(), 'gilt')
     print 'total cost(s): %s' % (time.time()-timer)

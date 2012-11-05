@@ -323,45 +323,4 @@ if __name__ == '__main__':
     server = Server()
     import time
     #server._get_all_category('test','http://www.bluefly.com/a/shoes')
-    if 0:
-        pass
-
-    if 1:
-        point1 = time.time()
-        print '>>>',server.crawl_category()
-        print 'category count',Category.objects.all().count()
-        print 'parse category used',time.time() - point1
-        
-        point2 = time.time()
-        for c in Category.objects.all():
-            print 'c.url',c.url
-            server.crawl_listing(c.url)
-
-        point3 = time.time()
-        total_count = Product.objects.all().count()
-        print '>>>total time',time.time() - point1
-        print '>>total product',total_count
-
-        count = 0
-        for p in Product.objects.all():
-            server.crawl_product(p.url)
-            count += 1 
-            print 'total product',total_count
-            print 'parsed product ',count
-            print 'parse product detail used time',time.time() - point3
-
-        print 'crawl all lising used',time.time() - point3
-        print '>>end'
-        print 'total time',time.time() - point1
-
-        #print server.get_navs()
-    if 0:
-        for c in Category.objects.all():
-            url = c.url
-            print '>>>> url',url
-            url = 'http://www.bluefly.com/Designer-Leggings/_/N-fkg/list.fly'
-            print server.crawl_listing(url)
-    if 0:
-        url = 'http://www.bluefly.com/Charles-David-black-leather-Proper-tall-boots/p/314091701/detail.fly'
-        print server.crawl_product(url)
 

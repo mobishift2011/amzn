@@ -107,10 +107,22 @@ class Server:
         """
         self.login(self.email, self.passwd)
         categorys = ['women', 'men', 'living','kids','todays-fix']
+        locals = ['http://www.ruelala.com/local/boston',
+                'http://www.ruelala.com/local/chicago',
+                'http://www.ruelala.com/local/los-angeles',
+                'http://www.ruelala.com/local/new-york-city',
+                'http://www.ruelala.com/local/philadelphia',
+                'http://www.ruelala.com/local/san-francisco'
+                'http://www.ruelala.com/local/washington-dc',
+                'http://www.ruelala.com/local/seattle',
+                ]
 
         for category in categorys:
             url = 'http://www.ruelala.com/category/%s' %category
             self._get_event_list(category,url,ctx)
+
+        for url in locals:
+            self._get_event_list('local',url,ctx)
 
         self._signin = False
 

@@ -83,6 +83,7 @@ class Server(BaseServer):
         categorys = ['women','men','home','electronics','lifestyle']
         for name in categorys:
             self._crawl_category_product(name,ctx)
+
         # the kids section is diffirent from others 
         self.crawl_listing('http://nomorerack.com/daily_deals/category/kids',ctx)
 

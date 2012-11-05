@@ -1,5 +1,6 @@
 .py[cod]
 *.pyc
+*.swp
 env.sh
 
 # C extensions

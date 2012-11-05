@@ -289,19 +289,3 @@ class Server(BaseServer):
 if __name__ == '__main__':
     server = Server()
     import time
-    if 0:
-        server._crawl_category_product('kids')
-    if 0:
-        server.crawl_category()
-
-    if 0:
-        for event in Event.objects.all():
-            url = event.url()
-            server.crawl_listing(url)
-    if 1:
-        url = 'http://nomorerack.com/daily_deals/category/kids'
-        server.crawl_listing(url)
-
-    if 0:
-        url = Product.objects.all()[10].url()
-        server.crawl_product(url)

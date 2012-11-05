@@ -53,7 +53,6 @@ class onekingslaneLogin(object):
             'returnUrl': '0',
         }   
         self._signin = False
-        self.check_signin()
 
     def login_account(self):
         """.. :py:method::
@@ -91,6 +90,7 @@ class Server(object):
         self.siteurl = 'https://www.onekingslane.com'
         self.upcoming_url = 'https://www.onekingslane.com/calendar'
         self.net = onekingslaneLogin()
+        self.extract_eventid = re.compile('https://www.onekingslane.com/sales/(\d+)')
 
     def crawl_category(self, ctx):
         """.. :py:method::
@@ -100,6 +100,7 @@ class Server(object):
         debug_info.send(sender=DB + '.category.begin')
 
         self.upcoming_proc(ctx)
+        exit()
         for dept in depts:
             link = 'http://www.zulily.com/?tab={0}'.format(dept)
             self.get_event_list(dept, link, ctx)
@@ -145,18 +146,29 @@ class Server(object):
         """.. :py:method::
             Get all the upcoming brands info 
         """
-        upcoming_list = []
         cont = self.net.fetch_page(self.upcoming_url)
         tree = lxml.html.fromstring(cont)
-        node = tree.cssselect('body.holiday > div#wrapper > div#okl-content > div.calendar-r > div.day')
-        nodes = node.cssselect('div.all-times li')
+        nodes = tree.cssselect('body.holiday > div#wrapper > div#okl-content > div.calendar-r > div.day')
         for node in nodes:
-            link = node.get('href')
-            text = node.text_content()
-            upcoming_list.append( (text, link) )
-        self.upcoming_detail(upcoming_list, ctx)
+            date = node.cssselect('span.date')[0].text_content()
+            all_times = node.cssselect('div.all-times li > h3')
+            markets = node.cssselect('div.all-times > ul > li')
+            for market in markets:
+                link = market.cssselect('h4 > a')[0].get('href')
+                link = link if link.startswith('http') else self.siteurl + link
+                event_id = self.extract_eventid.match(link).group(1)
+                event, is_new = Event.objects.get_or_create(event_id=event_id)
+                if is_new:
+                    img = market.cssselect('h4 > a > img')[0].get('src') + '?$mp_hero_standard_2.8$'
+                    event.image_urls = [img]
+                    event.sale_title = market.cssselect('h4 > a')[0].text_content()
+                    event.short_desc = market.cssselect('p.shortDescription')[0].text_content()
+                    detail_tree = lxml.html.fromstring(self.net.fetch_page(link))
+                    sale_description = detail_tree.cssselect('div#wrapper > div#okl-content > div.sales-event > div#okl-bio > div.event-description div.description')[0].text
+                    if sale_description: event.sale_description = sale_description
+                
 
-    def upcoming_detail(self, upcoming_list, ctx):
+    def upcoming_detail(self, ctx):
         """.. :py:method::
         """
         for pair in upcoming_list:

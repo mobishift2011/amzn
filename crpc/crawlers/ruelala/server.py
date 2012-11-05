@@ -110,8 +110,7 @@ class Server:
 
         for category in categorys:
             url = 'http://www.ruelala.com/category/%s' %category
-            print 'go to ',url
-            print 'res',self._get_event_list(category,url,ctx)
+            self._get_event_list(category,url,ctx)
 
         self._signin = False
 
@@ -137,7 +136,6 @@ class Server:
             return date
 
         result = []
-        print 'go to 2',url
         self.browser.get(url)
 
         try:
@@ -151,7 +149,6 @@ class Server:
         nodes = []
         if not nodes:
             nodes = self.browser.find_elements_by_xpath('//section[@id="alsoOnDoors"]/article')
-        print 'nodes',nodes
 
         for node in nodes:
             # pass the hiden element
@@ -190,7 +187,6 @@ class Server:
             else:
                 common_saved.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=not is_new)
             result.append((event_id,a_url))
-            print 'is leaf',event.is_leaf
         return result
 
     @exclusive_lock(DB)
@@ -230,7 +226,6 @@ class Server:
             if url_301 <>  event_url:
                 print '301,',url_301
                 self._crawl_product(url_301,ctx)
-                print '301 end'
             else:
                 raise ValueError('can not find product @url:%s sale id:%s' %(event_url,event_id))
 
@@ -268,7 +263,6 @@ class Server:
             if not is_new:
                 product.url = url
                 product.event_id = [str(event_id)]
-            print 'hhh'
 
             try:
                 s = node.find_elements_by_tag_name('span')[1]
@@ -300,12 +294,10 @@ class Server:
         the keyworld `RLLZ` in url  meaning large size(about 800*1000), `RLLD` meaning small size (about 400 *500)
         http://www.ruelala.com/images/product/131385/1313856984_RLLZ_1.jpg
         http://www.ruelala.com/images/product/131385/1313856984_RLLZ_2.jpg
-        
+
         http://www.ruelala.com/images/product/131385/1313856984_RLLZ_1.jpg
         http://www.ruelala.com/images/product/131385/1313856984_RLLZ_2.jpg
         """
-        print 'f.product key',product_key
-        print 'f.count',img_count
         urls = []
         prefix = 'http://www.ruelala.com/images/product/'
         for i in range(0,img_count):
@@ -322,26 +314,19 @@ class Server:
         """.. :py:method::
             Got all the product basic information and save into the database
         """
-        print 'aaa'
         self.login(self.email, self.passwd)
-        print 'bbb'
         product_id = self._url2product_id(url)
-        print 'product id',product_id
-        print 'ccc'
         self.get(url)
-        print 'ddd'
 
         try:
             self.browser.find_element_by_css_selector('div#optionsLoadingIndicator.row')
         except:
             time.sleep(3)
-        print 'eee'
         
         image_urls = []
         # TODO imgDetail
         imgs_node = self.browser.find_element_by_css_selector('section#productImages')
         #first_img_url = imgs_node.find_element_by_css_selector('img#imgZoom').get_attribute('href')
-        print 'fff'
         try:
             img_count = len(imgs_node.find_elements_by_css_selector('div#imageThumbWrapper img'))
         except:
@@ -403,9 +388,7 @@ class Server:
 
     def _url2product_id(self,url):
         # http://www.ruelala.com/event/product/60118/1411878707/0/DEFAULT
-        print 're.url',url
         m = re.compile('http://.*ruelala.com/event/product/\d{1,10}/(\d{6,10})/\d{1}/DEFAULT').findall(url)
-        print 're.m',m
         return str(m[0])
 
     def format_url(self,url):

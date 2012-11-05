@@ -121,7 +121,6 @@ class Server(BaseServer):
             category.name = name
             category.url = url
             category.is_leaf = True
-            print 'category.url',url
             try:
                 category.save()
             except Exception,e:
@@ -134,7 +133,6 @@ class Server(BaseServer):
         """.. :py:method::
             From top depts, get all the events
         """
-        print 'start category'
         for i in self.get_navs():
             nav,url = i
             print nav,url
@@ -153,7 +151,6 @@ class Server(BaseServer):
             event_id = [self.url2category_key(url)]
             brand = item.xpath('.//div[@class="listBrand"]/a')[0].text_content()
             designer = link.text_content()
-            print 'key',key,type(key)
             product,is_new = Product.objects.get_or_create(pk=key)
 
             price_spans = item.xpath('.//span')
@@ -217,7 +214,6 @@ class Server(BaseServer):
                 self.browser = webdriver.Firefox()
                 self.browser.set_page_load_timeout(10)
 
-        print 'start parse product ',url
         point1 = time.time()
         #tree = self.ropen(url)
         self.browser.get(url)
@@ -306,13 +302,11 @@ class Server(BaseServer):
                 # patch
                 if '?' in date_str:
                     date_str = date_str[:-1].replace('?','-')
-                print 'date str',date_str
                 date_obj = dt_parser.parse(date_str)
                 review.post_time = date_obj
                 review.username = self.browser.find_element_by_xpath('//div[@class="review-author"]/a').text
                 review.save()
                 reviews.append(review)
-            print 'reviews',reviews
             if reviews:
                 product.reviews = reviews
 
@@ -323,7 +317,6 @@ class Server(BaseServer):
         except Exception,e:
             common_failed.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
         else:
-            print 'parse product total used',time.time() - point1
             common_saved.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
 
 if __name__ == '__main__':

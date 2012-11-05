@@ -99,10 +99,7 @@ class Server(BaseServer):
             date_obj = datetime.datetime.fromtimestamp(int(expires_on[:10]))
             href = a.get_attribute('href')
             url = self.format_url(href)
-            print 'href',href
-            print 'url',url
             event_id = self.url2event_id(url) # return a string
-            print 'event id',event_id
             img_url = 'http://nmr.allcdn.net/images/events/all/banners/event-%s-medium.jpg' %event_id
             event ,is_new = Event.objects.get_or_create(event_id=event_id)
             event.title = title
@@ -166,15 +163,12 @@ class Server(BaseServer):
                 return
 
     def url2product_id(self,url):
-        print 're.url',url
         m = re.compile(r'^http://(.*)nomorerack.com/daily_deals/view/(\d+)-').findall(url)[0]
         return m[-1]
 
     def url2event_id(self,url):
         # http://www.nomorerack.com/events/view/1018
         m = re.compile(r'^http://(.*)nomorerack.com/events/view/(\d+)').findall(url)[0]
-        print 'm',m
-        print 'm[-1]',m[-1]
         return m[-1]
 
     def make_image_urls(self,url,count):
@@ -189,11 +183,8 @@ class Server(BaseServer):
     @exclusive_lock(DB)
     def crawl_listing(self,url,ctx=''):
         self.bopen(url)
-        print 'start parse'
         main = self.browser.find_element_by_xpath('//div[@class="raw_grid deals events_page"]')
-        print 'aaa'
         for item in main.find_elements_by_css_selector('div.deal'):
-            print 'aaa.b'
             title = item.find_element_by_css_selector('p').text
             price = item.find_element_by_css_selector('div.pricing ins').text
             listprice = item.find_element_by_css_selector('div.pricing del').text
@@ -204,29 +195,23 @@ class Server(BaseServer):
             product.price = price
             product.listproce = listprice
             product.title = title
-            print 'local',locals()
-            print 'aaa.c'
             try:
                 product.save()
             except:
                 common_failed.send(sender=ctx, site=DB, key=key, is_new=is_new, is_updated=not is_new)
             else:
                 common_saved.send(sender=ctx, site=DB, key=key, is_new=is_new, is_updated=not is_new)
-            print 'aaa.d'
 
     @exclusive_lock(DB)
     def crawl_product(self,url,ctx=''):
         """.. :py:method::
             Got all the product basic information and save into the database
         """
-        print 'aaa'
         key = self.url2product_id(url)
         product,is_new = Product.objects.get_or_create(key=key)
         self.browser.get(url)
-        print 'bbb'
 
         node = self.browser.find_element_by_css_selector('div#products_view.standard')
-        print 'ccc'
         dept = node.find_element_by_css_selector('div.right h5').text
         title = node.find_element_by_css_selector('div.right h2').text
         summary = node.find_element_by_css_selector('p.description').text
@@ -237,8 +222,6 @@ class Server(BaseServer):
         attributes = node.find_elements_by_css_selector('div.select-cascade select')
         sizes = []
         colors = []
-        print 'ddd-'
-        print 'atts',attributes
         for attr in attributes:
             ops = attr.find_elements_by_css_selector('option')
             m  = ops[0].get_attribute('value')
@@ -249,8 +232,6 @@ class Server(BaseServer):
             elif m == 'Select a color':
                 for op in  ops:
                     colors.append(op.text)
-            print 'eee'
-
 
         date_str = ''
         try:
@@ -279,8 +260,6 @@ class Server(BaseServer):
 
         for i in locals().items():
             print 'i',i
-        print 'hhh'
-
         return
 
     def format_date_str(self,date_str):

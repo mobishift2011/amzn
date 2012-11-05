@@ -91,22 +91,19 @@ class Server(object):
         self.upcoming_url = 'https://www.onekingslane.com/calendar'
         self.net = onekingslaneLogin()
         self.extract_eventid = re.compile('https://www.onekingslane.com/sales/(\d+)')
+        self.extract_large_img = re.compile('(.*\?)\$.*\$')
 
     def crawl_category(self, ctx):
         """.. :py:method::
             From top depts, get all the events
         """
-        depts = ['girls', 'boys', 'women', 'baby-maternity', 'toys-playtime', 'home']
         debug_info.send(sender=DB + '.category.begin')
 
         self.upcoming_proc(ctx)
-        exit()
-        for dept in depts:
-            link = 'http://www.zulily.com/?tab={0}'.format(dept)
-            self.get_event_list(dept, link, ctx)
+        self.get_sale_list(ctx)
         debug_info.send(sender=DB + '.category.end')
 
-    def get_event_list(self, dept, url, ctx):
+    def get_sale_list(self, ctx):
         """.. :py:method::
             Get all the brands from brand list.
             Brand have a list of product.
@@ -114,44 +111,40 @@ class Server(object):
         :param dept: dept in the page
         :param url: the dept's url
         """
-        cont = self.net.fetch_page(url)
+        cont = self.net.fetch_page(self.siteurl)
         tree = lxml.html.fromstring(cont)
-        nodes = tree.xpath('//div[@class="container"]/div[@id="main"]/div[@id="home-page-content"]/div[@class="clearfix"]//div[starts-with(@id, "eid_")]')
-        
+        nodes = tree.cssselect('body.holiday > div#wrapper > div#okl-content > div#previewWrapper > div.eventsContainer > div.eventModule')
         for node in nodes:
-            link = node.xpath('./a[@class="wrapped-link"]')[0].get('href')
-            link, event_id = self.extract_event_id.match(link).groups()
-            text = node.xpath('./a/span[@class="txt"]')[0]
+            title = node.cssselect('div.eventInfo > div > h3')[0].text
+            short_desc = node.cssselect('div.eventInfo > div > p')[0].text
+            l = node.cssselect('a[href]')[0].get('href')
+            link = l if l.startswith('http') else self.siteurl + l
+            event_id = self.extract_eventid.match(link).group(1)
 
             brand, is_new = Event.objects.get_or_create(event_id=event_id)
             if is_new:
-                img = node.xpath('./a/span[@class="homepage-image"]/img/@src')[0]
-                image = ''.join( self.extract_event_img.match(img).groups() )
-                sale_title = text.xpath('./span[@class="category-name"]/span/text()')[0]
-
-                brand.image_urls = [image]
-                brand.sale_title = sale_title
-            if dept not in brand.dept: brand.dept.append(dept) # events are mixed in different category
-            desc = text.xpath('.//span[@class="description-highlights"]/text()')[0].strip()
-            start_end_date = text.xpath('./span[@class="description"]/span[@class="start-end-date"]')[0].text_content().strip()
-            brand.short_desc = desc
-            brand.start_end_date = start_end_date
-            brand.is_leaf = True
-            brand.update_time = datetime.utcnow()
-            brand.save()
-            common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=not is_new)
+                event.sale_title = title
+                event.short_desc = short_desc
+                img = node.cssselect('div.eventStatus > a.trackEventPosition > img')[0].get('src')
+                image = self.extract_large_img.match(img).group(1) + '$mp_hero_standard$'
+                event.image_urls = [image]
+            event.is_leaf = True
+            event.update_time = datetime.utcnow()
+            event.save()
+            common_saved.send(sender=ctx, key=event_id, url=link, is_new=is_new, is_updated=not is_new)
 
 
     def upcoming_proc(self, ctx):
         """.. :py:method::
-            Get all the upcoming brands info 
+            Get all the upcoming brands info in upcoming url 
         """
         cont = self.net.fetch_page(self.upcoming_url)
         tree = lxml.html.fromstring(cont)
         nodes = tree.cssselect('body.holiday > div#wrapper > div#okl-content > div.calendar-r > div.day')
         for node in nodes:
-            date = node.cssselect('span.date')[0].text_content()
-            all_times = node.cssselect('div.all-times li > h3')
+            date = ' '.join( [d for d in node.cssselect('span.date')[0].text_content().split('\n') if d] )
+            all_times = node.cssselect('div.all-times > h3')[0].text_content().split('PT')[0].split()[-1]
+            date_begin = time_convert(date + ' ' + all_times + ' ', '%b %d %I%p %Y')
             markets = node.cssselect('div.all-times > ul > li')
             for market in markets:
                 link = market.cssselect('h4 > a')[0].get('href')
@@ -159,41 +152,28 @@ class Server(object):
                 event_id = self.extract_eventid.match(link).group(1)
                 event, is_new = Event.objects.get_or_create(event_id=event_id)
                 if is_new:
-                    img = market.cssselect('h4 > a > img')[0].get('src') + '?$mp_hero_standard_2.8$'
+                    event.events_begin = date_begin
+                    img = market.cssselect('h4 > a > img')[0].get('src') + '?$mp_hero_standard$'
                     event.image_urls = [img]
                     event.sale_title = market.cssselect('h4 > a')[0].text_content()
                     event.short_desc = market.cssselect('p.shortDescription')[0].text_content()
                     detail_tree = lxml.html.fromstring(self.net.fetch_page(link))
-                    sale_description = detail_tree.cssselect('div#wrapper > div#okl-content > div.sales-event > div#okl-bio > div.event-description div.description')[0].text
-                    if sale_description: event.sale_description = sale_description
+                    sale_description = detail_tree.cssselect('div#wrapper > div#okl-content > div.sales-event > div#okl-bio > div.event-description .description')
+                    if sale_description:
+                        event.sale_description = sale_description[0].text.strip()
                 
-
-    def upcoming_detail(self, ctx):
-        """.. :py:method::
-        """
-        for pair in upcoming_list:
-            cont = self.net.fetch_page(pair[1])
-            node = lxml.html.fromstring(cont).cssselect('div.event-content-wrapper')[0]
-            calendar_file = node.cssselect('div.upcoming-date-reminder a.reminder-ical')[0].get('href')
-            ics_file = self.net.fetch_page(calendar_file)
-            event_id = re.compile(r'URL:http://www.zulily.com/e/(.+).html.*').search(ics_file).group(1)
-            brand, is_new = Event.objects.get_or_create(event_id=event_id)
-            if is_new:
-                img = node.cssselect('div.event-content-image img')[0].get('src')
-                image = ''.join( self.extract_event_img.match(img).groups() )
-                sale_title = node.cssselect('div.event-content-copy h1')[0].text_content()
-                sale_description = node.cssselect('div.event-content-copy div#desc-with-expanded')[0].text_content().strip()
-                start_time = node.cssselect('div.upcoming-date-reminder span.reminder-text')[0].text_content() # 'Starts Sat 10/27 6am pt - SET REMINDER'
-                events_begin = time_convert( ' '.join( start_time.split(' ', 4)[1:-1] ), '%a %m/%d %I%p%Y' ) #'Sat 10/27 6am'
-
-                brand.image_urls = [image]
-                brand.sale_title = sale_title 
-                brand.sale_description = sale_description
-                brand.events_begin = events_begin
                 brand.update_time = datetime.utcnow()
                 brand.save()
-                common_saved.send(sender=ctx, key=event_id, url=pair[1], is_new=is_new, is_updated=not is_new)
-            
+                common_saved.send(sender=ctx, key=event_id, url=link, is_new=is_new, is_updated=not is_new)
+
+    def utcstr2datetime(self, date_str):
+        """.. :py:method::
+            covert time from the format into utcnow()
+            '20121105T150000Z'
+        """
+        fmt = "%Y%m%dT%H%M%S"
+        return datetime.strptime(date_str.rstrip('Z'), fmt)
+
 
     def crawl_listing(self, url, ctx):
         """.. :py:method::
@@ -206,61 +186,28 @@ class Server(object):
         debug_info.send(sender=DB + '.crawl_list.begin')
         cont = self.net.fetch_page(url)
         tree = lxml.html.fromstring(cont)
-        node = tree.cssselect('div.container>div#main>div#category-view')[0]
-        event_id = self.extract_event_id.match(url).group(2)
-        brand, is_new = Event.objects.get_or_create(event_id=event_id)
-        if is_new or brand.sale_description is None:
-            brand.sale_description = node.cssselect('div#category-description>div#desc-with-expanded')[0].text_content().strip()
+        path = tree.cssselect('div#wrapper > div#okl-content > div.sales-event')
+        event_id = self.extract_eventid.match(url).group(1)
+        event, is_new = Event.objects.get_or_create(event_id=event_id)
+        if not event.sale_description:
+            sale_description = path.cssselect('div#okl-bio > div.event-description .description')
+            if sale_description:
+                event.sale_description = sale_description[0].text.strip()
+        if not event.events_end:
+            end_date = path.cssselect('div#okl-bio > h2.share')[0].get('data-end')
+            event.events_end = self.utcstr2datetime(end_data)
+        if is_new:
+            event.sale_title = path.cssselect('div#okl-bio > h2.share > strong')[0].text
 
-        items = node.cssselect('div#products-grid li.item')
-        end_date = node.cssselect('div#new-content-header>div.end-date')[0].text_content().strip()
-        end_date = end_date[end_date.find('in')+2:].strip() # '2 hours' or '1 day(s) 3 hours'
-        days = int(end_date.split()[0]) if 'day' in end_date else 0
-        hours = int(end_date.split()[-2]) if 'hour' in end_date else 0
-        brand.events_end = datetime.utcnow() + timedelta(days=days, hours=hours)
-        brand.num = len(items)
-        brand.update_time = datetime.utcnow()
-        brand.save()
+        items = path.cssselect('div#okl-product > ul.products > li[id^="product-tile-"]')
+        event.num = len(items)
+        event.update_time = datetime.utcnow()
+        event.save()
         common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=not is_new)
 
         for item in items: self.crawl_list_product(event_id, item, ctx)
-        page_num = 1
-        next_page_url = self.detect_list_next(node, page_num + 1)
-        if next_page_url:
-            self.crawl_list_next(url, next_page_url, page_num + 1, event_id, ctx)
         debug_info.send(sender=DB + '.crawl_list.end')
 
-    def detect_list_next(self, node, page_num):
-        """.. :py:method::
-            detect whether the listing page have a next page
-
-        :param node: the node generate by crawl_listing
-        :param page_num: page number of this event
-        """
-        next_page = node.cssselect('div#pagination>a[href]') # if have next page
-        if next_page:
-            next_page_relative_url = next_page[-1].get('href')
-            if str(page_num) in next_page_relative_url:
-                return next_page_relative_url
-
-    def crawl_list_next(self, url, page_text, page_num, event_id, ctx):
-        """.. :py:method::
-            crawl listing page's next page, that is page 2, 3, 4, ...
-
-        :param url: listing page url
-        :param page_text: this page's relative url
-        :param page_num: page number of this event
-        :param event_id: unique key in Event, which we can associate product with event
-        """
-        cont = self.net.fetch_page(url + page_text)
-        tree = lxml.html.fromstring(cont)
-        node = tree.cssselect('div.container>div#main>div#category-view')[0]
-        items = node.cssselect('div#products-grid li.item')
-
-        for item in items: self.crawl_list_product(event_id, item, ctx)
-        next_page_url = self.detect_list_next(node, page_num + 1)
-        if next_page_url:
-            self.crawl_list_next(url, next_page_url, page_num + 1, event_id, ctx)
 
     def crawl_list_product(self, event_id, item, ctx):
         """.. :py:method::
@@ -269,34 +216,28 @@ class Server(object):
         :param event_id: unique key in Event, which we can associate product with event
         :param item: item of xml node
         """
-        title_link = item.cssselect('div.product-name>a[title]')[0]
-        title = title_link.get('title').strip()
-        link = title_link.get('href')
-        slug = self.extract_product_re.match(link).group(1)
-        product, is_new = Product.objects.get_or_create(pk=slug)
+        product_id = item.get('data-product-id')
+        product, is_new = Product.objects.get_or_create(pk=product_id)
         if is_new:
             product.event_id = [event_id]
-            img = item.cssselect('a.product-image>img')[0].get('src')
-            image = ''.join( self.extract_product_img.match(img).groups() )
+            product.title = item.cssselect('h3 > a[data-linkname]')[0].text
+            product.sell_rank = int(item.get('data-sortorder'))
+            img = item.cssselect('a > img.productImage')[0].get('src')
+            image = self.extract_large_img.match(img).group(1) + '$mp_hero_standard$'
             product.image_urls = [image]
-            product.title = title
+
+            listprice = item.cssselect('ul > li.msrp').replace(',','').replace('Retail', '')
+            price = item.cssselect('ul > li:nth-of-type(2)').replace(',','')
         else:
             if event_id not in product.event_id:
                 product.event_id.append(event_id)
 
-        price_box = item.cssselect('a>div.price-boxConfig')[0]
-        special_price = price_box.cssselect('div.special-price')[0].text.strip().replace('$','').replace(',','')
-        listprice = price_box.cssselect('div.old-price')[0].text.replace('original','').strip().replace('$','').replace(',','')
-        soldout = item.cssselect('a.product-image>span.sold-out')
-#        product.brand = sale_title
-        product.price = special_price
-        product.listprice = listprice
-        if soldout: product.soldout = True
+        if item.cssselect('a.sold-out'): product.soldout = True
         product.updated = False
         product.list_update_time = datetime.utcnow()
         product.save()
-        common_saved.send(sender=ctx, key=slug, url=self.siteurl + '/e/' + event_id + '.html', is_new=is_new, is_updated=not is_new)
-        debug_info.send(sender=DB + ".crawl_listing", url=self.siteurl + '/e/' + event_id + '.html')
+        common_saved.send(sender=ctx, key=product_id, url=self.siteurl + '/sales/' + event_id, is_new=is_new, is_updated=not is_new)
+        debug_info.send(sender=DB + ".crawl_listing", url=self.siteurl + '/sales/' + event_id)
 
 
     def crawl_product(self, url, ctx):

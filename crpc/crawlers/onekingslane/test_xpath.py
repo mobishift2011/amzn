@@ -3,10 +3,28 @@
 # Author: bishop Liu <miracle (at) gmail.com>
 
 import lxml.html
-import requests
 import re
 from datetime import datetime, timedelta
-import pytz
+
+from crawlers.common.stash import *
+import requests
+from requests.packages.urllib3.connectionpool import *
+import ssl
+def connect_vnew(self):
+    # Add certificate verification
+    sock = socket.create_connection((self.host, self.port), self.timeout)
+
+    # Wrap socket using verification with the root certs in
+    # trusted_root_certs
+    self.sock = ssl.wrap_socket(sock, self.key_file, self.cert_file,
+                                cert_reqs=self.cert_reqs,
+                                ca_certs=self.ca_certs,
+                                ssl_version=ssl.PROTOCOL_TLSv1)
+    if self.ca_certs:
+        match_hostname(self.sock.getpeercert(), self.host)
+
+
+VerifiedHTTPSConnection.connect = connect_vnew
 
 headers = {
     'Host': 'www.onekingslane.com',
@@ -98,21 +116,23 @@ class Server(object):
         tree = lxml.html.fromstring(cont)
         nodes = tree.cssselect('body.holiday > div#wrapper > div#okl-content > div.calendar-r > div.day')
         for node in nodes:
-            date = node.cssselect('span.date')[0].text_content()
-            all_times = node.cssselect('div.all-times li > h3')
+            date = ' '.join( [d for d in node.cssselect('span.date')[0].text_content().split('\n') if d] )
+            all_times = node.cssselect('div.all-times > h3')[0].text_content().split('PT')[0].split()[-1]
+            datethen = time_convert(date + ' ' + all_times + ' ', '%b %d %I%p %Y')
+            print datethen
             markets = node.cssselect('div.all-times > ul > li')
             for market in markets:
                 link = market.cssselect('h4 > a')[0].get('href')
                 link = link if link.startswith('http') else self.siteurl + link
                 event_id = self.extract_eventid.match(link).group(1)
-#                event, is_new = Event.objects.get_or_create(event_id=event_id)
-#                if is_new:
                 img = market.cssselect('h4 > a > img')[0].get('src') + '?$mp_hero_standard_2.8$'
                 sale_title = market.cssselect('h4 > a')[0].text_content()
                 short_desc = market.cssselect('p.shortDescription')[0].text_content()
                 detail_tree = lxml.html.fromstring(self.net.fetch_page(link))
-                sale_description = detail_tree.cssselect('div#wrapper > div#okl-content > div.sales-event > div#okl-bio > div.event-description div.description')[0].text
-                print event_id, img, sale_title, short_desc, sale_description
+                sale_description = detail_tree.cssselect('div#wrapper > div#okl-content > div.sales-event > div#okl-bio > div.event-description .description')
+                if sale_description:
+                    sale_description = sale_description[0].text.strip()
+#                print event_id, img, sale_title, [short_desc], sale_description
                 
 
 

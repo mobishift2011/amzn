@@ -19,14 +19,13 @@ connect(db=DB, alias='onekingslane', host=MONGODB_HOST)
 class Event(BaseEvent):
     event_id = StringField(unique=True)
     short_desc = StringField()
-    start_end_date = StringField()
 
     meta = {
         "db_alias": DB,
     }
 
     def url(self):
-        return 'https://www.onekingslane.com/e/{0}.html'.format(self.event_id)
+        return 'https://www.onekingslane.com/sales/{0}'.format(self.event_id)
 
 
 class Product(LuxuryProduct):
@@ -38,4 +37,4 @@ class Product(LuxuryProduct):
     }
 
     def url(self):
-        return 'https://www.onekingslane.com/p/{0}.html'.format(self.key)
+        return 'https://www.onekingslane.com/product/{0}/{1}'.format(self.event_id[0], self.key)

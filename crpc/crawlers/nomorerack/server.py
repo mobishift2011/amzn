@@ -83,9 +83,8 @@ class Server(BaseServer):
         categorys = ['women','men','home','electronics','lifestyle']
         for name in categorys:
             self._crawl_category_product(name,ctx)
-        print 'bbb'
+        # the kids section is diffirent from others 
         self.crawl_listing('http://nomorerack.com/daily_deals/category/kids',ctx)
-        print 'ccc'
 
         ###########################
         # section 1, parse events
@@ -115,7 +114,6 @@ class Server(BaseServer):
                 common_failed.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=not is_new)
             else:
                 common_saved.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=not is_new)
-
 
     def _crawl_category_product(self,name,ctx=''):
         _url = 'http://nomorerack.com/daily_deals/category_jxhrq/%s?sort=best_selling&offset=%d'

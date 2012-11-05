@@ -83,7 +83,9 @@ class Server(BaseServer):
         categorys = ['women','men','home','electronics','lifestyle']
         for name in categorys:
             self._crawl_category_product(name,ctx)
+        print 'bbb'
         self.crawl_listing('http://nomorerack.com/daily_deals/category/kids',ctx)
+        print 'ccc'
 
         ###########################
         # section 1, parse events
@@ -122,11 +124,16 @@ class Server(BaseServer):
                 url = 'http://nomorerack.com/daily_deals/category/kids'
             else:
                 url = _url%(name,i*12)
+
             tree = self.ropen(url)
             try:
                 divs = tree.xpath('//div[starts-with(@class,"deal")]')
             except NoSuchElementException:
                 return
+            
+            # the cralwer at the end of list page
+            if not divs:
+                return False
             
             for div in  divs:
                 img_url = div.xpath('.//img')[0].get('src')
@@ -138,8 +145,8 @@ class Server(BaseServer):
                 title = div.xpath('.//p')[0].text
                 key = self.url2product_id(detail_url)
 
-                for i in locals().items():
-                    print 'i',i
+                #for i in locals().items():
+                #    print 'i',i
 
                 product,is_new = Product.objects.get_or_create(pk=key)
                 if category.upper() == 'SOLD OUT':
@@ -182,8 +189,14 @@ class Server(BaseServer):
     
     @exclusive_lock(DB)
     def crawl_listing(self,url,ctx=''):
+        print 'to open',url
         self.bopen(url)
-        main = self.browser.find_element_by_xpath('//div[@class="raw_grid deals events_page"]')
+        try:
+            main = self.browser.find_element_by_xpath('//div[@class="raw_grid deals events_page"]')
+        except NoSuchElementException:
+            main = self.browser.find_element_by_css_selector('div#content')
+        print 'main>>>',main
+
         for item in main.find_elements_by_css_selector('div.deal'):
             title = item.find_element_by_css_selector('p').text
             price = item.find_element_by_css_selector('div.pricing ins').text
@@ -286,12 +299,10 @@ if __name__ == '__main__':
         for event in Event.objects.all():
             url = event.url()
             server.crawl_listing(url)
-    if 0:
+    if 1:
         url = 'http://nomorerack.com/daily_deals/category/kids'
         server.crawl_listing(url)
 
     if 0:
         url = Product.objects.all()[10].url()
         server.crawl_product(url)
-    s = 'This event deal is only live until April 2nd 05:59 PM EST'
-    print 'f',server.format_date_str(s)

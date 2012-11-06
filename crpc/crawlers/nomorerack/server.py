@@ -231,8 +231,12 @@ class Server(BaseServer):
         summary = node.find_element_by_css_selector('p.description').text
         thumbs = node.find_element_by_css_selector('div.thumbs')
         image_count = len(thumbs.find_elements_by_css_selector('img'))
-        image_url = thumbs.find_element_by_css_selector('img').get_attribute('src')
-        image_urls = self.make_image_urls(image_url,image_count)
+        try:
+            image_url = thumbs.find_element_by_css_selector('img').get_attribute('src')
+        except NoSuchElementException:
+            image_urls = product.image_urls
+        else:
+            image_urls = self.make_image_urls(image_url,image_count)
         attributes = node.find_elements_by_css_selector('div.select-cascade select')
         sizes = []
         colors = []
@@ -291,5 +295,5 @@ class Server(BaseServer):
 
 if __name__ == '__main__':
     server = Server()
-    server.crawl_product('http://nomorerack.com/daily_deals/view/126723-stack_em_up_exotic_swarovski_bangles')
+    server.crawl_product('http://nomorerack.com/daily_deals/view/124222-product')
     import time

@@ -271,11 +271,11 @@ class Server(BaseServer):
 
         for i in locals().items():
             print 'i',i
-        try:
+        if 1:
             product.save()
-        except Exception,e:
-            common_failed.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
-        else:
+        #except Exception,e:
+        #    common_failed.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
+        #else:
             common_saved.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
 
         print 'product.cats',product.cats

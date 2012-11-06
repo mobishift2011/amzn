@@ -24,12 +24,23 @@ envs = {
         'MONGODB_HOST': '192.168.56.101',
         'REDIS_HOST': '192.168.56.101',
     },
+    'TEST2': {
+        'PEERS': [
+            'root@54.245.60.173',
+            'root@54.245.67.22',
+            'root@54.245.49.77',
+            'root@54.245.70.134',
+        ],
+        'USE_INDEX': '',
+        'MONGODB_HOST': 'mongodb.favbuy.org',
+        'REDIS_HOST': 'mongodb.favbuy.org',
+    },
     'TEST': {
         'PEERS': [
-            'root@ec2-54-245-25-85.us-west-2.compute.amazonaws.com',
-            'root@ec2-54-245-31-157.us-west-2.compute.amazonaws.com',
-            'root@ec2-50-112-195-236.us-west-2.compute.amazonaws.com',
-            'root@ec2-54-245-15-250.us-west-2.compute.amazonaws.com',
+            'root@ec2-54-245-60-173.us-west-2.compute.amazonaws.com',
+            'root@ec2-54-245-67-22.us-west-2.compute.amazonaws.com',
+            'root@ec2-54-245-49-77.us-west-2.compute.amazonaws.com',
+            'root@ec2-54-245-70-134.us-west-2.compute.amazonaws.com',
         ],
         'USE_INDEX': '',
         'MONGODB_HOST': 'mongodb.favbuy.org',

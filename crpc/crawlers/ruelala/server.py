@@ -371,8 +371,10 @@ class Server:
                 left =  attribute_node.find_element_by_css_selector('span#inventoryAvailable.active').text
             except NoSuchElementException:
                 pass
-
-        shipping = attribute_node.find_element_by_id('readyToShip').text
+        try:
+            shipping = attribute_node.find_element_by_id('readyToShip').text
+        except NoSuchElementException:
+            shipping = ''
         price = attribute_node.find_element_by_id('salePrice').text
         listprice  = attribute_node.find_element_by_id('strikePrice').text
         product, is_new = Product.objects.get_or_create(key=str(product_id))
@@ -405,7 +407,14 @@ class Server:
 
     def _url2product_id(self,url):
         # http://www.ruelala.com/event/product/60118/1411878707/0/DEFAULT
+        # or http://www.ruelala.com/product/detail/eventId/59935/styleNum/4112936424/viewAll/0
         m = re.compile('http://.*ruelala.com/event/product/\d{1,10}/(\d{6,10})/\d{1}/DEFAULT').findall(url)
+        try:
+            return str(m[0])
+        except IndexError:
+            pass
+        print 'url'
+        m = re.compile('http://.*.ruelala.com/product/detail/eventId/\d{1,10}/styleNum/(\d{1,10})/viewAll/0').findall(url)
         return str(m[0])
 
     def format_url(self,url):
@@ -421,4 +430,4 @@ class Server:
 
 if __name__ == '__main__':
     server = Server()
-    server._crawl_product('http://www.ruelala.com/event/product/59086/1411920095/1/DEFAULT')
+    server.crawl_listing('http://www.ruelala.com/event/59935')

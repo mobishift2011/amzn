@@ -89,27 +89,29 @@ class Server(object):
     def __init__(self):
         self.siteurl = 'https://www.onekingslane.com'
         self.upcoming_url = 'https://www.onekingslane.com/calendar'
+        self.category_url = 'https://www.onekingslane.com/vintage-market-finds'
         self.net = onekingslaneLogin()
         self.extract_eventid = re.compile('https://www.onekingslane.com/sales/(\d+)')
         self.extract_large_img = re.compile('(.*\?)\$.*\$')
 
+        self.get_product_condition = re.compile(r'<strong>Condition:</strong>(.*)</p>')
+        self.get_product_era = re.compile(r'<strong>Era:</strong>(.*)</p>')
+
     def crawl_category(self, ctx):
         """.. :py:method::
-            From top depts, get all the events
+            crawl upcoming sales, sales, and shop by category
         """
         debug_info.send(sender=DB + '.category.begin')
 
         self.upcoming_proc(ctx)
         self.get_sale_list(ctx)
+        self.shop_by_category(ctx)
         debug_info.send(sender=DB + '.category.end')
 
     def get_sale_list(self, ctx):
         """.. :py:method::
-            Get all the brands from brand list.
-            Brand have a list of product.
-
-        :param dept: dept in the page
-        :param url: the dept's url
+            Get all the sales from sale list.
+            Sales have a list of products.
         """
         cont = self.net.fetch_page(self.siteurl)
         tree = lxml.html.fromstring(cont)
@@ -121,12 +123,12 @@ class Server(object):
             link = l if l.startswith('http') else self.siteurl + l
             event_id = self.extract_eventid.match(link).group(1)
 
-            brand, is_new = Event.objects.get_or_create(event_id=event_id)
+            event, is_new = Event.objects.get_or_create(event_id=event_id)
             if is_new:
                 event.sale_title = title
                 event.short_desc = short_desc
                 img = node.cssselect('div.eventStatus > a.trackEventPosition > img')[0].get('src')
-                image = self.extract_large_img.match(img).group(1) + '$mp_hero_standard$'
+                image = self.extract_large_img.match(img).group(1) + '$fullzoom$'
                 event.image_urls = [image]
             event.is_leaf = True
             event.update_time = datetime.utcnow()
@@ -153,7 +155,7 @@ class Server(object):
                 event, is_new = Event.objects.get_or_create(event_id=event_id)
                 if is_new:
                     event.events_begin = date_begin
-                    img = market.cssselect('h4 > a > img')[0].get('src') + '?$mp_hero_standard$'
+                    img = market.cssselect('h4 > a > img')[0].get('src') + '?$fullzoom$'
                     event.image_urls = [img]
                     event.sale_title = market.cssselect('h4 > a')[0].text_content()
                     event.short_desc = market.cssselect('p.shortDescription')[0].text_content()
@@ -162,9 +164,10 @@ class Server(object):
                     if sale_description:
                         event.sale_description = sale_description[0].text.strip()
                 
-                brand.update_time = datetime.utcnow()
-                brand.save()
+                event.update_time = datetime.utcnow()
+                event.save()
                 common_saved.send(sender=ctx, key=event_id, url=link, is_new=is_new, is_updated=not is_new)
+
 
     def utcstr2datetime(self, date_str):
         """.. :py:method::
@@ -174,18 +177,98 @@ class Server(object):
         fmt = "%Y%m%dT%H%M%S"
         return datetime.strptime(date_str.rstrip('Z'), fmt)
 
+    def shop_by_category(self, ctx):
+        """.. :py:method::
+        """
+        cont = self.net.fetch_page(self.category_url)
+        tree = lxml.html.fromstring(cont)
+        nodes = tree.cssselect('div#wrapper > div#okl-content > div#okl-vmf-landing-bd > ul > li > h4 > a')
+        for node in nodes:
+            link = node.get('href')
+            dept = node.text_content()
+
+            event_id = re.compile(r'.*/vintage-market-finds/(.*)').match(link).group(1)
+            event, is_new = Event.objects.get_or_create(event_id=event_id)
+            event.dept = [dept]
+            event.is_leaf = True
+            event.update_time = datetime.utcnow()
+            event.save()
+            common_saved.send(sender=ctx, key=event_id, url=link, is_new=is_new, is_updated=not is_new)
+
 
     def crawl_listing(self, url, ctx):
         """.. :py:method::
-            from url get listing page.
-            from listing page get Eventi's description, endtime, number of products.
-            Get all product's image, url, title, price, soldout
-
+            from url get listing page,
+            either category_list or sale_list
         :param url: listing page url
         """
         debug_info.send(sender=DB + '.crawl_list.begin')
         cont = self.net.fetch_page(url)
+        if isinstance(cont, int):
+            common_failed.send(sender=ctx, url=url, reason=cont)
+            return
         tree = lxml.html.fromstring(cont)
+        if 'vintage-market-finds' in url:
+            crawl_category_list(url, tree, ctx)
+        else:
+            crawl_sale_list(tree, ctx)
+        debug_info.send(sender=DB + '.crawl_list.end')
+
+
+    def crawl_category_list(self, url, tree, ctx):
+        """.. :py:method::
+            from url get listing page.
+            from listing page get Event's description, number of products.
+            Get all product's image, url, title, price, soldout
+
+        :param url: category listing page url
+        :param tree: listing page url's lxml tree
+        """
+        event_id = re.compile(r'.*/vintage-market-finds/(.*)').match(url).group(1)
+        event, is_new = Event.objects.get_or_create(event_id=event_id)
+        if not event.sale_description:
+            event.sale_description = tree.cssselect('div#wrapper > div#okl-content > div#okl-vmf-category-carousel-hd > h3+p')[0].text_content()
+        items = tree.cssselect('div#wrapper > div#okl-content > div#okl-vmf-product-list > ul.products > li.trackVmfProduct')
+        event.num = len(items)
+        event.update_time = datetime.utcnow()
+        event.save()
+        common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=not is_new)
+        for item in items:
+            self.crawl_category_list_product(event_id, item, ctx)
+
+    def crawl_category_list_product(self, event_id, item, ctx):
+        """.. :py:method::
+            from lxml node to get category listing page's product.
+
+        :param item: xml node for a product
+        """
+        l = item.cssselect('a[href]')[0].get('href')
+        link = l if l.startswith('http') else self.siteurl + l
+        product_id = re.compile(r'https://www.onekingslane.com/vintage-market-finds/product/(\d+)').match(link).group(1)
+        product, is_new = Product.objects.get_or_create(pk=product_id)
+        if is_new:
+            product.event_id = [event_id]
+            product.image_urls = [item.cssselect('a[href] > img')[0].get('src').replace('medium', 'fullzoom')]
+            product.short_desc = item.cssselect('h6')[0].text_content()
+            product.title = item.cssselect('h5 > a')[0].text_content()
+            product.listprice = item.cssselect('ul > li.retail')[0].text_content()
+            product.price = item.cssselect('ul > li:nth-of-type(2)')[0].replace(',','')
+
+        if item.cssselect('em.sold'): product.soldout = True
+        product.updated = False
+        product.list_update_time = datetime.utcnow()
+        product.save()
+        common_saved.send(sender=ctx, key=product_id, url=self.siteurl + '/vintage-market-finds/' + event_id, is_new=is_new, is_updated=not is_new)
+
+
+    def crawl_sale_list(self, tree, ctx):
+        """.. :py:method::
+            from url get listing page.
+            from listing page get Event's description, endtime, number of products.
+            Get all product's image, url, title, price, soldout
+
+        :param tree: listing page url's lxml tree
+        """
         path = tree.cssselect('div#wrapper > div#okl-content > div.sales-event')
         event_id = self.extract_eventid.match(url).group(1)
         event, is_new = Event.objects.get_or_create(event_id=event_id)
@@ -205,11 +288,9 @@ class Server(object):
         event.save()
         common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=not is_new)
 
-        for item in items: self.crawl_list_product(event_id, item, ctx)
-        debug_info.send(sender=DB + '.crawl_list.end')
+        for item in items: self.crawl_sale_list_product(event_id, item, ctx)
 
-
-    def crawl_list_product(self, event_id, item, ctx):
+    def crawl_sale_list_product(self, event_id, item, ctx):
         """.. :py:method::
             In listing page, Get all product's image, url, title, price, soldout
 
@@ -223,11 +304,11 @@ class Server(object):
             product.title = item.cssselect('h3 > a[data-linkname]')[0].text
             product.sell_rank = int(item.get('data-sortorder'))
             img = item.cssselect('a > img.productImage')[0].get('src')
-            image = self.extract_large_img.match(img).group(1) + '$mp_hero_standard$'
+            image = self.extract_large_img.match(img).group(1) + '$fullzoom$'
             product.image_urls = [image]
 
-            listprice = item.cssselect('ul > li.msrp').replace(',','').replace('Retail', '')
-            price = item.cssselect('ul > li:nth-of-type(2)').replace(',','')
+            listprice = item.cssselect('ul > li.msrp')[0].text_content().replace(',','').replace('Retail', '')
+            price = item.cssselect('ul > li:nth-of-type(2)')[0].text_content().replace(',','')
         else:
             if event_id not in product.event_id:
                 product.event_id.append(event_id)
@@ -251,49 +332,54 @@ class Server(object):
             common_failed.send(sender=ctx, url=url, reason=cont)
             return
         tree = lxml.html.fromstring(cont)
-        node = tree.cssselect('div.container>div#main>div#product-view')[0]
-        info = node.cssselect('div#product-info')[0]
-        list_info, image_urls, out_of_stocks, also_like, sizes_scarcity = [], [], [], [], []
+        if 'vintage-market-finds' in url:
+            self.crawl_product_vintage(tree, ctx)
+        else:
+            self.crawl_product_sales(url, tree, ctx)
 
-#        summary = info.cssselect('div#product-description>div.description p:first-child')[0].text_content()
-        summary = info.cssselect('div#product-description>div.description')
-        description = summary[0].text_content().strip() if summary else ''
-        for info in info.cssselect('div#product-description>div.description>ul>li'):
-            list_info.append(info.text_content())
-#        return_shipping = info.cssselect('ul#product-bullets>li')  # not work
-#        returned = return_shipping[0].text_content()
-#        shipping = return_shipping[1].text_content()
-        returned = self.returned_re.search(cont).group(1).strip()
-        m = self.shipping_re.search(cont)
-        shipping = m.group(1).strip() if m else ''
-        size_scarcity = info.cssselect('div.options-container-big div#product-size-dropdown>select>option[data-inventory-available]')
-        for s_s in size_scarcity:
-            sizes_scarcity.append( (s_s.text_content().strip(), s_s.get('data-inventory-available')) )
-        for out_of_stock in info.cssselect('div#out-of-stock-notices>div.size-out-of-stock'):
-            out_of_stocks.append( out_of_stock.text )
 
-        images = node.cssselect('div#product-media>div#MagicToolboxSelectorsContainer>ul.reset>li>a>img')
-        for img in images:
-            picture = ''.join( self.extract_product_img.match(img.get('src')).groups() )
-            image_urls.append(picture)
-        also_like_items = node.cssselect('div#product-media>div#you-may-also-like>ul>li>a')
-        for a_l in also_like_items:
-            also_like.append( (a_l.get('title'), a_l.get('href')) )
+    def crawl_product_vintage(self, tree, ctx):
+        """.. :py:method::
+        """
+        node = tree.cssselect('body > div#wrapper > div#okl-content')
+        product_info = node.cssselect('div#productDetails > dl:first-of-type')[0].text_content()
+        shipping_return = node.cssselect('div#productDetails > dl:nth-of-type(2)')[0].text_content()
 
-        slug = self.extract_product_re.match(url).group(1)
-        product, is_new = Product.objects.get_or_create(pk=slug)
-        if description: product.summary = description
-        if list_info: product.list_info = list_info
-        product.returned = returned
-        if shipping: product.shipping = shipping
-        if sizes_scarcity: product.sizes_scarcity = sizes_scarcity
-        if out_of_stocks: product.out_of_stocks = out_of_stocks
-        if image_urls: product.image_urls = image_urls
+    def crawl_product_sales(self, url, tree, ctx):
+        """.. :py:method::
+        """
+        product_id = url.split('/')[-1]
+        product, is_new = Product.objects.get_or_create(pk=product_id)
+        if is_new:
+            m = self.get_product_condition.search(cont)
+            if m:
+                product.condition = m.group(1).strip()
+            m = self.get_product_era.search(cont)
+            if m:
+                product.era = m.group(1).strip()
 
+            node = tree.cssselect('body.holiday > div#wrapper > div#okl-content')
+            product.list_info = node.cssselect('div#productDetails > dl:first-of-type')[0].text_content()
+            product.returned = node.cssselect('div#productDetails > dl.shippingDetails')[0].text_content()
+            _date, _time = node.cssselect('div#productDetails > p.endDate')[0].text_content().strip().split('at')
+            time_str = _date.split()[-1] + ' ' +  _time.split()[0] + ' '
+            product.products_end = time_convert(time_str, '%m/%d %I%p %Y')
+            product.summary = node.cssselect('div#productDescription > div#description')[0].text_content()
+
+            img = node.cssselect('div#productDescription > div#altImages')
+            if img:
+                for i in img.cssselect('img.altImage'):
+                    img_url = i.get('data-altimgbaseurl') + '$fullzoom$'
+                    if img_url not in product.image_urls:
+                        product.image_urls.append(img_url)
+
+            seller = node.cssselect('div#productDescription > div.ds-vmf-vendor')
+            if seller:
+                product.seller = seller.cssselect('div[class]')[0].text_content()
         product.updated = True
         product.full_update_time = datetime.utcnow()
         product.save()
-        common_saved.send(sender=ctx, key=slug, url=url, is_new=is_new, is_updated=not is_new)
+        common_saved.send(sender=ctx, key=product_id, url=url, is_new=is_new, is_updated=not is_new)
 
         
 

@@ -189,7 +189,7 @@ class Server:
 
             if is_new:
                 event.img_url= 'http://www.ruelala.com/images/content/events/%s_doormini.jpg' %event_id
-                event.dept = category_name
+                event.dept = [category_name]
                 event.sale_title = a_title.text
             
             event.update_time = datetime.datetime.utcnow()
@@ -199,6 +199,7 @@ class Server:
             except Exception,e:
                 common_failed.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=not is_new)
             else:
+                print 'event.dept',event.dept
                 common_saved.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=not is_new)
             result.append((event_id,a_url))
         return result

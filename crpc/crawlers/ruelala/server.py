@@ -339,14 +339,14 @@ class Server:
             time.sleep(3)
         
         image_urls = []
-        # TODO imgDetail
-        imgs_node = self.browser.find_element_by_css_selector('section#productImages')
-        #first_img_url = imgs_node.find_element_by_css_selector('img#imgZoom').get_attribute('href')
         try:
-            img_count = len(imgs_node.find_elements_by_css_selector('div#imageThumbWrapper img'))
-        except:
+            img_nodes = self.browser.find_elements_by_css_selector('div#imageViews img.productThumb')
+            img_count = len(img_nodes)
+        except NoSuchElementException:
+            print 'no such element'
             img_count = 1
         image_urls = self._make_img_urls(product_id,img_count)
+        print 'image urls',image_urls
         list_info = []
         for li in self.browser.find_elements_by_css_selector('section#info ul li'):
             list_info.append(li.text)
@@ -421,4 +421,4 @@ class Server:
 
 if __name__ == '__main__':
     server = Server()
-    server.crawl_category()
+    server._crawl_product('http://www.ruelala.com/event/product/59086/1411920095/1/DEFAULT')

@@ -35,3 +35,4 @@ wsgiref==0.1.2
 zerorpc==0.3.0
 cssselect==0.7.1
 python-dateutil ==2.1
+PIL

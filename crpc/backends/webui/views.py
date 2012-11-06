@@ -43,7 +43,7 @@ def update_schedule(d):
     try:
         crawler, method = d['name'].split('.')
         minute, hour, dayofmonth, month, dayofweek = [ x for x in d['crontab_arguments'].split(" ") if x ]
-        description = d['description']
+        description = d.get('description', u'这个人太懒了什么都没写')
         enabled = d['enabled']
         if d.get('pk'):
             pk = ObjectId(d['pk'])

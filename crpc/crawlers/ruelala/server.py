@@ -367,8 +367,10 @@ class Server:
                 left = span.text.split(' ')[0]
                 sizes.append((key,left))
         else:
-            left =  attribute_node.find_element_by_css_selector('span#inventoryAvailable.active').text
-            sizes = [('std',left)]
+            try:
+                left =  attribute_node.find_element_by_css_selector('span#inventoryAvailable.active').text
+            except NoSuchElementException:
+                pass
 
         shipping = attribute_node.find_element_by_id('readyToShip').text
         price = attribute_node.find_element_by_id('salePrice').text

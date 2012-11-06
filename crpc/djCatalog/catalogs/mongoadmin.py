@@ -32,8 +32,8 @@ class CustomizeAdmin(MongoAdmin):
         return True
 
 class BrandAdmin(CustomizeAdmin):
-    list_fields = ('title',)
-    search_fields = ('title',)
+    list_fields = ('title', 'url', 'blurb', 'dept')
+    search_fields = ('title', 'blurb')
 
 class DeptAdmin(CustomizeAdmin):
     list_fields = ('title',)

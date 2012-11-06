@@ -3,6 +3,10 @@ from mongoengine import *
 
 class Brand(Document):
     title = StringField(unique=True)
+    url = URLField()
+    blurb = StringField()
+    level = StringField() # luxrious or not 
+    dept = ListField()
  
     meta = {
         'ordering': ['title']

@@ -16,8 +16,3 @@ urlpatterns = patterns('',
     # url(r'^admin/', include(admin.site.urls)),
     (r'^admin/', include('mongonaut.urls')),
 )
-safasdfasdfsdf
-asdfasdfk
-asdfasfdasd
-sadfsafdsaf
-def

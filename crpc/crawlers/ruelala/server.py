@@ -22,7 +22,7 @@ from models import *
 from crawlers.common.events import *
 from crawlers.common.stash import *
 from crawlers.common.events import common_saved, common_failed
-import lxml
+import lxml.html
 import datetime
 import time
 import urllib
@@ -51,7 +51,6 @@ class Server:
         else:
             print 'load page used:',time.time() - start
             return True
-            #return lxml.html.fromstring(self.browser.content)
 
     def login(self, email=None, passwd=None):
         """.. :py:method::
@@ -107,7 +106,8 @@ class Server:
         """
         self.login(self.email, self.passwd)
         categorys = ['women', 'men', 'living','kids','todays-fix']
-        locals = ['http://www.ruelala.com/local/boston',
+        locals = [
+                'http://www.ruelala.com/local/boston',
                 'http://www.ruelala.com/local/chicago',
                 'http://www.ruelala.com/local/los-angeles',
                 'http://www.ruelala.com/local/new-york-city',
@@ -131,21 +131,21 @@ class Server:
             Get all the events from event list.
         """
         def get_end_time(str):
-            str =  str.replace('CLOSING IN ','').replace(' ','')
-            if 'DAYS' in str:
-                i = str.split('DAYS,')
-            else:
-                i = str.split('DAY,')
-
-            days = int(i[0])
-            j = i[1].split(':')
-            hours = int(j[0])
-            minutes = int(j[1])
-            seconds = int(j[2])
+            # str == u'2\xa0Days,\xa012:46:00'
+            m = re.compile('.*(\d{1,2})\xa0Day.*,\xa0(\d{1,2}):(\d{1,2}):(\d{1,2})').findall(str)
+            print 're.m',m
+            print 're.str[%s]' %str
+            days,hours,minutes,seconds = m[0]
             now = datetime.datetime.utcnow()
-            delta = datetime.timedelta(days=days,hours=hours,minutes=minutes,seconds=seconds)
-            date = now + delta
-            return date
+            delta = datetime.timedelta(days=int(days),hours=int(hours),minutes=int(minutes),seconds=int(seconds))
+            d = now + delta
+            print 'd>',d
+            #ensure the end date is precise 
+            if d.minute == 0:
+                return datetime.datetime(d.year,d.month,d.day,d.hour,0,0)
+            elif 50 <= d.minute <= 59:
+                return datetime.datetime(d.year,d.month,d.day,d.hour+1,0,0)
+
 
         result = []
         self.browser.get(url)
@@ -176,14 +176,16 @@ class Server:
             a_url = self.format_url(a_link)
             event_id = self._url2saleid(a_link)
             event,is_new = Event.objects.get_or_create(event_id=event_id)
-            footer =  node.find_element_by_xpath('./footer')
-            clock = footer.find_element_by_xpath('./a/div[@class="closing clock"]').text
+            html = self.browser.page_source
+            tree = lxml.html.fromstring(html)
             try:
+                clock  = tree.xpath('//span[@id="clock%s"]' %event_id)[0].text
                 end_time = get_end_time(clock)
-            except ValueError:
+            except (ValueError,TypeError):
                 pass
             else:
                 event.events_end = end_time
+                print '>>end time',end_time
 
             if is_new:
                 event.img_url= 'http://www.ruelala.com/images/content/events/%s_doormini.jpg' %event_id
@@ -416,3 +418,4 @@ class Server:
 
 if __name__ == '__main__':
     server = Server()
+    server.crawl_category()

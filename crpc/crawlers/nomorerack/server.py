@@ -145,8 +145,8 @@ class Server(BaseServer):
                 title = div.xpath('.//p')[0].text
                 key = self.url2product_id(detail_url)
 
-                #for i in locals().items():
-                #    print 'i',i
+                for i in locals().items():
+                    print 'i',i
 
                 product,is_new = Product.objects.get_or_create(pk=key)
                 if category.upper() == 'SOLD OUT':
@@ -257,8 +257,8 @@ class Server(BaseServer):
         except NoSuchElementException:
             date_str = self.browser.find_element_by_css_selector('div.ribbon-center p').text
         date_obj = self.format_date_str(date_str)
-        price = node.find_element_by_css_selector('div.standard h3 span')
-        listprice = node.find_element_by_css_selector('div.standard p del')
+        price = node.find_element_by_css_selector('div.standard h3 span').text
+        listprice = node.find_element_by_css_selector('div.standard p del').text
         product.summary = summary
         product.title = title
         product.cats= [cat]
@@ -269,15 +269,15 @@ class Server(BaseServer):
         product.pagesize    =   sizes
         product.updated = True
 
+        for i in locals().items():
+            print 'i',i
         try:
             product.save()
-        except:
+        except Exception,e:
             common_failed.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
         else:
             common_saved.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
 
-        for i in locals().items():
-            print 'i',i
         print 'product.cats',product.cats
         return
 

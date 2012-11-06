@@ -119,6 +119,7 @@ class Server(BaseServer):
     def _crawl_category_product(self,name,ctx=''):
         _url = 'http://nomorerack.com/daily_deals/category_jxhrq/%s?sort=best_selling&offset=%d'
         for i in range(0,10000):
+            print 'aaa'
             if name == 'kids':
                 url = 'http://nomorerack.com/daily_deals/category/kids'
             else:
@@ -152,7 +153,7 @@ class Server(BaseServer):
                     product.soldout = True
                     product.cats = [name]
                 else:
-                    product.cates = [name,category]
+                    product.cats = [name,category]
                 product.image_urls = [img_url]
                 product.price = price
                 product.listprice = listprice
@@ -163,6 +164,7 @@ class Server(BaseServer):
                     common_failed.send(sender=ctx, site=DB, key=key, is_new=is_new, is_updated=not is_new)
                 else:
                     common_saved.send(sender=ctx, site=DB, key=key, is_new=is_new, is_updated=not is_new)
+                print 'cats',product.cats
             
             # the kids category just have one page 
             if name == 'kids':
@@ -224,7 +226,7 @@ class Server(BaseServer):
         self.browser.get(url)
 
         node = self.browser.find_element_by_css_selector('div#products_view.standard')
-        dept = node.find_element_by_css_selector('div.right h5').text
+        cat = node.find_element_by_css_selector('div.right h5').text
         title = node.find_element_by_css_selector('div.right h2').text
         summary = node.find_element_by_css_selector('p.description').text
         thumbs = node.find_element_by_css_selector('div.thumbs')
@@ -255,7 +257,7 @@ class Server(BaseServer):
         listprice = node.find_element_by_css_selector('div.standard p del')
         product.summary = summary
         product.title = title
-        product.dept = dept
+        product.cats= [cat]
         product.image_urls = image_urls
         product.end_time = date_obj
         product.price = price
@@ -272,6 +274,7 @@ class Server(BaseServer):
 
         for i in locals().items():
             print 'i',i
+        print 'product.cats',product.cats
         return
 
     def format_date_str(self,date_str):
@@ -288,4 +291,5 @@ class Server(BaseServer):
 
 if __name__ == '__main__':
     server = Server()
+    server.crawl_product('http://nomorerack.com/daily_deals/view/126723-stack_em_up_exotic_swarovski_bangles')
     import time

@@ -280,7 +280,7 @@ class Server:
             product,is_new = Product.objects.get_or_create(key=str(product_id))
             if is_new:
                 is_updated = False
-            elif product.price == str(product_price) and product.list_price == str(strike_price) and product.title == title:
+            elif product.price == str(product_price) and product.listprice == str(strike_price) and product.title == title:
                 is_updated = False
             else:
                 is_updated = True

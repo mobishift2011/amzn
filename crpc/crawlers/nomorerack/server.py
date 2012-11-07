@@ -247,8 +247,11 @@ class Server(BaseServer):
         key = self.url2product_id(url)
         product,is_new = Product.objects.get_or_create(key=key)
         self.browser.get(url)
+        try:
+            node = self.browser.find_element_by_css_selector('div#products_view.standard')
+        except NoSuchElementException:
+            return False
 
-        node = self.browser.find_element_by_css_selector('div#products_view.standard')
         cat = node.find_element_by_css_selector('div.right h5').text
         title = node.find_element_by_css_selector('div.right h2').text
         summary = node.find_element_by_css_selector('p.description').text
@@ -318,5 +321,5 @@ class Server(BaseServer):
 
 if __name__ == '__main__':
     server = Server()
-    server.crawl_product('http://nomorerack.com/daily_deals/view/124222-product')
+    server.crawl_product('http://nomorerack.com/daily_deals/view/128407-product')
     import time

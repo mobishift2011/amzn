@@ -101,9 +101,7 @@ class Server(BaseServer):
         # http://www.bluefly.com/Designer-Baby/_/N-v2ws/list.fly
         # http://www.bluefly.com/Designer-Handbags-Accessories/_/N-1abcZapsz/newarrivals.fly 
         # http://www.bluefly.com/Designer-Women/_/N-1pqkZapsz/Nao-288/newarrivals.fly
-        print 're.list url',href
         m = re.compile('.*/_/(N-[a-z,A-Z,0-9]{1,20})/.*.fly').findall(href)
-        print 'cagegory key form url',m[0]
         return m[0]
 
     def _get_all_category(self,nav,url,ctx=False):
@@ -132,16 +130,22 @@ class Server(BaseServer):
             elif category.name == name:
                 is_updated = False
             else:
-                is_updated = True
+                # TODO 
+                print '>>'*10
+                print 'key',category.key
+                print 'old name',category.name
+                category.name = name
+                print 'save',category.save()
+                print 'new name',category.name
+                is_updated = False
 
-            category.name = name
             category.url = url
             category.is_leaf = True
-            try:
+            if 1:
                 category.save()
-            except Exception,e:
-                common_failed.send(sender=ctx, site=DB, key=category.key, is_new=is_new, is_updated=is_updated)
-            else:
+            #except Exception,e:
+            #    common_failed.send(sender=ctx, site=DB, key=category.key, is_new=is_new, is_updated=is_updated)
+            #else:
                 common_saved.send(sender=ctx, site=DB, key=category.key, is_new=is_new, is_updated=is_updated)
 
     @exclusive_lock(DB)
@@ -372,8 +376,6 @@ class Server(BaseServer):
 if __name__ == '__main__':
     server = Server()
     import time
-    #server.crawl_category()
-    server.crawl_listing('http://www.bluefly.com/Designer-Mens-Shirts-Casual-Sale/_/N-7qeZ1z140p8/list.fly')
-    server.crawl_product('http://www.bluefly.com/Brunello-Cucinelli-burgundy-striped-cotton-spread-collar-button-front-shirt/p/319496201/detail.fly')
+    server.crawl_category()
     #server._get_all_category('test','http://www.bluefly.com/a/shoes')
 

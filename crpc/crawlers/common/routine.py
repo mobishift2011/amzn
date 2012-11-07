@@ -44,8 +44,8 @@ def spout_listing(site):
 def spout_category(site, category):
     """ return a generator spouting category parameters """
     c = category
-#    if c.spout_time and c.spout_time > datetime.utcnow()-timedelta(hours=12):
-#        return
+    if c.spout_time and c.spout_time > datetime.utcnow()-timedelta(hours=12):
+        return
     if site == 'ecost':
         if c.num: # not None or 0
             yield {'url': c.link, 'catstr': c.cat_str, 'num': c.num}
@@ -145,8 +145,8 @@ def update_listing(site, rpc, concurrency=30):
             for kwargs in spout_category(site, category):
                 kwargs['ctx'] = ctx
                 rpc = random.choice(rpcs)
-#                pool.spawn(callrpc, rpc, site, 'crawl_listing', **kwargs)
-                callrpc( rpc, site, 'crawl_listing', **kwargs)
+                pool.spawn(callrpc, rpc, site, 'crawl_listing', **kwargs)
+#                callrpc( rpc, site, 'crawl_listing', **kwargs)
         pool.join()
 
 def update_product(site, rpc, concurrency=30):
@@ -156,8 +156,8 @@ def update_product(site, rpc, concurrency=30):
         for kwargs in spout_product(site):
             kwargs['ctx'] = ctx
             rpc = random.choice(rpcs)
-#            pool.spawn(callrpc, rpc, site, 'crawl_product', **kwargs)
-            callrpc( rpc, site, 'crawl_product', **kwargs)
+            pool.spawn(callrpc, rpc, site, 'crawl_product', **kwargs)
+#            callrpc( rpc, site, 'crawl_product', **kwargs)
         pool.join()
 
 

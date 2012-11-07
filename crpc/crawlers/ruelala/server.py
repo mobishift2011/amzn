@@ -188,15 +188,18 @@ class Server:
             elif event.sale_title == a_title.text:
                 is_updated = False
             else:
+                print 'is updated >>>'
+                print 'old title',event.sale_title
+                print 'new title',a_title.text
                 is_updated = True
 
             if is_new:
                 event.img_url= 'http://www.ruelala.com/images/content/events/%s_doormini.jpg' %event_id
                 event.dept = [category_name]
-                event.sale_title = a_title.text
             if end_time:
                 event.events_end = end_time
             event.update_time = datetime.datetime.utcnow()
+            event.sale_title = a_title.text
             event.is_leaf = True
 
             try:

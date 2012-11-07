@@ -333,8 +333,10 @@ class Server(object):
             image = self.extract_large_img.match(img).group(1) + '$fullzoom$'
             product.image_urls = [image]
 
-            listprice = item.cssselect('ul > li.msrp')[0].text_content().replace(',','').replace('Retail', '').strip()
-            price = item.cssselect('ul > li:nth-of-type(2)')[0].text_content().replace(',','')
+            listprice = item.cssselect('ul > li.msrp')
+            if listprice:
+                product.listprice = listprice[0].text_content().replace(',','').replace('Retail', '').strip()
+            product.price = item.cssselect('ul > li:nth-of-type(2)')[0].text_content().replace(',','')
             if item.cssselect('a.sold-out'): product.soldout = True
         else:
             if event_id not in product.event_id:

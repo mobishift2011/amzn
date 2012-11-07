@@ -52,6 +52,11 @@ class Server:
             print 'load page used:',time.time() - start
             return True
 
+    def logout(self):
+        url = 'http://www.ruelala.com/access/logout'
+        self._signin = False
+        self.browser.get(url)
+
     def login(self, email=None, passwd=None):
         """.. :py:method::
             login urelala
@@ -124,7 +129,7 @@ class Server:
         for url in locals:
             self._get_event_list('local',url,ctx)
 
-        self._signin = False
+        self.logout()
 
     def _get_event_list(self,category_name,url,ctx):
         """.. :py:method::
@@ -213,7 +218,8 @@ class Server:
 
     @exclusive_lock(DB)
     def crawl_listing(self,url,ctx=''):
-        return self._crawl_listing(url,ctx)
+        self._crawl_listing(url,ctx)
+        self.logout()
 
     def _crawl_listing(self,url,ctx):
         event_url = url
@@ -314,6 +320,7 @@ class Server:
                 common_failed.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=is_updated)
             else:
                 common_saved.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=is_updated)
+
         return
 
     def _make_img_urls(slef,product_key,img_count):
@@ -335,7 +342,8 @@ class Server:
 
     @exclusive_lock(DB)
     def crawl_product(self,url,ctx=''):
-        return self._crawl_product(url,ctx)
+        self._crawl_product(url,ctx)
+        self.logout()
 
     def _crawl_product(self,url,ctx=''):
         """.. :py:method::
@@ -449,4 +457,5 @@ class Server:
 if __name__ == '__main__':
     server = Server()
     #server.crawl_listing('http://www.ruelala.com/event/59935')
-    server.crawl_category()
+    url = 'http://www.ruelala.com/event/product/60496/6020835935/1/DEFAULT'
+    server.crawl_product(url)

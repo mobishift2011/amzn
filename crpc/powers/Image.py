@@ -8,6 +8,7 @@ This is the server part of zeroRPC module. Call by client automatically, run on 
 """
 
 import os
+import time
 from StringIO import StringIO
 import requests
 from configs import *
@@ -39,7 +40,7 @@ class ImageTool:
     
     def grab(self, image_url, folder):
         path, filename = os.path.split(image_url)
-        with open(os.path.join(folder, filename), 'wb') as f:
+        with open(os.path.join(folder, '%s_%s' % (int(time.time()), filename)), 'wb') as f:
             image = requests.get(image_url).content
             f.write(image)
         # TO POST IMAGE TO S3

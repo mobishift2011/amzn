@@ -10,7 +10,7 @@ sites = (
     ('bloomingdales', ''),
     ('shopbop', ''),
     ('nordstrom', ''),
-    ('amazon', ''),
+#    ('amazon', ''),
     ('global_blue', ''),
     ('ashford', ''),
 )

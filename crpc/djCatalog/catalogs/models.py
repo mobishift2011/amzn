@@ -5,8 +5,8 @@ class Brand(Document):
     title = StringField(unique=True)
     url = URLField()
     blurb = StringField()
-    level = StringField() # luxrious or not 
-    dept = ListField()
+    level = IntField(default=1) # luxrious or not 
+    dept = ListField(StringField(max_length=30))
  
     meta = {
         'ordering': ['title']

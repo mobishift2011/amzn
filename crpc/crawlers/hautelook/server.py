@@ -108,6 +108,9 @@ class Server(object):
         """
         resp = request.get(url)
         data = json.loads(resp.text)
+        if data.keys()[0] != 'availabilities':
+            resp = request.get(url)
+            data = json.loads(resp.text)
         for item in data['availabilities']:
             info = item['availability']
             key = info['inventory_id']

@@ -273,7 +273,7 @@ class Server(object):
             product.short_desc = item.cssselect('h6')[0].text_content()
             product.title = item.cssselect('h5 > a')[0].text_content()
             product.listprice = item.cssselect('ul > li.retail')[0].text_content()
-            product.price = item.cssselect('ul > li:nth-of-type(2)')[0].replace(',','')
+            product.price = item.cssselect('ul > li:nth-of-type(2)')[0].text_content().replace(',','')
             if item.cssselect('em.sold'): product.soldout = True
         else:
             if product.soldout != True:
@@ -294,7 +294,7 @@ class Server(object):
 
         :param tree: listing page url's lxml tree
         """
-        path = tree.cssselect('div#wrapper > div#okl-content > div.sales-event')
+        path = tree.cssselect('div#wrapper > div#okl-content > div.sales-event')[0]
         event_id = self.extract_eventid.match(url).group(1)
         event, is_new = Event.objects.get_or_create(event_id=event_id)
         if not event.sale_description:
@@ -303,7 +303,7 @@ class Server(object):
                 event.sale_description = sale_description[0].text.strip()
         if not event.events_end:
             end_date = path.cssselect('div#okl-bio > h2.share')[0].get('data-end')
-            event.events_end = self.utcstr2datetime(end_data)
+            event.events_end = self.utcstr2datetime(end_date)
         if is_new:
             event.sale_title = path.cssselect('div#okl-bio > h2.share > strong')[0].text
 
@@ -333,7 +333,7 @@ class Server(object):
             image = self.extract_large_img.match(img).group(1) + '$fullzoom$'
             product.image_urls = [image]
 
-            listprice = item.cssselect('ul > li.msrp')[0].text_content().replace(',','').replace('Retail', '')
+            listprice = item.cssselect('ul > li.msrp')[0].text_content().replace(',','').replace('Retail', '').strip()
             price = item.cssselect('ul > li:nth-of-type(2)')[0].text_content().replace(',','')
             if item.cssselect('a.sold-out'): product.soldout = True
         else:

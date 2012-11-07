@@ -146,7 +146,6 @@ class Server:
             elif 50 <= d.minute <= 59:
                 return datetime.datetime(d.year,d.month,d.day,d.hour+1,0,0)
 
-
         result = []
         self.browser.get(url)
 
@@ -175,32 +174,37 @@ class Server:
             a_link = node.find_element_by_xpath('./a[@class="eventDoorLink"]').get_attribute('href')
             a_url = self.format_url(a_link)
             event_id = self._url2saleid(a_link)
-            event,is_new = Event.objects.get_or_create(event_id=event_id)
             html = self.browser.page_source
             tree = lxml.html.fromstring(html)
             try:
                 clock  = tree.xpath('//span[@id="clock%s"]' %event_id)[0].text
                 end_time = get_end_time(clock)
             except (ValueError,TypeError):
-                pass
+                end_time = False
+            
+            event,is_new = Event.objects.get_or_create(event_id=event_id)
+            if is_new:
+                is_updated = False
+            elif event.sale_title == a_title.text:
+                is_updated = False
             else:
-                event.events_end = end_time
-                print '>>end time',end_time
+                is_updated = True
 
             if is_new:
                 event.img_url= 'http://www.ruelala.com/images/content/events/%s_doormini.jpg' %event_id
                 event.dept = [category_name]
                 event.sale_title = a_title.text
-            
+            if end_time:
+                event.events_end = end_time
             event.update_time = datetime.datetime.utcnow()
             event.is_leaf = True
+
             try:
                 event.save()
             except Exception,e:
-                common_failed.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=not is_new)
+                common_failed.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=is_updated)
             else:
-                print 'event.dept',event.dept
-                common_saved.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=not is_new)
+                common_saved.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=is_updated)
             result.append((event_id,a_url))
         return result
 
@@ -262,7 +266,6 @@ class Server:
             product_id = self._url2product_id(url)
             strike_price = node.find_element_by_xpath('./div/span[@class="strikePrice"]').text
             product_price = node.find_element_by_xpath('./div/span[@class="productPrice"]').text
-            
 
             """
             print 'node a',a
@@ -275,6 +278,13 @@ class Server:
             """
             # get base product info
             product,is_new = Product.objects.get_or_create(key=str(product_id))
+            if is_new:
+                is_updated = False
+            elif product.price == str(product_price) and product.list_price == str(strike_price) and product.title == title:
+                is_updated = False
+            else:
+                is_updated = True
+
             if not is_new:
                 product.url = url
                 product.event_id = [str(event_id)]
@@ -294,15 +304,14 @@ class Server:
                 pass
             else:
                 product.event_id.append(str(event_id))
+
             try:
                 product.save()
             except:
-                common_failed.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=not is_new)
+                common_failed.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=is_updated)
             else:
-                common_saved.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
-            result.append((product_id,url))
-
-        return result
+                common_saved.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=is_updated)
+        return
 
     def _make_img_urls(slef,product_key,img_count):
         """
@@ -343,10 +352,9 @@ class Server:
             img_nodes = self.browser.find_elements_by_css_selector('div#imageViews img.productThumb')
             img_count = len(img_nodes)
         except NoSuchElementException:
-            print 'no such element'
             img_count = 1
+
         image_urls = self._make_img_urls(product_id,img_count)
-        print 'image urls',image_urls
         list_info = []
         for li in self.browser.find_elements_by_css_selector('section#info ul li'):
             list_info.append(li.text)
@@ -378,23 +386,30 @@ class Server:
         price = attribute_node.find_element_by_id('salePrice').text
         listprice  = attribute_node.find_element_by_id('strikePrice').text
         product, is_new = Product.objects.get_or_create(key=str(product_id))
-        if is_new:
-            product.shipping = shipping
-            product.image_urls = image_urls
-            product.list_info = list_info
 
+        if is_new:
+            is_updated = False
+        elif product.price == str(price) and product.listprice == str(listprice):
+            is_updated = False
+        else:
+            is_updated = True
+
+        product.shipping = shipping
+        product.image_urls = image_urls
+        product.list_info = list_info
         product.sizes_scarcity = sizes
         product.price = price
         product.listprice = listprice
         product.shipping = shipping
         product.updated = True
         product.full_update_time = datetime.datetime.utcnow()
+
         try:
             product.save()
         except Exception,e:
-                common_failed.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
+            common_failed.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=is_updated)
         else:
-            common_saved.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
+            common_saved.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=is_updated)
 
     def _url2saleid(self, url):
         """.. :py:method::
@@ -430,4 +445,5 @@ class Server:
 
 if __name__ == '__main__':
     server = Server()
-    server.crawl_listing('http://www.ruelala.com/event/59935')
+    #server.crawl_listing('http://www.ruelala.com/event/59935')
+    server.crawl_category()

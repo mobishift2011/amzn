@@ -103,18 +103,27 @@ class Server(BaseServer):
             url = self.format_url(href)
             event_id = self.url2event_id(url) # return a string
             img_url = 'http://nmr.allcdn.net/images/events/all/banners/event-%s-medium.jpg' %event_id
+
             event ,is_new = Event.objects.get_or_create(event_id=event_id)
+            if is_new:
+                is_updated = False
+            elif event.title == title:
+                is_updated = False
+            else:
+                is_updated = True
+
             event.title = title
             event.image_urls = [img_url]
             event.events_end = date_obj
             event.update_time = datetime.datetime.utcnow()
             event.is_leaf = True
+
             try:
                 event.save()
             except:
-                common_failed.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=not is_new)
+                common_failed.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=is_updated)
             else:
-                common_saved.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=not is_new)
+                common_saved.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=is_updated)
 
     def _crawl_category_product(self,name,ctx=''):
         _url = 'http://nomorerack.com/daily_deals/category_jxhrq/%s?sort=best_selling&offset=%d'
@@ -149,6 +158,14 @@ class Server(BaseServer):
                     print 'i',i
 
                 product,is_new = Product.objects.get_or_create(pk=key)
+
+                if is_new:
+                    is_updated = False
+                elif product.price== price and product.listprice == listprice and product.title == title:
+                    is_updated = False
+                else:
+                    is_updated = True
+
                 if category.upper() == 'SOLD OUT':
                     product.soldout = True
                     product.cats = [name]
@@ -161,10 +178,9 @@ class Server(BaseServer):
                 try:
                     product.save()
                 except:
-                    common_failed.send(sender=ctx, site=DB, key=key, is_new=is_new, is_updated=not is_new)
+                    common_failed.send(sender=ctx, site=DB, key=key, is_new=is_new, is_updated=is_updated)
                 else:
-                    common_saved.send(sender=ctx, site=DB, key=key, is_new=is_new, is_updated=not is_new)
-                print 'cats',product.cats
+                    common_saved.send(sender=ctx, site=DB, key=key, is_new=is_new, is_updated=is_updated)
             
             # the kids category just have one page 
             if name == 'kids':
@@ -206,15 +222,22 @@ class Server(BaseServer):
             item_url = self.format_url(href)
             key = self.url2product_id(item_url)
             product ,is_new = Product.objects.get_or_create(key=key)
+            if is_new:
+                is_updated = False
+            elif product.price== price and product.listprice == listprice and product.title == title:
+                is_updated = False
+            else:
+                is_updated = True
+
             product.price = price
             product.listproce = listprice
             product.title = title
             try:
                 product.save()
             except:
-                common_failed.send(sender=ctx, site=DB, key=key, is_new=is_new, is_updated=not is_new)
+                common_failed.send(sender=ctx, site=DB, key=key, is_new=is_new, is_updated=is_updated)
             else:
-                common_saved.send(sender=ctx, site=DB, key=key, is_new=is_new, is_updated=not is_new)
+                common_saved.send(sender=ctx, site=DB, key=key, is_new=is_new, is_updated=is_updated)
 
     @exclusive_lock(DB)
     def crawl_product(self,url,ctx=''):

@@ -145,7 +145,8 @@ def update_listing(site, rpc, concurrency=30):
             for kwargs in spout_category(site, category):
                 kwargs['ctx'] = ctx
                 rpc = random.choice(rpcs)
-                pool.spawn(callrpc, rpc, site, 'crawl_listing', **kwargs)
+#                pool.spawn(callrpc, rpc, site, 'crawl_listing', **kwargs)
+                callrpc( rpc, site, 'crawl_listing', **kwargs)
         pool.join()
 
 def update_product(site, rpc, concurrency=30):
@@ -155,7 +156,8 @@ def update_product(site, rpc, concurrency=30):
         for kwargs in spout_product(site):
             kwargs['ctx'] = ctx
             rpc = random.choice(rpcs)
-            pool.spawn(callrpc, rpc, site, 'crawl_product', **kwargs)
+#            pool.spawn(callrpc, rpc, site, 'crawl_product', **kwargs)
+            callrpc( rpc, site, 'crawl_product', **kwargs)
         pool.join()
 
 

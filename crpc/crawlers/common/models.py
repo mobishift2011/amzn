@@ -53,6 +53,7 @@ class BaseEvent(BaseCategory):
     soldout             = BooleanField()
     sale_title          = StringField()
     image_urls          = ListField(StringField())
+    image_path          = ListField(StringField())
     sale_description    = StringField()
     dept                = ListField(StringField())
 
@@ -119,6 +120,7 @@ class BaseProduct(Document):
 
     # product images
     image_urls          =   ListField(StringField())
+    image_path          =   ListField(StringField())
 
     meta                =   {
         "allow_inheritance": True,

@@ -36,7 +36,7 @@ def stat_pre_general_update(sender, **kwargs):
 @post_general_update.bind
 def stat_post_general_update(sender, **kwargs):
     complete = kwargs.get('complete', False)
-    reason = kwargs.get('reason', 'undefined')
+    reason = repr(kwargs.get('reason', 'undefined'))
     key = kwargs.get('key','')
     url = kwargs.get('url','')
     try:

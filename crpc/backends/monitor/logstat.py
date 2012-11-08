@@ -17,9 +17,9 @@ def get_or_create_task(ctx):
         t = Task(ctx=ctx)
         t.site, t.method, dummy = ctx.split('.')
         t.started_at = datetime.utcnow()
+        t.save()
     else:
-        t.status = Task.RUNNING
-    t.save()
+        t.update(set__status=Task.RUNNING)
     return t
 
 @pre_general_update.bind
@@ -68,7 +68,7 @@ def stat_save(sender, **kwargs):
             t.num_update += 1
         t.num_finish += 1
     
-        t.save() 
+        t.update(set__num_new=t.num_new, set__num_update=t.num_update, set__num_finish=t.num_finish)
     except Exception as e:
         logger.exception(e.message)
         fail(site, method, key, url, traceback.format_exc())

@@ -447,7 +447,7 @@ class Server(object):
 
         seller = node.cssselect('div#productDescription > div.ds-vmf-vendor')
         if seller:
-            product.seller = seller.cssselect('div[class]')[0].text_content()
+            product.seller = seller[0].cssselect('div[class]')[0].text_content()
         product.updated = True
         product.full_update_time = datetime.utcnow()
         product.save()

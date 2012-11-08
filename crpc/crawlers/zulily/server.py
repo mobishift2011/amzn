@@ -281,6 +281,7 @@ class Server(object):
             product.listprice = price_box.cssselect('div.old-price')[0].text.replace('original','').strip().replace('$','').replace(',','')
             soldout = item.cssselect('a.product-image>span.sold-out')
             if soldout: product.soldout = True
+            product.updated = False
         else:
             if event_id not in product.event_id:
                 product.event_id.append(event_id)
@@ -294,7 +295,6 @@ class Server(object):
                 product.soldout = True
                 is_updated = True
 #        product.brand = sale_title
-        product.updated = False
         product.list_update_time = datetime.utcnow()
         product.save()
         common_saved.send(sender=ctx, key=slug, url=self.siteurl + '/e/' + event_id + '.html', is_new=is_new, is_updated=is_updated)

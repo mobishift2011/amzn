@@ -386,7 +386,7 @@ class Server(object):
 
         img = node.cssselect('div#productDescription > div#altImages')
         if img:
-            for i in img.cssselect('img.altImage'):
+            for i in img[0].cssselect('img.altImage'):
                 img_url = i.get('img.data-altimgbaseurl') + '$fullzoom$'
                 if img_url not in product.image_urls:
                     product.image_urls.append(img_url)
@@ -440,7 +440,7 @@ class Server(object):
 
         img = node.cssselect('div#productDescription > div#altImages')
         if img:
-            for i in img.cssselect('img.altImage'):
+            for i in img[0].cssselect('img.altImage'):
                 img_url = i.get('data-altimgbaseurl') + '$fullzoom$'
                 if img_url not in product.image_urls:
                     product.image_urls.append(img_url)

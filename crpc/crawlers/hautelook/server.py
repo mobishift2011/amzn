@@ -121,8 +121,8 @@ class Server(object):
             product, is_new = Product.objects.get_or_create(pk=key)
             if is_new:
                 if color: product.color = color
+                product.updated = False
             product.scarcity = str(info['sizes'][0]['size']['remaining'])
-            product.updated = False
             product.list_update_time = datetime.utcnow()
             product.save()
         common_saved.send(sender=ctx, key=url, url=url, is_new=is_new, is_updated=not is_new)

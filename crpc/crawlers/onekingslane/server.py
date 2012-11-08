@@ -338,6 +338,7 @@ class Server(object):
                 product.listprice = listprice[0].text_content().replace(',','').replace('Retail', '').strip()
             product.price = item.cssselect('ul > li:nth-of-type(2)')[0].text_content().replace(',','')
             if item.cssselect('a.sold-out'): product.soldout = True
+            product.updated = False
         else:
             if event_id not in product.event_id:
                 product.event_id.append(event_id)
@@ -345,7 +346,6 @@ class Server(object):
                 if item.cssselect('a.sold-out'):
                     product.soldout = True
                     is_updated = True
-        product.updated = False
         product.list_update_time = datetime.utcnow()
         product.save()
         common_saved.send(sender=ctx, key=product_id, url=self.siteurl + '/sales/' + event_id, is_new=is_new, is_updated=is_updated)

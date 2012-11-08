@@ -129,13 +129,13 @@ def callrpc(rpc, site, method, *args, **kwargs):
 def gevent_exception_handler():
     pass
 
-def update_category(site, rpc, concurrency=30):
+def update_category(site, rpc, concurrency=3):
     with UpdateContext(site=site, method='update_category') as ctx:
         rpcs = [rpc] if not isinstance(rpc, list) else rpc
         rpc = random.choice(rpcs)
         callrpc(rpc, site, 'crawl_category', ctx=ctx)
 
-def update_listing(site, rpc, concurrency=30):
+def update_listing(site, rpc, concurrency=3):
     with UpdateContext(site=site, method='update_listing') as ctx:
         rpcs = [rpc] if not isinstance(rpc, list) else rpc
         pool = Pool(len(rpcs)*concurrency)
@@ -147,7 +147,7 @@ def update_listing(site, rpc, concurrency=30):
 #                callrpc( rpc, site, 'crawl_listing', **kwargs)
         pool.join()
 
-def update_product(site, rpc, concurrency=30):
+def update_product(site, rpc, concurrency=3):
     with UpdateContext(site=site, method='update_product') as ctx:
         rpcs = [rpc] if not isinstance(rpc, list) else rpc
         pool = Pool(len(rpcs)*concurrency)

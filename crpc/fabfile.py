@@ -33,7 +33,8 @@ def setup_env():
     run("chmod a+x chromedriver && mv chromedriver /usr/bin/")
 
     with settings(warn_only=True):
-        run("kill -9 `pgrep -f rpc.py`")
+        run("killall chromedriver")
+        run("kill -9 `pgrep -f rpcserver`")
         #run("kill -9 `pgrep -f {0}`".format(ENV_NAME))
         run("ln -s /usr/bin/chromium-browser /usr/bin/google-chrome")
 
@@ -78,7 +79,9 @@ def _deploy_rpc(host_string):
 
     # remove if already exists
     with settings(host_string=host_string, warn_only=True):
-        run("pkill -9 python")
+        run("killall Xvfb")
+        run("killall chromedriver")
+        run("kill -9 `pgrep -f rpcserver`")
         run("rm /tmp/*.sock")
 
     # dtach rpc @ /tmp/rpc.sock

@@ -52,6 +52,7 @@ class Product(LuxuryProduct):
     store = StringField()
     product_key = StringField()  # unique key for get-a-product page, not product id, product id is field 'key' in the base class
     dept = ListField(StringField())
+    skus = ListField()
     
     meta = {
         'db_name': DB,

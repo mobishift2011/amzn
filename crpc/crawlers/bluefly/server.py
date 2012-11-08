@@ -98,14 +98,18 @@ class Server(BaseServer):
         return result
 
     def url2category_key(self,href):
-        return  href.split('/')[-2]
+        # http://www.bluefly.com/Designer-Baby/_/N-v2ws/list.fly
+        # http://www.bluefly.com/Designer-Handbags-Accessories/_/N-1abcZapsz/newarrivals.fly 
+        # http://www.bluefly.com/Designer-Women/_/N-1pqkZapsz/Nao-288/newarrivals.fly
+        m = re.compile('.*/_/(N-[a-z,A-Z,0-9]{1,20})/.*.fly').findall(href)
+        return m[0]
 
     def _get_all_category(self,nav,url,ctx=False):
         tree = self.ropen(url)
         for div in tree.xpath('//div[@id="deptLeftnavContainer"]'):
             h3 = div.xpath('.//h3')[0].text_content()
             if h3 == 'categories':
-                links = div.xpath('.//ul/li/a')
+                links = div.xpath('.//a')
                 break
         # patch
         if nav.upper() == 'KIDS':
@@ -115,18 +119,34 @@ class Server(BaseServer):
             href = a.get('href')
             name = a.text_content()
             url = self.format_url(href)
-            key = self.url2category_key(href)
+            try:
+                key = self.url2category_key(href)
+            except IndexError:
+                continue
             
             category ,is_new = Category.objects.get_or_create(key=key)
-            category.name = name
+            if is_new:
+                is_updated = False
+            elif category.name == name:
+                is_updated = False
+            else:
+                # TODO 
+                print '>>'*10
+                print 'key',category.key
+                print 'old name',category.name
+                category.name = name
+                print 'save',category.save()
+                print 'new name',category.name
+                is_updated = False
+
             category.url = url
             category.is_leaf = True
-            try:
+            if 1:
                 category.save()
-            except Exception,e:
-                common_failed.send(sender=ctx, site=DB, key=category.key, is_new=is_new, is_updated=not is_new)
-            else:
-                common_saved.send(sender=ctx, site=DB, key=category.key, is_new=is_new, is_updated=not is_new)
+            #except Exception,e:
+            #    common_failed.send(sender=ctx, site=DB, key=category.key, is_new=is_new, is_updated=is_updated)
+            #else:
+                common_saved.send(sender=ctx, site=DB, key=category.key, is_new=is_new, is_updated=is_updated)
 
     @exclusive_lock(DB)
     def crawl_category(self,ctx=False):
@@ -140,7 +160,12 @@ class Server(BaseServer):
 
     
     @exclusive_lock(DB)
-    def crawl_listing(self,url,ctx=False):
+    def crawl_listing(self,url,ctx=''):
+        self._crawl_listing(url,ctx)
+
+    def _crawl_listing(self,url,ctx=''):
+        print 'list url',url
+        event_id = [self.url2category_key(url)]
         tree = self.ropen(url)
         for item in tree.xpath('//div[starts-with(@class,"productContainer")]'):
             link = item.xpath('.//div[@class="productShortName"]/a')[0]
@@ -148,21 +173,18 @@ class Server(BaseServer):
             href = link.get('href')
             key  = self.url2product_id(href)
             url = self.format_url(href)
-            event_id = [self.url2category_key(url)]
-            brand = item.xpath('.//div[@class="listBrand"]/a')[0].text_content()
-            designer = link.text_content()
-            product,is_new = Product.objects.get_or_create(pk=key)
-
+            designer = item.xpath('.//div[@class="listBrand"]/a')[0].text_content()
             price_spans = item.xpath('.//span')
+            listprice,price = '',''
             for span in price_spans:
                 class_name = span.get('class')
                 value = span.text.replace('\n','').replace(' ','')
                 if class_name == 'priceRetailvalue':
-                    product.listprice = value
+                    listprice = value
                 elif class_name == 'priceBlueflyFinalvalue':
-                    product.price = value
+                    price = value
                 elif class_name == 'priceBlueflyvalue':
-                    product.bluefly_price =  value
+                    bluefly_price =  value
                 
             soldout = False
             for div in item.xpath('.//div'):
@@ -170,24 +192,46 @@ class Server(BaseServer):
                     soldout = True
                     break
 
+            product,is_new = Product.objects.get_or_create(pk=key)
+            if is_new:
+                is_updated = False
+            elif product.title == title and product.soldout == soldout and product.price == price and product.listprice == listprice:
+                is_updated = False
+            else:
+                is_updated = True
+
             if is_new:
                 product.event_id = event_id
             else:
                 product.event_id = list(set(product.event_id + event_id))
 
             product.title = title
+            product.event_id = event_id
             product.soldout = soldout
             product.image_urls = ['http://cdn.is.bluefly.com/mgen/Bluefly/eqzoom85.ms?img=%s.pct&outputx=738&outputy=700&level=1&ver=6' %key]
             product.url = url
+            product.designer = designer
+
             try:
                 product.save()
             except Exception,e:
                 product.reviews = []
                 product.save()
-            common_saved.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
+            common_saved.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=is_updated)
+
+        try:
+            href = tree.xpath('//a[@class="next"]')[1].get('href')
+        except IndexError:
+            next_page_url = False
+        else:
+            next_page_url = self.format_url(href)
+            print 'next page',next_page_url
+            self._crawl_listing(next_page_url,ctx)
 
     def url2product_id(self,href):
-        return href.split('/')[-2]
+        # http://www.bluefly.com/Kelsi-Dagger-tan-suede-Berti-studded-pointed-toe-flats/p/320294403/detail.fly
+        m = re.compile('.*/p/(\d{1,15})/detail.fly').findall(href)
+        return m[0]
 
     def _make_image_urls(self,product_key,image_count):
         urls = []
@@ -214,48 +258,44 @@ class Server(BaseServer):
                 self.browser = webdriver.Firefox()
                 self.browser.set_page_load_timeout(10)
 
-        point1 = time.time()
         #tree = self.ropen(url)
         self.browser.get(url)
         key = self.url2product_id(url)
         main = self.browser.find_element_by_css_selector('section#main-product-detail')
-        product,is_new = Product.objects.get_or_create(key=key)
-        product.title = main.find_element_by_xpath('//h2[starts-with(@class,"product-name")]').text
-
+        title = main.find_element_by_xpath('//h2[starts-with(@class,"product-name")]').text
         list_info = [] 
         for li in main.find_elements_by_css_selector('ul.property-list li'):
             list_info.append(li.text)
-
-        product.summary = main.find_element_by_css_selector('div.product-description').text
+        summary = main.find_element_by_css_selector('div.product-description').text
         try:
-            product.shipping = main.find_element_by_css_selector('div.shipping-policy a').text
+            shipping = main.find_element_by_css_selector('div.shipping-policy a').text
         except NoSuchElementException:
-            pass
-
-        try:
-            product.returned  = main.find_element_by_css_selector('div.return-policy a').text
-        except NoSuchElementException:
-            pass
+            shipping = ''
 
         try:
-            product.color =  main.find_element_by_xpath('//div[@class="pdp-label product-variation-label"]/em').text
+            returned  = main.find_element_by_css_selector('div.return-policy a').text
         except NoSuchElementException:
-            pass
+            returned = ''
+
+        try:
+            color =  main.find_element_by_xpath('//div[@class="pdp-label product-variation-label"]/em').text
+        except NoSuchElementException:
+            color = ''
 
         image_count = len(main.find_elements_by_css_selector('div.image-thumbnail-container a'))
-        product.image_urls = self._make_image_urls(key,image_count)
+        image_urls = self._make_image_urls(key,image_count)
+
         try:
             num_reviews = main.find_element_by_css_selector('a.review-count').text.split('reviews')[0]
         except NoSuchElementException:
             num_reviews = '0'
         
-        point2 = time.time()
         sizes = []
         try:
             bt = self.browser.find_element_by_css_selector('span.selection')
-        except NoSuchElementException:
             left = self.browser.find_element_by_css_selector('div.size-error-message').text
-            sizes = [('',left)]
+        except NoSuchElementException:
+            pass
         else:
             for li in self.browser.find_elements_by_css_selector('div.size-picker ul.product-size li'):
                 bt.click()
@@ -276,7 +316,23 @@ class Server(BaseServer):
                         i = (size,left)
                     sizes.append(i)
 
+        product,is_new = Product.objects.get_or_create(key=key)
+        if is_new:
+            is_updated = False
+        elif product.title == title and product.price == price and product.listprice == listprice:
+            is_updated = False
+        else:
+            is_updated = True
+
+        product.title = title
         product.sizes_scarcity = sizes
+        product.shipping = shipping
+        product.summary = summary
+        product.returned = returned
+        product.color = color
+        product.image_urls = image_urls
+        product.updated = True
+
         # if not have now reviews,do nothing
         if not is_new and product.num_reviews == num_reviews:
             pass
@@ -310,17 +366,16 @@ class Server(BaseServer):
             if reviews:
                 product.reviews = reviews
 
-        #print 'parse by seleunim used ',time.time() - point2
-        product.updated = True
         try:
             product.save()
         except Exception,e:
-            common_failed.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
+            common_failed.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=is_updated)
         else:
-            common_saved.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
+            common_saved.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=is_updated)
 
 if __name__ == '__main__':
     server = Server()
     import time
+    server.crawl_category()
     #server._get_all_category('test','http://www.bluefly.com/a/shoes')
 

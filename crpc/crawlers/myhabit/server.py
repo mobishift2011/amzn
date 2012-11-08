@@ -147,15 +147,20 @@ class Server:
                 soldout = True
 
             brand, is_new = Event.objects.get_or_create(event_id=event_id)
+            is_updated = False
             if is_new:
                 brand.sale_title = a_title.text
                 brand.image_urls = [image]
+                if soldout == True: brand.soldout = True
+            else:
+                if soldout == True and brand.soldout != True:
+                    brand.soldout = soldout
+                    is_updated = True
             if dept not in brand.dept: brand.dept.append(dept) # for designer dept
-            brand.soldout = soldout
             brand.update_time = datetime.utcnow()
             brand.is_leaf = True
             brand.save()
-            common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=not is_new)
+            common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=is_updated)
 
         # upcoming brand
         nodes = self.browser.find_elements_by_xpath('//div[@id="main"]/div[@id="page-content"]/div[@id="upcomingSales"]//div[@class="fourColumnSales"]//div[@class="caption"]/a')
@@ -231,7 +236,7 @@ class Server:
         else:
             if dept not in brand.dept: brand.dept.append(dept)
         brand.save()
-        common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=not is_new)
+        common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=False)
 
 
         
@@ -291,7 +296,7 @@ class Server:
         brand.num = num
         brand.update_time = datetime.utcnow()
         brand.save()
-        common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=not is_new)
+        common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=False)
 
         elements = node.find_elements_by_xpath('./div[@id="asinbox"]/ul/li[starts-with(@id, "result_")]')
         for ele in elements:
@@ -323,20 +328,24 @@ class Server:
 
         asin, casin = self.url2asin(link)
         product, is_new = Product.objects.get_or_create(pk=casin)
+        is_updated = False
         if is_new:
             product.event_id = [event_id]
             product.brand = sale_title
             product.asin = asin
             product.title = title
+            if soldout == True: product.soldout = True
         else:
+            if soldout == True and product.soldout != True:
+                product.soldout = soldout
+                is_updated = True
             if event_id not in product.event_id: product.event_id.append(event_id)
         product.price = ourprice
         if listprice: product.listprice = listprice
-        product.soldout = soldout
         product.updated = False
         product.list_update_time = datetime.utcnow()
         product.save()
-        common_saved.send(sender=ctx, key=casin, url='', is_new=is_new, is_updated=not is_new)
+        common_saved.send(sender=ctx, key=casin, url='', is_new=is_new, is_updated=is_updated)
         debug_info.send(sender="myhabit.parse_category_product", title=title, event_id=event_id, asin=asin, casin=casin)
 
 

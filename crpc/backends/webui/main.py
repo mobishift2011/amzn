@@ -60,6 +60,6 @@ def execute_command():
     run_command.send('webui', site=site, method=method)
     return {'status':'ok'}
 
-mark_all_failed()
+#mark_all_failed()
 
 run(server='gevent', host='0.0.0.0', port=1317)

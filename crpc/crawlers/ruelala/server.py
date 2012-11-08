@@ -22,7 +22,7 @@ from models import *
 from crawlers.common.events import *
 from crawlers.common.stash import *
 from crawlers.common.events import common_saved, common_failed
-import lxml
+import lxml.html
 import datetime
 import time
 import urllib
@@ -51,7 +51,11 @@ class Server:
         else:
             print 'load page used:',time.time() - start
             return True
-            #return lxml.html.fromstring(self.browser.content)
+
+    def logout(self):
+        url = 'http://www.ruelala.com/access/logout'
+        self._signin = False
+        self.browser.get(url)
 
     def login(self, email=None, passwd=None):
         """.. :py:method::
@@ -107,7 +111,8 @@ class Server:
         """
         self.login(self.email, self.passwd)
         categorys = ['women', 'men', 'living','kids','todays-fix']
-        locals = ['http://www.ruelala.com/local/boston',
+        locals = [
+                'http://www.ruelala.com/local/boston',
                 'http://www.ruelala.com/local/chicago',
                 'http://www.ruelala.com/local/los-angeles',
                 'http://www.ruelala.com/local/new-york-city',
@@ -124,28 +129,27 @@ class Server:
         for url in locals:
             self._get_event_list('local',url,ctx)
 
-        self._signin = False
+        self.logout()
 
     def _get_event_list(self,category_name,url,ctx):
         """.. :py:method::
             Get all the events from event list.
         """
         def get_end_time(str):
-            str =  str.replace('CLOSING IN ','').replace(' ','')
-            if 'DAYS' in str:
-                i = str.split('DAYS,')
-            else:
-                i = str.split('DAY,')
-
-            days = int(i[0])
-            j = i[1].split(':')
-            hours = int(j[0])
-            minutes = int(j[1])
-            seconds = int(j[2])
+            # str == u'2\xa0Days,\xa012:46:00'
+            m = re.compile('.*(\d{1,2})\xa0Day.*,\xa0(\d{1,2}):(\d{1,2}):(\d{1,2})').findall(str)
+            print 're.m',m
+            print 're.str[%s]' %str
+            days,hours,minutes,seconds = m[0]
             now = datetime.datetime.utcnow()
-            delta = datetime.timedelta(days=days,hours=hours,minutes=minutes,seconds=seconds)
-            date = now + delta
-            return date
+            delta = datetime.timedelta(days=int(days),hours=int(hours),minutes=int(minutes),seconds=int(seconds))
+            d = now + delta
+            print 'd>',d
+            #ensure the end date is precise 
+            if d.minute == 0:
+                return datetime.datetime(d.year,d.month,d.day,d.hour,0,0)
+            elif 50 <= d.minute <= 59:
+                return datetime.datetime(d.year,d.month,d.day,d.hour+1,0,0)
 
         result = []
         self.browser.get(url)
@@ -175,35 +179,47 @@ class Server:
             a_link = node.find_element_by_xpath('./a[@class="eventDoorLink"]').get_attribute('href')
             a_url = self.format_url(a_link)
             event_id = self._url2saleid(a_link)
-            event,is_new = Event.objects.get_or_create(event_id=event_id)
-            footer =  node.find_element_by_xpath('./footer')
-            clock = footer.find_element_by_xpath('./a/div[@class="closing clock"]').text
+            html = self.browser.page_source
+            tree = lxml.html.fromstring(html)
             try:
+                clock  = tree.xpath('//span[@id="clock%s"]' %event_id)[0].text
                 end_time = get_end_time(clock)
-            except ValueError:
-                pass
+            except (ValueError,TypeError):
+                end_time = False
+            
+            event,is_new = Event.objects.get_or_create(event_id=event_id)
+            if is_new:
+                is_updated = False
+            elif event.sale_title == a_title.text:
+                is_updated = False
             else:
-                event.events_end = end_time
+                print 'is updated >>>'
+                print 'old title',event.sale_title
+                print 'new title',a_title.text
+                is_updated = True
 
             if is_new:
                 event.img_url= 'http://www.ruelala.com/images/content/events/%s_doormini.jpg' %event_id
-                event.dept = category_name
-                event.sale_title = a_title.text
-            
+                event.dept = [category_name]
+            if end_time:
+                event.events_end = end_time
             event.update_time = datetime.datetime.utcnow()
+            event.sale_title = a_title.text
             event.is_leaf = True
+
             try:
                 event.save()
             except Exception,e:
-                common_failed.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=not is_new)
+                common_failed.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=is_updated)
             else:
-                common_saved.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=not is_new)
+                common_saved.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=is_updated)
             result.append((event_id,a_url))
         return result
 
     @exclusive_lock(DB)
     def crawl_listing(self,url,ctx=''):
-        return self._crawl_listing(url,ctx)
+        self._crawl_listing(url,ctx)
+        self.logout()
 
     def _crawl_listing(self,url,ctx):
         event_url = url
@@ -259,7 +275,6 @@ class Server:
             product_id = self._url2product_id(url)
             strike_price = node.find_element_by_xpath('./div/span[@class="strikePrice"]').text
             product_price = node.find_element_by_xpath('./div/span[@class="productPrice"]').text
-            
 
             """
             print 'node a',a
@@ -272,6 +287,13 @@ class Server:
             """
             # get base product info
             product,is_new = Product.objects.get_or_create(key=str(product_id))
+            if is_new:
+                is_updated = False
+            elif product.price == str(product_price) and product.listprice == str(strike_price) and product.title == title:
+                is_updated = False
+            else:
+                is_updated = True
+
             if not is_new:
                 product.url = url
                 product.event_id = [str(event_id)]
@@ -291,15 +313,15 @@ class Server:
                 pass
             else:
                 product.event_id.append(str(event_id))
+
             try:
                 product.save()
             except:
-                common_failed.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=not is_new)
+                common_failed.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=is_updated)
             else:
-                common_saved.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
-            result.append((product_id,url))
+                common_saved.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=is_updated)
 
-        return result
+        return
 
     def _make_img_urls(slef,product_key,img_count):
         """
@@ -320,7 +342,8 @@ class Server:
 
     @exclusive_lock(DB)
     def crawl_product(self,url,ctx=''):
-        return self._crawl_product(url,ctx)
+        self._crawl_product(url,ctx)
+        self.logout()
 
     def _crawl_product(self,url,ctx=''):
         """.. :py:method::
@@ -336,13 +359,12 @@ class Server:
             time.sleep(3)
         
         image_urls = []
-        # TODO imgDetail
-        imgs_node = self.browser.find_element_by_css_selector('section#productImages')
-        #first_img_url = imgs_node.find_element_by_css_selector('img#imgZoom').get_attribute('href')
         try:
-            img_count = len(imgs_node.find_elements_by_css_selector('div#imageThumbWrapper img'))
-        except:
+            img_nodes = self.browser.find_elements_by_css_selector('div#imageViews img.productThumb')
+            img_count = len(img_nodes)
+        except NoSuchElementException:
             img_count = 1
+
         image_urls = self._make_img_urls(product_id,img_count)
         list_info = []
         for li in self.browser.find_elements_by_css_selector('section#info ul li'):
@@ -364,30 +386,41 @@ class Server:
                 left = span.text.split(' ')[0]
                 sizes.append((key,left))
         else:
-            left =  attribute_node.find_element_by_css_selector('span#inventoryAvailable.active').text
-            sizes = [('std',left)]
-
-        shipping = attribute_node.find_element_by_id('readyToShip').text
+            try:
+                left =  attribute_node.find_element_by_css_selector('span#inventoryAvailable.active').text
+            except NoSuchElementException:
+                pass
+        try:
+            shipping = attribute_node.find_element_by_id('readyToShip').text
+        except NoSuchElementException:
+            shipping = ''
         price = attribute_node.find_element_by_id('salePrice').text
         listprice  = attribute_node.find_element_by_id('strikePrice').text
         product, is_new = Product.objects.get_or_create(key=str(product_id))
-        if is_new:
-            product.shipping = shipping
-            product.image_urls = image_urls
-            product.list_info = list_info
 
+        if is_new:
+            is_updated = False
+        elif product.price == str(price) and product.listprice == str(listprice):
+            is_updated = False
+        else:
+            is_updated = True
+
+        product.shipping = shipping
+        product.image_urls = image_urls
+        product.list_info = list_info
         product.sizes_scarcity = sizes
         product.price = price
         product.listprice = listprice
         product.shipping = shipping
         product.updated = True
         product.full_update_time = datetime.datetime.utcnow()
+
         try:
             product.save()
         except Exception,e:
-                common_failed.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
+            common_failed.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=is_updated)
         else:
-            common_saved.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
+            common_saved.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=is_updated)
 
     def _url2saleid(self, url):
         """.. :py:method::
@@ -400,7 +433,14 @@ class Server:
 
     def _url2product_id(self,url):
         # http://www.ruelala.com/event/product/60118/1411878707/0/DEFAULT
+        # or http://www.ruelala.com/product/detail/eventId/59935/styleNum/4112936424/viewAll/0
         m = re.compile('http://.*ruelala.com/event/product/\d{1,10}/(\d{6,10})/\d{1}/DEFAULT').findall(url)
+        try:
+            return str(m[0])
+        except IndexError:
+            pass
+        print 'url'
+        m = re.compile('http://.*.ruelala.com/product/detail/eventId/\d{1,10}/styleNum/(\d{1,10})/viewAll/0').findall(url)
         return str(m[0])
 
     def format_url(self,url):
@@ -416,62 +456,6 @@ class Server:
 
 if __name__ == '__main__':
     server = Server()
-    if 0:
-        server.crawl_category()
-    if 0: 
-        event_id = '59118'
-        event_url ='http://www.ruelala.com/event/59118'
-        product_list = server._get_product_list(sale_id,event_url)
-        print 'result >>',len(product_list)
-        ps =  Product.objects.all()
-        print 'ps',ps
-
-    if 1:
-        url = 'http://www.ruelala.com/event/product/60118/1411878707/0/DEFAULT'
-        result = server.crawl_product(url,'x')
-
-    if 0:
-        server = Server()
-        url = 'http://www.ruelala.com/event/53652'
-        server.crawl_listing(url,'x')
-
-    if 0:
-        server = Server()
-        product_id = '1313856978'
-        url = 'http://www.ruelala.com/event/product/59326/1313856978/1/DEFAULT'
-        result = server._crawl_product_detail(product_id,url)
-
-    if 0:
-        print '>>>>>>'
-        category = 'women'
-        server._get_event_list('women','http://www.ruelala.com/category/women')
-
-    if 0:
-        count = 0
-        error_count = 0
-        server = Server()
-        server._get_event_list('women','http://www.ruelala.com/category/women')
-        start = time.time()
-        for c in Category.objects.all():
-            print 'product list',server._get_product_list(c.sale_id,c.url())
-        print '>>>>>>end',time.time() - start
-
-        ps =  Product.objects.all()
-        print 'ps',ps
-        total = len(ps)
-        start = time.time()
-        for p in ps:
-            print p.key
-            try:
-                server._crawl_product_detail(p.key,p.url())
-            except:
-                print 'error ',p.url()
-                error_count +=1
-            else:
-                count += 1
-
-            print 'key',p.key
-            print 'total',total
-            print 'count',count
-            print 'error count',error_count
-            print 'used time',time.time() - start
+    #server.crawl_listing('http://www.ruelala.com/event/59935')
+    url = 'http://www.ruelala.com/event/product/60496/6020835935/1/DEFAULT'
+    server.crawl_product(url)

@@ -103,22 +103,32 @@ class Server(BaseServer):
             url = self.format_url(href)
             event_id = self.url2event_id(url) # return a string
             img_url = 'http://nmr.allcdn.net/images/events/all/banners/event-%s-medium.jpg' %event_id
+
             event ,is_new = Event.objects.get_or_create(event_id=event_id)
+            if is_new:
+                is_updated = False
+            elif event.title == title:
+                is_updated = False
+            else:
+                is_updated = True
+
             event.title = title
             event.image_urls = [img_url]
             event.events_end = date_obj
             event.update_time = datetime.datetime.utcnow()
             event.is_leaf = True
+
             try:
                 event.save()
             except:
-                common_failed.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=not is_new)
+                common_failed.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=is_updated)
             else:
-                common_saved.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=not is_new)
+                common_saved.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=is_updated)
 
     def _crawl_category_product(self,name,ctx=''):
         _url = 'http://nomorerack.com/daily_deals/category_jxhrq/%s?sort=best_selling&offset=%d'
         for i in range(0,10000):
+            print 'aaa'
             if name == 'kids':
                 url = 'http://nomorerack.com/daily_deals/category/kids'
             else:
@@ -144,15 +154,23 @@ class Server(BaseServer):
                 title = div.xpath('.//p')[0].text
                 key = self.url2product_id(detail_url)
 
-                #for i in locals().items():
-                #    print 'i',i
+                for i in locals().items():
+                    print 'i',i
 
                 product,is_new = Product.objects.get_or_create(pk=key)
+
+                if is_new:
+                    is_updated = False
+                elif product.price== price and product.listprice == listprice and product.title == title:
+                    is_updated = False
+                else:
+                    is_updated = True
+
                 if category.upper() == 'SOLD OUT':
                     product.soldout = True
                     product.cats = [name]
                 else:
-                    product.cates = [name,category]
+                    product.cats = [name,category]
                 product.image_urls = [img_url]
                 product.price = price
                 product.listprice = listprice
@@ -160,9 +178,9 @@ class Server(BaseServer):
                 try:
                     product.save()
                 except:
-                    common_failed.send(sender=ctx, site=DB, key=key, is_new=is_new, is_updated=not is_new)
+                    common_failed.send(sender=ctx, site=DB, key=key, is_new=is_new, is_updated=is_updated)
                 else:
-                    common_saved.send(sender=ctx, site=DB, key=key, is_new=is_new, is_updated=not is_new)
+                    common_saved.send(sender=ctx, site=DB, key=key, is_new=is_new, is_updated=is_updated)
             
             # the kids category just have one page 
             if name == 'kids':
@@ -204,15 +222,22 @@ class Server(BaseServer):
             item_url = self.format_url(href)
             key = self.url2product_id(item_url)
             product ,is_new = Product.objects.get_or_create(key=key)
+            if is_new:
+                is_updated = False
+            elif product.price== price and product.listprice == listprice and product.title == title:
+                is_updated = False
+            else:
+                is_updated = True
+
             product.price = price
             product.listproce = listprice
             product.title = title
             try:
                 product.save()
             except:
-                common_failed.send(sender=ctx, site=DB, key=key, is_new=is_new, is_updated=not is_new)
+                common_failed.send(sender=ctx, site=DB, key=key, is_new=is_new, is_updated=is_updated)
             else:
-                common_saved.send(sender=ctx, site=DB, key=key, is_new=is_new, is_updated=not is_new)
+                common_saved.send(sender=ctx, site=DB, key=key, is_new=is_new, is_updated=is_updated)
 
     @exclusive_lock(DB)
     def crawl_product(self,url,ctx=''):
@@ -222,15 +247,22 @@ class Server(BaseServer):
         key = self.url2product_id(url)
         product,is_new = Product.objects.get_or_create(key=key)
         self.browser.get(url)
+        try:
+            node = self.browser.find_element_by_css_selector('div#products_view.standard')
+        except NoSuchElementException:
+            return False
 
-        node = self.browser.find_element_by_css_selector('div#products_view.standard')
-        dept = node.find_element_by_css_selector('div.right h5').text
+        cat = node.find_element_by_css_selector('div.right h5').text
         title = node.find_element_by_css_selector('div.right h2').text
         summary = node.find_element_by_css_selector('p.description').text
         thumbs = node.find_element_by_css_selector('div.thumbs')
         image_count = len(thumbs.find_elements_by_css_selector('img'))
-        image_url = thumbs.find_element_by_css_selector('img').get_attribute('src')
-        image_urls = self.make_image_urls(image_url,image_count)
+        try:
+            image_url = thumbs.find_element_by_css_selector('img').get_attribute('src')
+        except NoSuchElementException:
+            image_urls = product.image_urls
+        else:
+            image_urls = self.make_image_urls(image_url,image_count)
         attributes = node.find_elements_by_css_selector('div.select-cascade select')
         sizes = []
         colors = []
@@ -251,11 +283,11 @@ class Server(BaseServer):
         except NoSuchElementException:
             date_str = self.browser.find_element_by_css_selector('div.ribbon-center p').text
         date_obj = self.format_date_str(date_str)
-        price = node.find_element_by_css_selector('div.standard h3 span')
-        listprice = node.find_element_by_css_selector('div.standard p del')
+        price = node.find_element_by_css_selector('div.standard h3 span').text
+        listprice = node.find_element_by_css_selector('div.standard p del').text
         product.summary = summary
         product.title = title
-        product.dept = dept
+        product.cats= [cat]
         product.image_urls = image_urls
         product.end_time = date_obj
         product.price = price
@@ -263,15 +295,16 @@ class Server(BaseServer):
         product.pagesize    =   sizes
         product.updated = True
 
-        try:
-            product.save()
-        except:
-            common_failed.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
-        else:
-            common_saved.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
-
         for i in locals().items():
             print 'i',i
+        if 1:
+            product.save()
+        #except Exception,e:
+        #    common_failed.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
+        #else:
+            common_saved.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
+
+        print 'product.cats',product.cats
         return
 
     def format_date_str(self,date_str):
@@ -288,20 +321,5 @@ class Server(BaseServer):
 
 if __name__ == '__main__':
     server = Server()
+    server.crawl_product('http://nomorerack.com/daily_deals/view/128407-product')
     import time
-    if 0:
-        server._crawl_category_product('kids')
-    if 0:
-        server.crawl_category()
-
-    if 0:
-        for event in Event.objects.all():
-            url = event.url()
-            server.crawl_listing(url)
-    if 1:
-        url = 'http://nomorerack.com/daily_deals/category/kids'
-        server.crawl_listing(url)
-
-    if 0:
-        url = Product.objects.all()[10].url()
-        server.crawl_product(url)

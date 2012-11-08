@@ -77,9 +77,8 @@ class Server(object):
             info = event['event']
             event_id = info['event_id']
             event_code = info['event_code']
-            is_updated = False
-
             event, is_new = Event.objects.get_or_create(event_id=event_id)
+            is_updated = False
             if is_new:
                 event.sale_title = info['title']
                 event.sale_description = requests.get(info['info']).text
@@ -91,13 +90,14 @@ class Server(object):
                 pop_img = 'http://www.hautelook.com/assets/{0}/pop-large.jpg'.format(event_code)
                 grid_img = 'http://www.hautelook.com/assets/{0}/grid-large.jpg'.format(event_code)
                 event.image_urls = [pop_img, grid_img]
-            if info['sort_order'] != event.sort_order:
-                is_updated = True
                 event.sort_order = info['sort_order']
+            else:
+                if info['sort_order'] != event.sort_order:
+                    event.sort_order = info['sort_order']
+                    is_updated = True
             event.update_time = datetime.utcnow()
             event.save()
             common_saved.send(sender=ctx, key=event_id, url='{0}/event/{1}'.format(self.siteurl, event_id), is_new=is_new, is_updated=is_updated)
-
         debug_info.send(sender=DB + '.category.end')
 
 
@@ -108,6 +108,9 @@ class Server(object):
         """
         resp = request.get(url)
         data = json.loads(resp.text)
+        if data.keys()[0] != 'availabilities':
+            resp = request.get(url)
+            data = json.loads(resp.text)
         for item in data['availabilities']:
             info = item['availability']
             key = info['inventory_id']

@@ -195,7 +195,10 @@ class Server(BaseServer):
             product,is_new = Product.objects.get_or_create(pk=key)
             if is_new:
                 is_updated = False
-            elif product.title == title and product.soldout == soldout and product.price == price and product.listprice == listprice:
+            elif product.soldout == soldout and product.price == price and product.listprice == listprice:
+                print '>>>'*10
+                print 'old price',product.price
+                print 'new price'price
                 is_updated = False
             else:
                 is_updated = True

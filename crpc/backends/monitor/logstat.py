@@ -68,7 +68,7 @@ def stat_save(sender, **kwargs):
             t.num_update += 1
         t.num_finish += 1
     
-        t.update(set__num_new=t.num_new, set__num_update=t.num_update, set__num_finish=t.num_finish)
+        t.update(set__num_new=t.num_new, set__num_update=t.num_update, set__num_finish=t.num_finish, updated_at=datetime.utcnow())
     except Exception as e:
         logger.exception(e.message)
         fail(site, method, key, url, traceback.format_exc())
@@ -83,7 +83,7 @@ def stat_failed(sender, **kwargs):
     try:
         site, method, dummy = sender.split('.')
         t = get_or_create_task(sender)
-        t.update(push__fails=fail(site, method, key, url, reason), inc__num_fails=1)
+        t.update(push__fails=fail(site, method, key, url, reason), inc__num_fails=1, updated_at=datetime.utcnow())
     except Exception as e:
         logger.exception(e.message)
         fail(site, method, key, url, traceback.format_exc())

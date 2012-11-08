@@ -87,6 +87,7 @@ class Server(object):
                 event.sort_order = info['sort_order']
                 event.urgent = True
             else:
+                event.urgent = False
                 if info['sort_order'] != event.sort_order:
                     event.sort_order = info['sort_order']
                     is_updated = True

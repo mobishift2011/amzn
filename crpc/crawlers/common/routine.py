@@ -38,10 +38,10 @@ def get_site_module(site):
 def spout_listing(site):
     """ return a generator spouting listing pages """
     m = get_site_module(site)
-    if hasattr(m, 'Category'):
-        return m.Category.objects(is_leaf=True).order_by('-update_time').timeout(False)
     if hasattr(m, 'Event'):
         return m.Event.objects(urgent=True, is_leaf=True).order_by('-update_time').timeout(False)
+    if hasattr(m, 'Category'):
+        return m.Category.objects(is_leaf=True).order_by('-update_time').timeout(False)
 
 def spout_listing_update(site):
     """ return a generator spouting listing pages """
@@ -81,9 +81,9 @@ def spout_product(site):
     """ return a generator spouting product url """
     m = get_site_module(site)
     p1 = m.Product.objects.filter(updated = False).timeout(False)
-    p2 = m.Product.objects.filter(updated = True, 
-            full_update_time__lt = datetime.utcnow()-timedelta(hours=24)).timeout(False)
-    for p in chain(p1, p2):
+#    p2 = m.Product.objects.filter(updated = True, 
+#            full_update_time__lt = datetime.utcnow()-timedelta(hours=24)).timeout(False)
+    for p in chain(p1):
         if site == 'ecost':
             yield {'url': p.url(), 'ecost': p.key}
         elif site  in ['bluefly']:

@@ -117,8 +117,16 @@ class Server(BaseServer):
 
         for a in links:
             href = a.get('href')
-            name = a.text_content()
             url = self.format_url(href)
+            print '>url',url
+            _tree = self.ropen(url)
+            cats = []
+            for a in _tree.xpath('//div[@class="breadCrumbMargin"]/a'):
+                cats.append(a.text)
+            try:
+                name = _tree.xpath('//div[@class="listPageHeader"]/h1')[0].text
+            except IndexError:
+                continue
             try:
                 key = self.url2category_key(href)
             except IndexError:
@@ -140,6 +148,7 @@ class Server(BaseServer):
                 is_updated = False
 
             category.url = url
+            category.cats = cats
             category.is_leaf = True
             if 1:
                 category.save()
@@ -157,7 +166,6 @@ class Server(BaseServer):
             nav,url = i
             print nav,url
             self._get_all_category(nav,url,ctx)
-
     
     @exclusive_lock(DB)
     def crawl_listing(self,url,ctx=''):
@@ -282,6 +290,10 @@ class Server(BaseServer):
         except NoSuchElementException:
             returned = ''
 
+        cats = []
+        for a in self.browser.find_elements_by_css_selector('a.product-category'):
+            cats.append(a.text)
+
         try:
             color =  main.find_element_by_xpath('//div[@class="pdp-label product-variation-label"]/em').text
         except NoSuchElementException:
@@ -324,12 +336,13 @@ class Server(BaseServer):
         product,is_new = Product.objects.get_or_create(key=key)
         if is_new:
             is_updated = False
-        elif product.title == title and product.price == price and product.listprice == listprice:
+        elif product.title == title:
             is_updated = False
         else:
             is_updated = True
 
         product.title = title
+        if cats:product.cats = cats
         product.sizes_scarcity = sizes
         product.shipping = shipping
         product.summary = summary
@@ -381,6 +394,8 @@ class Server(BaseServer):
 if __name__ == '__main__':
     server = Server()
     import time
-    server.crawl_listing('http://www.bluefly.com/Designer-Loafers-Flats/_/N-fs8/list.fly')
+    #server.crawl_category()
+    #server.crawl_listing('http://www.bluefly.com/Designer-Loafers-Flats/_/N-fs8/list.fly')
     #server._get_all_category('test','http://www.bluefly.com/a/shoes')
+    print 'xxx',server.crawl_product('http://www.bluefly.com/Beyond-Rings-black-and-gold-druzy-ring/p/319923701/detail.fly')
 

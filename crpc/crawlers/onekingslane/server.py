@@ -432,7 +432,8 @@ class Server(object):
 
         node = tree.cssselect('body.holiday > div#wrapper > div#okl-content')[0]
         product.list_info = node.cssselect('div#productDetails > dl:first-of-type')[0].text_content().split('\n')
-        product.returned = node.cssselect('div#productDetails > dl.shippingDetails')[0].text_content()
+        # shippingDetails maybe under productDetails, maybe under first dl
+        product.returned = node.cssselect('div#productDetails dl.shippingDetails')[0].text_content()
         _date, _time = node.cssselect('div#productDetails > p.endDate')[0].text_content().strip().split('at')
         time_str = _date.split()[-1] + ' ' +  _time.split()[0] + ' '
         product.products_end = time_convert(time_str, '%m/%d %I%p %Y')

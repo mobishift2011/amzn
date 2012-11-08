@@ -45,11 +45,7 @@ headers = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:15.2) Gecko/20121028 Firefox/15.2.1 PaleMoon/15.2.1',
     'Referer': 'https://www.onekingslane.com/login',
 }
-config = { 
-    'max_retries': 5,
-    'pool_connections': 10, 
-    'pool_maxsize': 10, 
-}
+
 req = requests.Session(prefetch=True, timeout=17, config=config, headers=headers)
 
 

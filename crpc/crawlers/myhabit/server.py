@@ -335,6 +335,7 @@ class Server:
             product.asin = asin
             product.title = title
             if soldout == True: product.soldout = True
+            product.updated = False
         else:
             if soldout == True and product.soldout != True:
                 product.soldout = soldout
@@ -342,7 +343,6 @@ class Server:
             if event_id not in product.event_id: product.event_id.append(event_id)
         product.price = ourprice
         if listprice: product.listprice = listprice
-        product.updated = False
         product.list_update_time = datetime.utcnow()
         product.save()
         common_saved.send(sender=ctx, key=casin, url='', is_new=is_new, is_updated=is_updated)

@@ -19,7 +19,7 @@ def get_or_create_task(ctx):
         t.started_at = datetime.utcnow()
         t.save()
     else:
-        t.update(set__status=Task.RUNNING)
+        t.update(set__status=Task.RUNNING, set__updated_at=datetime.utcnow())
     return t
 
 @pre_general_update.bind
@@ -36,7 +36,7 @@ def stat_pre_general_update(sender, **kwargs):
 @post_general_update.bind
 def stat_post_general_update(sender, **kwargs):
     complete = kwargs.get('complete', False)
-    reason = kwargs.get('reason', 'undefined')
+    reason = repr(kwargs.get('reason', 'undefined'))
     key = kwargs.get('key','')
     url = kwargs.get('url','')
     try:
@@ -71,14 +71,14 @@ def stat_save(sender, **kwargs):
         t.update(set__num_new=t.num_new, set__num_update=t.num_update, set__num_finish=t.num_finish)
     except Exception as e:
         logger.exception(e.message)
-        fail(site, method, key, url, traceback.format_exc())
+        t.update(push__fails=fail(site, method, key, url, traceback.format_exc()), inc__num_fails=1)
 
 @common_failed.bind
 def stat_failed(sender, **kwargs):
     logger.error('{0} -> {1}'.format(sender,kwargs.items()))
     key  = kwargs.get('key', '')
     url  = kwargs.get('url', '')
-    reason = kwargs.get('reason', 'undefined')
+    reason = repr(kwargs.get('reason', 'undefined'))
 
     try:
         site, method, dummy = sender.split('.')
@@ -86,7 +86,7 @@ def stat_failed(sender, **kwargs):
         t.update(push__fails=fail(site, method, key, url, reason), inc__num_fails=1)
     except Exception as e:
         logger.exception(e.message)
-        fail(site, method, key, url, traceback.format_exc())
+        t.update(push__fails=fail(site, method, key, url, traceback.format_exc()), inc__num_fails=1)
 
 if __name__ == '__main__':
     print task_all_tasks()

@@ -111,6 +111,9 @@ class Server(object):
         if data.keys()[0] != 'availabilities':
             resp = request.get(url)
             data = json.loads(resp.text)
+        if data.keys()[0] != 'availabilities':
+            common_failed.send(sender=ctx, key='get availabilities twice, both error', url=url, reason=data)
+            return
         for item in data['availabilities']:
             info = item['availability']
             key = info['inventory_id']
@@ -118,8 +121,8 @@ class Server(object):
             product, is_new = Product.objects.get_or_create(pk=key)
             if is_new:
                 if color: product.color = color
+                product.updated = False
             product.scarcity = str(info['sizes'][0]['size']['remaining'])
-            product.updated = False
             product.list_update_time = datetime.utcnow()
             product.save()
         common_saved.send(sender=ctx, key=url, url=url, is_new=is_new, is_updated=not is_new)
@@ -136,7 +139,8 @@ class Server(object):
 
         product.event_id = [str(data['event_id'])]
         product.title = data['title']
-        product.list_info = data['copy'].split('\n')
+        if 'copy' in data:
+            product.list_info = data['copy'].split('\n')
 
         if data['event_display_brand_name']:
             if data['event_title'] != data['brand_name']:

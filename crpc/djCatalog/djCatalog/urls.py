@@ -14,5 +14,6 @@ urlpatterns = patterns('',
 
     # Uncomment the next line to enable tpthe admin:
     # url(r'^admin/', include(admin.site.urls)),
+    (r'^', include('mongonaut.urls')),
     (r'^admin/', include('mongonaut.urls')),
 )

@@ -151,10 +151,10 @@ class Server:
             if is_new:
                 brand.sale_title = a_title.text
                 brand.image_urls = [image]
-                if soldout == True: product.soldout = True
+                if soldout == True: brand.soldout = True
             else:
-                if soldout == True and product.soldout != True:
-                    product.soldout = soldout
+                if soldout == True and brand.soldout != True:
+                    brand.soldout = soldout
                     is_updated = True
             if dept not in brand.dept: brand.dept.append(dept) # for designer dept
             brand.update_time = datetime.utcnow()

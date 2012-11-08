@@ -34,5 +34,5 @@ class Scheduler(object):
         while True:
             for s in self.get_schedules():
                 if s.timematch():
-                    execute(s.method, s.site)
+                    execute(s.site, s.method)
             gevent.sleep(60)

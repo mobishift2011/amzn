@@ -115,13 +115,18 @@ class Server(object):
             key = info['inventory_id']
             color = '' if info['color'].lower() == 'no color' else info['color']
             product, is_new = Product.objects.get_or_create(pk=key)
+            scarcity = str(info['sizes'][0]['size']['remaining'])
+            is_updated = False
             if is_new:
                 if color: product.color = color
                 product.updated = False
-            product.scarcity = str(info['sizes'][0]['size']['remaining'])
+            else:
+                if product.scarcity != scarcity:
+                    product.scarcity = scarcity
+                    is_updated = True
             product.list_update_time = datetime.utcnow()
             product.save()
-        common_saved.send(sender=ctx, key=url, url=url, is_new=is_new, is_updated=not is_new)
+        common_saved.send(sender=ctx, key=url, url=url, is_new=is_new, is_updated=is_updated)
 
 
     def crawl_product(self, url, ctx):

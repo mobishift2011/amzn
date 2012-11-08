@@ -431,7 +431,7 @@ class Server(object):
             product.era = m.group(1).strip()
 
         node = tree.cssselect('body.holiday > div#wrapper > div#okl-content')[0]
-        product.list_info = node.cssselect('div#productDetails > dl:first-of-type')[0].text_content()
+        product.list_info = node.cssselect('div#productDetails > dl:first-of-type')[0].text_content().split('\n')
         product.returned = node.cssselect('div#productDetails > dl.shippingDetails')[0].text_content()
         _date, _time = node.cssselect('div#productDetails > p.endDate')[0].text_content().strip().split('at')
         time_str = _date.split()[-1] + ' ' +  _time.split()[0] + ' '

@@ -78,7 +78,7 @@ def stat_failed(sender, **kwargs):
     logger.error('{0} -> {1}'.format(sender,kwargs.items()))
     key  = kwargs.get('key', '')
     url  = kwargs.get('url', '')
-    reason = kwargs.get('reason', 'undefined')
+    reason = repr(kwargs.get('reason', 'undefined'))
 
     try:
         site, method, dummy = sender.split('.')

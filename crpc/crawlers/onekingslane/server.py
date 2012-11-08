@@ -334,7 +334,7 @@ class Server(object):
             listprice = item.cssselect('ul > li.msrp')
             if listprice:
                 product.listprice = listprice[0].text_content().replace(',','').replace('Retail', '').strip()
-            price = item.cssselect('ul > li:nth-of-type(2)')
+            price = item.cssselect('ul > li:last-of-type')
             if not price:
                 common_failed.send(sender=ctx, url=str(event_id), reason=product_id)
             product.price = price[0].text_content().replace(',','')

@@ -140,7 +140,7 @@ class Server(object):
 
         product.event_id = [str(data['event_id'])]
         product.title = data['title']
-        if 'copy' in data:
+        if 'copy' in data and data['copy']:
             product.list_info = data['copy'].split('\n')
 
         if data['event_display_brand_name']:

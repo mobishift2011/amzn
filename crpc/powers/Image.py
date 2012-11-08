@@ -11,6 +11,11 @@ import os
 import time
 from StringIO import StringIO
 import requests
+
+import boto
+from boto.s3.key import Key
+from boto.s3.connection import S3Connection
+
 from configs import *
 from pymongo import Connection
 connection = Connection()
@@ -23,33 +28,48 @@ class ImageTool:
     * Thumnail the picture.
     * Provide the picture url to the front-end after dealt wit.
     """
-    def __init__(self):
-        map(self.query, DBS)
+    def __init__(self, s3conn):
+        self.__s3conn = s3conn
     
     def query(self, dbname=None):
         db = connection[dbname]
-        products = db.product.find({'updated': True})
-        for product in products:
-            if product.get('image_urls'):
-                for p in product.get('image_urls'):
-                    print p
-                product['image_urls_s3'] = map(lambda x: self.grab(x, os.path.join(IMAGE_ROOT, dbname)), product.get('image_urls'))
-                for p in product.get('image_urls_s3'):
-                    print p
-            return # TO REMOVE
+        return db.product.find({'updated': True})
     
-    def grab(self, image_url, folder):
+    def crawl(self, product, site):
+        if product.get('image_urls') and not product.get('s3_image_urls'):
+            product['s3_image_urls'] = map(lambda x: self.grab(x, os.path.join(IMAGE_ROOT, site), site, product), product.get('image_urls'))
+            product.save()
+    
+    def grab(self, image_url, folder, site, product):
         path, filename = os.path.split(image_url)
-        with open(os.path.join(folder, '%s_%s' % (int(time.time()), filename)), 'wb') as f:
+        image_name = '%s_%s_%s' % (site, product['_id'], filename)
+        with open(os.path.join(folder, image_name), 'wb') as f:
             image = requests.get(image_url).content
             f.write(image)
-        # TO POST IMAGE TO S3
-        return f.name
-    
+        return self.upload2s3(open(f.name), os.path.join(site, image_name)) # post image file to S3, and get back the url. 
+
     def thumnail(self):
         pass
-    
-    def power(self):
-        pass
 
-ImageTool()
+    def upload2s3(self, image, key, bucket_name=IMAGE_S3_BUCKET):
+        try:
+            bucket = self.__s3conn.get_bucket(bucket_name)
+        except boto.exception.S3ResponseError, e:
+            if str(e).find('404 Not Found'):
+                bucket = self.__s3conn.create_bucket(bucket_name)
+            else:
+                raise
+        k = Key(bucket)
+        k.key = key
+        return k.generate_url(URL_EXPIRES_IN)
+
+
+if __name__ == '__main__':
+    imgTool = ImageTool(S3Connection(AWS_ACCESS_KEY, AWS_SECRET_KEY))
+    for dbname in DBS:
+        db = connection[dbname]
+        products = db.product.find({'updated': True})
+        for product in products:
+            imgTool.crawl(product, dbname)
+            product.get('_id')
+            break # TO REMOVE

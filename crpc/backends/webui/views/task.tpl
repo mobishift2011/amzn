@@ -15,6 +15,7 @@
             <a href="#">Tasks</a>
         </li>
         <li><a href="/control">Control</a></li>
+        <li><a href="/image">Image Process</a></li>
       </ul>
 
       <div class="container" style="margin-top: 10px" ng-controller="TaskCtrl"> 

@@ -144,6 +144,7 @@ class Server(object):
                 img = node.cssselect('div.eventStatus > a.trackEventPosition > img')[0].get('src')
                 image = self.extract_large_img.match(img).group(1) + '$fullzoom$'
                 event.image_urls = [image]
+                event.urgent = True
             event.is_leaf = True
             event.update_time = datetime.utcnow()
             event.save()
@@ -306,6 +307,7 @@ class Server(object):
         items = path.cssselect('div#okl-product > ul.products > li[id^="product-tile-"]')
         event.num = len(items)
         event.update_time = datetime.utcnow()
+        event.urgent = False
         event.save()
         common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=False)
 

@@ -201,7 +201,11 @@ class Server(object):
         event_id = self.extract_event_id.match(url).group(2)
         brand, is_new = Event.objects.get_or_create(event_id=event_id)
         if is_new or brand.sale_description is None:
-            brand.sale_description = node.cssselect('div#category-description>div#desc-with-expanded')[0].text_content().strip()
+            sale_description = node.cssselect('div#category-description>div#desc-with-expanded')
+            if not sale_description:
+                sale_description = node.cssselect('div#category-view-brand > div.category-description-bg > div.category-view-brand-description > p:first-of-type')
+            if sale_description:
+                brand.sale_description = sale_description[0].text_content().strip()
 
         items = node.cssselect('div#products-grid li.item')
         end_date = node.cssselect('div#new-content-header>div.end-date')[0].text_content().strip()

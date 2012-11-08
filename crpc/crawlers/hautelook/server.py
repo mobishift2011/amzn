@@ -111,6 +111,9 @@ class Server(object):
         if data.keys()[0] != 'availabilities':
             resp = request.get(url)
             data = json.loads(resp.text)
+        if data.keys()[0] != 'availabilities':
+            common_failed.send(sender=ctx, key='get availabilities twice, both error', url=url, reason=data)
+            return
         for item in data['availabilities']:
             info = item['availability']
             key = info['inventory_id']
@@ -136,7 +139,8 @@ class Server(object):
 
         product.event_id = [str(data['event_id'])]
         product.title = data['title']
-        product.list_info = data['copy'].split('\n')
+        if 'copy' in data:
+            product.list_info = data['copy'].split('\n')
 
         if data['event_display_brand_name']:
             if data['event_title'] != data['brand_name']:

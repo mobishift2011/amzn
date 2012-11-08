@@ -181,10 +181,10 @@ class Server(BaseServer):
                 value = span.text.replace('\n','').replace(' ','')
                 if class_name == 'priceRetailvalue':
                     listprice = value
-                elif class_name == 'priceBlueflyFinalvalue':
+                elif class_name == 'priceSalevalue':
                     price = value
-                elif class_name == 'priceBlueflyvalue':
-                    bluefly_price =  value
+                elif class_name =='priceReducedvalue' and not price:
+                    price = value
                 
             soldout = False
             for div in item.xpath('.//div'):
@@ -195,12 +195,12 @@ class Server(BaseServer):
             product,is_new = Product.objects.get_or_create(pk=key)
             if is_new:
                 is_updated = False
-            elif product.soldout == soldout and product.price == price and product.listprice == listprice:
-                print '>>>'*10
-                print 'old price',product.price
-                print 'new price'price
+            elif product.soldout == soldout and product.title == title and product.price == price and product.listprice == listprice:
                 is_updated = False
             else:
+                print '>>>'*10
+                print 'old price',product.price,product.title
+                print 'new price',price,title
                 is_updated = True
 
             if is_new:
@@ -209,6 +209,8 @@ class Server(BaseServer):
                 product.event_id = list(set(product.event_id + event_id))
 
             product.title = title
+            if price:product.price = price
+            if listprice:product.listprice = listprice
             product.event_id = event_id
             product.soldout = soldout
             product.image_urls = ['http://cdn.is.bluefly.com/mgen/Bluefly/eqzoom85.ms?img=%s.pct&outputx=738&outputy=700&level=1&ver=6' %key]
@@ -379,6 +381,6 @@ class Server(BaseServer):
 if __name__ == '__main__':
     server = Server()
     import time
-    server.crawl_category()
+    server.crawl_listing('http://www.bluefly.com/Designer-Loafers-Flats/_/N-fs8/list.fly')
     #server._get_all_category('test','http://www.bluefly.com/a/shoes')
 

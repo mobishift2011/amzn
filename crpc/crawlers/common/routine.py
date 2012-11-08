@@ -38,8 +38,21 @@ def get_site_module(site):
 def spout_listing(site):
     """ return a generator spouting listing pages """
     m = get_site_module(site)
-    classname = 'Event' if hasattr(m, 'Event') else 'Category'
-    return getattr(m, classname).objects(is_leaf=True).order_by('-update_time').timeout(False)
+    if hasattr(m, 'Category')
+        return m.Category.objects(is_leaf=True).order_by('-update_time').timeout(False)
+    if hasattr(m, 'Event'):
+        return m.Event.objects(urgent=True, is_leaf=True).order_by('-update_time').timeout(False)
+
+def spout_listing_update(site):
+    """ return a generator spouting listing pages """
+    m = get_site_module(site)
+    now = datetime.utcnow()
+    if hasattr(m, 'Event'):
+        # is_leaf=True: only process the Event which is not upcoming.
+        return m.Event.objects(Q(urgent=False) & Q(is_leaf=True) & Q(events_end__lt=now)).order_by('-update_time').timeout(False)
+    if hasattr(m, 'Category')
+        return m.Category.objects(is_leaf=True).order_by('-update_time').timeout(False)
+
 
 def spout_category(site, category):
     """ return a generator spouting category parameters """

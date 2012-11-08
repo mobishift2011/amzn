@@ -334,7 +334,10 @@ class Server(object):
             listprice = item.cssselect('ul > li.msrp')
             if listprice:
                 product.listprice = listprice[0].text_content().replace(',','').replace('Retail', '').strip()
-            product.price = item.cssselect('ul > li:nth-of-type(2)')[0].text_content().replace(',','')
+            price = item.cssselect('ul > li:nth-of-type(2)')
+            if not price:
+                common_failed.send(sender=ctx, url=str(event_id), reason=product_id)
+            product.price = price[0].text_content().replace(',','')
             if item.cssselect('a.sold-out'): product.soldout = True
             product.updated = False
         else:
@@ -364,7 +367,7 @@ class Server(object):
         if 'vintage-market-finds' in url:
             self.crawl_product_vintage(url, tree, ctx)
         else:
-            self.crawl_product_sales(url, tree, ctx)
+            self.crawl_product_sales(url, cont, tree, ctx)
 
 
     def crawl_product_vintage(self, url, tree, ctx):
@@ -414,7 +417,7 @@ class Server(object):
         endtime = pt.localize(datetime.strptime(tinfo, time_format))
         return endtime.astimezone(pytz.utc)
 
-    def crawl_product_sales(self, url, tree, ctx):
+    def crawl_product_sales(self, url, cont, tree, ctx):
         """.. :py:method::
         :param url: porduct url need to crawl
         """

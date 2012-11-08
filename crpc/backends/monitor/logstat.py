@@ -71,7 +71,7 @@ def stat_save(sender, **kwargs):
         t.update(set__num_new=t.num_new, set__num_update=t.num_update, set__num_finish=t.num_finish, updated_at=datetime.utcnow())
     except Exception as e:
         logger.exception(e.message)
-        fail(site, method, key, url, traceback.format_exc())
+        t.update(push__fails=fail(site, method, key, url, traceback.format_exc()), inc__num_fails=1, updated_at=datetime.utcnow())
 
 @common_failed.bind
 def stat_failed(sender, **kwargs):
@@ -86,7 +86,7 @@ def stat_failed(sender, **kwargs):
         t.update(push__fails=fail(site, method, key, url, reason), inc__num_fails=1, updated_at=datetime.utcnow())
     except Exception as e:
         logger.exception(e.message)
-        fail(site, method, key, url, traceback.format_exc())
+        t.update(push__fails=fail(site, method, key, url, traceback.format_exc()), inc__num_fails=1, updated_at=datetime.utcnow())
 
 if __name__ == '__main__':
     print task_all_tasks()

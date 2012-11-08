@@ -19,7 +19,7 @@ def get_or_create_task(ctx):
         t.started_at = datetime.utcnow()
         t.save()
     else:
-        t.update(set__status=Task.RUNNING)
+        t.update(set__status=Task.RUNNING, set__updated_at=datetime.utcnow())
     return t
 
 @pre_general_update.bind
@@ -68,10 +68,10 @@ def stat_save(sender, **kwargs):
             t.num_update += 1
         t.num_finish += 1
     
-        t.update(set__num_new=t.num_new, set__num_update=t.num_update, set__num_finish=t.num_finish, updated_at=datetime.utcnow())
+        t.update(set__num_new=t.num_new, set__num_update=t.num_update, set__num_finish=t.num_finish)
     except Exception as e:
         logger.exception(e.message)
-        t.update(push__fails=fail(site, method, key, url, traceback.format_exc()), inc__num_fails=1, updated_at=datetime.utcnow())
+        t.update(push__fails=fail(site, method, key, url, traceback.format_exc()), inc__num_fails=1)
 
 @common_failed.bind
 def stat_failed(sender, **kwargs):
@@ -83,10 +83,10 @@ def stat_failed(sender, **kwargs):
     try:
         site, method, dummy = sender.split('.')
         t = get_or_create_task(sender)
-        t.update(push__fails=fail(site, method, key, url, reason), inc__num_fails=1, updated_at=datetime.utcnow())
+        t.update(push__fails=fail(site, method, key, url, reason), inc__num_fails=1)
     except Exception as e:
         logger.exception(e.message)
-        t.update(push__fails=fail(site, method, key, url, traceback.format_exc()), inc__num_fails=1, updated_at=datetime.utcnow())
+        t.update(push__fails=fail(site, method, key, url, traceback.format_exc()), inc__num_fails=1)
 
 if __name__ == '__main__':
     print task_all_tasks()

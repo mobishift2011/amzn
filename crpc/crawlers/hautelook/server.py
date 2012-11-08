@@ -32,12 +32,6 @@ headers = {
     'X-Requested-With': 'XMLHttpRequest',
 }
 
-config = { 
-    'max_retries': 3,
-    'pool_connections': 10, 
-    'pool_maxsize': 10, 
-}
-
 request = requests.Session(prefetch=True, timeout=17, config=config, headers=headers)
 
 
@@ -91,6 +85,7 @@ class Server(object):
                 grid_img = 'http://www.hautelook.com/assets/{0}/grid-large.jpg'.format(event_code)
                 event.image_urls = [pop_img, grid_img]
                 event.sort_order = info['sort_order']
+                event.urgent = True
             else:
                 if info['sort_order'] != event.sort_order:
                     event.sort_order = info['sort_order']

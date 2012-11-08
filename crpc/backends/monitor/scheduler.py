@@ -23,7 +23,7 @@ def get_rpcs():
     return rpcs
 
 def execute(site, method):
-    gevent.spawn(globals()[method], site, get_rpcs())
+    gevent.spawn(globals()[method], site, get_rpcs(), 10)
 
 class Scheduler(object):
     """ make schedules easy """

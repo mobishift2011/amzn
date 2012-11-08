@@ -56,9 +56,10 @@ class BaseEvent(BaseCategory):
     image_path          = ListField(StringField())
     sale_description    = StringField()
     dept                = ListField(StringField())
+    urgent              = BooleanField(default=False)
 
     meta = {
-        "indexes": ["soldout"],
+        "indexes": ["soldout", "urgent"],
     }
 
 class BaseReview(Document):
@@ -145,7 +146,7 @@ class LuxuryProduct(BaseProduct):
     # associate to Event's unique key
     event_id            =   ListField(StringField())
 
-    soldout             =   BooleanField()
+    soldout             =   BooleanField(default=False)
 
     listprice           =   StringField()
     color               =   StringField()
@@ -154,3 +155,7 @@ class LuxuryProduct(BaseProduct):
     sizes               =   ListField(StringField())
     scarcity            =   StringField()
     list_info           =   ListField(StringField())
+
+    meta                = {
+        "indexes": ["soldout"],
+    }

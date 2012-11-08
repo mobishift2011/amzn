@@ -152,6 +152,7 @@ class Server:
                 brand.sale_title = a_title.text
                 brand.image_urls = [image]
                 if soldout == True: brand.soldout = True
+                brand.urgent = True
             else:
                 if soldout == True and brand.soldout != True:
                     brand.soldout = soldout
@@ -239,7 +240,6 @@ class Server:
         common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=False)
 
 
-        
 
     def url2saleid(self, url):
         """.. :py:method::
@@ -289,12 +289,13 @@ class Server:
         num = int(num.split()[0])
         event_id = re.compile(r'http://www.myhabit.com/homepage\??#page=b&sale=(\w+)').match(url).group(1)
         brand, is_new = Event.objects.get_or_create(event_id=event_id)
-        # crawl infor before, so always not new
+        # crawl info before, so always not new
         brand.sale_description = sale_description
         brand.events_end = utc_endtime
         if sale_brand_link: brand.brand_link = sale_brand_link
         brand.num = num
         brand.update_time = datetime.utcnow()
+        brand.urgent = False
         brand.save()
         common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=False)
 
@@ -368,42 +369,42 @@ class Server:
             pre = self.browser.find_element_by_css_selector('div#main div#page-content div#detail-page')
         node = pre.find_element_by_css_selector('div#dpLeftCol')
         right_col = pre.find_element_by_css_selector('div#dpRightCol div#innerRightCol')
-        if is_new:
-            info_table, image_urls, video = [], [], ''
-            shortDesc = node.find_element_by_class_name('shortDesc').text
-            international_shipping = node.find_element_by_id('intlShippableBullet').text
-            returned = node.find_element_by_id('returnPolicyBullet').text
-            already_have = [shortDesc, international_shipping, returned]
 
-            for bullet in node.find_elements_by_tag_name('li'):
-                if bullet.text and bullet.text not in already_have:
-                    info_table.append(bullet.text)
+        info_table, image_urls, video = [], [], ''
+        shortDesc = node.find_element_by_class_name('shortDesc').text
+        international_shipping = node.find_element_by_id('intlShippableBullet').text
+        returned = node.find_element_by_id('returnPolicyBullet').text
+        already_have = [shortDesc, international_shipping, returned]
 
-            for img in node.find_elements_by_xpath('.//div[@id="altImgContainer"]/div'):
-                try:
-                    picture = img.find_element_by_class_name('zoomImageL2').get_attribute('value')
-                    image_urls.append(picture)
-                except:
-                    video = img.find_element_by_class_name('videoURL').get_attribute('value')
+        for bullet in node.find_elements_by_tag_name('li'):
+            if bullet.text and bullet.text not in already_have:
+                info_table.append(bullet.text)
 
+        for img in node.find_elements_by_xpath('.//div[@id="altImgContainer"]/div'):
             try:
-                color = right_col.find_element_by_xpath('.//div[@class="dimensionAltText variationSelectOn"]').text
+                picture = img.find_element_by_class_name('zoomImageL2').get_attribute('value')
+                image_urls.append(picture)
             except:
-                color = ''
-            try:
-                sizes = right_col.find_elements_by_xpath('./div[@id="dpVariationMatrix"]//select[@class="variationDropdown"]/option')
-                size = [s for s in sizes if not s.text.startswith('Please')]
-            except:
-                sizes = [] 
+                video = img.find_element_by_class_name('videoURL').get_attribute('value')
 
-            product.summary = shortDesc
-            product.list_info = info_table
-            product.image_urls = image_urls
-            if video: product.video = video
-            if international_shipping: product.international_shipping = international_shipping
-            if returned: product.returned = returned
-            if color: product.color = color
-            if sizes: product.sizes = sizes
+        try:
+            color = right_col.find_element_by_xpath('.//div[@class="dimensionAltText variationSelectOn"]').text
+        except:
+            color = ''
+        try:
+            sizes = right_col.find_elements_by_xpath('./div[@id="dpVariationMatrix"]//select[@class="variationDropdown"]/option')
+            size = [s for s in sizes if not s.text.startswith('Please')]
+        except:
+            sizes = [] 
+
+        product.summary = shortDesc
+        product.list_info = info_table
+        product.image_urls = image_urls
+        if video: product.video = video
+        if international_shipping: product.international_shipping = international_shipping
+        if returned: product.returned = returned
+        if color: product.color = color
+        if sizes: product.sizes = sizes
 
         listprice = right_col.find_element_by_id('listPrice').text.replace('$', '').replace(',', '')
         ourprice = right_col.find_element_by_id('ourPrice').text.replace('$', '').replace(',', '')

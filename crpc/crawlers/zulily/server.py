@@ -138,6 +138,7 @@ class Server(object):
                 brand.sale_title = sale_title
                 brand.short_desc = text.xpath('.//span[@class="description-highlights"]/text()')[0].strip()
                 brand.start_end_date = text.xpath('./span[@class="description"]/span[@class="start-end-date"]')[0].text_content().strip()
+                brand.urgent = True
             if dept not in brand.dept: brand.dept.append(dept) # events are mixed in different category
             brand.is_leaf = True
             brand.update_time = datetime.utcnow()
@@ -215,6 +216,7 @@ class Server(object):
         brand.events_end = datetime.utcnow() + timedelta(days=days, hours=hours)
         brand.num = len(items)
         brand.update_time = datetime.utcnow()
+        brand.urgent = False
         brand.save()
         common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=False)
 

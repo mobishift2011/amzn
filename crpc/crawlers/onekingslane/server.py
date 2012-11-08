@@ -432,9 +432,9 @@ class Server(object):
 
         node = tree.cssselect('body.holiday > div#wrapper > div#okl-content')[0]
         product.list_info = node.cssselect('div#productDetails > dl:first-of-type')[0].text_content().split('\n')
-        # shippingDetails maybe under productDetails, maybe under first dl
+        # shippingDetails maybe under productDetails, maybe under first dl. endDate also have the same problem
         product.returned = node.cssselect('div#productDetails dl.shippingDetails')[0].text_content()
-        _date, _time = node.cssselect('div#productDetails > p.endDate')[0].text_content().strip().split('at')
+        _date, _time = node.cssselect('div#productDetails p.endDate')[0].text_content().strip().split('at')
         time_str = _date.split()[-1] + ' ' +  _time.split()[0] + ' '
         product.products_end = time_convert(time_str, '%m/%d %I%p %Y')
         product.summary = node.cssselect('div#productDescription > div#description')[0].text_content()

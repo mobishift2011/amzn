@@ -130,7 +130,7 @@ class Server(object):
             if event_id not in product.event_id: product.event_id.append(event_id)
             product.list_update_time = datetime.utcnow()
             product.save()
-        common_saved.send(sender=ctx, key=url, url=url, is_new=is_new, is_updated=is_updated)
+            common_saved.send(sender=ctx, key=key, url=url, is_new=is_new, is_updated=is_updated)
 
 
     def crawl_product(self, url, ctx):

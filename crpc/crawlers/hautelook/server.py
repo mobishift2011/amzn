@@ -110,6 +110,7 @@ class Server(object):
         if data.keys()[0] != 'availabilities':
             common_failed.send(sender=ctx, key='get availabilities twice, both error', url=url, reason=data)
             return
+        event_id = re.compile('http://www.hautelook.com/v3/catalog/(.+)/availability').match(url).group(1)
         for item in data['availabilities']:
             info = item['availability']
             key = info['inventory_id']
@@ -124,6 +125,7 @@ class Server(object):
                 if product.scarcity != scarcity:
                     product.scarcity = scarcity
                     is_updated = True
+            if event_id not in product.event_id: product.event_id.append(event_id)
             product.list_update_time = datetime.utcnow()
             product.save()
         common_saved.send(sender=ctx, key=url, url=url, is_new=is_new, is_updated=is_updated)
@@ -138,7 +140,7 @@ class Server(object):
         data = json.loads(resp.text)['data']
         product, is_new = Product.objects.get_or_create(pk=url.split('/')[-1])
 
-        product.event_id = [str(data['event_id'])]
+#        product.event_id = [str(data['event_id'])]
         product.title = data['title']
         if 'copy' in data and data['copy']:
             product.list_info = data['copy'].split('\n')
@@ -148,23 +150,29 @@ class Server(object):
                 product.brand = data['brand_name']
 
         product.sizes = [sz['name'] for sz in data['collections']['size']] # OS -- no size info
-        image_set = set()
-        for k,v in data['collections']['images'].iteritems():
-            for img in v['large']:
-                if 'noavail' not in img:
-                    image_set.add(img)
-        product.image_urls = list(image_set)
 
+        color = ''
         # same product with different colors, all in the same product id
         price_flage = True
-        for k,v in data['prices'].iteritems():
+        for color_str,v in data['prices'].iteritems():
             if not price_flage: break
             for size, val in v.iteritems():
                 if product.key == str(val['inventory_id']):
                     product.price = str(val['sale_price'])
                     product.listprice = str(val['retail_price'])
                     price_flage = False
+                    color = color_str
                     break
+
+        for color_info in data['collections']['color']:
+            if color_info['name'] == color:
+                product.image_urls = data['collections']['images'][ color_info['image'] ]['large']
+#        image_set = set()
+#        for k,v in data['collections']['images'].iteritems():
+#            for img in v['large']:
+#                if 'noavail' not in img:
+#                    image_set.add(img)
+#        product.image_urls = list(image_set)
 
         if data['add_info']: product.additional_info = data['add_info'].split('\n')
         if data['care']: product.care_info = data['care']

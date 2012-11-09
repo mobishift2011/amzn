@@ -30,7 +30,7 @@ class Product(LuxuryProduct):
     def url(self):
         return 'http://nomorerack.com/daily_deals/view/%s-product' %self.key
 
-    meta                =   {
+    meta        =   {
         "db_alias": DB,
     }
 

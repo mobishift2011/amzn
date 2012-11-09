@@ -149,13 +149,13 @@ class Server:
         result = []
         self.browser.get(url)
 
-        try:
-            span = self.browser.find_element_by_xpath('//span[@class="viewAll"]')
-        except:
-            pass
-        else:
-            span.click()
-            time.sleep(1)
+#        try:
+#            span = self.browser.find_element_by_xpath('//span[@class="viewAll"]')
+#        except:
+#            pass
+#        else:
+#            span.click()
+#            time.sleep(1)
 
         nodes = []
         if not nodes:
@@ -183,18 +183,18 @@ class Server:
                 end_time = False
             
             event,is_new = Event.objects.get_or_create(event_id=event_id)
+            is_updated = False
             if is_new:
-                is_updated = False
                 event.urgent = True
                 event.image_urls = ['http://www.ruelala.com/images/content/events/%s_doormini.jpg' %event_id]
                 event.dept = [category_name]
-            elif event.sale_title == a_title.text:
-                is_updated = False
-            else:
-                print 'is updated >>>'
-                print 'old title',event.sale_title
-                print 'new title',a_title.text
-                is_updated = True
+#            elif event.sale_title == a_title.text:
+#                is_updated = False
+#            else:
+#                print 'is updated >>>'
+#                print 'old title',event.sale_title
+#                print 'new title',a_title.text
+#                is_updated = True
 
             if end_time:
                 event.events_end = end_time
@@ -202,12 +202,8 @@ class Server:
             event.sale_title = a_title.text
             event.is_leaf = True
 
-            try:
-                event.save()
-            except Exception,e:
-                common_failed.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=is_updated)
-            else:
-                common_saved.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=is_updated)
+            event.save()
+            common_saved.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=is_updated)
             result.append((event_id,a_url))
         return result
 

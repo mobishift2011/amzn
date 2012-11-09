@@ -82,7 +82,7 @@ def spout_product(site):
     """ return a generator spouting product url """
     m = get_site_module(site)
     now = datetime.utcnow()
-    p1 = m.Product.objects(Q(updated = False) | Q(products_end__gt=now)).timeout(False)
+    p1 = m.Product.objects(Q(updated = False)).timeout(False)
 #    p2 = m.Product.objects.filter(updated = True, 
 #            full_update_time__lt = datetime.utcnow()-timedelta(hours=24)).timeout(False)
     for p in chain(p1):

@@ -156,14 +156,24 @@ class Server(object):
         price_flage = True
         for color_str,v in data['prices'].iteritems():
             if not price_flage: break
-            for size, val in v.iteritems():
-                if product.key == str(val['inventory_id']):
-                    product.price = str(val['sale_price'])
-                    product.listprice = str(val['retail_price'])
-                    price_flage = False
-                    color = color_str
-                    break
+            if isinstance(v, list):
+                for val in v:
+                    if product.key == str(val['inventory_id']):
+                        product.price = str(val['sale_price'])
+                        product.listprice = str(val['retail_price'])
+                        price_flage = False
+                        color = color_str
+                        break
+            elif isinstance(v, dict):
+                for size, val in v.iteritems():
+                    if product.key == str(val['inventory_id']):
+                        product.price = str(val['sale_price'])
+                        product.listprice = str(val['retail_price'])
+                        price_flage = False
+                        color = color_str
+                        break
 
+        # color: find the color, associate it to get the right images
         for color_info in data['collections']['color']:
             if color_info['name'] == color:
                 product.image_urls = data['collections']['images'][ color_info['image'] ]['large']

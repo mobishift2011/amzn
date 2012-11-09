@@ -82,6 +82,8 @@ def _deploy_rpc(host_string):
         run("killall Xvfb")
         run("killall chromedriver")
         run("kill -9 `pgrep -f rpcserver`")
+        run("pkill -9 python")
+        run("killall chromium-browser")
         run("rm /tmp/*.sock")
 
     # dtach rpc @ /tmp/rpc.sock

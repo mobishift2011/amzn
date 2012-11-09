@@ -26,6 +26,7 @@ import random
 import traceback
 
 from itertools import chain
+from mongoengine import Q
 
 from crawlers.common.events import pre_general_update, post_general_update, common_failed
 from datetime import datetime, timedelta
@@ -81,7 +82,7 @@ def spout_product(site):
     """ return a generator spouting product url """
     m = get_site_module(site)
     now = datetime.utcnow()
-    p1 = m.Product.objects.filter(Q(updated = False) | Q(products_end__gt=now)).timeout(False)
+    p1 = m.Product.objects(Q(updated = False) | Q(products_end__gt=now)).timeout(False)
 #    p2 = m.Product.objects.filter(updated = True, 
 #            full_update_time__lt = datetime.utcnow()-timedelta(hours=24)).timeout(False)
     for p in chain(p1):

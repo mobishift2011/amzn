@@ -289,7 +289,7 @@ class Server(BaseServer):
         product.title = title
         product.cats= [cat]
         product.image_urls = image_urls
-        product.end_time = date_obj
+        product.products_end = date_obj
         product.price = price
         product.listprice = listprice
         product.pagesize    =   sizes
@@ -297,13 +297,8 @@ class Server(BaseServer):
 
         for i in locals().items():
             print 'i',i
-        if 1:
-            product.save()
-        #except Exception,e:
-        #    common_failed.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
-        #else:
-            common_saved.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
-
+        product.save()
+        common_saved.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
         print 'product.cats',product.cats
         return
 

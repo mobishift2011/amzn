@@ -50,7 +50,7 @@ class BaseEvent(BaseCategory):
     """
     events_begin        = DateTimeField()
     events_end          = DateTimeField()
-    soldout             = BooleanField()
+    soldout             = BooleanField(default=False)
     sale_title          = StringField()
     image_urls          = ListField(StringField())
     image_path          = ListField(StringField())

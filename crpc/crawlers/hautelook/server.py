@@ -87,7 +87,6 @@ class Server(object):
                 event.sort_order = info['sort_order']
                 event.urgent = True
             else:
-                event.urgent = False
                 if info['sort_order'] != event.sort_order:
                     event.sort_order = info['sort_order']
                     is_updated = True
@@ -111,6 +110,9 @@ class Server(object):
             common_failed.send(sender=ctx, key='get availabilities twice, both error', url=url, reason=data)
             return
         event_id = re.compile('http://www.hautelook.com/v3/catalog/(.+)/availability').match(url).group(1)
+        event, is_new = Event.objects.get_or_create(event_id=event_id)
+        event.urgent = False
+        event.save()
         for item in data['availabilities']:
             info = item['availability']
             key = info['inventory_id']

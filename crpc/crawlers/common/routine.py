@@ -172,6 +172,19 @@ def update_product(site, rpc, concurrency=30):
         pool.join()
 
 
+def update_listing_update(site, rpc, concurrency=30):
+    with UpdateContext(site=site, method='update_listing') as ctx:
+        rpcs = [rpc] if not isinstance(rpc, list) else rpc
+        pool = Pool(len(rpcs)*concurrency)
+        for category in spout_listing_update(site):
+            for kwargs in spout_category(site, category):
+                kwargs['ctx'] = ctx
+                rpc = random.choice(rpcs)
+                pool.spawn(callrpc, rpc, site, 'crawl_listing', **kwargs)
+#                callrpc( rpc, site, 'crawl_listing', **kwargs)
+        pool.join()
+
+
 if __name__ == '__main__':
     from rpcserver import RPCServer
     site = 'amazon'

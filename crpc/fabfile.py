@@ -79,6 +79,7 @@ def _deploy_rpc(host_string):
     # remove if already exists
     with settings(host_string=host_string, warn_only=True):
         run("pkill -9 python")
+        run("killall chromium-browser")
         run("rm /tmp/*.sock")
 
     # dtach rpc @ /tmp/rpc.sock

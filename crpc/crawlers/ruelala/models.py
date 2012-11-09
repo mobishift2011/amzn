@@ -7,9 +7,7 @@ Implements Product and Category Model for ruelala
 """
 
 DB = 'ruelala'
-TIMEOUT = 60
 from mongoengine import *
-from mongoengine import connect
 from settings import MONGODB_HOST
 connect(db=DB, alias=DB, host=MONGODB_HOST)
 
@@ -17,7 +15,6 @@ from crawlers.common.models import BaseEvent, BaseProduct,LuxuryProduct
 
 class Event(BaseEvent):
     event_id = StringField(unique=True)
-    img_url  = StringField()
     meta = {
         "indexes": ["soldout"],
         "db_alias": DB,
@@ -25,9 +22,6 @@ class Event(BaseEvent):
 
     def url(self):
         return 'http://www.ruelala.com/event/%s' %self.event_id
-
-    def img_url(self):
-        return 'http://www.ruelala.com/images/content/events/%s_doormini.jpg' %self.event_id
 
 class Product(LuxuryProduct):
     limit= StringField()

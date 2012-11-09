@@ -69,12 +69,7 @@ class Server:
         
         if not email:
             email, passwd = self.email, self.passwd
-        try:
-            self.browser = webdriver.Chrome()
-            #self.browser = webdriver.Firefox()
-        except:
-            #self.browser = webdriver.Firefox()
-            self.browser = webdriver.Chrome()
+        self.browser = webdriver.Chrome()
             #self.browser.set_page_load_timeout(10)
             #self.profile = webdriver.FirefoxProfile()
             #self.profile.set_preference("general.useragent.override","Mozilla/5.0 (iPhone; CPU iPhone OS 5_1_1 like Mac OS X) AppleWebKit/534.46 (KHTML, like Gecko) Version/5.1 Mobile/9B206 Safari/7534.48.3")
@@ -190,6 +185,9 @@ class Server:
             event,is_new = Event.objects.get_or_create(event_id=event_id)
             if is_new:
                 is_updated = False
+                event.urgent = True
+                event.image_urls = ['http://www.ruelala.com/images/content/events/%s_doormini.jpg' %event_id]
+                event.dept = [category_name]
             elif event.sale_title == a_title.text:
                 is_updated = False
             else:
@@ -198,9 +196,6 @@ class Server:
                 print 'new title',a_title.text
                 is_updated = True
 
-            if is_new:
-                event.img_url= 'http://www.ruelala.com/images/content/events/%s_doormini.jpg' %event_id
-                event.dept = [category_name]
             if end_time:
                 event.events_end = end_time
             event.update_time = datetime.datetime.utcnow()
@@ -276,19 +271,11 @@ class Server:
             strike_price = node.find_element_by_xpath('./div/span[@class="strikePrice"]').text
             product_price = node.find_element_by_xpath('./div/span[@class="productPrice"]').text
 
-            """
-            print 'node a',a
-            print 'title',title
-            print 'href',href
-            print 'url',url
-            print 'product id',product_id,type(product_id)
-            print 'x price',strike_price
-            print 'price',product_price
-            """
             # get base product info
             product,is_new = Product.objects.get_or_create(key=str(product_id))
             if is_new:
                 is_updated = False
+                product.updated = False
             elif product.price == str(product_price) and product.listprice == str(strike_price) and product.title == title:
                 is_updated = False
             else:
@@ -314,14 +301,13 @@ class Server:
             else:
                 product.event_id.append(str(event_id))
 
-            try:
-                product.save()
-            except:
-                common_failed.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=is_updated)
-            else:
-                common_saved.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=is_updated)
+            product.save()
+            common_saved.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=is_updated)
 
-        return
+        event, is_new = Event.objects.get_or_create(event_id=event_id)
+        event.urgent = False
+        event.save()
+
 
     def _make_img_urls(slef,product_key,img_count):
         """

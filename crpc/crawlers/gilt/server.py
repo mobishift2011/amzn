@@ -85,24 +85,23 @@ class Server(object):
         
         is_updated = False
         soldout = True
-        product.soldout = True
         for sku in res.get('skus'):
             product.skus.append(sku.get('id'))
             price = sku.get('msrp_price')
-            is_updated = True if not (product.price == price) and not is_new else is_updated
-            product.price == price
+            is_updated = True if (product.price != price and not is_new) else is_updated
+            product.price = price
             
             listprice = sku.get('sale_price')
-            is_updated = True if not (product.listprice == listprice) and not is_new else is_updated
+            is_updated = True if (product.listprice != listprice and not is_new) else is_updated
             product.listprice = listprice
             
             if sku.get('inventory_status') == "for sale":
                 soldout = False
-                is_updated = True if not (product.soldout == soldout) and not is_new else is_updated
-                product.soldout = soldout
+                is_updated = True if (product.soldout != soldout and not is_new) else is_updated
             else:
                 if sku.get('attributes'):
                     product.sizes_scarcity.append(sku.get('attributes')[0].get('value'))
+        product.soldout = soldout
         product.updated = True
         product.full_update_time = datetime.datetime.utcnow()
         product.save()
@@ -129,6 +128,7 @@ class Server(object):
         
         is_updated = False
         event, is_new = Event.objects.get_or_create(event_id = sale.get('sale_key'))
+        event.urgent = is_new
         event.sale_title = sale.get('name')
         event.event_id = sale.get('sale_key')
         event.store = sale.get('store')
@@ -140,7 +140,7 @@ class Server(object):
         event.events_end = datetime.datetime.strptime(sale.get('ends'), '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=pytz.utc)
         #        upcoming = sale.get('begins') > datetime.datetime.now()
         
-        is_updated = (event.is_leaf != bool(sale.get('products')))
+        is_updated = (event.is_leaf != bool(sale.get('products'))) and not is_new
         event.is_leaf = bool(sale.get('products'))
         event.sale_description = sale.get('description')
         event.save()
@@ -158,9 +158,14 @@ class Server(object):
                 product.store = event.store
                 product.list_update_time = datetime.datetime.utcnow()
                 product.updated = not prod_new if prod_new else product.updated
+                product.products_end = event.events_end
                 product.save()
                 
                 is_updated = prod_new or is_updated
+        
+        if is_updated:
+            event.urgent = False
+            event.save()
         
         common_saved.send(sender=ctx, key=event.event_id, url=sale.get('sale_url'), is_new=is_new, is_updated=(not is_new) and is_updated)
 #        map(lambda url: self.process_product(url, sale), sale.get('products') or [])
@@ -173,8 +178,8 @@ if __name__ == '__main__':
 #    server.run()
     timer=time.time()
     s = Server()
-#    s.crawl_category('gilt')
-#    
+    s.crawl_category('gilt')
+    
     products = Product.objects.filter(updated=False)
     for product in products:
         s.crawl_product(product.url(), 'gilt')

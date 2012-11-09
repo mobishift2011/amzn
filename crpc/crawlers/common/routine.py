@@ -49,7 +49,7 @@ def spout_listing_update(site):
     now = datetime.utcnow()
     if hasattr(m, 'Event'):
         # is_leaf=True: only process the Event which is not upcoming.
-        return m.Event.objects(Q(urgent=False) & Q(is_leaf=True) & Q(events_end__lt=now)).order_by('-update_time').timeout(False)
+        return m.Event.objects(Q(urgent=False) & Q(is_leaf=True) & Q(events_end__gt=now)).order_by('-update_time').timeout(False)
     if hasattr(m, 'Category'):
         return m.Category.objects(is_leaf=True).order_by('-update_time').timeout(False)
 
@@ -80,7 +80,8 @@ def spout_category(site, category):
 def spout_product(site):
     """ return a generator spouting product url """
     m = get_site_module(site)
-    p1 = m.Product.objects.filter(updated = False).timeout(False)
+    now = datetime.utcnow()
+    p1 = m.Product.objects.filter(Q(updated = False) | Q(products_end__gt=now)).timeout(False)
 #    p2 = m.Product.objects.filter(updated = True, 
 #            full_update_time__lt = datetime.utcnow()-timedelta(hours=24)).timeout(False)
     for p in chain(p1):

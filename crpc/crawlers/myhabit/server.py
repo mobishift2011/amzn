@@ -393,7 +393,7 @@ class Server:
             color = ''
         try:
             sizes = right_col.find_elements_by_xpath('./div[@id="dpVariationMatrix"]//select[@class="variationDropdown"]/option')
-            sizes = [s for s in sizes if not s.text.startswith('Please')]
+            sizes = [s.text for s in sizes if not s.text.startswith('Please')]
         except:
             sizes = [] 
 

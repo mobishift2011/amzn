@@ -21,7 +21,7 @@ handler = ColorizingStreamHandler()
 handler.setFormatter(logging.Formatter("[%(asctime)s]<%(name)s>%(levelname)s:%(message)s", None))
 
 root = logging.getLogger()
-root.setLevel(logging.DEBUG)
+root.setLevel(logging.INFO)
 root.addHandler(handler)
 
 def getlogger(name):

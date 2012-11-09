@@ -95,6 +95,7 @@ class Server(BaseServer):
             title = e.text
             if title == 'VIEW EVENT':
                 continue
+            title = e.get_attribute('title')
 
             a =  e.find_element_by_css_selector('div.image a.image_tag')
             expires_on = e.find_element_by_css_selector('div.countdown').get_attribute('expires_on')
@@ -108,12 +109,12 @@ class Server(BaseServer):
             if is_new:
                 is_updated = False
                 event.urgent = True
-            elif event.title == title:
+            elif event.sale_title == title:
                 is_updated = False
             else:
                 is_updated = True
 
-            event.title = title
+            event.sale_title = title
             event.image_urls = [img_url]
             event.events_end = date_obj
             event.update_time = datetime.datetime.utcnow()

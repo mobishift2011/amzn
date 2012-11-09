@@ -145,13 +145,13 @@ def gevent_exception_handler():
     pass
 
 def update_category(site, rpc, concurrency=3):
-    with UpdateContext(site=site, method='category') as ctx:
+    with UpdateContext(site=site, method='update_category') as ctx:
         rpcs = [rpc] if not isinstance(rpc, list) else rpc
         rpc = random.choice(rpcs)
         callrpc(rpc, site, 'crawl_category', ctx=ctx)
 
 def update_listing(site, rpc, concurrency=3):
-    with UpdateContext(site=site, method='listing') as ctx:
+    with UpdateContext(site=site, method='update_listing') as ctx:
         rpcs = [rpc] if not isinstance(rpc, list) else rpc
         pool = Pool(len(rpcs)*concurrency)
         for category in spout_listing(site):
@@ -163,7 +163,7 @@ def update_listing(site, rpc, concurrency=3):
         pool.join()
 
 def update_product(site, rpc, concurrency=3):
-    with UpdateContext(site=site, method='product') as ctx:
+    with UpdateContext(site=site, method='update_product') as ctx:
         rpcs = [rpc] if not isinstance(rpc, list) else rpc
         pool = Pool(len(rpcs)*concurrency)
         for kwargs in spout_product(site):
@@ -175,7 +175,7 @@ def update_product(site, rpc, concurrency=3):
 
 
 def update_listing_update(site, rpc, concurrency=30):
-    with UpdateContext(site=site, method='listing_update') as ctx:
+    with UpdateContext(site=site, method='update_listing_update') as ctx:
         rpcs = [rpc] if not isinstance(rpc, list) else rpc
         pool = Pool(len(rpcs)*concurrency)
         for category in spout_listing_update(site):

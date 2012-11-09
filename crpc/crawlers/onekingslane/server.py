@@ -272,12 +272,12 @@ class Server(object):
             product.listprice = item.cssselect('ul > li.retail')[0].text_content()
             product.price = item.cssselect('ul > li:nth-of-type(2)')[0].text_content().replace(',','')
             if item.cssselect('em.sold'): product.soldout = True
+            product.updated = False
         else:
             if product.soldout != True:
                 if item.cssselect('em.sold'):
                     product.soldout = True
                     is_updated = True
-        product.updated = False
         product.list_update_time = datetime.utcnow()
         product.save()
         common_saved.send(sender=ctx, key=product_id, url=self.siteurl + '/vintage-market-finds/' + event_id, is_new=is_new, is_updated=is_updated)

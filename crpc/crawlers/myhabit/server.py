@@ -404,7 +404,6 @@ class Server:
         if international_shipping: product.international_shipping = international_shipping
         if returned: product.returned = returned
         if color: product.color = color
-        print url, sizes
         if sizes: product.sizes = sizes
 
         listprice = right_col.find_element_by_id('listPrice').text.replace('$', '').replace(',', '')

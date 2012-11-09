@@ -156,6 +156,8 @@ class LuxuryProduct(BaseProduct):
     scarcity            =   StringField()
     list_info           =   ListField(StringField())
 
+    products_end        =   DateTimeField()
+
     meta                = {
         "indexes": ["soldout"],
     }

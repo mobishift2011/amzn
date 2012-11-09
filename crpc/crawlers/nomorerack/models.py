@@ -25,7 +25,7 @@ class Product(LuxuryProduct):
     event_id = StringField()
     listprice = StringField()
     color = StringField()
-    end_time = DateTimeField()
+    #end_time = DateTimeField()
 
     def url(self):
         return 'http://nomorerack.com/daily_deals/view/%s-product' %self.key

@@ -150,12 +150,8 @@ class Server(BaseServer):
             category.url = url
             category.cats = cats
             category.is_leaf = True
-            if 1:
-                category.save()
-            #except Exception,e:
-            #    common_failed.send(sender=ctx, site=DB, key=category.key, is_new=is_new, is_updated=is_updated)
-            #else:
-                common_saved.send(sender=ctx, site=DB, key=category.key, is_new=is_new, is_updated=is_updated)
+            category.save()
+            common_saved.send(sender=ctx, site=DB, key=category.key, is_new=is_new, is_updated=is_updated)
 
     @exclusive_lock(DB)
     def crawl_category(self,ctx=False):

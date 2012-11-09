@@ -8,7 +8,7 @@ from gevent import monkey; monkey.patch_all()
 import gevent
 
 from backends.monitor.models import Schedule
-from crawlers.common.routine import update_category, update_listing, update_product
+from crawlers.common.routine import update_category, update_listing, update_product, update_listing_update
 
 import zerorpc
 from settings import PEERS, RPC_PORT

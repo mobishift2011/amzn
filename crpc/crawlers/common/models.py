@@ -97,6 +97,7 @@ class BaseProduct(Document):
     updated             =   BooleanField(default=False)
     list_update_time    =   DateTimeField(default=datetime.utcnow)
     full_update_time    =   DateTimeField()
+    products_end        =   DateTimeField()
 
     # dimension info
     cats                =   ListField(StringField()) 

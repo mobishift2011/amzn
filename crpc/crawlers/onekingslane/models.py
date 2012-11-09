@@ -41,7 +41,6 @@ class Event(BaseEvent):
 
 class Product(LuxuryProduct):
     short_desc = StringField()
-    products_end = DateTimeField()
     condition = StringField()
     era = StringField()
     seller = StringField()

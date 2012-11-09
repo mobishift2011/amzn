@@ -45,11 +45,7 @@ headers = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:15.2) Gecko/20121028 Firefox/15.2.1 PaleMoon/15.2.1',
     'Referer': 'https://www.onekingslane.com/login',
 }
-config = { 
-    'max_retries': 5,
-    'pool_connections': 10, 
-    'pool_maxsize': 10, 
-}
+
 req = requests.Session(prefetch=True, timeout=17, config=config, headers=headers)
 
 
@@ -148,6 +144,7 @@ class Server(object):
                 img = node.cssselect('div.eventStatus > a.trackEventPosition > img')[0].get('src')
                 image = self.extract_large_img.match(img).group(1) + '$fullzoom$'
                 event.image_urls = [image]
+                event.urgent = True
             event.is_leaf = True
             event.update_time = datetime.utcnow()
             event.save()
@@ -310,6 +307,7 @@ class Server(object):
         items = path.cssselect('div#okl-product > ul.products > li[id^="product-tile-"]')
         event.num = len(items)
         event.update_time = datetime.utcnow()
+        event.urgent = False
         event.save()
         common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=False)
 
@@ -336,7 +334,10 @@ class Server(object):
             listprice = item.cssselect('ul > li.msrp')
             if listprice:
                 product.listprice = listprice[0].text_content().replace(',','').replace('Retail', '').strip()
-            product.price = item.cssselect('ul > li:nth-of-type(2)')[0].text_content().replace(',','')
+            price = item.cssselect('ul > li:last-of-type')
+            if not price:
+                common_failed.send(sender=ctx, url=event_id + '/' + product_id, reason='price not resolve right')
+            product.price = price[0].text_content().replace(',','')
             if item.cssselect('a.sold-out'): product.soldout = True
             product.updated = False
         else:
@@ -366,7 +367,7 @@ class Server(object):
         if 'vintage-market-finds' in url:
             self.crawl_product_vintage(url, tree, ctx)
         else:
-            self.crawl_product_sales(url, tree, ctx)
+            self.crawl_product_sales(url, cont, tree, ctx)
 
 
     def crawl_product_vintage(self, url, tree, ctx):
@@ -385,7 +386,7 @@ class Server(object):
 
         img = node.cssselect('div#productDescription > div#altImages')
         if img:
-            for i in img.cssselect('img.altImage'):
+            for i in img[0].cssselect('img.altImage'):
                 img_url = i.get('img.data-altimgbaseurl') + '$fullzoom$'
                 if img_url not in product.image_urls:
                     product.image_urls.append(img_url)
@@ -416,7 +417,7 @@ class Server(object):
         endtime = pt.localize(datetime.strptime(tinfo, time_format))
         return endtime.astimezone(pytz.utc)
 
-    def crawl_product_sales(self, url, tree, ctx):
+    def crawl_product_sales(self, url, cont, tree, ctx):
         """.. :py:method::
         :param url: porduct url need to crawl
         """
@@ -429,24 +430,25 @@ class Server(object):
         if m:
             product.era = m.group(1).strip()
 
-        node = tree.cssselect('body.holiday > div#wrapper > div#okl-content')
-        product.list_info = node.cssselect('div#productDetails > dl:first-of-type')[0].text_content()
-        product.returned = node.cssselect('div#productDetails > dl.shippingDetails')[0].text_content()
-        _date, _time = node.cssselect('div#productDetails > p.endDate')[0].text_content().strip().split('at')
+        node = tree.cssselect('body.holiday > div#wrapper > div#okl-content')[0]
+        product.list_info = node.cssselect('div#productDetails > dl:first-of-type')[0].text_content().split('\n')
+        # shippingDetails maybe under productDetails, maybe under first dl. endDate also have the same problem
+        product.returned = node.cssselect('div#productDetails dl.shippingDetails')[0].text_content()
+        _date, _time = node.cssselect('div#productDetails p.endDate')[0].text_content().strip().split('at')
         time_str = _date.split()[-1] + ' ' +  _time.split()[0] + ' '
         product.products_end = time_convert(time_str, '%m/%d %I%p %Y')
         product.summary = node.cssselect('div#productDescription > div#description')[0].text_content()
 
         img = node.cssselect('div#productDescription > div#altImages')
         if img:
-            for i in img.cssselect('img.altImage'):
+            for i in img[0].cssselect('img.altImage'):
                 img_url = i.get('data-altimgbaseurl') + '$fullzoom$'
                 if img_url not in product.image_urls:
                     product.image_urls.append(img_url)
 
         seller = node.cssselect('div#productDescription > div.ds-vmf-vendor')
         if seller:
-            product.seller = seller.cssselect('div[class]')[0].text_content()
+            product.seller = seller[0].cssselect('div[class]')[0].text_content()
         product.updated = True
         product.full_update_time = datetime.utcnow()
         product.save()

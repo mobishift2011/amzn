@@ -19,10 +19,9 @@ login_passwd = '4110050209'
 
 headers = { 
     'User-Agent': 'Mozilla 5.0/Firefox 16.0.1',
-    'Referer': 'http://docs.python-requests.org/en/latest/api/',
 }
 config = { 
-    'max_retries': 3,
+    'max_retries': 5,
     'pool_connections': 10, 
     'pool_maxsize': 10, 
 }

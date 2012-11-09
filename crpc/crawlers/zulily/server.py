@@ -26,14 +26,7 @@ from models import *
 from crawlers.common.events import *
 from crawlers.common.stash import *
 
-headers = { 'User-Agent': 'Mozilla 5.0/Firefox 16.0.1', }
-config = { 
-    'max_retries': 5,
-    'pool_connections': 10, 
-    'pool_maxsize': 10, 
-}
 req = requests.Session(prefetch=True, timeout=17, config=config, headers=headers)
-
 
 class zulilyLogin(object):
     """.. :py:class:: zulilyLogin

@@ -32,12 +32,6 @@ headers = {
     'X-Requested-With': 'XMLHttpRequest',
 }
 
-config = { 
-    'max_retries': 3,
-    'pool_connections': 10, 
-    'pool_maxsize': 10, 
-}
-
 request = requests.Session(prefetch=True, timeout=17, config=config, headers=headers)
 
 
@@ -91,7 +85,9 @@ class Server(object):
                 grid_img = 'http://www.hautelook.com/assets/{0}/grid-large.jpg'.format(event_code)
                 event.image_urls = [pop_img, grid_img]
                 event.sort_order = info['sort_order']
+                event.urgent = True
             else:
+                event.urgent = False
                 if info['sort_order'] != event.sort_order:
                     event.sort_order = info['sort_order']
                     is_updated = True
@@ -119,13 +115,18 @@ class Server(object):
             key = info['inventory_id']
             color = '' if info['color'].lower() == 'no color' else info['color']
             product, is_new = Product.objects.get_or_create(pk=key)
+            scarcity = str(info['sizes'][0]['size']['remaining'])
+            is_updated = False
             if is_new:
                 if color: product.color = color
                 product.updated = False
-            product.scarcity = str(info['sizes'][0]['size']['remaining'])
+            else:
+                if product.scarcity != scarcity:
+                    product.scarcity = scarcity
+                    is_updated = True
             product.list_update_time = datetime.utcnow()
             product.save()
-        common_saved.send(sender=ctx, key=url, url=url, is_new=is_new, is_updated=not is_new)
+        common_saved.send(sender=ctx, key=url, url=url, is_new=is_new, is_updated=is_updated)
 
 
     def crawl_product(self, url, ctx):
@@ -139,7 +140,7 @@ class Server(object):
 
         product.event_id = [str(data['event_id'])]
         product.title = data['title']
-        if 'copy' in data:
+        if 'copy' in data and data['copy']:
             product.list_info = data['copy'].split('\n')
 
         if data['event_display_brand_name']:

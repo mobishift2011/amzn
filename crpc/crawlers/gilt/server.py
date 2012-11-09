@@ -173,9 +173,9 @@ if __name__ == '__main__':
 #    server.run()
     timer=time.time()
     s = Server()
-    s.crawl_category('gilt')
+#    s.crawl_category('gilt')
 #    
-#    products = Product.objects.filter(updated=False)
-#    for product in products:
-#        s.crawl_product(product.url(), 'gilt')
+    products = Product.objects.filter(updated=False)
+    for product in products:
+        s.crawl_product(product.url(), 'gilt')
     print 'total cost(s): %s' % (time.time()-timer)

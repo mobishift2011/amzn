@@ -157,9 +157,8 @@ class Server:
 #            span.click()
 #            time.sleep(1)
 
-        nodes = []
-        if not nodes:
-            nodes = self.browser.find_elements_by_xpath('//section[@id="alsoOnDoors"]/article')
+        nodes = self.browser.find_elements_by_xpath('//section[@id="eventDoorLink"]/article')
+        #nodes = self.browser.find_elements_by_xpath('//section[@id="alsoOnDoors"]/article')
 
         for node in nodes:
             # pass the hiden element

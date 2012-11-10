@@ -174,7 +174,7 @@ def update_product(site, rpc, concurrency=3):
         pool.join()
 
 
-def update_listing_update(site, rpc, concurrency=30):
+def update_listing_update(site, rpc, concurrency=3):
     with UpdateContext(site=site, method='update_listing_update') as ctx:
         rpcs = [rpc] if not isinstance(rpc, list) else rpc
         pool = Pool(len(rpcs)*concurrency)

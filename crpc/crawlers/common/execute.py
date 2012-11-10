@@ -8,7 +8,7 @@ import crawllog
 import sys
 import time
 
-def run(rpc, site):
+def run(site, rpc):
     begin = time.time()
 
     update_listing_update(site, rpc)
@@ -30,6 +30,6 @@ if __name__ == '__main__':
     rpc = RPCServer()
     if sys.argv[1]:
         if sys.argv[1] == 'myhabit' or 'zulily' or 'hautelook' or 'onekingslane':
-            run(rpc, sys.argv[1])
+            run(sys.argv[1], rpc)
     else:
         update_category('ruelala', rpc)

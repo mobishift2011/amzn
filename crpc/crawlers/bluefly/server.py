@@ -133,25 +133,25 @@ class Server(BaseServer):
                 continue
             
             category ,is_new = Category.objects.get_or_create(key=key)
-            if is_new:
-                is_updated = False
-            elif category.name == name:
-                is_updated = False
-            else:
-                # TODO 
-                print '>>'*10
-                print 'key',category.key
-                print 'old name',category.name
-                category.name = name
-                print 'save',category.save()
-                print 'new name',category.name
-                is_updated = False
+#            if is_new:
+#                is_updated = False
+#            elif category.name == name:
+#                is_updated = False
+#            else:
+#                # TODO 
+#                print '>>'*10
+#                print 'key',category.key
+#                print 'old name',category.name
+#                category.name = name
+#                print 'save',category.save()
+#                print 'new name',category.name
+#                is_updated = False
 
             category.url = url
             category.cats = cats
             category.is_leaf = True
             category.save()
-            common_saved.send(sender=ctx, site=DB, key=category.key, is_new=is_new, is_updated=is_updated)
+            common_saved.send(sender=ctx, site=DB, key=category.key, is_new=is_new, is_updated=False)
 
     @exclusive_lock(DB)
     def crawl_category(self,ctx=False):
@@ -197,18 +197,16 @@ class Server(BaseServer):
                     break
 
             product,is_new = Product.objects.get_or_create(pk=key)
-            if is_new:
-                is_updated = False
-            elif product.soldout == soldout and product.title == title and product.price == price and product.listprice == listprice:
-                is_updated = False
-            else:
+            is_updated = False
+            if product.soldout == soldout and product.title == title and product.price == price and product.listprice == listprice:
+                is_updated = True
                 print '>>>'*10
                 print 'old price',product.price,product.title
                 print 'new price',price,title
-                is_updated = True
 
             if is_new:
                 product.event_id = event_id
+                product.updated = False
             else:
                 product.event_id = list(set(product.event_id + event_id))
 
@@ -330,12 +328,12 @@ class Server(BaseServer):
                     sizes.append(i)
 
         product,is_new = Product.objects.get_or_create(key=key)
-        if is_new:
-            is_updated = False
-        elif product.title == title:
-            is_updated = False
-        else:
-            is_updated = True
+#        if is_new:
+#            is_updated = False
+#        elif product.title == title:
+#            is_updated = False
+#        else:
+#            is_updated = True
 
         product.title = title
         if cats:product.cats = cats
@@ -380,12 +378,8 @@ class Server(BaseServer):
             if reviews:
                 product.reviews = reviews
 
-        try:
-            product.save()
-        except Exception,e:
-            common_failed.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=is_updated)
-        else:
-            common_saved.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=is_updated)
+        product.save()
+        common_saved.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
 
 if __name__ == '__main__':
     server = Server()

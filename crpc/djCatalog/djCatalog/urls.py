@@ -14,6 +14,10 @@ urlpatterns = patterns('',
 
     # Uncomment the next line to enable tpthe admin:
     # url(r'^admin/', include(admin.site.urls)),
-    (r'^', include('mongonaut.urls')),
-    (r'^admin/', include('mongonaut.urls')),
+    url(r'^admin/', include('mongonaut.urls')),
+)
+
+urlpatterns += patterns('',
+    (r'^$', 'catalogs.auth.loginHandle'),
+    url(r'^login/$', 'catalogs.auth.loginHandle', name='loginHandle'),
 )

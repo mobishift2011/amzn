@@ -6,6 +6,7 @@ import gevent
 from bottle import route, post, request, run, template, static_file, redirect
 from os.path import join, dirname
 
+from auth import *
 from backends.webui.events import log_event
 from backends.monitor.events import run_command
 from backends.webui.views import task_updates, task_all_tasks, mark_all_failed
@@ -15,22 +16,36 @@ from backends.webui.views import update_schedule, get_all_schedules, delete_sche
 def server_static(filepath):
     return static_file(filepath, root=join(dirname(__file__), 'assets'))
 
+#@route('/login')
+#def login():
+#    return template('login')
+#
+#@post('/login')
+#def signIn():
+#    username = request.POST.get('username')
+#    password = request.POST.get('password')
+#    
+#    return ('%s, %s'% (username, password))
+
 @route('/')
+@login_required
 def index():
     redirect('/task')
 
 @route('/task')
+#@protected(check_valid_user)
 def task():
     return template('task')
 
 @route('/task/all')
+@login_required
 def task_all():
-	return task_all_tasks()
+    return task_all_tasks()
 
 @route('/task/update')
 def task_update():
     try:
-	    log_event.wait(timeout=5)
+        log_event.wait(timeout=5)
     except:
         # we shouldn't hang the user fovever
         # after 10 seconds, if no event occur, return empty
@@ -62,4 +77,4 @@ def execute_command():
 
 #mark_all_failed()
 
-run(server='gevent', host='0.0.0.0', port=1317)
+run(server='gevent', host='0.0.0.0', port=1317, debug=True)

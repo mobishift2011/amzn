@@ -182,10 +182,10 @@ if __name__ == '__main__':
     timer=time.time()
     s = Server()
 #    s.crawl_category('gilt')
-#    events = Event.objects(urgent=True, is_leaf=True).order_by('-update_time').timeout(False)
-#    for event in events:
-#        s.crawl_listing(event.url(), 'gilt')
-#        break
+    events = Event.objects(urgent=True, is_leaf=True).order_by('-update_time').timeout(False)
+    for event in events:
+        s.crawl_listing(event.url(), 'gilt')
+        break
     products = Product.objects.filter(updated=False)
     for product in products:
         s.crawl_product(product.url(), 'gilt')

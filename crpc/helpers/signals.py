@@ -71,7 +71,6 @@ class Processer(object):
     def send_message(self, sender, signal, **kwargs):
         data = pack( {'sender':sender,'signal':signal,'kwargs':kwargs} )       
         self.rc.publish(self.channel, data)
-        #self._execute_callbacks(sender, signal, **kwargs)
 
     def _execute_callbacks(self, sender, signal, **kwargs):
         if signal not in self._listeners:

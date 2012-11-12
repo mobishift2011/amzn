@@ -16,16 +16,6 @@ from settings import PEERS, RPC_PORT
 from .setting import *
 
 
-def memorize_rpcs(fun):
-    rpcs = []
-    def wrap_rpcs():
-        if not rpcs:
-            rpcs = fun()
-        return rpcs
-    wrap_rpcs.memorize_rpcs = rpcs # get_rpcs.memorize_rpcs
-    return wrap_rpcs
-
-@memorize_rpcs
 def get_rpcs():
     rpcs = []
     for peer in PEERS:

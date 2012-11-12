@@ -32,7 +32,10 @@ class Server(object):
         """.. :py:method::
             From top depts, get all the events(sales)
         """
-        self.crawl_sales(ctx)
+        sales_active = giltClient.sales_active()
+        map(lambda x: self.process_sale(ctx, x), sales_active.get('sales'))
+        sales_upcoming = giltClient.sales_upcoming()
+        map(lambda x: self.process_sale(ctx, x), sales_active.get('sales'))
     
     def crawl_listing(self, url, ctx):
         """.. :py:method::
@@ -42,7 +45,14 @@ class Server(object):
 
         :param url: listing page url
         """
-        pass
+        print(DB+'.listing.{0}.begin'.format(url))
+        sale = giltClient.request(url)
+        
+        if sale.get('products'):
+            map(lambda x: self.crawl_product(x, ctx), sale.get('products'))
+        
+        print(DB+'.listing.{0}.end'.format(url))
+                
     
     def crawl_product(self, url, ctx):
         """.. :py:method::
@@ -109,26 +119,27 @@ class Server(object):
         print(DB+'.product.{0}.end'.format(url))
         common_saved.send(sender=ctx, key=product.product_key, url=url, is_new=is_new, is_updated=is_updated)
     
-    def crawl_sales(self, ctx, store=None):
-        if store:
-            print(DB+'.store.{0}.begin'.format(store))
-            time.sleep(3)
-            
-            sales_active = giltClient.sales_active(store)
-            map(lambda x: self.process_sale(ctx, x), sales_active.get('sales'))
-            sales_upcoming = giltClient.sales_upcoming(store)
-            map(lambda x: self.process_sale(ctx, x), sales_active.get('sales'))
-            
-            print(DB+'.store.{0}.end'.format(store))
-        else:
-            map(lambda x: self.crawl_sales(ctx, x), giltClient.stores())
+#    def crawl_sales(self, ctx, store=None):
+#        if store:
+#            print(DB+'.store.{0}.begin'.format(store))
+#            time.sleep(3)
+#            
+#            sales_active = giltClient.sales_active(store)
+#            map(lambda x: self.process_sale(ctx, x), sales_active.get('sales'))
+#            sales_upcoming = giltClient.sales_upcoming(store)
+#            map(lambda x: self.process_sale(ctx, x), sales_active.get('sales'))
+#            
+#            print(DB+'.store.{0}.end'.format(store))
+#        else:
+#            map(lambda x: self.crawl_sales(ctx, x), giltClient.stores())
     
     def process_sale(self, ctx, sale):
         print(DB+'.event.{0}.start'.format(sale.get('name').encode('utf-8')))
         
         is_updated = False
         event, is_new = Event.objects.get_or_create(event_id = sale.get('sale_key'))
-        event.urgent = is_new
+        if is_new:
+            event.urgent = True
         event.sale_title = sale.get('name')
         event.event_id = sale.get('sale_key')
         event.store = sale.get('store')
@@ -145,28 +156,6 @@ class Server(object):
         event.sale_description = sale.get('description')
         event.save()
         
-        if event.is_leaf:
-            for url in sale.get('products'):
-                product_id = (url.split('/products/')[1]).split('/')[0] ###TODO 取得product_id
-                product, prod_new = Product.objects.get_or_create(key=str(product_id))
-                if prod_new:
-                    print(DB+ ' new product %s from category %s' % (product.key, event.sale_title))
-                else:
-                    print(DB+ ' old product %s from category %s' % (product.key, event.sale_title))
-                product.product_key = product_id
-                product.event_id.append(event.event_id)
-                product.store = event.store
-                product.list_update_time = datetime.datetime.utcnow()
-                product.updated = not prod_new if prod_new else product.updated
-                product.products_end = event.events_end
-                product.save()
-                
-                is_updated = prod_new or is_updated
-        
-        if is_updated:
-            event.urgent = False
-            event.save()
-        
         common_saved.send(sender=ctx, key=event.event_id, url=sale.get('sale_url'), is_new=is_new, is_updated=(not is_new) and is_updated)
 #        map(lambda url: self.process_product(url, sale), sale.get('products') or [])
 #        print(DB+'.event.{{0}}.end'.format(sale.get('name')))
@@ -178,9 +167,12 @@ if __name__ == '__main__':
 #    server.run()
     timer=time.time()
     s = Server()
-    s.crawl_category('gilt')
-    
-    products = Product.objects.filter(updated=False)
-    for product in products:
-        s.crawl_product(product.url(), 'gilt')
+#    s.crawl_category('gilt')
+    events = Event.objects(urgent=True, is_leaf=True).order_by('-update_time').timeout(False)
+    for event in events:
+        s.crawl_listing(event.url(), 'gilt')
+        break
+#    products = Product.objects.filter(updated=False)
+#    for product in products:
+#        s.crawl_product(product.url(), 'gilt')
     print 'total cost(s): %s' % (time.time()-timer)

@@ -264,7 +264,7 @@ class Server(object):
         link = title_link.get('href')
         slug = self.extract_product_re.match(link).group(1)
         product, is_new = Product.objects.get_or_create(pk=slug)
-        price_box = item.cssselect('a>div.price-boxConfig')[0]
+        price_box = item.cssselect('a>div.price-boxConfig')
         is_updated = False
         if is_new:
             product.event_id = [event_id]
@@ -272,8 +272,11 @@ class Server(object):
             image = ''.join( self.extract_product_img.match(img).groups() )
             product.image_urls = [image]
             product.title = title
-            product.price = price_box.cssselect('div.special-price')[0].text.strip().replace('$','').replace(',','')
-            product.listprice = price_box.cssselect('div.old-price')[0].text.replace('original','').strip().replace('$','').replace(',','')
+            if price_box:
+                product.price = price_box[0].cssselect('div.special-price')[0].text.strip().replace('$','').replace(',','')
+                product.listprice = price_box[0].cssselect('div.old-price')[0].text.replace('original','').strip().replace('$','').replace(',','')
+            else:
+                product.price = item.cssselect('a.nohover')[0].text.strip().replace('$','').replace(',','')
             soldout = item.cssselect('a.product-image>span.sold-out')
             if soldout: product.soldout = True
             product.updated = False
@@ -282,7 +285,10 @@ class Server(object):
                 product.event_id.append(event_id)
 
             soldout = item.cssselect('a.product-image>span.sold-out')
-            special_price = price_box.cssselect('div.special-price')[0].text.strip().replace('$','').replace(',','')
+            if price_box:
+                special_price = price_box.cssselect('div.special-price')[0].text.strip().replace('$','').replace(',','')
+            else:
+                special_price = item.cssselect('a.nohover')[0].text.strip().replace('$','').replace(',','')
             if product.price != special_price:
                 product.price = special_price
                 is_updated = True

@@ -37,7 +37,7 @@ def delete_expire_task(expire_hours=EXPIRE_HOURS):
     """
     expire_datetime = datetime.utcnow() - timedelta(hours=expire_hours)
     for t in Task.objects(status=102, updated_at__lt=expire_datetime):
-        t.status = 105
+        t.status = 104
         t.save()
 
 

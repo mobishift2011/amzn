@@ -51,6 +51,11 @@ class Server(object):
         if sale.get('products'):
             map(lambda x: self.crawl_product(x, ctx), sale.get('products'))
         
+        event = Event.objects(event_id = sale.get('sale_key')).first()
+        if event:
+            event.urgent = False
+            event.save()
+        
         print(DB+'.listing.{0}.end'.format(url))
                 
     

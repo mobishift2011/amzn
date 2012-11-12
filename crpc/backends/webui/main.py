@@ -76,5 +76,6 @@ def execute_command():
     return {'status':'ok'}
 
 #mark_all_failed()
-
+import bottle
+bottle.TEMPLATES.clear()
 run(server='gevent', host='0.0.0.0', port=1317, debug=True)

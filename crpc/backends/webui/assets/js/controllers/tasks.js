@@ -8,7 +8,7 @@ function TaskCtrl($scope) {
 
   $(document).ready(function(){
     updater.init();
-    updater.poll();
+    // updater.poll();
   });
 
   function getCookie(name) {

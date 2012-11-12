@@ -11,7 +11,7 @@ import time
 def run(site, rpc):
     begin = time.time()
 
-    update_listing_update(site, rpc)
+#    update_listing_update(site, rpc)
 
     update_category(site, rpc)
     category_cost = time.time() - begin

@@ -17,13 +17,13 @@ def run(site, rpc):
     category_cost = time.time() - begin
     print '\n\n--++ {0} ++--\n\n'.format(category_cost)
 
-    update_listing(site, rpc)
-    list_cost = time.time() - begin
-    print '\n\n--++ {0} ++--\n\n'.format(list_cost)
-
-    update_product(site, rpc)
-    product_cost = time.time() - begin
-    print '\n\n--++ {0} ++--\n\n'.format(product_cost)
+#    update_listing(site, rpc)
+#    list_cost = time.time() - begin
+#    print '\n\n--++ {0} ++--\n\n'.format(list_cost)
+#
+#    update_product(site, rpc)
+#    product_cost = time.time() - begin
+#    print '\n\n--++ {0} ++--\n\n'.format(product_cost)
 
 
 if __name__ == '__main__':

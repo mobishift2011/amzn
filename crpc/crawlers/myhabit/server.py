@@ -154,6 +154,8 @@ class Server:
                 if soldout == True: brand.soldout = True
                 brand.urgent = True
             else:
+                if not brand.is_leaf:
+                    brand.urgent = True
                 if soldout == True and brand.soldout != True:
                     brand.soldout = soldout
                     is_updated = True

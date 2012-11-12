@@ -2,4 +2,5 @@
 # -*- coding: utf-8 -*-
 # Author: bishop Liu <miracle (at) gmail.com>
 
-EXPIRE_HOURS = 2
+EXPIRE_MINUTES = 7
+SCHEDULE_STATE = {}

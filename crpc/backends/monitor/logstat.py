@@ -8,6 +8,7 @@ import traceback
 from backends.monitor.models import Task, Fail, fail
 from datetime import datetime, timedelta
 from gevent.event import Event
+from onlytask import release_one_task_key
 
 logger = getlogger("crawlerlog")
 
@@ -49,6 +50,7 @@ def stat_post_general_update(sender, **kwargs):
     except Exception as e:
         logger.exception(e.message)
         fail(site, method, key, url, traceback.format_exc())
+    release_one_task_key(site, method)
 
 @common_saved.bind
 def stat_save(sender, **kwargs):

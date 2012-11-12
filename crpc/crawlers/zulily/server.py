@@ -132,6 +132,9 @@ class Server(object):
                 brand.short_desc = text.xpath('.//span[@class="description-highlights"]/text()')[0].strip()
                 brand.start_end_date = text.xpath('./span[@class="description"]/span[@class="start-end-date"]')[0].text_content().strip()
                 brand.urgent = True
+            else:
+                if not brand.is_leaf:
+                    brand.urgent = True
             if dept not in brand.dept: brand.dept.append(dept) # events are mixed in different category
             brand.is_leaf = True
             brand.update_time = datetime.utcnow()
@@ -286,7 +289,7 @@ class Server(object):
 
             soldout = item.cssselect('a.product-image>span.sold-out')
             if price_box:
-                special_price = price_box.cssselect('div.special-price')[0].text.strip().replace('$','').replace(',','')
+                special_price = price_box[0].cssselect('div.special-price')[0].text.strip().replace('$','').replace(',','')
             else:
                 special_price = item.cssselect('a.nohover')[0].text.strip().replace('$','').replace(',','')
             if product.price != special_price:

@@ -145,6 +145,9 @@ class Server(object):
                 image = self.extract_large_img.match(img).group(1) + '$fullzoom$'
                 event.image_urls = [image]
                 event.urgent = True
+            else:
+                if not event.is_leaf:
+                    event.urgent = True
             event.is_leaf = True
             event.update_time = datetime.utcnow()
             event.save()
@@ -206,6 +209,8 @@ class Server(object):
 
             event_id = re.compile(r'.*/vintage-market-finds/(.*)').match(link).group(1)
             event, is_new = Event.objects.get_or_create(event_id=event_id)
+            if is_new:
+                event.urgent = True
             event.dept = [dept]
             event.is_leaf = True
             event.update_time = datetime.utcnow()
@@ -248,6 +253,7 @@ class Server(object):
         items = tree.cssselect('div#wrapper > div#okl-content > div#okl-vmf-product-list > ul.products > li.trackVmfProduct')
         event.num = len(items)
         event.update_time = datetime.utcnow()
+        event.urgent = False
         event.save()
         common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=False)
         for item in items:
@@ -301,7 +307,7 @@ class Server(object):
         if not event.events_end:
             end_date = path.cssselect('div#okl-bio > h2.share')[0].get('data-end')
             event.events_end = self.utcstr2datetime(end_date)
-        if is_new:
+        if not event.sale_title:
             event.sale_title = path.cssselect('div#okl-bio > h2.share > strong')[0].text
 
         items = path.cssselect('div#okl-product > ul.products > li[id^="product-tile-"]')

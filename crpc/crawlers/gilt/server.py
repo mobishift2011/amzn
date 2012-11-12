@@ -186,7 +186,7 @@ if __name__ == '__main__':
     for event in events:
         s.crawl_listing(event.url(), 'gilt')
         break
-    products = Product.objects.filter(updated=False)
-    for product in products:
-        s.crawl_product(product.url(), 'gilt')
+#    products = Product.objects.filter(updated=False)
+#    for product in products:
+#        s.crawl_product(product.url(), 'gilt')
     print 'total cost(s): %s' % (time.time()-timer)

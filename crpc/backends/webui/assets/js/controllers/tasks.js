@@ -91,6 +91,8 @@ function TaskCtrl($scope) {
             return [t.name, t.status, t.started_at, t.updated_at, t.dones, t.updates, t.news, failsdiv];
         }
 
+        var rows_to_add = [];
+
         $scope.$apply(function(){
             for(var i=0; i<tasks.length; i++){
                 var found = false;
@@ -116,12 +118,13 @@ function TaskCtrl($scope) {
 
                 if (!found){
                     var row = task2row(tasks[i]);
-                    $.fn.oTable.fnAddData(row);
+                    rows_to_add.push(row);
                 }
             }
         })
 
-        $.fn.oTable.fnDraw();
+        $.fn.oTable.fnAddData(rows_to_add);
+        //$.fn.oTable.fnDraw();
     },
   }; /* Updater */
 } /* TaskCtrl */

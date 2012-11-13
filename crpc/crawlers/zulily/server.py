@@ -133,7 +133,7 @@ class Server(object):
                 brand.start_end_date = text.xpath('./span[@class="description"]/span[@class="start-end-date"]')[0].text_content().strip()
                 brand.urgent = True
             else:
-                if not brand.is_leaf:
+                if not brand.is_leaf: # upcoming event
                     brand.urgent = True
             if dept not in brand.dept: brand.dept.append(dept) # events are mixed in different category
             brand.is_leaf = True
@@ -197,7 +197,7 @@ class Server(object):
         node = tree.cssselect('div.container>div#main>div#category-view')[0]
         event_id = self.extract_event_id.match(url).group(2)
         brand, is_new = Event.objects.get_or_create(event_id=event_id)
-        if is_new or brand.sale_description is None:
+        if not brand.sale_description:
             sale_description = node.cssselect('div#category-description>div#desc-with-expanded')
             if not sale_description:
                 sale_description = node.cssselect('div#category-view-brand > div.category-description-bg > div.category-view-brand-description > p:first-of-type')

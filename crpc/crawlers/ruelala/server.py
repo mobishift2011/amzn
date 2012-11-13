@@ -396,12 +396,8 @@ class Server:
         product.updated = True
         product.full_update_time = datetime.datetime.utcnow()
 
-        try:
-            product.save()
-        except Exception,e:
-            common_failed.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=is_updated)
-        else:
-            common_saved.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=is_updated)
+        product.save()
+        common_saved.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=is_updated)
 
     def _url2saleid(self, url):
         """.. :py:method::

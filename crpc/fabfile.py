@@ -57,6 +57,17 @@ def deploy_rpc():
     for t in tasks:
         t.join()
 
+def restart_rpc():
+    import multiprocessing
+    tasks = []
+    for host_string in PEERS:
+        t = multiprocessing.Process(target=_restart_rpc, args=(host_string,))
+        tasks.append(t)
+        t.start()
+
+    for t in tasks:
+        t.join()
+
 def deploy_local():
     """ copy files to local dir """
     with settings(warn_only=True):
@@ -77,6 +88,9 @@ def _deploy_rpc(host_string):
         run("mkdir -p /opt/crpc")
         put(CRPC_ROOT+"/*", "/opt/crpc/")
 
+    _restart_rpc(host_string)
+
+def _restart_rpc(host_string):
     # remove if already exists
     with settings(host_string=host_string, warn_only=True):
         run("killall Xvfb")

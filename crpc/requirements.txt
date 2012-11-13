@@ -9,7 +9,6 @@ async==0.6.1
 blinker==1.2
 bottle==0.11.3
 clint==0.3.1
-gevent==0.13.8
 gitdb==0.5.4
 greenlet==0.4.0
 ipython==0.13

@@ -52,9 +52,17 @@ class BaseServer(object):
     email = 'huanzhu@favbuy.com'
     passwd = '4110050209'
     session = requests.session()
-    browser = webdriver.Chrome()
     session.headers = {'Accept-Encoding': 'identity, deflate, compress, gzip',
                         'Accept': '*/*', 'User-Agent': 'Mozilla/5.0 '}
+
+    def __init__(self):
+        self._browser = None
+        
+    @property
+    def browser(self):
+        if not self._browser:
+            self._browser = webdriver.Chrome()
+        return self._browser
 
     def bopen(self,url):
         """ open url with browser

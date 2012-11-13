@@ -85,7 +85,7 @@ class Server(BaseServer):
             self._crawl_category_product(name,ctx)
 
         # the kids section is diffirent from others 
-        self.crawl_listing('http://nomorerack.com/daily_deals/category/kids',ctx)
+        self.crawl_listing('http://nomorerack.com/daily_deals/category/kids', ctx)
 
         ###########################
         # section 1, parse events
@@ -106,13 +106,13 @@ class Server(BaseServer):
             img_url = 'http://nmr.allcdn.net/images/events/all/banners/event-%s-medium.jpg' %event_id
 
             event ,is_new = Event.objects.get_or_create(event_id=event_id)
+            is_updated = False
             if is_new:
-                is_updated = False
                 event.urgent = True
-            elif event.sale_title == title:
-                is_updated = False
-            else:
-                is_updated = True
+#            elif event.sale_title == title:
+#                is_updated = False
+#            else:
+#                is_updated = True
 
             event.sale_title = title
             event.image_urls = [img_url]
@@ -124,6 +124,9 @@ class Server(BaseServer):
             common_saved.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=is_updated)
 
     def _crawl_category_product(self,name,ctx=''):
+        """
+            crawl deals which using waterfall flow
+        """
         _url = 'http://nomorerack.com/daily_deals/category_jxhrq/%s?sort=best_selling&offset=%d'
         for i in range(0,10000):
             print 'aaa'
@@ -152,34 +155,36 @@ class Server(BaseServer):
                 title = div.xpath('.//p')[0].text
                 key = self.url2product_id(detail_url)
 
-                for i in locals().items():
-                    print 'i',i
+#                for i in locals().items():
+#                    print 'i',i
 
                 product,is_new = Product.objects.get_or_create(pk=key)
 
+                is_updated = False
                 if is_new:
-                    is_updated = False
                     product.updated = False
-                elif product.price== price and product.listprice == listprice and product.title == title:
-                    is_updated = False
-                else:
+                elif product.price != price or product.listprice != listprice:
+                    product.price = price
+                    product.listprice = listprice
                     is_updated = True
+                if not product.soldout:
+                    if category.upper() == 'SOLD OUT':
+                        product.soldout = True
+                        is_updated = True
 
-                if category.upper() == 'SOLD OUT':
-                    product.soldout = True
-                    product.cats = [name]
-                else:
-                    product.cats = [name,category]
+                if not product.cats:
+                    if category.upper() != 'SOLD OUT':
+                        product.cats = [name, category]
+                    else:
+                        product.cats = [name]
                 product.image_urls = [img_url]
-                product.price = price
-                product.listprice = listprice
                 product.title = title
                 product.save()
                 common_saved.send(sender=ctx, site=DB, key=key, is_new=is_new, is_updated=is_updated)
             
-            # the kids category just have one page 
-            if name == 'kids':
-                return
+#            # the kids category just have one page 
+#            if name == 'kids':
+#                return
 
     def url2product_id(self,url):
         m = re.compile(r'^http://(.*)nomorerack.com/daily_deals/view/(\d+)-').findall(url)[0]
@@ -201,7 +206,7 @@ class Server(BaseServer):
     
     @exclusive_lock(DB)
     def crawl_listing(self,url,ctx=''):
-        print 'to open',url
+#        print 'to open',url
         self.bopen(url)
         try:
             main = self.browser.find_element_by_xpath('//div[@class="raw_grid deals events_page"]')
@@ -293,8 +298,8 @@ class Server(BaseServer):
         product.pagesize    =   sizes
         product.updated = True
 
-        for i in locals().items():
-            print 'i',i
+#        for i in locals().items():
+#            print 'i',i
         product.save()
         common_saved.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
         print 'product.cats',product.cats

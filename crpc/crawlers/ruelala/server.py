@@ -268,11 +268,11 @@ class Server:
 
             # get base product info
             product,is_new = Product.objects.get_or_create(key=str(product_id))
+            is_updated = False
             if is_new:
-                is_updated = False
                 product.updated = False
             elif product.price == str(product_price) and product.listprice == str(strike_price) and product.title == title:
-                is_updated = False
+                pass
             else:
                 is_updated = True
 
@@ -291,9 +291,7 @@ class Server:
             product.title = title
             product.price = str(product_price)
             product.list_price = str(strike_price)
-            if str(event_id) in product.event_id:
-                pass
-            else:
+            if str(event_id) not in product.event_id:
                 product.event_id.append(str(event_id))
 
             product.save()

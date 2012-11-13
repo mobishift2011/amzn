@@ -60,3 +60,8 @@ def update_schedule(d):
     except Exception as e:
         traceback.print_exc()
         return {'status':'error','reason':repr(e)}
+
+def get_all_fails(ctx):
+    task = Task.objects.get(ctx=ctx)
+    fails = task.fails[-10:]
+    return {'fails': [fail.to_json() for fail in fails]}

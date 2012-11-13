@@ -93,12 +93,13 @@ def _deploy_rpc(host_string):
 def _restart_rpc(host_string):
     # remove if already exists
     with settings(host_string=host_string, warn_only=True):
-        run("killall Xvfb")
+        run("killall -9 Xvfb")
         run("killall chromedriver")
         run("kill -9 `pgrep -f rpcserver`")
         run("pkill -9 python")
         run("killall chromium-browser")
         run("rm /tmp/*.sock")
+        run("sleep 3")
 
     # dtach rpc @ /tmp/rpc.sock
     with settings(host_string=host_string):

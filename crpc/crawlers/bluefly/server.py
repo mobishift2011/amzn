@@ -163,7 +163,6 @@ class Server(BaseServer):
             print nav,url
             self._get_all_category(nav,url,ctx)
     
-    @exclusive_lock(DB)
     def crawl_listing(self,url,ctx=''):
         self._crawl_listing(url,ctx)
 

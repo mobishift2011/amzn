@@ -13,8 +13,9 @@ from crawlers.common.routine import update_category, update_listing, update_prod
 import zerorpc
 from datetime import datetime, timedelta
 from settings import PEERS, RPC_PORT
-from .setting import *
-
+from throttletask import task_already_running, task_completed
+from functools import partial
+from .setting import EXPIRE_MINUTES
 
 def get_rpcs():
     rpcs = []
@@ -25,19 +26,24 @@ def get_rpcs():
             rpcs.append(c)
     return rpcs
 
+
 def execute(site, method):
-    gevent.spawn(globals()[method], site, get_rpcs(), 10)
-
-
-def delete_expire_task(expire_hours=EXPIRE_HOURS):
-    """ delete the expire RUNNING Task, expire_hours is in settings
-        TODO: expire_hours be set on the web page
-
-    :param expire_hours: set the expire running task in hours
+    """ execute RPCServer function
     """
-    expire_datetime = datetime.utcnow() - timedelta(hours=expire_hours)
-    for t in Task.objects(status=102, updated_at__lt=expire_datetime):
-        t.status = 105
+    if not task_already_running(site, method):
+        gevent.spawn(globals()[method], site, get_rpcs(), 10) \
+                .rawlink(partial(task_completed, site=site, method=method))
+
+
+def delete_expire_task(expire_minutes=EXPIRE_MINUTES):
+    """ delete the expire RUNNING Task, expire_minutes is in settings
+        TODO: expire_minutes be set on the web page
+
+    :param expire_minutes: set the expire running task in hours
+    """
+    expire_datetime = datetime.utcnow() - timedelta(minutes=expire_minutes)
+    for t in Task.objects(status=Task.RUNNING, updated_at__lt=expire_datetime):
+        t.status = Task.FAILED
         t.save()
 
 
@@ -47,13 +53,9 @@ class Scheduler(object):
         return Schedule.objects(enabled=True) 
 
     def run(self):
-        counter = 0
         while True:
-            if counter >= 60:
-                counter = 0
-                gevent.spawn(delete_expire_task())
             for s in self.get_schedules():
                 if s.timematch():
                     execute(s.site, s.method)
             gevent.sleep(60)
-            counter += 1
+            gevent.spawn(delete_expire_task)

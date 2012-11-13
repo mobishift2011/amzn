@@ -111,8 +111,9 @@ class Server(object):
             return
         event_id = re.compile('http://www.hautelook.com/v3/catalog/(.+)/availability').match(url).group(1)
         event, is_new = Event.objects.get_or_create(event_id=event_id)
-        event.urgent = False
-        event.save()
+        if event.urgent == True:
+            event.urgent = False
+            event.save()
         for item in data['availabilities']:
             info = item['availability']
             key = info['inventory_id']

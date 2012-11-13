@@ -38,7 +38,7 @@ def task():
     return template('task')
 
 @route('/task/all')
-@login_required
+#@login_required
 def task_all():
     return task_all_tasks()
 

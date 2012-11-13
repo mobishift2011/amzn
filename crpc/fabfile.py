@@ -57,6 +57,17 @@ def deploy_rpc():
     for t in tasks:
         t.join()
 
+def restart_rpc():
+    import multiprocessing
+    tasks = []
+    for host_string in PEERS:
+        t = multiprocessing.Process(target=_restart_rpc, args=(host_string,))
+        tasks.append(t)
+        t.start()
+
+    for t in tasks:
+        t.join()
+
 def deploy_local():
     """ copy files to local dir """
     with settings(warn_only=True):
@@ -77,24 +88,28 @@ def _deploy_rpc(host_string):
         run("mkdir -p /opt/crpc")
         put(CRPC_ROOT+"/*", "/opt/crpc/")
 
+    _restart_rpc(host_string)
+
+def _restart_rpc(host_string):
     # remove if already exists
     with settings(host_string=host_string, warn_only=True):
-        run("killall Xvfb")
+        run("killall -9 Xvfb")
         run("killall chromedriver")
         run("kill -9 `pgrep -f rpcserver`")
         run("pkill -9 python")
         run("killall chromium-browser")
         run("rm /tmp/*.sock")
+        run("sleep 3")
 
     # dtach rpc @ /tmp/rpc.sock
     with settings(host_string=host_string):
         with cd("/opt/crpc/crawlers/common"):
             with prefix("source /usr/local/bin/virtualenvwrapper.sh"):
-                with prefix(". ../../env.sh TEST"):
+                with prefix(". ../../env.sh {0}".format(os.environ['ENV'])):
                     with prefix("ulimit -s 1024"):
                         with prefix("ulimit -n 4096"):
                             _runbg("Xvfb :99 -screen 0 1024x768x8 -ac +extension GLX +render -noreset", sockname="graphicXvfb")
-	                    with prefix("export DISPLAY=:99"):
+                            with prefix("export DISPLAY=:99"):
                                 _runbg("python rpcserver.py", sockname="crawlercommon")
 
 def _runbg(cmd, sockname="dtach"):

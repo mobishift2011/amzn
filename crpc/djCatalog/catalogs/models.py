@@ -5,7 +5,8 @@ class Brand(Document):
     title = StringField(unique=True)
     title_edit = StringField(default='')
     title_checked = BooleanField(default=False)
-    url = URLField()
+    keywords = StringField(default='')
+    url = StringField(default='')
     url_checked = BooleanField(default=False)
     blurb = StringField(default='')
     level = IntField(default=0) # luxrious or not 

@@ -108,7 +108,7 @@ def _restart_rpc(host_string):
                     with prefix("ulimit -s 1024"):
                         with prefix("ulimit -n 4096"):
                             _runbg("Xvfb :99 -screen 0 1024x768x8 -ac +extension GLX +render -noreset", sockname="graphicXvfb")
-	                    with prefix("export DISPLAY=:99"):
+                            with prefix("export DISPLAY=:99"):
                                 _runbg("python rpcserver.py", sockname="crawlercommon")
 
 def _runbg(cmd, sockname="dtach"):

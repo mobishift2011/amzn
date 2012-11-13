@@ -13,6 +13,7 @@ def get_rpcs():
 
 if __name__ == '__main__':
     rpc = get_rpcs()
-    update_listing('hautelook', rpc, concurrency=2)
+    from crawllog import *
+    update_category('hautelook', rpc, concurrency=3)
     #update_listing('amazon', rpc, concurrency=20)
     #update_product('amazon', rpc, concurrency=30)

@@ -32,7 +32,7 @@ headers = {
     'X-Requested-With': 'XMLHttpRequest',
 }
 
-request = requests.Session(prefetch=True, timeout=17, config=config, headers=headers)
+request = requests.Session(prefetch=True, timeout=20, config=config, headers=headers)
 
 
 class Server(object):
@@ -106,14 +106,14 @@ class Server(object):
         if data.keys()[0] != 'availabilities':
             resp = request.get(url)
             data = json.loads(resp.text)
-        if data.keys()[0] != 'availabilities':
-            common_failed.send(sender=ctx, key='get availabilities twice, both error', url=url, reason=data)
-            return
         event_id = re.compile('http://www.hautelook.com/v3/catalog/(.+)/availability').match(url).group(1)
         event, is_new = Event.objects.get_or_create(event_id=event_id)
         if event.urgent == True:
             event.urgent = False
             event.save()
+        if data.keys()[0] != 'availabilities':
+            common_failed.send(sender=ctx, key='get availabilities twice, both error', url=url, reason=data)
+            return
         for item in data['availabilities']:
             info = item['availability']
             key = info['inventory_id']

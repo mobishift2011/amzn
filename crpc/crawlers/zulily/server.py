@@ -180,7 +180,7 @@ class Server(object):
                 brand.events_begin = events_begin
                 brand.update_time = datetime.utcnow()
                 brand.save()
-            common_saved.send(sender=ctx, key=event_id, url=pair[1], is_new=is_new, is_updated=not is_new)
+            common_saved.send(sender=ctx, key=event_id, url=pair[1], is_new=is_new, is_updated=False)
             
 
     def crawl_listing(self, url, ctx):

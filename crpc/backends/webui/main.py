@@ -78,7 +78,7 @@ def execute_command():
 @route('/task/:ctx/fails')
 def get_task_fails(ctx):
     print 'get_task_faisl, ctx: %s' % ctx
-    return get_all_fails('update_list_update_list_186');
+    return get_all_fails(ctx);
 
 #mark_all_failed()
 

@@ -178,7 +178,6 @@ def ashford():
             brand.save()
         actual_count += 1 if is_new else 0
         
-    
     print 'total brands:%s, actual crawling:%s' % (total_count, actual_count)
     print 'end to crawl ashford\n'
 
@@ -195,10 +194,6 @@ def gilt():
         total_count += 1
         brand, is_new = Brand.objects.get_or_create(title=brand.strip())
         actual_count += 1 if is_new else 0
-        
-        print brand.title
-        time.sleep(0.5)
-        
     
     print 'total brands:%s, actual crawling:%s' % (total_count, actual_count)
     print 'end to crawl gilt\n'

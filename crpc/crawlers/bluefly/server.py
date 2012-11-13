@@ -35,7 +35,6 @@ class Server(BaseServer):
     def __init__(self):
         self.siteurl = 'http://www.bluefly.com'
         self.site ='bluefly'
-        self.browser = False
         self._signin = False
         #self.login(self.email, self.passwd)
 

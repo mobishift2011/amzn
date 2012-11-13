@@ -106,14 +106,15 @@ class Server(object):
         if data.keys()[0] != 'availabilities':
             resp = request.get(url)
             data = json.loads(resp.text)
+        if data.keys()[0] != 'availabilities':
+            common_failed.send(sender=ctx, key='get availabilities twice, both error', url=url, reason=data)
+            return
         event_id = re.compile('http://www.hautelook.com/v3/catalog/(.+)/availability').match(url).group(1)
         event, is_new = Event.objects.get_or_create(event_id=event_id)
         if event.urgent == True:
             event.urgent = False
             event.save()
-        if data.keys()[0] != 'availabilities':
-            common_failed.send(sender=ctx, key='get availabilities twice, both error', url=url, reason=data)
-            return
+
         for item in data['availabilities']:
             info = item['availability']
             key = info['inventory_id']
@@ -140,6 +141,11 @@ class Server(object):
         :param url: product url, with product id
         """
         resp = request.get(url)
+        if resp.text == '':
+            resp = request.get(url)
+            if resp.text == '':
+                common_failed.send(sender=ctx, key='get product twice, url has nothing', url=url, reason='url has nothing')
+                return
         data = json.loads(resp.text)['data']
         product, is_new = Product.objects.get_or_create(pk=url.split('/')[-1])
 

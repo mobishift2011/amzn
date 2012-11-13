@@ -12,7 +12,7 @@ def mark_all_failed():
             t.update(set__status=Task.FAILED, push__fails=fail(t.site, t.method, '', '', 'Monitor Restart'), inc__num_fails=1)
 
 def task_all_tasks():
-    tasks = Task.objects(updated_at__gt=datetime.utcnow()-timedelta(seconds=3600*24)).fields(slice__fails=-10).order_by('-updated_at').select_related()
+    tasks = Task.objects(updated_at__gt=datetime.utcnow()-timedelta(seconds=3600*24)).fields(slice__fails=-10).order_by('-updated_at').limit(200).select_related()
     print 'task all: %s' % len(tasks)
 #    tasks = Task.objects().fields(slice__fails=-10).order_by('-updated_at').limit(100).select_related()
     return {"tasks":[t.to_json() for t in tasks]}
@@ -60,3 +60,8 @@ def update_schedule(d):
     except Exception as e:
         traceback.print_exc()
         return {'status':'error','reason':repr(e)}
+
+def get_all_fails(ctx):
+    task = Task.objects.get(ctx=ctx)
+    fails = task.fails[-10:]
+    return {'fails': [fail.to_json() for fail in fails]}

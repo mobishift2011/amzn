@@ -21,6 +21,6 @@ gevent.spawn(Scheduler().run)
 logger = getlogger("monitor")
 
 while True:
-    logger.warning("looping")
+#    logger.warning("looping")
     gevent.sleep(10)
     

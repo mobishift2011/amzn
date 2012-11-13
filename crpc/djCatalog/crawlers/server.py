@@ -183,5 +183,26 @@ def ashford():
     print 'end to crawl ashford\n'
 
 
+def gilt():
+    print '\nbegin to crawl gilt'
+    total_count = 0
+    actual_count = 0
+    url = 'http://www.gilt.com/brands'
+    res = requests.get(url).text
+    dom = html.fromstring(res)
+    brands = dom.xpath('//div[@class="favorite-tooltip-link"]/button/@data-gilt-brand-name')
+    for brand in brands:
+        total_count += 1
+        brand, is_new = Brand.objects.get_or_create(title=brand.strip())
+        actual_count += 1 if is_new else 0
+        
+        print brand.title
+        time.sleep(0.5)
+        
+    
+    print 'total brands:%s, actual crawling:%s' % (total_count, actual_count)
+    print 'end to crawl gilt\n'
+
+
 if __name__ == '__main__':
     Crawler(sites).crawl()

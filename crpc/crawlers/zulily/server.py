@@ -161,7 +161,8 @@ class Server(object):
         """
         for pair in upcoming_list:
             cont = self.net.fetch_page(pair[1])
-            node = lxml.html.fromstring(cont).cssselect('div.event-content-wrapper')[0]
+            tree = lxml.html.fromstring(cont)
+            node = tree.cssselect('div.event-content-wrapper')[0]
             calendar_file = node.cssselect('div.upcoming-date-reminder a.reminder-ical')[0].get('href')
             ics_file = self.net.fetch_page(calendar_file)
             event_id = re.compile(r'URL:http://www.zulily.com/e/(.+).html.*').search(ics_file).group(1)
@@ -303,6 +304,22 @@ class Server(object):
         product.save()
         common_saved.send(sender=ctx, key=slug, url=self.siteurl + '/e/' + event_id + '.html', is_new=is_new, is_updated=is_updated)
         debug_info.send(sender=DB + ".crawl_listing", url=self.siteurl + '/e/' + event_id + '.html')
+
+#        counter = 0
+#        if is_new:
+#            print 'new', self.siteurl + '/e/' + event_id + '.html', self.siteurl + '/p/' + slug + '.html'
+#            counter += 1
+#        if is_updated:
+#            if counter != 0:
+#                print 'ERROR{0}'.format(counter), self.siteurl + '/e/' + event_id + '.html', self.siteurl + '/p/' + slug + '.html'
+#            else:
+#                print 'update', self.siteurl + '/e/' + event_id + '.html', self.siteurl + '/p/' + slug + '.html'
+#            counter += 1
+#        if not is_new and not is_updated:
+#            if counter != 0:
+#                print 'ERROR{0}'.format(counter), self.siteurl + '/e/' + event_id + '.html', self.siteurl + '/p/' + slug + '.html'
+#            else:
+#                print 'NO', self.siteurl + '/e/' + event_id + '.html', self.siteurl + '/p/' + slug + '.html'
 
 
     def crawl_product(self, url, ctx):

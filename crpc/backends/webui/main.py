@@ -9,7 +9,7 @@ from os.path import join, dirname
 from auth import *
 from backends.webui.events import log_event
 from backends.monitor.events import run_command
-from backends.webui.views import task_updates, task_all_tasks, mark_all_failed
+from backends.webui.views import task_updates, task_all_tasks, mark_all_failed, get_all_fails
 from backends.webui.views import update_schedule, get_all_schedules, delete_schedule 
 
 @route('/assets/<filepath:path>')
@@ -74,6 +74,10 @@ def execute_command():
     site = request.json['site']
     run_command.send('webui', site=site, method=method)
     return {'status':'ok'}
+
+@route('/task/:ctx/fails')
+def get_task_fails(ctx):
+    return get_all_fails('update_list_update_list_186');
 
 #mark_all_failed()
 

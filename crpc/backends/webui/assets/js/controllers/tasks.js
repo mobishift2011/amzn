@@ -72,11 +72,7 @@ function TaskCtrl($scope) {
             // modal for errors
             var taskid = t.updated_at.replace(/:/g,'').replace(/\./g,'').replace(/-/g,'');
             var tabletrs = "";
-            for (var i=0; i<t.fail_details.length; i++){
-                tabletrs += "<tr><td>"+t.fail_details[i].time+"</td>"+
-                                "<td>"+t.fail_details[i].name+"</td>"+
-                                "<td>"+t.fail_details[i].message.replace(/\n/g,'<br/>').replace(/ /g,'&nbsp;')+"</td></tr>";
-            }
+            
             var failsdiv = "<div id='"+taskid+"'class='modal hide fade' role='dialog' style='display:none;'>"+
                         "<div class='modal-header'><button type='button' class='close' data-dismiss='modal' aria-hidden='true' onclick='toggleCanUpdate()'>x</button><h3>Fails</h3></div>" +
                         "<div class='modal-body'>"+
@@ -85,7 +81,7 @@ function TaskCtrl($scope) {
                                 "<tbody>"+tabletrs+"</tbody>"+
                             "</table>"+
                         "</div>"+
-                        "<div class='modal-footer'><button class='btn' data-dismiss='modal' onclick='toggleCanUpdate()'>Close</button></div>"+
+                        "<div class='modal-footer'><p id="+t.ctx+" onclick='showFails(this)'><button class='btn' data-dismiss='modal' onclick='toggleCanUpdate()'>Close</button></p></div>"+
                     "</div>"
                     + "<div><a href='#"+taskid+"' data-toggle='modal' onclick='toggleCanUpdate()'>"+t.fails+"</div>";
             return [t.name, t.status, t.started_at, t.updated_at, t.dones, t.updates, t.news, failsdiv];
@@ -136,3 +132,16 @@ var toggleCanUpdate = function(){
     canUpdate = !canUpdate;
 }
 
+var showFails = function(p){
+	var url = '/task/'+p.getAttribute('id')+'/fails';
+    $.get(url, function(data){
+    	var node = p.parentNode.previousSibling.firstChild.lastChild;
+    	tabletrs = '';
+        for (var i=0; i<data.fails.length; i++){
+            tabletrs += "<tr><td>"+data.fails[i].time+"</td>"+
+                            "<td>"+data.fails[i].name+"</td>"+
+                            "<td>"+data.fails[i].message.replace(/\n/g,'<br/>').replace(/ /g,'&nbsp;')+"</td></tr>";
+        }
+        node.innerHTML = tabletrs;
+    });
+};

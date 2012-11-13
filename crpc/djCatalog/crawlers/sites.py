@@ -13,4 +13,5 @@ sites = (
 #    ('amazon', ''),
     ('global_blue', ''),
     ('ashford', ''),
+    ('gilt', ''),
 )

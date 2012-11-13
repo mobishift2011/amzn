@@ -13,7 +13,8 @@ from crawlers.common.routine import update_category, update_listing, update_prod
 import zerorpc
 from datetime import datetime, timedelta
 from settings import PEERS, RPC_PORT
-from onlytask import avoid_two_same_task_running
+from throttletask import task_already_running, task_completed
+from functools import partial
 from .setting import EXPIRE_MINUTES
 
 def get_rpcs():
@@ -29,8 +30,9 @@ def get_rpcs():
 def execute(site, method):
     """ execute RPCServer function
     """
-    avoid_two_same_task_running(site, method)
-    gevent.spawn(globals()[method], site, get_rpcs(), 10)
+    if not task_already_running(site, method):
+        gevent.spawn(globals()[method], site, get_rpcs(), 10) \
+                .rawlink(partial(task_completed, site=site, method=method))
 
 
 def delete_expire_task(expire_minutes=EXPIRE_MINUTES):
@@ -40,8 +42,8 @@ def delete_expire_task(expire_minutes=EXPIRE_MINUTES):
     :param expire_minutes: set the expire running task in hours
     """
     expire_datetime = datetime.utcnow() - timedelta(minutes=expire_minutes)
-    for t in Task.objects(status=102, updated_at__lt=expire_datetime):
-        t.status = 104
+    for t in Task.objects(status=Task.RUNNING, updated_at__lt=expire_datetime):
+        t.status = Task.FAILED
         t.save()
 
 

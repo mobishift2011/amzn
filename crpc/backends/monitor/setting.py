@@ -3,4 +3,4 @@
 # Author: bishop Liu <miracle (at) gmail.com>
 
 EXPIRE_MINUTES = 7
-SCHEDULE_STATE = {}
+SCHEDULE_STATE = set()

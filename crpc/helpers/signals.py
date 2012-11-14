@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-helpers.signals
-~~~~~~~~~~~~~~~
+helpers.signals2
+~~~~~~~~~~~~~~~~
 
-Decoupling though callbacks
+Decoupling though redmine
 
 Usage:
 
@@ -32,33 +32,56 @@ Usage:
     be aware that this module works for threads or coroutines but not for processes
 
 """
+from gevent import monkey; monkey.patch_all()
+from settings import *
+
 from collections import defaultdict
 
+#from msgpack import packb, unpackb
+
+import cPickle as pickle
+from pickle import loads as unpack, dumps as pack
+
 import log
+import gevent
+import redisco
+        
+logger = log.getlogger("helper.signals")
 
 class Processer(object):
     def __init__(self):
         self._listeners = defaultdict(set)
-        self.logger = log.getlogger("helper.signals.Processor")
+        self.channel = 'SIGNALS'
+        self.rc = redisco.get_client()
+        self.ps = self.rc.pubsub()
+        self.ps.subscribe(self.channel)
+        gevent.spawn(self._listen)
 
     def add_listener(self, signal, callback):
         cbname = callback.__name__
         self._listeners[signal].add(callback)
-        self.logger.debug("{signal!r} binded by <{cbname}>".format(**locals()))
+        logger.debug("{signal!r} binded by <{cbname}>".format(**locals()))
+
+    def _listen(self):
+        for m in self.ps.listen():
+            if m['type'] == 'message':
+                data = unpack(m['data'])
+                self._execute_callbacks(data['sender'], data['signal'], **data['kwargs'])
 
     def send_message(self, sender, signal, **kwargs):
-        self._execute_callbacks(sender, signal, **kwargs)
+        data = pack( {'sender':sender,'signal':signal,'kwargs':kwargs} )       
+        self.rc.publish(self.channel, data)
 
     def _execute_callbacks(self, sender, signal, **kwargs):
         if signal not in self._listeners:
-            self.logger.warning("signal bindings for {signal!r} not found!".format(**locals()))
+            logger.warning("signal bindings for {signal!r} not found!".format(**locals()))
         else:
             try:
                 for cb in self._listeners[signal]:
                     cb(sender, **kwargs)
             except Exception as e:
-                self.logger.exception("Exception happened when executing callback")
-                self.logger.error("sender: {sender}, signal: {signal!r}, kwargs: {kwargs!r}".format(**locals()))
+                logger.exception("Exception happened when executing callback")
+                logger.error("sender: {sender}, signal: {signal!r}, kwargs: {kwargs!r}".format(**locals()))
 
 p = Processer()
 
@@ -68,10 +91,10 @@ class Signal(object):
 
     def send(self, sender, **kwargs):
         data = {'kwargs':kwargs}
-        p.send_message(sender, self, **kwargs)
+        p.send_message(sender, self._name, **kwargs)
         
     def connect(self, callback):
-        p.add_listener(self, callback)
+        p.add_listener(self._name, callback)
 
     def bind(self, f):
         self.connect(f)

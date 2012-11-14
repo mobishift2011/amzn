@@ -27,7 +27,7 @@ class BaseCategory(Document):
     pagesize    =   IntField()
     meta        =   {
         "allow_inheritance": True,
-        "collection": "caetgory",
+        "collection": "category",
         "indexes":  ["cats", ("is_leaf", "update_time"), "num", ],
     }
 
@@ -44,18 +44,23 @@ class BaseEvent(BaseCategory):
     luxury crawlers should inherit from this this basic class
     
     >>> from crawlers.common.models import BaseBrand
-    >>> class Category(BaseBrand):
+    >>> class Event(BaseEvent):
     ...     pass
 
     """
-    events_begin = DateTimeField()
-    events_end = DateTimeField()
-    soldout = BooleanField()
-    sale_title = StringField()
-    brand_link = StringField()
-    image_url = StringField()
-    sale_description = StringField()
+    events_begin        = DateTimeField()
+    events_end          = DateTimeField()
+    soldout             = BooleanField(default=False)
+    sale_title          = StringField()
+    image_urls          = ListField(StringField())
+    image_path          = ListField(StringField())
+    sale_description    = StringField()
+    dept                = ListField(StringField())
+    urgent              = BooleanField(default=False)
 
+    meta = {
+        "indexes": ["soldout", "urgent"],
+    }
 
 class BaseReview(Document):
     """ :py:class:crawlers.common.models.BaseReview
@@ -92,6 +97,7 @@ class BaseProduct(Document):
     updated             =   BooleanField(default=False)
     list_update_time    =   DateTimeField(default=datetime.utcnow)
     full_update_time    =   DateTimeField()
+    products_end        =   DateTimeField()
 
     # dimension info
     cats                =   ListField(StringField()) 
@@ -116,6 +122,7 @@ class BaseProduct(Document):
 
     # product images
     image_urls          =   ListField(StringField())
+    image_path          =   ListField(StringField())
 
     meta                =   {
         "allow_inheritance": True,
@@ -126,3 +133,32 @@ class BaseProduct(Document):
     def url(self):
         raise NotImplementedError("should implemented in sub classes!")
 
+class LuxuryProduct(BaseProduct):
+    """ :py:class:crawlers.common.models.LuxuryProduct
+
+    luxury product info
+    crawlers should inherit from this base class
+
+    >>> from crawlers.common.models import LuxuryProduct
+    >>> class Product(LuxuryProduct):
+    ...     pass
+
+    """
+    # associate to Event's unique key
+    event_id            =   ListField(StringField())
+
+    soldout             =   BooleanField(default=False)
+
+    listprice           =   StringField()
+    color               =   StringField()
+    returned            =   StringField()
+    sizes_scarcity      =   ListField()
+    sizes               =   ListField(StringField())
+    scarcity            =   StringField()
+    list_info           =   ListField(StringField())
+
+    products_end        =   DateTimeField()
+
+    meta                = {
+        "indexes": ["soldout"],
+    }

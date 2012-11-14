@@ -25,21 +25,26 @@ def setup_env():
     """
     run("apt-get update")
     run("apt-get -y upgrade")
-    run("apt-get -y install build-essential python-dev libevent-dev libxslt-dev uuid-dev python-setuptools dtach libzmq-dev redis-server")
+    run("apt-get -y install build-essential python-dev libevent-dev libxslt-dev uuid-dev python-setuptools dtach libzmq-dev redis-server chromium-browser xvfb unzip")
     run("easy_install pip")
     run("pip install virtualenvwrapper")
     run("mkdir -p /opt/crpc")
+    run("wget -q -c http://chromedriver.googlecode.com/files/chromedriver_linux64_23.0.1240.0.zip -O tmp.zip && unzip tmp.zip && rm tmp.zip")
+    run("chmod a+x chromedriver && mv chromedriver /usr/bin/")
 
     with settings(warn_only=True):
-        run("kill -9 `pgrep -f rpc.py`")
-        run("kill -9 `pgrep -f {0}`".format(ENV_NAME))
+        run("killall chromedriver")
+        run("kill -9 `pgrep -f rpcserver`")
+        #run("kill -9 `pgrep -f {0}`".format(ENV_NAME))
+        run("ln -s /usr/bin/chromium-browser /usr/bin/google-chrome")
 
     with cd("/opt/crpc"):
         with prefix("source /usr/local/bin/virtualenvwrapper.sh"):
-            run("mkvirtualenv "+ENV_NAME)
+#            run("mkvirtualenv "+ENV_NAME)
             with prefix("workon "+ENV_NAME):
                 run("pip install cython"+USE_INDEX)
-                run("pip install zerorpc lxml requests pymongo mongoengine redis redisco"+USE_INDEX) 
+                run("pip install https://github.com/SiteSupport/gevent/tarball/master")
+                run("pip install zerorpc lxml requests pymongo mongoengine redis redisco pytz mock selenium blinker cssselect"+USE_INDEX) 
 
 def deploy_rpc():
     """ deploy rpc server code to host """
@@ -47,6 +52,17 @@ def deploy_rpc():
     tasks = []
     for host_string in PEERS:
         t = multiprocessing.Process(target=_deploy_rpc, args=(host_string,))
+        tasks.append(t)
+        t.start()
+
+    for t in tasks:
+        t.join()
+
+def restart_rpc():
+    import multiprocessing
+    tasks = []
+    for host_string in PEERS:
+        t = multiprocessing.Process(target=_restart_rpc, args=(host_string,))
         tasks.append(t)
         t.start()
 
@@ -73,115 +89,33 @@ def _deploy_rpc(host_string):
         run("mkdir -p /opt/crpc")
         put(CRPC_ROOT+"/*", "/opt/crpc/")
 
+    _restart_rpc(host_string)
+
+def _restart_rpc(host_string):
     # remove if already exists
     with settings(host_string=host_string, warn_only=True):
+        run("killall -9 Xvfb")
+        run("killall chromedriver")
+        run("kill -9 `pgrep -f rpcserver`")
         run("pkill -9 python")
+        run("killall chromium-browser")
         run("rm /tmp/*.sock")
+        run("sleep 3")
 
     # dtach rpc @ /tmp/rpc.sock
     with settings(host_string=host_string):
-        for name in crawlers:
-            with cd(os.path.join("/opt/crpc/crawlers", name)):
-                with prefix("source /usr/local/bin/virtualenvwrapper.sh"):
-                    with prefix("workon "+ENV_NAME):
-                        with prefix("ulimit -s 1024"):
-                            with prefix("ulimit -n 4096"):
-                                _runbg("python server.py", sockname=name)
+        with cd("/opt/crpc/crawlers/common"):
+            with prefix("source /usr/local/bin/virtualenvwrapper.sh"):
+                with prefix(". ../../env.sh {0}".format(os.environ['ENV'])):
+                    with prefix("ulimit -s 1024"):
+                        with prefix("ulimit -n 4096"):
+                            _runbg("Xvfb :99 -screen 0 1024x768x8 -ac +extension GLX +render -noreset", sockname="graphicXvfb")
+                            with prefix("export DISPLAY=:99"):
+                                _runbg("python rpcserver.py", sockname="crawlercommon")
 
 def _runbg(cmd, sockname="dtach"):
     """ A helper function to run command in background """
     return run('dtach -n /tmp/{0}.sock {1}'.format(sockname,cmd))
-
-def amazon_listing():
-    import time
-    from crawlers.amazon.client import RPC_PORT, crawl_listing, crawl_product
-    peers = [ "tcp://{0}:{1}".format(x.split('@')[-1], RPC_PORT) for x in PEERS ]
-    while True:
-        t = time.time()
-        crawl_listing(peers)
-        print time.time() - t
-        time.sleep(3600)
-
-def amazon_product():
-    import time
-    from crawlers.amazon.client import RPC_PORT, crawl_listing, crawl_product
-    peers = [ "tcp://{0}:{1}".format(x.split('@')[-1], RPC_PORT) for x in PEERS ]
-    while True:
-        t = time.time()
-        crawl_product(peers)
-        print time.time() - t
-        time.sleep(3600)
-
-def newegg_product():
-    import time
-    from crawlers.newegg.client import RPC_PORT, crawl_product
-    peers = [ "tcp://{0}:{1}".format(x.split('@')[-1], RPC_PORT) for x in PEERS ]
-    while True:
-        t = time.time()
-        crawl_product(peers)
-        print time.time() - t
-        time.sleep(3600)
-try:
-    from crawlers.bestbuy.client import crawl_category as bestbuy_category
-    from crawlers.bhphotovideo.client import crawl_category as bhphotovideo_category
-    from crawlers.dickssport.client import crawl_category as dickssport_category
-except:
-    pass
-
-def bestbuy_listing():
-    import time
-    from crawlers.bestbuy.client import RPC_PORT, crawl_category, crawl_listing, crawl_product
-    peers = [ "tcp://{0}:{1}".format(x.split('@')[-1], RPC_PORT) for x in PEERS ]
-    while True:
-        t = time.time()
-        crawl_listing(peers)
-        print 'Crawl listing cost: {0} seconds.'.format(time.time() - t)
-        bestbuy_product()
-        time.sleep(3600)
-
-def bestbuy_product():
-    """ suggest to run bestbuy_listing(), we can crawl all of the fields.
-    """
-    import time
-    from crawlers.bestbuy.client import RPC_PORT, crawl_category, crawl_listing, crawl_product
-    peers = [ "tcp://{0}:{1}".format(x.split('@')[-1], RPC_PORT) for x in PEERS ]
-    t = time.time()
-    crawl_product(peers)
-    print 'Crawl product cost: {0} seconds.'.format(time.time() - t)
-
-
-def dickssport_listing():
-    import time
-    from crawlers.dickssport.client import RPC_PORT, crawl_category, crawl_listing, crawl_product
-    peers = [ "tcp://{0}:{1}".format(x.split('@')[-1], RPC_PORT) for x in PEERS ]
-    while True:
-        t = time.time()
-        crawl_listing(peers)
-        print 'Crawl listing cost: {0} seconds.'.format(time.time() - t)
-        dickssport_product()
-        time.sleep(3600)
-
-def dickssport_product():
-    """ suggest to run dickssport_listing(), we can crawl all of the fields.
-    """
-    import time
-    from crawlers.dickssport.client import RPC_PORT, crawl_category, crawl_listing, crawl_product
-    peers = [ "tcp://{0}:{1}".format(x.split('@')[-1], RPC_PORT) for x in PEERS ]
-    t = time.time()
-    crawl_product(peers)
-    print 'Crawl product cost: {0} seconds.'.format(time.time() - t)
-
-def dickssport_update(*targs):
-    """ update product with specific fields
-        useful_param = ['price', 'available', 'shipping', 'rating', 'reviews']
-    """
-    import time
-    from crawlers.dickssport.client import RPC_PORT, crawl_category, crawl_listing, crawl_product, update_product
-    peers = [ "tcp://{0}:{1}".format(x.split('@')[-1], RPC_PORT) for x in PEERS ]
-    t = time.time()
-    update_product(peers, *targs)
-    print 'Update product cost: {0} seconds.'.format(time.time() - t)
-
 
 if __name__ == "__main__":
     pass

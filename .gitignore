@@ -1,4 +1,8 @@
+# some random comment
 .py[cod]
+*.pyc
+*.swp
+*.log 
 
 # C extensions
 *.so

@@ -8,49 +8,38 @@ crawlers.myhabit.models
 Implements Product and Category Model for myhabit 
 """
 
-DB = 'myhabit'
-TIMEOUT = 60
-
 from datetime import datetime, timedelta
+from crawlers.common.models import BaseEvent, LuxuryProduct
+
 from mongoengine import *
 from settings import MONGODB_HOST
-connect(db=DB, host=MONGODB_HOST)
+DB = 'myhabit'
+connect(db=DB, alias='myhabit', host=MONGODB_HOST)
 
-from crawlers.common.models import BaseEvent, BaseProduct
+class Event(BaseEvent):
+    event_id = StringField(unique=True)
+    brand_link = StringField()
+    upcoming_title_img = ListField()
 
-
-class Category(BaseEvent):
-    sale_id = StringField(unique=True)
-    dept = StringField()
-    upcoming_title_img = DictField()
     meta = {
-        "indexes": ["soldout"],
+        "db_alias": DB,
     }
 
     def url(self):
-        return 'http://www.myhabit.com/homepage#page=b&dept={0}&sale={1}'.format(self.dept, self.sale_id)
+        return 'http://www.myhabit.com/homepage#page=b&sale={0}'.format(self.event_id)
 
 
-class Product(BaseProduct):
+class Product(LuxuryProduct):
 #    key = StringField(unique=True, spare=True)
-    dept = StringField()
-    sale_id = StringField()
     asin = StringField()
-    listprice = StringField()
-    soldout = BooleanField()
-
-    list_info = ListField(StringField())
-    color = StringField()
-    sizes = ListField(StringField())
 
     video = StringField()
     international_shipping = StringField()
-    returned = StringField()
-    scarcity = StringField()
 
     meta = {
-        "indexes": ["updated"]
+        "indexes": ["updated"],
+        "db_alias": DB,
     }
 
     def url(self):
-        return 'http://www.myhabit.com/homepage#page=d&dept={0}&sale={1}&asin={2}&cAsin={3}'.format(self.dept, self.sale_id, self.asin, self.key)
+        return 'http://www.myhabit.com/homepage#page=d&sale={0}&asin={1}&cAsin={2}'.format(self.event_id[0], self.asin, self.key)

@@ -68,7 +68,7 @@ class myhabitLogin(object):
             if is_new:
                 brand.dept = dept
                 brand.sale_title = a_title.text
-                brand.image_url = image
+                brand.image_urls = [image]
             brand.soldout = soldout
             brand.update_time = datetime.utcnow()
             brand.save()
@@ -76,148 +76,9 @@ class myhabitLogin(object):
 
             self.queue.put( (dept, link) )
 
-def iurl_otree(url):
-    http = httplib2.Http()
-    resp, cont = http.request(url, 'GET')
-    tree = lxml.html.fromstring(cont)
-    return tree
-
-def get_orm_category(url):
-    catname, catn = url2catname2catn(url)
-    # without first() it return a list
-    cate = Category.objects(catn=catn).first()
-    if cate is None:
-        cate = Category(catn=catn)
-        if catname:
-            cate.catname = catname
-    cate.update_time = datetime.utcnow()
-    return cate
-
-def second_category():
-    caturl = 'http://www.myhabit.com'
-    caturl = 'https://www.amazon.com/ap/signin?openid.ns=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0&pageId=quarterdeck&openid.identity=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select&clientContext=191-3012795-6627645&openid.claimed_id=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select&openid.mode=checkid_setup&marketPlaceId=A39WRC2IB8YGEK&openid.assoc_handle=quarterdeck&openid.return_to=https%3A%2F%2Fwww.myhabit.com%2Fsignin&&siteState=http%3A%2F%2Fwww.myhabit.com%2Fhomepage%3Fhash%3D'
-    auth = ('freesupper_fangren@yahoo.com.cn', 'forke@me')
-    ss = requests.Session(auth=auth)
-    cont = ss.get(caturl).content
-    print cont.find(r'Sign Out')
-    from requests.auth import HTTPDigestAuth
-    a = requests.get(caturl, auth=HTTPDigestAuth('freesupper_fangren@yahoo.com.cn', 'forke@me'))
-    print a.text.find('Sign Out')
-
-
-def listing():
-    url = 'http://www.cabelas.com/catalog/browse/hunting-two-way-radios/_/N-1100169/Ns-CATEGORY_SEQ_104785380?WTz_l=SBC%3Bcat104791680'
-    tree = iurl_otree(url)
-
-    try:
-        nodes = tree.xpath('//div[@id="siteContent"]//div[@class="layoutCenterColumn"]/div[@class="itemsWrapper"]/div[@class="resultsColumn"]//div[@class="itemEntryInner"]')
-    except:
-        log.log_traceback(self.logger_list, 'Did not parse node: {0}'.format(url))
-        return
-
-    timenow = datetime.utcnow()
-    time_diff = timedelta(1)
-    titles = []
-    prices = []
-    links = []
-
-    for node in nodes:
-        price = node.xpath('.//div[@class="price"]/div/div[@class="textSale"]/text()')
-        if not price:
-            price = node.xpath('.//div[@class="price"]/div/div/text()')
-        if not price:
-            price = ''
-            log.log_traceback(self.logger_list, 'do not get price {0}'.format(url))
-        prices.append(price[0])
-        t = node.xpath('.//id/a[@class="itemName"]')[0]
-        link = t.get('href')
-        links.append(link)
-        title = t.text_content()
-        titles.append(title)
-
-
-    print len(titles), 'titles', titles
-    print len(links), 'links', links
-    print len(prices), 'prices', prices 
-    
-
-def product():
-
-    url = 'http://www.dickssportinggoods.com/product/index.jsp?productId=10828736'
-    url = 'http://www.dickssportinggoods.com/product/index.jsp?productId=11259348'
-
-    url = 'http://www.dickssportinggoods.com/product/index.jsp?productId=2040792'
-    url = 'http://www.dickssportinggoods.com/product/index.jsp?productId=12261498'
-
-    url = 'http://www.dickssportinggoods.com/product/index.jsp?productId=12319729'
-    tree, cont = iurl_otree(url)
-
-    try:
-        node = tree.xpath('//div[@id="wrapper"]/div[@id="frame"]/div[@id="align"]')[0]
-    except:
-        print 'Parsing page problem'
-
-    also_like = []
-    like = node.xpath('./div[@id="lCol"]//div[@class="mbContent"]//ul/li')
-    for l in like:
-        link = l.xpath('./a/@href')[0]
-        title = l.xpath('./a/text()')[0]
-        link = link if link.startswith('http') else 'http://www.dickssportinggoods.com' + link
-        also_like.append( (title, link) )
-
-    print also_like
-
-    title = node.xpath('./div[@id="rCol"]//h1[@class="productHeading"]/text()')[0]
-    price = node.xpath('./div[@id="rCol"]//div[@class="op"]/text()')[0]
-    if not price:
-        print 'Page donot have a price'
-    else:
-        price = price.split(':')[1].strip().replace('$', '').replace(',', '')
-
-    print [title], [price]
-
-    shipping = node.xpath('./div[@id="rCol"]//div[@class="fs"]//font[@class="alert"]/text()')
-    img = node.xpath('./div[@id="rCol"]/div[@class="r1w secSpace"]//div[@id="galImg"]/a/img/@src')
-    if not img:
-        img = tree.xpath('//div[@id="wrapper"]/div[@id="frame"]/form[@name="path"]/input/@value')
-    if not img:
-        print 'Page donot have a image'
-
-    if shipping:
-        print [shipping],
-    print [img[0]]
-
-    info = node.xpath('./div[@id="rCol"]/div[@id="FieldsetProductInfo"]')
-    description = info[0].text_content()
-    available = node.xpath('./div[@id="rCol"]//div[@id="prodpad"]//div[@class="availability"]/text()')
-    if available:
-        # ['\n\n    \n    ', ' In stock, leaves warehouse in 1 - 2 full bus. days. ', '\n\t']
-        available = ''.join(available).strip()
-
-    print [description], [available]
-
-    rating = node.xpath('./div[@id="rCol"]/div[@id="FieldsetCustomerReviews"]//div[@class="pr-snapshot-rating rating"]/span[@class="pr-rating pr-rounded average"]/text()')
-    reviews = node.xpath('./div[@id="rCol"]/div[@id="FieldsetCustomerReviews"]//div[@class="pr-snapshot-rating rating"]//span[@class="count"]/text()')
-    comment = []
-    comment_all = node.xpath('./div[@id="rCol"]/div[@id="FieldsetCustomerReviews"]//div[starts-with(@id, "pr-contents-")]//div[@class="pr-review-wrap"]')
-    for comm in comment_all:
-        rate = comm.xpath('.//span[@class="pr-rating pr-rounded"]/text()')
-        head = comm.xpath('.//p[@class="pr-review-rating-headline"]/text()')
-        text = comm.xpath('./div[@class="pr-review-main-wrapper"]//p[@class="pr-comments"]/text()')
-        comment.append( (rate, head, text) )
-
-    print [rating], [reviews], '++', comment
-    m = re.compile(r'.*(Model|Model Number):(.*)\n').search(description)
-    if m:
-        model = m.group(2).strip()
-        print model
 
 
 if __name__ == '__main__':
-#    top()
-#    second_category()
-#    listing()
-#    product()
 
     email = 'freesupper_fangren@yahoo.com.cn'
     passwd = 'forke@me'

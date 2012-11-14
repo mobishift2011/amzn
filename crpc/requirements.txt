@@ -6,8 +6,9 @@ PyMySQL==0.5
 SQLAlchemy==0.7.9
 argparse==1.2.1
 async==0.6.1
+blinker==1.2
+bottle==0.11.3
 clint==0.3.1
-gevent==0.13.8
 gitdb==0.5.4
 greenlet==0.4.0
 ipython==0.13
@@ -31,3 +32,7 @@ smmap==0.8.2
 ssh==1.7.14
 wsgiref==0.1.2
 zerorpc==0.3.0
+cssselect==0.7.1
+python-dateutil ==2.1
+PIL
+boto

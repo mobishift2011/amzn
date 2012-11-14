@@ -7,12 +7,16 @@ crawlers.common.rpcserver
 Provides a meta programmed integrated RPC call for all callers
 
 """
-from settings import RPC_PORT, CRPC_ROOT
-
+from settings import RPC_PORT, CRPC_ROOT, MONGODB_HOST
 from os import listdir
 from os.path import join, abspath, dirname, isdir
-
 from helpers import log
+
+import lxml.html
+import requests
+import urllib
+import time
+import zerorpc
 
 class RPCServer(object):
     """ :py:class:crawlers.common.rpcserver.RPCServer
@@ -20,7 +24,7 @@ class RPCServer(object):
     gathers information in crawlers/crawlername/server.py 
     generates callback for remote procedure call
     
-    >>> zs = Zerorpc.Server(RPCServer()) 
+    >>> zs = zerorpc.Server(RPCServer()) 
     >>> zs.bind("tcp://0.0.0.0:{0}".format(RPC_PORT))
     >>> zs.run()
 
@@ -31,7 +35,7 @@ class RPCServer(object):
     -  a class named "Server" must exists in that file
     """
     def __init__(self):
-        excludes = ['common']
+        excludes = ['common', 'ecost', 'bhphotovideo', 'bestbuy', 'dickssport', 'overstock', 'cabelas']
         self.logger = log.getlogger("crawlers.common.rpcserver.RPCServer")
         self.crawlers = {}
         for name in listdir(join(CRPC_ROOT, "crawlers")):
@@ -55,16 +59,17 @@ class RPCServer(object):
         else:
             return service
 
-    def call(self, crawler, method, *args, **kwargs):
+    def call(self, crawler, method, args=(), kwargs={}):
         """ this is a router function for crawlers """
-        service = self.crawlers.get(crawler)
-
+        service = self.crawlers[crawler]
         if service:
             return getattr(service, method)(*args, **kwargs)
         else:
             raise ValueError("{crawler} does not seems to a valid crawler".format(**locals()))
-        
-if __name__ == "__main__":
-    zs = RPCServer()
-    print zs.call('amazon', 'test')
-    print zs.call('newegg', 'test')
+
+
+if __name__ == '__main__':
+    zs = zerorpc.Server(RPCServer()) 
+    zs.bind("tcp://0.0.0.0:{0}".format(RPC_PORT))
+    zs.run()
+

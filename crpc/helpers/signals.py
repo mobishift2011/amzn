@@ -33,6 +33,7 @@ Usage:
 
 """
 from gevent import monkey; monkey.patch_all()
+from gevent.coros import Semaphore
 from settings import *
 
 from collections import defaultdict
@@ -86,15 +87,32 @@ class Processer(object):
 p = Processer()
 
 class Signal(object):
-    def __init__(self, name):
+    """ a signal with capacity
+
+    capacity specifies how many listeners can bind on this signal
+    if capacity == 1, pubsub degrades to a FIFO queue, but can block on pop!
+    """
+    def __init__(self, name, capacity=None):
         self._name = name
+        self._capacity = capacity
+        self._lock = Semaphore(1)
 
     def send(self, sender, **kwargs):
         data = {'kwargs':kwargs}
         p.send_message(sender, self._name, **kwargs)
         
     def connect(self, callback):
-        p.add_listener(self._name, callback)
+        with self._lock:
+            do_connect = False
+            if self._capacity is not None:
+                if self._capacity >= 1:
+                    do_connect = True
+                    self._capacity -= 1
+            else:
+                do_connect = True
+            
+            if do_connect:
+                p.add_listener(self._name, callback)
 
     def bind(self, f):
         self.connect(f)
@@ -108,13 +126,23 @@ class Signal(object):
     def __repr__(self):
         return self.__str__()
 
+class SignalQueue(Signal):
+    """ a signal only can be binded once """
+    def __init__(self, name):
+        super(SignalQueue, self).__init__(name, 1)
+
 
 if __name__ == '__main__':
-    after_item_init = Signal("after_item_init")
+    after_item_init = SignalQueue("after_item_init")
 
     @after_item_init.bind
     def log_item_init(sender, **kwargs):
         itemid  = kwargs.get('item_id')
-        print("sender: {sender}, itemid: {itemid}".format(**locals()))
+        print("0 sender: {sender}, itemid: {itemid}".format(**locals()))
+
+    @after_item_init.bind
+    def log_item_init(sender, **kwargs):
+        itemid  = kwargs.get('item_id')
+        print("1 sender: {sender}, itemid: {itemid}".format(**locals()))
 
     after_item_init.send(sender="main", item_id=3)

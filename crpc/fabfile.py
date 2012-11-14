@@ -118,8 +118,7 @@ def _runbg(cmd, sockname="dtach"):
     return run('dtach -n /tmp/{0}.sock {1}'.format(sockname, cmd))
 
 
-def deploy_monitor():
-    local("sh deploy_monitor.sh")
+#def deploy_monitor():
 #    deploy_root = '/home/deploy/projects/amzn/crpc'
 #    with settings(warn_only=True):
 #        local("kill -9 `pgrep -f run.py`")

@@ -1,4 +1,5 @@
 #!/bin/bash
+rm /tmp/monitormain.sock /tmp/monitorrun.sock
 kill -9 $(pgrep -f run.p)
 kill -9 $(pgrep -f main.py)
 . env.sh TEST

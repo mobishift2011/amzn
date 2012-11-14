@@ -35,7 +35,7 @@ class Server(object):
         sales_active = giltClient.sales_active()
         map(lambda x: self.process_sale(x, ctx), sales_active.get('sales'))
         sales_upcoming = giltClient.sales_upcoming()
-        map(lambda x: self.process_sale(x, ctx), sales_active.get('sales'))
+        map(lambda x: self.process_sale(x, ctx), sales_upcoming.get('sales'))
     
     def crawl_listing(self, url, ctx):
         """.. :py:method::
@@ -181,11 +181,11 @@ if __name__ == '__main__':
 #    server.run()
     timer=time.time()
     s = Server()
-#    s.crawl_category('gilt')
+    s.crawl_category('gilt')
     events = Event.objects(urgent=True, is_leaf=True).order_by('-update_time').timeout(False)
-    for event in events:
-        s.crawl_listing(event.url(), 'gilt')
-        break
+#    for event in events:
+#        s.crawl_listing(event.url(), 'gilt')
+#        break
 #    products = Product.objects.filter(updated=False)
 #    for product in products:
 #        s.crawl_product(product.url(), 'gilt')

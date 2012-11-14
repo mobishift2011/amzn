@@ -72,13 +72,20 @@ class Server(object):
             event_id = info['event_id']
             event_code = info['event_code']
             event, is_new = Event.objects.get_or_create(event_id=event_id)
+
+            # new upcoming, new now, old upcoming, old now
+            event.events_begin = self.convert_time( info['start_date'] )
+            event.events_end = self.convert_time( info['end_date'] )
+            if event.events_begin > datetime.utcnow():
+                event.is_leaf = False # upcoming event
+            else:
+                event.is_leaf = True
+
             is_updated = False
             if is_new:
                 event.sale_title = info['title']
                 event.sale_description = requests.get(info['info']).text
                 event.dept = [i['name'] for i in info['event_types']]
-                event.events_begin = self.convert_time( info['start_date'] )
-                event.events_end = self.convert_time( info['end_date'] )
                 event.tagline = info['category']
 
                 pop_img = 'http://www.hautelook.com/assets/{0}/pop-large.jpg'.format(event_code)
@@ -125,6 +132,7 @@ class Server(object):
             if is_new:
                 if color: product.color = color
                 product.updated = False
+                product.scarcity = scarcity
             else:
                 if product.scarcity != scarcity:
                     product.scarcity = scarcity

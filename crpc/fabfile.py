@@ -119,24 +119,20 @@ def _runbg(cmd, sockname="dtach"):
 
 
 def deploy_monitor():
-    deploy_root = '/home/deploy/projects/amzn/crpc'
-    with settings(warn_only=True):
-        local("kill -9 `pgrep -f run.py`")
-        local("kill -9 `pgrep -f main.py`")
-    _deploy_monitor_run(deploy_root)
-
-def _deploy_monitor_run(deploy_root):
-    with lcd(deploy_root):
-        with prefix(". env.sh TEST"):
-            local("ulimit -n 4096 && dtach -n /tmp/monitormain.sock python backends/webui/main.py")
+    local("sh deploy_monitor.sh")
+#    deploy_root = '/home/deploy/projects/amzn/crpc'
+#    with settings(warn_only=True):
+#        local("kill -9 `pgrep -f run.py`")
+#        local("kill -9 `pgrep -f main.py`")
+#    _deploy_monitor_run(deploy_root)
+#
+#def _deploy_monitor_run(deploy_root):
+#    with lcd(deploy_root):
+#        with prefix(". env.sh TEST"):
+#            local("ulimit -n 4096 && dtach -n /tmp/monitormain.sock python backends/webui/main.py")
 
 
 if __name__ == "__main__":
     import resource
     resource.setrlimit(resource.RLIMIT_NOFILE, (4096, 4096))
-
-    os.system("kill -9 `pgrep -f run.py")
-    os.system("kill -9 `pgrep -f main.py`")
-    os.system(". env.sh TEST && dtach -n /tmp/monitormain.sock python backends/webui/main.py")
-    os.system(". env.sh TEST && ulimit -n 4096 && dtach -n /tmp/monitorrun.sock python backends/monitor/run.py")
 

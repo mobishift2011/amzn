@@ -62,6 +62,7 @@ def update_schedule(d):
         return {'status':'error','reason':repr(e)}
 
 def get_all_fails(ctx):
+    print 'ctx: %s' % ctx
     task = Task.objects.get(ctx=ctx)
     fails = task.fails[-10:]
     return {'fails': [fail.to_json() for fail in fails]}

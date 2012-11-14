@@ -161,10 +161,15 @@ class Server(object):
         """
         for pair in upcoming_list:
             cont = self.net.fetch_page(pair[1])
-            node = lxml.html.fromstring(cont).cssselect('div.event-content-wrapper')[0]
+            tree = lxml.html.fromstring(cont)
+            node = tree.cssselect('div.event-content-wrapper')[0]
             calendar_file = node.cssselect('div.upcoming-date-reminder a.reminder-ical')[0].get('href')
             ics_file = self.net.fetch_page(calendar_file)
-            event_id = re.compile(r'URL:http://www.zulily.com/e/(.+).html.*').search(ics_file).group(1)
+            m = re.compile(r'URL:http://www.zulily.com/(e|p)/(.+).html.*').search(ics_file)
+            if m is None:
+                common_failed.send(sender=ctx, url=pair[1], reason='parse event_id in ics_file failed.')
+                continue
+            event_id = m.group(2)
             brand, is_new = Event.objects.get_or_create(event_id=event_id)
             if is_new:
                 img = node.cssselect('div.event-content-image img')[0].get('src')
@@ -180,7 +185,7 @@ class Server(object):
                 brand.events_begin = events_begin
                 brand.update_time = datetime.utcnow()
                 brand.save()
-            common_saved.send(sender=ctx, key=event_id, url=pair[1], is_new=is_new, is_updated=not is_new)
+            common_saved.send(sender=ctx, key=event_id, url=pair[1], is_new=is_new, is_updated=False)
             
 
     def crawl_listing(self, url, ctx):
@@ -303,6 +308,22 @@ class Server(object):
         product.save()
         common_saved.send(sender=ctx, key=slug, url=self.siteurl + '/e/' + event_id + '.html', is_new=is_new, is_updated=is_updated)
         debug_info.send(sender=DB + ".crawl_listing", url=self.siteurl + '/e/' + event_id + '.html')
+
+#        counter = 0
+#        if is_new:
+#            print 'new', self.siteurl + '/e/' + event_id + '.html', self.siteurl + '/p/' + slug + '.html'
+#            counter += 1
+#        if is_updated:
+#            if counter != 0:
+#                print 'ERROR{0}'.format(counter), self.siteurl + '/e/' + event_id + '.html', self.siteurl + '/p/' + slug + '.html'
+#            else:
+#                print 'update', self.siteurl + '/e/' + event_id + '.html', self.siteurl + '/p/' + slug + '.html'
+#            counter += 1
+#        if not is_new and not is_updated:
+#            if counter != 0:
+#                print 'ERROR{0}'.format(counter), self.siteurl + '/e/' + event_id + '.html', self.siteurl + '/p/' + slug + '.html'
+#            else:
+#                print 'NO', self.siteurl + '/e/' + event_id + '.html', self.siteurl + '/p/' + slug + '.html'
 
 
     def crawl_product(self, url, ctx):

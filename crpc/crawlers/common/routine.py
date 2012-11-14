@@ -39,8 +39,11 @@ def get_site_module(site):
 def spout_listing(site):
     """ return a generator spouting listing pages """
     m = get_site_module(site)
+    now = datetime.utcnow()
     if hasattr(m, 'Event'):
-        return m.Event.objects(urgent=True, is_leaf=True).order_by('-update_time').timeout(False)
+        return m.Event.objects(Q(urgent=True) & Q(is_leaf=True) & (Q(events_end__gt=now) | Q(events_end__exists=False))).order_by('-update_time').timeout(False)
+        return m.Event.objects(Q(urgent=True) & Q(is_leaf=True) & (Q(events_end__gt=now) | Q(events_end=None))).order_by('-update_time').timeout(False)
+
     if hasattr(m, 'Category'):
         return m.Category.objects(is_leaf=True).order_by('-update_time').timeout(False)
 

@@ -115,7 +115,20 @@ def _restart_rpc(host_string):
 
 def _runbg(cmd, sockname="dtach"):
     """ A helper function to run command in background """
-    return run('dtach -n /tmp/{0}.sock {1}'.format(sockname,cmd))
+    return run('dtach -n /tmp/{0}.sock {1}'.format(sockname, cmd))
+
+
+def deploy_monitor():
+    with settings(warn_only=True):
+        local("kill -9 `pgrep -f run.py`")
+        local("kill -9 `pgrep -f main.py`")
+    local(". env.sh TEST")
+    local("ulimit 4096")
+    _runmonitor("python backends/webui/main.py ")
+    _runmonitor("python backends/monitor/run.py ")
+
+def _runmonitor(sockname, cmd):
+    return local('dtach -n /tmp/{0}.sock {1}'.format(sockname, cmd))
 
 if __name__ == "__main__":
     pass

@@ -74,7 +74,8 @@ def update_volume():
         count += 1
         print 'looping...', count
         session = Session()
-        models = (m.model.lower() for m in session.query(Model).filter(Model.global_volume == None).offset(52).limit(blocksize*concurrency))
+        OFFSET = random.randint(100, 10000)
+        models = (m.model.lower() for m in session.query(Model).filter(Model.global_volume == None).offset(OFFSET).limit(blocksize*concurrency))
         if not models:
             break
 

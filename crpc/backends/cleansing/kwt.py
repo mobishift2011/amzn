@@ -31,6 +31,15 @@ CREDENTIALS = [
     ('kwtools3466@gmail.com','1qaz2wsx!@'),
     ('kwtools3467@gmail.com','1qaz2wsx!@'),
     ('kwtools3468@gmail.com','1qaz2wsx!@'),
+    ('kwtools3470@gmail.com','1qaz2wsx!@'),
+    ('kwtools3471@gmail.com','1qaz2wsx!@'),
+    ('kwtools3472@gmail.com','1qaz2wsx!@'),
+    ('kwtools3473@gmail.com','1qaz2wsx!@'),
+    ('kwtools3474@gmail.com','1qaz2wsx!@'),
+    ('kwtools3475@gmail.com','1qaz2wsx!@'),
+    ('kwtools3476@gmail.com','1qaz2wsx!@'),
+    ('kwtools3477@gmail.com','1qaz2wsx!@'),
+    ('kwtools3478@gmail.com','1qaz2wsx!@'),
 ]
 
 class AdwordsAutomater(object):

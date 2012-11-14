@@ -132,11 +132,7 @@ class Server(object):
                 brand.short_desc = text.xpath('.//span[@class="description-highlights"]/text()')[0].strip()
                 brand.start_end_date = text.xpath('./span[@class="description"]/span[@class="start-end-date"]')[0].text_content().strip()
                 brand.urgent = True
-            else:
-                if not brand.is_leaf: # upcoming event
-                    brand.urgent = True
             if dept not in brand.dept: brand.dept.append(dept) # events are mixed in different category
-            brand.is_leaf = True
             brand.update_time = datetime.utcnow()
             brand.save()
             common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=False)

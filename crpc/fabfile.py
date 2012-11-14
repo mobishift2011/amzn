@@ -119,7 +119,9 @@ def _runbg(cmd, sockname="dtach"):
 
 
 def deploy_monitor():
-#    with settings(warn_only=True):
+    with settings(warn_only=True):
+        local("kill -9 `pgrep -f run.py`")
+        local("kill -9 `pgrep -f main.py`")
     local(". env.sh TEST")
     local("ulimit 4096")
     _runmonitor("python backends/webui/main.py ")

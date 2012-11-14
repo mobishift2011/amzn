@@ -128,7 +128,7 @@ def deploy_monitor():
 
 def _deploy_monitor_run(deploy_root):
     with lcd(deploy_root):
-        with prefix(". env.sh TEST")
+        with prefix(". env.sh TEST"):
             local("ulimit -n 4096 && dtach -n /tmp/monitormain.sock python backends/webui/main.py")
 
 #def _runmonitor(sockname, cmd):
@@ -137,7 +137,7 @@ def _deploy_monitor_run(deploy_root):
 if __name__ == "__main__":
     os.system("kill -9 `pgrep -f run.py")
     os.system("kill -9 `pgrep -f main.py`")
-    os.system(". env.sh TEST && ulimit -n 4096 && dtach -n /tmp/monitormain.sock python backends/webui/main.py")
+    os.system(". env.sh TEST && dtach -n /tmp/monitormain.sock python backends/webui/main.py")
     os.system(". env.sh TEST && ulimit -n 4096 && dtach -n /tmp/monitorrun.sock python backends/monitor/run.py")
 #    import resource
 #    resource.setrlimit(resource.RLIMIT_NOFILE, (4096, 4096))

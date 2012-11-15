@@ -181,6 +181,7 @@ class Server(object):
                     sale_description = detail_tree.cssselect('div#wrapper > div#okl-content > div.sales-event > div#okl-bio > div.event-description .description')
                     if sale_description:
                         event.sale_description = sale_description[0].text.strip()
+                    event.urgent = True
                 
                 event.update_time = datetime.utcnow()
                 event.save()
@@ -209,8 +210,8 @@ class Server(object):
 
             event_id = re.compile(r'.*/vintage-market-finds/(.*)').match(link).group(1)
             event, is_new = Event.objects.get_or_create(event_id=event_id)
-            if is_new:
-                event.urgent = True
+            # no begin, end data, urgent always true. Then can crawl
+            event.urgent = True
             event.dept = [dept]
 #            event.is_leaf = True
             event.update_time = datetime.utcnow()
@@ -314,10 +315,12 @@ class Server(object):
         event.num = len(items)
         event.update_time = datetime.utcnow()
         event.urgent = False
+
+        for item in items: self.crawl_sale_list_product(event_id, item, ctx)
+
         event.save()
         common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=False)
 
-        for item in items: self.crawl_sale_list_product(event_id, item, ctx)
 
     def crawl_sale_list_product(self, event_id, item, ctx):
         """.. :py:method::

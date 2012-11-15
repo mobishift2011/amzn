@@ -145,6 +145,7 @@ class Server(object):
                 image = self.extract_large_img.match(img).group(1) + '$fullzoom$'
                 event.image_urls = [image]
                 event.urgent = True
+                event.combine_url = 'https://www.onekingslane.com/sales/{0}'.format(event_id)
 #                event.is_leaf = True
 #            else:
 #                if not event.is_leaf: # upcoming events
@@ -210,6 +211,7 @@ class Server(object):
 
             event_id = re.compile(r'.*/vintage-market-finds/(.*)').match(link).group(1)
             event, is_new = Event.objects.get_or_create(event_id=event_id)
+            event.combine_url = 'https://www.onekingslane.com/vintage-market-finds/{0}'.format(event_id)
             # no begin, end data, urgent always true. Then can crawl
             event.urgent = True
             event.dept = [dept]
@@ -280,6 +282,7 @@ class Server(object):
             product.price = item.cssselect('ul > li:nth-of-type(2)')[0].text_content().replace(',','')
             if item.cssselect('em.sold'): product.soldout = True
             product.updated = False
+            product.combine_url = 'https://www.onekingslane.com/vintage-market-finds/product/{0}'.format(product_id)
         else:
             if product.soldout != True:
                 if item.cssselect('em.sold'):
@@ -349,6 +352,7 @@ class Server(object):
             product.price = price[0].text_content().replace(',','')
             if item.cssselect('a.sold-out'): product.soldout = True
             product.updated = False
+            product.combine_url = 'https://www.onekingslane.com/product/{0}/{1}'.format(event_id, product_id)
         else:
             if event_id not in product.event_id:
                 product.event_id.append(event_id)

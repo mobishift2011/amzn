@@ -8,7 +8,7 @@ from gevent import monkey; monkey.patch_all()
 import gevent
 
 from backends.monitor.models import Schedule, Task
-from crawlers.common.routine import new, update #update_category, update_listing, update_product, update_listing_update
+from crawlers.common.routine import new, update, new_category, new_listing, new_product, update_category, update_listing, update_product #update_category, update_listing, update_product, update_listing_update
 
 import zerorpc
 from datetime import datetime, timedelta

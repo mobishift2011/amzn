@@ -247,10 +247,22 @@ def update_listing(site, rpc, concurrency=3):
 #                callrpc( rpc, site, 'crawl_listing', **kwargs)
         pool.join()
 
+def update_product(site, rpc, concurrency=3):
+    with UpdateContext(site=site, method='new_product') as ctx:
+        rpcs = [rpc] if not isinstance(rpc, list) else rpc
+        pool = Pool(len(rpcs)*concurrency)
+        for kwargs in spout_product(site):
+            kwargs['ctx'] = ctx
+            rpc = random.choice(rpcs)
+            pool.spawn(callrpc, rpc, site, 'crawl_product', **kwargs)
+#            callrpc( rpc, site, 'crawl_product', **kwargs)
+        pool.join()
+
 # parent task of update
 def update(site, rpc, concurrency=3):
     update_category(site, rpc, concurrency=3)
     update_listing(site, rpc, concurrency=3)
+    update_product(site, rpc, concurrency=3)
 
 
 if __name__ == '__main__':

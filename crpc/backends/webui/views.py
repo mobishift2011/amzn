@@ -32,7 +32,7 @@ def delete_schedule(s):
 
 def get_all_schedules():
     ret = []
-    for s in Schedule.objects():
+    for s in Schedule.objects().order_by('name'):
         ret.append({
             'pk':                   str(s.pk),
             'name':                 '{0}.{1}'.format(s.site, s.method),

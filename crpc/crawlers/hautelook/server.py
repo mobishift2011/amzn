@@ -199,10 +199,14 @@ class Server(object):
                         color = color_str
                         break
 
-        # color: find the color, associate it to get the right images
-        for color_info in data['collections']['color']:
-            if color_info['name'] == color:
-                product.image_urls = data['collections']['images'][ color_info['image'] ]['large']
+        if color:
+            # color: find the color, associate it to get the right images
+            for color_info in data['collections']['color']:
+                if color_info['name'] == color:
+                    product.image_urls = data['collections']['images'][ color_info['image'] ]['large']
+            product.updated = True
+        else:
+            product.updated = False
 #        image_set = set()
 #        for k,v in data['collections']['images'].iteritems():
 #            for img in v['large']:
@@ -210,7 +214,6 @@ class Server(object):
 #                    image_set.add(img)
 #        product.image_urls = list(image_set)
 
-        product.updated = True
         product.full_update_time = datetime.utcnow()
         product.save()
         common_saved.send(sender=ctx, key=url, url=url, is_new=is_new, is_updated=not is_new)

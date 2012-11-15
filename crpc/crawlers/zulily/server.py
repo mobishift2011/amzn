@@ -129,14 +129,10 @@ class Server(object):
 
                 brand.image_urls = [image]
                 brand.sale_title = sale_title
-                brand.short_desc = text.xpath('.//span[@class="description-highlights"]/text()')[0].strip()
-                brand.start_end_date = text.xpath('./span[@class="description"]/span[@class="start-end-date"]')[0].text_content().strip()
                 brand.urgent = True
-#                brand.is_leaf = True
-            else:
-                pass
-#                if not brand.is_leaf: # upcoming event
-#                    brand.urgent = True
+                brand.combine_url = 'http://www.zulily.com/e/{0}.html'.format(event_id)
+            brand.short_desc = text.xpath('.//span[@class="description-highlights"]/text()')[0].strip()
+            brand.start_end_date = text.xpath('./span[@class="description"]/span[@class="start-end-date"]')[0].text_content().strip()
             if dept not in brand.dept: brand.dept.append(dept) # events are mixed in different category
             brand.update_time = datetime.utcnow()
             brand.save()
@@ -185,6 +181,8 @@ class Server(object):
                 brand.sale_description = sale_description
                 brand.events_begin = events_begin
                 brand.update_time = datetime.utcnow()
+                brand.urgent = True
+                brand.combine_url = 'http://www.zulily.com/e/{0}.html'.format(event_id)
                 brand.save()
             common_saved.send(sender=ctx, key=event_id, url=pair[1], is_new=is_new, is_updated=False)
             
@@ -219,14 +217,15 @@ class Server(object):
         brand.num = len(items)
         brand.update_time = datetime.utcnow()
         brand.urgent = False
-        brand.save()
-        common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=False)
 
         for item in items: self.crawl_list_product(event_id, item, ctx)
         page_num = 1
         next_page_url = self.detect_list_next(node, page_num + 1)
         if next_page_url:
             self.crawl_list_next(url, next_page_url, page_num + 1, event_id, ctx)
+
+        brand.save()
+        common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=False)
         debug_info.send(sender=DB + '.crawl_list.end')
 
     def detect_list_next(self, node, page_num):
@@ -289,6 +288,7 @@ class Server(object):
             soldout = item.cssselect('a.product-image>span.sold-out')
             if soldout: product.soldout = True
             product.updated = False
+            product.combine_url = 'http://www.zulily.com/p/{0}.html'.format(slug)
         else:
             if event_id not in product.event_id:
                 product.event_id.append(event_id)

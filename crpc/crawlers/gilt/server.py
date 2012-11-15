@@ -174,7 +174,6 @@ class Server(object):
             
             if sku.get('inventory_status') == "for sale":
                 soldout = False
-                is_updated = True if (product.soldout != soldout and not is_new) else is_updated
             else:
                 if sku.get('attributes'):
                     product.sizes_scarcity.append(sku.get('attributes')[0].get('value'))

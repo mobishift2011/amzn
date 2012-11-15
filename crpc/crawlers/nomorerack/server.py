@@ -118,7 +118,7 @@ class Server(BaseServer):
             event.image_urls = [img_url]
             event.events_end = date_obj
             event.update_time = datetime.datetime.utcnow()
-            event.is_leaf = True
+#            event.is_leaf = True
 
             event.save()
             common_saved.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=is_updated)
@@ -228,10 +228,9 @@ class Server(BaseServer):
             if is_new:
                 is_updated = False
                 product.updated = False
-            elif product.price== price and product.listprice == listprice and product.title == title:
-                is_updated = False
             else:
-                is_updated = True
+                if product.price != price or product.listprice != listprice:
+                    is_updated = True
 
             product.price = price
             product.listproce = listprice

@@ -48,12 +48,16 @@ class Server(object):
         print(DB+'.listing.{0}.begin'.format(url))
         sale = giltClient.request(url)
         
-        if sale.get('products'):
-            map(lambda x: self.crawl_product(x, ctx), sale.get('products'))
-        
         event = Event.objects(event_id = sale.get('sale_key')).first()
         if event:
             event.urgent = False
+        
+        if sale.get('products'):
+            event.is_leaf = True
+            event.save()
+            map(lambda x: self.process_product(x, ctx, sale.get('sale_key')), sale.get('products'))
+        else:
+            event.is_leaf = False
             event.save()
         
         print(DB+'.listing.{0}.end'.format(url))
@@ -65,6 +69,53 @@ class Server(object):
 
         :param url: product url
         """
+        self.process_product(url, ctx)
+    
+#    def crawl_sales(self, ctx, store=None):
+#        if store:
+#            print(DB+'.store.{0}.begin'.format(store))
+#            time.sleep(3)
+#            
+#            sales_active = giltClient.sales_active(store)
+#            map(lambda x: self.process_sale(ctx, x), sales_active.get('sales'))
+#            sales_upcoming = giltClient.sales_upcoming(store)
+#            map(lambda x: self.process_sale(ctx, x), sales_active.get('sales'))
+#            
+#            print(DB+'.store.{0}.end'.format(store))
+#        else:
+#            map(lambda x: self.crawl_sales(ctx, x), giltClient.stores())
+    
+    def process_sale(self, sale, ctx):
+        print(DB+'.event.{0}.start'.format(sale.get('name').encode('utf-8')))
+        
+        is_updated = False
+        event, is_new = Event.objects.get_or_create(event_id = sale.get('sale_key'))
+        event.event_id = sale.get('sale_key')
+        event.sale_title = sale.get('name')
+        event.store = sale.get('store')
+        if event.store not in event.dept:
+            event.dept.append(event.store)
+        event.combine_url = sale.get('sale_url')
+        event.type = 'sale'
+        event.image_urls = [urls[0].get('url') for urls in sale.get('image_urls').values()]
+        events_begin = datetime.datetime.strptime(sale.get('begins'), '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=pytz.utc)
+        events_end = datetime.datetime.strptime(sale.get('ends'), '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=pytz.utc)
+        is_updated = (not is_new and events_begin != pytz.UTC.localize(event.events_begin)) or is_updated
+        is_updated = (not is_new and events_end != pytz.UTC.localize(event.events_end)) or is_updated
+        event.events_begin = events_begin
+        event.events_end = events_end
+        event.sale_description = sale.get('description')
+        #        upcoming = sale.get('begins') > datetime.datetime.now()
+        
+        if is_new or is_updated:
+            event.urgent = True
+        event.save()
+        
+        print(DB+'.event.{0}.end'.format(sale.get('name').encode('utf-8')))
+        common_saved.send(sender=ctx, key=event.event_id, url=sale.get('sale_url'), is_new=is_new, is_updated=(not is_new) and is_updated)
+#        map(lambda url: self.process_product(url, sale), sale.get('products') or [])
+
+    def process_product(self, url, ctx, event_id=None):
         print(DB+'.product.{0}.begin'.format(url))
         try:
             time.sleep(1.2)
@@ -92,14 +143,16 @@ class Server(object):
         
         if product.updated:
             print(DB+ ' crawling old product %s' % product_key)
-            is_updated = False
         else:
             print(DB+ ' crawling new product %s' % product_key)
-            is_updated = True
         
+        is_updated = False
         product.product_key = product_key
+        if event_id and event_id not in product.event_id:
+            product.event_id.append(event_id)
         product.title = res.get('name')
         product.brand = res.get('brand')
+        product.combine_url = res.get('url')
         product.image_urls = [urls[0].get('url') for urls in res.get('image_urls').values()]
         content = res.get('content')
         if content:
@@ -125,6 +178,7 @@ class Server(object):
             else:
                 if sku.get('attributes'):
                     product.sizes_scarcity.append(sku.get('attributes')[0].get('value'))
+        is_updated = True if (product.soldout != soldout and not is_new) else is_updated
         product.soldout = soldout
         product.updated = False if is_new else True
         product.full_update_time = datetime.datetime.utcnow()
@@ -132,61 +186,22 @@ class Server(object):
         
         print(DB+'.product.{0}.end'.format(url))
         common_saved.send(sender=ctx, key=product.product_key, url=url, is_new=is_new, is_updated=(not is_new) and is_updated)
-    
-#    def crawl_sales(self, ctx, store=None):
-#        if store:
-#            print(DB+'.store.{0}.begin'.format(store))
-#            time.sleep(3)
-#            
-#            sales_active = giltClient.sales_active(store)
-#            map(lambda x: self.process_sale(ctx, x), sales_active.get('sales'))
-#            sales_upcoming = giltClient.sales_upcoming(store)
-#            map(lambda x: self.process_sale(ctx, x), sales_active.get('sales'))
-#            
-#            print(DB+'.store.{0}.end'.format(store))
-#        else:
-#            map(lambda x: self.crawl_sales(ctx, x), giltClient.stores())
-    
-    def process_sale(self, sale, ctx):
-        print(DB+'.event.{0}.start'.format(sale.get('name').encode('utf-8')))
-        
-        is_updated = False
-        event, is_new = Event.objects.get_or_create(event_id = sale.get('sale_key'))
-        event.sale_title = sale.get('name')
-        event.event_id = sale.get('sale_key')
-        event.store = sale.get('store')
-        if event.store not in event.dept:
-            event.dept.append(event.store)
-        event.type = 'sale'
-        event.image_urls = [urls[0].get('url') for urls in sale.get('image_urls').values()]
-        event.events_begin = datetime.datetime.strptime(sale.get('begins'), '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=pytz.utc)
-        event.events_end = datetime.datetime.strptime(sale.get('ends'), '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=pytz.utc)
-        #        upcoming = sale.get('begins') > datetime.datetime.now()
-        
-        is_updated = (event.is_leaf != bool(sale.get('products'))) and not is_new
-        event.is_leaf = bool(sale.get('products'))
-        event.sale_description = sale.get('description')
-        if is_new or is_updated:
-            event.urgent = True
-        event.save()
-        
-        common_saved.send(sender=ctx, key=event.event_id, url=sale.get('sale_url'), is_new=is_new, is_updated=(not is_new) and is_updated)
-#        map(lambda url: self.process_product(url, sale), sale.get('products') or [])
-#        print(DB+'.event.{{0}}.end'.format(sale.get('name')))
 
+
+def local_test():
+    timer=time.time()
+    s = Server()
+    s.crawl_category('gilt')
+    events = Event.objects(urgent=True).order_by('-update_time').timeout(False)
+    for event in events:
+        s.crawl_listing(event.url(), 'gilt')
+    products = Product.objects.filter(updated=False)
+    for product in products:
+        s.crawl_product(product.url(), 'gilt')
+    print 'total cost(s): %s' % (time.time()-timer)
 
 if __name__ == '__main__':
 #    server = zerorpc.Server(Server())
 #    server.bind("tcp://0.0.0.0:{0}".format(RPC_PORT))
 #    server.run()
-    timer=time.time()
-    s = Server()
-    s.crawl_category('gilt')
-    events = Event.objects(urgent=True, is_leaf=True).order_by('-update_time').timeout(False)
-#    for event in events:
-#        s.crawl_listing(event.url(), 'gilt')
-#        break
-#    products = Product.objects.filter(updated=False)
-#    for product in products:
-#        s.crawl_product(product.url(), 'gilt')
-    print 'total cost(s): %s' % (time.time()-timer)
+    local_test()

@@ -21,6 +21,7 @@ class Event(BaseEvent):
     sort_order  = StringField()
     tagline     = StringField()
 
+    is_leaf = BooleanField(default=True)
     meta = {
         "db_alias": DB,
     }

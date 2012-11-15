@@ -77,10 +77,7 @@ class Server(object):
             event.events_begin = self.convert_time( info['start_date'] )
             event.events_end = self.convert_time( info['end_date'] )
             _utcnow = datetime.utcnow()
-            if event.events_end < _utcnow:
-                event.update_time = _utcnow
-                event.save()
-                continue
+#            if event.events_end < _utcnow:
 
             is_updated = False
             if is_new:

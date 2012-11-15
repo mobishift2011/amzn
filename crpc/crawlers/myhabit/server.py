@@ -153,10 +153,10 @@ class Server:
                 brand.image_urls = [image]
                 if soldout == True: brand.soldout = True
                 brand.urgent = True
-                brand.is_leaf = True
+#                brand.is_leaf = True
             else:
-                if not brand.is_leaf: # upcoming event
-                    brand.urgent = True
+#                if not brand.is_leaf: # upcoming event
+#                    brand.urgent = True
                 if soldout == True and brand.soldout != True:
                     brand.soldout = soldout
                     is_updated = True

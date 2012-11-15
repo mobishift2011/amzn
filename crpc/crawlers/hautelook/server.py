@@ -76,10 +76,11 @@ class Server(object):
             # new upcoming, new now, old upcoming, old now
             event.events_begin = self.convert_time( info['start_date'] )
             event.events_end = self.convert_time( info['end_date'] )
-            if event.events_begin > datetime.utcnow():
-                event.is_leaf = False # upcoming event
-            else:
-                event.is_leaf = True
+            _utcnow = datetime.utcnow()
+            if event.events_end < _utcnow:
+                event.update_time = _utcnow
+                event.save()
+                continue
 
             is_updated = False
             if is_new:
@@ -97,7 +98,7 @@ class Server(object):
                 if info['sort_order'] != event.sort_order:
                     event.sort_order = info['sort_order']
                     is_updated = True
-            event.update_time = datetime.utcnow()
+            event.update_time = _utcnow
             event.save()
             common_saved.send(sender=ctx, key=event_id, url='{0}/event/{1}'.format(self.siteurl, event_id), is_new=is_new, is_updated=is_updated)
         debug_info.send(sender=DB + '.category.end')

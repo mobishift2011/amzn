@@ -147,6 +147,7 @@ class Server(object):
                 event.urgent = True
 #                event.is_leaf = True
             else:
+                pass
 #                if not event.is_leaf: # upcoming events
 #                    event.urgent = True
             event.update_time = datetime.utcnow()

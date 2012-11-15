@@ -133,7 +133,7 @@ class Server:
         def get_end_time(str):
             # str == u'2\xa0Days,\xa012:46:00'
             m = re.compile('.*(\d{1,2})\xa0Day.*,\xa0(\d{1,2}):(\d{1,2}):(\d{1,2})').findall(str)
-            print 're.m',m
+#            print 're.m',m
             print 're.str[%s]' %str
             days,hours,minutes,seconds = m[0]
             now = datetime.datetime.utcnow()
@@ -184,9 +184,9 @@ class Server:
             event,is_new = Event.objects.get_or_create(event_id=event_id)
             is_updated = False
             if is_new:
-                event.urgent = True
                 event.image_urls = ['http://www.ruelala.com/images/content/events/%s_doormini.jpg' %event_id]
                 event.dept = [category_name]
+                event.urgent = True
 #            elif event.sale_title == a_title.text:
 #                is_updated = False
 #            else:
@@ -200,7 +200,6 @@ class Server:
             event.update_time = datetime.datetime.utcnow()
             event.sale_title = a_title.text
             event.is_leaf = True
-
             event.save()
             common_saved.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=is_updated)
             result.append((event_id,a_url))
@@ -245,7 +244,7 @@ class Server:
                 print '301,',url_301
                 self._crawl_product(url_301,ctx)
             else:
-                raise ValueError('can not find product @url:%s sale id:%s' %(event_url,event_id))
+                raise ValueError('can not find product @url:%s sale id:%s' %(event_url, event_id))
 
         for node in nodes:
             if not node.is_displayed():
@@ -268,31 +267,34 @@ class Server:
 
             # get base product info
             product,is_new = Product.objects.get_or_create(key=str(product_id))
-            is_updated = False
-            if is_new:
-                product.updated = False
-            elif product.price == str(product_price) and product.listprice == str(strike_price) and product.title == title:
-                pass
-            else:
-                is_updated = True
-
-            if not is_new:
-                product.url = url
-                product.event_id = [str(event_id)]
-
+            soldout = False
             try:
                 s = node.find_elements_by_tag_name('span')[1]
             except IndexError:
                 pass
             else:
                 if s.get_attribute('class') == 'soldOutOverlay swiEnabled':
-                    product.soldout = True
+                    soldout = True
+
+            is_updated = False
+            if is_new:
+                product.url = url
+                product.event_id = [str(event_id)]
+                product.updated = False
+                if soldout: product.soldout = soldout
+            else:
+                if product.price != str(product_price) or product.listprice != str(strike_price):
+                    is_updated = True
+                if soldout and product.soldout != True:
+                    product.soldout = soldout
+                    is_updated = True
+
+                if str(event_id) not in product.event_id:
+                    product.event_id.append(str(event_id))
 
             product.title = title
             product.price = str(product_price)
             product.list_price = str(strike_price)
-            if str(event_id) not in product.event_id:
-                product.event_id.append(str(event_id))
 
             product.save()
             common_saved.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=is_updated)

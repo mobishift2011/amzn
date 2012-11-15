@@ -1,10 +1,12 @@
 import traceback
 from zerorpc import Client
-from backends.monitor.scheduler import get_rpcs
+from settings import PEERS
 
-for c in get_rpcs():
+for p in PEERS:
+    username, hostname = p.split('@')
+    print 'testing', hostname
+    c = Client('tcp://{hostname}:1234'.format(hostname=hostname))
     try:
-        print c
         c.call('test','123')
     except:
         traceback.print_exc()

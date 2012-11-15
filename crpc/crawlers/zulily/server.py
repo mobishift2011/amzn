@@ -281,10 +281,10 @@ class Server(object):
             product.image_urls = [image]
             product.title = title
             if price_box:
-                product.price = price_box[0].cssselect('div.special-price')[0].text.strip().replace('$','').replace(',','')
-                product.listprice = price_box[0].cssselect('div.old-price')[0].text.replace('original','').strip().replace('$','').replace(',','')
+                product.price = price_box[0].cssselect('div.special-price')[0].text_content().strip().replace('$','').replace(',','')
+                product.listprice = price_box[0].cssselect('div.old-price')[0].text_content().replace('original','').strip().replace('$','').replace(',','')
             else:
-                product.price = item.cssselect('a.nohover')[0].text.strip().replace('$','').replace(',','')
+                product.price = item.cssselect('a.nohover')[0].text_content().strip().replace('$','').replace(',','')
             soldout = item.cssselect('a.product-image>span.sold-out')
             if soldout: product.soldout = True
             product.updated = False
@@ -295,9 +295,9 @@ class Server(object):
 
             soldout = item.cssselect('a.product-image>span.sold-out')
             if price_box:
-                special_price = price_box[0].cssselect('div.special-price')[0].text.strip().replace('$','').replace(',','')
+                special_price = price_box[0].cssselect('div.special-price')[0].text_content().strip().replace('$','').replace(',','')
             else:
-                special_price = item.cssselect('a.nohover')[0].text.strip().replace('$','').replace(',','')
+                special_price = item.cssselect('a.nohover')[0].text_content().strip().replace('$','').replace(',','')
             if product.price != special_price:
                 product.price = special_price
                 is_updated = True

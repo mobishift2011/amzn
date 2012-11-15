@@ -21,7 +21,6 @@ class Event(BaseEvent):
     short_desc = StringField()
     start_end_date = StringField()
 
-    is_leaf = BooleanField(default=True)
     meta = {
         "db_alias": DB,
     }

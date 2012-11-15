@@ -199,7 +199,7 @@ class Server:
                 event.events_end = end_time
             event.update_time = datetime.datetime.utcnow()
             event.sale_title = a_title.text
-            event.is_leaf = True
+#            event.is_leaf = True
             event.save()
             common_saved.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=is_updated)
             result.append((event_id,a_url))

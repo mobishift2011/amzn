@@ -129,7 +129,6 @@ class Server(BaseServer):
         """
         _url = 'http://nomorerack.com/daily_deals/category_jxhrq/%s?sort=best_selling&offset=%d'
         for i in range(0,10000):
-            print 'aaa'
             if name == 'kids':
                 url = 'http://nomorerack.com/daily_deals/category/kids'
             else:
@@ -163,20 +162,24 @@ class Server(BaseServer):
                 is_updated = False
                 if is_new:
                     product.updated = False
-                elif product.price != price or product.listprice != listprice:
-                    product.price = price
-                    product.listprice = listprice
-                    is_updated = True
-                if not product.soldout:
                     if category.upper() == 'SOLD OUT':
                         product.soldout = True
+                else:
+                    if product.price != price or product.listprice != listprice:
                         is_updated = True
+                    if not product.soldout:
+                        if category.upper() == 'SOLD OUT':
+                            product.soldout = True
+                            is_updated = True
 
                 if not product.cats:
                     if category.upper() != 'SOLD OUT':
                         product.cats = [name, category]
                     else:
                         product.cats = [name]
+
+                product.price = price
+                product.listprice = listprice
                 product.image_urls = [img_url]
                 product.title = title
                 product.save()

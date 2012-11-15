@@ -153,6 +153,7 @@ class Server:
                 brand.image_urls = [image]
                 if soldout == True: brand.soldout = True
                 brand.urgent = True
+                brand.is_leaf = True
             else:
                 if not brand.is_leaf: # upcoming event
                     brand.urgent = True
@@ -161,7 +162,6 @@ class Server:
                     is_updated = True
             if dept not in brand.dept: brand.dept.append(dept) # for designer dept
             brand.update_time = datetime.utcnow()
-            brand.is_leaf = True
             brand.save()
             common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=is_updated)
 

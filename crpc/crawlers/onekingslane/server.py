@@ -389,7 +389,7 @@ class Server(object):
         """
         product_id = url.split('/')[-1]
         product, is_new = Product.objects.get_or_create(pk=product_id)
-        node = tree.cssselect('body > div#wrapper > div#okl-content > div#okl-product')
+        node = tree.cssselect('body > div#wrapper > div#okl-content > div#okl-product')[0]
 
         vintage = node.cssselect('form#productOverview > dl.vintage')
         era = vintage.cssselect('dd:first-of-type')

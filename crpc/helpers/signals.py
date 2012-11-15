@@ -128,8 +128,8 @@ class Signal(object):
 
 class SignalQueue(Signal):
     """ a signal only can be binded once """
-    def __init__(self, name):
-        super(SignalQueue, self).__init__(name, 1)
+    def __init__(self, name, capacity=1):
+        super(SignalQueue, self).__init__(name, capacity)
 
 
 if __name__ == '__main__':

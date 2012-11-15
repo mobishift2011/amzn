@@ -3,4 +3,4 @@
 from helpers.signals import SignalQueue
 
 # site, method
-run_command = SignalQueue("run_command")
+run_command = SignalQueue("run_command", 4)

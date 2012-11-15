@@ -31,6 +31,7 @@ def execute(site, method):
     """ execute RPCServer function
     """
     if not task_already_running(site, method):
+        print "site:%s, ~~~~~~~~~~method: %s" % (site, method)
         gevent.spawn(globals()[method], site, get_rpcs(), 10) \
                 .rawlink(partial(task_completed, site=site, method=method))
 

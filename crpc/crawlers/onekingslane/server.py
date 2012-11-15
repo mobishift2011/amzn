@@ -145,10 +145,10 @@ class Server(object):
                 image = self.extract_large_img.match(img).group(1) + '$fullzoom$'
                 event.image_urls = [image]
                 event.urgent = True
+                event.is_leaf = True
             else:
                 if not event.is_leaf: # upcoming events
                     event.urgent = True
-            event.is_leaf = True
             event.update_time = datetime.utcnow()
             event.save()
             common_saved.send(sender=ctx, key=event_id, url=link, is_new=is_new, is_updated=False)

@@ -20,7 +20,7 @@ def task_already_running(site, method):
 
     a set is used to keep task running info 
     """
-    key = '{0}.{1}'.format(site, method)
+    key = '{0}.{1}'.format(site, method.split('_')[0])
     with lock:
         if key in SCHEDULE_STATE:
             print 'The Task of {0} is already running.'.format(key)
@@ -30,7 +30,7 @@ def task_already_running(site, method):
 
 def task_completed(greenlet, site, method):
     """ removes state info from set """
-    key = '{0}.{1}'.format(site, method)
+    key = '{0}.{1}'.format(site, method.split('_')[0])
     with lock:
         if key in SCHEDULE_STATE:
             SCHEDULE_STATE.remove(key) 

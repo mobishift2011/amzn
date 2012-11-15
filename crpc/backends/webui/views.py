@@ -32,7 +32,7 @@ def delete_schedule(s):
 
 def get_all_schedules():
     ret = []
-    for s in Schedule.objects():
+    for s in Schedule.objects().order_by('site', 'method'):
         ret.append({
             'pk':                   str(s.pk),
             'name':                 '{0}.{1}'.format(s.site, s.method),
@@ -62,6 +62,7 @@ def update_schedule(d):
         return {'status':'error','reason':repr(e)}
 
 def get_all_fails(ctx):
+    print 'ctx: %s' % ctx
     task = Task.objects.get(ctx=ctx)
     fails = task.fails[-10:]
     return {'fails': [fail.to_json() for fail in fails]}

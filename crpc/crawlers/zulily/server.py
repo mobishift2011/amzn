@@ -134,6 +134,7 @@ class Server(object):
                 brand.urgent = True
 #                brand.is_leaf = True
             else:
+                pass
 #                if not brand.is_leaf: # upcoming event
 #                    brand.urgent = True
             if dept not in brand.dept: brand.dept.append(dept) # events are mixed in different category
@@ -381,7 +382,6 @@ class Server(object):
         product.save()
         common_saved.send(sender=ctx, key=slug, url=url, is_new=is_new, is_updated=not is_new)
 
-        
 
 if __name__ == '__main__':
     server = zerorpc.Server(Server())

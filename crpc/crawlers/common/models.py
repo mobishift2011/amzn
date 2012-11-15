@@ -25,6 +25,8 @@ class BaseCategory(Document):
     spout_time  =   DateTimeField() # time when we issue a new category fetch operation
     num         =   IntField()
     pagesize    =   IntField()
+    combine_url =   StringField()
+
     meta        =   {
         "allow_inheritance": True,
         "collection": "category",
@@ -108,6 +110,7 @@ class BaseProduct(Document):
     models              =   ListField()
     price               =   StringField()
     sell_rank           =   IntField()
+    combine_url         =   StringField()
 
     # text info
     title               =   StringField()

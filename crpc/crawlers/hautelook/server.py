@@ -206,6 +206,7 @@ class Server(object):
                     product.image_urls = data['collections']['images'][ color_info['image'] ]['large']
             product.updated = True
         else:
+            # if product_id not in color, crawl it later, the site will correct its info
             product.updated = False
 #        image_set = set()
 #        for k,v in data['collections']['images'].iteritems():

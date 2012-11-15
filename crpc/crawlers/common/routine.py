@@ -248,7 +248,7 @@ def update_listing(site, rpc, concurrency=3):
         pool.join()
 
 def update_product(site, rpc, concurrency=3):
-    with UpdateContext(site=site, method='new_product') as ctx:
+    with UpdateContext(site=site, method='update_product') as ctx:
         rpcs = [rpc] if not isinstance(rpc, list) else rpc
         pool = Pool(len(rpcs)*concurrency)
         for kwargs in spout_product(site):

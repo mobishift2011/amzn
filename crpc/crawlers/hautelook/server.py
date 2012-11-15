@@ -91,6 +91,7 @@ class Server(object):
                 event.image_urls = [pop_img, grid_img]
                 event.sort_order = info['sort_order']
                 event.urgent = True
+                event.combine_url = 'http://www.hautelook.com/v3/catalog/{0}/availability'.format(event_id)
             else:
                 if info['sort_order'] != event.sort_order:
                     event.sort_order = info['sort_order']
@@ -131,6 +132,7 @@ class Server(object):
                 if color: product.color = color
                 product.updated = False
                 product.scarcity = scarcity
+                product.combine_url = 'http://www.hautelook.com/v2/product/{0}'.format(key)
             else:
                 if product.scarcity != scarcity:
                     product.scarcity = scarcity
@@ -165,6 +167,15 @@ class Server(object):
                 product.brand = data['brand_name']
 
         product.sizes = [sz['name'] for sz in data['collections']['size']] # OS -- no size info
+        if data['add_info']: product.additional_info = data['add_info'].split('\n')
+        if data['care']: product.care_info = data['care']
+        if data['fiber']: product.fiber = data['fiber']
+        product.arrives = data['arrives']
+
+        product.returned = str(int(data['returnable'])) # bool
+        product.international_ship = str(int(data['international'])) # bool
+        product.delivery_date = ' to '.join((data['estimated_delivery']['start_date'], data['estimated_delivery']['end_date']))
+        product.choke_hazard = str(int(data['choke_hazard'])) # bool
 
         color = ''
         # same product with different colors, all in the same product id
@@ -198,16 +209,6 @@ class Server(object):
 #                if 'noavail' not in img:
 #                    image_set.add(img)
 #        product.image_urls = list(image_set)
-
-        if data['add_info']: product.additional_info = data['add_info'].split('\n')
-        if data['care']: product.care_info = data['care']
-        if data['fiber']: product.fiber = data['fiber']
-        product.arrives = data['arrives']
-
-        product.returned = str(int(data['returnable'])) # bool
-        product.international_ship = str(int(data['international'])) # bool
-        product.delivery_date = ' to '.join((data['estimated_delivery']['start_date'], data['estimated_delivery']['end_date']))
-        product.choke_hazard = str(int(data['choke_hazard'])) # bool
 
         product.updated = True
         product.full_update_time = datetime.utcnow()

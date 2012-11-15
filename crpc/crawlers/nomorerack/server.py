@@ -35,6 +35,7 @@ class Server(BaseServer):
     """
     
     def __init__(self):
+        super(BaseServer, self).__init__()
         self.siteurl = 'http://www.nomorerack.com'
         self.site ='nomorerack'
         #self.login(self.email, self.passwd)

@@ -146,8 +146,7 @@ class Server(object):
                 event.image_urls = [image]
                 event.urgent = True
 #                event.is_leaf = True
-            else:
-                pass
+#            else:
 #                if not event.is_leaf: # upcoming events
 #                    event.urgent = True
             event.update_time = datetime.utcnow()

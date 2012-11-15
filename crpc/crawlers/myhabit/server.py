@@ -153,10 +153,8 @@ class Server:
                 brand.image_urls = [image]
                 if soldout == True: brand.soldout = True
                 brand.urgent = True
-#                brand.is_leaf = True
+                brand.combine_url = 'http://www.myhabit.com/homepage#page=b&sale={0}'.format(event_id)
             else:
-#                if not brand.is_leaf: # upcoming event
-#                    brand.urgent = True
                 if soldout == True and brand.soldout != True:
                     brand.soldout = soldout
                     is_updated = True
@@ -236,6 +234,8 @@ class Server:
             brand.sale_description = brand_info
             brand.upcoming_title_img = subs
             brand.update_time = datetime.utcnow()
+            brand.urgent = True
+            brand.combine_url = 'http://www.myhabit.com/homepage#page=b&sale={0}'.format(event_id)
         else:
             if dept not in brand.dept: brand.dept.append(dept)
         brand.save()
@@ -298,12 +298,13 @@ class Server:
         brand.num = num
         brand.update_time = datetime.utcnow()
         brand.urgent = False
-        brand.save()
-        common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=False)
 
         elements = node.find_elements_by_xpath('./div[@id="asinbox"]/ul/li[starts-with(@id, "result_")]')
         for ele in elements:
             self.parse_category_product(ele, event_id, sale_title, ctx)
+
+        brand.save()
+        common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=False)
         print 'time proc brand list: ', time.time() - time_begin_benchmark
 
 
@@ -339,6 +340,7 @@ class Server:
             product.title = title
             if soldout == True: product.soldout = True
             product.updated = False
+            product.combine_url = 'http://www.myhabit.com/homepage#page=d&sale={0}&asin={1}&cAsin={2}'.format(event_id, asin, casin)
         else:
             if soldout == True and product.soldout != True:
                 product.soldout = soldout

@@ -256,12 +256,12 @@ class Server(object):
             event.sale_description = tree.cssselect('div#wrapper > div#okl-content > div#okl-vmf-category-carousel-hd > h3+p')[0].text_content()
         items = tree.cssselect('div#wrapper > div#okl-content > div#okl-vmf-product-list > ul.products > li.trackVmfProduct')
         event.num = len(items)
-
         event.urgent = False
-        event.save()
         common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=False)
         for item in items:
             self.crawl_category_list_product(event_id, item, ctx)
+
+        event.save()
 
     def crawl_category_list_product(self, event_id, item, ctx):
         """.. :py:method::

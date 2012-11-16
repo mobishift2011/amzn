@@ -11,20 +11,20 @@ import time
 def run(site, rpc):
     begin = time.time()
 
-    update_listing_update(site, rpc)
-
-    update_category(site, rpc)
-    category_cost = time.time() - begin
-    exit()
-    print '\n\n--++ {0} ++--\n\n'.format(category_cost)
+#    update_listing_update(site, rpc)
+#
+#    update_category(site, rpc)
+#    category_cost = time.time() - begin
+#    exit()
+#    print '\n\n--++ {0} ++--\n\n'.format(category_cost)
 
     new_listing(site, rpc)
     list_cost = time.time() - begin
     print '\n\n--++ {0} ++--\n\n'.format(list_cost)
 
-    new_product(site, rpc)
-    product_cost = time.time() - begin
-    print '\n\n--++ {0} ++--\n\n'.format(product_cost)
+#    new_product(site, rpc)
+#    product_cost = time.time() - begin
+#    print '\n\n--++ {0} ++--\n\n'.format(product_cost)
 
 
 if __name__ == '__main__':

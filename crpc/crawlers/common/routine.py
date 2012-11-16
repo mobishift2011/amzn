@@ -52,7 +52,7 @@ def spout_listing_update(site):
     now = datetime.utcnow()
     if hasattr(m, 'Event'):
         # is_leaf=True: only process the Event which is not upcoming.
-        return m.Event.objects(Q(urgent=False) & Q(events_end__gt=now) & (Q(events_begin__lt=now) | Q(events_begin=None))).order_by('-update_time').timeout(False)
+        return m.Event.objects(Q(urgent=False) & (Q(events_end__gt=now) | Q(events_end=None)) & (Q(events_begin__lt=now) | Q(events_begin=None))).order_by('-update_time').timeout(False)
     if hasattr(m, 'Category'):
         return m.Category.objects(is_leaf=True).order_by('-update_time').timeout(False)
 

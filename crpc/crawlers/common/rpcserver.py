@@ -66,10 +66,11 @@ class RPCServer(object):
             return getattr(service, method)(*args, **kwargs)
         else:
             raise ValueError("{crawler} does not seems to a valid crawler".format(**locals()))
-
+    
+    def image(self, args=(), kwargs={}):
+        return
 
 if __name__ == '__main__':
     zs = zerorpc.Server(RPCServer()) 
     zs.bind("tcp://0.0.0.0:{0}".format(RPC_PORT))
     zs.run()
-

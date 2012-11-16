@@ -65,11 +65,4 @@ class ImageTool:
 
 
 if __name__ == '__main__':
-    imgTool = ImageTool(S3Connection(AWS_ACCESS_KEY, AWS_SECRET_KEY))
-    for dbname in DBS:
-        db = connection[dbname]
-        products = db.product.find({'updated': True})
-        for product in products:
-            imgTool.crawl(product, dbname)
-            product.get('_id')
-            break # TO REMOVE
+    return

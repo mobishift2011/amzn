@@ -284,6 +284,8 @@ class Server(object):
             product.updated = False
             product.combine_url = 'https://www.onekingslane.com/vintage-market-finds/product/{0}'.format(product_id)
         else:
+            if event_id not in product.event_id:
+                product.event_id.append(event_id)
             if product.soldout != True:
                 if item.cssselect('em.sold'):
                     product.soldout = True
@@ -391,7 +393,7 @@ class Server(object):
         product, is_new = Product.objects.get_or_create(pk=product_id)
         node = tree.cssselect('body > div#wrapper > div#okl-content > div#okl-product')[0]
 
-        vintage = node.cssselect('form#productOverview > dl.vintage')
+        vintage = node.cssselect('form#productOverview > dl.vintage')[0]
         era = vintage.cssselect('dd:first-of-type')
         if era: product.era = era[0].text_content()
         condition = vintage.cssselect('dd:nth-of-type(2)')
@@ -400,16 +402,17 @@ class Server(object):
         img = node.cssselect('div#productDescription > div#altImages')
         if img:
             for i in img[0].cssselect('img.altImage'):
-                img_url = i.get('img.data-altimgbaseurl') + '$fullzoom$'
+                img_url = i.get('data-altimgbaseurl') + '$fullzoom$'
                 if img_url not in product.image_urls:
                     product.image_urls.append(img_url)
 
         product.summary = node.cssselect('div#productDescription > div#description')[0].text_content()
         seller = node.cssselect('div#productDescription > div#okl-vmf-vendor')
         if seller:
-            product.seller = seller.cssselect('div')[0].text_content()
+            product.seller = seller[0].cssselect('div')[0].text_content()
 
-        product.list_info = node.cssselect('div#productDetails > dl:first-of-type')[0].text_content()
+        list_info = node.cssselect('div#productDetails > dl:first-of-type')[0].text_content()
+        product.list_info = list_info if isinstance(list_info, list) else [list_info]
         product.returned = node.cssselect('div#productDetails > dl:nth-of-type(2)')[0].text_content()
         end_date = node.cssselect('div#productDetails > p.endDate')[0].text.split('until')[-1].strip() # '11/10 at 11am EST'
         product.products_end = self.et_time_convert(end_date.rsplit(' ', 1)[0], '%m/%d at %I%p%Y')
@@ -418,7 +421,7 @@ class Server(object):
         product.save()
         common_saved.send(sender=ctx, key=product_id, url=url, is_new=is_new, is_updated=not is_new)
 
-    def et_time_convert(time_str, time_format):
+    def et_time_convert(self, time_str, time_format):
         """.. :py:method::
 
         :param time_str: u'SAT OCT 20 9 AM '

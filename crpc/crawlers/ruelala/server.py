@@ -68,7 +68,7 @@ class Server:
             #self.profile.set_preference("general.useragent.override","Mozilla/5.0 (iPhone; CPU iPhone OS 5_1_1 like Mac OS X) AppleWebKit/534.46 (KHTML, like Gecko) Version/5.1 Mobile/9B206 Safari/7534.48.3")
 
         #self.browser.implicitly_wait(1)
-        self.browser.get(self.siteurl)
+        self.browser.get('http://www.ruelala.com/event/showReminders')
         time.sleep(1)
         
         # click the login link
@@ -98,23 +98,23 @@ class Server:
             From top depts, get all the events
         """
         self.login()
-        categorys = ['women', 'men', 'living','kids','todays-fix']
-        locals = [
+        categorys = ['women', 'men', 'living', 'travel', 'kids',]
+        local = [
                 'http://www.ruelala.com/local/boston',
                 'http://www.ruelala.com/local/chicago',
                 'http://www.ruelala.com/local/los-angeles',
                 'http://www.ruelala.com/local/new-york-city',
                 'http://www.ruelala.com/local/philadelphia',
-                'http://www.ruelala.com/local/san-francisco'
-                'http://www.ruelala.com/local/washington-dc',
+                'http://www.ruelala.com/local/san-francisco',
                 'http://www.ruelala.com/local/seattle',
+                'http://www.ruelala.com/local/washington-dc',
                 ]
 
         for category in categorys:
             url = 'http://www.ruelala.com/category/%s' %category
             self._get_event_list(category,url,ctx)
 
-        for url in locals:
+        for url in local:
             self._get_event_list('local',url,ctx)
 
         self.logout()
@@ -150,8 +150,9 @@ class Server:
 #            span.click()
 #            time.sleep(1)
 
-        nodes = self.browser.find_elements_by_xpath('//section[@id="eventDoorLink"]/article')
+        #nodes = self.browser.find_elements_by_xpath('//section[@id="eventDoorLink"]/article')
         #nodes = self.browser.find_elements_by_xpath('//section[@id="alsoOnDoors"]/article')
+        nodes = self.browser.find_elements_by_css_selector('body.wl-default > div.container > div#categoryMain > section#categoryDoors > article[id^="event-"]')
 
         for node in nodes:
             # pass the hiden element
@@ -177,7 +178,7 @@ class Server:
             event,is_new = Event.objects.get_or_create(event_id=event_id)
             is_updated = False
             if is_new:
-                event.image_urls = ['http://www.ruelala.com/images/content/events/%s_doormini.jpg' %event_id]
+                event.image_urls = ['http://www.ruelala.com/images/content/events/{event_id}/{event_id}_doorsm.jpg'.format(event_id=event_id)]
                 event.dept = [category_name]
                 event.urgent = True
 #            elif event.sale_title == a_title.text:
@@ -417,7 +418,6 @@ class Server:
         """
         ensure the url is start with `http://www.xxx.com`
         """
-
         if url.startswith('http://'):
             return url
         else:

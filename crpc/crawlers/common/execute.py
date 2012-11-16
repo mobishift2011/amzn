@@ -15,6 +15,7 @@ def run(site, rpc):
 
     update_category(site, rpc)
     category_cost = time.time() - begin
+    exit()
     print '\n\n--++ {0} ++--\n\n'.format(category_cost)
 
     new_listing(site, rpc)

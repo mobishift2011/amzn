@@ -37,8 +37,6 @@ class Server:
     
     def __init__(self):
         self.siteurl = 'http://www.ruelala.com'
-        self.email = 'huanzhu@favbuy.com'
-        self.passwd = '4110050209'
         self._signin = False
 
     def get(self,url):
@@ -57,18 +55,13 @@ class Server:
         self._signin = False
         self.browser.get(url)
 
-    def login(self, email=None, passwd=None):
+    def login(self):
         """.. :py:method::
             login urelala
-
-        :param email: login email
-        :param passwd: login passwd
         """
         if self._signin:
             return
         
-        if not email:
-            email, passwd = self.email, self.passwd
         self.browser = webdriver.Chrome()
             #self.browser.set_page_load_timeout(10)
             #self.profile = webdriver.FirefoxProfile()
@@ -85,11 +78,11 @@ class Server:
 
         a = self.browser.find_element_by_id('txtEmailLogin')
         a.click()
-        a.send_keys(email)
+        a.send_keys(login_email)
 
         b = self.browser.find_element_by_id('txtPass')
         b.click()
-        b.send_keys(passwd)
+        b.send_keys(login_passwd)
 
         signin_button = self.browser.find_element_by_id('btnEnter')
         signin_button.click()
@@ -104,7 +97,7 @@ class Server:
         """.. :py:method::
             From top depts, get all the events
         """
-        self.login(self.email, self.passwd)
+        self.login()
         categorys = ['women', 'men', 'living','kids','todays-fix']
         locals = [
                 'http://www.ruelala.com/local/boston',
@@ -134,12 +127,12 @@ class Server:
             # str == u'2\xa0Days,\xa012:46:00'
             m = re.compile('.*(\d{1,2})\xa0Day.*,\xa0(\d{1,2}):(\d{1,2}):(\d{1,2})').findall(str)
 #            print 're.m',m
-            print 're.str[%s]' %str
+#            print 're.str[%s]' %str
             days,hours,minutes,seconds = m[0]
             now = datetime.datetime.utcnow()
             delta = datetime.timedelta(days=int(days),hours=int(hours),minutes=int(minutes),seconds=int(seconds))
             d = now + delta
-            print 'd>',d
+#            print 'd>',d
             #ensure the end date is precise 
             if d.minute == 0:
                 return datetime.datetime(d.year,d.month,d.day,d.hour,0,0)
@@ -213,7 +206,7 @@ class Server:
     def _crawl_listing(self,url,ctx):
         event_url = url
         event_id = self._url2saleid(event_url)
-        self.login(self.email, self.passwd)
+        self.login()
         result = []
         self.get(event_url)
         try:
@@ -330,7 +323,7 @@ class Server:
         """.. :py:method::
             Got all the product basic information and save into the database
         """
-        self.login(self.email, self.passwd)
+        self.login()
         product_id = self._url2product_id(url)
         self.get(url)
 

@@ -167,20 +167,20 @@ def test_price(url):
 
     tree = lxml.html.fromstring(cont)
     node = tree.cssselect('div.container>div#main>div#category-view')[0]
-    items = node.cssselect('div#products-grid li.item')
-    print items
-    for item in items:
-        price_box = item.cssselect('a>div.price-boxConfig')
-        print price_box
-        price = price_box[0].cssselect('div.special-price')[0].text.strip().replace('$','').replace(',','')
-        listprice = price_box[0].cssselect('div.old-price')[0].text.replace('original','').strip().replace('$','').replace(',','')
-        print price, listprice
+    print node
+#    items = node.cssselect('div#products-grid li.item')
+#    for item in items:
+#        price_box = item.cssselect('a>div.price-boxConfig')
+#        print price_box
+#        price = price_box[0].cssselect('div.special-price')[0].text.strip().replace('$','').replace(',','')
+#        listprice = price_box[0].cssselect('div.old-price')[0].text.replace('original','').strip().replace('$','').replace(',','')
+#        print price, listprice
     
     
 
 
 if __name__ == '__main__':
-    test_price('http://www.zulily.com/e/tickled-pink-nola-111312.html')
+    test_price('http://www.zulily.com/e/vinyl-crafts-111412.html')
 #    s = Server()
 #    s.crawl_category()
 #    s.upcoming_proc()

@@ -255,7 +255,12 @@ class Server(object):
             event.sale_description = tree.cssselect('div#wrapper > div#okl-content > div#okl-vmf-category-carousel-hd > h3+p')[0].text_content()
         items = tree.cssselect('div#wrapper > div#okl-content > div#okl-vmf-product-list > ul.products > li.trackVmfProduct')
         event.num = len(items)
-        event.update_time = datetime.utcnow()
+        _utcnow = datetime.utcnow()
+        event.update_time = _utcnow
+
+        # framework need events_end when urgent=False, so I set an end time.
+        # crawl_category will set urgent to True again.
+        event.events_end = _utcnow + timedelta(days=30)
         event.urgent = False
         event.save()
         common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=False)

@@ -18,13 +18,22 @@ from functools import partial
 from .setting import EXPIRE_MINUTES
 
 def get_rpcs():
-    rpcs = []
-    for peer in PEERS:
-        host = peer[peer.find('@')+1:]
-        c = zerorpc.Client('tcp://{0}:{1}'.format(host, RPC_PORT), timeout=None)
-        if c:
-            rpcs.append(c)
-    return rpcs
+    if not hasattr(get_rpcs, '_cached_peers'):
+        setattr(get_rpcs, '_cached_peers', [])
+
+    if get_rpcs._cached_peers != PEERS: 
+        setattr(get_rpcs, '_cached_peers', PEERS)
+
+        rpcs = []
+        for peer in PEERS:
+            host = peer[peer.find('@')+1:]
+            c = zerorpc.Client('tcp://{0}:{1}'.format(host, RPC_PORT), timeout=None)
+            if c:
+               rpcs.append(c)
+
+        setattr(get_rpcs, '_cached_rpcs', rpcs)
+        
+    return get_rpcs._cached_rpcs
 
 
 def execute(site, method):
@@ -59,3 +68,4 @@ class Scheduler(object):
                     execute(s.site, s.method)
             gevent.sleep(60)
             gevent.spawn(delete_expire_task)
+

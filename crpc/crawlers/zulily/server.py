@@ -118,7 +118,11 @@ class Server(object):
         
         for node in nodes:
             link = node.xpath('./a[@class="wrapped-link"]')[0].get('href')
-            link, event_id = self.extract_event_id.match(link).groups()
+            m = self.extract_event_id.match(link)
+            # TODO: wait to see the error, and change the regular expression
+            if not m:
+                common_failed.send(sender=ctx, url=url, reason='the link[{0}] can not extract event_id'.format(link))
+            link, event_id = m.groups()
             text = node.xpath('./a/span[@class="txt"]')[0]
 
             brand, is_new = Event.objects.get_or_create(event_id=event_id)

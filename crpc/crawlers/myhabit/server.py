@@ -207,7 +207,6 @@ class Server:
                 # sleep 2 second, can not be any faster.
                 time.sleep(2)
                 path = self.browser.find_element_by_css_selector('div#main div#page-content div#top-content')
-#            except selenium.common.exceptions.NoSuchElementException:
             try:
                 begin_date = path.find_element_by_css_selector('div#startHeader span.date').text # SAT OCT 20
             except selenium.common.exceptions.NoSuchElementException:
@@ -257,7 +256,7 @@ class Server:
         :param url: the product's url
         :rtype: string of asin, cAsin
         """
-        m = re.compile(r'http://www.myhabit.com/homepage.*#page=d&dept=\w+&sale=\w+&asin=(\w+)&cAsin=(\w+)').match(url)
+        m = re.compile(r'http://www.myhabit.com/.*#page=d&dept=\w+&sale=\w+&asin=(\w+)&cAsin=(\w+)').match(url)
         if not m: print 'Can not parse detail product url: ', url
         return m.groups()
     

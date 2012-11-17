@@ -369,7 +369,11 @@ class Server:
             pre = self.browser.find_element_by_css_selector('div#main div#page-content div#detail-page')
         except selenium.common.exceptions.NoSuchElementException:
             time.sleep(0.4)
-            pre = self.browser.find_element_by_css_selector('div#main div#page-content div#detail-page')
+            try:
+                pre = self.browser.find_element_by_css_selector('div#main div#page-content div#detail-page')
+            except selenium.common.exceptions.NoSuchElementException:
+                time.sleep(0.4)
+                pre = self.browser.find_element_by_css_selector('div#main div#page-content div#detail-page')
         node = pre.find_element_by_css_selector('div#dpLeftCol')
         right_col = pre.find_element_by_css_selector('div#dpRightCol div#innerRightCol')
 
@@ -388,7 +392,10 @@ class Server:
                 picture = img.find_element_by_class_name('zoomImageL2').get_attribute('value')
                 image_urls.append(picture)
             except:
-                video = img.find_element_by_class_name('videoURL').get_attribute('value')
+                try:
+                    video = img.find_element_by_class_name('videoURL').get_attribute('value')
+                except selenium.common.exceptions.StaleElementReferenceException:
+                    video = ''
 
         try:
             color = right_col.find_element_by_xpath('.//div[@class="dimensionAltText variationSelectOn"]').text

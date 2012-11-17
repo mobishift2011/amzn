@@ -46,7 +46,7 @@ headers = {
     'Referer': 'https://www.onekingslane.com/login',
 }
 
-req = requests.Session(prefetch=True, timeout=17, config=config, headers=headers)
+req = requests.Session(prefetch=True, timeout=30, config=config, headers=headers)
 
 
 class onekingslaneLogin(object):
@@ -213,8 +213,6 @@ class Server(object):
             event_id = re.compile(r'.*/vintage-market-finds/(.*)').match(link).group(1)
             event, is_new = Event.objects.get_or_create(event_id=event_id)
             event.combine_url = 'https://www.onekingslane.com/vintage-market-finds/{0}'.format(event_id)
-            # no begin, end data, urgent always true. Then can crawl
-            event.urgent = True
             event.dept = [dept]
 #            event.is_leaf = True
             event.update_time = datetime.utcnow()

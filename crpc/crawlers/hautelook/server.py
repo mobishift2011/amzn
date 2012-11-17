@@ -32,7 +32,7 @@ headers = {
     'X-Requested-With': 'XMLHttpRequest',
 }
 
-request = requests.Session(prefetch=True, timeout=20, config=config, headers=headers)
+request = requests.Session(prefetch=True, timeout=30, config=config, headers=headers)
 
 
 class Server(object):

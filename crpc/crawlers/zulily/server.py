@@ -26,7 +26,7 @@ from models import *
 from crawlers.common.events import *
 from crawlers.common.stash import *
 
-req = requests.Session(prefetch=True, timeout=17, config=config, headers=headers)
+req = requests.Session(prefetch=True, timeout=30, config=config, headers=headers)
 
 class zulilyLogin(object):
     """.. :py:class:: zulilyLogin

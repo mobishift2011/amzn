@@ -98,26 +98,27 @@ class Server:
             From top depts, get all the events
         """
         self.login()
-        categorys = ['women', 'men', 'living', 'travel', 'kids',]
-        local = [
-                'http://www.ruelala.com/local/boston',
-                'http://www.ruelala.com/local/chicago',
-                'http://www.ruelala.com/local/los-angeles',
-                'http://www.ruelala.com/local/new-york-city',
-                'http://www.ruelala.com/local/philadelphia',
-                'http://www.ruelala.com/local/san-francisco',
-                'http://www.ruelala.com/local/seattle',
-                'http://www.ruelala.com/local/washington-dc',
-                ]
 
+        categorys = ['women', 'men', 'living', 'kids', 'gifts']
         for category in categorys:
-            url = 'http://www.ruelala.com/category/%s' %category
-            self._get_event_list(category,url,ctx)
+            url = 'http://www.ruelala.com/category/{0}'.format(category)
+            if category == 'gifts':
+                self._get_gifts_event_list(category, url, ctx)
+            else:
+                self._get_event_list(category,url,ctx)
 
-        for url in local:
-            self._get_event_list('local',url,ctx)
+#        local = ['boston', 'chicago', 'los-angeles', 'new-york-city', 'philadelphia', 'san-francisco', 'seattle', 'washington-dc', ]
+#        for category in local:
+#            url = 'http://www.ruelala.com/local/{0}'.format(category)
+#            self._get_event_list(category, url, ctx)
 
         self.logout()
+
+    def _get_gifts_event_list(category_name, url, ctx):
+        """.. :py:method::
+            Get gifts events, these events have no time.
+        """
+        pass
 
     def _get_event_list(self,category_name,url,ctx):
         """.. :py:method::
@@ -142,26 +143,18 @@ class Server:
         result = []
         self.browser.get(url)
 
-#        try:
-#            span = self.browser.find_element_by_xpath('//span[@class="viewAll"]')
-#        except:
-#            pass
-#        else:
-#            span.click()
-#            time.sleep(1)
-
-        #nodes = self.browser.find_elements_by_xpath('//section[@id="eventDoorLink"]/article')
-        #nodes = self.browser.find_elements_by_xpath('//section[@id="alsoOnDoors"]/article')
         nodes = self.browser.find_elements_by_css_selector('body.wl-default > div.container > div#categoryMain > section#categoryDoors > article[id^="event-"]')
+#        if nodes == []:
+#            # for local, but local is not event
+#            nodes = self.browser.find_elements_by_css_selector('body.wl-default > div.container section#localDoors > article[id^="event-"]')
+
 
         for node in nodes:
             # pass the hiden element
-            if not node.is_displayed():
-                continue
+            if not node.is_displayed(): continue
 
-            a_title = node.find_element_by_xpath('./footer/a[@class="eventDoorLink centerMe eventDoorContent"]/div[@class="eventName"]')
-            if not a_title:
-                continue
+            a_title = node.find_element_by_css_selector('footer.eventFooter > a.eventDoorContent > div.eventName')
+            if not a_title: continue
 
             #image = node.find_element_by_xpath('./a/img').get_attribute('src')
             a_link = node.find_element_by_xpath('./a[@class="eventDoorLink"]').get_attribute('href')
@@ -181,19 +174,12 @@ class Server:
                 event.image_urls = ['http://www.ruelala.com/images/content/events/{event_id}/{event_id}_doorsm.jpg'.format(event_id=event_id)]
                 event.dept = [category_name]
                 event.urgent = True
-#            elif event.sale_title == a_title.text:
-#                is_updated = False
-#            else:
-#                print 'is updated >>>'
-#                print 'old title',event.sale_title
-#                print 'new title',a_title.text
-#                is_updated = True
 
             if end_time:
                 event.events_end = end_time
             event.update_time = datetime.datetime.utcnow()
             event.sale_title = a_title.text
-#            event.is_leaf = True
+            event.combine_url = url
             event.save()
             common_saved.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=is_updated)
             result.append((event_id,a_url))

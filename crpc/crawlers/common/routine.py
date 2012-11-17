@@ -42,7 +42,6 @@ def spout_listing(site):
     now = datetime.utcnow()
     if hasattr(m, 'Event'):
         return m.Event.objects(Q(urgent=True) & (Q(events_begin__lte=now) | Q(events_begin__exists=False)) & (Q(events_end__gte=now) | Q(events_end__exists=False))).order_by('-update_time').timeout(False)
-#        return m.Event.objects(Q(urgent=True) & (Q(events_begin__lte=now) | Q(events_begin=None)) & (Q(events_end__gte=now) | Q(events_end=None))).order_by('-update_time').timeout(False)
     if hasattr(m, 'Category'):
         return m.Category.objects(is_leaf=True).order_by('-update_time').timeout(False)
 
@@ -51,9 +50,7 @@ def spout_listing_update(site):
     m = get_site_module(site)
     now = datetime.utcnow()
     if hasattr(m, 'Event'):
-        # is_leaf=True: only process the Event which is not upcoming.
         return m.Event.objects(Q(urgent=False) & (Q(events_begin__lte=now) | Q(events_begin__exists=False)) & (Q(events_end__gte=now) | Q(events_end__exists=False))).order_by('-update_time').timeout(False)
-#        return m.Event.objects(Q(urgent=False) & (Q(events_end__gt=now) | Q(events_end=None)) & (Q(events_begin__lt=now) | Q(events_begin=None))).order_by('-update_time').timeout(False)
     if hasattr(m, 'Category'):
         return m.Category.objects(is_leaf=True).order_by('-update_time').timeout(False)
 

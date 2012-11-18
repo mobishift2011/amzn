@@ -309,7 +309,6 @@ class Server(object):
             if soldout and product.soldout != True:
                 product.soldout = True
                 is_updated = True
-#        product.brand = sale_title
         product.list_update_time = datetime.utcnow()
         product.save()
         common_saved.send(sender=ctx, key=slug, url=self.siteurl + '/e/' + event_id + '.html', is_new=is_new, is_updated=is_updated)

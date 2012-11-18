@@ -257,7 +257,7 @@ class Server:
         :rtype: string of asin, cAsin
         """
         m = re.compile(r'http://www.myhabit.com/.*#page=d&dept=\w+&sale=\w+&asin=(\w+)&cAsin=(\w+)').match(url)
-        if not m: print 'Can not parse detail product url: ', url
+#        if not m: print 'Can not parse detail product url: ', url
         return m.groups()
     
 
@@ -334,7 +334,7 @@ class Server:
         is_updated = False
         if is_new:
             product.event_id = [event_id]
-            product.brand = sale_title
+#            product.brand = sale_title
             product.asin = asin
             product.title = title
             if soldout == True: product.soldout = True

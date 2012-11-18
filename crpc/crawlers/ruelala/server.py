@@ -104,8 +104,8 @@ class Server:
             url = 'http://www.ruelala.com/category/{0}'.format(category)
             if category == 'gifts':
                 self._get_gifts_event_list(category, url, ctx)
-#            else:
-#                self._get_event_list(category,url,ctx)
+            else:
+                self._get_event_list(category,url,ctx)
 
 #        local = ['boston', 'chicago', 'los-angeles', 'new-york-city', 'philadelphia', 'san-francisco', 'seattle', 'washington-dc', ]
 #        for category in local:
@@ -114,7 +114,7 @@ class Server:
 
         self.logout()
 
-    def _get_gifts_event_list(category_name, url, ctx):
+    def _get_gifts_event_list(self, category_name, url, ctx):
         """.. :py:method::
             Get gifts events, these events have no time.
             

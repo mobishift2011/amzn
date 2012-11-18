@@ -76,7 +76,7 @@ class Server:
             download the url
         :param url: the url need to download
         """
-        time_begin_benchmark = time.time()
+#        time_begin_benchmark = time.time()
         try:
             self.browser.get(url)
             if self.browser.title == u'Amazon.com Sign In':
@@ -88,10 +88,10 @@ class Server:
             except selenium.common.exceptions.TimeoutException:
                 print 'Timeout --> {0}'.format(url)
                 return 1
-        print 'time download benchmark: ', time.time() - time_begin_benchmark
+#        print 'time download benchmark: ', time.time() - time_begin_benchmark
 
     def download_page_for_product(self, url):
-        time_begin_benchmark = time.time()
+#        time_begin_benchmark = time.time()
         try:
             self.browser.get(url)
             if self.browser.title == u'Amazon.com Sign In':
@@ -100,7 +100,7 @@ class Server:
         except selenium.common.exceptions.TimeoutException:
             print 'Timeout --> {0}'.format(url)
             return 1
-        print 'time download benchmark: ', time.time() - time_begin_benchmark
+#        print 'time download for product benchmark: ', time.time() - time_begin_benchmark
 
 
 
@@ -119,7 +119,6 @@ class Server:
             self.get_event_list(dept, link, ctx)
         self.cycle_crawl_category(ctx)
         
-        self.close_browser()
         debug_info.send(sender=DB + '.category.end')
 
     def get_event_list(self, dept, url, ctx):
@@ -304,7 +303,7 @@ class Server:
 
         brand.save()
         common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=False)
-        print 'time proc brand list: ', time.time() - time_begin_benchmark
+#        print 'time proc brand list: ', time.time() - time_begin_benchmark
 
 
     def parse_category_product(self, element, event_id, sale_title, ctx):
@@ -378,10 +377,14 @@ class Server:
         right_col = pre.find_element_by_css_selector('div#dpRightCol div#innerRightCol')
 
         info_table, image_urls, video = [], [], ''
-        shortDesc = node.find_element_by_class_name('shortDesc').text
+        try:
+            shortDesc = node.find_element_by_class_name('shortDesc').text
+        except selenium.common.exceptions.NoSuchElementException:
+            shortDesc = ''
         international_shipping = node.find_element_by_id('intlShippableBullet').text
         returned = node.find_element_by_id('returnPolicyBullet').text
-        already_have = [shortDesc, international_shipping, returned]
+        already_have = [international_shipping, returned]
+        if shortDesc: already_have.append(shortDesc)
 
         for bullet in node.find_elements_by_tag_name('li'):
             if bullet.text and bullet.text not in already_have:
@@ -430,7 +433,7 @@ class Server:
         product.save()
         
         common_saved.send(sender=ctx, key=casin, url=url, is_new=is_new, is_updated=not is_new)
-        print 'time product process benchmark: ', time.time() - time_begin_benchmark
+#        print 'time product process benchmark: ', time.time() - time_begin_benchmark
 
         
 

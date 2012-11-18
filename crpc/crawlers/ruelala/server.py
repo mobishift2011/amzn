@@ -51,9 +51,10 @@ class Server:
             return True
 
     def logout(self):
-        url = 'http://www.ruelala.com/access/logout'
         self._signin = False
-        self.browser.get(url)
+        self.browser.quit()
+#        url = 'http://www.ruelala.com/access/logout'
+#        self.browser.get(url)
 
     def login(self):
         """.. :py:method::
@@ -112,7 +113,6 @@ class Server:
 #            url = 'http://www.ruelala.com/local/{0}'.format(category)
 #            self._get_event_list(category, url, ctx)
 
-        self.logout()
 
     def _get_gifts_event_list(self, category_name, url, ctx):
         """.. :py:method::
@@ -156,7 +156,6 @@ class Server:
             elif 50 <= d.minute <= 59:
                 return datetime.datetime(d.year,d.month,d.day,d.hour+1,0,0)
 
-        result = []
         self.browser.get(url)
 
         nodes = self.browser.find_elements_by_css_selector('body.wl-default > div.container > div#categoryMain > section#categoryDoors > article[id^="event-"]')
@@ -200,22 +199,18 @@ class Server:
             event.sale_title = a_title.text
             event.save()
             common_saved.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=is_updated)
-            result.append((event_id,a_url))
-        return result
 
     @exclusive_lock(DB)
     def crawl_listing(self,url,ctx=''):
         self._crawl_listing(url,ctx)
-        self.logout()
 
     def _crawl_listing(self,url,ctx):
         event_url = url
         event_id = self._url2saleid(event_url)
         self.login()
-        result = []
         self.get(event_url)
         try:
-            span = self.browser.find_element_by_xpath('//span[@class="viewAll"]')
+            span = self.browser.find_element_by_css_selector('div.container div#pagination span.viewAll')
         except:
             pass
         else:
@@ -228,7 +223,7 @@ class Server:
 
         nodes = []
         if not nodes:
-            nodes = self.browser.find_elements_by_xpath('//article[@class="product"]')
+            nodes = self.browser.find_elements_by_css_selector('div.container div#productGridControl div#productGrid article.product')
         if not nodes:
             nodes = self.browser.find_elements_by_xpath('//article[@class="column eventDoor halfDoor grid-one-third alpha"]')
 
@@ -322,7 +317,6 @@ class Server:
     @exclusive_lock(DB)
     def crawl_product(self,url,ctx=''):
         self._crawl_product(url,ctx)
-        self.logout()
 
     def _crawl_product(self,url,ctx=''):
         """.. :py:method::

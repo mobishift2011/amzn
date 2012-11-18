@@ -54,7 +54,7 @@ class Server(object):
         time_str = date + '-' + Time.split('-')[0]
         fmt = "%Y-%m-%d-%X"
         hours, minutes = Time.split('-')[1].split(':')
-        return datetime.strptime(time_str, fmt) - timedelta(hours=int(hours), minutes=int(minutes))
+        return datetime.strptime(time_str, fmt) + timedelta(hours=int(hours), minutes=int(minutes))
 
     def crawl_category(self, ctx):
         """.. :py:method::

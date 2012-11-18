@@ -13,7 +13,7 @@ from crawlers.common.routine import new, update, new_category, new_listing, new_
 import zerorpc
 from datetime import datetime, timedelta
 from settings import PEERS, RPC_PORT
-from throttletask import task_already_running, task_completed
+from throttletask import task_already_running, task_completed, task_broke_completed
 from functools import partial
 from .setting import EXPIRE_MINUTES
 
@@ -61,6 +61,7 @@ def delete_expire_task(expire_minutes=EXPIRE_MINUTES):
     for t in Task.objects(status=Task.RUNNING, updated_at__lt=expire_datetime):
         t.status = Task.FAILED
         t.save()
+        task_broke_completed(t.site, t.method)
 
 
 class Scheduler(object):

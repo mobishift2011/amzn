@@ -117,8 +117,24 @@ class Server:
     def _get_gifts_event_list(category_name, url, ctx):
         """.. :py:method::
             Get gifts events, these events have no time.
+            
+            Problem may exist: these events off sale, update_listing will get nothing.
         """
-        pass
+        self.browser.get(url)
+        nodes = self.browser.find_elements_by_css_selector('body > div.container > div#canvasContainer > section#gift-center > div#gc-wrapper a[href]')
+        for node in nodes:
+            l = node.get_attribute('href')
+            event_id = l.rsplit('/', 1)[-1]
+            link = l if l.startswith('http') else self.siteurl + l
+            event, is_new = Event.objects.get_or_create(event_id=event_id)
+            if is_new:
+                event.combine_url = link
+                event.dept = [category_name]
+                event.urgent = True
+            event.update_time = datetime.datetime.utcnow()
+            event.save()
+            common_saved.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=False)
+
 
     def _get_event_list(self,category_name,url,ctx):
         """.. :py:method::
@@ -171,15 +187,17 @@ class Server:
             event,is_new = Event.objects.get_or_create(event_id=event_id)
             is_updated = False
             if is_new:
-                event.image_urls = ['http://www.ruelala.com/images/content/events/{event_id}/{event_id}_doorsm.jpg'.format(event_id=event_id)]
+                sm = 'http://www.ruelala.com/images/content/events/{event_id}/{event_id}_doorsm.jpg'.format(event_id=event_id)
+                lg = 'http://www.ruelala.com/images/content/events/{event_id}/{event_id}_doorlg.jpg'.format(event_id=event_id)
+                event.image_urls = [sm, lg]
                 event.dept = [category_name]
                 event.urgent = True
+                event.combine_url = a_url
 
             if end_time:
                 event.events_end = end_time
             event.update_time = datetime.datetime.utcnow()
             event.sale_title = a_title.text
-            event.combine_url = url
             event.save()
             common_saved.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=is_updated)
             result.append((event_id,a_url))

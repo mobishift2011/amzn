@@ -18,16 +18,16 @@ def run(site, rpc):
     update_category(site, rpc)
     category_cost = time.time() - begin
     print '\n\n--++ {0} ++--\n\n'.format(category_cost)
-
-    new_listing(site, rpc)
-    list_cost = time.time() - begin
-    print '\n\n--++ {0} ++--\n\n'.format(list_cost)
-
-    new_product(site, rpc)
-    product_cost = time.time() - begin
-    print '\n\n--++ {0} ++--\n\n'.format(product_cost)
-
-    update_listing(site, rpc)
+#
+#    new_listing(site, rpc)
+#    list_cost = time.time() - begin
+#    print '\n\n--++ {0} ++--\n\n'.format(list_cost)
+#
+#    new_product(site, rpc)
+#    product_cost = time.time() - begin
+#    print '\n\n--++ {0} ++--\n\n'.format(product_cost)
+#
+#    update_listing(site, rpc)
 
 if __name__ == '__main__':
     rpc = RPCServer()

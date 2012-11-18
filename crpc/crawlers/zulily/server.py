@@ -160,6 +160,8 @@ class Server(object):
 
     def upcoming_detail(self, upcoming_list, ctx):
         """.. :py:method::
+            zulily will on sale the events in advance, maybe 10~30 minutes,
+            so events_begin - timedelta(minutes=10) as the events_begin time
         """
         for pair in upcoming_list:
             cont = self.net.fetch_page(pair[1])
@@ -179,7 +181,7 @@ class Server(object):
                 sale_title = node.cssselect('div.event-content-copy h1')[0].text_content()
                 sale_description = node.cssselect('div.event-content-copy div#desc-with-expanded')[0].text_content().strip()
                 start_time = node.cssselect('div.upcoming-date-reminder span.reminder-text')[0].text_content() # 'Starts Sat 10/27 6am pt - SET REMINDER'
-                events_begin = time_convert( ' '.join( start_time.split(' ', 4)[1:-1] ), '%a %m/%d %I%p%Y' ) #'Sat 10/27 6am'
+                events_begin = time_convert( ' '.join( start_time.split(' ', 4)[1:-1] ), '%a %m/%d %I%p%Y' ) - timedelta(minutes=10) #'Sat 10/27 6am'
 
                 brand.image_urls = [image]
                 brand.sale_title = sale_title 
@@ -215,10 +217,11 @@ class Server(object):
 
         items = node.cssselect('div#products-grid li.item')
         end_date = node.cssselect('div#new-content-header>div.end-date')[0].text_content().strip()
-        end_date = end_date[end_date.find('in')+2:].strip() # '2 hours' or '1 day(s) 3 hours'
+        end_date = end_date[end_date.find('in')+2:].strip() # '2 hours' or '1 day(s) 3 hours' or ''
         days = int(end_date.split()[0]) if 'day' in end_date else 0
         hours = int(end_date.split()[-2]) if 'hour' in end_date else 0
-        brand.events_end = datetime.utcnow() + timedelta(days=days, hours=hours)
+        events_end = datetime.utcnow() + timedelta(days=days, hours=hours) + timedelta(minutes=29, seconds=59, microseconds=999999)
+        brand.events_end = datetime(events_end.year, events_end.month, events_end.day, events_end.hour)
         brand.num = len(items)
         brand.update_time = datetime.utcnow()
         brand.urgent = False

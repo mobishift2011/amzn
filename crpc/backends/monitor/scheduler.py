@@ -18,6 +18,13 @@ from functools import partial
 from .setting import EXPIRE_MINUTES
 
 def get_rpcs():
+    """
+        On one hand, we build a zerorpc client object,
+            if the program keep going, the open file handler resource is still hold,
+            so we can not build a zerorpc client every time, and need to keep the zerorpc client objects.
+        On the other hand, we need to detect PEERS change in settings,
+            so we need to keep PEERS in the function, and compare old and new PEERS.
+    """
     if not hasattr(get_rpcs, '_cached_peers'):
         setattr(get_rpcs, '_cached_peers', [])
 

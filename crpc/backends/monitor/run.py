@@ -8,7 +8,7 @@ resource.setrlimit(resource.RLIMIT_NOFILE, (4096, 4096))
 
 from backends.monitor.logstat import *
 from backends.monitor.scheduler import Scheduler, execute
-from backends.monitor.events import run_command
+from backends.monitor.events import run_command # spawn listener to listen webui signal
 
 
 @run_command.bind

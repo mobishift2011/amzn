@@ -27,7 +27,7 @@ from models import *
 from crawlers.common.events import *
 from crawlers.common.stash import *
 
-TIMEOUT = 5
+TIMEOUT = 1
 
 class Server:
     """.. :py:class:: Server

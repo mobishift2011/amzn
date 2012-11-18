@@ -98,7 +98,7 @@ def _restart_rpc(host_string):
         run("killall chromedriver")
         run("kill -9 `pgrep -f rpcserver`")
         run("pkill -9 python")
-        run("killall chromium-browser")
+        run("killall chromium-browse")
         run("rm /tmp/*.sock")
         run("sleep 3")
 

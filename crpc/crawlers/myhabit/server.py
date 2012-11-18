@@ -360,18 +360,17 @@ class Server:
         :param url: product url
         """
         self.check_signin()
-        if self.download_page_for_product(url) == 1: return
-#            print url
+        if self.download_page_for_product(url) == 1:
+            pass
         time_begin_benchmark = time.time()
         product, is_new = Product.objects.get_or_create(pk=casin)
         try:
             pre = self.browser.find_element_by_css_selector('div#main div#page-content div#detail-page')
         except selenium.common.exceptions.NoSuchElementException:
-            time.sleep(0.4)
             try:
+                time.sleep(0.4)
                 pre = self.browser.find_element_by_css_selector('div#main div#page-content div#detail-page')
             except selenium.common.exceptions.NoSuchElementException:
-                time.sleep(0.4)
                 pre = self.browser.find_element_by_css_selector('div#main div#page-content div#detail-page')
         node = pre.find_element_by_css_selector('div#dpLeftCol')
         right_col = pre.find_element_by_css_selector('div#dpRightCol div#innerRightCol')

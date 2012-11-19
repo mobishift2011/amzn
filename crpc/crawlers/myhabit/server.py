@@ -222,6 +222,7 @@ class Server:
         event_id = self.url2saleid(url)
         event = Event.objects(event_id=event_id).first()
         if not event:
+            is_new = True
             browser = lxml.html.fromstring(self.browser.page_source)
             path = browser.cssselect('div#main div#page-content div#top-content')[0]
 
@@ -251,6 +252,7 @@ class Server:
             event.urgent = True
             event.combine_url = 'http://www.myhabit.com/homepage#page=b&sale={0}'.format(event_id)
         else:
+            is_new = False
             if dept not in event.dept: event.dept.append(dept)
         event.save()
         common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=False)

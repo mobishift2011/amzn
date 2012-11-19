@@ -73,27 +73,34 @@ class Server:
         time.sleep(1)
         
         # click the login link
-        node = self.browser.find_element_by_id('pendingTab')
+        node = self.browser.find_element_by_css_selector('div.homeTabs a#pendingTab')
         node.click()
         time.sleep(1)
 
-        a = self.browser.find_element_by_id('txtEmailLogin')
+        try:
+            login_node = self.browser.find_element_by_css_selector('div#loginContainer form#loginHome')
+        except NoSuchElementException:
+            time.sleep(1)
+            login_node = self.browser.find_element_by_css_selector('div#loginContainer form#loginHome')
+
+        a = login_node.find_element_by_css_selector('div.loginRow input#txtEmailLogin')
         a.click()
         a.send_keys(login_email)
 
-        b = self.browser.find_element_by_id('txtPass')
+        b = login_node.find_element_by_css_selector('div.loginRow input#txtPass')
         b.click()
         b.send_keys(login_passwd)
 
-        signin_button = self.browser.find_element_by_id('btnEnter')
+        signin_button = login_node.find_element_by_css_selector('div.loginRow input#btnEnter')
         signin_button.click()
 
-        title = self.browser.find_element_by_xpath('//title').text
-        if title  == 'Rue La La - Boutiques':
+        if self.browser.title  == 'Rue La La - Show Reminders':
             self._signin = True
         else:
             self._signin = False
 
+
+    @exclusive_lock(DB)
     def crawl_category(self,ctx=False):
         """.. :py:method::
             From top depts, get all the events
@@ -157,12 +164,10 @@ class Server:
                 return datetime.datetime(d.year,d.month,d.day,d.hour+1,0,0)
 
         self.browser.get(url)
-
         nodes = self.browser.find_elements_by_css_selector('body.wl-default > div.container > div#categoryMain > section#categoryDoors > article[id^="event-"]')
 #        if nodes == []:
 #            # for local, but local is not event
 #            nodes = self.browser.find_elements_by_css_selector('body.wl-default > div.container section#localDoors > article[id^="event-"]')
-
 
         for node in nodes:
             # pass the hiden element
@@ -200,6 +205,7 @@ class Server:
             event.save()
             common_saved.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=is_updated)
 
+
     @exclusive_lock(DB)
     def crawl_listing(self,url,ctx=''):
         self._crawl_listing(url,ctx)
@@ -209,21 +215,21 @@ class Server:
         event_id = self._url2saleid(event_url)
         self.login()
         self.get(event_url)
-        try:
-            span = self.browser.find_element_by_css_selector('div.container div#pagination span.viewAll')
-        except:
-            pass
-        else:
-            try:
-                span.click()
-                time.sleep(1)
-            except selenium.common.exceptions.WebDriverException:
-                # just have 1 page
-                pass
-
+#        try:
+#            span = self.browser.find_element_by_css_selector('div.container > div#productContainerThreeUp div#pagination > span.viewAll')
+#        except:
+#            pass
+#        else:
+#            try:
+#                span.click()
+#                time.sleep(1)
+#            except selenium.common.exceptions.WebDriverException:
+#                # just have 1 page
+#                pass
+#
         nodes = []
         if not nodes:
-            nodes = self.browser.find_elements_by_css_selector('div.container div#productGridControl div#productGrid article.product')
+            nodes = self.browser.find_elements_by_css_selector('div.container > div#productContainerThreeUp > div#productGrid > article.product')
         if not nodes:
             nodes = self.browser.find_elements_by_xpath('//article[@class="column eventDoor halfDoor grid-one-third alpha"]')
 
@@ -240,8 +246,7 @@ class Server:
                 raise ValueError('can not find product @url:%s sale id:%s' %(event_url, event_id))
 
         for node in nodes:
-            if not node.is_displayed():
-                continue
+#            if not node.is_displayed(): continue
             a = node.find_element_by_xpath('./a')
             href = a.get_attribute('href')
 
@@ -408,7 +413,7 @@ class Server:
             return str(m[0])
         except IndexError:
             pass
-        print 'url'
+#        print 'url'
         m = re.compile('http://.*.ruelala.com/product/detail/eventId/\d{1,10}/styleNum/(\d{1,10})/viewAll/0').findall(url)
         return str(m[0])
 

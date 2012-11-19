@@ -190,54 +190,54 @@ class Server:
 #                debug_info.send(sender=DB + ".category", tracebackinfo=sys.exc_info())
         debug_info.send(sender=DB + '.cycle_crawl_category.end')
 
-    def parse_upcoming(self, dept, url, ctx):
-        """.. :py:method::
-            upcoming brand page parsing
-            upcoming brand also have duplicate designer
-
-        :param dept: dept in the page
-        :param url: url in the page
-        """
-        event_id = self.url2saleid(url)
-        brand, is_new = Event.objects.get_or_create(event_id=event_id)
-        if is_new:
-            path = self.browser.find_element_by_css_selector('div#main div#page-content div#top-content')
-            if path == []:
-                # sleep 2 second, can not be any faster.
-                time.sleep(2)
-                path = self.browser.find_element_by_css_selector('div#main div#page-content div#top-content')
-            try:
-                begin_date = path.find_element_by_css_selector('div#startHeader span.date').text # SAT OCT 20
-            except selenium.common.exceptions.NoSuchElementException:
-                print 'No such element in begin_date',
-                time.sleep(2)
-                path = self.browser.find_element_by_css_selector('div#main div#page-content div#top-content')
-                print path
-                begin_date = path.find_element_by_css_selector('div#startHeader span.date').text # SAT OCT 20
-            begin_time = path.find_element_by_xpath('./div[@id="startHeader"]/span[@class="time"]').text # 9 AM PT
-            utc_begintime = time_convert(begin_date + ' ' + begin_time.replace('PT', ''), '%a %b %d %I %p %Y') #u'SAT OCT 20 9 AM '
-            brand_info = path.find_element_by_id('upcomingSaleBlurb').text
-            img = path.find_element_by_xpath('./div[@class="upcomingSaleHero"]/div[@class="image"]/img').get_attribute('src')
-            sale_title = path.find_element_by_xpath('./div[@class="upcomingSaleHero"]/div[@class="image"]/img').get_attribute('alt')
-            subs = []
-            for sub in path.find_elements_by_xpath('./div[@id="asinbox"]/ul/li'):
-                sub_title = sub.find_element_by_class_name('title').text
-                sub_img = sub.find_element_by_xpath('./img').get_attribute('src')
-                subs.append([sub_title, sub_img])
-
-            brand.dept = [dept]
-            brand.sale_title = sale_title
-            brand.image_urls = [img]
-            brand.events_begin = utc_begintime
-            brand.sale_description = brand_info
-            brand.upcoming_title_img = subs
-            brand.update_time = datetime.utcnow()
-            brand.urgent = True
-            brand.combine_url = 'http://www.myhabit.com/homepage#page=b&sale={0}'.format(event_id)
-        else:
-            if dept not in brand.dept: brand.dept.append(dept)
-        brand.save()
-        common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=False)
+#    def parse_upcoming(self, dept, url, ctx):
+#        """.. :py:method::
+#            upcoming brand page parsing
+#            upcoming brand also have duplicate designer
+#
+#        :param dept: dept in the page
+#        :param url: url in the page
+#        """
+#        event_id = self.url2saleid(url)
+#        brand, is_new = Event.objects.get_or_create(event_id=event_id)
+#        if is_new:
+#            path = self.browser.find_element_by_css_selector('div#main div#page-content div#top-content')
+#            if path == []:
+#                # sleep 2 second, can not be any faster.
+#                time.sleep(2)
+#                path = self.browser.find_element_by_css_selector('div#main div#page-content div#top-content')
+#            try:
+#                begin_date = path.find_element_by_css_selector('div#startHeader span.date').text # SAT OCT 20
+#            except selenium.common.exceptions.NoSuchElementException:
+#                print 'No such element in begin_date',
+#                time.sleep(2)
+#                path = self.browser.find_element_by_css_selector('div#main div#page-content div#top-content')
+#                print path
+#                begin_date = path.find_element_by_css_selector('div#startHeader span.date').text # SAT OCT 20
+#            begin_time = path.find_element_by_xpath('./div[@id="startHeader"]/span[@class="time"]').text # 9 AM PT
+#            utc_begintime = time_convert(begin_date + ' ' + begin_time.replace('PT', ''), '%a %b %d %I %p %Y') #u'SAT OCT 20 9 AM '
+#            brand_info = path.find_element_by_id('upcomingSaleBlurb').text
+#            img = path.find_element_by_xpath('./div[@class="upcomingSaleHero"]/div[@class="image"]/img').get_attribute('src')
+#            sale_title = path.find_element_by_xpath('./div[@class="upcomingSaleHero"]/div[@class="image"]/img').get_attribute('alt')
+#            subs = []
+#            for sub in path.find_elements_by_xpath('./div[@id="asinbox"]/ul/li'):
+#                sub_title = sub.find_element_by_class_name('title').text
+#                sub_img = sub.find_element_by_xpath('./img').get_attribute('src')
+#                subs.append([sub_title, sub_img])
+#
+#            brand.dept = [dept]
+#            brand.sale_title = sale_title
+#            brand.image_urls = [img]
+#            brand.events_begin = utc_begintime
+#            brand.sale_description = brand_info
+#            brand.upcoming_title_img = subs
+#            brand.update_time = datetime.utcnow()
+#            brand.urgent = True
+#            brand.combine_url = 'http://www.myhabit.com/homepage#page=b&sale={0}'.format(event_id)
+#        else:
+#            if dept not in brand.dept: brand.dept.append(dept)
+#        brand.save()
+#        common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=False)
 
 
 
@@ -536,7 +536,8 @@ class Server:
         :param url: url in the page
         """
         self.check_signin()
-        if self.download_page(url) == 1: return
+        if self.download_page(url) == 1:
+            pass
         time_begin_benchmark = time.time()
 #        node = self.browser.find_element_by_xpath('//div[@id="main"]/div[@id="page-content"]/div/div[@id="top"]/div[@id="salePageDescription"]')
         browser = lxml.html.fromstring(self.browser.page_source)
@@ -634,6 +635,7 @@ class Server:
         self.check_signin()
         if self.download_page_for_product(url) == 1:
             pass
+#            common_failed.send(sender=ctx, url=url, reason='probably the url download timeout.')
         time_begin_benchmark = time.time()
         browser = lxml.html.fromstring(self.browser.page_source)
         product, is_new = Product.objects.get_or_create(pk=casin)

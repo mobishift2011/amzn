@@ -15,9 +15,9 @@ CREDENTIALS = [
 import os, sys
 PATH = os.path.dirname(os.path.abspath(__file__))
 
-from sh import casperjs
+#from sh import casperjs
 
-casperjs_with_proxy = casperjs.bake(proxy='199.19.110.124:1238')
+#casperjs_with_proxy = casperjs.bake(proxy='199.19.110.124:1238')
 
 import simplejson as json
 import random
@@ -46,7 +46,7 @@ def getvolume(keywords, email=None, passwd=None):
 
     print email
     kw = ','.join(keywords)
-    data = casperjs(os.path.join(PATH,'kwt.js'), email = email, passwd = passwd, keywords = kw)
+    #data = casperjs(os.path.join(PATH,'kwt.js'), email = email, passwd = passwd, keywords = kw)
     print data.ran
     return json.loads(data.stdout)
 

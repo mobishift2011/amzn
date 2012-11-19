@@ -204,4 +204,5 @@ if __name__ == '__main__':
     for brand in Brand.objects():
         if not brand.dept:
             print brand.title
-            brand.dept.append(' ')
+            brand.dept.append('')
+            brand.save()

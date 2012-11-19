@@ -15,19 +15,19 @@ def pre_hook_debug(sender,**kwargs):
 
 @debug_info.bind
 def debug_info_print(sender, **kwargs):
-    logger.debug('<{0}> -- {1}'.format(sender, kwargs.items()))
+    logger.error('<{0}> -- {1}'.format(sender, kwargs.items()))
 
 @warning_info.bind
 def warning_info_print(sender, **kwargs):
-    logger.debug('<{0}> -- {1}'.format(sender, kwargs.items()))
+    logger.error('<{0}> -- {1}'.format(sender, kwargs.items()))
 
 @category_saved.bind
 def on_category_saved(sender, **kwargs):
-    logger.debug('category{0}'.format(kwargs.items()))
+    logger.error('category{0}'.format(kwargs.items()))
 
 @product_saved.bind
 def on_product_save(sender, **kwargs):
-    logger.debug('product{0}'.format(kwargs.items()))
+    logger.error('product{0}'.format(kwargs.items()))
 
 @category_failed.bind
 def on_category_failed(sender, **kwargs):
@@ -39,11 +39,11 @@ def on_product_failed(sender, **kwargs):
 
 @common_saved.bind
 def common_saved_print(sender, **kwargs):
-    logger.debug('<{0}> -- {1}'.format(sender, kwargs.items()))
+    logger.error('<{0}> -- {1}'.format(sender, kwargs.items()))
 
 @common_failed.bind
 def common_failed_print(sender, **kwargs):
-    logger.debug('<{0}> -- {1}'.format(sender, kwargs.items()))
+    logger.error('<{0}> -- {1}'.format(sender, kwargs.items()))
 
 @post_general_update.bind
 def post_hook_print(sender, **kwargs):

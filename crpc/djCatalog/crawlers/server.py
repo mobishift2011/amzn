@@ -203,4 +203,5 @@ if __name__ == '__main__':
 #    Crawler(sites).crawl()
     for brand in Brand.objects():
         if not brand.dept:
-            brand.dept.append('')
+            print brand.title
+            brand.dept.append(' ')

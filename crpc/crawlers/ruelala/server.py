@@ -127,9 +127,15 @@ class Server:
             Problem may exist: these events off sale, update_listing will get nothing.
         """
         self.browser.get(url)
-        nodes = self.browser.find_elements_by_css_selector('body > div.container > div#canvasContainer > section#gift-center > div#gc-wrapper a[href]')
+        browser = lxml.html.fromstring(slef.browser.page_source)
+        nodes = browser.cssselect('body > div.container > div#canvasContainer > section#gift-center > div#gc-wrapper a[href]')
+        if len(nodes) == 0 or not nodes:
+            time.sleep(1)
+            browser = lxml.html.fromstring(slef.browser.page_source)
+            nodes = browser.cssselect('body > div.container > div#canvasContainer > section#gift-center > div#gc-wrapper a[href]')
+
         for node in nodes:
-            l = node.get_attribute('href')
+            l = node.get('href')
             event_id = l.rsplit('/', 1)[-1]
             link = l if l.startswith('http') else self.siteurl + l
             event, is_new = Event.objects.get_or_create(event_id=event_id)
@@ -163,6 +169,7 @@ class Server:
                 return datetime.datetime(d.year,d.month,d.day,d.hour+1,0,0)
 
         self.browser.get(url)
+        browser = lxml.html.fromstring(self.browser.page_source)
         nodes = self.browser.find_elements_by_css_selector('body.wl-default > div.container > div#categoryMain > section#categoryDoors > article[id^="event-"]')
 #        if nodes == []:
 #            # for local, but local is not event

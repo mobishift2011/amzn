@@ -32,8 +32,7 @@ def run(site, rpc):
 if __name__ == '__main__':
     import crawllog
     rpc = RPCServer()
-    rpc.call('myhabit', 'crawl_category', (), {'ctx':'haha'})
-    exit(0)
+#    rpc.call('myhabit', 'crawl_category', (), {'ctx':'haha'})
     if sys.argv[1]:
         if sys.argv[1] == 'myhabit' or 'zulily' or 'hautelook' or 'onekingslane':
             run(sys.argv[1], rpc)

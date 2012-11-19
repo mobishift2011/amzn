@@ -49,7 +49,7 @@ class Server:
         self.browser = webdriver.Chrome()
 #        self.browser.set_page_load_timeout(5)
 #        self.browser.implicitly_wait(1)
-        self.download_page('http://www.myhabit.com/my-account')
+        self.download_page_for_product('http://www.myhabit.com/my-account')
 
     def fill_login_form(self):
         """.. :py:method:
@@ -266,7 +266,7 @@ class Server:
         :param url: url in the page
         """
         self.check_signin()
-        if self.download_page(url) == 1:
+        if self.download_page_for_product(url) == 1:
             pass
         time_begin_benchmark = time.time()
 #        node = self.browser.find_element_by_xpath('//div[@id="main"]/div[@id="page-content"]/div/div[@id="top"]/div[@id="salePageDescription"]')
@@ -412,13 +412,17 @@ class Server:
         if color: product.color = color
         if sizes: product.sizes = sizes
 
-        listprice = right_col.cssselect('div#dpPriceRow span#listPrice')[0].text.replace('$', '').replace(',', '')
+        listprice = right_col.cssselect('div#dpPriceRow span#listPrice')[0].text
+        if listprice:
+            listprice = listprice.replace('$', '').replace(',', '')
+        else:
+            listprice = ''
         ourprice = right_col.cssselect('div#dpPriceRow span#ourPrice')[0].text.replace('$', '').replace(',', '')
         scarcity = right_col.cssselect('div#scarcity')[0].text
         shipping = '; '.join( [a.text for a in right_col.cssselect('div.dpRightColLabel') if a.text] )
 
         product.price = ourprice
-        product.listprice = listprice
+        if listprice: product.listprice = listprice
         product.shipping = shipping
         if scarcity: product.scarcity = scarcity
         product.updated = True

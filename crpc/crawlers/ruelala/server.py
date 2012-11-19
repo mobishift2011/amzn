@@ -77,7 +77,11 @@ class Server:
         node.click()
         time.sleep(1)
 
-        login_node = self.browser.find_element_by_css_selector('div#loginContainer form#loginHome')
+        try:
+            login_node = self.browser.find_element_by_css_selector('div#loginContainer form#loginHome')
+        except NoSuchElementException:
+            time.sleep(1)
+            login_node = self.browser.find_element_by_css_selector('div#loginContainer form#loginHome')
 
         a = login_node.find_element_by_css_selector('div.loginRow input#txtEmailLogin')
         a.click()
@@ -90,12 +94,13 @@ class Server:
         signin_button = login_node.find_element_by_css_selector('div.loginRow input#btnEnter')
         signin_button.click()
 
-        title = self.browser.find_element_by_xpath('//title').text
-        if title  == 'Rue La La - Boutiques':
+        if self.browser.title  == 'Rue La La - Show Reminders':
             self._signin = True
         else:
             self._signin = False
 
+
+    @exclusive_lock(DB)
     def crawl_category(self,ctx=False):
         """.. :py:method::
             From top depts, get all the events

@@ -200,6 +200,11 @@ class Server(object):
             from listing page get Eventi's description, endtime, number of products.
             Get all product's image, url, title, price, soldout
 
+            Time events_end:
+                If remains in [0 - 0:29:59:999], the words is 'Sales ends in ';
+                If remains in [0:30 - 1:0), the words is 'Sales ends in 1 hour'
+                * Our algorithm is: {time(words) + utcnow + 0:29:59:999}, then eliminate the minutes and seconds
+
         :param url: listing page url
         """
         debug_info.send(sender=DB + '.crawl_list.begin')

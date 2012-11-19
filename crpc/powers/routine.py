@@ -15,8 +15,7 @@ import random
 import traceback
 
 from settings import PEERS, RPC_PORT
-from configs import SITES, AWS_ACCESS_KEY, AWS_SECRET_KEY
-from Image import ImageTool
+from configs import SITES
 
 def get_rpcs():
     if not hasattr(get_rpcs, '_cached_peers'):
@@ -36,9 +35,11 @@ def get_rpcs():
         
     return get_rpcs._cached_rpcs
 
-def call_rpc(rpc, site, method, *args, **kwargs):
+def call_rpc(rpc, method, *args, **kwargs):
     try:
-        rpc.call(site, method, args, kwargs)
+        from crawlers.common.rpcserver import RPCServer
+        RPCServer().image(method, args, kwargs)
+        #rpc.image(method, args, kwargs)
     except Exception, e:
         print e
 #        common_failed.send(sender=kwargs['ctx'],
@@ -51,7 +52,7 @@ def call_rpc(rpc, site, method, *args, **kwargs):
 def get_site_module(site):
     return __import__("crawlers."+site+'.models', fromlist=['Event', 'Product'])
 
-def spout_image_events(site):
+def spout_event_images(site):
     m = get_site_module(site)
     events = m.Event.objects()  # TODO (image_done=False)
     for event in events:
@@ -61,7 +62,7 @@ def spout_image_events(site):
             'image_urls': event.image_urls,
         }
 
-def spout_image_products(site):
+def spout_product_images(site):
     m = get_site_module(site)
     products = m.Product.objects()  # TODO (image_done=False)
     for product in products:
@@ -72,28 +73,31 @@ def spout_image_products(site):
         }
 
 def update_event_images(site, rpc, concurrency=3):
-    for event in spout_image_events(site):
-        print event   # TODO rpc call to crawl image
-    return  # TODO poll.join()
+    rpcs = [rpc] if not isinstance(rpc, list) else rpc
+    pool = Pool(len(rpcs)*concurrency)
+    for kwargs in spout_event_images(site):
+        rpc = random.choice(rpcs)
+        pool.spawn(call_rpc, rpc, 'crawl_event_images', **kwargs)
+    pool.join()
 
 def update_product_images(site, rpc, concurrency=3):
-    for product in spout_image_products(site):
-        print product   # TODO rpc call to crawl image
-    return  # TODO poll.join()
+    rpcs = [rpc] if not isinstance(rpc, list) else rpc
+    pool = Pool(len(rpcs)*concurrency)
+    for kwargs in spout_product_images(site):
+        rpc = random.choice(rpcs)
+        pool.spawn(call_rpc, rpc, 'crawl_product_images', **kwargs)
+    pool.join()
 
 def update_images(site, rpcs, concurrency=3):
     rpcs = []
-#            for s in self.get_schedules():
-#                if s.timematch():
-#                    execute(s.site, s.method)
-#    if not task_already_running(site, method):
-#        gevent.spawn(globals()[method], site, get_rpcs(), 10) \
-#                .rawlink(partial(task_completed, site=site, method=method))
+
+
+def test():
+    rpcs = get_rpcs()
+    for site in SITES:
+        update_event_images(site, rpcs)
+        update_product_images(site, rpcs)
 
 if __name__ == '__main__':
     pass
-    rpcs = get_rpcs()
-    for site in SITES:
-        rpc = random.choice(rpcs)
-        update_event_images(site, rpc)
-        update_product_images(site, rpc)
+    test()

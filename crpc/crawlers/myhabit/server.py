@@ -49,7 +49,7 @@ class Server:
         self.browser = webdriver.Chrome()
 #        self.browser.set_page_load_timeout(5)
 #        self.browser.implicitly_wait(1)
-        self.download_page('http://www.myhabit.com/my-account')
+        self.download_page_for_product('http://www.myhabit.com/my-account')
 
     def fill_login_form(self):
         """.. :py:method:
@@ -71,7 +71,7 @@ class Server:
         self.browser.quit()
         self._signin = False
 
-    def download_page(self, url):
+    def download_page(self, url, label=None):
         """.. :py:method::
             download the url
         :param url: the url need to download
@@ -81,10 +81,10 @@ class Server:
             self.browser.get(url)
             if self.browser.title == u'Amazon.com Sign In':
                 self.fill_login_form()
-            WebDriverWait(self.browser, TIMEOUT, 0.05).until(lambda driver: driver.find_element_by_css_selector('div#body div#main div#page-content div#bottom-content'))
+            WebDriverWait(self.browser, TIMEOUT, 0.5).until(lambda driver: driver.find_element_by_css_selector('div#body div#main div#page-content div#bottom-content'))
         except selenium.common.exceptions.TimeoutException:
             try:
-                WebDriverWait(self.browser, TIMEOUT, 0.05).until(lambda driver: driver.execute_script('return $.active') == 0)
+                WebDriverWait(self.browser, TIMEOUT, 0.5).until(lambda driver: driver.execute_script('return $.active') == 0)
             except selenium.common.exceptions.TimeoutException:
                 print 'Timeout ---> {0}'.format(url)
                 return 1
@@ -96,7 +96,7 @@ class Server:
             self.browser.get(url)
             if self.browser.title == u'Amazon.com Sign In':
                 self.fill_login_form()
-            WebDriverWait(self.browser, TIMEOUT, 0.05).until(lambda driver: driver.execute_script('return $.active') == 0)
+            WebDriverWait(self.browser, TIMEOUT, 0.5).until(lambda driver: driver.execute_script('return $.active') == 0)
         except selenium.common.exceptions.TimeoutException:
             print 'Timeout --> {0}'.format(url)
             return 1
@@ -173,6 +173,11 @@ class Server:
         self.download_page_for_product(url)
         browser = lxml.html.fromstring(self.browser.page_source)
         nodes = browser.xpath('//div[@id="main"]/div[@id="page-content"]/div[@id="currentSales"]/div[starts-with(@id, "privateSale")]')
+        if len(nodes) == 0 or not nodes:
+            time.sleep(1)
+            browser = lxml.html.fromstring(self.browser.page_source)
+            nodes = browser.xpath('//div[@id="main"]/div[@id="page-content"]/div[@id="currentSales"]/div[starts-with(@id, "privateSale")]')
+
         for node in nodes:
             a_title = node.xpath('./div[@class="caption"]/a')[0]
             l = a_title.get('href')
@@ -229,7 +234,10 @@ class Server:
             try:
                 begin_date = path.cssselect('div#startHeader span.date')[0].text # SAT OCT 20
             except:
-                common_failed.send(sender=ctx, url=url, reason='probably the begin_date can not be pased.')
+                time.sleep(1)
+                browser = lxml.html.fromstring(self.browser.page_source)
+                begin_date = path.cssselect('div#startHeader span.date')[0].text # SAT OCT 20
+#                common_failed.send(sender=ctx, url=url, reason='probably the begin_date can not be pased.')
             begin_time = path.xpath('./div[@id="startHeader"]/span[@class="time"]')[0].text # 9 AM PT
             utc_begintime = time_convert(begin_date + ' ' + begin_time.replace('PT', ''), '%a %b %d %I %p %Y') #u'SAT OCT 20 9 AM '
             brand_info = path.cssselect('div#upcomingSaleBlurb')[0].text
@@ -266,12 +274,16 @@ class Server:
         :param url: url in the page
         """
         self.check_signin()
-        if self.download_page(url) == 1:
+        if self.download_page_for_product(url) == 1:
             pass
         time_begin_benchmark = time.time()
-#        node = self.browser.find_element_by_xpath('//div[@id="main"]/div[@id="page-content"]/div/div[@id="top"]/div[@id="salePageDescription"]')
         browser = lxml.html.fromstring(self.browser.page_source)
-        node = browser.cssselect('div#main div#page-content div')[0]
+        try:
+            node = browser.cssselect('div#main div#page-content div')[0]
+        except:
+            time.sleep(1)
+            browser = lxml.html.fromstring(self.browser.page_source)
+            node = browser.cssselect('div#main div#page-content div')[0]
 
         sale_title = node.cssselect('div#top div#saleTitle')[0].text
         sale_description = node.cssselect('div#top div#saleDescription')[0].text
@@ -365,14 +377,18 @@ class Server:
         self.check_signin()
         if self.download_page_for_product(url) == 1:
             pass
-#            common_failed.send(sender=ctx, url=url, reason='probably the url download timeout.')
         time_begin_benchmark = time.time()
         browser = lxml.html.fromstring(self.browser.page_source)
-        product, is_new = Product.objects.get_or_create(pk=casin)
-        pre = browser.cssselect('div#main div#page-content div#detail-page')[0]
+        try:
+            pre = browser.cssselect('div#main div#page-content div#detail-page')[0]
+        except:
+            time.sleep(1)
+            browser = lxml.html.fromstring(self.browser.page_source)
+            pre = browser.cssselect('div#main div#page-content div#detail-page')[0]
         node = pre.cssselect('div#dpLeftCol')[0]
         right_col = pre.cssselect('div#dpRightCol div#innerRightCol')[0]
 
+        product, is_new = Product.objects.get_or_create(pk=casin)
         info_table, image_urls, video = [], [], ''
         shortDesc_node = node.cssselect('div#dpProdDesc div#pdBullets li.shortDesc')
         if shortDesc_node: shortDesc = shortDesc_node[0].text
@@ -412,13 +428,17 @@ class Server:
         if color: product.color = color
         if sizes: product.sizes = sizes
 
-        listprice = right_col.cssselect('div#dpPriceRow span#listPrice')[0].text.replace('$', '').replace(',', '')
+        listprice = right_col.cssselect('div#dpPriceRow span#listPrice')[0].text
+        if listprice:
+            listprice = listprice.replace('$', '').replace(',', '')
+        else:
+            listprice = ''
         ourprice = right_col.cssselect('div#dpPriceRow span#ourPrice')[0].text.replace('$', '').replace(',', '')
         scarcity = right_col.cssselect('div#scarcity')[0].text
         shipping = '; '.join( [a.text for a in right_col.cssselect('div.dpRightColLabel') if a.text] )
 
         product.price = ourprice
-        product.listprice = listprice
+        if listprice: product.listprice = listprice
         product.shipping = shipping
         if scarcity: product.scarcity = scarcity
         product.updated = True
@@ -426,7 +446,7 @@ class Server:
         product.save()
         
         common_saved.send(sender=ctx, key=casin, url=url, is_new=is_new, is_updated=not is_new)
-        print 'time product process benchmark: ', time.time() - time_begin_benchmark
+#        print 'time product process benchmark: ', time.time() - time_begin_benchmark
 
 
 if __name__ == '__main__':

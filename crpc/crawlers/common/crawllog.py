@@ -8,9 +8,6 @@ logger = getlogger("crawlerlog")
 
 @pre_general_update.bind
 def pre_hook_debug(sender,**kwargs):
-    """
-        TODO: Why this one printed twice?
-    """
     print '>>pre_hook_debug:', sender, kwargs.items()
 
 @debug_info.bind

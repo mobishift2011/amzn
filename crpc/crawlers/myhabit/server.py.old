@@ -121,6 +121,54 @@ class Server:
         
         debug_info.send(sender=DB + '.category.end')
 
+    def get_event_list(self, dept, url, ctx):
+        """.. :py:method::
+            Get all the brands from brand list.
+            Brand have a list of product.
+
+        :param dept: dept in the page
+        :param url: the dept's url
+        """
+        self.download_page_for_product(url)
+        nodes = self.browser.find_elements_by_xpath('//div[@id="main"]/div[@id="page-content"]/div[@id="currentSales"]/div[starts-with(@id, "privateSale")]')
+        for node in nodes:
+            a_title = node.find_element_by_xpath('./div[@class="caption"]/a')
+            l = a_title.get_attribute('href')
+            link = l if l.startswith('http') else 'http://www.myhabit.com/homepage' + l
+            event_id = self.url2saleid(link)
+
+            image = node.find_element_by_xpath('./div[@class="image"]/a/img').get_attribute('src')
+            try: # if can't be found, cost a long time and raise NoSuchElementException
+                node.find_element_by_xpath('./div[@class="image"]/a/div[@class="soldout"]')
+            except:
+                soldout = False
+            else:
+                soldout = True
+
+            brand, is_new = Event.objects.get_or_create(event_id=event_id)
+            is_updated = False
+            if is_new:
+                brand.sale_title = a_title.text
+                brand.image_urls = [image]
+                if soldout == True: brand.soldout = True
+                brand.urgent = True
+                brand.combine_url = 'http://www.myhabit.com/homepage#page=b&sale={0}'.format(event_id)
+            else:
+                if soldout == True and brand.soldout != True:
+                    brand.soldout = soldout
+                    is_updated = True
+            if dept not in brand.dept: brand.dept.append(dept) # for designer dept
+            brand.update_time = datetime.utcnow()
+            brand.save()
+            common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=is_updated)
+
+        # upcoming brand
+        nodes = self.browser.find_elements_by_xpath('//div[@id="main"]/div[@id="page-content"]/div[@id="upcomingSales"]//div[@class="fourColumnSales"]//div[@class="caption"]/a')
+        for node in nodes:
+            l = node.get_attribute('href')
+            link = l if l.startswith('http') else 'http://www.myhabit.com/homepage' + l 
+#            title = node.text
+            self.upcoming_queue.put( (dept, link) )
 
     def cycle_crawl_category(self, ctx, timeover=30):
         """.. :py:method::
@@ -133,14 +181,64 @@ class Server:
         while not self.upcoming_queue.empty():
 #            try:
             job = self.upcoming_queue.get(timeout=timeover)
-            if self.download_page_for_product(job[1]) == 1:
-                pass
+            if self.download_page(job[1]) == 1:
+                continue
             self.parse_upcoming(job[0], job[1], ctx)
 #            except Queue.Empty:
 #                debug_info.send(sender="{0}.category:Queue waiting {1} seconds without response!".format(DB, timeover))
 #            except:
 #                debug_info.send(sender=DB + ".category", tracebackinfo=sys.exc_info())
         debug_info.send(sender=DB + '.cycle_crawl_category.end')
+
+    def parse_upcoming(self, dept, url, ctx):
+        """.. :py:method::
+            upcoming brand page parsing
+            upcoming brand also have duplicate designer
+
+        :param dept: dept in the page
+        :param url: url in the page
+        """
+        event_id = self.url2saleid(url)
+        brand, is_new = Event.objects.get_or_create(event_id=event_id)
+        if is_new:
+            path = self.browser.find_element_by_css_selector('div#main div#page-content div#top-content')
+            if path == []:
+                # sleep 2 second, can not be any faster.
+                time.sleep(2)
+                path = self.browser.find_element_by_css_selector('div#main div#page-content div#top-content')
+            try:
+                begin_date = path.find_element_by_css_selector('div#startHeader span.date').text # SAT OCT 20
+            except selenium.common.exceptions.NoSuchElementException:
+                print 'No such element in begin_date',
+                time.sleep(2)
+                path = self.browser.find_element_by_css_selector('div#main div#page-content div#top-content')
+                print path
+                begin_date = path.find_element_by_css_selector('div#startHeader span.date').text # SAT OCT 20
+            begin_time = path.find_element_by_xpath('./div[@id="startHeader"]/span[@class="time"]').text # 9 AM PT
+            utc_begintime = time_convert(begin_date + ' ' + begin_time.replace('PT', ''), '%a %b %d %I %p %Y') #u'SAT OCT 20 9 AM '
+            brand_info = path.find_element_by_id('upcomingSaleBlurb').text
+            img = path.find_element_by_xpath('./div[@class="upcomingSaleHero"]/div[@class="image"]/img').get_attribute('src')
+            sale_title = path.find_element_by_xpath('./div[@class="upcomingSaleHero"]/div[@class="image"]/img').get_attribute('alt')
+            subs = []
+            for sub in path.find_elements_by_xpath('./div[@id="asinbox"]/ul/li'):
+                sub_title = sub.find_element_by_class_name('title').text
+                sub_img = sub.find_element_by_xpath('./img').get_attribute('src')
+                subs.append([sub_title, sub_img])
+
+            brand.dept = [dept]
+            brand.sale_title = sale_title
+            brand.image_urls = [img]
+            brand.events_begin = utc_begintime
+            brand.sale_description = brand_info
+            brand.upcoming_title_img = subs
+            brand.update_time = datetime.utcnow()
+            brand.urgent = True
+            brand.combine_url = 'http://www.myhabit.com/homepage#page=b&sale={0}'.format(event_id)
+        else:
+            if dept not in brand.dept: brand.dept.append(dept)
+        brand.save()
+        common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=False)
+
 
 
     def url2saleid(self, url):
@@ -162,100 +260,6 @@ class Server:
         return m.groups()
     
 
-    def get_event_list(self, dept, url, ctx):
-        """.. :py:method::
-            Get all the brands from brand list.
-            Brand have a list of product.
-
-        :param dept: dept in the page
-        :param url: the dept's url
-        """
-        self.download_page_for_product(url)
-        browser = lxml.html.fromstring(self.browser.page_source)
-        nodes = browser.xpath('//div[@id="main"]/div[@id="page-content"]/div[@id="currentSales"]/div[starts-with(@id, "privateSale")]')
-        for node in nodes:
-            a_title = node.xpath('./div[@class="caption"]/a')[0]
-            l = a_title.get('href')
-            link = l if l.startswith('http') else 'http://www.myhabit.com/homepage' + l
-            event_id = self.url2saleid(link)
-
-            image = node.xpath('./div[@class="image"]/a/img')[0].get('src')
-            # try: # if can't be found, cost a long time and raise NoSuchElementException
-            soldout_node = node.xpath('./div[@class="image"]/a/div[@class="soldout"]')
-            if soldout_node: soldout = True
-            else: soldout = False
-
-            brand, is_new = Event.objects.get_or_create(event_id=event_id)
-            is_updated = False
-            if is_new:
-                brand.sale_title = a_title.text
-                brand.image_urls = [image]
-                if soldout == True: brand.soldout = True
-                brand.urgent = True
-                brand.combine_url = 'http://www.myhabit.com/homepage#page=b&sale={0}'.format(event_id)
-            else:
-                if soldout == True and brand.soldout != True:
-                    brand.soldout = soldout
-                    is_updated = True
-            if dept not in brand.dept: brand.dept.append(dept) # for designer dept
-            brand.update_time = datetime.utcnow()
-            brand.save()
-            common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=is_updated)
-
-        # upcoming brand
-        nodes = browser.xpath('//div[@id="main"]/div[@id="page-content"]/div[@id="upcomingSales"]//div[@class="fourColumnSales"]//div[@class="caption"]/a')
-        for node in nodes:
-            l = node.get('href')
-            link = l if l.startswith('http') else 'http://www.myhabit.com/homepage' + l 
-#            title = node.text
-            self.upcoming_queue.put( (dept, link) )
-        
-
-    def parse_upcoming(self, dept, url, ctx):
-        """.. :py:method::
-            upcoming brand page parsing
-            upcoming brand also have duplicate designer
-
-        :param dept: dept in the page
-        :param url: url in the page
-        """
-        event_id = self.url2saleid(url)
-        event = Event.objects(event_id=event_id).first()
-        if not event:
-            browser = lxml.html.fromstring(self.browser.page_source)
-            path = browser.cssselect('div#main div#page-content div#top-content')[0]
-
-            try:
-                begin_date = path.cssselect('div#startHeader span.date')[0].text # SAT OCT 20
-            except:
-                common_failed.send(sender=ctx, url=url, reason='probably the begin_date can not be pased.')
-            begin_time = path.xpath('./div[@id="startHeader"]/span[@class="time"]')[0].text # 9 AM PT
-            utc_begintime = time_convert(begin_date + ' ' + begin_time.replace('PT', ''), '%a %b %d %I %p %Y') #u'SAT OCT 20 9 AM '
-            brand_info = path.cssselect('div#upcomingSaleBlurb')[0].text
-            img = path.xpath('./div[@class="upcomingSaleHero"]/div[@class="image"]/img')[0].get('src')
-            sale_title = path.xpath('./div[@class="upcomingSaleHero"]/div[@class="image"]/img')[0].get('alt')
-            subs = []
-            for sub in path.xpath('./div[@id="asinbox"]/ul/li'):
-                sub_title = sub.cssselect('div.title')[0].text
-                sub_img = sub.xpath('./img')[0].get('src')
-                subs.append([sub_title, sub_img])
-
-            event = Event(event_id=event_id)
-            event.dept = [dept]
-            event.sale_title = sale_title
-            event.image_urls = [img]
-            event.events_begin = utc_begintime
-            event.sale_description = brand_info
-            event.upcoming_title_img = subs
-            event.update_time = datetime.utcnow()
-            event.urgent = True
-            event.combine_url = 'http://www.myhabit.com/homepage#page=b&sale={0}'.format(event_id)
-        else:
-            if dept not in event.dept: event.dept.append(dept)
-        event.save()
-        common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=False)
-
-
     @exclusive_lock(DB)
     def crawl_listing(self, url, ctx):
         """.. :py:method::
@@ -264,23 +268,24 @@ class Server:
         :param url: url in the page
         """
         self.check_signin()
-        if self.download_page(url) == 1:
-            pass
+        if self.download_page(url) == 1: return
         time_begin_benchmark = time.time()
 #        node = self.browser.find_element_by_xpath('//div[@id="main"]/div[@id="page-content"]/div/div[@id="top"]/div[@id="salePageDescription"]')
-        browser = lxml.html.fromstring(self.browser.page_source)
-        node = browser.cssselect('div#main div#page-content div')[0]
+        node = self.browser.find_element_by_css_selector('div#main div#page-content div')
+        if node == []:
+            time.sleep(0.5)
+            node = self.browser.find_element_by_css_selector('div#main div#page-content div')
 
-        sale_title = node.cssselect('div#top div#saleTitle')[0].text
-        sale_description = node.cssselect('div#top div#saleDescription')[0].text
-        end_date = node.cssselect('div#top div#saleEndTime span.date')[0].text # SAT OCT 20
-        end_time = node.cssselect('div#top div#saleEndTime span.time')[0].text # 9 AM PT
+        sale_title = node.find_element_by_css_selector('div#top div#saleTitle').text
+        sale_description = node.find_element_by_css_selector('div#top div#saleDescription').text
+        end_date = node.find_element_by_css_selector('div#top div#saleEndTime span.date').text # SAT OCT 20
+        end_time = node.find_element_by_css_selector('div#top div#saleEndTime span.time').text # 9 AM PT
         utc_endtime = time_convert(end_date + ' ' + end_time.replace('PT', ''), '%a %b %d %I %p %Y') #u'SAT OCT 20 9 AM '
         try:
-            sale_brand_link = node.xpath('.//div[@id="saleBrandLink"]/a')[0].get('href')
+            sale_brand_link = node.find_element_by_xpath('.//div[@id="saleBrandLink"]/a').get_attribute('href')
         except:
             sale_brand_link = ''
-        num = node.cssselect('div#middle div#middleCenter div#numResults')[0].text
+        num = node.find_element_by_css_selector('div#middle div#middleCenter div#numResults').text
         num = int(num.split()[0])
         event_id = re.compile(r'http://www.myhabit.com/homepage\??#page=b&sale=(\w+)').match(url).group(1)
         brand, is_new = Event.objects.get_or_create(event_id=event_id)
@@ -292,7 +297,7 @@ class Server:
         brand.update_time = datetime.utcnow()
         brand.urgent = False
 
-        elements = node.xpath('./div[@id="asinbox"]/ul/li[starts-with(@id, "result_")]')
+        elements = node.find_elements_by_xpath('./div[@id="asinbox"]/ul/li[starts-with(@id, "result_")]')
         for ele in elements:
             self.parse_category_product(ele, event_id, sale_title, ctx)
 
@@ -308,25 +313,19 @@ class Server:
         :param element: product's xpath element
         :param sale_title: as brand pass to product
         """
-        soldout = element.cssselect('a.evt-prdtImg-a div.soldout')
-        if soldout:
-            soldout = True
-        else:
+        try:
+            element.find_element_by_class_name('soldout')
+        except:
             soldout = False
-        prod = element.cssselect('a.evt-prdtDesc-a')[0]
-        l = prod.get('href')
+        else: soldout = True
+        l = element.find_element_by_class_name('evt-prdtDesc-a').get_attribute('href')
         link = l if l.startswith('http') else 'http://www.myhabit.com/homepage' + l
-        title = prod.cssselect('div.title')[0].text
-        listprice_node = prod.cssselect('span.listprice')
-        if listprice_node:
-            listprice = listprice_node[0].text.replace('$', '').replace(',', '')
-        else:
+        title = element.find_element_by_class_name('title').text
+        try:
+            listprice = element.find_element_by_class_name('listprice').text.replace('$', '').replace(',', '')
+        except:
             listprice = ''
-        ourprice_node = prod.cssselect('span.ourprice')
-        if ourprice_node:
-            ourprice = ourprice_node[0].text.replace('$', '').replace(',', '')
-        else:
-            ourprice = ''
+        ourprice = element.find_element_by_class_name('ourprice').text.replace('$', '').replace(',', '')
 #        img = element.find_element_by_class_name('iImg').get_attribute('src')
 
         asin, casin = self.url2asin(link)
@@ -363,43 +362,52 @@ class Server:
         self.check_signin()
         if self.download_page_for_product(url) == 1:
             pass
-#            common_failed.send(sender=ctx, url=url, reason='probably the url download timeout.')
         time_begin_benchmark = time.time()
-        browser = lxml.html.fromstring(self.browser.page_source)
         product, is_new = Product.objects.get_or_create(pk=casin)
-        pre = browser.cssselect('div#main div#page-content div#detail-page')[0]
-        node = pre.cssselect('div#dpLeftCol')[0]
-        right_col = pre.cssselect('div#dpRightCol div#innerRightCol')[0]
+        try:
+            pre = self.browser.find_element_by_css_selector('div#main div#page-content div#detail-page')
+        except selenium.common.exceptions.NoSuchElementException:
+            try:
+                time.sleep(0.4)
+                pre = self.browser.find_element_by_css_selector('div#main div#page-content div#detail-page')
+            except selenium.common.exceptions.NoSuchElementException:
+                pre = self.browser.find_element_by_css_selector('div#main div#page-content div#detail-page')
+        node = pre.find_element_by_css_selector('div#dpLeftCol')
+        right_col = pre.find_element_by_css_selector('div#dpRightCol div#innerRightCol')
 
         info_table, image_urls, video = [], [], ''
-        shortDesc_node = node.cssselect('div#dpProdDesc div#pdBullets li.shortDesc')
-        if shortDesc_node: shortDesc = shortDesc_node[0].text
-        else: shortDesc = ''
-        international_shipping = node.cssselect('div#dpProdDesc div#pdBullets li#intlShippableBullet')[0].text
-        returned = node.cssselect('div#dpProdDesc div#pdBullets li#returnPolicyBullet')[0].text
+        try:
+            shortDesc = node.find_element_by_class_name('shortDesc').text
+        except selenium.common.exceptions.NoSuchElementException:
+            shortDesc = ''
+        international_shipping = node.find_element_by_id('intlShippableBullet').text
+        returned = node.find_element_by_id('returnPolicyBullet').text
         already_have = [international_shipping, returned]
         if shortDesc: already_have.append(shortDesc)
 
-        for bullet in node.cssselect('div#dpProdDesc div#pdBullets li'):
+        for bullet in node.find_elements_by_tag_name('li'):
             if bullet.text and bullet.text not in already_have:
                 info_table.append(bullet.text)
 
-        for img in node.cssselect('div#altImgContainer > div'):
+        for img in node.find_elements_by_xpath('.//div[@id="altImgContainer"]/div'):
             try:
-                picture = img.cssselect('.zoomImageL2')[0].get('value')
+                picture = img.find_element_by_class_name('zoomImageL2').get_attribute('value')
                 image_urls.append(picture)
             except:
                 try:
-                    video = img.cssselect('.videoURL').get('value')
-                except:
+                    video = img.find_element_by_class_name('videoURL').get_attribute('value')
+                except selenium.common.exceptions.StaleElementReferenceException:
                     video = ''
 
-        color_node = right_col.xpath('.//div[@class="dimensionAltText variationSelectOn"]')
-        if color_node: color = color_node[0].text
-        else: color = ''
-        sizes_node = right_col.xpath('./div[@id="dpVariationMatrix"]//select[@class="variationDropdown"]/option')
-        if sizes_node: sizes = [s.text for s in sizes_node if not s.text.startswith('Please')]
-        else: sizes = [] 
+        try:
+            color = right_col.find_element_by_xpath('.//div[@class="dimensionAltText variationSelectOn"]').text
+        except:
+            color = ''
+        try:
+            sizes = right_col.find_elements_by_xpath('./div[@id="dpVariationMatrix"]//select[@class="variationDropdown"]/option')
+            sizes = [s.text for s in sizes if not s.text.startswith('Please')]
+        except:
+            sizes = [] 
 
         product.summary = shortDesc
         product.list_info = info_table
@@ -410,10 +418,10 @@ class Server:
         if color: product.color = color
         if sizes: product.sizes = sizes
 
-        listprice = right_col.cssselect('div#dpPriceRow span#listPrice')[0].text.replace('$', '').replace(',', '')
-        ourprice = right_col.cssselect('div#dpPriceRow span#ourPrice')[0].text.replace('$', '').replace(',', '')
-        scarcity = right_col.cssselect('div#scarcity')[0].text
-        shipping = '; '.join( [a.text for a in right_col.cssselect('div.dpRightColLabel') if a.text] )
+        listprice = right_col.find_element_by_id('listPrice').text.replace('$', '').replace(',', '')
+        ourprice = right_col.find_element_by_id('ourPrice').text.replace('$', '').replace(',', '')
+        scarcity = right_col.find_element_by_id('scarcity').text
+        shipping = '; '.join( [a.text for a in right_col.find_elements_by_class_name('dpRightColLabel') if a.text] )
 
         product.price = ourprice
         product.listprice = listprice
@@ -425,6 +433,7 @@ class Server:
         
         common_saved.send(sender=ctx, key=casin, url=url, is_new=is_new, is_updated=not is_new)
         print 'time product process benchmark: ', time.time() - time_begin_benchmark
+
 
 
 if __name__ == '__main__':

@@ -13,11 +13,18 @@ from crawlers.common.routine import new, update, new_category, new_listing, new_
 import zerorpc
 from datetime import datetime, timedelta
 from settings import PEERS, RPC_PORT
-from throttletask import task_already_running, task_completed
+from throttletask import task_already_running, task_completed, task_broke_completed
 from functools import partial
 from .setting import EXPIRE_MINUTES
 
 def get_rpcs():
+    """
+        On one hand, we build a zerorpc client object,
+            if the program keep going, the open file handler resource is still hold,
+            so we can not build a zerorpc client every time, and need to keep the zerorpc client objects.
+        On the other hand, we need to detect PEERS change in settings,
+            so we need to keep PEERS in the function, and compare old and new PEERS.
+    """
     if not hasattr(get_rpcs, '_cached_peers'):
         setattr(get_rpcs, '_cached_peers', [])
 
@@ -54,6 +61,7 @@ def delete_expire_task(expire_minutes=EXPIRE_MINUTES):
     for t in Task.objects(status=Task.RUNNING, updated_at__lt=expire_datetime):
         t.status = Task.FAILED
         t.save()
+        task_broke_completed(t.site, t.method)
 
 
 class Scheduler(object):

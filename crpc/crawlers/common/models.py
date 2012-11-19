@@ -52,13 +52,16 @@ class BaseEvent(BaseCategory):
     """
     events_begin        = DateTimeField()
     events_end          = DateTimeField()
+    create_time         = DateTimeField(default=datetime.utcnow)
     soldout             = BooleanField(default=False)
     sale_title          = StringField()
     image_urls          = ListField(StringField())
     image_path          = ListField(StringField())
     sale_description    = StringField()
     dept                = ListField(StringField())
-    urgent              = BooleanField(default=False)
+
+    # after setting urgent to False, you can't set it back
+    urgent              = BooleanField(default=True)
 
     meta = {
         "indexes": ["soldout", "urgent"],
@@ -149,6 +152,8 @@ class LuxuryProduct(BaseProduct):
     """
     # associate to Event's unique key
     event_id            =   ListField(StringField())
+    create_time         =   DateTimeField(default=datetime.utcnow)
+    products_end        =   DateTimeField()
 
     soldout             =   BooleanField(default=False)
 
@@ -160,7 +165,6 @@ class LuxuryProduct(BaseProduct):
     scarcity            =   StringField()
     list_info           =   ListField(StringField())
 
-    products_end        =   DateTimeField()
 
     meta                = {
         "indexes": ["soldout"],

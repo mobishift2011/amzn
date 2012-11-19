@@ -34,3 +34,10 @@ def task_completed(greenlet, site, method):
     with lock:
         if key in SCHEDULE_STATE:
             SCHEDULE_STATE.remove(key) 
+
+def task_broke_completed(site, method):
+    """ removes state info from set """
+    key = '{0}.{1}'.format(site, method.split('_')[0])
+    with lock:
+        if key in SCHEDULE_STATE:
+            SCHEDULE_STATE.remove(key) 

@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""
+    spawn one listener to listen crawlers' signal -- pre_general_update, post_general_update
+"""
 from crawlers.common.events import *
 
 from helpers.log import getlogger

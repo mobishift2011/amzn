@@ -26,7 +26,7 @@ from models import *
 from crawlers.common.events import *
 from crawlers.common.stash import *
 
-req = requests.Session(prefetch=True, timeout=17, config=config, headers=headers)
+req = requests.Session(prefetch=True, timeout=30, config=config, headers=headers)
 
 class zulilyLogin(object):
     """.. :py:class:: zulilyLogin
@@ -118,7 +118,12 @@ class Server(object):
         
         for node in nodes:
             link = node.xpath('./a[@class="wrapped-link"]')[0].get('href')
-            link, event_id = self.extract_event_id.match(link).groups()
+            m = self.extract_event_id.match(link)
+            # the error: it is an event, but also a product page
+            if not m:
+                common_failed.send(sender=ctx, url=url, reason='the link[{0}] can not extract event_id'.format(link))
+                continue
+            link, event_id = m.groups()
             text = node.xpath('./a/span[@class="txt"]')[0]
 
             brand, is_new = Event.objects.get_or_create(event_id=event_id)
@@ -155,6 +160,8 @@ class Server(object):
 
     def upcoming_detail(self, upcoming_list, ctx):
         """.. :py:method::
+            zulily will on sale the events in advance, maybe 10~30 minutes,
+            so events_begin - timedelta(minutes=10) as the events_begin time
         """
         for pair in upcoming_list:
             cont = self.net.fetch_page(pair[1])
@@ -174,7 +181,7 @@ class Server(object):
                 sale_title = node.cssselect('div.event-content-copy h1')[0].text_content()
                 sale_description = node.cssselect('div.event-content-copy div#desc-with-expanded')[0].text_content().strip()
                 start_time = node.cssselect('div.upcoming-date-reminder span.reminder-text')[0].text_content() # 'Starts Sat 10/27 6am pt - SET REMINDER'
-                events_begin = time_convert( ' '.join( start_time.split(' ', 4)[1:-1] ), '%a %m/%d %I%p%Y' ) #'Sat 10/27 6am'
+                events_begin = time_convert( ' '.join( start_time.split(' ', 4)[1:-1] ), '%a %m/%d %I%p%Y' ) - timedelta(minutes=10) #'Sat 10/27 6am'
 
                 brand.image_urls = [image]
                 brand.sale_title = sale_title 
@@ -210,10 +217,11 @@ class Server(object):
 
         items = node.cssselect('div#products-grid li.item')
         end_date = node.cssselect('div#new-content-header>div.end-date')[0].text_content().strip()
-        end_date = end_date[end_date.find('in')+2:].strip() # '2 hours' or '1 day(s) 3 hours'
+        end_date = end_date[end_date.find('in')+2:].strip() # '2 hours' or '1 day(s) 3 hours' or ''
         days = int(end_date.split()[0]) if 'day' in end_date else 0
         hours = int(end_date.split()[-2]) if 'hour' in end_date else 0
-        brand.events_end = datetime.utcnow() + timedelta(days=days, hours=hours)
+        events_end = datetime.utcnow() + timedelta(days=days, hours=hours) + timedelta(minutes=29, seconds=59, microseconds=999999)
+        brand.events_end = datetime(events_end.year, events_end.month, events_end.day, events_end.hour)
         brand.num = len(items)
         brand.update_time = datetime.utcnow()
         brand.urgent = False
@@ -304,7 +312,6 @@ class Server(object):
             if soldout and product.soldout != True:
                 product.soldout = True
                 is_updated = True
-#        product.brand = sale_title
         product.list_update_time = datetime.utcnow()
         product.save()
         common_saved.send(sender=ctx, key=slug, url=self.siteurl + '/e/' + event_id + '.html', is_new=is_new, is_updated=is_updated)

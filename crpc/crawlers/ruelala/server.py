@@ -37,8 +37,6 @@ class Server:
     
     def __init__(self):
         self.siteurl = 'http://www.ruelala.com'
-        self.email = 'huanzhu@favbuy.com'
-        self.passwd = '4110050209'
         self._signin = False
 
     def get(self,url):
@@ -53,29 +51,25 @@ class Server:
             return True
 
     def logout(self):
-        url = 'http://www.ruelala.com/access/logout'
         self._signin = False
-        self.browser.get(url)
+        self.browser.quit()
+#        url = 'http://www.ruelala.com/access/logout'
+#        self.browser.get(url)
 
-    def login(self, email=None, passwd=None):
+    def login(self):
         """.. :py:method::
             login urelala
-
-        :param email: login email
-        :param passwd: login passwd
         """
         if self._signin:
             return
         
-        if not email:
-            email, passwd = self.email, self.passwd
         self.browser = webdriver.Chrome()
             #self.browser.set_page_load_timeout(10)
             #self.profile = webdriver.FirefoxProfile()
             #self.profile.set_preference("general.useragent.override","Mozilla/5.0 (iPhone; CPU iPhone OS 5_1_1 like Mac OS X) AppleWebKit/534.46 (KHTML, like Gecko) Version/5.1 Mobile/9B206 Safari/7534.48.3")
 
         #self.browser.implicitly_wait(1)
-        self.browser.get(self.siteurl)
+        self.browser.get('http://www.ruelala.com/event/showReminders')
         time.sleep(1)
         
         # click the login link
@@ -85,11 +79,11 @@ class Server:
 
         a = self.browser.find_element_by_id('txtEmailLogin')
         a.click()
-        a.send_keys(email)
+        a.send_keys(login_email)
 
         b = self.browser.find_element_by_id('txtPass')
         b.click()
-        b.send_keys(passwd)
+        b.send_keys(login_passwd)
 
         signin_button = self.browser.find_element_by_id('btnEnter')
         signin_button.click()
@@ -104,27 +98,43 @@ class Server:
         """.. :py:method::
             From top depts, get all the events
         """
-        self.login(self.email, self.passwd)
-        categorys = ['women', 'men', 'living','kids','todays-fix']
-        locals = [
-                'http://www.ruelala.com/local/boston',
-                'http://www.ruelala.com/local/chicago',
-                'http://www.ruelala.com/local/los-angeles',
-                'http://www.ruelala.com/local/new-york-city',
-                'http://www.ruelala.com/local/philadelphia',
-                'http://www.ruelala.com/local/san-francisco'
-                'http://www.ruelala.com/local/washington-dc',
-                'http://www.ruelala.com/local/seattle',
-                ]
+        self.login()
 
+        categorys = ['women', 'men', 'living', 'kids', 'gifts']
         for category in categorys:
-            url = 'http://www.ruelala.com/category/%s' %category
-            self._get_event_list(category,url,ctx)
+            url = 'http://www.ruelala.com/category/{0}'.format(category)
+            if category == 'gifts':
+                self._get_gifts_event_list(category, url, ctx)
+            else:
+                self._get_event_list(category,url,ctx)
 
-        for url in locals:
-            self._get_event_list('local',url,ctx)
+#        local = ['boston', 'chicago', 'los-angeles', 'new-york-city', 'philadelphia', 'san-francisco', 'seattle', 'washington-dc', ]
+#        for category in local:
+#            url = 'http://www.ruelala.com/local/{0}'.format(category)
+#            self._get_event_list(category, url, ctx)
 
-        self.logout()
+
+    def _get_gifts_event_list(self, category_name, url, ctx):
+        """.. :py:method::
+            Get gifts events, these events have no time.
+            
+            Problem may exist: these events off sale, update_listing will get nothing.
+        """
+        self.browser.get(url)
+        nodes = self.browser.find_elements_by_css_selector('body > div.container > div#canvasContainer > section#gift-center > div#gc-wrapper a[href]')
+        for node in nodes:
+            l = node.get_attribute('href')
+            event_id = l.rsplit('/', 1)[-1]
+            link = l if l.startswith('http') else self.siteurl + l
+            event, is_new = Event.objects.get_or_create(event_id=event_id)
+            if is_new:
+                event.combine_url = link
+                event.dept = [category_name]
+                event.urgent = True
+            event.update_time = datetime.datetime.utcnow()
+            event.save()
+            common_saved.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=False)
+
 
     def _get_event_list(self,category_name,url,ctx):
         """.. :py:method::
@@ -134,40 +144,32 @@ class Server:
             # str == u'2\xa0Days,\xa012:46:00'
             m = re.compile('.*(\d{1,2})\xa0Day.*,\xa0(\d{1,2}):(\d{1,2}):(\d{1,2})').findall(str)
 #            print 're.m',m
-            print 're.str[%s]' %str
+#            print 're.str[%s]' %str
             days,hours,minutes,seconds = m[0]
             now = datetime.datetime.utcnow()
             delta = datetime.timedelta(days=int(days),hours=int(hours),minutes=int(minutes),seconds=int(seconds))
             d = now + delta
-            print 'd>',d
+#            print 'd>',d
             #ensure the end date is precise 
             if d.minute == 0:
                 return datetime.datetime(d.year,d.month,d.day,d.hour,0,0)
             elif 50 <= d.minute <= 59:
                 return datetime.datetime(d.year,d.month,d.day,d.hour+1,0,0)
 
-        result = []
         self.browser.get(url)
 
-#        try:
-#            span = self.browser.find_element_by_xpath('//span[@class="viewAll"]')
-#        except:
-#            pass
-#        else:
-#            span.click()
-#            time.sleep(1)
+        nodes = self.browser.find_elements_by_css_selector('body.wl-default > div.container > div#categoryMain > section#categoryDoors > article[id^="event-"]')
+#        if nodes == []:
+#            # for local, but local is not event
+#            nodes = self.browser.find_elements_by_css_selector('body.wl-default > div.container section#localDoors > article[id^="event-"]')
 
-        nodes = self.browser.find_elements_by_xpath('//section[@id="eventDoorLink"]/article')
-        #nodes = self.browser.find_elements_by_xpath('//section[@id="alsoOnDoors"]/article')
 
         for node in nodes:
             # pass the hiden element
-            if not node.is_displayed():
-                continue
+            if not node.is_displayed(): continue
 
-            a_title = node.find_element_by_xpath('./footer/a[@class="eventDoorLink centerMe eventDoorContent"]/div[@class="eventName"]')
-            if not a_title:
-                continue
+            a_title = node.find_element_by_css_selector('footer.eventFooter > a.eventDoorContent > div.eventName')
+            if not a_title: continue
 
             #image = node.find_element_by_xpath('./a/img').get_attribute('src')
             a_link = node.find_element_by_xpath('./a[@class="eventDoorLink"]').get_attribute('href')
@@ -184,40 +186,31 @@ class Server:
             event,is_new = Event.objects.get_or_create(event_id=event_id)
             is_updated = False
             if is_new:
-                event.image_urls = ['http://www.ruelala.com/images/content/events/%s_doormini.jpg' %event_id]
+                sm = 'http://www.ruelala.com/images/content/events/{event_id}/{event_id}_doorsm.jpg'.format(event_id=event_id)
+                lg = 'http://www.ruelala.com/images/content/events/{event_id}/{event_id}_doorlg.jpg'.format(event_id=event_id)
+                event.image_urls = [sm, lg]
                 event.dept = [category_name]
                 event.urgent = True
-#            elif event.sale_title == a_title.text:
-#                is_updated = False
-#            else:
-#                print 'is updated >>>'
-#                print 'old title',event.sale_title
-#                print 'new title',a_title.text
-#                is_updated = True
+                event.combine_url = a_url
 
             if end_time:
                 event.events_end = end_time
             event.update_time = datetime.datetime.utcnow()
             event.sale_title = a_title.text
-#            event.is_leaf = True
             event.save()
             common_saved.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=is_updated)
-            result.append((event_id,a_url))
-        return result
 
     @exclusive_lock(DB)
     def crawl_listing(self,url,ctx=''):
         self._crawl_listing(url,ctx)
-        self.logout()
 
     def _crawl_listing(self,url,ctx):
         event_url = url
         event_id = self._url2saleid(event_url)
-        self.login(self.email, self.passwd)
-        result = []
+        self.login()
         self.get(event_url)
         try:
-            span = self.browser.find_element_by_xpath('//span[@class="viewAll"]')
+            span = self.browser.find_element_by_css_selector('div.container div#pagination span.viewAll')
         except:
             pass
         else:
@@ -230,7 +223,7 @@ class Server:
 
         nodes = []
         if not nodes:
-            nodes = self.browser.find_elements_by_xpath('//article[@class="product"]')
+            nodes = self.browser.find_elements_by_css_selector('div.container div#productGridControl div#productGrid article.product')
         if not nodes:
             nodes = self.browser.find_elements_by_xpath('//article[@class="column eventDoor halfDoor grid-one-third alpha"]')
 
@@ -324,13 +317,12 @@ class Server:
     @exclusive_lock(DB)
     def crawl_product(self,url,ctx=''):
         self._crawl_product(url,ctx)
-        self.logout()
 
     def _crawl_product(self,url,ctx=''):
         """.. :py:method::
             Got all the product basic information and save into the database
         """
-        self.login(self.email, self.passwd)
+        self.login()
         product_id = self._url2product_id(url)
         self.get(url)
 
@@ -424,7 +416,6 @@ class Server:
         """
         ensure the url is start with `http://www.xxx.com`
         """
-
         if url.startswith('http://'):
             return url
         else:

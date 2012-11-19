@@ -148,6 +148,25 @@ class Server(object):
         endtime = pt.localize(datetime.strptime(tinfo, time_format))
         return endtime.astimezone(pytz.utc)
 
+    def one_page(self, url):
+        self.extract_eventid = re.compile('https://www.onekingslane.com/sales/(\d+)')
+        cont = self.net.fetch_page(url)
+        tree = lxml.html.fromstring(cont)
+        path = tree.cssselect('div#wrapper > div#okl-content > div.sales-event')[0]
+        event_id = self.extract_eventid.match(url).group(1)
+        sale_description = path.cssselect('div#okl-bio > div.event-description .description')
+        if sale_description:
+            print sale_description[0].text.strip()
+        end_date = path.cssselect('div#okl-bio > h2.share')[0].get('data-end')
+        print self.utcstr2datetime(end_date)
+
+    def utcstr2datetime(self, date_str):
+        """.. :py:method::
+            covert time from the format into utcnow()
+            '20121105T150000Z'
+        """
+        fmt = "%Y%m%dT%H%M%S"
+        return datetime.strptime(date_str.rstrip('Z'), fmt)
 
 
 if __name__ == '__main__':

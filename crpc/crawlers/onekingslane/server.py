@@ -46,7 +46,7 @@ headers = {
     'Referer': 'https://www.onekingslane.com/login',
 }
 
-req = requests.Session(prefetch=True, timeout=17, config=config, headers=headers)
+req = requests.Session(prefetch=True, timeout=30, config=config, headers=headers)
 
 
 class onekingslaneLogin(object):
@@ -183,6 +183,7 @@ class Server(object):
                     if sale_description:
                         event.sale_description = sale_description[0].text.strip()
                     event.urgent = True
+                    event.combine_url = 'https://www.onekingslane.com/sales/{0}'.format(event_id)
                 
                 event.update_time = datetime.utcnow()
                 event.save()
@@ -212,8 +213,6 @@ class Server(object):
             event_id = re.compile(r'.*/vintage-market-finds/(.*)').match(link).group(1)
             event, is_new = Event.objects.get_or_create(event_id=event_id)
             event.combine_url = 'https://www.onekingslane.com/vintage-market-finds/{0}'.format(event_id)
-            # no begin, end data, urgent always true. Then can crawl
-            event.urgent = True
             event.dept = [dept]
 #            event.is_leaf = True
             event.update_time = datetime.utcnow()
@@ -255,17 +254,12 @@ class Server(object):
             event.sale_description = tree.cssselect('div#wrapper > div#okl-content > div#okl-vmf-category-carousel-hd > h3+p')[0].text_content()
         items = tree.cssselect('div#wrapper > div#okl-content > div#okl-vmf-product-list > ul.products > li.trackVmfProduct')
         event.num = len(items)
-        _utcnow = datetime.utcnow()
-        event.update_time = _utcnow
-
-        # framework need events_end when urgent=False, so I set an end time.
-        # crawl_category will set urgent to True again.
-        event.events_end = _utcnow + timedelta(days=30)
         event.urgent = False
-        event.save()
         common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=False)
         for item in items:
             self.crawl_category_list_product(event_id, item, ctx)
+
+        event.save()
 
     def crawl_category_list_product(self, event_id, item, ctx):
         """.. :py:method::

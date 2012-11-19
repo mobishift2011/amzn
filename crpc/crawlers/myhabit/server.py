@@ -133,8 +133,8 @@ class Server:
         while not self.upcoming_queue.empty():
 #            try:
             job = self.upcoming_queue.get(timeout=timeover)
-            if self.download_page(job[1]) == 1:
-                continue
+            if self.download_page_for_product(job[1]) == 1:
+                pass
             self.parse_upcoming(job[0], job[1], ctx)
 #            except Queue.Empty:
 #                debug_info.send(sender="{0}.category:Queue waiting {1} seconds without response!".format(DB, timeover))
@@ -220,8 +220,8 @@ class Server:
         :param url: url in the page
         """
         event_id = self.url2saleid(url)
-        brand, is_new = Event.objects.get_or_create(event_id=event_id)
-        if is_new:
+        event = Event.objects(event_id=event_id).first()
+        if not event:
             browser = lxml.html.fromstring(self.browser.page_source)
             path = browser.cssselect('div#main div#page-content div#top-content')[0]
 
@@ -240,18 +240,19 @@ class Server:
                 sub_img = sub.xpath('./img')[0].get('src')
                 subs.append([sub_title, sub_img])
 
-            brand.dept = [dept]
-            brand.sale_title = sale_title
-            brand.image_urls = [img]
-            brand.events_begin = utc_begintime
-            brand.sale_description = brand_info
-            brand.upcoming_title_img = subs
-            brand.update_time = datetime.utcnow()
-            brand.urgent = True
-            brand.combine_url = 'http://www.myhabit.com/homepage#page=b&sale={0}'.format(event_id)
+            event = Event(event_id=event_id)
+            event.dept = [dept]
+            event.sale_title = sale_title
+            event.image_urls = [img]
+            event.events_begin = utc_begintime
+            event.sale_description = brand_info
+            event.upcoming_title_img = subs
+            event.update_time = datetime.utcnow()
+            event.urgent = True
+            event.combine_url = 'http://www.myhabit.com/homepage#page=b&sale={0}'.format(event_id)
         else:
-            if dept not in brand.dept: brand.dept.append(dept)
-        brand.save()
+            if dept not in event.dept: event.dept.append(dept)
+        event.save()
         common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=False)
 
 

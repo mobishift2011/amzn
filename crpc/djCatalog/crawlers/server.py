@@ -200,4 +200,7 @@ def gilt():
 
 
 if __name__ == '__main__':
-    Crawler(sites).crawl()
+#    Crawler(sites).crawl()
+    for brand in Brand.objects():
+        if not brand.dept:
+            brand.dept.append('')

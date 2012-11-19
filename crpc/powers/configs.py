@@ -3,7 +3,6 @@ Created on 2012-11-6
 
 @author: ethan
 '''
-from os import listdir, path
 
 AWS_ACCESS_KEY = "AKIAIQC5UD4UWIJTBB2A"
 AWS_SECRET_KEY = "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"

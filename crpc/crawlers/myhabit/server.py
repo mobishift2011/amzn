@@ -39,6 +39,10 @@ class Server:
         self.siteurl = 'http://www.myhabit.com'
         self._signin = False
 #        webdriver.support.wait.POLL_FREQUENCY = 0.05
+        self.upcoming_label = 'li.up-result' 
+        self.event_label = 'div#centerContent'
+        self.listing_label = ''
+        self.product_label = 'div#bbContent'
 
     def login(self):
         """.. :py:method::
@@ -49,7 +53,7 @@ class Server:
         self.browser = webdriver.Chrome()
 #        self.browser.set_page_load_timeout(5)
 #        self.browser.implicitly_wait(1)
-        self.download_page_for_product('http://www.myhabit.com/my-account')
+        self.download_page('http://www.myhabit.com/my-account')
 
     def fill_login_form(self):
         """.. :py:method:
@@ -81,27 +85,14 @@ class Server:
             self.browser.get(url)
             if self.browser.title == u'Amazon.com Sign In':
                 self.fill_login_form()
-            WebDriverWait(self.browser, TIMEOUT, 0.5).until(lambda driver: driver.find_element_by_css_selector('div#body div#main div#page-content div#bottom-content'))
-        except selenium.common.exceptions.TimeoutException:
-            try:
+            if label:
+                WebDriverWait(self.browser, TIMEOUT, 0.5).until(lambda driver: driver.execute_script('return $.active') == 0 and driver.find_element_by_css_selector(label))
+            else:
                 WebDriverWait(self.browser, TIMEOUT, 0.5).until(lambda driver: driver.execute_script('return $.active') == 0)
-            except selenium.common.exceptions.TimeoutException:
-                print 'Timeout ---> {0}'.format(url)
-                return 1
-#        print 'time download benchmark: ', time.time() - time_begin_benchmark
-
-    def download_page_for_product(self, url):
-#        time_begin_benchmark = time.time()
-        try:
-            self.browser.get(url)
-            if self.browser.title == u'Amazon.com Sign In':
-                self.fill_login_form()
-            WebDriverWait(self.browser, TIMEOUT, 0.5).until(lambda driver: driver.execute_script('return $.active') == 0)
         except selenium.common.exceptions.TimeoutException:
-            print 'Timeout --> {0}'.format(url)
+            print 'Timeout ---> {0}, {1}'.format(url, label)
             return 1
-#        print 'time download for product benchmark: ', time.time() - time_begin_benchmark
-
+#        print 'time download benchmark: ', time.time() - time_begin_benchmark
 
 
     @exclusive_lock(DB)
@@ -133,7 +124,7 @@ class Server:
         while not self.upcoming_queue.empty():
 #            try:
             job = self.upcoming_queue.get(timeout=timeover)
-            if self.download_page_for_product(job[1]) == 1:
+            if self.download_page(job[1], self.upcoming_label) == 1:
                 pass
             self.parse_upcoming(job[0], job[1], ctx)
 #            except Queue.Empty:
@@ -170,13 +161,13 @@ class Server:
         :param dept: dept in the page
         :param url: the dept's url
         """
-        self.download_page_for_product(url)
+        self.download_page(url, self.event_label)
         browser = lxml.html.fromstring(self.browser.page_source)
-        nodes = browser.xpath('//div[@id="main"]/div[@id="page-content"]/div[@id="currentSales"]/div[starts-with(@id, "privateSale")]')
+        nodes = browser.xpath('//div[@id="main"]/div[@id="page-content"]/div[@id="currentSales"]//div[starts-with(@id, "privateSale")]')
         if len(nodes) == 0 or not nodes:
             time.sleep(1)
             browser = lxml.html.fromstring(self.browser.page_source)
-            nodes = browser.xpath('//div[@id="main"]/div[@id="page-content"]/div[@id="currentSales"]/div[starts-with(@id, "privateSale")]')
+            nodes = browser.xpath('//div[@id="main"]/div[@id="page-content"]/div[@id="currentSales"]//div[starts-with(@id, "privateSale")]')
 
         for node in nodes:
             a_title = node.xpath('./div[@class="caption"]/a')[0]
@@ -274,7 +265,7 @@ class Server:
         :param url: url in the page
         """
         self.check_signin()
-        if self.download_page_for_product(url) == 1:
+        if self.download_page(url, self.listing_label) == 1:
             pass
         time_begin_benchmark = time.time()
         browser = lxml.html.fromstring(self.browser.page_source)
@@ -375,7 +366,7 @@ class Server:
         :param url: product url
         """
         self.check_signin()
-        if self.download_page_for_product(url) == 1:
+        if self.download_page(url, self.product_label) == 1:
             pass
         time_begin_benchmark = time.time()
         browser = lxml.html.fromstring(self.browser.page_source)

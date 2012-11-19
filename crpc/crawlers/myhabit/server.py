@@ -71,7 +71,7 @@ class Server:
         self.browser.quit()
         self._signin = False
 
-    def download_page(self, url):
+    def download_page(self, url, label=None):
         """.. :py:method::
             download the url
         :param url: the url need to download

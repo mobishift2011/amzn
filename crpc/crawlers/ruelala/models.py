@@ -21,7 +21,7 @@ class Event(BaseEvent):
     }
 
     def url(self):
-        return 'http://www.ruelala.com/event/%s' %self.event_id
+        return 'http://www.ruelala.com/event/{0}'.format(self.event_id)
 
 class Product(LuxuryProduct):
     limit     = StringField()

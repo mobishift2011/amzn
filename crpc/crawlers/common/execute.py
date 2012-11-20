@@ -15,7 +15,7 @@ import time
 def run(site, rpc):
     begin = time.time()
 
-    update_category(site, rpc)
+    new_category(site, rpc)
     category_cost = time.time() - begin
     print '\n\n--++ {0} ++--\n\n'.format(category_cost)
 

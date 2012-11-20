@@ -6,6 +6,8 @@ from backends.monitor.models import Task, Schedule, fail
 from bson.objectid import ObjectId
 from datetime import datetime, timedelta
 
+from powers.models import Progress
+
 def mark_all_failed():
     for t in Task.objects():
         if t.status == Task.RUNNING:
@@ -66,3 +68,7 @@ def get_all_fails(ctx):
     task = Task.objects.get(ctx=ctx)
     fails = task.fails[-10:]
     return {'fails': [fail.to_json() for fail in fails]}
+
+def get_all_progresses():
+    progresses = Progress.objects() # TODO some filtering.
+    return [p.to_json() for p in progresses]

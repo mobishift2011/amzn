@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 SimplyToImpress.com 11/21 at 8AM ET http://www.ruelala.com/event/promoReel/id/61083
+Oakley Ski Gear     11/21 at 11AM ET http://www.ruelala.com/event/promoReel/id/59788
 
 crawlers.ruelala.server
 ~~~~~~~~~~~~~~~~~~~
@@ -135,7 +136,8 @@ class Server(object):
             event, event_id, link = self.parse_event(dept, node, ctx)
 
             num, isodate = self.is_parent_event(dept, event_id, link, ctx)
-            if num == 1:
+            if num >= 1:
+                if num > 1: event.urgent = False
                 event.events_end = isodate
                 event.save()
 
@@ -156,11 +158,17 @@ class Server(object):
 
         :param event_id: event id
         :param url: parent event url or listing page url
-        :rtype: number -- 0(fail), 1(success)
+        :rtype: number -- 0(fail), >=1(success)
                 events_end: isoformat events_end
         """
         cont = self.net.fetch_page(url)
-        countdown_num = self.countdown_num.findall(cont)
+        try:
+            # if this event is a product, cont is 401
+            countdown_num = self.countdown_num.findall(cont)
+        except TypeError:
+            common_failed.send(sender=ctx, site=DB, key='', url=url, reason='event is a product.')
+            print url 
+            return 0, 0
         if len(countdown_num) == 0:
             common_failed.send(sender=ctx, site=DB, key='', url=url, reason='Url has no closing time.')
             return 0, 0
@@ -170,7 +178,7 @@ class Server(object):
             else:
                 common_failed.send(sender=ctx, site=DB, key='', url=url, reason='Url has 1 closing time but event_id not matching.')
                 return 0, 0
-        else:
+        elif len(countdown_num) > 1:
             tree = lxml.html.fromstring(cont)
             nodes = tree.cssselect('div#main > section#experienceParentWrapper > section#children > article[id^="event-"]')
             for node in nodes:
@@ -181,7 +189,7 @@ class Server(object):
                         event.events_end = datetime.utcfromtimestamp( float(item[4][:-3]) )
                         event.save()
                         break
-            return 1, [datetime.utcfromtimestamp( float(item[4][:-3]) ) for item in countdown_num if item[1] == event_id][0]
+            return len(countdown_num), [datetime.utcfromtimestamp( float(item[4][:-3]) ) for item in countdown_num if item[1] == event_id][0]
 
 
     def parse_event(self, dept, node, ctx, child=False):

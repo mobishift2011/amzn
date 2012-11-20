@@ -89,7 +89,7 @@ if __name__ == '__main__':
         parser.print_help()
         sys.exit()
         
-    tc = TestCrawler('zulily')    
+    tc = TestCrawler(options.crawler)    
     if not options.func:
         tc.test_new_category()
     

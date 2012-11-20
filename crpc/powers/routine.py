@@ -16,6 +16,8 @@ import traceback
 
 from settings import PEERS, RPC_PORT
 from configs import SITES
+from events import *
+from binds import *
 
 def get_rpcs():
     if not hasattr(get_rpcs, '_cached_peers'):
@@ -41,13 +43,12 @@ def call_rpc(rpc, method, *args, **kwargs):
         RPCServer().image(method, args, kwargs)
         #rpc.image(method, args, kwargs)
     except Exception, e:
-        print e
-#        common_failed.send(sender=kwargs['ctx'],
-#                            site = site,
-#                            key = kwargs.get('key') or kwargs.get('event_id'),
-#                            url = kwargs.get('url'),
-#                            reason = traceback.format_exc()
-#                            )
+        image_crawled_failed.send(sender=kwargs['ctx'],
+                            site = kwargs['ctx'],
+                            key = kwargs.get('key') or kwargs.get('event_id'),
+                            url = kwargs.get('url'),
+                            reason = traceback.format_exc()
+                            )
 
 def get_site_module(site):
     return __import__("crawlers."+site+'.models', fromlist=['Event', 'Product'])
@@ -72,24 +73,63 @@ def spout_product_images(site):
             'image_urls': product.image_urls
         }
 
+class UpdateContext(object):
+    """ the context manager for monitoring 
+        
+    wraps tedious signals passing inside the context manager
+    
+    Usage:
+
+    >>> with MonitorContext(site='amazon', method='update_category'):
+    ...     pass # do something related to site and method
+
+    """
+    def __init__(self, site, method):
+        self.site = site
+        self.method = method
+        self.sender = "{0}.{1}.{2}".format(self.site, self.method, uuid.uuid4().hex)
+    
+    def __enter__(self):
+        pre_image_crawl.send(sender = self.sender,
+                                    site = self.site,
+                                    method = self.method)
+        return self.sender
+
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        complete = True
+        reason = ''
+        if exc_type:
+            complete = False
+            reason = ''.join(traceback.format_tb(exc_traceback))+'{0!r}'.format(exc_value)
+        
+        post_image_crawl.send(sender = self.sender,
+                                    site = self.site,
+                                    method = self.method,
+                                    complete = complete,
+                                    reason = reason)
+
 def update_event_images(site, rpc, concurrency=3):
-    rpcs = [rpc] if not isinstance(rpc, list) else rpc
-    pool = Pool(len(rpcs)*concurrency)
-    for kwargs in spout_event_images(site):
-        rpc = random.choice(rpcs)
-        pool.spawn(call_rpc, rpc, 'crawl_event_images', **kwargs)
-    pool.join()
+    with UpdateContext(site, 'crawl_event_images') as ctx:
+        rpcs = [rpc] if not isinstance(rpc, list) else rpc
+        pool = Pool(len(rpcs)*concurrency)
+        for kwargs in spout_event_images(site):
+            kwargs['ctx'] = ctx
+            rpc = random.choice(rpcs)
+            pool.spawn(call_rpc, rpc, 'crawl_event_images', **kwargs)
+        pool.join()
 
 def update_product_images(site, rpc, concurrency=3):
-    rpcs = [rpc] if not isinstance(rpc, list) else rpc
-    pool = Pool(len(rpcs)*concurrency)
-    for kwargs in spout_product_images(site):
-        rpc = random.choice(rpcs)
-        pool.spawn(call_rpc, rpc, 'crawl_product_images', **kwargs)
-    pool.join()
+    with UpdateContext(site, 'crawl_event_images') as ctx:
+        rpcs = [rpc] if not isinstance(rpc, list) else rpc
+        pool = Pool(len(rpcs)*concurrency)
+        for kwargs in spout_product_images(site):
+            kwargs['ctx'] = ctx
+            rpc = random.choice(rpcs)
+            pool.spawn(call_rpc, rpc, 'crawl_product_images', **kwargs)
+        pool.join()
 
-def update_images(site, rpcs, concurrency=3):
-    rpcs = []
+#def update_images(site, rpcs, concurrency=3):
+#    rpcs = []
 
 
 def test():

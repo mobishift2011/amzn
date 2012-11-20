@@ -71,5 +71,4 @@ def get_all_fails(ctx):
 
 def get_all_progresses():
     progresses = Progress.objects() # TODO some filtering.
-    print '.....', progresses
     return [p.to_json() for p in progresses]

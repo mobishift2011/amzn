@@ -82,11 +82,7 @@ def get_task_fails(ctx):
 
 @route('/progress')
 def progress_all():
-    data = get_all_progresses()
-    print '~~~~~~~~~~~~~'
-    print data
-    print '~~~~~~~~~~~~~~~~~~'
-    return template('process.tpl', progresses=data)
+    return template('process.tpl', progresses=get_all_progresses())
 
 
 #mark_all_failed()

@@ -24,21 +24,25 @@
               <th>type</th>
               <th>key</th>
               <th>status</th>
-              <th>image_done</th>
-              <th>branch_done</th>
-              <th>push_done</th>
+              <th>image done</th>
+              <th>branch done</th>
+              <th>push done</th>
+              <th>started</th>
+              <th>updated</th>
             </tr>
           </thead>
-          <tbody>str({{progresses}})
+          <tbody>
            %for progress in progresses:
-            <tr ng-repeat="task in tasks">
-              <td>{{LB}}progress.get('site'){{RB}}</td>
-              <td>{{LB}}progress.get('site'){{RB}}</td>
-              <td>{{LB}}progress.get('site'){{RB}}</td>
-              <td>{{LB}}progress.get('site'){{RB}}</td>
-              <td>{{LB}}progress.get('site'){{RB}}</td>
-              <td>{{LB}}progress.get('site'){{RB}}</td>
-              <td>{{LB}}progress.get('site'){{RB}}</td>
+            <tr>
+              <td>{{progress.get('site')}}</td>
+              <td>{{progress.get('type')}}</td>
+              <td>{{progress.get('key')}}</td>
+              <td>{{progress.get('status')}}</td>
+              <td>{{progress.get('image_done')}}</td>
+              <td>{{progress.get('branch_done')}}</td>
+              <td>{{progress.get('push_done')}}</td>
+              <td>{{progress.get('started_at')}}</td>
+              <td>{{progress.get('updated_at')}}</td>
             </tr>
             %end
           </tbody>

@@ -127,7 +127,7 @@ class Server:
             Problem may exist: these events off sale, update_listing will get nothing.
         """
         self.browser.get(url)
-        browser = lxml.html.fromstring(slef.browser.page_source)
+        browser = lxml.html.fromstring(self.browser.page_source)
         nodes = browser.cssselect('body > div.container > div#canvasContainer > section#gift-center > div#gc-wrapper a[href]')
         if len(nodes) == 0 or not nodes:
             time.sleep(1)
@@ -201,7 +201,7 @@ class Server:
 
             if end_time: event.events_end = end_time
             event.update_time = datetime.datetime.utcnow()
-            event.sale_title = a_title.text
+            event.sale_title = a_title[0].text
             event.save()
             common_saved.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=False)
 
@@ -249,8 +249,7 @@ class Server:
 
         for node in nodes:
 #            if not node.is_displayed(): continue
-            a = node.xpath('./a')
-            href = a.get('href')
+            href = node.xpath('./a/@href')[0]
 
 #            # patch 2
 #            # the event have some sub events
@@ -258,8 +257,7 @@ class Server:
 #                self._crawl_listing(self.format_url(href),ctx)
 #                continue
 
-            img = node.xpath('./a/img')
-            title = img.get('alt')
+            title = node.xpath('./a/img/@alt')[0]
             url = self.format_url(href)
             product_id = self._url2product_id(url)
             strike_price = node.xpath('./div/span[@class="strikePrice"]')
@@ -349,7 +347,7 @@ class Server:
         
         attribute_node = node.cssselect('section#productAttributes')[0]
         size_list = attribute_node.cssselect('section#productSelectors ul#sizeSwatches li.swatch a')
-        sizes = [s.text for s in size_list]
+        sizes = [s.text for s in size_list] if size_list else []
 #        if size_list:
 #            for a in size_list:
 #                a.click()
@@ -371,6 +369,9 @@ class Server:
         limit = limit[0].text_content() if limit else ''
         ship_rule = attribute_node.cssselect('div#returnsLink ')
         ship_rule = ship_rule[0].text_content() if ship_rule else ''
+        color = attribute_node.cssselect('section#productSelectors ul#colorSwatches > li > a')
+        color = [c.get('title') for c in color] if color else []
+
 
         product, is_new = Product.objects.get_or_create(key=product_id)
         product.image_urls = image_urls
@@ -380,6 +381,7 @@ class Server:
         product.shipping = shipping
         product.limit = limit
         product.ship_rule = ship_rule
+        product.color = color
         product.updated = True
         product.full_update_time = datetime.datetime.utcnow()
         product.save()

@@ -30,11 +30,10 @@ def run(site, rpc):
     update_listing(site, rpc)
 
 if __name__ == '__main__':
-    import crawllog
     rpc = RPCServer()
 #    rpc.call('myhabit', 'crawl_category', (), {'ctx':'haha'})
     if sys.argv[1]:
-        if sys.argv[1] == 'myhabit' or 'zulily' or 'hautelook' or 'onekingslane':
+        if sys.argv[1] == 'myhabit' or 'zulily' or 'hautelook' or 'onekingslane' or 'ruelala':
             run(sys.argv[1], rpc)
     else:
         update_category('ruelala', rpc)

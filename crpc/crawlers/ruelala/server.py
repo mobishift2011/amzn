@@ -137,7 +137,7 @@ class Server(object):
 
             num, isodate = self.is_parent_event(dept, event_id, link, ctx)
             if num >= 1:
-                if num > 1: event.urgent = False
+                if num > 1: event.is_leaf = True
                 event.events_end = isodate
                 event.save()
 

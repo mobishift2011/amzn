@@ -14,6 +14,44 @@ from datetime import datetime, timedelta
 
 connect(db="power", host=MONGODB_HOST)
 
+class Progress(Document):
+    site = StringField(required=True)
+    type = StringField(required=True)  # Event or Product
+    key = StringField(unique_with=['site', 'type'])
+    pushes = ListField()    # The events or products that needs to be pushed
+    
+    status = IntField(default=0)    # 0.nothing 1.image process 2.branch extract 4.push
+    
+    image_done = BooleanField(default=False)
+    branch_done = BooleanField(default=False)
+    push_done = BooleanField(default=False)
+    
+    
+    started_at      =   DateTimeField()
+    updated_at      =   DateTimeField(default=datetime.utcnow())
+
+    def to_json(self):
+        return {
+            'site':         self.site,
+            'type':         self.type,
+            'key':          self.key,
+            'status':       Progress.inverse_status(self.status),
+#            'started_at':   self.started_at.isoformat() if self.started_at else 'undefined',
+#            'updated_at':   self.updated_at.isoformat() if self.updated_at else 'undefined',
+            'image_done':   self.image_done,
+            'branch_done':  self.branch_done,
+            'push_done':    self.push_done
+        }
+    
+    @staticmethod
+    def inverse_status(st):
+        return {0:'NOTHING',1:'IMAGE CRAWLING',2:'BRAND EXTRACT',3:'I&B',4:'PUSH',5:'I&P',6:'B&P',7:'I&B&P'}.get(st,'UNDEFINED')
+    
+    @classmethod
+    def pre_save(cls, sender, document, **kwargs):
+        document.updated_at = datetime.utcnow()
+
+
 def fail(site, method, key='', url='', message="undefined"):
     f = Fail(site=site, method=method, key=key, url=url, message=message)
     f.save()
@@ -94,9 +132,6 @@ class Task(Document):
 
     @classmethod
     def pre_save(cls, sender, document, **kwargs):
-         document.updated_at = datetime.utcnow()
+        document.updated_at = datetime.utcnow()
 
 signals.pre_save.connect(Task.pre_save, sender=Task)
-
-if __name__ == '__main__':
-    pass

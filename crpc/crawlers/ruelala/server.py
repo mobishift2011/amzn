@@ -248,7 +248,6 @@ class Server(object):
             scarcity = node.xpath('./div/em[@class="childWarning"]')
             scarcity = scarcity[0].text_content() if scarcity else ''
             soldout = node.cssselect('a span.soldOutOverlay')
-            soldout = True if soldout else False
 
             product = Product.objects(key=product_id).first()
             is_new, is_updated = False, False
@@ -256,20 +255,24 @@ class Server(object):
                 is_new = True
                 product = Product(key=product_id)
                 product.event_id = [event_id]
-                product.price = price
+                product.title = title
+                product.combine_url = link
                 product.listprice = strike_price
-                product.combine_url = url
+                product.price = price
                 product.updated = False
-                if soldout: product.soldout = soldout
+                product.soldout = True if soldout else False
             else:
                 if product.price != price or product.listprice != strike_price:
                     product.price = price
                     product.listprice = strike_price
                     is_updated = True
                 if soldout and product.soldout != True:
-                    product.soldout = soldout
+                    product.soldout = True
                     is_updated = True
                 if event_id not in product.event_id: product.event_id.append(event_id)
+            product.save()
+            common_saved.send(sender=ctx, site=DB, key=product_id, is_new=is_new, is_updated=is_updated)
+
 #            nodes = browser.xpath('//article[@class="column eventDoor halfDoor grid-one-third alpha"]')
 #        if not nodes:
 #
@@ -283,15 +286,12 @@ class Server(object):
 #            else:
 #                raise ValueError('can not find product @url:%s sale id:%s' %(event_url, event_id))
 
-
-
-            product.title = title
-            product.save()
-            common_saved.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=is_updated)
-
         event = Event.objects(event_id=event_id).first()
+        if not event: event = Event(event_id=event_id)
         event.urgent = False
+        event.update_time = datetime.utcnow()
         event.save()
+        common_saved.send(sender=ctx, site=DB, key=event_id, is_new=False, is_updated=False, ready='Event')
 
 
     def _make_img_urls(slef, product_key, img_count):

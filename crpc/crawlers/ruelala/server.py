@@ -118,17 +118,16 @@ class Server(object):
             link = link if link.startswith('http') else self.siteurl + link
 
             event = Event.objects(event_id=event_id).first()
+            is_new = False
             if not event:
                 is_new = True
                 event = Event(event_id=event_id)
                 event.dept = [dept]
                 event.combine_url = link
                 event.urgent = True
-            else:
-                is_new = False
             event.update_time = datetime.utcnow()
             event.save()
-            common_saved.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=False)
+            common_saved.send(sender=ctx, key=event_id, is_new=is_new, is_updated=False)
 
     def _get_event_list(self, dept, url, ctx):
         """.. :py:method::
@@ -224,7 +223,7 @@ class Server(object):
 
         event.update_time = datetime.utcnow()
         event.save()
-        common_saved.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=False)
+        common_saved.send(sender=ctx, key=event_id, is_new=is_new, is_updated=False)
         return event, event_id, link
 
 
@@ -272,7 +271,7 @@ class Server(object):
                 if event_id not in product.event_id: product.event_id.append(event_id)
             product.list_update_time = datetime.utcnow()
             product.save()
-            common_saved.send(sender=ctx, site=DB, key=product_id, is_new=is_new, is_updated=is_updated)
+            common_saved.send(sender=ctx, key=product_id, is_new=is_new, is_updated=is_updated)
 
 #            nodes = browser.xpath('//article[@class="column eventDoor halfDoor grid-one-third alpha"]')
 #        if not nodes:
@@ -289,10 +288,11 @@ class Server(object):
 
         event = Event.objects(event_id=event_id).first()
         if not event: event = Event(event_id=event_id)
-        event.urgent = False
-        event.update_time = datetime.utcnow()
-        event.save()
-        common_saved.send(sender=ctx, site=DB, key=event_id, is_new=False, is_updated=False, ready='Event')
+        if event.urgent == True:
+            event.urgent = False
+            event.update_time = datetime.utcnow()
+            event.save()
+            common_saved.send(sender=ctx, key=event_id, is_new=False, is_updated=False, ready='Event')
 
 
     def _make_img_urls(slef, product_key, img_count):
@@ -312,18 +312,14 @@ class Server(object):
             urls.append(url)
         return urls
 
-    def crawl_product(self,url,ctx=''):
-        self._crawl_product(url,ctx)
-
-    def _crawl_product(self,url,ctx=''):
+    def crawl_product(self, url, ctx=''):
         """.. :py:method::
             Got all the product basic information and save into the database
         """
-        self.login()
+        cont = self.net.fetch_page(url)
+        tree = lxml.html.fromstring(cont)
         product_id = self._url2product_id(url)
-        self.get_page(url)
-        browser = lxml.html.fromstring(self.browser)
-        node = browser.cssselect('div.container section#productContainer')[0]
+        node = tree.cssselect('div.container section#productContainer')[0]
 
         img_nodes = node.cssselect('section#productImages div#imageViews img.productThumb')
         img_count = len(img_nodes) if img_nodes else 1
@@ -335,7 +331,6 @@ class Server(object):
         returned = []
         for p in node.cssselect('section#shipping'):
             returned.append(p.text_content())
-
         
         #########################
         # section 2 productAttributes
@@ -344,21 +339,6 @@ class Server(object):
         attribute_node = node.cssselect('section#productAttributes')[0]
         size_list = attribute_node.cssselect('section#productSelectors ul#sizeSwatches li.swatch a')
         sizes = [s.text for s in size_list] if size_list else []
-#        if size_list:
-#            for a in size_list:
-#                a.click()
-#                key = a.text
-#                left = ''
-#                span = attribute_node.find_element_by_id('inventoryAvailable')
-#                left = span.text.split(' ')[0]
-#                sizes.append((key,left))
-#        else:
-#            try:
-#                left =  attribute_node.find_element_by_css_selector('span#inventoryAvailable.active').text
-#            except NoSuchElementException:
-#                pass
-#        price = attribute_node.find_element_by_id('salePrice').text
-#        listprice  = attribute_node.find_element_by_id('strikePrice').text
         shipping = attribute_node.cssselect('div#readyToShip')
         shipping = shipping.text_content() if shipping else ''
         limit = attribute_node.cssselect('div#cartLimit')
@@ -367,7 +347,6 @@ class Server(object):
         ship_rule = ship_rule[0].text_content() if ship_rule else ''
         color = attribute_node.cssselect('section#productSelectors ul#colorSwatches > li > a')
         color = [c.get('title') for c in color] if color else []
-
 
         product, is_new = Product.objects.get_or_create(key=product_id)
         product.image_urls = image_urls
@@ -378,10 +357,14 @@ class Server(object):
         product.limit = limit
         product.ship_rule = ship_rule
         product.color = color
-        product.updated = True
+        if product.updated == False:
+            product.updated = True
+            ready = 'Product'
+        else:
+            ready = None
         product.full_update_time = datetime.utcnow()
         product.save()
-        common_saved.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
+        common_saved.send(sender=ctx, key=product_id, is_new=is_new, is_updated=False, ready=None)
 
 
     def _url2product_id(self, url):
@@ -393,15 +376,6 @@ class Server(object):
         return m.group(1)
 
 
-    def format_url(self,url):
-        """
-        ensure the url is start with `http://www.xxx.com`
-        """
-        if url.startswith('http://'):
-            return url
-        else:
-            s = urllib.basejoin(self.siteurl,url)
-            return s
 
 if __name__ == '__main__':
     server = Server()

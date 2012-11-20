@@ -15,8 +15,8 @@ from crawlers.common.models import BaseEvent, BaseProduct,LuxuryProduct
 
 class Event(BaseEvent):
     event_id = StringField(unique=True)
+
     meta = {
-        "indexes": ["soldout"],
         "db_alias": DB,
     }
 
@@ -24,9 +24,10 @@ class Event(BaseEvent):
         return 'http://www.ruelala.com/event/%s' %self.event_id
 
 class Product(LuxuryProduct):
-    limit= StringField()
+    limit     = StringField()
+    ship_rule = StringField()
+
     meta = {
-        "indexes": ["updated"],
         "db_alias": DB,
     }
 

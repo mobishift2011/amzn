@@ -148,7 +148,7 @@ class Server:
             common_saved.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=False)
 
 
-    def _get_event_list(self,category_name,url,ctx):
+    def _get_event_list(self, category_name, url, ctx):
         """.. :py:method::
             Get all the events from event list.
         """
@@ -170,32 +170,27 @@ class Server:
 
         self.browser.get(url)
         browser = lxml.html.fromstring(self.browser.page_source)
-        nodes = self.browser.find_elements_by_css_selector('body.wl-default > div.container > div#categoryMain > section#categoryDoors > article[id^="event-"]')
-#        if nodes == []:
-#            # for local, but local is not event
-#            nodes = self.browser.find_elements_by_css_selector('body.wl-default > div.container section#localDoors > article[id^="event-"]')
+        nodes = browser.cssselect('body.wl-default > div.container > div#categoryMain > section#categoryDoors > article[id^="event-"]')
+        if len(nodes) == 0 or not nodes:
+            time.sleep(1)
+            browser = lxml.html.fromstring(self.browser.page_source)
+            nodes = browser.cssselect('body.wl-default > div.container > div#categoryMain > section#categoryDoors > article[id^="event-"]')
 
         for node in nodes:
-            # pass the hiden element
-            if not node.is_displayed(): continue
-
-            a_title = node.find_element_by_css_selector('footer.eventFooter > a.eventDoorContent > div.eventName')
+            a_title = node.cssselect('footer.eventFooter > a.eventDoorContent > div.eventName')
             if not a_title: continue
 
             #image = node.find_element_by_xpath('./a/img').get_attribute('src')
-            a_link = node.find_element_by_xpath('./a[@class="eventDoorLink"]').get_attribute('href')
+            a_link = node.xpath('./a[@class="eventDoorLink"]')[0].get('href')
             a_url = self.format_url(a_link)
             event_id = self._url2saleid(a_link)
-            html = self.browser.page_source
-            tree = lxml.html.fromstring(html)
             try:
-                clock  = tree.xpath('//span[@id="clock%s"]' %event_id)[0].text
+                clock  = browser.xpath('//span[@id="clock%s"]' %event_id)[0].text
                 end_time = get_end_time(clock)
             except (ValueError,TypeError):
                 end_time = False
             
             event,is_new = Event.objects.get_or_create(event_id=event_id)
-            is_updated = False
             if is_new:
                 sm = 'http://www.ruelala.com/images/content/events/{event_id}/{event_id}_doorsm.jpg'.format(event_id=event_id)
                 lg = 'http://www.ruelala.com/images/content/events/{event_id}/{event_id}_doorlg.jpg'.format(event_id=event_id)
@@ -204,12 +199,11 @@ class Server:
                 event.urgent = True
                 event.combine_url = a_url
 
-            if end_time:
-                event.events_end = end_time
+            if end_time: event.events_end = end_time
             event.update_time = datetime.datetime.utcnow()
             event.sale_title = a_title.text
             event.save()
-            common_saved.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=is_updated)
+            common_saved.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=False)
 
 
     @exclusive_lock(DB)
@@ -233,73 +227,71 @@ class Server:
 #                # just have 1 page
 #                pass
 #
-        nodes = []
-        if not nodes:
-            nodes = self.browser.find_elements_by_css_selector('div.container > div#productContainerThreeUp > div#productGrid > article.product')
-        if not nodes:
-            nodes = self.browser.find_elements_by_xpath('//article[@class="column eventDoor halfDoor grid-one-third alpha"]')
+        browser = lxml.html.fromstring(self.browser.page_source)
+        nodes = browser.cssselect('div.container > div#productContainerThreeUp > div#productGrid > article.product')
+#            nodes = browser.xpath('//article[@class="column eventDoor halfDoor grid-one-third alpha"]')
+        if len(nodes) == 0 or not nodes:
+            time.sleep(1)
+            browser = lxml.html.fromstring(self.browser.page_source)
+            nodes = browser.cssselect('div.container > div#productContainerThreeUp > div#productGrid > article.product')
 
-        if not nodes:
-
-            #patch 1:
-            #some event url (like:http://www.ruelala.com/event/57961) will 301 redirect to product detail page:
-            #http://www.ruelala.com/product/detail/eventId/57961/styleNum/4112913877/viewAll/0
-            url_301 = self.browser.current_url
-            if url_301 <>  event_url:
-                print '301,',url_301
-                self._crawl_product(url_301,ctx)
-            else:
-                raise ValueError('can not find product @url:%s sale id:%s' %(event_url, event_id))
+#        if not nodes:
+#
+#            #patch 1:
+#            #some event url (like:http://www.ruelala.com/event/57961) will 301 redirect to product detail page:
+#            #http://www.ruelala.com/product/detail/eventId/57961/styleNum/4112913877/viewAll/0
+#            url_301 = self.browser.current_url
+#            if url_301 <>  event_url:
+#                print '301,',url_301
+#                self._crawl_product(url_301,ctx)
+#            else:
+#                raise ValueError('can not find product @url:%s sale id:%s' %(event_url, event_id))
 
         for node in nodes:
 #            if not node.is_displayed(): continue
-            a = node.find_element_by_xpath('./a')
-            href = a.get_attribute('href')
+            a = node.xpath('./a')
+            href = a.get('href')
 
-            # patch 2
-            # the event have some sub events
-            if href.split('/')[-2] == 'event':
-                self._crawl_listing(self.format_url(href),ctx)
-                continue
+#            # patch 2
+#            # the event have some sub events
+#            if href.split('/')[-2] == 'event':
+#                self._crawl_listing(self.format_url(href),ctx)
+#                continue
 
-            img = node.find_element_by_xpath('./a/img')
-            title = img.get_attribute('alt')
+            img = node.xpath('./a/img')
+            title = img.get('alt')
             url = self.format_url(href)
             product_id = self._url2product_id(url)
-            strike_price = node.find_element_by_xpath('./div/span[@class="strikePrice"]').text
-            product_price = node.find_element_by_xpath('./div/span[@class="productPrice"]').text
+            strike_price = node.xpath('./div/span[@class="strikePrice"]')
+            strike_price = strike_price[0].text if strike_price else ''
+            product_price = node.xpath('./div/span[@class="productPrice"]')
+            product_price = product_price[0].text if product_price else ''
+            scarcity = node.xpath('./div/em[@class="childWarning"]')
+            scarcity = scarcity[0].text if scarcity else ''
+            soldout = node.cssselect('a span.soldOutOverlay')
+            soldout = True if soldout else False
 
             # get base product info
-            product,is_new = Product.objects.get_or_create(key=str(product_id))
-            soldout = False
-            try:
-                s = node.find_elements_by_tag_name('span')[1]
-            except IndexError:
-                pass
-            else:
-                if s.get_attribute('class') == 'soldOutOverlay swiEnabled':
-                    soldout = True
-
+            product,is_new = Product.objects.get_or_create(key=product_id)
             is_updated = False
             if is_new:
-                product.url = url
-                product.event_id = [str(event_id)]
+                product.event_id = [event_id]
+                product.price = product_price
+                product.list_price = strike_price
+                product.combine_url = url
                 product.updated = False
                 if soldout: product.soldout = soldout
             else:
-                if product.price != str(product_price) or product.listprice != str(strike_price):
+                if product.price != product_price or product.listprice != strike_price:
+                    product.price = product_price
+                    product.list_price = strike_price
                     is_updated = True
                 if soldout and product.soldout != True:
                     product.soldout = soldout
                     is_updated = True
-
-                if str(event_id) not in product.event_id:
-                    product.event_id.append(str(event_id))
+                if event_id not in product.event_id: product.event_id.append(event_id)
 
             product.title = title
-            product.price = str(product_price)
-            product.list_price = str(strike_price)
-
             product.save()
             common_saved.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=is_updated)
 
@@ -308,7 +300,7 @@ class Server:
         event.save()
 
 
-    def _make_img_urls(slef,product_key,img_count):
+    def _make_img_urls(slef, product_key, img_count):
         """
         the keyworld `RLLZ` in url  meaning large size(about 800*1000), `RLLD` meaning small size (about 400 *500)
         http://www.ruelala.com/images/product/131385/1313856984_RLLZ_1.jpg
@@ -319,9 +311,9 @@ class Server:
         """
         urls = []
         prefix = 'http://www.ruelala.com/images/product/'
-        for i in range(0,img_count):
-            subfix = '%s/%s_RLLZ_%d.jpg'%(product_key[:6],product_key,i+1)
-            url = urllib.basejoin(prefix,subfix)
+        for i in range(0, img_count):
+            subfix = '%s/%s_RLLZ_%d.jpg' %(product_key[:6], product_key, i+1)
+            url = urllib.basejoin(prefix, subfix)
             urls.append(url)
         return urls
 
@@ -336,71 +328,62 @@ class Server:
         self.login()
         product_id = self._url2product_id(url)
         self.get(url)
+        browser = lxml.html.fromstring(self.browser)
+        node = browser.cssselect('div.container section#productContainer')[0]
 
-        try:
-            self.browser.find_element_by_css_selector('div#optionsLoadingIndicator.row')
-        except:
-            time.sleep(3)
-        
-        image_urls = []
-        try:
-            img_nodes = self.browser.find_elements_by_css_selector('div#imageViews img.productThumb')
-            img_count = len(img_nodes)
-        except NoSuchElementException:
-            img_count = 1
+        img_nodes = node.cssselect('section#productImages div#imageViews img.productThumb')
+        img_count = len(img_nodes) if img_nodes else 1
+        image_urls = self._make_img_urls(product_id, img_count)
 
-        image_urls = self._make_img_urls(product_id,img_count)
         list_info = []
-        for li in self.browser.find_elements_by_css_selector('section#info ul li'):
-            list_info.append(li.text)
+        for li in node.cssselect('section#info ul li'):
+            list_info.append(li.text_content())
+        returned = []
+        for p in node.cssselect('section#shipping'):
+            returned.append(p.text_content())
+
         
         #########################
         # section 2 productAttributes
         #########################
         
-        attribute_node = self.browser.find_elements_by_css_selector('section#productAttributes.floatLeft')[0]
-        sizes = []
-        size_list = attribute_node.find_elements_by_css_selector('ul#sizeSwatches li.swatch a.normal')
-        if size_list:
-            for a in size_list:
-                a.click()
-                key = a.text
-                left = ''
-                span = attribute_node.find_element_by_id('inventoryAvailable')
-                left = span.text.split(' ')[0]
-                sizes.append((key,left))
-        else:
-            try:
-                left =  attribute_node.find_element_by_css_selector('span#inventoryAvailable.active').text
-            except NoSuchElementException:
-                pass
-        try:
-            shipping = attribute_node.find_element_by_id('readyToShip').text
-        except NoSuchElementException:
-            shipping = ''
-        price = attribute_node.find_element_by_id('salePrice').text
-        listprice  = attribute_node.find_element_by_id('strikePrice').text
-        product, is_new = Product.objects.get_or_create(key=str(product_id))
+        attribute_node = node.cssselect('section#productAttributes')[0]
+        size_list = attribute_node.cssselect('section#productSelectors ul#sizeSwatches li.swatch a')
+        sizes = [s.text for s in size_list]
+#        if size_list:
+#            for a in size_list:
+#                a.click()
+#                key = a.text
+#                left = ''
+#                span = attribute_node.find_element_by_id('inventoryAvailable')
+#                left = span.text.split(' ')[0]
+#                sizes.append((key,left))
+#        else:
+#            try:
+#                left =  attribute_node.find_element_by_css_selector('span#inventoryAvailable.active').text
+#            except NoSuchElementException:
+#                pass
+#        price = attribute_node.find_element_by_id('salePrice').text
+#        listprice  = attribute_node.find_element_by_id('strikePrice').text
+        shipping = attribute_node.cssselect('div#readyToShip')
+        shipping = shipping.text_content() if shipping else ''
+        limit = attribute_node.cssselect('div#cartLimit')
+        limit = limit[0].text_content() if limit else ''
+        ship_rule = attribute_node.cssselect('div#returnsLink ')
+        ship_rule = ship_rule[0].text_content() if ship_rule else ''
 
-        if is_new:
-            is_updated = False
-        elif product.price == str(price) and product.listprice == str(listprice):
-            is_updated = False
-        else:
-            is_updated = True
-
-        product.shipping = shipping
+        product, is_new = Product.objects.get_or_create(key=product_id)
         product.image_urls = image_urls
         product.list_info = list_info
-        product.sizes_scarcity = sizes
-        product.price = price
-        product.listprice = listprice
+        product.returned = '; '.join(returned)
+        product.sizes = sizes
         product.shipping = shipping
+        product.limit = limit
+        product.ship_rule = ship_rule
         product.updated = True
         product.full_update_time = datetime.datetime.utcnow()
-
         product.save()
-        common_saved.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=is_updated)
+        common_saved.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
 
     def _url2saleid(self, url):
         """.. :py:method::
@@ -411,17 +394,14 @@ class Server:
         m = re.compile('.*/event/(\d{1,10})').findall(url)
         return str(m[0])
 
-    def _url2product_id(self,url):
+    def _url2product_id(self, url):
         # http://www.ruelala.com/event/product/60118/1411878707/0/DEFAULT
         # or http://www.ruelala.com/product/detail/eventId/59935/styleNum/4112936424/viewAll/0
-        m = re.compile('http://.*ruelala.com/event/product/\d{1,10}/(\d{6,10})/\d{1}/DEFAULT').findall(url)
-        try:
-            return str(m[0])
-        except IndexError:
-            pass
-#        print 'url'
-        m = re.compile('http://.*.ruelala.com/product/detail/eventId/\d{1,10}/styleNum/(\d{1,10})/viewAll/0').findall(url)
-        return str(m[0])
+        m = re.compile('http://.*ruelala.com/event/product/\d{1,10}/(\d{6,10})/\d{1}/DEFAULT').search(url)
+        if not m:
+            m = re.compile('http://.*.ruelala.com/product/detail/eventId/\d{1,10}/styleNum/(\d{1,10})/viewAll/0').search(url)
+        return m.group(1)
+
 
     def format_url(self,url):
         """

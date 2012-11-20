@@ -21,7 +21,7 @@ from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 import zerorpc
 
-DEBUG = True
+DEBUG = False
 
 class Server(object):
     """.. :py:class:: Server

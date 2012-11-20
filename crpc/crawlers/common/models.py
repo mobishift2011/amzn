@@ -20,7 +20,7 @@ class BaseCategory(Document):
 
     """
     cats        =   ListField(StringField()) 
-    is_leaf     =   BooleanField(default=False)
+    is_leaf     =   BooleanField()
     update_time =   DateTimeField(default=datetime.utcnow)
     spout_time  =   DateTimeField() # time when we issue a new category fetch operation
     num         =   IntField()

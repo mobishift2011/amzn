@@ -88,6 +88,7 @@ class Server(object):
         self.siteurl = 'http://www.ruelala.com'
         self.net = ruelalaLogin()
         self.countdown_num = re.compile("countdownFactory.create\(('|\")(\\d+)('|\"), ('|\")(\\d+)('|\"), ('|\")('|\")\);")
+        self.url2eventid = re.compile('http://www.ruelala.com/event/(\d+)')
 
     def crawl_category(self, ctx=''):
         """.. :py:method::
@@ -116,11 +117,15 @@ class Server(object):
             event_id = link.rsplit('/', 1)[-1]
             link = link if link.startswith('http') else self.siteurl + link
 
-            event, is_new = Event.objects.get_or_create(event_id=event_id)
-            if is_new:
+            event = Event.objects(event_id=event_id).first()
+            if not event:
+                is_new = True
+                event = Event(event_id=event_id)
                 event.dept = [dept]
                 event.combine_url = link
                 event.urgent = True
+            else:
+                is_new = False
             event.update_time = datetime.utcnow()
             event.save()
             common_saved.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=False)
@@ -224,11 +229,47 @@ class Server(object):
 
 
     def crawl_listing(self, url, ctx=''):
+        """.. :py:method::
+        """
         cont = self.net.fetch_page(url)
         tree = lxml.html.fromstring(cont)
+        event_id = self.url2eventid.match(url).group(1)
         nodes = tree.cssselect('div#main > div#productContainerThreeUp > div#productGrid > article.product')
-        event_url = url
-        event_id = self._url2saleid(event_url)
+        for node in nodes:
+            prd = node.xpath('./div/a[@class="prodName"]')[0]
+            title = prd.text_content()
+            link = prd.get('href')
+            link = if link.startswith('http') else self.siteurl + link
+            product_id = self._url2product_id(link)
+            strike_price = node.xpath('./div/span[@class="strikePrice"]')
+            strike_price = strike_price[0].text if strike_price else ''
+            price = node.xpath('./div/span[@class="productPrice"]')
+            price = price[0].text if price else ''
+            scarcity = node.xpath('./div/em[@class="childWarning"]')
+            scarcity = scarcity[0].text_content() if scarcity else ''
+            soldout = node.cssselect('a span.soldOutOverlay')
+            soldout = True if soldout else False
+
+            product = Product.objects(key=product_id).first()
+            is_new, is_updated = False, False
+            if not product:
+                is_new = True
+                product = Product(key=product_id)
+                product.event_id = [event_id]
+                product.price = price
+                product.listprice = strike_price
+                product.combine_url = url
+                product.updated = False
+                if soldout: product.soldout = soldout
+            else:
+                if product.price != price or product.listprice != strike_price:
+                    product.price = price
+                    product.listprice = strike_price
+                    is_updated = True
+                if soldout and product.soldout != True:
+                    product.soldout = soldout
+                    is_updated = True
+                if event_id not in product.event_id: product.event_id.append(event_id)
 #            nodes = browser.xpath('//article[@class="column eventDoor halfDoor grid-one-third alpha"]')
 #        if not nodes:
 #
@@ -242,39 +283,7 @@ class Server(object):
 #            else:
 #                raise ValueError('can not find product @url:%s sale id:%s' %(event_url, event_id))
 
-        for node in nodes:
-            href = node.xpath('./a/@href')[0]
-            title = node.xpath('./a/img/@alt')[0]
-            url = self.format_url(href)
-            product_id = self._url2product_id(url)
-            strike_price = node.xpath('./div/span[@class="strikePrice"]')
-            strike_price = strike_price[0].text if strike_price else ''
-            product_price = node.xpath('./div/span[@class="productPrice"]')
-            product_price = product_price[0].text if product_price else ''
-            scarcity = node.xpath('./div/em[@class="childWarning"]')
-            scarcity = scarcity[0].text if scarcity else ''
-            soldout = node.cssselect('a span.soldOutOverlay')
-            soldout = True if soldout else False
 
-            # get base product info
-            product,is_new = Product.objects.get_or_create(key=product_id)
-            is_updated = False
-            if is_new:
-                product.event_id = [event_id]
-                product.price = product_price
-                product.list_price = strike_price
-                product.combine_url = url
-                product.updated = False
-                if soldout: product.soldout = soldout
-            else:
-                if product.price != product_price or product.listprice != strike_price:
-                    product.price = product_price
-                    product.list_price = strike_price
-                    is_updated = True
-                if soldout and product.soldout != True:
-                    product.soldout = soldout
-                    is_updated = True
-                if event_id not in product.event_id: product.event_id.append(event_id)
 
             product.title = title
             product.save()
@@ -373,14 +382,6 @@ class Server(object):
         product.save()
         common_saved.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
 
-    def _url2saleid(self, url):
-        """.. :py:method::
-
-        :param url: the brand's url
-        :rtype: string of sale_id
-        """
-        m = re.compile('.*/event/(\d{1,10})').findall(url)
-        return str(m[0])
 
     def _url2product_id(self, url):
         # http://www.ruelala.com/event/product/60118/1411878707/0/DEFAULT

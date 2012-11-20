@@ -239,7 +239,7 @@ class Server(object):
             prd = node.xpath('./div/a[@class="prodName"]')[0]
             title = prd.text_content()
             link = prd.get('href')
-            link = if link.startswith('http') else self.siteurl + link
+            link = link if link.startswith('http') else self.siteurl + link
             product_id = self._url2product_id(link)
             strike_price = node.xpath('./div/span[@class="strikePrice"]')
             strike_price = strike_price[0].text if strike_price else ''
@@ -270,6 +270,7 @@ class Server(object):
                     product.soldout = True
                     is_updated = True
                 if event_id not in product.event_id: product.event_id.append(event_id)
+            product.list_update_time = datetime.utcnow()
             product.save()
             common_saved.send(sender=ctx, site=DB, key=product_id, is_new=is_new, is_updated=is_updated)
 

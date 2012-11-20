@@ -98,7 +98,7 @@ class Server:
     @exclusive_lock(DB)
     def crawl_category(self, ctx):
         """.. :py:method::
-            From top depts, get all the brands
+            From top depts, get all the events
         """
         self.check_signin()
         depts = ['women', 'men', 'kids', 'home', 'designer']
@@ -158,7 +158,7 @@ class Server:
 
     def get_event_list(self, dept, url, ctx):
         """.. :py:method::
-            Get all the brands from event list.
+            Get all the events from event list.
             Brand have a list of product.
 
         :param dept: dept in the page
@@ -316,7 +316,7 @@ class Server:
             Brand page, product parsing
 
         :param element: product's xpath element
-        :param sale_title: as brand pass to product
+        :param sale_title: as event pass to product
         """
         soldout = element.cssselect('a.evt-prdtImg-a div.soldout')
         if soldout:

@@ -21,6 +21,14 @@ class TestCrawlerFixture:
         gevent.sleep(1) # add a small delay in case task object has not been created
         task = Task.objects(started_at__gte=ts)[0]
         return task
+    
+    def run_cmd_complete(self, command):
+        '''a complete run of a command till finish and return run stats.
+        '''
+        tsk = self.run_cmd(command)
+        self.wait_task_finish(tsk)
+        stats = self.get_run_stats(tsk)
+        return stats
         
     def run_status(self, task):
         #t = Task.objects(id=task.id)[0]  # need this reload
@@ -45,25 +53,23 @@ class TestCrawler:
         self.f = TestCrawlerFixture(crawler)
         
     def test_new_category(self):
-        '''test new_category function'''
+        '''Basic test of new_category function. Run it twice in a row, checking the
+        run stats with proper values.
+        '''
         self.f.clear_db()
         test_info("running new_category")
-        task = self.f.run_cmd("new_category")
-        status = self.f.wait_task_finish(task)
-        t,u,n,f = self.f.get_run_stats(task)
-        test_info("total=%d,update=%d,new=%d,fail=%d" % (t,u,n,f))
+        d,u,n,f = self.f.run_cmd_complete("new_category")
+        test_info("done=%d,update=%d,new=%d,fail=%d" % (d,u,n,f))
         if u>0:
             test_error("update={0}, should be 0".format(u))
-        if t>u+n+f:
-            test_alert("total>update+new+fail, there are unchanged entries")
+        if d>u+n:
+            test_alert("done>update+new, there are unchanged entries")
         if f>0:
             test_alert("fail={0}, not 0. Please check.".format(f))
         # 2nd pass
         test_info("running 2nd new_category")
-        task = self.f.run_cmd("new_category")
-        status = self.f.wait_task_finish(task)
-        t,u,n,f = self.f.get_run_stats(task)
-        test_info("total=%d,update=%d,new=%d,fail=%d" % (t,u,n,f))
+        d,u,n,f = self.f.run_cmd_complete("new_category")
+        test_info("done=%d,update=%d,new=%d,fail=%d" % (d,u,n,f))
         if u>0:
             test_error("update={0}, should be 0".format(u))
         if n>0:
@@ -71,6 +77,33 @@ class TestCrawler:
         if f>0:
             test_alert("fail={0}, not 0. Please check.".format(f))
             
+    def test_new_funcs(self):
+        '''test new functions. Run new_category,new_listing, new_product in a row,
+        checking basic stats.
+        '''
+
+        self.f.clear_db()
+        test_info("running new_category")
+        d,u,n,f = self.f.run_cmd_complete("new_category")
+        test_info("done=%d,update=%d,new=%d,fail=%d" % (d,u,n,f))
+        
+        test_info("running new_listing")
+        d2,u2,n2,f2 = self.f.run_cmd_complete("new_listing")
+        test_info("done=%d,update=%d,new=%d,fail=%d" % (d2,u2,n2,f2))
+        if u2>0:
+            test_error("update={0}, should be 0".format(u2))
+        if f2>0:
+            test_alert("fail={0}, not 0. Please check.".format(f2))
+        # check why d and u differ by looking into DB $$
+        
+        test_info("running new_product")
+        d3,u3,n3,f3 = self.f.run_cmd_complete("new_product")
+        test_info("done=%d,update=%d,new=%d,fail=%d" % (d3,u3,n3,f3))
+        if d3!=n2:
+            test_error("update is not the same of new of previous new_listing.")
+        if d3!=u3:
+            test_error("done is not the same as update.")
+
 if __name__ == '__main__':
     from optparse import OptionParser
     import sys, os
@@ -92,5 +125,13 @@ if __name__ == '__main__':
     tc = TestCrawler(options.crawler)    
     if not options.func:
         tc.test_new_category()
+    else:
+        try:
+            func = getattr(tc, options.func)
+            print func
+            func()
+        except:
+            print "no such function"
+            
     
     

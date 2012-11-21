@@ -71,16 +71,18 @@ class Server(object):
             info = event['event']
             event_id = info['event_id']
             event_code = info['event_code']
-            event, is_new = Event.objects.get_or_create(event_id=event_id)
 
             # new upcoming, new now, old upcoming, old now
-            event.events_begin = self.convert_time( info['start_date'] )
-            event.events_end = self.convert_time( info['end_date'] )
+            events_begin = self.convert_time( info['start_date'] )
+            events_end = self.convert_time( info['end_date'] )
             _utcnow = datetime.utcnow()
-#            if event.events_end < _utcnow:
-
-            is_updated = False
-            if is_new:
+#            if events_end < _utcnow:
+#
+            event = Event.objects(event_id=event_id).first()
+            is_new, is_updated = False, False
+            if not event:
+                is_new = True
+                event = Event(event_id=event_id)
                 event.sale_title = info['title']
                 event.sale_description = requests.get(info['info']).text
                 event.dept = [i['name'] for i in info['event_types']]
@@ -96,6 +98,8 @@ class Server(object):
                 if info['sort_order'] != event.sort_order:
                     event.sort_order = info['sort_order']
                     is_updated = True
+            event.events_begin = events_begin
+            event.events_end = events_end
             event.update_time = _utcnow
             event.save()
             common_saved.send(sender=ctx, key=event_id, url='{0}/event/{1}'.format(self.siteurl, event_id), is_new=is_new, is_updated=is_updated)
@@ -116,20 +120,16 @@ class Server(object):
             common_failed.send(sender=ctx, key='get availabilities twice, both error', url=url, reason=data)
             return
         event_id = re.compile('http://www.hautelook.com/v3/catalog/(.+)/availability').match(url).group(1)
-        event, is_new = Event.objects.get_or_create(event_id=event_id)
-        if event.urgent == True:
-            event.urgent = False
-            event.save()
-
         for item in data['availabilities']:
             info = item['availability']
             key = info['inventory_id']
             color = '' if info['color'].lower() == 'no color' else info['color']
-            product, is_new = Product.objects.get_or_create(pk=key)
             scarcity = str(info['sizes'][0]['size']['remaining'])
+            product, is_new = Product.objects.get_or_create(pk=key)
             is_updated = False
             if is_new:
                 if color: product.color = color
+                product.event_id = [event_id]
                 product.updated = False
                 product.scarcity = scarcity
                 product.combine_url = 'http://www.hautelook.com/v2/product/{0}'.format(key)
@@ -137,10 +137,19 @@ class Server(object):
                 if product.scarcity != scarcity:
                     product.scarcity = scarcity
                     is_updated = True
-            if event_id not in product.event_id: product.event_id.append(event_id)
+                if event_id not in product.event_id: product.event_id.append(event_id)
             product.list_update_time = datetime.utcnow()
             product.save()
             common_saved.send(sender=ctx, key=key, url=url, is_new=is_new, is_updated=is_updated)
+
+        event, is_new = Event.objects.get_or_create(event_id=event_id)
+        if event.urgent == True:
+            event.urgent = False
+            ready = 'Event'
+            event.save()
+        else: ready = None
+        common_saved.send(sender=ctx, key=key, url=url, is_new=is_new, is_updated=False, ready=ready)
+
 
 
     def crawl_product(self, url, ctx):
@@ -155,7 +164,11 @@ class Server(object):
                 common_failed.send(sender=ctx, key='get product twice, url has nothing', url=url, reason='url has nothing')
                 return
         data = json.loads(resp.text)['data']
-        product, is_new = Product.objects.get_or_create(pk=url.split('/')[-1])
+        product = Product.objects(key=url.split('/')[-1]).first()
+        is_new = False
+        if not product:
+            is_new = True
+            product = Product(key=url.split('/')[-1])
 
 #        product.event_id = [str(data['event_id'])]
         product.title = data['title']
@@ -199,15 +212,19 @@ class Server(object):
                         color = color_str
                         break
 
+        ready = None
         if color:
             # color: find the color, associate it to get the right images
             for color_info in data['collections']['color']:
                 if color_info['name'] == color:
                     product.image_urls = data['collections']['images'][ color_info['image'] ]['large']
-            product.updated = True
+            if product.updated == False:
+                product.updated = True
+                ready = 'Product'
         else:
             # if product_id not in color, crawl it later, the site will correct its info
             product.updated = False
+
 #        image_set = set()
 #        for k,v in data['collections']['images'].iteritems():
 #            for img in v['large']:
@@ -217,7 +234,7 @@ class Server(object):
 
         product.full_update_time = datetime.utcnow()
         product.save()
-        common_saved.send(sender=ctx, key=url, url=url, is_new=is_new, is_updated=not is_new)
+        common_saved.send(sender=ctx, key=url, url=url, is_new=is_new, is_updated=not is_new, ready=ready)
 
 
 if __name__ == '__main__':

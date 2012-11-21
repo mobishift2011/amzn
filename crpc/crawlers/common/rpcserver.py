@@ -67,8 +67,13 @@ class RPCServer(object):
         else:
             raise ValueError("{crawler} does not seems to a valid crawler".format(**locals()))
     
-    def image(self, args=(), kwargs={}):
-        return
+    def image(self, method, args=(), kwargs={}):
+        m = __import__("powers.server", fromlist=['Image'])
+        service = m.Image()
+        if service:
+            return getattr(service, method)(*args, **kwargs)
+        else:
+            raise ValueError("{crawler} does not seems to a valid crawler".format(**locals()))
 
 if __name__ == '__main__':
     zs = zerorpc.Server(RPCServer()) 

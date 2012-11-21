@@ -6,15 +6,15 @@ crawlers.ruelala.models
 Implements Product and Category Model for ruelala
 """
 
-DB = 'ruelala'
+from crawlers.common.models import BaseEvent, LuxuryProduct
+
 from mongoengine import *
 from settings import MONGODB_HOST
+DB = 'ruelala'
 connect(db=DB, alias=DB, host=MONGODB_HOST)
 
-from crawlers.common.models import BaseEvent, BaseProduct,LuxuryProduct
 
 class Event(BaseEvent):
-    event_id = StringField(unique=True)
 
     meta = {
         "db_alias": DB,

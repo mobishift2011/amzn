@@ -17,7 +17,6 @@ import traceback
 from settings import PEERS, RPC_PORT
 from configs import SITES
 from events import *
-from binds import *
 
 def get_rpcs():
     if not hasattr(get_rpcs, '_cached_peers'):
@@ -40,9 +39,9 @@ def get_rpcs():
 def call_rpc(rpc, method, *args, **kwargs):
     try:
         from crawlers.common.rpcserver import RPCServer
-        RPCServer().image(method, args, kwargs)
-        #rpc.image(method, args, kwargs)
-    except Exception, e:
+        rpc.image(method, args, kwargs)
+    except Exception:
+        print traceback.format_exc()
         image_crawled_failed.send(sender=kwargs['ctx'],
                             site = kwargs['ctx'],
                             key = kwargs.get('key') or kwargs.get('event_id'),
@@ -55,7 +54,7 @@ def get_site_module(site):
 
 def spout_event_images(site):
     m = get_site_module(site)
-    events = m.Event.objects()  # TODO (image_done=False)
+    events = m.Event.objects(urgent=False, image_complete=False)
     for event in events:
         yield {
             'site': site,
@@ -65,7 +64,7 @@ def spout_event_images(site):
 
 def spout_product_images(site):
     m = get_site_module(site)
-    products = m.Product.objects()  # TODO (image_done=False)
+    products = m.Product.objects(updated=True, image_complete=False)
     for product in products:
         yield {
             'site': site,
@@ -108,7 +107,7 @@ class UpdateContext(object):
                                     complete = complete,
                                     reason = reason)
 
-def update_event_images(site, rpc, concurrency=3):
+def scan_event_images(site, rpc, concurrency=3):
     with UpdateContext(site, 'crawl_event_images') as ctx:
         rpcs = [rpc] if not isinstance(rpc, list) else rpc
         pool = Pool(len(rpcs)*concurrency)
@@ -118,8 +117,8 @@ def update_event_images(site, rpc, concurrency=3):
             pool.spawn(call_rpc, rpc, 'crawl_event_images', **kwargs)
         pool.join()
 
-def update_product_images(site, rpc, concurrency=3):
-    with UpdateContext(site, 'crawl_event_images') as ctx:
+def scan_product_images(site, rpc, concurrency=3):
+    with UpdateContext(site, 'crawl_product_images') as ctx:
         rpcs = [rpc] if not isinstance(rpc, list) else rpc
         pool = Pool(len(rpcs)*concurrency)
         for kwargs in spout_product_images(site):
@@ -128,16 +127,30 @@ def update_product_images(site, rpc, concurrency=3):
             pool.spawn(call_rpc, rpc, 'crawl_product_images', **kwargs)
         pool.join()
 
-#def update_images(site, rpcs, concurrency=3):
-#    rpcs = []
-
-
-def test():
-    rpcs = get_rpcs()
-    for site in SITES:
-        update_event_images(site, rpcs)
-        update_product_images(site, rpcs)
-
-if __name__ == '__main__':
-    pass
-    test()
+def crawl_images(site, model, key, rpc=None, concurrency=3):
+    if rpc is None:
+        rpc = get_rpcs()
+    
+    kwargs = {}
+    method = 'crawl_%s_images' % model.lower() if model else None
+    with UpdateContext(site, method) as ctx:
+        m = __import__("crawlers."+site+'.models', fromlist=['Event', 'Product'])
+        if model == 'Event':
+            event = m.Event.objects.get(event_id=key)
+            if event and not event.image_complete:
+                kwargs.__setitem__('site', site)
+                kwargs.__setitem__('event_id', event.event_id)
+                kwargs.__setitem__('image_urls', event.image_urls)
+                kwargs.__setitem__('ctx', ctx)
+        elif model == 'Product':
+            product = m.Product.objects.get(key=key)
+            if product and not product.image_complete:
+                kwargs.__setitem__('site', site)
+                kwargs.__setitem__('key', product.key)
+                kwargs.__setitem__('image_urls', product.image_urls)
+                kwargs.__setitem__('ctx', ctx)
+        
+        if kwargs and method:
+            rpcs = [rpc] if not isinstance(rpc, list) else rpc
+            rpc = random.choice(rpcs)
+            call_rpc(rpc, method, **kwargs)

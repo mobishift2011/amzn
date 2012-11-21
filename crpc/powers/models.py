@@ -11,36 +11,108 @@ from settings import MONGODB_HOST
 from mongoengine import *
 from mongoengine import signals
 from datetime import datetime, timedelta
+DB = 'power'
+connect(db=DB, alias=DB, host=MONGODB_HOST)
 
-connect(db="power", host=MONGODB_HOST)
-
-class Progress(Document):
+class EventProgress(Document):
     site = StringField(required=True)
-    type = StringField(required=True)  # Event or Product
-    key = StringField(unique_with=['site', 'type'])
-    pushes = ListField()    # The events or products that needs to be pushed
+    key = StringField(required=True, unique_with='site')
     
-    status = IntField(default=0)    # 0.nothing 1.image process 2.branch extract 4.push
-    
-    image_done = BooleanField(default=False)
-    branch_done = BooleanField(default=False)
-    push_done = BooleanField(default=False)
-    
-    
-    started_at      =   DateTimeField()
-    updated_at      =   DateTimeField(default=datetime.utcnow())
+    image_complete = BooleanField(default=False)
+    branch_complete = BooleanField(default=False)
+    transfered = BooleanField(default=False)
+    soldout = BooleanField(default=False)
 
+    # statistics
+    num_image      =   IntField(default=0)
+    num_fails       =   IntField(default=0)
+    
+    started_at = DateTimeField(default=datetime.utcnow())
+    updated_at = DateTimeField(default=datetime.utcnow())
+    
+    # save which task trigger the progress, mostly applied for monitor.
+    task_title = StringField()
+    task_key = StringField()
+    task_start = DateTimeField()
+    
+    meta = {
+        'db_name': DB,
+        'db_alias': DB,
+        'indexes':  [('site', 'key'), 'site', 'updated_at'],
+    }
+    
+    def __unicode__(self):
+        return '%s_%s' % (self.site, self.key)
+    
     def to_json(self):
         return {
-            'site':         self.site,
-            'type':         self.type,
-            'key':          self.key,
-            'status':       Progress.inverse_status(self.status),
-#            'started_at':   self.started_at.isoformat() if self.started_at else 'undefined',
-#            'updated_at':   self.updated_at.isoformat() if self.updated_at else 'undefined',
-            'image_done':   self.image_done,
-            'branch_done':  self.branch_done,
-            'push_done':    self.push_done
+            'site': self.site,
+            'key': self.key,
+            'image_complete': self.image_complete,
+            'num_image': self.num_image,
+            'branch_complete': self.branch_complete,
+            'transfered': self.transfered,
+            'soldout': self.soldout,
+            'started_at': self.started_at.isoformat() if self.started_at else 'undefined',
+            'updated_at': self.updated_at.isoformat() if self.updated_at else 'undefined',
+            'task_title': self.task_title,
+            'task_key': self.task_key,
+            'task_start': self.task_start,
+        }
+    
+    @staticmethod
+    def inverse_status(st):
+        return {0:'NOTHING',1:'IMAGE CRAWLING',2:'BRAND EXTRACT',3:'I&B',4:'PUSH',5:'I&P',6:'B&P',7:'I&B&P'}.get(st,'UNDEFINED')
+    
+    @classmethod
+    def pre_save(cls, sender, document, **kwargs):
+        document.updated_at = datetime.utcnow()
+
+
+class ProductProgress(Document):
+    site = StringField(required=True)
+    key = StringField(required=True, unique_with='site')
+    
+    image_complete = BooleanField(default=False)
+    branch_complete = BooleanField(default=False)
+    transfered = BooleanField(default=False)
+    soldout = BooleanField(default=False)
+    
+    # statistics
+    num_image      =   IntField(default=0)
+    num_fails       =   IntField(default=0)
+    
+    started_at = DateTimeField(default=datetime.utcnow())
+    updated_at = DateTimeField(default=datetime.utcnow())
+    
+    # save which task trigger the progress, mostly applied for monitor.
+    task_title = StringField()
+    task_key = StringField()
+    task_start = DateTimeField()
+    
+    meta = {
+        'db_name': DB,
+        'db_alias': DB,
+        'indexes':  [('site', 'key'), 'site', 'updated_at'],
+    }
+    
+    def __unicode__(self):
+        return '%s_%s' % (self.site, self.key)
+    
+    def to_json(self):
+        return {
+            'site': self.site,
+            'key': self.key,
+            'image_complete': self.image_complete,
+            'num_image': self.num_image,
+            'branch_complete': self.branch_complete,
+            'transfered': self.transfered,
+            'soldout': self.soldout,
+            'started_at': self.started_at.isoformat() if self.started_at else 'undefined',
+            'updated_at': self.updated_at.isoformat() if self.updated_at else 'undefined',
+            'task_title': self.task_title,
+            'task_key': self.task_key,
+            'task_start': self.task_start,
         }
     
     @staticmethod

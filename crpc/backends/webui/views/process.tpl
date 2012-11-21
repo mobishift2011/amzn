@@ -21,28 +21,32 @@
           <thead>
             <tr>
               <th>site</th>
-              <th>type</th>
               <th>key</th>
-              <th>status</th>
-              <th>image done</th>
-              <th>branch done</th>
-              <th>push done</th>
+              <th>image complete</th>
+              <th>image num</th>
+              <th>branch complete</th>
+              <th>transfered</th>
+              <th>sold out</th>
               <th>started</th>
               <th>updated</th>
+              <th>task</th>
+              <th>task start</th>
             </tr>
           </thead>
           <tbody>
            %for progress in progresses:
             <tr>
               <td>{{progress.get('site')}}</td>
-              <td>{{progress.get('type')}}</td>
               <td>{{progress.get('key')}}</td>
-              <td>{{progress.get('status')}}</td>
-              <td>{{progress.get('image_done')}}</td>
-              <td>{{progress.get('branch_done')}}</td>
-              <td>{{progress.get('push_done')}}</td>
+              <td>{{progress.get('image_complete')}}</td>
+              <td>{{progress.get('num_image')}}</td>
+              <td>{{progress.get('branch_complete')}}</td>
+              <td>{{progress.get('transfered')}}</td>
+              <td>{{progress.get('soldout')}}</td>
               <td>{{progress.get('started_at')}}</td>
               <td>{{progress.get('updated_at')}}</td>
+              <td>{{progress.get('task_title')}}</td>
+              <td>{{progress.get('task_start')}}</td>
             </tr>
             %end
           </tbody>

@@ -17,7 +17,6 @@ DB = 'hautelook'
 connect(db=DB, alias=DB, host=MONGODB_HOST)
 
 class Event(BaseEvent):
-    event_id = StringField(unique=True)
     sort_order  = StringField()
     tagline     = StringField()
 
@@ -40,7 +39,6 @@ class Product(LuxuryProduct):
     choke_hazard = StringField()
 
     meta = {
-        "indexes": ["updated"],
         "db_alias": DB,
     }
 

@@ -9,12 +9,12 @@ This is the server part of zeroRPC module. Call by client automatically, run on 
 """
 import os
 import re
-import sys
 import time
 import Queue
 import zerorpc
 import lxml.html
 import pytz
+import traceback
 
 from urllib import quote, unquote
 from datetime import datetime
@@ -110,7 +110,7 @@ class Server:
             try:
                 self.get_event_list(dept, link, ctx)
             except:
-                common_failed.send(sender=ctx, key='crawl_category', url=link, reason=sys.exc_info())
+                common_failed.send(sender=ctx, key='crawl_category', url=link, reason=traceback.format_exc())
         self.cycle_crawl_category(ctx)
         
         debug_info.send(sender=DB + '.category.end')
@@ -133,7 +133,7 @@ class Server:
             except Queue.Empty:
                 common_failed.send(sender=ctx, key='cycle_crawl_category', url='' )
             except:
-                common_failed.send(sender=ctx, key='cycle_crawl_category', url=job[1], reason=sys.exc_info())
+                common_failed.send(sender=ctx, key='cycle_crawl_category', url=job[1], reason=traceback.format_exc())
         debug_info.send(sender=DB + '.cycle_crawl_category.end')
 
 
@@ -182,8 +182,8 @@ class Server:
             # try: # if can't be found, cost a long time and raise NoSuchElementException
             soldout = node.xpath('./div[@class="image"]/a/div[@class="soldout"]')
 
-            event = Event.objects(event_id=event_id).first()
             is_new, is_updated = False, False
+            event = Event.objects(event_id=event_id).first()
             if not event:
                 is_new = True
                 event = Event(event_id=event_id)
@@ -220,23 +220,24 @@ class Server:
         :param url: url in the page
         """
         event_id = self.url2saleid(url)
+        browser = lxml.html.fromstring(self.browser.page_source)
+        try:
+            path = browser.cssselect('div#main div#page-content div#top-content')[0]
+            begin_date = path.cssselect('div#startHeader span.date')[0].text # SAT OCT 20
+        except:
+            time.sleep(1)
+            browser = lxml.html.fromstring(self.browser.page_source)
+            path = browser.cssselect('div#main div#page-content div#top-content')[0]
+            begin_date = path.cssselect('div#startHeader span.date')[0].text # SAT OCT 20
+#            common_failed.send(sender=ctx, url=url, reason='probably the begin_date can not be pased.')
+        begin_time = path.xpath('./div[@id="startHeader"]/span[@class="time"]')[0].text # 9 AM PT
+        utc_begintime = time_convert(begin_date + ' ' + begin_time.replace('PT', ''), '%a %b %d %I %p %Y') #u'SAT OCT 20 9 AM '
+
         event = Event.objects(event_id=event_id).first()
         is_new, is_updated = False, False
         if not event:
             is_new = True
-            browser = lxml.html.fromstring(self.browser.page_source)
-            path = browser.cssselect('div#main div#page-content div#top-content')[0]
 
-            try:
-                begin_date = path.cssselect('div#startHeader span.date')[0].text # SAT OCT 20
-            except:
-                time.sleep(1)
-                browser = lxml.html.fromstring(self.browser.page_source)
-                path = browser.cssselect('div#main div#page-content div#top-content')[0]
-                begin_date = path.cssselect('div#startHeader span.date')[0].text # SAT OCT 20
-#                common_failed.send(sender=ctx, url=url, reason='probably the begin_date can not be pased.')
-            begin_time = path.xpath('./div[@id="startHeader"]/span[@class="time"]')[0].text # 9 AM PT
-            utc_begintime = time_convert(begin_date + ' ' + begin_time.replace('PT', ''), '%a %b %d %I %p %Y') #u'SAT OCT 20 9 AM '
             brand_info = path.cssselect('div#upcomingSaleBlurb')[0].text
             img = path.xpath('./div[@class="upcomingSaleHero"]/div[@class="image"]/img')[0].get('src')
             sale_title = path.xpath('./div[@class="upcomingSaleHero"]/div[@class="image"]/img')[0].get('alt')
@@ -250,7 +251,6 @@ class Server:
             event.dept = [dept]
             event.sale_title = sale_title
             event.image_urls = [img]
-            event.events_begin = utc_begintime
             event.sale_description = brand_info
             event.upcoming_title_img = subs
             event.update_time = datetime.utcnow()
@@ -258,6 +258,7 @@ class Server:
             event.combine_url = 'http://www.myhabit.com/homepage#page=b&sale={0}'.format(event_id)
         else:
             if dept not in event.dept: event.dept.append(dept)
+        event.events_begin = utc_begintime
         event.save()
         common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=False)
 
@@ -293,22 +294,29 @@ class Server:
         num = node.cssselect('div#middle div#middleCenter div#numResults')[0].text
         num = int(num.split()[0])
         event_id = re.compile(r'http://www.myhabit.com/homepage\??#page=b&sale=(\w+)').match(url).group(1)
-        brand, is_new = Event.objects.get_or_create(event_id=event_id)
-        # crawl info before, so always not new
-        brand.sale_description = sale_description
-        brand.events_end = utc_endtime
-        if sale_brand_link: brand.brand_link = sale_brand_link
-        brand.num = num
-        brand.update_time = datetime.utcnow()
-        brand.urgent = False
-
         elements = node.xpath('./div[@id="asinbox"]/ul/li[starts-with(@id, "result_")]')
         for ele in elements:
             self.parse_category_product(ele, event_id, sale_title, ctx)
 
-        brand.save()
-        common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=False)
-#        print 'time proc brand list: ', time.time() - time_begin_benchmark
+        # crawl info before, so always not new
+        event = Event.objects(event_id=event_id).first()
+        is_new, is_updated = False, False
+        if not event:
+            is_new = True
+            event = Event(event_id=event_id)
+        event.sale_description = sale_description
+        event.events_end = utc_endtime
+        if sale_brand_link: event.brand_link = sale_brand_link
+        event.num = num
+        if event.urgent == True:
+            event.urgent = False
+            ready = 'Event'
+        else:
+            ready = None
+        event.update_time = datetime.utcnow()
+        event.save()
+        common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=is_updated, ready=ready)
+#        print 'time proc event list: ', time.time() - time_begin_benchmark
 
 
     def parse_category_product(self, element, event_id, sale_title, ctx):
@@ -319,10 +327,6 @@ class Server:
         :param sale_title: as event pass to product
         """
         soldout = element.cssselect('a.evt-prdtImg-a div.soldout')
-        if soldout:
-            soldout = True
-        else:
-            soldout = False
         prod = element.cssselect('a.evt-prdtDesc-a')[0]
         l = prod.get('href')
         link = l if l.startswith('http') else 'http://www.myhabit.com/homepage' + l
@@ -347,12 +351,12 @@ class Server:
 #            product.brand = sale_title
             product.asin = asin
             product.title = title
-            if soldout == True: product.soldout = True
+            product.soldout = True if soldout else False
             product.updated = False
             product.combine_url = 'http://www.myhabit.com/homepage#page=d&sale={0}&asin={1}&cAsin={2}'.format(event_id, asin, casin)
         else:
-            if soldout == True and product.soldout != True:
-                product.soldout = soldout
+            if soldout and product.soldout != True:
+                product.soldout = True
                 is_updated = True
             if event_id not in product.event_id: product.event_id.append(event_id)
         product.price = ourprice
@@ -384,7 +388,6 @@ class Server:
         node = pre.cssselect('div#dpLeftCol')[0]
         right_col = pre.cssselect('div#dpRightCol div#innerRightCol')[0]
 
-        product, is_new = Product.objects.get_or_create(pk=casin)
         info_table, image_urls, video = [], [], ''
         shortDesc_node = node.cssselect('div#dpProdDesc div#pdBullets li.shortDesc')
         if shortDesc_node: shortDesc = shortDesc_node[0].text
@@ -415,6 +418,7 @@ class Server:
         if sizes_node: sizes = [s.text for s in sizes_node if not s.text.startswith('Please')]
         else: sizes = [] 
 
+        product, is_new = Product.objects.get_or_create(pk=casin)
         product.summary = shortDesc
         product.list_info = info_table
         product.image_urls = image_urls
@@ -437,11 +441,15 @@ class Server:
         if listprice: product.listprice = listprice
         product.shipping = shipping
         if scarcity: product.scarcity = scarcity
-        product.updated = True
+        if product.updated == False:
+            product.updated = True
+            ready = 'Product'
+        else:
+            ready = None
         product.full_update_time = datetime.utcnow()
         product.save()
         
-        common_saved.send(sender=ctx, key=casin, url=url, is_new=is_new, is_updated=not is_new)
+        common_saved.send(sender=ctx, key=casin, url=url, is_new=is_new, is_updated=not is_new, ready=ready)
 #        print 'time product process benchmark: ', time.time() - time_begin_benchmark
 
 

@@ -30,7 +30,7 @@ class BaseCategory(Document):
     meta        =   {
         "allow_inheritance": True,
         "collection": "category",
-        "indexes":  ["cats", ("is_leaf", "update_time"), "num", ],
+        "indexes":  ["is_leaf"],
     }
 
     def catstr(self):
@@ -50,6 +50,7 @@ class BaseEvent(BaseCategory):
     ...     pass
 
     """
+    event_id            = StringField(unique=True)
     events_begin        = DateTimeField()
     events_end          = DateTimeField()
     create_time         = DateTimeField(default=datetime.utcnow)
@@ -62,9 +63,12 @@ class BaseEvent(BaseCategory):
 
     # after setting urgent to False, you can't set it back
     urgent              = BooleanField(default=True)
-
+    
+    image_complete      = BooleanField(default=False)
+    branch_complete     = BooleanField(default=False)
+    
     meta = {
-        "indexes": ["soldout", "urgent"],
+        "indexes": ["urgent", "events_begin", "events_end", "soldout", "event_id"],
     }
 
 class BaseReview(Document):
@@ -119,6 +123,7 @@ class BaseProduct(Document):
     title               =   StringField()
     slug                =   StringField()
     summary             =   StringField() 
+    detail              =   StringField()
     shipping            =   StringField()
     available           =   StringField()
 
@@ -133,7 +138,7 @@ class BaseProduct(Document):
     meta                =   {
         "allow_inheritance": True,
         "collection": "product",
-        "indexes":  ["key", "cats", "list_update_time", "full_update_time", "model", "brand", "updated"],
+        "indexes":  ["key", "list_update_time", "full_update_time", "model", "brand", "updated"],
     }
 
     def url(self):
@@ -165,6 +170,8 @@ class LuxuryProduct(BaseProduct):
     scarcity            =   StringField()
     list_info           =   ListField(StringField())
 
+    image_complete      =   BooleanField(default=False)
+    branch_complete     =   BooleanField(default=False)
 
     meta                = {
         "indexes": ["soldout"],

@@ -7,10 +7,10 @@ Created on 2012-11-19
 
 from helpers.signals import SignalQueue, Signal
 
-pre_image_crawl = SignalQueue("pre_image_crawl")
-post_image_crawl = SignalQueue("post_image_crawl")
+pre_image_crawl = Signal("pre_image_crawl")
+post_image_crawl = Signal("post_image_crawl")
 
-image_crawled = SignalQueue("image_crawled")
-image_crawled_failed = SignalQueue('image_crawled_failed')
+image_crawled = Signal("image_crawled")
+image_crawled_failed = Signal('image_crawled_failed')
 
-run_image_crawl = SignalQueue('run_image_crawl')
+run_image_crawl = Signal('run_image_crawl')

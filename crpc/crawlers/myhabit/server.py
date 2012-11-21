@@ -98,7 +98,7 @@ class Server:
     @exclusive_lock(DB)
     def crawl_category(self, ctx):
         """.. :py:method::
-            From top depts, get all the brands
+            From top depts, get all the events
         """
         self.check_signin()
         depts = ['women', 'men', 'kids', 'home', 'designer']
@@ -107,7 +107,10 @@ class Server:
 
         for dept in depts:
             link = 'http://www.myhabit.com/homepage?#page=g&dept={0}&ref=qd_nav_tab_{0}'.format(dept)
-            self.get_event_list(dept, link, ctx)
+            try:
+                self.get_event_list(dept, link, ctx)
+            except:
+                common_failed.send(sender=ctx, key='crawl_category', url=link, reason=sys.exc_info())
         self.cycle_crawl_category(ctx)
         
         debug_info.send(sender=DB + '.category.end')
@@ -116,28 +119,28 @@ class Server:
     def cycle_crawl_category(self, ctx, timeover=30):
         """.. :py:method::
             read (category, link) tuple from queue, crawl sub-category, insert into the queue
-            get queue and parse the brand page
+            get queue and parse the event page
 
         :param timeover: timeout in queue.get
         """
         debug_info.send(sender='{0}.cycle_crawl_category.begin:queue size {1}'.format(DB, self.upcoming_queue.qsize()))
         while not self.upcoming_queue.empty():
-#            try:
-            job = self.upcoming_queue.get(timeout=timeover)
-            if self.download_page(job[1], self.upcoming_label) == 1:
-                pass
-            self.parse_upcoming(job[0], job[1], ctx)
-#            except Queue.Empty:
-#                debug_info.send(sender="{0}.category:Queue waiting {1} seconds without response!".format(DB, timeover))
-#            except:
-#                debug_info.send(sender=DB + ".category", tracebackinfo=sys.exc_info())
+            try:
+                job = self.upcoming_queue.get(timeout=timeover)
+                if self.download_page(job[1], self.upcoming_label) == 1:
+                    pass
+                self.parse_upcoming(job[0], job[1], ctx)
+            except Queue.Empty:
+                common_failed.send(sender=ctx, key='cycle_crawl_category', url='' )
+            except:
+                common_failed.send(sender=ctx, key='cycle_crawl_category', url=job[1], reason=sys.exc_info())
         debug_info.send(sender=DB + '.cycle_crawl_category.end')
 
 
     def url2saleid(self, url):
         """.. :py:method::
 
-        :param url: the brand's url
+        :param url: the event's url
         :rtype: string of event_id
         """
         return re.compile(r'http://www.myhabit.com/homepage\??#page=b&dept=\w+&sale=(\w+)').match(url).group(1)
@@ -155,7 +158,7 @@ class Server:
 
     def get_event_list(self, dept, url, ctx):
         """.. :py:method::
-            Get all the brands from brand list.
+            Get all the events from event list.
             Brand have a list of product.
 
         :param dept: dept in the page
@@ -177,28 +180,29 @@ class Server:
 
             image = node.xpath('./div[@class="image"]/a/img')[0].get('src')
             # try: # if can't be found, cost a long time and raise NoSuchElementException
-            soldout_node = node.xpath('./div[@class="image"]/a/div[@class="soldout"]')
-            if soldout_node: soldout = True
-            else: soldout = False
+            soldout = node.xpath('./div[@class="image"]/a/div[@class="soldout"]')
 
-            brand, is_new = Event.objects.get_or_create(event_id=event_id)
-            is_updated = False
-            if is_new:
-                brand.sale_title = a_title.text
-                brand.image_urls = [image]
-                if soldout == True: brand.soldout = True
-                brand.urgent = True
-                brand.combine_url = 'http://www.myhabit.com/homepage#page=b&sale={0}'.format(event_id)
+            event = Event.objects(event_id=event_id).first()
+            is_new, is_updated = False, False
+            if not event:
+                is_new = True
+                event = Event(event_id=event_id)
+                event.dept = [dept]
+                event.sale_title = a_title.text
+                event.image_urls = [image]
+                event.soldout = True if soldout else False
+                event.urgent = True
+                event.combine_url = 'http://www.myhabit.com/homepage#page=b&sale={0}'.format(event_id)
             else:
-                if soldout == True and brand.soldout != True:
-                    brand.soldout = soldout
+                if soldout and event.soldout != True:
+                    event.soldout = True
                     is_updated = True
-            if dept not in brand.dept: brand.dept.append(dept) # for designer dept
-            brand.update_time = datetime.utcnow()
-            brand.save()
+                if dept not in event.dept: event.dept.append(dept) # for designer dept
+            event.update_time = datetime.utcnow()
+            event.save()
             common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=is_updated)
 
-        # upcoming brand
+        # upcoming event
         nodes = browser.xpath('//div[@id="main"]/div[@id="page-content"]/div[@id="upcomingSales"]//div[@class="fourColumnSales"]//div[@class="caption"]/a')
         for node in nodes:
             l = node.get('href')
@@ -209,14 +213,15 @@ class Server:
 
     def parse_upcoming(self, dept, url, ctx):
         """.. :py:method::
-            upcoming brand page parsing
-            upcoming brand also have duplicate designer
+            upcoming event page parsing
+            upcoming event also have duplicate designer
 
         :param dept: dept in the page
         :param url: url in the page
         """
         event_id = self.url2saleid(url)
         event = Event.objects(event_id=event_id).first()
+        is_new, is_updated = False, False
         if not event:
             is_new = True
             browser = lxml.html.fromstring(self.browser.page_source)
@@ -227,6 +232,7 @@ class Server:
             except:
                 time.sleep(1)
                 browser = lxml.html.fromstring(self.browser.page_source)
+                path = browser.cssselect('div#main div#page-content div#top-content')[0]
                 begin_date = path.cssselect('div#startHeader span.date')[0].text # SAT OCT 20
 #                common_failed.send(sender=ctx, url=url, reason='probably the begin_date can not be pased.')
             begin_time = path.xpath('./div[@id="startHeader"]/span[@class="time"]')[0].text # 9 AM PT
@@ -251,7 +257,6 @@ class Server:
             event.urgent = True
             event.combine_url = 'http://www.myhabit.com/homepage#page=b&sale={0}'.format(event_id)
         else:
-            is_new = False
             if dept not in event.dept: event.dept.append(dept)
         event.save()
         common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=False)
@@ -288,22 +293,29 @@ class Server:
         num = node.cssselect('div#middle div#middleCenter div#numResults')[0].text
         num = int(num.split()[0])
         event_id = re.compile(r'http://www.myhabit.com/homepage\??#page=b&sale=(\w+)').match(url).group(1)
-        brand, is_new = Event.objects.get_or_create(event_id=event_id)
-        # crawl info before, so always not new
-        brand.sale_description = sale_description
-        brand.events_end = utc_endtime
-        if sale_brand_link: brand.brand_link = sale_brand_link
-        brand.num = num
-        brand.update_time = datetime.utcnow()
-        brand.urgent = False
-
         elements = node.xpath('./div[@id="asinbox"]/ul/li[starts-with(@id, "result_")]')
         for ele in elements:
             self.parse_category_product(ele, event_id, sale_title, ctx)
 
-        brand.save()
-        common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=False)
-#        print 'time proc brand list: ', time.time() - time_begin_benchmark
+        # crawl info before, so always not new
+        event = Event.objects(event_id=event_id).first()
+        is_new, is_updated = False, False
+        if not event:
+            is_new = True
+            event = Event(event_id=event_id)
+        event.sale_description = sale_description
+        event.events_end = utc_endtime
+        if sale_brand_link: event.brand_link = sale_brand_link
+        event.num = num
+        if event.urgent == True:
+            event.urgent = False
+            ready = 'Event'
+        else:
+            ready = None
+        event.update_time = datetime.utcnow()
+        event.save()
+        common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=is_updated, ready=ready)
+#        print 'time proc event list: ', time.time() - time_begin_benchmark
 
 
     def parse_category_product(self, element, event_id, sale_title, ctx):
@@ -311,13 +323,9 @@ class Server:
             Brand page, product parsing
 
         :param element: product's xpath element
-        :param sale_title: as brand pass to product
+        :param sale_title: as event pass to product
         """
         soldout = element.cssselect('a.evt-prdtImg-a div.soldout')
-        if soldout:
-            soldout = True
-        else:
-            soldout = False
         prod = element.cssselect('a.evt-prdtDesc-a')[0]
         l = prod.get('href')
         link = l if l.startswith('http') else 'http://www.myhabit.com/homepage' + l
@@ -342,12 +350,12 @@ class Server:
 #            product.brand = sale_title
             product.asin = asin
             product.title = title
-            if soldout == True: product.soldout = True
+            product.soldout = True if soldout else False
             product.updated = False
             product.combine_url = 'http://www.myhabit.com/homepage#page=d&sale={0}&asin={1}&cAsin={2}'.format(event_id, asin, casin)
         else:
-            if soldout == True and product.soldout != True:
-                product.soldout = soldout
+            if soldout and product.soldout != True:
+                product.soldout = True
                 is_updated = True
             if event_id not in product.event_id: product.event_id.append(event_id)
         product.price = ourprice
@@ -432,11 +440,15 @@ class Server:
         if listprice: product.listprice = listprice
         product.shipping = shipping
         if scarcity: product.scarcity = scarcity
-        product.updated = True
+        if product.updated == False:
+            product.updated = True
+            ready = 'Product'
+        else:
+            ready = None
         product.full_update_time = datetime.utcnow()
         product.save()
         
-        common_saved.send(sender=ctx, key=casin, url=url, is_new=is_new, is_updated=not is_new)
+        common_saved.send(sender=ctx, key=casin, url=url, is_new=is_new, is_updated=False, ready=ready)
 #        print 'time product process benchmark: ', time.time() - time_begin_benchmark
 
 

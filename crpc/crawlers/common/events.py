@@ -8,8 +8,10 @@ pre_general_update = Signal("pre_general_update")
 """ site, method, complete, reason """
 post_general_update = Signal("post_general_update")
 
-""" site, key, url, is_new, is_updated, reason"""
+""" key, url, is_new, is_updated"""
 common_saved = Signal("common_saved")
+
+""" key, url, reason"""
 common_failed = Signal("common_failed")
 
 

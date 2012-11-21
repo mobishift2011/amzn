@@ -6,7 +6,8 @@ from mongoengine import *
 from mongoengine import signals
 from datetime import datetime, timedelta
 
-connect(db="monitor", host=MONGODB_HOST)
+DB = "monitor"
+connect(db=DB, alias=DB, host=MONGODB_HOST)
 
 def fail(site, method, key='', url='', message="undefined"):
     f = Fail(site=site, method=method, key=key, url=url, message=message)
@@ -24,6 +25,10 @@ class Schedule(Document):
     month           =   StringField()
     dayofweek       =   StringField()
     enabled         =   BooleanField(default=False)
+
+    meta        =   {
+         "db_alias": DB,
+    }
 
     def get_crontab_arguments(self):
         return "{0} {1} {2} {3} {4}".format(self.minute, self.hour, self.dayofmonth, self.month, self.dayofweek)
@@ -77,6 +82,10 @@ class Fail(Document):
     url             =   StringField()
     message         =   StringField()
 
+    meta        =   {
+         "db_alias": DB,
+    }
+
     def __str__(self):
         return str(self.to_json())
 
@@ -122,6 +131,7 @@ class Task(Document):
     # meta
     meta        =   {
         "indexes":  [("status", "site", "method"), "started_at", "updated_at"],
+        "db_alias": DB,
     }
 
     def __str__(self):

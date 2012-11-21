@@ -62,7 +62,10 @@ class BaseEvent(BaseCategory):
 
     # after setting urgent to False, you can't set it back
     urgent              = BooleanField(default=True)
-
+    
+    image_complete      = BooleanField(default=False)
+    branch_complete     = BooleanField(default=False)
+    
     meta = {
         "indexes": ["soldout", "urgent"],
     }
@@ -165,6 +168,8 @@ class LuxuryProduct(BaseProduct):
     scarcity            =   StringField()
     list_info           =   ListField(StringField())
 
+    image_complete      =   BooleanField(default=False)
+    branch_complete     =   BooleanField(default=False)
 
     meta                = {
         "indexes": ["soldout"],

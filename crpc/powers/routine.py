@@ -39,8 +39,7 @@ def get_rpcs():
 def call_rpc(rpc, method, *args, **kwargs):
     try:
         from crawlers.common.rpcserver import RPCServer
-        RPCServer().image(method, args, kwargs)
-#        rpc.image(method, args, kwargs)
+        rpc.image(method, args, kwargs)
     except Exception:
         print traceback.format_exc()
         image_crawled_failed.send(sender=kwargs['ctx'],

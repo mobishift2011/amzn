@@ -8,7 +8,6 @@ crawlers.myhabit.models
 Implements Product and Category Model for myhabit 
 """
 
-from datetime import datetime, timedelta
 from crawlers.common.models import BaseEvent, LuxuryProduct
 
 from mongoengine import *

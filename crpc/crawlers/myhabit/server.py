@@ -9,12 +9,12 @@ This is the server part of zeroRPC module. Call by client automatically, run on 
 """
 import os
 import re
-import sys
 import time
 import Queue
 import zerorpc
 import lxml.html
 import pytz
+import traceback
 
 from urllib import quote, unquote
 from datetime import datetime
@@ -110,7 +110,7 @@ class Server:
             try:
                 self.get_event_list(dept, link, ctx)
             except:
-                common_failed.send(sender=ctx, key='crawl_category', url=link, reason=sys.exc_info())
+                common_failed.send(sender=ctx, key='crawl_category', url=link, reason=traceback.format_exc())
         self.cycle_crawl_category(ctx)
         
         debug_info.send(sender=DB + '.category.end')
@@ -133,7 +133,7 @@ class Server:
             except Queue.Empty:
                 common_failed.send(sender=ctx, key='cycle_crawl_category', url='' )
             except:
-                common_failed.send(sender=ctx, key='cycle_crawl_category', url=job[1], reason=sys.exc_info())
+                common_failed.send(sender=ctx, key='cycle_crawl_category', url=job[1], reason=traceback.format_exc())
         debug_info.send(sender=DB + '.cycle_crawl_category.end')
 
 
@@ -182,8 +182,8 @@ class Server:
             # try: # if can't be found, cost a long time and raise NoSuchElementException
             soldout = node.xpath('./div[@class="image"]/a/div[@class="soldout"]')
 
-            event = Event.objects(event_id=event_id).first()
             is_new, is_updated = False, False
+            event = Event.objects(event_id=event_id).first()
             if not event:
                 is_new = True
                 event = Event(event_id=event_id)
@@ -220,23 +220,24 @@ class Server:
         :param url: url in the page
         """
         event_id = self.url2saleid(url)
+        browser = lxml.html.fromstring(self.browser.page_source)
+        try:
+            path = browser.cssselect('div#main div#page-content div#top-content')[0]
+            begin_date = path.cssselect('div#startHeader span.date')[0].text # SAT OCT 20
+        except:
+            time.sleep(1)
+            browser = lxml.html.fromstring(self.browser.page_source)
+            path = browser.cssselect('div#main div#page-content div#top-content')[0]
+            begin_date = path.cssselect('div#startHeader span.date')[0].text # SAT OCT 20
+#            common_failed.send(sender=ctx, url=url, reason='probably the begin_date can not be pased.')
+        begin_time = path.xpath('./div[@id="startHeader"]/span[@class="time"]')[0].text # 9 AM PT
+        utc_begintime = time_convert(begin_date + ' ' + begin_time.replace('PT', ''), '%a %b %d %I %p %Y') #u'SAT OCT 20 9 AM '
+
         event = Event.objects(event_id=event_id).first()
         is_new, is_updated = False, False
         if not event:
             is_new = True
-            browser = lxml.html.fromstring(self.browser.page_source)
-            path = browser.cssselect('div#main div#page-content div#top-content')[0]
 
-            try:
-                begin_date = path.cssselect('div#startHeader span.date')[0].text # SAT OCT 20
-            except:
-                time.sleep(1)
-                browser = lxml.html.fromstring(self.browser.page_source)
-                path = browser.cssselect('div#main div#page-content div#top-content')[0]
-                begin_date = path.cssselect('div#startHeader span.date')[0].text # SAT OCT 20
-#                common_failed.send(sender=ctx, url=url, reason='probably the begin_date can not be pased.')
-            begin_time = path.xpath('./div[@id="startHeader"]/span[@class="time"]')[0].text # 9 AM PT
-            utc_begintime = time_convert(begin_date + ' ' + begin_time.replace('PT', ''), '%a %b %d %I %p %Y') #u'SAT OCT 20 9 AM '
             brand_info = path.cssselect('div#upcomingSaleBlurb')[0].text
             img = path.xpath('./div[@class="upcomingSaleHero"]/div[@class="image"]/img')[0].get('src')
             sale_title = path.xpath('./div[@class="upcomingSaleHero"]/div[@class="image"]/img')[0].get('alt')
@@ -250,7 +251,6 @@ class Server:
             event.dept = [dept]
             event.sale_title = sale_title
             event.image_urls = [img]
-            event.events_begin = utc_begintime
             event.sale_description = brand_info
             event.upcoming_title_img = subs
             event.update_time = datetime.utcnow()
@@ -258,6 +258,7 @@ class Server:
             event.combine_url = 'http://www.myhabit.com/homepage#page=b&sale={0}'.format(event_id)
         else:
             if dept not in event.dept: event.dept.append(dept)
+        event.events_begin = utc_begintime
         event.save()
         common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=False)
 
@@ -387,7 +388,6 @@ class Server:
         node = pre.cssselect('div#dpLeftCol')[0]
         right_col = pre.cssselect('div#dpRightCol div#innerRightCol')[0]
 
-        product, is_new = Product.objects.get_or_create(pk=casin)
         info_table, image_urls, video = [], [], ''
         shortDesc_node = node.cssselect('div#dpProdDesc div#pdBullets li.shortDesc')
         if shortDesc_node: shortDesc = shortDesc_node[0].text
@@ -418,6 +418,7 @@ class Server:
         if sizes_node: sizes = [s.text for s in sizes_node if not s.text.startswith('Please')]
         else: sizes = [] 
 
+        product, is_new = Product.objects.get_or_create(pk=casin)
         product.summary = shortDesc
         product.list_info = info_table
         product.image_urls = image_urls
@@ -448,7 +449,7 @@ class Server:
         product.full_update_time = datetime.utcnow()
         product.save()
         
-        common_saved.send(sender=ctx, key=casin, url=url, is_new=is_new, is_updated=False, ready=ready)
+        common_saved.send(sender=ctx, key=casin, url=url, is_new=is_new, is_updated=not is_new, ready=ready)
 #        print 'time product process benchmark: ', time.time() - time_begin_benchmark
 
 

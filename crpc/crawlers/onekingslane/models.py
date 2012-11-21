@@ -20,7 +20,6 @@ class Event(BaseEvent):
     """
         difference: event_id is in the url, replaced the space with '+', and dept is in the text_content
     """
-    event_id = StringField(unique=True)
     short_desc = StringField()
 
     meta = {

@@ -8,16 +8,14 @@ crawlers.zulily.models
 Implements Product and Category Model for zulily 
 """
 
-from datetime import datetime, timedelta
 from crawlers.common.models import BaseEvent, LuxuryProduct
 
 from mongoengine import *
 from settings import MONGODB_HOST
 DB = 'zulily'
-connect(db=DB, alias='zulily', host=MONGODB_HOST)
+connect(db=DB, alias=DB, host=MONGODB_HOST)
 
 class Event(BaseEvent):
-    event_id = StringField(unique=True)
     short_desc = StringField()
     start_end_date = StringField()
 
@@ -33,7 +31,6 @@ class Product(LuxuryProduct):
     also_like = ListField()
 
     meta = {
-        "indexes": ["updated"],
         "db_alias": DB,
     }
 

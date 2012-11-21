@@ -293,22 +293,29 @@ class Server:
         num = node.cssselect('div#middle div#middleCenter div#numResults')[0].text
         num = int(num.split()[0])
         event_id = re.compile(r'http://www.myhabit.com/homepage\??#page=b&sale=(\w+)').match(url).group(1)
-        brand, is_new = Event.objects.get_or_create(event_id=event_id)
-        # crawl info before, so always not new
-        brand.sale_description = sale_description
-        brand.events_end = utc_endtime
-        if sale_brand_link: brand.brand_link = sale_brand_link
-        brand.num = num
-        brand.update_time = datetime.utcnow()
-        brand.urgent = False
-
         elements = node.xpath('./div[@id="asinbox"]/ul/li[starts-with(@id, "result_")]')
         for ele in elements:
             self.parse_category_product(ele, event_id, sale_title, ctx)
 
-        brand.save()
-        common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=False)
-#        print 'time proc brand list: ', time.time() - time_begin_benchmark
+        # crawl info before, so always not new
+        event = Event.objects(event_id=event_id).first()
+        is_new, is_updated = False, False
+        if not event:
+            is_new = True
+            event = Event(event_id=event_id)
+        event.sale_description = sale_description
+        event.events_end = utc_endtime
+        if sale_brand_link: event.brand_link = sale_brand_link
+        event.num = num
+        if event.urgent == True:
+            event.urgent = False
+            ready = 'Event'
+        else:
+            ready = None
+        event.update_time = datetime.utcnow()
+        event.save()
+        common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=is_updated, ready=ready)
+#        print 'time proc event list: ', time.time() - time_begin_benchmark
 
 
     def parse_category_product(self, element, event_id, sale_title, ctx):
@@ -319,10 +326,6 @@ class Server:
         :param sale_title: as event pass to product
         """
         soldout = element.cssselect('a.evt-prdtImg-a div.soldout')
-        if soldout:
-            soldout = True
-        else:
-            soldout = False
         prod = element.cssselect('a.evt-prdtDesc-a')[0]
         l = prod.get('href')
         link = l if l.startswith('http') else 'http://www.myhabit.com/homepage' + l
@@ -347,12 +350,12 @@ class Server:
 #            product.brand = sale_title
             product.asin = asin
             product.title = title
-            if soldout == True: product.soldout = True
+            product.soldout = True if soldout else False
             product.updated = False
             product.combine_url = 'http://www.myhabit.com/homepage#page=d&sale={0}&asin={1}&cAsin={2}'.format(event_id, asin, casin)
         else:
-            if soldout == True and product.soldout != True:
-                product.soldout = soldout
+            if soldout and product.soldout != True:
+                product.soldout = True
                 is_updated = True
             if event_id not in product.event_id: product.event_id.append(event_id)
         product.price = ourprice
@@ -437,11 +440,15 @@ class Server:
         if listprice: product.listprice = listprice
         product.shipping = shipping
         if scarcity: product.scarcity = scarcity
-        product.updated = True
+        if product.updated == False:
+            product.updated = True
+            ready = 'Product'
+        else:
+            ready = None
         product.full_update_time = datetime.utcnow()
         product.save()
         
-        common_saved.send(sender=ctx, key=casin, url=url, is_new=is_new, is_updated=not is_new)
+        common_saved.send(sender=ctx, key=casin, url=url, is_new=is_new, is_updated=False, ready=ready)
 #        print 'time product process benchmark: ', time.time() - time_begin_benchmark
 
 

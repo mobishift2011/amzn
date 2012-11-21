@@ -243,7 +243,7 @@ class Server(object):
         cont = self.net.fetch_page(url)
         product_id = re.compile('http://.*.ruelala.com/product/detail/eventId/\d{1,10}/styleNum/(\d{1,10})/viewAll/0').search(url).group(1)
         tree = lxml.html.fromstring(cont)
-        prd = tree.cssselect('div#main section#productAttributes')
+        prd = tree.cssselect('div#main section#productAttributes')[0]
 
         title = prd.cssselect('h2#productName')[0].text_content()
         summary = prd.cssselect('p#shortDesc')[0].text_content()
@@ -263,7 +263,7 @@ class Server(object):
         if not product:
             is_new = True
             product = Product(key=product_id)
-            image_count = self.make_img_urls(product_id)
+            image_count = self.num_image_urls(product_id)
             product.image_urls = self._make_img_urls(product_id, image_count)
             product.title = title
             product.summary = summary
@@ -337,9 +337,11 @@ class Server(object):
             common_saved.send(sender=ctx, key=event_id, is_new=False, is_updated=False, ready='Event')
 
 
-    def make_image_urls(self, product_id):
+    def num_image_urls(self, product_id):
         """
         the keyworld `RLLZ` in url  meaning large size(about 800*1000), `RLLA` meaning small size (about 10*10)
+
+        :rtype: detect how many image_urls on the product
         """
         prefix = 'http://www.ruelala.com/images/product/'
         for i in xrange(1, 1000):
@@ -374,7 +376,7 @@ class Server(object):
         product_id = self._url2product_id(url)
         node = tree.cssselect('div.container section#productContainer')[0]
 
-        image_count = self.make_img_urls(product_id)
+        image_count = self.num_image_urls(product_id)
 
         list_info = []
         for li in node.cssselect('section#info ul li'):
@@ -389,15 +391,20 @@ class Server(object):
         
         attribute_node = node.cssselect('section#productAttributes')[0]
         size_list = attribute_node.cssselect('section#productSelectors ul#sizeSwatches li.swatch a')
-        sizes = [s.text for s in size_list] if size_list else []
+        if size_list:
+            sizes = [s.text for s in size_list]
+        else: sizes = []
         shipping = attribute_node.cssselect('div#readyToShip')
-        shipping = shipping.text_content() if shipping else ''
+        shipping = shipping[0].text_content() if shipping else ''
         limit = attribute_node.cssselect('div#cartLimit')
         limit = limit[0].text_content() if limit else ''
         ship_rule = attribute_node.cssselect('div#returnsLink ')
         ship_rule = ship_rule[0].text_content() if ship_rule else ''
         color = attribute_node.cssselect('section#productSelectors ul#colorSwatches > li > a')
-        color = [c.get('title') for c in color] if color else []
+        if color:
+            for c in color:
+                colors.append( c.get('title') )
+            color = '; '.join(colors)
 
         product, is_new = Product.objects.get_or_create(key=product_id)
         product.image_urls = self._make_img_urls(product_id, image_count)
@@ -407,7 +414,7 @@ class Server(object):
         product.shipping = shipping
         product.limit = limit
         product.ship_rule = ship_rule
-        product.color = color
+        product.color = color if color else ''
         if product.updated == False:
             product.updated = True
             ready = 'Product'
@@ -415,7 +422,7 @@ class Server(object):
             ready = None
         product.full_update_time = datetime.utcnow()
         product.save()
-        common_saved.send(sender=ctx, key=product_id, is_new=is_new, is_updated=False, ready=ready)
+        common_saved.send(sender=ctx, key=product_id, url=url, is_new=is_new, is_updated=not is_new, ready=ready)
 
 
     def _url2product_id(self, url):

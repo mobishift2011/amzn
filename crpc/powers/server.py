@@ -11,7 +11,7 @@ class Image(object):
             event.image_path = s3_urls
             event.save()
             
-            image_crawled.send(sender=ctx, key=event_id)
+#           image_crawled.send(sender=ctx, key=event_id)
             print '\n%s.%s.s3urls: %s' % (site, event_id, s3_urls)
         else:
             # TODO
@@ -25,9 +25,8 @@ class Image(object):
             s3_urls = it.crawl(image_urls, site, key)
             product.image_path = s3_urls
             product.save()
-            
-            
-            image_crawled.send(sender=ctx, key=key)
+                       
+#            image_crawled.send(sender=ctx, key=key)
             print '\n%s.%s.s3urls: %s' % (site, key, s3_urls)
         else:
             # TODO

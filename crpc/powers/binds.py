@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from powers.events import *
-from powers.routine import get_rpcs, update_event_images, update_product_images
+from powers.routine import get_rpcs, scan_event_images, scan_product_images
 
 from gevent import monkey; monkey.patch_all()
 import gevent

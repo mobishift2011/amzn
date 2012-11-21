@@ -16,6 +16,7 @@ from boto.s3.connection import S3Connection
 
 from configs import *
 
+CURRDIR = os.path.dirname(__file__)
 
 class ImageTool:
     """
@@ -50,7 +51,14 @@ class ImageTool:
         with open(os.path.join(os.path.dirname(__file__), 'temp', image_name), 'wb') as f:
             image = requests.get(image_url).content
             f.write(image)
-        return self.upload2s3(open(f.name), os.path.join(site, image_name)) # post image file to S3, and get back the url. 
+        ret = []
+        try:
+            ret = self.upload2s3(open(f.name), os.path.join(site, image_name)) # post image file to S3, and get back the url.
+        except:
+            pass
+        finally:
+            os.remove(f.name)
+        return ret
     
     def thumnail(self):
         pass

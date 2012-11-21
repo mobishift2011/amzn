@@ -71,11 +71,12 @@ class Server(object):
             info = event['event']
             event_id = info['event_id']
             event_code = info['event_code']
+
             # new upcoming, new now, old upcoming, old now
-            event.events_begin = self.convert_time( info['start_date'] )
-            event.events_end = self.convert_time( info['end_date'] )
+            events_begin = self.convert_time( info['start_date'] )
+            events_end = self.convert_time( info['end_date'] )
             _utcnow = datetime.utcnow()
-#            if event.events_end < _utcnow:
+#            if events_end < _utcnow:
 #
             event = Event.objects(event_id=event_id).first()
             is_new, is_updated = False, False
@@ -97,6 +98,8 @@ class Server(object):
                 if info['sort_order'] != event.sort_order:
                     event.sort_order = info['sort_order']
                     is_updated = True
+            event.events_begin = events_begin
+            event.events_end = events_end
             event.update_time = _utcnow
             event.save()
             common_saved.send(sender=ctx, key=event_id, url='{0}/event/{1}'.format(self.siteurl, event_id), is_new=is_new, is_updated=is_updated)
@@ -116,6 +119,7 @@ class Server(object):
         if data.keys()[0] != 'availabilities':
             common_failed.send(sender=ctx, key='get availabilities twice, both error', url=url, reason=data)
             return
+        event_id = re.compile('http://www.hautelook.com/v3/catalog/(.+)/availability').match(url).group(1)
         for item in data['availabilities']:
             info = item['availability']
             key = info['inventory_id']
@@ -138,7 +142,6 @@ class Server(object):
             product.save()
             common_saved.send(sender=ctx, key=key, url=url, is_new=is_new, is_updated=is_updated)
 
-        event_id = re.compile('http://www.hautelook.com/v3/catalog/(.+)/availability').match(url).group(1)
         event, is_new = Event.objects.get_or_create(event_id=event_id)
         if event.urgent == True:
             event.urgent = False

@@ -152,7 +152,7 @@ class Server(object):
                 event.is_leaf = False
                 event.save()
             if num == 0:
-                pass
+                re.compile("countdownFactory.create\(('|\"){0}('|\"), ('|\")(\\d+)('|\"), ('|\")('|\")\);".format(event_id))
             if num >= 1:
                 if num > 1: event.is_leaf = False
                 event.events_end = isodate

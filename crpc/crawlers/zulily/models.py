@@ -16,7 +16,6 @@ DB = 'zulily'
 connect(db=DB, alias=DB, host=MONGODB_HOST)
 
 class Event(BaseEvent):
-    event_id = StringField(unique=True)
     short_desc = StringField()
     start_end_date = StringField()
 

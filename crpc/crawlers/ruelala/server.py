@@ -151,6 +151,8 @@ class Server(object):
             if num == -1: # event is product
                 event.is_leaf = False
                 event.save()
+            if num == 0:
+                pass
             if num >= 1:
                 if num > 1: event.is_leaf = False
                 event.events_end = isodate
@@ -160,6 +162,8 @@ class Server(object):
     def is_parent_event(self, dept, event_id, url, ctx):
         """.. :py:method::
             check whether event is parent event
+            -2 real error
+            -1 event is product
             0 closing day found: common_failed signal send
             1 closing day found: this is a listing page, return UTC events_end time
             > 1 closing days found: parent event.
@@ -189,7 +193,7 @@ class Server(object):
                 return 1, datetime.utcfromtimestamp( float(countdown_num[0][4][:-3]) )
             else:
                 common_failed.send(sender=ctx, site=DB, key='', url=url, reason='Url has 1 closing time but event_id not matching.')
-                return 0, 0
+                return -2, 0
         elif len(countdown_num) > 1:
             tree = lxml.html.fromstring(cont)
             nodes = tree.cssselect('div#main > section#experienceParentWrapper > section#children > article[id^="event-"]')

@@ -364,7 +364,7 @@ class Server(object):
             ready = None
         product.full_update_time = datetime.utcnow()
         product.save()
-        common_saved.send(sender=ctx, key=product_id, is_new=is_new, is_updated=False, ready=None)
+        common_saved.send(sender=ctx, key=product_id, is_new=is_new, is_updated=False, ready=ready)
 
 
     def _url2product_id(self, url):

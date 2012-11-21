@@ -39,13 +39,7 @@ def get_rpcs():
 def call_rpc(rpc, method, *args, **kwargs):
     try:
         from crawlers.common.rpcserver import RPCServer
-#        RPCServer().image(method, args, kwargs)
-        m = __import__("powers.server", fromlist=['Image'])
-        service = m.Image()
-        if service:
-            return getattr(service, method)(*args, **kwargs)
-        else:
-            raise ValueError("{crawler} does not seems to a valid crawler".format(**locals()))
+        RPCServer().image(method, args, kwargs)
 #        rpc.image(method, args, kwargs)
     except Exception:
         print traceback.format_exc()

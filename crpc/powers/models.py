@@ -207,19 +207,3 @@ class Task(Document):
         document.updated_at = datetime.utcnow()
 
 signals.pre_save.connect(Task.pre_save, sender=Task)
-
-if __name__ == '__main__':
-    ep = EventProgress()
-    ep.site = 'gilt'
-    ep.key = 'test1'
-    ep.task_title = 'gilt.update_category'
-    ep.task_start = datetime.utcnow()
-    ep.save()
-    
-    ep = ProductProgress()
-    ep.site = 'gilt'
-    ep.key = 'test2'
-    ep.task_title = 'gilt.update_category'
-    ep.task_start = datetime.utcnow()
-    ep.save()
-

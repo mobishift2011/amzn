@@ -85,7 +85,7 @@ def process_image(sender, **kwargs):
     site, method, dummy = sender.split('.')
     
     if site and key and ready in ('Event', 'Product'):
-        logger.info('site:%s %s %s ready for crawling images' % (site, ready, key))
+        logger.info('%s %s %s queries for crawling images' % (site, ready, key))
         from powers.routine import crawl_images
         crawl_images(site, ready, key)
     else:

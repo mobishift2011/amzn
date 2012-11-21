@@ -31,6 +31,9 @@ from mongoengine import Q
 from crawlers.common.events import pre_general_update, post_general_update, common_failed
 from datetime import datetime, timedelta
 
+from powers.events import run_image_crawl
+from powers.binds import run_image_crawl
+
 MAX_PAGE = 400
 
 def get_site_module(site):
@@ -192,13 +195,19 @@ new, update parent task with sevral sequential children tasks
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 def new_category(site, rpc, concurrency=3):
+    ictx= None
     with UpdateContext(site=site, method='new_category') as ctx:
+        ictx = ctx
         rpcs = [rpc] if not isinstance(rpc, list) else rpc
         rpc = random.choice(rpcs)
-        callrpc(rpc, site, 'crawl_category', ctx=ctx)
+#        callrpc(rpc, site, 'crawl_category', ctx=ctx)
+    
+    run_image_crawl.send(sender=ictx, site=site, method='scan_event_images')
 
 def new_listing(site, rpc, concurrency=3):
+    ictx = None
     with UpdateContext(site=site, method='new_listing') as ctx:
+        ictx = ctx
         rpcs = [rpc] if not isinstance(rpc, list) else rpc
         pool = Pool(len(rpcs)*concurrency)
         for category in spout_listing(site):
@@ -208,9 +217,13 @@ def new_listing(site, rpc, concurrency=3):
                 pool.spawn(callrpc, rpc, site, 'crawl_listing', **kwargs)
 #                callrpc( rpc, site, 'crawl_listing', **kwargs)
         pool.join()
+    
+    run_image_crawl.send(sender=ictx, site=site, method='scan_event_images')
 
 def new_product(site, rpc, concurrency=3):
+    ictx = None
     with UpdateContext(site=site, method='new_product') as ctx:
+        ictx = ctx
         rpcs = [rpc] if not isinstance(rpc, list) else rpc
         pool = Pool(len(rpcs)*concurrency)
         for kwargs in spout_product(site):
@@ -219,6 +232,8 @@ def new_product(site, rpc, concurrency=3):
             pool.spawn(callrpc, rpc, site, 'crawl_product', **kwargs)
 #            callrpc( rpc, site, 'crawl_product', **kwargs)
         pool.join()
+    
+    run_image_crawl.send(sender=ictx, site=site, method='scan_product_images')
 
 # parent task of new
 def new(site, rpc, concurrency=3):
@@ -228,13 +243,19 @@ def new(site, rpc, concurrency=3):
 
 
 def update_category(site, rpc, concurrency=3):
+    ictx = None
     with UpdateContext(site=site, method='update_category') as ctx:
+        ictx = ctx
         rpcs = [rpc] if not isinstance(rpc, list) else rpc
         rpc = random.choice(rpcs)
         callrpc(rpc, site, 'crawl_category', ctx=ctx)
+    
+    run_image_crawl.send(sender=ictx, site=site, method='scan_event_images')
 
 def update_listing(site, rpc, concurrency=3):
+    ictx = None
     with UpdateContext(site=site, method='update_listing') as ctx:
+        ictx = ctx
         rpcs = [rpc] if not isinstance(rpc, list) else rpc
         pool = Pool(len(rpcs)*concurrency)
         for category in spout_listing_update(site):
@@ -244,9 +265,13 @@ def update_listing(site, rpc, concurrency=3):
                 pool.spawn(callrpc, rpc, site, 'crawl_listing', **kwargs)
 #                callrpc( rpc, site, 'crawl_listing', **kwargs)
         pool.join()
+    
+    run_image_crawl.send(sender=ictx, site=site, method='scan_event_images')
 
 def update_product(site, rpc, concurrency=3):
+    ictx = None
     with UpdateContext(site=site, method='update_product') as ctx:
+        ictx = ctx
         rpcs = [rpc] if not isinstance(rpc, list) else rpc
         pool = Pool(len(rpcs)*concurrency)
         for kwargs in spout_product(site):
@@ -255,6 +280,9 @@ def update_product(site, rpc, concurrency=3):
             pool.spawn(callrpc, rpc, site, 'crawl_product', **kwargs)
 #            callrpc( rpc, site, 'crawl_product', **kwargs)
         pool.join()
+    
+    run_image_crawl.send(sender=ictx, site=site, method='scan_product_images')
+
 
 # parent task of update
 def update(site, rpc, concurrency=3):

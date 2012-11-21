@@ -74,6 +74,14 @@ class ruelalaLogin(object):
             self.login_account()
             ret = req.get(url)
         if ret.ok: return ret.content
+
+        # if this event is a product, event will redirect to product page.
+        # So it is the product page unauthorized, fetch_page the product url next time
+        if ret.status_code == 401:
+            return ret.url
+
+    def fetch_image(self, url):
+        ret = req.get(url)
         return ret.status_code
 
 
@@ -140,8 +148,13 @@ class Server(object):
             event, event_id, link = self.parse_event(dept, node, ctx)
 
             num, isodate = self.is_parent_event(dept, event_id, link, ctx)
+            if num == -1: # event is product
+                event.is_leaf = False
+                event.save()
+            if num == 0:
+                pass
             if num >= 1:
-                if num > 1: event.is_leaf = True
+                if num > 1: event.is_leaf = False
                 event.events_end = isodate
                 event.save()
 
@@ -149,6 +162,8 @@ class Server(object):
     def is_parent_event(self, dept, event_id, url, ctx):
         """.. :py:method::
             check whether event is parent event
+            -2 real error
+            -1 event is product
             0 closing day found: common_failed signal send
             1 closing day found: this is a listing page, return UTC events_end time
             > 1 closing days found: parent event.
@@ -166,13 +181,10 @@ class Server(object):
                 events_end: isoformat events_end
         """
         cont = self.net.fetch_page(url)
-        try:
-            # if this event is a product, cont is 401
-            countdown_num = self.countdown_num.findall(cont)
-        except TypeError:
-            common_failed.send(sender=ctx, site=DB, key='', url=url, reason='event is a product.')
-            print url 
-            return 0, 0
+        if cont.startswith('http://'): # event is a product.
+            self.crawl_event_is_product(event_id, cont, ctx)
+            return -1, 0
+        countdown_num = self.countdown_num.findall(cont)
         if len(countdown_num) == 0:
             common_failed.send(sender=ctx, site=DB, key='', url=url, reason='Url has no closing time.')
             return 0, 0
@@ -181,7 +193,7 @@ class Server(object):
                 return 1, datetime.utcfromtimestamp( float(countdown_num[0][4][:-3]) )
             else:
                 common_failed.send(sender=ctx, site=DB, key='', url=url, reason='Url has 1 closing time but event_id not matching.')
-                return 0, 0
+                return -2, 0
         elif len(countdown_num) > 1:
             tree = lxml.html.fromstring(cont)
             nodes = tree.cssselect('div#main > section#experienceParentWrapper > section#children > article[id^="event-"]')
@@ -225,6 +237,53 @@ class Server(object):
         event.save()
         common_saved.send(sender=ctx, key=event_id, is_new=is_new, is_updated=False)
         return event, event_id, link
+
+
+    def crawl_event_is_product(self, event_id, url, ctx):
+        """.. :py:method::
+            event is product, get event url, redirect to product url.
+            get product url. and parse
+        """
+        cont = self.net.fetch_page(url)
+        product_id = re.compile('http://.*.ruelala.com/product/detail/eventId/\d{1,10}/styleNum/(\d{1,10})/viewAll/0').search(url).group(1)
+        tree = lxml.html.fromstring(cont)
+        prd = tree.cssselect('div#main section#productAttributes')[0]
+
+        title = prd.cssselect('h2#productName')[0].text_content()
+        summary = prd.cssselect('p#shortDesc')[0].text_content()
+        returned = prd.cssselect('a#returnsLink')[0].text_content()
+        limit = prd.cssselect('div#cartLimit > div#cartLimit')[0].text_content()
+        price_node = prd.cssselect('div#productDetailContentWrapper div#packageDetails > section.productPrices')
+        listprice = price_node[0].cssselect('span#strikePrice')
+        price = price_node[0].cssselect('span#salePrice')
+
+        shipping = tree.cssselect('div#main > div#customContentWrapper > div#customContentTabs > div#expTerms')
+        detail = tree.cssselect('div#main > div#customContentWrapper > div#customContentTabs > div#expDetails')
+        shipping = shipping[0].text_content() if shipping else ''
+        detail = detail[0].text_content() if detail else ''
+
+        product = Product.objects(key=product_id).first()
+        is_new, is_updated = False, False
+        if not product:
+            is_new = True
+            product = Product(key=product_id)
+            image_count = self.num_image_urls(product_id)
+            product.image_urls = self._make_img_urls(product_id, image_count)
+            product.title = title
+            product.summary = summary
+            product.returned = returned
+            product.limit = limit
+            product.shipping = shipping
+            product.detail = detail
+            product.listprice = listprice[0].text_content() if listprice else ''
+            product.price = price[0].text_content() if price else ''
+            product.updated = True
+            product.combine_url = url
+            ready = 'Product'
+        else: ready = None
+        product.full_update_time = datetime.utcnow()
+        product.save()
+        common_saved.send(sender=ctx, key=product_id, is_new=is_new, is_updated=is_updated, ready=ready)
 
 
     def crawl_listing(self, url, ctx=''):
@@ -273,19 +332,6 @@ class Server(object):
             product.save()
             common_saved.send(sender=ctx, key=product_id, is_new=is_new, is_updated=is_updated)
 
-#            nodes = browser.xpath('//article[@class="column eventDoor halfDoor grid-one-third alpha"]')
-#        if not nodes:
-#
-#            #patch 1:
-#            #some event url (like:http://www.ruelala.com/event/57961) will 301 redirect to product detail page:
-#            #http://www.ruelala.com/product/detail/eventId/57961/styleNum/4112913877/viewAll/0
-#            url_301 = self.browser.current_url
-#            if url_301 <>  event_url:
-#                print '301,',url_301
-#                self._crawl_product(url_301,ctx)
-#            else:
-#                raise ValueError('can not find product @url:%s sale id:%s' %(event_url, event_id))
-
         event = Event.objects(event_id=event_id).first()
         if not event: event = Event(event_id=event_id)
         if event.urgent == True:
@@ -294,6 +340,19 @@ class Server(object):
             event.save()
             common_saved.send(sender=ctx, key=event_id, is_new=False, is_updated=False, ready='Event')
 
+
+    def num_image_urls(self, product_id):
+        """
+        the keyworld `RLLZ` in url  meaning large size(about 800*1000), `RLLA` meaning small size (about 10*10)
+
+        :rtype: detect how many image_urls on the product
+        """
+        prefix = 'http://www.ruelala.com/images/product/'
+        for i in xrange(1, 1000):
+            sub = '%s/%s_RLLA_%d.jpg' %(product_id[:6], product_id, i+1)
+            status = self.net.fetch_image(prefix + sub)
+            if status == 404:
+                return i
 
     def _make_img_urls(slef, product_key, img_count):
         """
@@ -321,10 +380,6 @@ class Server(object):
         product_id = self._url2product_id(url)
         node = tree.cssselect('div.container section#productContainer')[0]
 
-        img_nodes = node.cssselect('section#productImages div#imageViews img.productThumb')
-        img_count = len(img_nodes) if img_nodes else 1
-        image_urls = self._make_img_urls(product_id, img_count)
-
         list_info = []
         for li in node.cssselect('section#info ul li'):
             list_info.append(li.text_content())
@@ -338,15 +393,27 @@ class Server(object):
         
         attribute_node = node.cssselect('section#productAttributes')[0]
         size_list = attribute_node.cssselect('section#productSelectors ul#sizeSwatches li.swatch a')
-        sizes = [s.text for s in size_list] if size_list else []
+        if size_list:
+            sizes = [s.text for s in size_list]
+        else: sizes = []
         shipping = attribute_node.cssselect('div#readyToShip')
-        shipping = shipping.text_content() if shipping else ''
+        shipping = shipping[0].text_content() if shipping else ''
         limit = attribute_node.cssselect('div#cartLimit')
         limit = limit[0].text_content() if limit else ''
         ship_rule = attribute_node.cssselect('div#returnsLink ')
         ship_rule = ship_rule[0].text_content() if ship_rule else ''
+
+        colors, image_urls = [], []
         color = attribute_node.cssselect('section#productSelectors ul#colorSwatches > li > a')
-        color = [c.get('title') for c in color] if color else []
+        if color:
+            for c in color:
+                colors.append( c.get('title').lower() )
+            for c in colors:
+                image_urls.append('http://www.ruelala.com/images/product/{0}/{1}_RLLZ_{2}.jpg'.format(product_id[:6], product_id, c))
+
+        if not image_urls:
+            image_count = self.num_image_urls(product_id)
+            image_urls = self._make_img_urls(product_id, image_count)
 
         product, is_new = Product.objects.get_or_create(key=product_id)
         product.image_urls = image_urls
@@ -356,7 +423,7 @@ class Server(object):
         product.shipping = shipping
         product.limit = limit
         product.ship_rule = ship_rule
-        product.color = color
+        product.color = '; '.join(colors) if colors else ''
         if product.updated == False:
             product.updated = True
             ready = 'Product'
@@ -364,15 +431,13 @@ class Server(object):
             ready = None
         product.full_update_time = datetime.utcnow()
         product.save()
-        common_saved.send(sender=ctx, key=product_id, is_new=is_new, is_updated=False, ready=ready)
+        common_saved.send(sender=ctx, key=product_id, url=url, is_new=is_new, is_updated=not is_new, ready=ready)
 
 
     def _url2product_id(self, url):
         # http://www.ruelala.com/event/product/60118/1411878707/0/DEFAULT
-        # or http://www.ruelala.com/product/detail/eventId/59935/styleNum/4112936424/viewAll/0
+        # or event is product http://www.ruelala.com/product/detail/eventId/59935/styleNum/4112936424/viewAll/0
         m = re.compile('http://.*ruelala.com/event/product/\d{1,10}/(\d{6,10})/\d{1}/DEFAULT').search(url)
-        if not m:
-            m = re.compile('http://.*.ruelala.com/product/detail/eventId/\d{1,10}/styleNum/(\d{1,10})/viewAll/0').search(url)
         return m.group(1)
 
 

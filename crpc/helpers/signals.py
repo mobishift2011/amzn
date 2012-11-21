@@ -79,7 +79,8 @@ class Processer(object):
         else:
             try:
                 for cb in self._listeners[signal]:
-                    cb(sender, **kwargs)
+                    gevent.spawn(cb, sender, **kwargs)
+                    #cb(sender, **kwargs)
             except Exception as e:
                 logger.exception("Exception happened when executing callback")
                 logger.error("sender: {sender}, signal: {signal!r}, kwargs: {kwargs!r}".format(**locals()))

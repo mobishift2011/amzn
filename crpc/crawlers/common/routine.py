@@ -31,7 +31,6 @@ from mongoengine import Q
 from crawlers.common.events import pre_general_update, post_general_update, common_failed
 from datetime import datetime, timedelta
 
-from powers.events import run_image_crawl
 from powers.binds import run_image_crawl
 
 MAX_PAGE = 400
@@ -200,7 +199,7 @@ def new_category(site, rpc, concurrency=3):
         ictx = ctx
         rpcs = [rpc] if not isinstance(rpc, list) else rpc
         rpc = random.choice(rpcs)
-#        callrpc(rpc, site, 'crawl_category', ctx=ctx)
+        callrpc(rpc, site, 'crawl_category', ctx=ctx)
     
     run_image_crawl.send(sender=ictx, site=site, method='scan_event_images')
 

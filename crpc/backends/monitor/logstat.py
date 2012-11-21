@@ -79,10 +79,18 @@ def stat_save(sender, **kwargs):
 
 @common_saved.bind
 def process_image(sender, **kwargs):
-    logger.debug('{0} -> {1}'.format(sender,kwargs.items()))
-    key = kwargs.get('key')
+    logger.debug('process_image.listening:{0} -> {1}'.format(sender,kwargs.items()))
+    key = kwargs.get('key', None)
+    ready = kwargs.get('ready', None)   # Event or Product
     site, method, dummy = sender.split('.')
-#    globals()[method](site, dummy)
+    
+    if site and key and ready in ('Event', 'Product'):
+        logger.info('%s %s %s queries for crawling images' % (site, ready, key))
+        from powers.routine import crawl_images
+        crawl_images(site, ready, key)
+    else:
+        logger.info('%s failed to start crawling image', sender)
+        # TODO send a process_message error signal.
 
 @common_failed.bind
 def stat_failed(sender, **kwargs):

@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 from tools import ImageTool
+from powers.events import image_crawled, image_crawled_failed
+from powers.binds import image_crawled, image_crawled_failed
 
 class Image(object):
     def crawl_event_images(self, site, event_id, image_urls, ctx):
@@ -7,14 +9,12 @@ class Image(object):
         event = m.Event.objects.get(event_id=event_id)
         if event:
             it = ImageTool()
-            s3_urls = it.crawl(image_urls, site, event_id)
-            event.image_path = s3_urls
+            event.image_path = it.crawl(image_urls, site, event_id)
             event.save()
             
-            image_crawled.send(sender=ctx, key=event_id)
-            print '\n%s.%s.s3urls: %s' % (site, event_id, s3_urls)
+            image_crawled.send(sender=ctx, site=site, key=event_id, model='Event', num=len(event.image_path))
         else:
-            # TODO
+            # TODO image_crawled_failed
             pass
     
     def crawl_product_images(self, site, key, image_urls, ctx):
@@ -22,13 +22,10 @@ class Image(object):
         product = m.Product.objects.get(key=key)
         if product:
             it = ImageTool()
-            s3_urls = it.crawl(image_urls, site, key)
-            product.image_path = s3_urls
+            product.image_path = it.crawl(image_urls, site, key)
             product.save()
-            
-            
-            image_crawled.send(sender=ctx, key=key)
-            print '\n%s.%s.s3urls: %s' % (site, key, s3_urls)
+                 
+            image_crawled.send(sender=ctx, site=site, key=key, model='Product', num=len(product.image_path))
         else:
-            # TODO
+            # TODO image_crawled_failed
             pass

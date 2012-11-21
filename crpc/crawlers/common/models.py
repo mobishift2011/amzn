@@ -119,6 +119,7 @@ class BaseProduct(Document):
     title               =   StringField()
     slug                =   StringField()
     summary             =   StringField() 
+    detail              =   StringField()
     shipping            =   StringField()
     available           =   StringField()
 

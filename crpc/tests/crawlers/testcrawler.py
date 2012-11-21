@@ -128,10 +128,10 @@ if __name__ == '__main__':
     else:
         try:
             func = getattr(tc, options.func)
-            print func
             func()
         except:
-            print "no such function"
+            print "no such function {}".format(options.func)
+            
             
     
     

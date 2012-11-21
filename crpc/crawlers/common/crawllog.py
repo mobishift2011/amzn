@@ -12,11 +12,11 @@ def pre_hook_debug(sender,**kwargs):
 
 @debug_info.bind
 def debug_info_print(sender, **kwargs):
-    logger.error('<{0}> -- {1}'.format(sender, kwargs.items()))
+    logger.debug('<{0}> -- {1}'.format(sender, kwargs.items()))
 
 @warning_info.bind
 def warning_info_print(sender, **kwargs):
-    logger.error('<{0}> -- {1}'.format(sender, kwargs.items()))
+    logger.warning('<{0}> -- {1}'.format(sender, kwargs.items()))
 
 @category_saved.bind
 def on_category_saved(sender, **kwargs):

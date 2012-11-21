@@ -15,7 +15,7 @@ import time
 def run(site, rpc):
     begin = time.time()
 
-    update_category(site, rpc)
+    new_category(site, rpc)
     category_cost = time.time() - begin
     print '\n\n--++ {0} ++--\n\n'.format(category_cost)
 
@@ -23,18 +23,17 @@ def run(site, rpc):
     list_cost = time.time() - begin
     print '\n\n--++ {0} ++--\n\n'.format(list_cost)
 
-    new_product(site, rpc)
-    product_cost = time.time() - begin
-    print '\n\n--++ {0} ++--\n\n'.format(product_cost)
-
-    update_listing(site, rpc)
+#    new_product(site, rpc)
+#    product_cost = time.time() - begin
+#    print '\n\n--++ {0} ++--\n\n'.format(product_cost)
+#
+#    update_listing(site, rpc)
 
 if __name__ == '__main__':
-    import crawllog
     rpc = RPCServer()
 #    rpc.call('myhabit', 'crawl_category', (), {'ctx':'haha'})
     if sys.argv[1]:
-        if sys.argv[1] == 'myhabit' or 'zulily' or 'hautelook' or 'onekingslane':
+        if sys.argv[1] == 'myhabit' or 'zulily' or 'hautelook' or 'onekingslane' or 'ruelala':
             run(sys.argv[1], rpc)
     else:
         update_category('ruelala', rpc)

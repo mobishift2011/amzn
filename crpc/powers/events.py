@@ -5,7 +5,7 @@ Created on 2012-11-19
 @author: ethan
 '''
 
-from helpers.signals import SignalQueue, Signal
+from helpers.signals import Signal
 
 pre_image_crawl = Signal("pre_image_crawl")
 post_image_crawl = Signal("post_image_crawl")

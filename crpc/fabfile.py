@@ -44,7 +44,7 @@ def setup_env():
             with prefix("workon "+ENV_NAME):
                 run("pip install cython"+USE_INDEX)
                 run("pip install https://github.com/SiteSupport/gevent/tarball/master")
-                run("pip install zerorpc lxml requests pymongo mongoengine redis redisco pytz mock selenium blinker cssselect"+USE_INDEX) 
+                run("pip install zerorpc lxml requests pymongo mongoengine redis redisco pytz mock selenium blinker cssselect boto"+USE_INDEX) 
 
 def deploy_rpc():
     """ deploy rpc server code to host """

@@ -148,7 +148,7 @@ class Server(object):
             ready = 'Event'
             event.save()
         else: ready = None
-        common_saved.send(sender=ctx, key=key, url=url, is_new=is_new, is_updated=False, ready=ready)
+        common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=False, ready=ready)
 
 
 
@@ -234,7 +234,7 @@ class Server(object):
 
         product.full_update_time = datetime.utcnow()
         product.save()
-        common_saved.send(sender=ctx, key=url, url=url, is_new=is_new, is_updated=not is_new, ready=ready)
+        common_saved.send(sender=ctx, key=url.split('/')[-1], url=url, is_new=is_new, is_updated=not is_new, ready=ready)
 
 
 if __name__ == '__main__':

@@ -4,6 +4,7 @@
     spawn one listener to listen crawlers' signal -- pre_general_update, post_general_update
 """
 from crawlers.common.events import *
+from crawlers.common.stash import *
 
 from helpers.log import getlogger
 import traceback
@@ -54,28 +55,34 @@ def stat_post_general_update(sender, **kwargs):
         logger.exception(e.message)
         fail(site, method, key, url, traceback.format_exc())
 
+
 @common_saved.bind
 def stat_save(sender, **kwargs):
+    @exclusive_lock(sender.rsplit('.', 1)[0])
+    def lock_stat_save(sender, is_new, is_updated):
+        try:
+            site, method, dummy = sender.split('.')
+            t = get_or_create_task(sender)
+
+            if is_new:
+                t.num_new += 1
+            if is_updated:
+                t.num_update += 1
+            t.num_finish += 1
+
+            t.update(set__num_new=t.num_new, set__num_update=t.num_update, set__num_finish=t.num_finish)
+        except Exception as e:
+            logger.exception(e.message)
+            t.update(push__fails=fail(site, method, key, url, traceback.format_exc()), inc__num_fails=1)
+
     logger.debug('{0} -> {1}'.format(sender,kwargs.items()))
     key = kwargs.get('key','')
     url = kwargs.get('url','')
     is_new = kwargs.get('is_new', False)
     is_updated = kwargs.get('is_updated', False)
 
-    try:
-        site, method, dummy = sender.split('.')
-        t = get_or_create_task(sender)
+    lock_stat_save(sender, is_new, is_updated)
 
-        if is_new:
-            t.num_new += 1
-        if is_updated:
-            t.num_update += 1
-        t.num_finish += 1
-    
-        t.update(set__num_new=t.num_new, set__num_update=t.num_update, set__num_finish=t.num_finish)
-    except Exception as e:
-        logger.exception(e.message)
-        t.update(push__fails=fail(site, method, key, url, traceback.format_exc()), inc__num_fails=1)
 
 @common_saved.bind
 def process_image(sender, **kwargs):

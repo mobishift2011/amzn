@@ -376,8 +376,6 @@ class Server(object):
         product_id = self._url2product_id(url)
         node = tree.cssselect('div.container section#productContainer')[0]
 
-        image_count = self.num_image_urls(product_id)
-
         list_info = []
         for li in node.cssselect('section#info ul li'):
             list_info.append(li.text_content())
@@ -400,21 +398,28 @@ class Server(object):
         limit = limit[0].text_content() if limit else ''
         ship_rule = attribute_node.cssselect('div#returnsLink ')
         ship_rule = ship_rule[0].text_content() if ship_rule else ''
+
+        colors, image_urls = [], []
         color = attribute_node.cssselect('section#productSelectors ul#colorSwatches > li > a')
         if color:
             for c in color:
-                colors.append( c.get('title') )
-            color = '; '.join(colors)
+                colors.append( c.get('title').lower() )
+            for c in colors:
+                image_urls.append('http://www.ruelala.com/images/product/{0}/{1}_RLLZ_{2}.jpg'.format(product_id[:6], product_id, c))
+
+        if not image_urls:
+            image_count = self.num_image_urls(product_id)
+            image_urls = self._make_img_urls(product_id, image_count)
 
         product, is_new = Product.objects.get_or_create(key=product_id)
-        product.image_urls = self._make_img_urls(product_id, image_count)
+        product.image_urls = image_urls
         product.list_info = list_info
         product.returned = '; '.join(returned)
         product.sizes = sizes
         product.shipping = shipping
         product.limit = limit
         product.ship_rule = ship_rule
-        product.color = color if color else ''
+        product.color = '; '.join(colors) if colors else ''
         if product.updated == False:
             product.updated = True
             ready = 'Product'

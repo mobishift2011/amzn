@@ -303,6 +303,7 @@ class Server(object):
         :param tree: listing page url's lxml tree
         """
         path = tree.cssselect('div#wrapper > div#okl-content > div.sales-event')[0]
+        items = path.cssselect('div#okl-product > ul.products > li[id^="product-tile-"]')
         event_id = self.extract_eventid.match(url).group(1)
         event, is_new = Event.objects.get_or_create(event_id=event_id)
         if not event.sale_description:
@@ -315,7 +316,6 @@ class Server(object):
         if not event.sale_title:
             event.sale_title = path.cssselect('div#okl-bio > h2.share > strong')[0].text
 
-        items = path.cssselect('div#okl-product > ul.products > li[id^="product-tile-"]')
         event.num = len(items)
         event.update_time = datetime.utcnow()
         event.urgent = False

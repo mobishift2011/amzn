@@ -182,8 +182,8 @@ class Server:
             # try: # if can't be found, cost a long time and raise NoSuchElementException
             soldout = node.xpath('./div[@class="image"]/a/div[@class="soldout"]')
 
-            event = Event.objects(event_id=event_id).first()
             is_new, is_updated = False, False
+            event = Event.objects(event_id=event_id).first()
             if not event:
                 is_new = True
                 event = Event(event_id=event_id)
@@ -449,7 +449,7 @@ class Server:
         product.full_update_time = datetime.utcnow()
         product.save()
         
-        common_saved.send(sender=ctx, key=casin, url=url, is_new=is_new, is_updated=not new, ready=ready)
+        common_saved.send(sender=ctx, key=casin, url=url, is_new=is_new, is_updated=not is_new, ready=ready)
 #        print 'time product process benchmark: ', time.time() - time_begin_benchmark
 
 

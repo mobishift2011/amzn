@@ -17,7 +17,6 @@ import traceback
 from settings import PEERS, RPC_PORT
 from configs import SITES
 from events import *
-from binds import *
 
 def get_rpcs():
     if not hasattr(get_rpcs, '_cached_peers'):

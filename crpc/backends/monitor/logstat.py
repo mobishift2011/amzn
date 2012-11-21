@@ -11,6 +11,7 @@ import traceback
 from backends.monitor.models import Task, Fail, fail
 from datetime import datetime, timedelta
 from gevent.event import Event
+from powers.routine import *
 
 logger = getlogger("crawlerlog")
 
@@ -76,6 +77,13 @@ def stat_save(sender, **kwargs):
         logger.exception(e.message)
         t.update(push__fails=fail(site, method, key, url, traceback.format_exc()), inc__num_fails=1)
 
+@common_saved.bind
+def process_image(sender, **kwargs):
+    logger.debug('{0} -> {1}'.format(sender,kwargs.items()))
+    key = kwargs.get('key')
+    site, method, dummy = sender.split('.')
+#    globals()[method](site, dummy)
+
 @common_failed.bind
 def stat_failed(sender, **kwargs):
     logger.error('{0} -> {1}'.format(sender,kwargs.items()))
@@ -92,4 +100,4 @@ def stat_failed(sender, **kwargs):
         t.update(push__fails=fail(site, method, key, url, traceback.format_exc()), inc__num_fails=1)
 
 if __name__ == '__main__':
-    print task_all_tasks()
+    print 'logstat'

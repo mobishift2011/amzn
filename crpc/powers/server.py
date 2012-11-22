@@ -6,7 +6,7 @@ from powers.binds import image_crawled, image_crawled_failed
 class Image(object):
     def crawl_event_images(self, site, event_id, image_urls, ctx):
         m = __import__("crawlers."+site+'.models', fromlist=['Event'])
-        event = m.Event.objects.get(event_id=event_id)
+        event = m.Event.objects(event_id=event_id)
         if event:
             it = ImageTool()
             event.image_path = it.crawl(image_urls, site, event_id)
@@ -19,7 +19,7 @@ class Image(object):
     
     def crawl_product_images(self, site, key, image_urls, ctx):
         m = __import__("crawlers."+site+'.models', fromlist=['Product'])
-        product = m.Product.objects.get(key=key)
+        product = m.Product.objects(key=key)
         if product:
             it = ImageTool()
             product.image_path = it.crawl(image_urls, site, key)

@@ -43,10 +43,9 @@ class ImageTool:
         print "%s.%s.images_crawling.end" % (site, key)
     
     def grab(self, image_url, site=None, key=None, index=0):
-        print "\n%s.%s.image_url.save_as_temp_file:" % (site, key)
+#        print "\n%s.%s.image_url.save_as_temp_file:" % (site, key)
         path, filename = os.path.split(image_url)
         image_name = '%s_%s_%s_%s' % (site, key, index, filename)
-        print image_name
         
         # TODO update the temp file to memory based image, not through the disk.
         image = requests.get(image_url).content
@@ -56,7 +55,6 @@ class ImageTool:
             ret = self.upload2s3(image_content, os.path.join(site, image_name)) # post image file to S3, and get back the url.
         except:
             print 's3 upload failed! %s' %image_name
-        print ret
         return ret
     
     def thumnail(self):

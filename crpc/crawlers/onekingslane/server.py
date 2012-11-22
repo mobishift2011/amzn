@@ -320,8 +320,8 @@ class Server(object):
 
         event.num = len(items)
         event.update_time = datetime.utcnow()
-        if event.urgent == False:
-            event.urgent = True
+        if event.urgent == True:
+            event.urgent = False
             ready = 'Event'
         else: ready = None
 

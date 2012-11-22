@@ -128,7 +128,7 @@ class Server(object):
             events_begin = time_convert(time_str + ' ', '%m/%d at %I%p %Y', time_zone)
 
             is_new, is_updated = False, False
-            event = Event.objects(event_id=event_id)
+            event = Event.objects(event_id=event_id).first()
             if not event:
                 is_new = True
                 event = Event(event_id=event_id)

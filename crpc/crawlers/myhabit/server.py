@@ -187,7 +187,6 @@ class Server:
             if not event:
                 is_new = True
                 event = Event(event_id=event_id)
-                event.dept = [dept]
                 event.sale_title = a_title.text
                 event.image_urls = [image]
                 event.soldout = True if soldout else False
@@ -197,7 +196,8 @@ class Server:
                 if soldout and event.soldout != True:
                     event.soldout = True
                     is_updated = True
-                if dept not in event.dept: event.dept.append(dept) # for designer dept
+            if image not in event.image_urls: event.image_urls.append(image)
+            if dept not in event.dept: event.dept.append(dept) # for designer dept
             event.update_time = datetime.utcnow()
             event.save()
             common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=is_updated)
@@ -253,12 +253,12 @@ class Server:
             event.image_urls = [img]
             event.sale_description = brand_info
             event.upcoming_title_img = subs
-            event.update_time = datetime.utcnow()
             event.urgent = True
             event.combine_url = 'http://www.myhabit.com/homepage#page=b&sale={0}'.format(event_id)
         else:
             if dept not in event.dept: event.dept.append(dept)
         event.events_begin = utc_begintime
+        event.update_time = datetime.utcnow()
         event.save()
         common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=False)
 
@@ -299,8 +299,8 @@ class Server:
             self.parse_category_product(ele, event_id, sale_title, ctx)
 
         # crawl info before, so always not new
-        event = Event.objects(event_id=event_id).first()
         is_new, is_updated = False, False
+        event = Event.objects(event_id=event_id).first()
         if not event:
             is_new = True
             event = Event(event_id=event_id)

@@ -132,17 +132,18 @@ class Server(object):
             if not event:
                 is_new = True
                 event = Event(event_id=event_id)
-                event.combine_url = 'http://www.ruelala.com/event/{0}'.format(event_id)
                 event.sale_title = sale_title
                 sm = 'http://www.ruelala.com/images/content/events/{event_id}/{event_id}_doorsm.jpg'.format(event_id=event_id)
                 lg = 'http://www.ruelala.com/images/content/events/{event_id}/{event_id}_doorlg.jpg'.format(event_id=event_id)
                 upcoming_img = 'https://www.ruelala.com/images/content/lookbook/{event_id}/{event_id}_01.jpg'.format(event_id=event_id)
                 event.image_urls = [upcoming_img, sm, lg]
                 event.urgent = True
+                event.combine_url = 'http://www.ruelala.com/event/{0}'.format(event_id)
                 
             event.events_begin = events_begin
             event.update_time = datetime.utcnow()
             event.save()
+            common_saved.send(sender=ctx, key=event_id, is_new=is_new, is_updated=is_updated)
 
     def _get_gifts_event_list(self, dept, url, ctx):
         """.. :py:method::
@@ -260,12 +261,12 @@ class Server(object):
         if not event:
             is_new = True
             event = Event(event_id=event_id)
-            event.combine_url = link
-            event.urgent = True
             event.sale_title = sale_title
             sm = 'http://www.ruelala.com/images/content/events/{event_id}/{event_id}_doorsm.jpg'.format(event_id=event_id)
             lg = 'http://www.ruelala.com/images/content/events/{event_id}/{event_id}_doorlg.jpg'.format(event_id=event_id)
             event.image_urls = [sm] if child else [sm, lg]
+            event.urgent = True
+            event.combine_url = link
         else:
             is_new = False
 
@@ -342,13 +343,13 @@ class Server(object):
                 is_new = True
                 event = Event(event_id=event_id)
                 event.dept = [dept]
-                event.events_end = events_end
-                event.combine_url = link
                 event.image_urls = [image]
                 event.urgent = True
+                event.combine_url = link
             else:
                 if dept not in event.dept: event.dept.append(dept)
 
+            event.events_end = events_end
             event.update_time = datetime.utcnow()
             event.save()
             common_saved.send(sender=ctx, key=event_id, is_new=is_new, is_updated=is_updated)

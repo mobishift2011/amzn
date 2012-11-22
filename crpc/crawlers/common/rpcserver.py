@@ -11,6 +11,8 @@ from settings import RPC_PORT, CRPC_ROOT, MONGODB_HOST
 from os import listdir
 from os.path import join, abspath, dirname, isdir
 from helpers import log
+        
+from powers.server import crawl_images
 
 import lxml.html
 import requests
@@ -67,13 +69,8 @@ class RPCServer(object):
         else:
             raise ValueError("{crawler} does not seems to a valid crawler".format(**locals()))
     
-    def image(self, method, args=(), kwargs={}):
-        m = __import__("powers.server", fromlist=['Image'])
-        service = m.Image()
-        if service:
-            return getattr(service, method)(*args, **kwargs)
-        else:
-            raise ValueError("{crawler} does not seems to a valid crawler".format(**locals()))
+    def process_image(self, args=(), kwargs={}):
+        return crawl_images(*args, **kwargs)
 
 if __name__ == '__main__':
     zs = zerorpc.Server(RPCServer()) 

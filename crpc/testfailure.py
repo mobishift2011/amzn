@@ -7,6 +7,7 @@ for p in PEERS:
     print 'testing', hostname
     c = Client('tcp://{hostname}:1234'.format(hostname=hostname))
     try:
-        c.call('test','123')
+        #c.call('test','123')
+        c.image('test')
     except:
         traceback.print_exc()

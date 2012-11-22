@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
+from crawlers.common.events import common_saved
 from powers.events import *
-from powers.routine import get_rpcs, scan_event_images, scan_product_images
+from backends.monitor.scheduler import get_rpcs
+from powers.routine import scan_images
 from powers.models import EventProgress, ProductProgress
 
 from datetime import datetime
@@ -11,28 +13,44 @@ import gevent
 from helpers.log import getlogger
 logger = getlogger("crawlerImageLog")
 
-@run_image_crawl.bind
-def image_crawl(sender, **kwargs):
-    site = kwargs.get('site')
-    method = kwargs.get('method')
-    
-    if site and method:
-        logger.info('start to get rpc resource for %s.%s' % (site, method))
-        gevent.spawn(globals()[method], site, get_rpcs(), 10) #.rawlink(partial(task_completed, site=site, method=method))
+#@common_saved.bind
+def process_image(sender, **kwargs):
+    logger.debug('process_image.listening:{0} -> {1}'.format(sender,kwargs.items()))
+    key = kwargs.get('key', None)
+    ready = kwargs.get('ready', None)   # Event or Product
+    site, method, dummy = sender.split('.')
+   
+    if site and key and ready in ('Event', 'Product'):
+        logger.info('%s %s %s queries for crawling images' % (site, ready, key))
+        from powers.routine import crawl_images
+        crawl_images(site, ready, key)
+    else:
+        logger.info('%s failed to start crawling image', sender)
+        # TODO send a process_message error signal.
 
-@pre_image_crawl.bind
+@ready_for_batch_image_crawling.bind
+def batch_image_crawl(sender, **kwargs):
+    logger.warning("BLAAAAAAAAAAAAAAAAAHHHHHHHHHHHHHH")
+    site = kwargs.get('site')
+    doctype = kwargs.get('doctype')
+    
+    if site and doctype:
+        logger.info('start to get rpc resource for %s.%s' % (site, method))
+        gevent.spawn(scan_images, site, doctype, get_rpcs(), 10) #.rawlink(partial(task_completed, site=site, method=method))
+
+#@pre_image_crawl.bind
 def stat_pre_general_update(sender, **kwargs):
     pass
 
-@post_image_crawl.bind
+#@post_image_crawl.bind
 def stat_post_general_update(sender, **kwargs):
     pass
 
-@image_crawled_failed.bind
+#@image_crawled_failed.bind
 def stat_failed(sender, **kwargs):
     pass
 
-@image_crawled.bind
+#@image_crawled.bind
 def stat_save(sender, **kwargs):
     logger.debug('{0} -> {1}'.format(sender,kwargs.items()))
     site = kwargs.get('site', '')

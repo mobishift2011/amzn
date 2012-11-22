@@ -31,7 +31,7 @@ from mongoengine import Q
 from crawlers.common.events import pre_general_update, post_general_update, common_failed
 from datetime import datetime, timedelta
 
-from powers.binds import run_image_crawl
+from powers.events import ready_for_batch_image_crawling
 
 MAX_PAGE = 400
 
@@ -200,8 +200,6 @@ def new_category(site, rpc, concurrency=3):
         rpcs = [rpc] if not isinstance(rpc, list) else rpc
         rpc = random.choice(rpcs)
         callrpc(rpc, site, 'crawl_category', ctx=ctx)
-    
-    run_image_crawl.send(sender=ictx, site=site, method='scan_event_images')
 
 def new_listing(site, rpc, concurrency=3):
     ictx = None
@@ -217,7 +215,7 @@ def new_listing(site, rpc, concurrency=3):
 #                callrpc( rpc, site, 'crawl_listing', **kwargs)
         pool.join()
     
-    run_image_crawl.send(sender=ictx, site=site, method='scan_event_images')
+    ready_for_batch_image_crawling.send(sender=ictx, site=site, doctype='event')
 
 def new_product(site, rpc, concurrency=3):
     ictx = None
@@ -232,14 +230,13 @@ def new_product(site, rpc, concurrency=3):
 #            callrpc( rpc, site, 'crawl_product', **kwargs)
         pool.join()
     
-    run_image_crawl.send(sender=ictx, site=site, method='scan_product_images')
+    ready_for_batch_image_crawling.send(sender=ictx, site=site, doctype='product')
 
 # parent task of new
 def new(site, rpc, concurrency=3):
     new_category(site, rpc, concurrency=3)
     new_listing(site, rpc, concurrency=3)
     new_product(site, rpc, concurrency=3)
-
 
 def update_category(site, rpc, concurrency=3):
     ictx = None
@@ -248,8 +245,6 @@ def update_category(site, rpc, concurrency=3):
         rpcs = [rpc] if not isinstance(rpc, list) else rpc
         rpc = random.choice(rpcs)
         callrpc(rpc, site, 'crawl_category', ctx=ctx)
-    
-    run_image_crawl.send(sender=ictx, site=site, method='scan_event_images')
 
 def update_listing(site, rpc, concurrency=3):
     ictx = None
@@ -265,7 +260,7 @@ def update_listing(site, rpc, concurrency=3):
 #                callrpc( rpc, site, 'crawl_listing', **kwargs)
         pool.join()
     
-    run_image_crawl.send(sender=ictx, site=site, method='scan_event_images')
+    ready_for_batch_image_crawling.send(sender=ictx, site=site, doctype='event')
 
 def update_product(site, rpc, concurrency=3):
     ictx = None
@@ -280,7 +275,7 @@ def update_product(site, rpc, concurrency=3):
 #            callrpc( rpc, site, 'crawl_product', **kwargs)
         pool.join()
     
-    run_image_crawl.send(sender=ictx, site=site, method='scan_product_images')
+    ready_for_batch_image_crawling.send(sender=ictx, site=site, doctype='product')
 
 
 # parent task of update
@@ -294,7 +289,7 @@ if __name__ == '__main__':
     from rpcserver import RPCServer
     site = 'amazon'
     rpc = RPCServer() 
-    #update_category(site,rpc)
-    #update_listing('amazon',rpc)
-    update_product('amazon', rpc)
+    update_category(site,rpc)
+    update_listing('amazon',rpc)
+    #update_product('amazon', rpc)
     #update_category('myhabit', rpc)

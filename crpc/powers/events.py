@@ -13,4 +13,4 @@ post_image_crawl = Signal("post_image_crawl")
 image_crawled = Signal("image_crawled")
 image_crawled_failed = Signal('image_crawled_failed')
 
-run_image_crawl = Signal('run_image_crawl')
+ready_for_batch_image_crawling = Signal('ready_for_batch_image_crawling')

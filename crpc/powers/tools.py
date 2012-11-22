@@ -39,8 +39,17 @@ class ImageTool:
     
     def crawl(self, image_urls=[], site=None, key=None):
         print "%s.%s.images_crawling.start" % (site, key)
-        return [self.grab(image_url, site, key, image_urls.index(image_url)) for image_url in image_urls]
+        image_path = []
+        for image_url in image_urls:
+            s3_url = self.grab(image_url, site, key, image_urls.index(image_url))
+            if s3_url:
+                image_path.append(s3_url)
+            else:
+                image_path = []
+                break
+        
         print "%s.%s.images_crawling.end" % (site, key)
+        return image_path
     
     def grab(self, image_url, site=None, key=None, index=0):
 #        print "\n%s.%s.image_url.save_as_temp_file:" % (site, key)
@@ -50,7 +59,7 @@ class ImageTool:
         # TODO update the temp file to memory based image, not through the disk.
         image = requests.get(image_url).content
         image_content = StringIO(image)
-        ret = []
+        ret = ''
         try:
             ret = self.upload2s3(image_content, os.path.join(site, image_name)) # post image file to S3, and get back the url.
         except:

@@ -44,7 +44,7 @@ def setup_env():
             with prefix("workon "+ENV_NAME):
                 run("pip install cython"+USE_INDEX)
                 run("pip install https://github.com/SiteSupport/gevent/tarball/master")
-                run("pip install zerorpc lxml requests pymongo mongoengine redis redisco pytz mock selenium blinker cssselect"+USE_INDEX) 
+                run("pip install zerorpc lxml requests pymongo mongoengine redis redisco pytz mock selenium blinker cssselect boto"+USE_INDEX) 
 
 def deploy_rpc():
     """ deploy rpc server code to host """
@@ -106,7 +106,7 @@ def _restart_rpc(host_string):
     with settings(host_string=host_string):
         with cd("/opt/crpc/crawlers/common"):
             with prefix("source /usr/local/bin/virtualenvwrapper.sh"):
-                with prefix(". ../../env.sh TEST"):
+                with prefix(". ../../env.sh HJC"):
                     with prefix("ulimit -s 1024"):
                         with prefix("ulimit -n 4096"):
                             _runbg("Xvfb :99 -screen 0 1024x768x8 -ac +extension GLX +render -noreset", sockname="graphicXvfb")

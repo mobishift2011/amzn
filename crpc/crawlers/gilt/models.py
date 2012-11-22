@@ -32,7 +32,6 @@ class Event(BaseEvent):
         ('category', 'category')
     )
       
-    event_id = StringField(unique=True)  # sale_key
     store = StringField()
     type = StringField(choices=TYPE)    # sale, category
     dept = ListField(StringField())

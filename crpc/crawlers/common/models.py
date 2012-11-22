@@ -19,8 +19,9 @@ class BaseCategory(Document):
     ...     pass
 
     """
-    cats        =   ListField(StringField()) 
-    is_leaf     =   BooleanField() # should set values to false manually
+    cats        =   ListField(StringField()) # ['home', 'Textiles']
+    is_leaf     =   BooleanField()
+    create_time = DateTimeField(default=datetime.utcnow)
     update_time =   DateTimeField(default=datetime.utcnow)
     spout_time  =   DateTimeField() # time when we issue a new category fetch operation
     num         =   IntField()
@@ -30,7 +31,7 @@ class BaseCategory(Document):
     meta        =   {
         "allow_inheritance": True,
         "collection": "category",
-        "indexes":  ["cats", ("is_leaf", "update_time"), "num", ],
+        "indexes":  ["is_leaf"],
     }
 
     def catstr(self):
@@ -50,9 +51,9 @@ class BaseEvent(BaseCategory):
     ...     pass
 
     """
+    event_id            = StringField(unique=True)
     events_begin        = DateTimeField()
     events_end          = DateTimeField()
-    create_time         = DateTimeField(default=datetime.utcnow)
     soldout             = BooleanField(default=False)
     sale_title          = StringField()
     image_urls          = ListField(StringField())
@@ -62,9 +63,12 @@ class BaseEvent(BaseCategory):
 
     # after setting urgent to False, you can't set it back
     urgent              = BooleanField(default=True)
-
+    
+    image_complete      = BooleanField(default=False)
+    branch_complete     = BooleanField(default=False)
+    
     meta = {
-        "indexes": ["soldout", "urgent"],
+        "indexes": ["urgent", "events_begin", "events_end", "soldout", "event_id"],
     }
 
 class BaseReview(Document):
@@ -102,10 +106,9 @@ class BaseProduct(Document):
     updated             =   BooleanField(default=False)
     list_update_time    =   DateTimeField(default=datetime.utcnow)
     full_update_time    =   DateTimeField()
-    products_end        =   DateTimeField()
 
     # dimension info
-    cats                =   ListField(StringField()) 
+    cats                =   ListField(StringField()) # ['home > Textiles', 'home > lighting']
     like                =   StringField()  # how many likes
     rating              =   StringField()  # how it is rated, if any
     brand               =   StringField()
@@ -119,6 +122,7 @@ class BaseProduct(Document):
     title               =   StringField()
     slug                =   StringField()
     summary             =   StringField() 
+    detail              =   StringField()
     shipping            =   StringField()
     available           =   StringField()
 
@@ -133,7 +137,7 @@ class BaseProduct(Document):
     meta                =   {
         "allow_inheritance": True,
         "collection": "product",
-        "indexes":  ["key", "cats", "list_update_time", "full_update_time", "model", "brand", "updated"],
+        "indexes":  ["key", "list_update_time", "full_update_time", "model", "brand", "updated"],
     }
 
     def url(self):
@@ -152,7 +156,9 @@ class LuxuryProduct(BaseProduct):
     """
     # associate to Event's unique key
     event_id            =   ListField(StringField())
+    event_type          =   BooleanField(default=True) # whether this product spout by Event
     create_time         =   DateTimeField(default=datetime.utcnow)
+    products_begin      =   DateTimeField()
     products_end        =   DateTimeField()
 
     soldout             =   BooleanField(default=False)
@@ -165,6 +171,8 @@ class LuxuryProduct(BaseProduct):
     scarcity            =   StringField()
     list_info           =   ListField(StringField())
 
+    image_complete      =   BooleanField(default=False)
+    branch_complete     =   BooleanField(default=False)
 
     meta                = {
         "indexes": ["soldout"],

@@ -9,18 +9,25 @@ Implements Product and Category Model for onekingslane
 """
 
 from datetime import datetime, timedelta
-from crawlers.common.models import BaseEvent, LuxuryProduct
+from crawlers.common.models import BaseCategory, BaseEvent, LuxuryProduct
 
 from mongoengine import *
 from settings import MONGODB_HOST
 DB = 'onekingslane'
 connect(db=DB, alias='onekingslane', host=MONGODB_HOST)
 
+class Category(BaseCategory):
+    meta = {
+        "db_alias": DB,
+    }
+
+    def url(self):
+        return 'https://www.onekingslane.com/vintage-market-finds/{0}'.format(self.event_id)
+
 class Event(BaseEvent):
     """
         difference: event_id is in the url, replaced the space with '+', and dept is in the text_content
     """
-    event_id = StringField(unique=True)
     short_desc = StringField()
 
     meta = {

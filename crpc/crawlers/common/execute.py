@@ -15,7 +15,7 @@ import time
 def run(site, rpc):
     begin = time.time()
 
-    update_category(site, rpc)
+    new_category(site, rpc)
     category_cost = time.time() - begin
     print '\n\n--++ {0} ++--\n\n'.format(category_cost)
 
@@ -35,7 +35,7 @@ if __name__ == '__main__':
     rpc.call('myhabit', 'crawl_category', (), {'ctx':'asdf'})
     exit(0)
     if sys.argv[1]:
-        if sys.argv[1] == 'myhabit' or 'zulily' or 'hautelook' or 'onekingslane':
+        if sys.argv[1] == 'myhabit' or 'zulily' or 'hautelook' or 'onekingslane' or 'ruelala':
             run(sys.argv[1], rpc)
     else:
         update_category('ruelala', rpc)

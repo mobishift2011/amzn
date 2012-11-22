@@ -9,6 +9,7 @@ This is the server part of zeroRPC module. Call by client automatically, run on 
 
 import os
 import requests
+from StringIO import StringIO
 
 import boto
 from boto.s3.key import Key
@@ -48,27 +49,23 @@ class ImageTool:
         print image_name
         
         # TODO update the temp file to memory based image, not through the disk.
-        if not os.path.exists(os.path.join(CURRDIR, 'temp')):
-            os.mkdir(os.path.join(CURRDIR, 'temp'))
-        with open(os.path.join(CURRDIR, 'temp', image_name), 'wb') as f:
-            image = requests.get(image_url).content
-            f.write(image)
+        image = requests.get(image_url).content
+        image_content = StringIO(image)
         ret = []
         try:
-            ret = self.upload2s3(open(f.name), os.path.join(site, image_name)) # post image file to S3, and get back the url.
+            ret = self.upload2s3(image_content, os.path.join(site, image_name)) # post image file to S3, and get back the url.
         except:
-            pass
-        finally:
-            os.remove(f.name)
+            print 's3 upload failed! %s' %image_name
+        print ret
         return ret
     
     def thumnail(self):
         pass
     
-    def upload2s3(self, image, key):
+    def upload2s3(self, image_content, key):
         print "%s.upload2s3:" % (key)
         self.__key.key = key
-        self.__key.set_contents_from_file(image)
+        self.__key.set_contents_from_file(image_content)
         return self.__key.generate_url(URL_EXPIRES_IN)
 
 

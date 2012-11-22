@@ -64,6 +64,7 @@ class Server(object):
             is_updated = False
             event, is_new = Event.objects.get_or_create(event_id = str(sale.get('operationId')))
             if not is_new:
+                pass
                 
             
             event.combine_url = 'https://us.venteprivee.com/main/#/catalog/%s' % event.event_id

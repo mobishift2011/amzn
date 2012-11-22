@@ -45,11 +45,13 @@ def stat_save(sender, **kwargs):
         m = __import__("crawlers."+site+'.models', fromlist=['Event', 'Product'])
         entity = None
         if model == 'Event':
-            progress, is_new = EventProgress.objects.get_or_create(site=site, key=key)
+            progress = EventProgress.objects(site=site, key=key)
+            if not progress: progress = EventProgress(site=site, key=key)
             entity = m.Event.objects.get(event_id=key)
             
         elif model == 'Product':
-            progress, is_new = ProductProgress.objects.get_or_create(site=site, key=key)
+            progress = ProductProgress.objects(site=site, key=key)
+            if not progress: progress = EventProgress(site=site, key=key)
             entity = m.Product.objects.get(key=key)
         
         if progress:

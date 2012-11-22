@@ -54,6 +54,8 @@ def get_site_module(site):
 
 def spout_event_images(site):
     m = get_site_module(site)
+    if not hasattr(m, 'Event'):
+        print type(m), m
     events = m.Event.objects(urgent=False, image_complete=False)
     for event in events:
         yield {

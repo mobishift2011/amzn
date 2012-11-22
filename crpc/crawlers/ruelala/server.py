@@ -141,11 +141,8 @@ class Server(object):
                 event.combine_url = 'http://www.ruelala.com/event/{0}'.format(event_id)
                 
             event.events_begin = events_begin
-            print "Do2"
             event.update_time = datetime.utcnow()
-            print "Do3"
             event.save()
-            print "Do4"
             common_saved.send(sender=ctx, key=event_id, is_new=is_new, is_updated=is_updated)
 
     def _get_gifts_event_list(self, dept, url, ctx):

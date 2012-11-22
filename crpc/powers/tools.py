@@ -48,7 +48,9 @@ class ImageTool:
         print image_name
         
         # TODO update the temp file to memory based image, not through the disk.
-        with open(os.path.join(os.path.dirname(__file__), 'temp', image_name), 'wb') as f:
+        if not os.path.exists(os.path.join(CURRDIR, 'temp')):
+            os.mkdir(os.path.join(CURRDIR, 'temp'))
+        with open(os.path.join(CURRDIR, 'temp', image_name), 'wb') as f:
             image = requests.get(image_url).content
             f.write(image)
         ret = []

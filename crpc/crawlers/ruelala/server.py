@@ -128,7 +128,7 @@ class Server(object):
             events_begin = time_convert(time_str + ' ', '%m/%d at %I%p %Y', time_zone)
 
             is_new, is_updated = False, False
-            event = Event.objects(event_id=event_id)
+            event = Event.objects(event_id=event_id).first()
             if not event:
                 is_new = True
                 event = Event(event_id=event_id)
@@ -141,8 +141,11 @@ class Server(object):
                 event.combine_url = 'http://www.ruelala.com/event/{0}'.format(event_id)
                 
             event.events_begin = events_begin
+            print "Do2"
             event.update_time = datetime.utcnow()
+            print "Do3"
             event.save()
+            print "Do4"
             common_saved.send(sender=ctx, key=event_id, is_new=is_new, is_updated=is_updated)
 
     def _get_gifts_event_list(self, dept, url, ctx):

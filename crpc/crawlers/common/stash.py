@@ -74,14 +74,18 @@ def exclusive_lock(name):
     return safe_lock
 
 
-def time_convert(time_str, time_format):
+def time_convert(time_str, time_format, timezone='PT'):
     """.. :py:method::
 
     :param time_str: u'SAT OCT 20 9 AM '
     :param time_format: '%a %b %d %I %p %Y'
     :rtype: datetime type utc time
     """
-    pt = pytz.timezone('US/Pacific')
+    if timezone == 'PT' or timezone == 'PST' or timezone == 'PDT':
+        pt = pytz.timezone('US/Pacific')
+    elif timezone == 'ET' or timezone == 'EST' or timezone == 'EDT':
+        pt = pytz.timezone('US/Eastern')
+
     tinfo = time_str + str(pt.normalize(datetime.now(tz=pt)).year)
     endtime = pt.localize(datetime.strptime(tinfo, time_format))
     return endtime.astimezone(pytz.utc)

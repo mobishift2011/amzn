@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-SimplyToImpress.com 11/21 at 8AM ET http://www.ruelala.com/event/promoReel/id/61083
-Oakley Ski Gear     11/21 at 11AM ET http://www.ruelala.com/event/promoReel/id/59788
+TODO: ruelala upcoming and event confilt solve.
 
 crawlers.ruelala.server
 ~~~~~~~~~~~~~~~~~~~
@@ -94,6 +93,7 @@ class Server(object):
     
     def __init__(self):
         self.siteurl = 'http://www.ruelala.com'
+        self.upcoming_url = 'http://www.ruelala.com/event/showReminders?id=1'
         self.net = ruelalaLogin()
         self.countdown_num = re.compile("countdownFactory.create\(('|\")(\\d+)('|\"), ('|\")(\\d+)('|\"), ('|\")('|\")\);")
         self.url2eventid = re.compile('http://www.ruelala.com/event/(\d+)')
@@ -102,6 +102,7 @@ class Server(object):
         """.. :py:method::
             From top depts, get all the events
         """
+        self.upcoming_proc(ctx)
         categorys = ['women', 'men', 'living', 'kids', 'gifts']
         for category in categorys:
             url = 'http://www.ruelala.com/category/{0}'.format(category)
@@ -109,6 +110,39 @@ class Server(object):
                 self._get_gifts_event_list(category, url, ctx)
             else:
                 self._get_event_list(category, url, ctx)
+
+    def upcoming_proc(self, ctx):
+        """.. :py:method::
+            '11/25 at 11AM ET'
+        """
+        cont = self.net.fetch_page(self.upcoming_url)
+        tree = lxml.html.fromstring(cont)
+        nodes = tree.cssselect('div#main div#signUpContainer form#signUpForm div#sendReminderOverflow table#tblSubscribe tr')
+        for node in nodes:
+            name = node.cssselect('td[style]:nth-of-type(1)')[0]
+            sale_title = name.xpath('./a')[0].text_content()
+            link = name.xpath('./a/@href')
+            event_id = link.rsplit('/', 1)[0]
+            link = link if link.startswith('http') else self.siteurl + link
+            et_date = node.cssselect('td[style]:nth-of-type(2)')[0]
+            time_str, time_zone = et_date.rsplit(' ', 1)
+            events_begin = time_convert(time_str + ' ', '%m/%d at %I%p %Y', time_zone)
+
+            is_new, is_updated = False, False
+            event = Event.objects(event_id=event_id)
+            if not event:
+                is_new = True
+                event = Event(event_id=event_id)
+                event.combine_url =  '' # TODO
+                event.sale_title = sale_title
+                event.events_begin = events_begin
+                event.image_urls = ['https://www.ruelala.com/images/content/lookbook/{event_id}/{event_id}_01.jpg'.format(event_id=event_id)]
+            else:
+                pass
+                
+            event.update_time = datetime.utcnow()
+            event.save()
+
 
 
     def _get_gifts_event_list(self, dept, url, ctx):

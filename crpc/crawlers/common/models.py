@@ -21,6 +21,7 @@ class BaseCategory(Document):
     """
     cats        =   ListField(StringField()) # ['home', 'Textiles']
     is_leaf     =   BooleanField()
+    create_time = DateTimeField(default=datetime.utcnow)
     update_time =   DateTimeField(default=datetime.utcnow)
     spout_time  =   DateTimeField() # time when we issue a new category fetch operation
     num         =   IntField()
@@ -53,7 +54,6 @@ class BaseEvent(BaseCategory):
     event_id            = StringField(unique=True)
     events_begin        = DateTimeField()
     events_end          = DateTimeField()
-    create_time         = DateTimeField(default=datetime.utcnow)
     soldout             = BooleanField(default=False)
     sale_title          = StringField()
     image_urls          = ListField(StringField())

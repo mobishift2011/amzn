@@ -105,37 +105,40 @@ def scan_images(site, doctype, rpc, concurrency=3):
             pool.spawn(call_rpc, rpc, 'process_image', **kwargs)
         pool.join()
 
-def crawl_images(*args, **kwargs):
-    print kwargs
-    exit(0)
+def crawl_images(site, model, key, rpc=None, *args, **kwargs):
     if rpc is None:
         rpc = get_rpcs()
+
+    method = 'process_image'
     
-    kwargs = {}
-    method = 'crawl_images'
     with UpdateContext(site, method) as ctx:
+        newargs = {}
         m = __import__("crawlers."+site+'.models', fromlist=['Event', 'Product'])
         if model == 'Event':
             event = m.Event.objects.get(event_id=key)
             if event and not event.image_complete:
-                kwargs.__setitem__('site', site)
-                kwargs.__setitem__('event_id', event.event_id)
-                kwargs.__setitem__('image_urls', event.image_urls)
-                kwargs.__setitem__('ctx', ctx)
+                newargs.__setitem__('site', site)
+                newargs.__setitem__('event_id', event.event_id)
+                newargs.__setitem__('image_urls', event.image_urls)
+                newargs.__setitem__('ctx', ctx)
+                newargs.__setitem__('doctype', 'event')
         elif model == 'Product':
             product = m.Product.objects.get(key=key)
             if product and not product.image_complete:
-                kwargs.__setitem__('site', site)
-                kwargs.__setitem__('key', product.key)
-                kwargs.__setitem__('image_urls', product.image_urls)
-                kwargs.__setitem__('ctx', ctx)
+                newargs.__setitem__('site', site)
+                newargs.__setitem__('key', product.key)
+                newargs.__setitem__('image_urls', product.image_urls)
+                newargs.__setitem__('ctx', ctx)
+                newargs.__setitem__('doctype', 'product')
         
-        if kwargs and method:
+        if newargs and method:
             rpcs = [rpc] if not isinstance(rpc, list) else rpc
             rpc = random.choice(rpcs)
-            call_rpc(rpc, method, **kwargs)
+            call_rpc(rpc, method, **newargs)
 
 if __name__ == '__main__':
-    #from crawlers.common.rpcserver import RPCServer
-    #rpc = RPCServer()
-    scan_images('zulily', 'product', get_rpcs(), 3)
+    from crawlers.common.rpcserver import RPCServer
+    rpc = RPCServer()
+    crawl_images('zulily', 'Event', 'parade-of-toys-112212')
+    #scan_images('zulily', 'event', get_rpcs(), 10)
+    #scan_images('zulily', 'product', get_rpcs(), 3)

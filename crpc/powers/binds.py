@@ -13,19 +13,22 @@ import gevent
 from helpers.log import getlogger
 logger = getlogger("crawlerImageLog")
 
-#@common_saved.bind
+@common_saved.bind
 def process_image(sender, **kwargs):
-    logger.debug('process_image.listening:{0} -> {1}'.format(sender,kwargs.items()))
+    logger.warning('process_image.listening:{0} -> {1}'.format(sender,kwargs.items()))
     key = kwargs.get('key', None)
     ready = kwargs.get('ready', None)   # Event or Product
     site, method, dummy = sender.split('.')
-   
+
+    if not ready:
+        return
+
     if site and key and ready in ('Event', 'Product'):
-        logger.info('%s %s %s queries for crawling images' % (site, ready, key))
+        logger.warning('%s %s %s queries for crawling images' % (site, ready, key))
         from powers.routine import crawl_images
         crawl_images(site, ready, key)
     else:
-        logger.info('%s failed to start crawling image', sender)
+        logger.warning('%s failed to start crawling image', sender)
         # TODO send a process_message error signal.
 
 @ready_for_batch_image_crawling.bind
@@ -35,7 +38,7 @@ def batch_image_crawl(sender, **kwargs):
     doctype = kwargs.get('doctype')
     
     if site and doctype:
-        logger.info('start to get rpc resource for %s.%s' % (site, method))
+        logger.info('start to get rpc resource for %s.%s' % (site, doctype))
         gevent.spawn(scan_images, site, doctype, get_rpcs(), 10) #.rawlink(partial(task_completed, site=site, method=method))
 
 #@pre_image_crawl.bind

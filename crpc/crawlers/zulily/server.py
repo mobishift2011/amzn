@@ -180,17 +180,16 @@ class Server(object):
                 image = ''.join( self.extract_event_img.match(img).groups() )
                 sale_title = node.cssselect('div.event-content-copy h1')[0].text_content()
                 sale_description = node.cssselect('div.event-content-copy div#desc-with-expanded')[0].text_content().strip()
-                start_time = node.cssselect('div.upcoming-date-reminder span.reminder-text')[0].text_content() # 'Starts Sat 10/27 6am pt - SET REMINDER'
-                events_begin = time_convert( ' '.join( start_time.split(' ', 4)[1:-1] ), '%a %m/%d %I%p%Y' ) - timedelta(minutes=10) #'Sat 10/27 6am'
 
                 brand.image_urls = [image]
                 brand.sale_title = sale_title 
                 brand.sale_description = sale_description
-                brand.events_begin = events_begin
-                brand.update_time = datetime.utcnow()
                 brand.urgent = True
                 brand.combine_url = 'http://www.zulily.com/e/{0}.html'.format(event_id)
-                brand.save()
+            start_time = node.cssselect('div.upcoming-date-reminder span.reminder-text')[0].text_content() # 'Starts Sat 10/27 6am pt - SET REMINDER'
+            brand.events_begin = time_convert( ' '.join( start_time.split(' ', 4)[1:-1] ), '%a %m/%d %I%p%Y' ) - timedelta(minutes=10) #'Sat 10/27 6am'
+            brand.update_time = datetime.utcnow()
+            brand.save()
             common_saved.send(sender=ctx, key=event_id, url=pair[1], is_new=is_new, is_updated=False)
             
 
@@ -227,7 +226,7 @@ class Server(object):
         hours = int(end_date.split()[-2]) if 'hour' in end_date else 0
         events_end = datetime.utcnow() + timedelta(days=days, hours=hours) + timedelta(minutes=29, seconds=59, microseconds=999999)
         brand.events_end = datetime(events_end.year, events_end.month, events_end.day, events_end.hour)
-        brand.num = len(items)
+#        brand.num = len(items)
         brand.update_time = datetime.utcnow()
         if brand.urgent == True:
             brand.urgent = False

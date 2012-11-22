@@ -123,7 +123,6 @@ class Server(object):
             sale_title = name.xpath('./a')[0].text_content()
             link = name.xpath('./a/@href')
             event_id = link.rsplit('/', 1)[0]
-            link = link if link.startswith('http') else self.siteurl + link
             et_date = node.cssselect('td[style]:nth-of-type(2)')[0]
             time_str, time_zone = et_date.rsplit(' ', 1)
             events_begin = time_convert(time_str + ' ', '%m/%d at %I%p %Y', time_zone)
@@ -133,17 +132,17 @@ class Server(object):
             if not event:
                 is_new = True
                 event = Event(event_id=event_id)
-                event.combine_url =  '' # TODO
+                event.combine_url = 'http://www.ruelala.com/event/{0}'.format(event_id)
                 event.sale_title = sale_title
-                event.events_begin = events_begin
-                event.image_urls = ['https://www.ruelala.com/images/content/lookbook/{event_id}/{event_id}_01.jpg'.format(event_id=event_id)]
-            else:
-                pass
+                sm = 'http://www.ruelala.com/images/content/events/{event_id}/{event_id}_doorsm.jpg'.format(event_id=event_id)
+                lg = 'http://www.ruelala.com/images/content/events/{event_id}/{event_id}_doorlg.jpg'.format(event_id=event_id)
+                upcoming_img = 'https://www.ruelala.com/images/content/lookbook/{event_id}/{event_id}_01.jpg'.format(event_id=event_id)
+                event.image_urls = [upcoming_img, sm, lg]
+                event.urgent = True
                 
+            event.events_begin = events_begin
             event.update_time = datetime.utcnow()
             event.save()
-
-
 
     def _get_gifts_event_list(self, dept, url, ctx):
         """.. :py:method::
@@ -249,6 +248,7 @@ class Server(object):
     def parse_event(self, dept, node, ctx, child=False):
         """.. :py:method::
 
+            cation: upcoming already is_new
         :rtype: (whether this event is_new, event object in database)
         """
         link = node.cssselect('a.eventDoorLink')[0].get('href')
@@ -260,7 +260,6 @@ class Server(object):
         if not event:
             is_new = True
             event = Event(event_id=event_id)
-            event.dept = [dept]
             event.combine_url = link
             event.urgent = True
             event.sale_title = sale_title
@@ -269,8 +268,8 @@ class Server(object):
             event.image_urls = [sm] if child else [sm, lg]
         else:
             is_new = False
-            if dept not in event.dept: event.dept.append(dept)
 
+        if dept not in event.dept: event.dept.append(dept)
         event.update_time = datetime.utcnow()
         event.save()
         common_saved.send(sender=ctx, key=event_id, is_new=is_new, is_updated=False)

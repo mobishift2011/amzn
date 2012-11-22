@@ -222,6 +222,10 @@ class Server(object):
                 product.updated = True
                 ready = 'Product'
         else:
+#            if product.color:
+#                for color_info in data['collections']['color']:
+#                    if color_info['name'] == product.color:
+#                        product.image_urls = data['collections']['images'][ color_info['image'] ]['large']
             # if product_id not in color, crawl it later, the site will correct its info
             product.updated = False
 

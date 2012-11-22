@@ -121,7 +121,7 @@ class Server(object):
         for node in nodes:
             name = node.cssselect('td[style]:nth-of-type(1)')[0]
             sale_title = name.xpath('./a')[0].text_content()
-            link = name.xpath('./a/@href')
+            link = name.xpath('./a/@href')[0]
             event_id = link.rsplit('/', 1)[0]
             et_date = node.cssselect('td[style]:nth-of-type(2)')[0]
             time_str, time_zone = et_date.rsplit(' ', 1)

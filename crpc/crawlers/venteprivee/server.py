@@ -63,18 +63,16 @@ class Server(object):
             
             is_updated = False
             event, is_new = Event.objects.get_or_create(event_id = str(sale.get('operationId')))
-            if not is_new:
-                
-            
             event.combine_url = 'https://us.venteprivee.com/main/#/catalog/%s' % event.event_id
             event.sale_title = sale.get('name')
-            event.image_urls = []#"http://pr-media04.venteprivee.com/is/image/VPUSA/%s" # TODO
+            for media in ['home', 'icon', 'preview']:
+                event.image_urls.append("http://pr-media04.venteprivee.com/is/image/VPUSA/{0}".format(sale.get(media)))
             event.sale_description = sale.get('brandDescription')
             event.events_begin = datetime.datetime.strptime(sale.get('startDate'), '%Y-%m-%dT%H:%M:%S').replace(tzinfo=pytz.utc)
             event.events_end = datetime.datetime.strptime(sale.get('endDate'), '%Y-%m-%dT%H:%M:%S').replace(tzinfo=pytz.utc)
             event.type = sale.get('type')
             event.dept = []# TODO cannot get the info
-            event.urgent = True
+            event.urgent = is_new or event.urgent
             event.save()
             
             print(DB+'.event.{0}.end'.format(sale.get('name').encode('utf-8')))
@@ -89,7 +87,12 @@ class Server(object):
         if not self.auth():
             self.login()
         
-        res = self.request.get(url).json
+        response = self.request.get(url)
+        if int(response.status_code) != 200:
+            common_failed.send(sender=ctx, key='', url=url, reason="%s: upcoming events has no products to crawl" % response.status_code)
+            return
+        res = response.json
+        
         event_id = str(res.get('operationId'))
         products = res.get('productFamilies')
         for prodNode in products:
@@ -133,50 +136,53 @@ class Server(object):
         if not self.auth():
             self.login()
         
+        is_updated = False
+        ready = None
         res = self.request.get(url).json
         key = str(res.get('productFamilyId'))
-        is_updated = False
-#        
-#        split_url = url.split('/')
-#        key = split_url[-1]
-#        event_id = split_url[-2]
+        
         product, is_new = Product.objects.get_or_create(key=key)
+        if not is_new:
+            is_updated = (product.price != res.get('formattedPrice')) or is_updated
+            is_updated = (product.soldout != res.get('isSoldOut')) or is_updated
         
         product.title = res.get('name')
         product.brand = res.get('operationName')
-        if is_new:
-            product.combine_url = 'https://us.venteprivee.com/main/#/product/%s/%s' % (event_id, product.key)
+#        if is_new:
+#            # TODO
+#            product.combine_url = 'https://us.venteprivee.com/main/#/product/%s/%s' % (event_id, product.key)
         product.listprice = res.get('formattedMsrp')
         product.price = res.get('formattedPrice')
-        product.image_urls = [] # TODO
+        product.image_urls = ['http://pr-media01.venteprivee.com/is/image/VPUSA/%s' % res.get('media').get('det')[0].get('fileName')] # TODO
         product.list_info = [] # TODO
         product.soldout = res.get('isSoldOut')
         product.returned = res.get('returnPolicy')
-        product.sizes = res.get('sizes')
-        product.sizes_scarcity = [] #TODO
+        product.sizes = []#res.get('sizes')    # TODO
+        product.sizes_scarcity = [] # TODO
+        temp_updated = product.updated
         product.updated = False if is_new else True
-        product.full_update_time = datetime.datetime.utcnow()
+        if product.updated:
+            product.full_update_time = datetime.datetime.utcnow()
+            ready = not temp_updated and product.updated
         product.save()
         
+        common_saved.send(sender=ctx, key=product.key, url=url, is_new=is_new, is_updated=(not is_new) and is_updated, ready=ready)
         print(DB+'.product.{0}.end'.format(url))
-        common_saved.send(sender=ctx, key=product.key, url=url, is_new=is_new, is_updated=(not is_new) and is_updated)
 
 if __name__ == '__main__':
 #    server = zerorpc.Server(Server())
 #    server.bind("tcp://0.0.0.0:{0}".format(RPC_PORT))
 #    server.run()
 
-#    s.crawl_listing('http://us.venteprivee.com/v1/api/catalog/content/10405', 'ven')
     start = time.time()
     
     s = Server()
-    s.crawl_product('http://us.venteprivee.com/v1/api/productdetail/content/1024911', 'ven')
 #    s.crawl_category('venteprivee')
 #    events = Event.objects(urgent=True).order_by('-update_time').timeout(False)
 #    for event in events:
 #        s.crawl_listing(event.url(), 'venteprivee')
-#    products = Product.objects.filter(updated=False)
-#    for product in products:
-#        s.crawl_product(product.url(), 'gilt')
+    products = Product.objects.filter(updated=True)
+    for product in products:
+        s.crawl_product(product.url(), 'ventiprivee')
     
     print 'total costs: %s (s)' % (time.time() - start)

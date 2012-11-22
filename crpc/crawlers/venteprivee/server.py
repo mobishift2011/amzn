@@ -11,6 +11,8 @@ Created on 2012-11-16
 '''
 
 from crawlers.common.events import *
+from crawlers.common.crawllog import debug_info
+from crawlers.common.stash import config, headers
 from models import *
 
 import datetime, time
@@ -30,7 +32,26 @@ class Server(object):
 
     """
     def __init__(self):
-        pass
+        self.__is_auth = False
+        self.request = None
+    
+    def auth(self):
+        return self.__is_auth
+    
+    def login(self):
+        accounts = (('ethan@favbuy.com', '200591qq'), ('huanzhu@favbuy.com', '4110050209'))
+        email, password = random.choice(accounts)
+        
+        url = 'https://us.venteprivee.com/api/membership/signin'
+        data = {
+            'email': email,
+            'password': password,
+            'rememberMe': False,
+        }
+        self.request = requests.Session(prefetch=True, timeout=30, config=config, headers=headers)
+        res = self.request.post(url, data=data)
+        res.raise_for_status()
+        self.__is_auth = True
 
     def crawl_category(self, ctx):
         """.. :py:method::
@@ -62,41 +83,25 @@ class Server(object):
         :param url: event url with event_id 
         """
         print(DB+'.listing.{0}.start'.format(url))
+        if not self.auth():
+            self.login()
         
-        event_id = url.split('/')[-1]
-        event = Event.objects.get(event_id = event_id)
-        if  not event or event.type == 'upcoming':
-            print(DB+'.listing.{0}.end'.format(url))
-            return
-        
-        accounts = (('ethan@favbuy.com', '200591qq'), ('huanzhu@favbuy.com', '4110050209'))
-        e, p = random.choice(accounts)
-        driver = webdriver.Firefox() if DEBUG else webdriver.Chrome()
-        
-        # Signin with email as username and password to get the access to the api.
-        sign_url = 'https://us.venteprivee.com/main/#/signin'
-        driver.get(sign_url)
-        email = driver.find_elements_by_id('sign_in_email')[0]
-        email.send_keys(e)
-        password = driver.find_elements_by_id('sign_in_password')[0]
-        password.send_keys(p)
-        submit = driver.find_element_by_xpath('//button[@type="submit"]')
-        submit.click()
-        time.sleep(2)
-        
-        driver.get(url)
-        dom = html.fromstring(driver.page_source)
-        driver.close()
-        
-        productsNode = dom.xpath('//dto_productfamily')
-        for pNode in productsNode:
+        res = self.request.get(url).json
+        event_id = str(res.get('operationId'))
+        products = res.get('productFamilies')
+        for prodNode in products:
             is_updated = False
-            key = pNode.xpath('./productfamilyid')[0].text
+            key = str(prodNode['productFamilyId'])
             product, is_new = Product.objects.get_or_create(key=key)
-            product.title =  pNode.xpath('./name')[0].text
-            product.price = pNode.xpath('./formattedmsrp')[0].text
-            product.listprice = pNode.xpath('./formattedprice')[0].text
-            product.soldout =  pNode.xpath('./issoldout')[0].text == "true"
+            
+            if not is_new:
+                is_updated = (product.listprice != prodNode.get('formattedPrice')) or is_updated
+                is_updated = (product.soldout != prodNode.get('isSoldOut')) or is_updated
+            
+            product.title =  prodNode.get('name')
+            product.price = prodNode.get('formattedMsrp')
+            product.listprice = prodNode.get('formattedPrice')
+            product.soldout =  prodNode.get('isSoldOut')
             if event_id not in product.event_id:
                 product.event_id.append(event_id)
             if is_new:
@@ -107,6 +112,13 @@ class Server(object):
             print(DB+'.listing.product.{0}.crawled'.format(product.key))
             common_saved.send(sender=ctx, key=product.key, url=url, is_new=is_new, is_updated=(not is_new) and is_updated)
         
+        ready = None
+        event = Event.objects.get(event_id=event_id)
+        if event and event.urgent:
+            event.urgent = False
+            ready = 'Event'
+        common_saved.send(sender=ctx, key=event.event_id, url=event.combine_url, is_new=False, is_updated=False, ready=ready)
+        
         print(DB+'.listing.{0}.end'.format(url))
 
     def crawl_product(self, url, ctx):
@@ -115,48 +127,53 @@ class Server(object):
         :param url: product url, with product id
         """
         print(DB+'.product.{0}.start'.format(url))
+        if not self.auth():
+            self.login()
         
-        res = vclient.request(url)
-        is_updated = False
-        
-        split_url = url.split('/')
-        key = split_url[-1]
-        event_id = split_url[-2]
-        product, is_new = Product.objects.get_or_create(key=key)
-        
-        product.title = res.get('name')
-        product.brand = res.get('operationName')
-        if is_new:
-            product.combine_url = 'https://us.venteprivee.com/main/#/product/%s/%s' % (event_id, product.key)
-        product.listprice = res.get('formattedPrice')
-        product.price = res.get('formattedMsrp')
-        product.image_urls = [] # TODO
-        product.list_info = [] # TODO
-        product.soldout = res.get('isSoldOut')
-        product.returned = res.get('returnPolicy')
-        product.sizes = res.get('sizes')
-        product.sizes_scarcity = [] #TODO
-        product.updated = False if is_new else True
-        product.full_update_time = datetime.datetime.utcnow()
-        product.save()
-        
-        print(DB+'.product.{0}.end'.format(url))
-        common_saved.send(sender=ctx, key=product.key, url=url, is_new=is_new, is_updated=(not is_new) and is_updated)
+        res = self.request.get(url).json
+        key = str(res.get('productFamilyId'))
+#        is_updated = False
+#        
+#        split_url = url.split('/')
+#        key = split_url[-1]
+#        event_id = split_url[-2]
+#        product, is_new = Product.objects.get_or_create(key=key)
+#        
+#        product.title = res.get('name')
+#        product.brand = res.get('operationName')
+#        if is_new:
+#            product.combine_url = 'https://us.venteprivee.com/main/#/product/%s/%s' % (event_id, product.key)
+#        product.listprice = res.get('formattedPrice')
+#        product.price = res.get('formattedMsrp')
+#        product.image_urls = [] # TODO
+#        product.list_info = [] # TODO
+#        product.soldout = res.get('isSoldOut')
+#        product.returned = res.get('returnPolicy')
+#        product.sizes = res.get('sizes')
+#        product.sizes_scarcity = [] #TODO
+#        product.updated = False if is_new else True
+#        product.full_update_time = datetime.datetime.utcnow()
+#        product.save()
+#        
+#        print(DB+'.product.{0}.end'.format(url))
+#        common_saved.send(sender=ctx, key=product.key, url=url, is_new=is_new, is_updated=(not is_new) and is_updated)
 
 if __name__ == '__main__':
 #    server = zerorpc.Server(Server())
 #    server.bind("tcp://0.0.0.0:{0}".format(RPC_PORT))
 #    server.run()
-    
+
+#    s.crawl_listing('http://us.venteprivee.com/v1/api/catalog/content/10405', 'ven')
     start = time.time()
     
     s = Server()
-    s.crawl_category('venteprivee')
-    events = Event.objects(urgent=True).order_by('-update_time').timeout(False)
-    for event in events:
-        s.crawl_listing(event.url(), 'venteprivee')
-    products = Product.objects.filter(updated=False)
-    for product in products:
-        s.crawl_product(product.url(), 'gilt')
+    s.crawl_product('http://us.venteprivee.com/v1/api/productdetail/content/1024911', 'ven')
+#    s.crawl_category('venteprivee')
+#    events = Event.objects(urgent=True).order_by('-update_time').timeout(False)
+#    for event in events:
+#        s.crawl_listing(event.url(), 'venteprivee')
+#    products = Product.objects.filter(updated=False)
+#    for product in products:
+#        s.crawl_product(product.url(), 'gilt')
     
-    print 'total costs: %s (s)' % (time.time() - start) 
+    print 'total costs: %s (s)' % (time.time() - start)

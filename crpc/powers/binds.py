@@ -53,7 +53,7 @@ def stat_post_general_update(sender, **kwargs):
 def stat_failed(sender, **kwargs):
     pass
 
-#@image_crawled.bind
+@image_crawled.bind
 def stat_save(sender, **kwargs):
     logger.debug('{0} -> {1}'.format(sender,kwargs.items()))
     site = kwargs.get('site', '')

@@ -123,6 +123,7 @@ class Server(object):
         if event and event.urgent:
             event.urgent = False
             ready = 'Event'
+            event.save()
         common_saved.send(sender=ctx, key=event.event_id, url=event.combine_url, is_new=False, is_updated=False, ready=ready)
         
         print(DB+'.listing.{0}.end'.format(url))

@@ -19,18 +19,21 @@ def run(site, rpc):
     category_cost = time.time() - begin
     print '\n\n--++ {0} ++--\n\n'.format(category_cost)
 
-    new_listing(site, rpc)
-    list_cost = time.time() - begin
-    print '\n\n--++ {0} ++--\n\n'.format(list_cost)
+    #new_listing(site, rpc)
+    #list_cost = time.time() - begin
+    #print '\n\n--++ {0} ++--\n\n'.format(list_cost)
 
-    new_product(site, rpc)
-    product_cost = time.time() - begin
-    print '\n\n--++ {0} ++--\n\n'.format(product_cost)
+    #new_product(site, rpc)
+    #product_cost = time.time() - begin
+    #print '\n\n--++ {0} ++--\n\n'.format(product_cost)
 
-    update_listing(site, rpc)
+    #update_listing(site, rpc)
 
 if __name__ == '__main__':
+    import crawllog
     rpc = RPCServer()
+    rpc.call('myhabit', 'crawl_category', (), {'ctx':'asdf'})
+    exit(0)
     if sys.argv[1]:
         if sys.argv[1] == 'myhabit' or 'zulily' or 'hautelook' or 'onekingslane':
             run(sys.argv[1], rpc)

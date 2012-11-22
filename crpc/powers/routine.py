@@ -18,28 +18,13 @@ from settings import PEERS, RPC_PORT
 from configs import SITES
 from events import *
 
-def get_rpcs():
-    if not hasattr(get_rpcs, '_cached_peers'):
-        setattr(get_rpcs, '_cached_peers', [])
-
-    if get_rpcs._cached_peers != PEERS: 
-        setattr(get_rpcs, '_cached_peers', PEERS)
-
-        rpcs = []
-        for peer in PEERS:
-            host = peer[peer.find('@')+1:]
-            c = zerorpc.Client('tcp://{0}:{1}'.format(host, RPC_PORT), timeout=None)
-            if c:
-                rpcs.append(c)
-
-        setattr(get_rpcs, '_cached_rpcs', rpcs)
-        
-    return get_rpcs._cached_rpcs
+from backends.monitor.scheduler import get_rpcs
+from crawlers.common.routine import get_site_module
 
 def call_rpc(rpc, method, *args, **kwargs):
     try:
-        from crawlers.common.rpcserver import RPCServer
-        rpc.image(method, args, kwargs)
+        #rpc.process_images(args, kwargs)
+        getattr(rpc, method)(args, kwargs)
     except Exception:
         print traceback.format_exc()
         image_crawled_failed.send(sender=kwargs['ctx'],
@@ -49,29 +34,29 @@ def call_rpc(rpc, method, *args, **kwargs):
                             reason = traceback.format_exc()
                             )
 
-def get_site_module(site):
-    return __import__("crawlers."+site+'.models', fromlist=['Event', 'Product'])
-
-def spout_event_images(site):
+def spout_images(site, doctype):
     m = get_site_module(site)
-    if not hasattr(m, 'Event'):
-        print type(m), m
-    events = m.Event.objects(urgent=False, image_complete=False)
-    for event in events:
+    docdict = {
+        'event': {
+            'kwargs': {'urgent':False, 'image_complete':False},
+            'key': 'event_id',
+            'name': 'Event',
+         }, 
+        'product': {
+            'kwargs': {'updated':True, 'image_complete':False},
+            'key': 'key',
+            'name': 'Product',
+        }, 
+    }
+    
+    docparam = docdict[doctype]
+    instances = getattr(m, docparam['name']).objects(**docparam['kwargs'])
+
+    for instance in instances:
         yield {
             'site': site,
-            'event_id': event.event_id,
-            'image_urls': event.image_urls,
-        }
-
-def spout_product_images(site):
-    m = get_site_module(site)
-    products = m.Product.objects(updated=True, image_complete=False)
-    for product in products:
-        yield {
-            'site': site,
-            'key': product.key,
-            'image_urls': product.image_urls
+            docparam['key']: getattr(instance, docparam['key']),
+            'image_urls': instance.image_urls,
         }
 
 class UpdateContext(object):
@@ -109,32 +94,25 @@ class UpdateContext(object):
                                     complete = complete,
                                     reason = reason)
 
-def scan_event_images(site, rpc, concurrency=3):
-    with UpdateContext(site, 'crawl_event_images') as ctx:
+def scan_images(site, doctype, rpc, concurrency=3):
+    with UpdateContext(site, 'crawl_images') as ctx:
         rpcs = [rpc] if not isinstance(rpc, list) else rpc
         pool = Pool(len(rpcs)*concurrency)
-        for kwargs in spout_event_images(site):
+        for kwargs in spout_images(site, doctype):
             kwargs['ctx'] = ctx
+            kwargs['doctype'] = doctype
             rpc = random.choice(rpcs)
-            pool.spawn(call_rpc, rpc, 'crawl_event_images', **kwargs)
+            pool.spawn(call_rpc, rpc, 'process_image', **kwargs)
         pool.join()
 
-def scan_product_images(site, rpc, concurrency=3):
-    with UpdateContext(site, 'crawl_product_images') as ctx:
-        rpcs = [rpc] if not isinstance(rpc, list) else rpc
-        pool = Pool(len(rpcs)*concurrency)
-        for kwargs in spout_product_images(site):
-            kwargs['ctx'] = ctx
-            rpc = random.choice(rpcs)
-            pool.spawn(call_rpc, rpc, 'crawl_product_images', **kwargs)
-        pool.join()
-
-def crawl_images(site, model, key, rpc=None, concurrency=3):
+def crawl_images(*args, **kwargs):
+    print kwargs
+    exit(0)
     if rpc is None:
         rpc = get_rpcs()
     
     kwargs = {}
-    method = 'crawl_%s_images' % model.lower() if model else None
+    method = 'crawl_images'
     with UpdateContext(site, method) as ctx:
         m = __import__("crawlers."+site+'.models', fromlist=['Event', 'Product'])
         if model == 'Event':
@@ -156,3 +134,8 @@ def crawl_images(site, model, key, rpc=None, concurrency=3):
             rpcs = [rpc] if not isinstance(rpc, list) else rpc
             rpc = random.choice(rpcs)
             call_rpc(rpc, method, **kwargs)
+
+if __name__ == '__main__':
+    #from crawlers.common.rpcserver import RPCServer
+    #rpc = RPCServer()
+    scan_images('zulily', 'product', get_rpcs(), 3)

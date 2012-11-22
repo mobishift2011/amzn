@@ -63,6 +63,9 @@ class Server(object):
             
             is_updated = False
             event, is_new = Event.objects.get_or_create(event_id = str(sale.get('operationId')))
+            if not is_new:
+                
+            
             event.combine_url = 'https://us.venteprivee.com/main/#/catalog/%s' % event.event_id
             event.sale_title = sale.get('name')
             event.image_urls = []#"http://pr-media04.venteprivee.com/is/image/VPUSA/%s" # TODO
@@ -95,12 +98,12 @@ class Server(object):
             product, is_new = Product.objects.get_or_create(key=key)
             
             if not is_new:
-                is_updated = (product.listprice != prodNode.get('formattedPrice')) or is_updated
+                is_updated = (product.price != prodNode.get('formattedPrice')) or is_updated
                 is_updated = (product.soldout != prodNode.get('isSoldOut')) or is_updated
             
             product.title =  prodNode.get('name')
-            product.price = prodNode.get('formattedMsrp')
-            product.listprice = prodNode.get('formattedPrice')
+            product.price = prodNode.get('formattedPrice')
+            product.listprice = prodNode.get('formattedMsrp')
             product.soldout =  prodNode.get('isSoldOut')
             if event_id not in product.event_id:
                 product.event_id.append(event_id)
@@ -132,31 +135,31 @@ class Server(object):
         
         res = self.request.get(url).json
         key = str(res.get('productFamilyId'))
-#        is_updated = False
+        is_updated = False
 #        
 #        split_url = url.split('/')
 #        key = split_url[-1]
 #        event_id = split_url[-2]
-#        product, is_new = Product.objects.get_or_create(key=key)
-#        
-#        product.title = res.get('name')
-#        product.brand = res.get('operationName')
-#        if is_new:
-#            product.combine_url = 'https://us.venteprivee.com/main/#/product/%s/%s' % (event_id, product.key)
-#        product.listprice = res.get('formattedPrice')
-#        product.price = res.get('formattedMsrp')
-#        product.image_urls = [] # TODO
-#        product.list_info = [] # TODO
-#        product.soldout = res.get('isSoldOut')
-#        product.returned = res.get('returnPolicy')
-#        product.sizes = res.get('sizes')
-#        product.sizes_scarcity = [] #TODO
-#        product.updated = False if is_new else True
-#        product.full_update_time = datetime.datetime.utcnow()
-#        product.save()
-#        
-#        print(DB+'.product.{0}.end'.format(url))
-#        common_saved.send(sender=ctx, key=product.key, url=url, is_new=is_new, is_updated=(not is_new) and is_updated)
+        product, is_new = Product.objects.get_or_create(key=key)
+        
+        product.title = res.get('name')
+        product.brand = res.get('operationName')
+        if is_new:
+            product.combine_url = 'https://us.venteprivee.com/main/#/product/%s/%s' % (event_id, product.key)
+        product.listprice = res.get('formattedMsrp')
+        product.price = res.get('formattedPrice')
+        product.image_urls = [] # TODO
+        product.list_info = [] # TODO
+        product.soldout = res.get('isSoldOut')
+        product.returned = res.get('returnPolicy')
+        product.sizes = res.get('sizes')
+        product.sizes_scarcity = [] #TODO
+        product.updated = False if is_new else True
+        product.full_update_time = datetime.datetime.utcnow()
+        product.save()
+        
+        print(DB+'.product.{0}.end'.format(url))
+        common_saved.send(sender=ctx, key=product.key, url=url, is_new=is_new, is_updated=(not is_new) and is_updated)
 
 if __name__ == '__main__':
 #    server = zerorpc.Server(Server())

@@ -148,15 +148,17 @@ class Server(object):
             event, event_id, link = self.parse_event(dept, node, ctx)
 
             num, isodate = self.is_parent_event(dept, event_id, link, ctx)
-            if num == -1: # event is product
+            if num == -1 or 0: # event is product or event is special
+                countdown = re.compile("countdownFactory.create\(('|\"){0}('|\"), ('|\")(\\d+)('|\"), ('|\")('|\")\);".format(event_id)).search(cont).group(4)
+                event.events_end = datetime.utcfromtimestamp(float(countdown[:-3]))
                 event.is_leaf = False
                 event.save()
-            if num == 0:
-                re.compile("countdownFactory.create\(('|\"){0}('|\"), ('|\")(\\d+)('|\"), ('|\")('|\")\);".format(event_id))
             if num >= 1:
                 if num > 1: event.is_leaf = False
                 event.events_end = isodate
                 event.save()
+            if num == 0:
+                pass
 
 
     def is_parent_event(self, dept, event_id, url, ctx):
@@ -188,6 +190,7 @@ class Server(object):
         if len(countdown_num) == 0:
             common_failed.send(sender=ctx, site=DB, key='', url=url, reason='Url has no closing time.')
             return 0, 0
+
         elif len(countdown_num) == 1:
             if countdown_num[0][1] == event_id:
                 return 1, datetime.utcfromtimestamp( float(countdown_num[0][4][:-3]) )

@@ -249,17 +249,19 @@ class Server(object):
         :param tree: listing page url's lxml tree
         """
         event_id = re.compile(r'.*/vintage-market-finds/(.*)').match(url).group(1)
+
         event, is_new = Event.objects.get_or_create(event_id=event_id)
         if not event.sale_description:
             event.sale_description = tree.cssselect('div#wrapper > div#okl-content > div#okl-vmf-category-carousel-hd > h3+p')[0].text_content()
         items = tree.cssselect('div#wrapper > div#okl-content > div#okl-vmf-product-list > ul.products > li.trackVmfProduct')
         event.num = len(items)
         event.urgent = False
-        common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=False)
+
         for item in items:
             self.crawl_category_list_product(event_id, item, ctx)
 
         event.save()
+        common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=False, ready='Event')
 
     def crawl_category_list_product(self, event_id, item, ctx):
         """.. :py:method::
@@ -318,12 +320,15 @@ class Server(object):
 
         event.num = len(items)
         event.update_time = datetime.utcnow()
-        event.urgent = False
+        if event.urgent == False:
+            event.urgent = True
+            ready = 'Event'
+        else: ready = None
 
         for item in items: self.crawl_sale_list_product(event_id, item, ctx)
 
         event.save()
-        common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=False)
+        common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=False, ready=ready)
 
 
     def crawl_sale_list_product(self, event_id, item, ctx):
@@ -415,10 +420,13 @@ class Server(object):
         product.returned = node.cssselect('div#productDetails > dl:nth-of-type(2)')[0].text_content()
         end_date = node.cssselect('div#productDetails > p.endDate')[0].text.split('until')[-1].strip() # '11/10 at 11am EST'
         product.products_end = self.et_time_convert(end_date.rsplit(' ', 1)[0], '%m/%d at %I%p%Y')
-        product.updated = True
+        if product.updated == False:
+            product.updated = True
+            ready = 'Product'
+        else: ready = None
         product.full_update_time = datetime.utcnow()
         product.save()
-        common_saved.send(sender=ctx, key=product_id, url=url, is_new=is_new, is_updated=not is_new)
+        common_saved.send(sender=ctx, key=product_id, url=url, is_new=is_new, is_updated=not is_new, ready=ready)
 
     def et_time_convert(self, time_str, time_format):
         """.. :py:method::
@@ -468,10 +476,13 @@ class Server(object):
         seller = node.cssselect('div#productDescription > div.ds-vmf-vendor')
         if seller:
             product.seller = seller[0].cssselect('div[class]')[0].text_content()
-        product.updated = True
+        if product.updated == False:
+            product.updated = True
+            ready = 'Product'
+        else: ready = None
         product.full_update_time = datetime.utcnow()
         product.save()
-        common_saved.send(sender=ctx, key=product_id, url=url, is_new=is_new, is_updated=not is_new)
+        common_saved.send(sender=ctx, key=product_id, url=url, is_new=is_new, is_updated=not is_new, ready=ready)
 
         
 

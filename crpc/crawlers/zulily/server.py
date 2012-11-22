@@ -229,7 +229,10 @@ class Server(object):
         brand.events_end = datetime(events_end.year, events_end.month, events_end.day, events_end.hour)
         brand.num = len(items)
         brand.update_time = datetime.utcnow()
-        brand.urgent = False
+        if brand.urgent == True:
+            brand.urgent = False
+            ready = 'Event'
+        else: ready = None
 
         for item in items: self.crawl_list_product(event_id, item, ctx)
         page_num = 1
@@ -238,7 +241,7 @@ class Server(object):
             self.crawl_list_next(url, next_page_url, page_num + 1, event_id, ctx)
 
         brand.save()
-        common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=False)
+        common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=False, ready=ready)
         debug_info.send(sender=DB + '.crawl_list.end')
 
     def detect_list_next(self, node, page_num):
@@ -389,10 +392,13 @@ class Server(object):
         if out_of_stocks: product.out_of_stocks = out_of_stocks
         if image_urls: product.image_urls = image_urls
 
-        product.updated = True
+        if product.updated == False:
+            product.updated = True
+            ready = 'Product'
+        else: ready = None
         product.full_update_time = datetime.utcnow()
         product.save()
-        common_saved.send(sender=ctx, key=slug, url=url, is_new=is_new, is_updated=not is_new)
+        common_saved.send(sender=ctx, key=slug, url=url, is_new=is_new, is_updated=not is_new, ready=ready)
 
 
 if __name__ == '__main__':

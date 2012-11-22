@@ -137,6 +137,7 @@ class Server(object):
             event.save()
             common_saved.send(sender=ctx, key=event_id, is_new=is_new, is_updated=False)
 
+
     def _get_event_list(self, dept, url, ctx):
         """.. :py:method::
             Get all the events from event list.
@@ -148,17 +149,17 @@ class Server(object):
             event, event_id, link = self.parse_event(dept, node, ctx)
 
             num, isodate = self.is_parent_event(dept, event_id, link, ctx)
-            if num == -1 or 0: # event is product or event is special
+            if num == -1 or num == 0: # event is product or event is special
                 countdown = re.compile("countdownFactory.create\(('|\"){0}('|\"), ('|\")(\\d+)('|\"), ('|\")('|\")\);".format(event_id)).search(cont).group(4)
                 event.events_end = datetime.utcfromtimestamp(float(countdown[:-3]))
+                if num == 0:
+                    self.la_perla(dept, link, event.events_end, ctx)
                 event.is_leaf = False
                 event.save()
             if num >= 1:
                 if num > 1: event.is_leaf = False
                 event.events_end = isodate
                 event.save()
-            if num == 0:
-                pass
 
 
     def is_parent_event(self, dept, event_id, url, ctx):
@@ -188,7 +189,7 @@ class Server(object):
             return -1, 0
         countdown_num = self.countdown_num.findall(cont)
         if len(countdown_num) == 0:
-            common_failed.send(sender=ctx, site=DB, key='', url=url, reason='Url has no closing time.')
+#            common_failed.send(sender=ctx, site=DB, key='', url=url, reason='Url has no closing time.')
             return 0, 0
 
         elif len(countdown_num) == 1:
@@ -287,6 +288,37 @@ class Server(object):
         product.full_update_time = datetime.utcnow()
         product.save()
         common_saved.send(sender=ctx, key=product_id, is_new=is_new, is_updated=is_updated, ready=ready)
+
+
+    def la_perla(self, dept, url, events_end, ctx):
+        """.. :py:method::
+        """
+        cont = self.net.fetch_page(url)
+        tree = lxml.html.fromstring(cont)
+        nodes = tree.cssselect('div#main > div#canvasContainer div#doors a[href]')
+        for node in nodes:
+            link = node.get('href')
+            event_id = link.rsplit('/', 1)[-1]
+            link = link if link.startswith('http') else self.siteurl + link
+            image = node.xpath('img/@src')[0]
+            image = image if image.startswith('http') else self.siteurl + image
+
+            is_new, is_updated = False, False
+            event = Event.objects(event_id=event_id).first()
+            if not event:
+                is_new = True
+                event = Event(event_id=event_id)
+                event.dept = [dept]
+                event.events_end = events_end
+                event.combine_url = link
+                event.image_urls = [image]
+                event.urgent = True
+            else:
+                if dept not in event.dept: event.dept.append(dept)
+
+            event.update_time = datetime.utcnow()
+            event.save()
+            common_saved.send(sender=ctx, key=event_id, is_new=is_new, is_updated=is_updated)
 
 
     def crawl_listing(self, url, ctx=''):

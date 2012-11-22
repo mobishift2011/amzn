@@ -19,7 +19,7 @@ class BaseCategory(Document):
     ...     pass
 
     """
-    cats        =   ListField(StringField()) 
+    cats        =   ListField(StringField()) # ['home', 'Textiles']
     is_leaf     =   BooleanField()
     update_time =   DateTimeField(default=datetime.utcnow)
     spout_time  =   DateTimeField() # time when we issue a new category fetch operation
@@ -106,10 +106,9 @@ class BaseProduct(Document):
     updated             =   BooleanField(default=False)
     list_update_time    =   DateTimeField(default=datetime.utcnow)
     full_update_time    =   DateTimeField()
-    products_end        =   DateTimeField()
 
     # dimension info
-    cats                =   ListField(StringField()) 
+    cats                =   ListField(StringField()) # ['home > Textiles', 'home > lighting']
     like                =   StringField()  # how many likes
     rating              =   StringField()  # how it is rated, if any
     brand               =   StringField()
@@ -157,7 +156,9 @@ class LuxuryProduct(BaseProduct):
     """
     # associate to Event's unique key
     event_id            =   ListField(StringField())
+    event_type          =   BooleanField(default=True) # whether this product spout by Event
     create_time         =   DateTimeField(default=datetime.utcnow)
+    products_begin      =   DateTimeField()
     products_end        =   DateTimeField()
 
     soldout             =   BooleanField(default=False)

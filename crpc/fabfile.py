@@ -86,7 +86,7 @@ def stop():
 def start():
     """ start remote executions """
     execute(_start_crawler)
-    execute(_start_api)
+    execute(_start_power)
 
 def restart():
     """ stop & start """
@@ -113,7 +113,7 @@ def _start_crawler():
                             _runbg("python crawlers/common/crawlerserver.py", sockname="crawlerserver")
 
 @hosts(POWER_PEERS)
-def _start_api():
+def _start_power():
     with prefix("source /usr/local/bin/virtualenvwrapper.sh"):
         with prefix("ulimit -s 1024"):
             with prefix("ulimit -n 4096"):

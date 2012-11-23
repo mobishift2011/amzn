@@ -17,7 +17,7 @@ import boto.s3.key
 import boto.s3.connection
 import requests
 from StringIO import StringIO
-from stash import *
+from crawlers.common.stash import *
 
 AWS_ACCESS_KEY = "AKIAIQC5UD4UWIJTBB2A"
 AWS_SECRET_KEY = "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"
@@ -35,6 +35,7 @@ class ImageToS3(object):
     """
 
     def __init__(self, s3conn=None, bucket_name=IMAGE_S3_BUCKET):
+        self.s3_upload_lock = Semaphore()
         self.s3_connection = s3conn or boto.s3.connection.S3Connection(AWS_ACCESS_KEY, AWS_SECRET_KEY)
         try:
             bucket = self.s3_connection.get_bucket(bucket_name)
@@ -74,6 +75,8 @@ class ImageToS3(object):
         :param upload_key: unique key of this image in amazon s3
         """
         self.s3_key.key = upload_key
+
+        # with self.s3_upload_lock:
         self.s3_key.set_contents_from_file(image_hex)
         return self.s3_key.generate_url(URL_EXPIRES_IN)
 

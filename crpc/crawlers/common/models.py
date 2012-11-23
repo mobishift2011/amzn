@@ -28,6 +28,9 @@ class BaseCategory(Document):
     pagesize    =   IntField()
     combine_url =   StringField()
 
+    # luxury category
+    sale_description    = StringField()
+
     meta        =   {
         "allow_inheritance": True,
         "collection": "category",
@@ -58,7 +61,6 @@ class BaseEvent(BaseCategory):
     sale_title          = StringField()
     image_urls          = ListField(StringField())
     image_path          = ListField(StringField())
-    sale_description    = StringField()
     dept                = ListField(StringField())
 
     # after setting urgent to False, you can't set it back
@@ -108,6 +110,7 @@ class BaseProduct(Document):
     full_update_time    =   DateTimeField()
 
     # dimension info
+    category_key        =   ListField(StringField()) # like event_id, but in category
     cats                =   ListField(StringField()) # ['home > Textiles', 'home > lighting']
     like                =   StringField()  # how many likes
     rating              =   StringField()  # how it is rated, if any

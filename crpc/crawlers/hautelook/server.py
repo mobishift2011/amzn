@@ -7,6 +7,7 @@ crawlers.hautelook.server
 This is the server part of zeroRPC module. Call by client automatically, run on many differen ec2 instances.
 
 """
+from crawlers.common.imageprocessor import *
 from crawlers.common.events import *
 from crawlers.common.stash import *
 from models import *
@@ -148,6 +149,9 @@ class Server(object):
             ready = 'Event'
             event.save()
         else: ready = None
+#        if ready:
+#            event.image_path = process_image(event.image_urls, DB, 'event', event_id)
+#            event.save()
         common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=False, ready=ready)
 
 
@@ -238,6 +242,9 @@ class Server(object):
 
         product.full_update_time = datetime.utcnow()
         product.save()
+#        if ready:
+#            product.image_path = process_image(product.image_urls, DB, 'product', url.split('/')[-1])
+#            product.save()
         common_saved.send(sender=ctx, key=url.split('/')[-1], url=url, is_new=is_new, is_updated=not is_new, ready=ready)
 
 

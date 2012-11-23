@@ -125,7 +125,8 @@ class Server(object):
             info = item['availability']
             key = info['inventory_id']
             color = '' if info['color'].lower() == 'no color' else info['color']
-            scarcity = str(info['sizes'][0]['size']['remaining'])
+            scarcity = reduce(lambda x, y: x+y, (size['size']['remaining'] for size in info['sizes']))
+            scarcity = str(scarcity)
             product, is_new = Product.objects.get_or_create(pk=key)
             is_updated = False
             if is_new:
@@ -207,6 +208,9 @@ class Server(object):
                         price_flage = False
                         color = color_str
                         break
+                else:
+                    product.price = str(val['sale_price'])
+                    product.listprice = str(val['retail_price'])
             elif isinstance(v, dict):
                 for size, val in v.iteritems():
                     if product.key == str(val['inventory_id']):
@@ -215,31 +219,28 @@ class Server(object):
                         price_flage = False
                         color = color_str
                         break
+                else:
+                    product.price = str(val['sale_price'])
+                    product.listprice = str(val['retail_price'])
 
-        ready = None
         if color:
             # color: find the color, associate it to get the right images
             for color_info in data['collections']['color']:
                 if color_info['name'] == color:
                     product.image_urls = data['collections']['images'][ color_info['image'] ]['large']
-            if product.updated == False:
-                product.updated = True
-                ready = 'Product'
+        elif product.color:
+            for color_info in data['collections']['color']:
+                if color_info['name'] == product.color:
+                    product.image_urls = data['collections']['images'][ color_info['image'] ]['large']
         else:
-#            if product.color:
-#                for color_info in data['collections']['color']:
-#                    if color_info['name'] == product.color:
-#                        product.image_urls = data['collections']['images'][ color_info['image'] ]['large']
-            # if product_id not in color, crawl it later, the site will correct its info
-            product.updated = False
+            # if product_id not in color, don't crawl it later, set a default price, listprice.
+            # image_urls may not get
+            pass
 
-#        image_set = set()
-#        for k,v in data['collections']['images'].iteritems():
-#            for img in v['large']:
-#                if 'noavail' not in img:
-#                    image_set.add(img)
-#        product.image_urls = list(image_set)
-
+        if product.updated == False:
+            product.updated = True
+            ready = 'Product'
+        else: ready = None
         product.full_update_time = datetime.utcnow()
         product.save()
 #        if ready:

@@ -59,7 +59,7 @@ class ImageToS3(object):
         image_urls = [image_urls] if not isinstance(image_urls, list) else image_urls
         for image_url in image_urls:
             ret_content = fetch_page(image_url)
-            if ret_content is None:
+            if ret_content is None or isinstance(ret_content, int):
                 image_path.append('')
             else:
                 upload_key = '{0}_{1}_{2}_{3}_{4}'.format(site, doctype, int(time.time()), obj_id, image_url.rsplit('/', 1)[-1])

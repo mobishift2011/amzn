@@ -7,22 +7,71 @@ This is the server part of zeroRPC module. Call by client automatically, run on 
 
 """
 
+from gevent import monkey
+monkey.patch_all()
+
+import urllib
 import lxml.html
-from datetime import datetime
+import time
+import datetime
+import re
+from dateutil import parser as dt_parser
+from gevent.coros import Semaphore
+from selenium.common.exceptions import *
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium import webdriver
 
 from models import *
 from crawlers.common.events import *
 from crawlers.common.stash import *
+from crawlers.common.baseserver import BaseServer
 
-class Server(object):
+class Server(BaseServer):
     """.. :py:class:: Server
-        This is zeroRPC server class for ec2 instance to crawl pages.
+    This is zeroRPC server class for ec2 instance to crawl pages.
     """
+    
     def __init__(self):
+        super(BaseServer, self).__init__()
         self.siteurl = 'http://www.nomorerack.com'
+        self.site ='nomorerack'
+        #self.login(self.email, self.passwd)
 
+    def login(self, email=None, passwd=None):
+        """.. :py:method::
+            login urelala
 
-    def crawl_category(self, ctx=''):
+        :param email: login email
+        :param passwd: login passwd
+        """
+        
+        #self.browser.implicitly_wait(2)
+        self.browser.get(self.siteurl)
+        time.sleep(3)
+        
+        # click the login link
+        node = self.browser.find_element_by_id('pendingTab')
+        node.click()
+        time.sleep(2)
+
+        a = self.browser.find_element_by_id('txtEmailLogin')
+        a.click()
+        a.send_keys(email)
+
+        b = self.browser.find_element_by_id('txtPass')
+        b.click()
+        b.send_keys(passwd)
+
+        signin_button = self.browser.find_element_by_id('btnEnter')
+        signin_button.click()
+
+        title = self.browser.find_element_by_xpath('//title').text
+        if title  == 'Rue La La - Boutiques':
+            self._signin = True
+        else:
+            self._signin = False
+
+    def crawl_category(self,ctx=''):
         """.. :py:method::
             From top depts, get all the events
         """
@@ -71,74 +120,6 @@ class Server(object):
 
             event.save()
             common_saved.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=is_updated)
-
-
-    def get_deals_categroy(self, ctx=''):
-        """.. :py:method::
-            get deals' categories, can spout them to crawl listing later
-        """
-        # homepage's deals, we can calculate products_begin time
-        is_new, is_updated = False, False
-        categroy = Category.objects(key='#').first()
-        if not category:
-            is_new = True
-            category = Category(key='#')
-            category.is_leaf = True
-            category.combine_url = self.siteurl
-        category.update_time = datetime.utcnow()
-        category.save()
-        common_saved.send(sender=ctx, key='#', url=self.siteurl, is_new=is_new, is_updated=is_updated)
-
-        # categories' deals, with no products_begin time
-        categories = ['women', 'men', 'home', 'electronics', 'kids', 'lifestyle']
-        for categroy in categories:
-            is_new, is_updated = False, False
-            categroy = Category.objects(key=category).first()
-            if not category:
-                is_new = True
-                category = Category(key=category)
-                category.is_leaf = True
-                category.combine_url = 'http://nomorerack.com/daily_deals/category/{0}'.format(category)
-            category.update_time = datetime.utcnow()
-            category.save()
-            common_saved.send(sender=ctx, key=category, url=category.combine_url, is_new=is_new, is_updated=is_updated)
-
-    def exclusive_events(self, ctx=''):
-        """.. :py:method::
-            homepage's events
-        """
-        content = fetch_page(self.siteurl)
-        if isinstance(content, int) or content is None:
-            common_failed.send(sender=ctx, key='', url=self.siteurl, reason='download error or {0} return'.format(content))
-            return
-        tree = lxml.html.fromstring(content)
-        nodes = tree.cssselect('div#wrapper > div#content > div#front > div#primary > div[style] > div.events > div.event')
-        for node in nodes:
-            events_end = node.xpath('./div[@class="countdown"]/@expires_on')[0]
-            sale_title = node.cssselect('div.info > a[href] > h3')[0].text_content().strip()
-            link = node.cssselect('div.info > a[href]')[0].get('href')
-            event_id = link.rsplit('/', 1)[-1]
-            img = node.cssselect('div.image > a > img')[0].get('src')
-
-            is_new, is_updated = False, False
-            event = Event.objects(event_id=event_id).first()
-            if not event:
-                is_new = True
-                event = Event(event_id=event_id)
-                event.urgent = True
-                event.combine_url = link if link.startswith('http') else self.siteurl + link
-                event.sale_title = sale_title
-                if 'large' in img:
-                    event.image_urls.append( img.replace('large', 'medium') )
-                elif 'medium' in img:
-                    event.image_urls.append( img.replace('medium', 'large') )
-                event.image_urls.append(img)
-            event.events_end = datetime.fromtimestamp(float(events_end[:10]))
-            event.update_time = datetime.utcnow()
-            event.save()
-            common_saved.send(sender=ctx, key=event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
-
-
 
     def _crawl_category_product(self,name,ctx=''):
         """

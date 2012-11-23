@@ -8,7 +8,28 @@ crawlers.common.models
 from mongoengine import *
 from datetime import datetime, timedelta
 
-class BaseCategory(Document):
+class BaseDocumentSkeleton(object):
+    """ :py:class:crawlers.common.models.BaseDocumentSkeleton
+
+        common base class, we can not override meta information in subclass
+    """
+    spout_time          =   DateTimeField() # time when we issue a new category fetch operation
+    create_time         =   DateTimeField(default=datetime.utcnow)
+    update_time         =   DateTimeField(default=datetime.utcnow)
+    is_leaf             =   BooleanField()
+
+    # url this collections' object have
+    combine_url         =   StringField()
+    num                 =   IntField()
+    image_urls          =   ListField(StringField())
+    image_path          =   ListField(StringField())
+    image_complete      =   BooleanField(default=False)
+
+    sale_title          =   StringField()
+    sale_description    =   StringField()
+
+
+class BaseCategory(Document, BaseDocumentSkeleton):
     """ :py:class:crawlers.common.models.BaseCategory
     
     common category info
@@ -20,19 +41,10 @@ class BaseCategory(Document):
 
     """
     cats        =   ListField(StringField()) # ['home', 'Textiles']
-    is_leaf     =   BooleanField()
-    create_time = DateTimeField(default=datetime.utcnow)
-    update_time =   DateTimeField(default=datetime.utcnow)
-    spout_time  =   DateTimeField() # time when we issue a new category fetch operation
-    num         =   IntField()
     pagesize    =   IntField()
-    combine_url =   StringField()
-
-    # luxury category
-    sale_description    = StringField()
 
     meta        =   {
-        "allow_inheritance": True,
+#        "allow_inheritance": True,
         "collection": "category",
         "indexes":  ["is_leaf"],
     }
@@ -43,7 +55,7 @@ class BaseCategory(Document):
     def url(self):
         raise NotImplementedError("should implemented in sub classes!")
 
-class BaseEvent(BaseCategory):
+class BaseEvent(Document, BaseDocumentSkeleton):
     """ :py:class:crawlers.common.models.BaseBrand
     
     common brand info
@@ -58,20 +70,17 @@ class BaseEvent(BaseCategory):
     events_begin        = DateTimeField()
     events_end          = DateTimeField()
     soldout             = BooleanField(default=False)
-    sale_title          = StringField()
-    image_urls          = ListField(StringField())
-    image_path          = ListField(StringField())
     dept                = ListField(StringField())
 
     # after setting urgent to False, you can't set it back
     urgent              = BooleanField(default=True)
     
-    image_complete      = BooleanField(default=False)
-    branch_complete     = BooleanField(default=False)
-    
     meta = {
+#        "allow_inheritance": True,
+        "collection": "event",
         "indexes": ["urgent", "events_begin", "events_end", "soldout", "event_id"],
     }
+
 
 class BaseReview(Document):
     """ :py:class:crawlers.common.models.BaseReview
@@ -120,6 +129,7 @@ class BaseProduct(Document):
     price               =   StringField()
     sell_rank           =   IntField()
     combine_url         =   StringField()
+    dept                =   ListField(StringField())
 
     # text info
     title               =   StringField()

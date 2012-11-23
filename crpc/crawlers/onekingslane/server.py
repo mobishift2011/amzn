@@ -212,13 +212,14 @@ class Server(object):
             is_new, is_updated = False, False
             category = Category.objects(key=category_key).first()
             if not category:
+                is_new = True
                 category = Category(key=category_key)
                 category.is_leaf = True
-                is_new = True
-            category.combine_url = 'https://www.onekingslane.com/vintage-market-finds/{0}'.format(category_key)
+                category.combine_url = 'https://www.onekingslane.com/vintage-market-finds/{0}'.format(category_key)
+                category.dept = ['home']
             category.update_time = datetime.utcnow()
             category.save()
-            common_saved.send(sender=ctx, key=category_key, url=link, is_new=is_new, is_updated=is_updated)
+            common_saved.send(sender=ctx, key=category_key, url=category.combine_url, is_new=is_new, is_updated=is_updated)
 
 
     def crawl_listing(self, url, ctx):
@@ -264,7 +265,7 @@ class Server(object):
         category.num = len(items)
 
         if category_key == 'todaysarrivals':
-            _eastnow = datetime.now(tz=self.east_tz)#.astimezone(pytz.utc)
+            _eastnow = datetime.now(tz=self.east_tz)
             east_today_begin_in_utc = self.east_tz.localize( datetime(_eastnow.year, _eastnow.month, _eastnow.day) ).astimezone(pytz.utc)
         else:
             east_today_begin_in_utc = None
@@ -305,6 +306,7 @@ class Server(object):
                 if item.cssselect('em.sold'):
                     product.soldout = True
                     is_updated = True
+        # products_begin already happen, so not need to update
         if products_begin: product.products_begin = products_begin
         product.list_update_time = datetime.utcnow()
         product.save()
@@ -426,6 +428,8 @@ class Server(object):
         for path in tree.cssselect('body > div#wrapper > div#okl-content > div#okl-vmf-breadcrumb-share > ol.breadcrumbs > li'):
             category_path.append( path.text_content() )
         if category_path != [] and ' > '.join(category_path) not in product.cats:
+            category_path.pop(0)
+            category_path.insert(0, 'home') # 'home > lighting > light'
             product.cats.append( ' > '.join(category_path) )
 
         if era: product.era = era[0].text_content()

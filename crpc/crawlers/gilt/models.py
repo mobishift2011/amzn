@@ -19,50 +19,26 @@ import requests
 DB = 'gilt'
 connect(db=DB, alias=DB, host=MONGODB_HOST)
 
-STORE = {
-    'women': 'women',
-    'men': 'men',
-    'kids': 'children',
-    'home': 'home'
-}
 
-class Event(BaseEvent):
-    TYPE = (
-        ('sale', 'sales'),
-        ('category', 'category')
-    )
-      
+class Event(BaseEvent):     
     store = StringField()
-    type = StringField(choices=TYPE)    # sale, category
-    dept = ListField(StringField())
-    
+
     meta = {
         'db_name': DB,
         'db_alias': DB,
     }
     
-    def link(self):
-        return "http://www.gilt.com/{0}/{1}/{2}".format(self.type, STORE[self.store], self.event_id)
-    
     def url(self):
         return "https://api.gilt.com/v1/sales/{0}/{1}/detail.json".format(self.store, self.event_id)
 
 class Product(LuxuryProduct):
-    store = StringField()
-    product_key = StringField()  # unique key for get-a-product page, not product id, product id is field 'key' in the base class
-    dept = ListField(StringField())
+    dept = ListField(StringField()) # Remove when dept is added to Luxurious Product.
     skus = ListField()
     
     meta = {
         'db_name': DB,
         'db_alias': DB,
     }
-    
-    def link(self):
-        if self.key == self.product_key:
-            return None
-        url = "http://www.gilt.com/sale/{0}/{1}/product/{2}".format(STORE[self.store], self.event_id[-1], self.product_key)
-        return url
     
     def url(self):
         return "https://api.gilt.com/v1/products/{0}/detail.json".format(self.key)

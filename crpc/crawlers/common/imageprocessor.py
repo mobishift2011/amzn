@@ -76,8 +76,8 @@ class ImageToS3(object):
         """
         self.s3_key.key = upload_key
 
-        # with self.s3_upload_lock:
-        self.s3_key.set_contents_from_file(image_hex)
+        with self.s3_upload_lock:
+            self.s3_key.set_contents_from_file(image_hex)
         return self.s3_key.generate_url(URL_EXPIRES_IN)
 
 

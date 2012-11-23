@@ -111,6 +111,8 @@ class Server(object):
         self.get_product_condition = re.compile(r'<strong>Condition:</strong>(.*)</p>')
         self.get_product_era = re.compile(r'<strong>Era:</strong>(.*)</p>')
 
+        self.east_tz = pytz.timezone('US/Eastern')
+
     def crawl_category(self, ctx):
         """.. :py:method::
             crawl upcoming sales, sales, and shop by category
@@ -261,13 +263,20 @@ class Server(object):
         items = tree.cssselect('div#wrapper > div#okl-content > div#okl-vmf-product-list > ul.products > li.trackVmfProduct')
         category.num = len(items)
 
+        if category_key == 'todaysarrivals':
+            _eastnow = datetime.now(tz=self.east_tz)#.astimezone(pytz.utc)
+            east_today_begin_in_utc = self.east_tz.localize( datetime(_eastnow.year, _eastnow.month, _eastnow.day) ).astimezone(pytz.utc)
+        else:
+            east_today_begin_in_utc = None
+
         for item in items:
-            self.crawl_category_list_product(category_key, item, ctx)
+            self.crawl_category_list_product(category_key, item, east_today_begin_in_utc, ctx)
 
         category.save()
         common_saved.send(sender=ctx, key=category_key, url=url, is_new=is_new, is_updated=False, ready='Event')
 
-    def crawl_category_list_product(self, category_key, item, ctx):
+
+    def crawl_category_list_product(self, category_key, item, products_begin=None, ctx=''):
         """.. :py:method::
             from lxml node to get category listing page's product.
 
@@ -296,6 +305,7 @@ class Server(object):
                 if item.cssselect('em.sold'):
                     product.soldout = True
                     is_updated = True
+        if products_begin: product.products_begin = products_begin
         product.list_update_time = datetime.utcnow()
         product.save()
         common_saved.send(sender=ctx, key=product_id, url=self.siteurl + '/vintage-market-finds/' + category_key, is_new=is_new, is_updated=is_updated)
@@ -399,15 +409,27 @@ class Server(object):
         :param url: porduct url need to crawl
         """
         product_id = url.split('/')[-1]
-        product, is_new = Product.objects.get_or_create(pk=product_id)
         node = tree.cssselect('body > div#wrapper > div#okl-content > div#okl-product')[0]
-
         vintage = node.cssselect('form#productOverview > dl.vintage')[0]
         era = vintage.cssselect('dd:first-of-type')
-        if era: product.era = era[0].text_content()
         condition = vintage.cssselect('dd:nth-of-type(2)')
-        if condition: product.condition = condition[0].text_content()
+        seller = node.cssselect('div#productDescription > div#okl-vmf-vendor')
+        list_info = node.cssselect('div#productDetails > dl:first-of-type')[0].text_content()
 
+        is_new, is_updated = False, False
+        product = Product.objects(key=product_id).first()
+        if not product:
+            product = Product(key=product_id)
+            is_new = True
+
+        category_path = []
+        for path in tree.cssselect('body > div#wrapper > div#okl-content > div#okl-vmf-breadcrumb-share > ol.breadcrumbs > li'):
+            category_path.append( path.text_content() )
+        if category_path != [] and ' > '.join(category_path) not in product.cats:
+            product.cats.append( ' > '.join(category_path) )
+
+        if era: product.era = era[0].text_content()
+        if condition: product.condition = condition[0].text_content()
         img = node.cssselect('div#productDescription > div#altImages')
         if img:
             for i in img[0].cssselect('img.altImage'):
@@ -416,11 +438,7 @@ class Server(object):
                     product.image_urls.append(img_url)
 
         product.summary = node.cssselect('div#productDescription > div#description')[0].text_content()
-        seller = node.cssselect('div#productDescription > div#okl-vmf-vendor')
-        if seller:
-            product.seller = seller[0].cssselect('div')[0].text_content()
-
-        list_info = node.cssselect('div#productDetails > dl:first-of-type')[0].text_content()
+        if seller: product.seller = seller[0].cssselect('div')[0].text_content()
         product.list_info = list_info if isinstance(list_info, list) else [list_info]
         product.returned = node.cssselect('div#productDetails > dl:nth-of-type(2)')[0].text_content()
         end_date = node.cssselect('div#productDetails > p.endDate')[0].text.split('until')[-1].strip() # '11/10 at 11am EST'

@@ -1,21 +1,28 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-crawlers.bluefly.models
+crawlers.nomorerack.models
 ~~~~~~~~~~~~~~~~~~~~~~
 
 Implements Product and Category Model for Amazon
 """
-DB = 'nomorerack'
-from settings import MONGODB_HOST
+
+from crawlers.common.models import BaseCategory, BaseProduct, BaseReview, LuxuryProduct, BaseEvent
+
 from mongoengine import *
+from settings import MONGODB_HOST
+DB = 'nomorerack'
 connect(db=DB, alias=DB, host=MONGODB_HOST)
-from crawlers.common.models import BaseCategory, BaseProduct,BaseReview,LuxuryProduct,BaseEvent
+
+class Category(BaseCategory):
+    meta = { 
+        "db_alias": DB, 
+    }
 
 class Event(BaseEvent):
-    event_id = StringField(unique=True)
-    meta        =   {
-        "db_alias": DB,
+
+    meta = { 
+        "db_alias": DB, 
     }
 
     def url(self):

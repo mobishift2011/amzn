@@ -24,7 +24,8 @@ class Category(BaseCategory):
     }
 
     def url(self):
-        return 'https://www.onekingslane.com/vintage-market-finds/{0}'.format(self.event_id)
+        """ vintage-market-finds/category_name """
+        return 'https://www.onekingslane.com/vintage-market-finds/{0}'.format(self.key)
 
 class Event(BaseEvent):
     """
@@ -37,15 +38,10 @@ class Event(BaseEvent):
     }
 
     def url(self):
+        """ sales/event_id
+            self.event_id.isdigit()
         """
-            self.event_id:
-                sales/event_id
-                vintage-market-finds/category_name
-        """
-        if self.event_id.isdigit():
-            return 'https://www.onekingslane.com/sales/{0}'.format(self.event_id)
-        else:
-            return 'https://www.onekingslane.com/vintage-market-finds/{0}'.format(self.event_id)
+        return 'https://www.onekingslane.com/sales/{0}'.format(self.event_id)
 
 
 class Product(LuxuryProduct):
@@ -55,7 +51,6 @@ class Product(LuxuryProduct):
     seller = StringField()
 
     meta = {
-        "indexes": ["updated"],
         "db_alias": DB,
     }
 

@@ -7,7 +7,7 @@ crawlers.common.rpcserver
 Provides a meta programmed integrated RPC call for all callers
 
 """
-from settings import RPC_PORT, CRPC_ROOT, MONGODB_HOST
+from settings import CRAWLER_PORT, CRPC_ROOT, MONGODB_HOST
 from os import listdir
 from os.path import join, abspath, dirname, isdir
 from helpers import log
@@ -18,17 +18,17 @@ import urllib
 import time
 import zerorpc
 
-class RPCServer(object):
-    """ :py:class:crawlers.common.rpcserver.RPCServer
+class CrawlerServer(object):
+    """ :py:class:crawlers.common.crawlerserver.CrawlerServer
     
     gathers information in crawlers/crawlername/server.py 
     generates callback for remote procedure call
     
-    >>> zs = zerorpc.Server(RPCServer()) 
-    >>> zs.bind("tcp://0.0.0.0:{0}".format(RPC_PORT))
+    >>> zs = zerorpc.Server(CrawlerServer()) 
+    >>> zs.bind("tcp://0.0.0.0:{0}".format(CRAWLER_PORT))
     >>> zs.run()
 
-    To wrap certain crawler in RPCServer, we define the following rules for service:
+    To wrap certain crawler in CrawlerServer, we define the following rules for service:
 
     -  a service should  be inside unique  directory under ``crawlers``
     -  there should be a ``server.py`` inside that directory
@@ -36,7 +36,7 @@ class RPCServer(object):
     """
     def __init__(self):
         excludes = ['common', 'ecost', 'bhphotovideo', 'bestbuy', 'dickssport', 'overstock', 'cabelas']
-        self.logger = log.getlogger("crawlers.common.rpcserver.RPCServer")
+        self.logger = log.getlogger("crawlers.common.rpcserver.CrawlerServer")
         self.crawlers = {}
         for name in listdir(join(CRPC_ROOT, "crawlers")):
             path = join(CRPC_ROOT, "crawlers", name)
@@ -68,6 +68,6 @@ class RPCServer(object):
             raise ValueError("{crawler} does not seems to a valid crawler".format(**locals()))
     
 if __name__ == '__main__':
-    zs = zerorpc.Server(RPCServer()) 
-    zs.bind("tcp://0.0.0.0:{0}".format(RPC_PORT))
+    zs = zerorpc.Server(CrawlerServer()) 
+    zs.bind("tcp://0.0.0.0:{0}".format(CRAWLER_PORT))
     zs.run()

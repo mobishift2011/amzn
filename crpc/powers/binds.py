@@ -10,6 +10,8 @@ from datetime import datetime
 
 import gevent
 
+from settings import POWER_PEERS, POWER_PORT
+
 from helpers.log import getlogger
 from helpers.rpc import get_rpcs
 
@@ -41,7 +43,7 @@ def batch_image_crawl(sender, **kwargs):
 
     if site and doctype:
         logger.info('start to get rpc resource for %s.%s' % (site, doctype))
-        gevent.spawn(scan_images, site, doctype, get_rpcs(API_PEERS), 10) 
+        gevent.spawn(scan_images, site, doctype, get_rpcs(POWER_PEERS, POWER_PORT), 10) 
 
 #@pre_image_crawl.bind
 def stat_pre_general_update(sender, **kwargs):

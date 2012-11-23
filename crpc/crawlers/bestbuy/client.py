@@ -77,4 +77,4 @@ if __name__ == '__main__':
     ss = Server()
 #    crawl_listing(ss)
     crawl_product(ss)
-#    add = ['tcp://127.0.0.1:{0}'.format(RPC_PORT)]
+#    add = ['tcp://127.0.0.1:{0}'.format(CRAWLER_PORT)]

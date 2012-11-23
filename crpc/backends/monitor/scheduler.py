@@ -12,18 +12,18 @@ from crawlers.common.routine import new, update, new_category, new_listing, new_
 
 import zerorpc
 from datetime import datetime, timedelta
-from settings import CRAWLER_PEERS, RPC_PORT
+from settings import CRAWLER_PEERS, CRAWLER_PORT
 from throttletask import task_already_running, task_completed, task_broke_completed
 from functools import partial
 from .setting import EXPIRE_MINUTES
 
-from helpers.rpc.get_rpcs
+from helpers.rpc import get_rpcs
 
 def execute(site, method):
-    """ execute RPCServer function
+    """ execute CrawlerServer function
     """
     if not task_already_running(site, method):
-        gevent.spawn(globals()[method], site, get_rpcs(CRAWLER_PEERS), 10) \
+        gevent.spawn(globals()[method], site, get_rpcs(CRAWLER_PEERS, CRAWLER_PORT), 10) \
                 .rawlink(partial(task_completed, site=site, method=method))
 
 

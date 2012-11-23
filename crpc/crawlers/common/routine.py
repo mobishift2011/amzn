@@ -13,7 +13,7 @@ the following functions are supposed to be called from other module
 - update_product(site, rpc, concurrency)
 
 site:           name of the crawler's directory
-rpc:            an RPCServer instance
+rpc:            an CrawlerServer instance
 concurrency:    how much concurrency should be achieved
 
 """
@@ -286,9 +286,9 @@ def update(site, rpc, concurrency=3):
 
 
 if __name__ == '__main__':
-    from rpcserver import RPCServer
+    from rpcserver import CrawlerServer
     site = 'amazon'
-    rpc = RPCServer() 
+    rpc = CrawlerServer() 
     update_category(site,rpc)
     update_listing('amazon',rpc)
     #update_product('amazon', rpc)

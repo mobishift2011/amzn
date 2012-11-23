@@ -14,7 +14,7 @@ import uuid
 import random
 import traceback
 
-from settings import API_PEERS, RPC_PORT
+from settings import POWER_PEERS, POWER_PORT
 from configs import SITES
 from events import *
 
@@ -24,6 +24,7 @@ from crawlers.common.routine import get_site_module
 def call_rpc(rpc, method, *args, **kwargs):
     try:
         #rpc.process_images(args, kwargs)
+        print 'using rpc', rpc, method, args, kwargs
         getattr(rpc, method)(args, kwargs)
     except Exception:
         print traceback.format_exc()
@@ -107,7 +108,7 @@ def scan_images(site, doctype, rpc, concurrency=3):
 
 def crawl_images(site, model, key, rpc=None, *args, **kwargs):
     if rpc is None:
-        rpc = get_rpcs(API_PEERS)
+        rpc = get_rpcs(POWER_PEERS, POWER_PORT)
 
     method = 'process_image'
     
@@ -137,8 +138,9 @@ def crawl_images(site, model, key, rpc=None, *args, **kwargs):
             call_rpc(rpc, method, **newargs)
 
 if __name__ == '__main__':
-    from crawlers.common.rpcserver import RPCServer
-    rpc = RPCServer()
-    crawl_images('zulily', 'Event', 'parade-of-toys-112212')
-    #scan_images('zulily', 'event', get_rpcs(), 10)
+    from powers.powerserver import PowerServer
+    rpc = PowerServer()
+    print  POWER_PEERS, POWER_PORT
+    scan_images('zulily', 'event', get_rpcs(POWER_PEERS, POWER_PORT) , 3)
+    #crawl_images('zulily', 'Event', 'parade-of-toys-112212')
     #scan_images('zulily', 'product', get_rpcs(), 3)

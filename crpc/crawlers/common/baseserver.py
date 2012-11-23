@@ -119,7 +119,7 @@ class BaseServer(object):
 
 if __name__ == '__main__':
     s = BaserServer()
-    #zs = zerorpc.Server(RPCServer()) 
-    #zs.bind("tcp://0.0.0.0:{0}".format(RPC_PORT))
+    #zs = zerorpc.Server(CrawlerServer()) 
+    #zs.bind("tcp://0.0.0.0:{0}".format(CRAWLER_PORT))
     #zs.run()
 

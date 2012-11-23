@@ -11,7 +11,7 @@ Created on 2012-10-26
 
 """
 
-from settings import RPC_PORT
+from settings import CRAWLER_PORT
 from crawlers.common.events import *
 from crawlers.common.crawllog import *
 from crawlers.common.stash import *
@@ -201,6 +201,6 @@ def local_test():
 
 if __name__ == '__main__':
 #    server = zerorpc.Server(Server())
-#    server.bind("tcp://0.0.0.0:{0}".format(RPC_PORT))
+#    server.bind("tcp://0.0.0.0:{0}".format(CRAWLER_PORT))
 #    server.run()
     local_test()

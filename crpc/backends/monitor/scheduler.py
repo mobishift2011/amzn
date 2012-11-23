@@ -12,42 +12,18 @@ from crawlers.common.routine import new, update, new_category, new_listing, new_
 
 import zerorpc
 from datetime import datetime, timedelta
-from settings import PEERS, RPC_PORT
+from settings import CRAWLER_PEERS, CRAWLER_PORT
 from throttletask import task_already_running, task_completed, task_broke_completed
 from functools import partial
 from .setting import EXPIRE_MINUTES
 
-def get_rpcs():
-    """
-        On one hand, we build a zerorpc client object,
-            if the program keep going, the open file handler resource is still hold,
-            so we can not build a zerorpc client every time, and need to keep the zerorpc client objects.
-        On the other hand, we need to detect PEERS change in settings,
-            so we need to keep PEERS in the function, and compare old and new PEERS.
-    """
-    if not hasattr(get_rpcs, '_cached_peers'):
-        setattr(get_rpcs, '_cached_peers', [])
-
-    if get_rpcs._cached_peers != PEERS: 
-        setattr(get_rpcs, '_cached_peers', PEERS)
-
-        rpcs = []
-        for peer in PEERS:
-            host = peer[peer.find('@')+1:]
-            c = zerorpc.Client('tcp://{0}:{1}'.format(host, RPC_PORT), timeout=None)
-            if c:
-               rpcs.append(c)
-
-        setattr(get_rpcs, '_cached_rpcs', rpcs)
-        
-    return get_rpcs._cached_rpcs
-
+from helpers.rpc import get_rpcs
 
 def execute(site, method):
-    """ execute RPCServer function
+    """ execute CrawlerServer function
     """
     if not task_already_running(site, method):
-        gevent.spawn(globals()[method], site, get_rpcs(), 10) \
+        gevent.spawn(globals()[method], site, get_rpcs(CRAWLER_PEERS, CRAWLER_PORT), 10) \
                 .rawlink(partial(task_completed, site=site, method=method))
 
 

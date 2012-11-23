@@ -172,7 +172,7 @@ class Server(object):
 
 if __name__ == '__main__':
 #    server = zerorpc.Server(Server())
-#    server.bind("tcp://0.0.0.0:{0}".format(RPC_PORT))
+#    server.bind("tcp://0.0.0.0:{0}".format(CRAWLER_PORT))
 #    server.run()
 
     start = time.time()

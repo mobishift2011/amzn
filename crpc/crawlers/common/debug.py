@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # Author: bishop Liu <miracle (at) gmail.com>
 
-from rpcserver import RPCServer
+from rpcserver import CrawlerServer
 from routine import *
 import crawllog
 import sys
@@ -10,7 +10,7 @@ import time
 
 
 if __name__ == '__main__':
-    rpc = RPCServer()
+    rpc = CrawlerServer()
     site = sys.argv[1]
     fun = sys.argv[2]  or 1
     fun = int(fun)

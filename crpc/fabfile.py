@@ -11,14 +11,20 @@ fabric is used to:
 this module should not consider the following:
     1. monitor the code runs on remote machine
 """
-from settings import PEERS, ENV_NAME, USE_INDEX
+from settings import PEERS, CRAWLER_PEERS, POWER_PEERS, ENV_NAME, USE_INDEX
 from settings import CRPC_ROOT
+
 from fabric.api import *
+from fabric.contrib.files import exists
+
 import os
+import sys
+import time
+import multiprocessing
 
 @parallel
 @hosts(PEERS)
-def setup_env():
+def setup():
     """ Setup environment for crpc
     
     A ubuntu 12.04 or later distribution of linux is required
@@ -29,8 +35,10 @@ def setup_env():
     run("easy_install pip")
     run("pip install virtualenvwrapper")
     run("mkdir -p /opt/crpc")
-    run("wget -q -c http://chromedriver.googlecode.com/files/chromedriver_linux64_23.0.1240.0.zip -O tmp.zip && unzip tmp.zip && rm tmp.zip")
-    run("chmod a+x chromedriver && mv chromedriver /usr/bin/")
+    
+    if not exists('/usr/bin/chromedriver'):
+        run("wget -q -c http://chromedriver.googlecode.com/files/chromedriver_linux64_23.0.1240.0.zip -O tmp.zip && unzip tmp.zip && rm tmp.zip")
+        run("chmod a+x chromedriver && mv chromedriver /usr/bin/")
 
     with settings(warn_only=True):
         run("killall chromedriver")
@@ -44,92 +52,78 @@ def setup_env():
             with prefix("workon "+ENV_NAME):
                 run("pip install cython"+USE_INDEX)
                 run("pip install https://github.com/SiteSupport/gevent/tarball/master")
-                run("pip install zerorpc lxml requests pymongo mongoengine redis redisco pytz mock selenium blinker cssselect boto"+USE_INDEX) 
+                run("pip install zerorpc lxml requests pymongo mongoengine redis redisco pytz mock selenium blinker cssselect boto python-dateutil virtualenvwrapper"+USE_INDEX) 
 
-def deploy_rpc():
-    """ deploy rpc server code to host """
-    import multiprocessing
-    tasks = []
-    for host_string in PEERS:
-        t = multiprocessing.Process(target=_deploy_rpc, args=(host_string,))
-        tasks.append(t)
-        t.start()
-
-    for t in tasks:
-        t.join()
-
-def restart_rpc():
-    import multiprocessing
-    tasks = []
-    for host_string in PEERS:
-        t = multiprocessing.Process(target=_restart_rpc, args=(host_string,))
-        tasks.append(t)
-        t.start()
-
-    for t in tasks:
-        t.join()
-
-def deploy_local():
-    """ copy files to local dir """
-    with settings(warn_only=True):
-        local('find {0} -name "*.pyc" -delete'.format(CRPC_ROOT))
-        local("rm -rf /opt/crpc")
-        local("mkdir -p /opt/crpc")
-        local("cp -r {0}/* /opt/crpc".format(CRPC_ROOT))
-
-def _deploy_rpc(host_string):
-    """ deploy rpc server code to host """
-    crawlers = os.listdir(os.path.join(CRPC_ROOT, "crawlers"))
-    crawlers = [ x for x in crawlers if os.path.isdir(os.path.join(CRPC_ROOT, "crawlers", x)) ]
-
+@parallel
+@hosts(PEERS)
+def deploy():
+    """ deploy crawler&api server code to remotes """
+    execute(stop)
     # copy files
-    with settings(host_string=host_string, warn_only=True):
+    with settings(warn_only=True):
         local('find {0} -name "*.pyc" -delete'.format(CRPC_ROOT))
         run("rm -rf /opt/crpc")
         run("mkdir -p /opt/crpc")
         put(CRPC_ROOT+"/*", "/opt/crpc/")
+    execute(restart)
 
-    _restart_rpc(host_string)
 
-def _restart_rpc(host_string):
-    # remove if already exists
-    with settings(host_string=host_string, warn_only=True):
-        run("killall -9 Xvfb")
+@parallel
+@hosts(PEERS)
+def stop():
+    """ stop all remote executions """
+    with settings(warn_only=True):
+        run("killall Xvfb")
         run("killall chromedriver")
-        run("kill -9 `pgrep -f rpcserver`")
-        run("pkill -9 python")
-        run("killall chromium-browse")
+        run("killall chromium-browser")
+        run("kill -9 `pgrep -f rpcserver.py`")
+        run("kill -9 `pgrep -f crawlerserver.py`")
+        run("kill -9 `pgrep -f apiserver.py`")
+        run("kill -9 `pgrep -f powerserver.py`")
         run("rm /tmp/*.sock")
-        run("sleep 3")
 
-    # dtach rpc @ /tmp/rpc.sock
-    with settings(host_string=host_string):
-        with cd("/opt/crpc/crawlers/common"):
-            with prefix("source /usr/local/bin/virtualenvwrapper.sh"):
-                with prefix(". ../../env.sh TEST"):
-                    with prefix("ulimit -s 1024"):
-                        with prefix("ulimit -n 4096"):
-                            _runbg("Xvfb :99 -screen 0 1024x768x8 -ac +extension GLX +render -noreset", sockname="graphicXvfb")
-                            with prefix("export DISPLAY=:99"):
-                                _runbg("python rpcserver.py", sockname="crawlercommon")
+@parallel 
+def start():
+    """ start remote executions """
+    execute(_start_crawler)
+    execute(_start_api)
+
+def restart():
+    """ stop & start """
+    execute(stop)
+    sys.stdout.write('sleeping for 3 seconds.')
+    sys.stdout.flush()
+    for _ in range(3):
+        time.sleep(1)
+        sys.stdout.write('.')
+        sys.stdout.flush()
+    sys.stdout.write('\n\n\n')
+    sys.stdout.flush()
+    execute(start)
+
+@hosts(CRAWLER_PEERS)
+def _start_crawler():
+    _runbg("Xvfb :99 -screen 0 1024x768x8 -ac +extension GLX +render -noreset", sockname="graphicXvfb")
+    with prefix("source /usr/local/bin/virtualenvwrapper.sh"):
+        with prefix("ulimit -s 1024"):
+            with prefix("ulimit -n 4096"):
+                with cd("/opt/crpc"):
+                    with prefix("source ./env.sh {0}".format(os.environ.get('ENV',''))):
+                        with prefix("export DISPLAY=:99"):
+                            _runbg("python crawlers/common/crawlerserver.py", sockname="crawlerserver")
+
+@hosts(POWER_PEERS)
+def _start_api():
+    with prefix("source /usr/local/bin/virtualenvwrapper.sh"):
+        with prefix("ulimit -s 1024"):
+            with prefix("ulimit -n 4096"):
+                with cd("/opt/crpc"):
+                    with prefix("source ./env.sh {0}".format(os.environ.get('ENV',''))):
+                        _runbg("python powers/powerserver.py", sockname="powerserver")
 
 def _runbg(cmd, sockname="dtach"):
     """ A helper function to run command in background """
     return run('dtach -n /tmp/{0}.sock {1}'.format(sockname, cmd))
-
-
-#def deploy_monitor():
-#    deploy_root = '/home/deploy/projects/amzn/crpc'
-#    with settings(warn_only=True):
-#        local("kill -9 `pgrep -f run.py`")
-#        local("kill -9 `pgrep -f main.py`")
-#    _deploy_monitor_run(deploy_root)
-#
-#def _deploy_monitor_run(deploy_root):
-#    with lcd(deploy_root):
-#        with prefix(". env.sh TEST"):
-#            local("ulimit -n 4096 && dtach -n /tmp/monitormain.sock python backends/webui/main.py")
-
 
 if __name__ == "__main__":
     import resource

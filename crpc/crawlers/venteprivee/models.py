@@ -14,7 +14,7 @@ from crawlers.common.models import BaseEvent, LuxuryProduct
 import requests
 
 from mongoengine import *
-from settings import MONGODB_HOST, RPC_PORT
+from settings import MONGODB_HOST, CRAWLER_PORT
 DB = 'venteprivee'
 connect(db=DB, alias=DB, host=MONGODB_HOST)
 

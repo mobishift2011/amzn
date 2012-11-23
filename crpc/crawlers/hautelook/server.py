@@ -113,7 +113,11 @@ class Server(object):
         :param url: event url with event_id 
         """
         resp = request.get(url)
-        data = json.loads(resp.text)
+        try:
+            data = json.loads(resp.text)
+        except ValueError:
+            resp = request.get(url)
+            data = json.loads(resp.text)
         if data.keys()[0] != 'availabilities':
             resp = request.get(url)
             data = json.loads(resp.text)
@@ -163,12 +167,15 @@ class Server(object):
         :param url: product url, with product id
         """
         resp = request.get(url)
-        if resp.text == '':
+        try:
+            data = json.loads(resp.text)['data']
+        except ValueError:
             resp = request.get(url)
-            if resp.text == '':
+            try:
+                data = json.loads(resp.text)['data']
+            except ValueError:
                 common_failed.send(sender=ctx, key='get product twice, url has nothing', url=url, reason='url has nothing')
                 return
-        data = json.loads(resp.text)['data']
         product = Product.objects(key=url.split('/')[-1]).first()
         is_new = False
         if not product:

@@ -84,6 +84,7 @@ def stat_save(sender, **kwargs):
     lock_stat_save(sender, is_new, is_updated)
 
 
+@common_failed.bind
 def stat_failed(sender, **kwargs):
     logger.error('{0} -> {1}'.format(sender,kwargs.items()))
     key  = kwargs.get('key', '')

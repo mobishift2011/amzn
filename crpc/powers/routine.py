@@ -14,11 +14,11 @@ import uuid
 import random
 import traceback
 
-from settings import PEERS, RPC_PORT
+from settings import API_PEERS, RPC_PORT
 from configs import SITES
 from events import *
 
-from backends.monitor.scheduler import get_rpcs
+from helpers.rpc import get_rpcs
 from crawlers.common.routine import get_site_module
 
 def call_rpc(rpc, method, *args, **kwargs):
@@ -107,7 +107,7 @@ def scan_images(site, doctype, rpc, concurrency=3):
 
 def crawl_images(site, model, key, rpc=None, *args, **kwargs):
     if rpc is None:
-        rpc = get_rpcs()
+        rpc = get_rpcs(API_PEERS)
 
     method = 'process_image'
     

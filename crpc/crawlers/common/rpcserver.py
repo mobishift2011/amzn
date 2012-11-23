@@ -12,8 +12,6 @@ from os import listdir
 from os.path import join, abspath, dirname, isdir
 from helpers import log
         
-from powers.server import crawl_images
-
 import lxml.html
 import requests
 import urllib
@@ -69,9 +67,6 @@ class RPCServer(object):
         else:
             raise ValueError("{crawler} does not seems to a valid crawler".format(**locals()))
     
-    def process_image(self, args=(), kwargs={}):
-        return crawl_images(*args, **kwargs)
-
 if __name__ == '__main__':
     zs = zerorpc.Server(RPCServer()) 
     zs.bind("tcp://0.0.0.0:{0}".format(RPC_PORT))

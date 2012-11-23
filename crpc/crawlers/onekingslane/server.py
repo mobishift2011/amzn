@@ -136,20 +136,16 @@ class Server(object):
             l = node.cssselect('a[href]')[0].get('href')
             link = l if l.startswith('http') else self.siteurl + l
             event_id = self.extract_eventid.match(link).group(1)
+            img = node.cssselect('div.eventStatus > a.trackEventPosition > img')[0].get('src')
+            image = self.extract_large_img.match(img).group(1) + '$fullzoom$'
 
             event, is_new = Event.objects.get_or_create(event_id=event_id)
             if is_new:
                 event.sale_title = title
                 event.short_desc = short_desc
-                img = node.cssselect('div.eventStatus > a.trackEventPosition > img')[0].get('src')
-                image = self.extract_large_img.match(img).group(1) + '$fullzoom$'
-                event.image_urls = [image]
                 event.urgent = True
                 event.combine_url = 'https://www.onekingslane.com/sales/{0}'.format(event_id)
-#                event.is_leaf = True
-#            else:
-#                if not event.is_leaf: # upcoming events
-#                    event.urgent = True
+            if image not in event.image_urls: event.image_urls.append(image)
             event.update_time = datetime.utcnow()
             event.save()
             common_saved.send(sender=ctx, key=event_id, url=link, is_new=is_new, is_updated=False)
@@ -173,7 +169,6 @@ class Server(object):
                 event_id = self.extract_eventid.match(link).group(1)
                 event, is_new = Event.objects.get_or_create(event_id=event_id)
                 if is_new:
-                    event.events_begin = date_begin
                     img = market.cssselect('h4 > a > img')[0].get('src') + '?$fullzoom$'
                     event.image_urls = [img]
                     event.sale_title = market.cssselect('h4 > a')[0].text_content()
@@ -185,6 +180,7 @@ class Server(object):
                     event.urgent = True
                     event.combine_url = 'https://www.onekingslane.com/sales/{0}'.format(event_id)
                 
+                event.events_begin = date_begin
                 event.update_time = datetime.utcnow()
                 event.save()
                 common_saved.send(sender=ctx, key=event_id, url=link, is_new=is_new, is_updated=False)
@@ -209,15 +205,18 @@ class Server(object):
             link = node.get('href')
             dept = node.text_content()
             if not dept: dept = link.split('/')[-1]
+            category_key = re.compile(r'.*/vintage-market-finds/(.*)').match(link).group(1)
 
-            event_id = re.compile(r'.*/vintage-market-finds/(.*)').match(link).group(1)
-            event, is_new = Event.objects.get_or_create(event_id=event_id)
-            event.combine_url = 'https://www.onekingslane.com/vintage-market-finds/{0}'.format(event_id)
-            event.dept = [dept]
-#            event.is_leaf = True
-            event.update_time = datetime.utcnow()
-            event.save()
-            common_saved.send(sender=ctx, key=event_id, url=link, is_new=is_new, is_updated=False)
+            is_new, is_updated = False, False
+            category = Category.objects(key=category_key).first()
+            if not category:
+                category = Category(key=category_key)
+                category.is_leaf = True
+                is_new = True
+            category.combine_url = 'https://www.onekingslane.com/vintage-market-finds/{0}'.format(category_key)
+            category.update_time = datetime.utcnow()
+            category.save()
+            common_saved.send(sender=ctx, key=category_key, url=link, is_new=is_new, is_updated=is_updated)
 
 
     def crawl_listing(self, url, ctx):
@@ -248,22 +247,27 @@ class Server(object):
         :param url: category listing page url
         :param tree: listing page url's lxml tree
         """
-        event_id = re.compile(r'.*/vintage-market-finds/(.*)').match(url).group(1)
+        category_key = re.compile(r'.*/vintage-market-finds/(.*)').match(url).group(1)
 
-        event, is_new = Event.objects.get_or_create(event_id=event_id)
-        if not event.sale_description:
-            event.sale_description = tree.cssselect('div#wrapper > div#okl-content > div#okl-vmf-category-carousel-hd > h3+p')[0].text_content()
+        is_new, is_updated = False, False
+        category = Category.objects(key=category_key).first()
+        if not category:
+            category = Category(key=category_key)
+            category.is_leaf = True
+            is_new = True
+
+        if not category.sale_description:
+            category.sale_description = tree.cssselect('div#wrapper > div#okl-content > div#okl-vmf-category-carousel-hd > h3+p')[0].text_content()
         items = tree.cssselect('div#wrapper > div#okl-content > div#okl-vmf-product-list > ul.products > li.trackVmfProduct')
-        event.num = len(items)
-        event.urgent = False
+        category.num = len(items)
 
         for item in items:
-            self.crawl_category_list_product(event_id, item, ctx)
+            self.crawl_category_list_product(category_key, item, ctx)
 
-        event.save()
-        common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=False, ready='Event')
+        category.save()
+        common_saved.send(sender=ctx, key=category_key, url=url, is_new=is_new, is_updated=False, ready='Event')
 
-    def crawl_category_list_product(self, event_id, item, ctx):
+    def crawl_category_list_product(self, category_key, item, ctx):
         """.. :py:method::
             from lxml node to get category listing page's product.
 
@@ -275,25 +279,26 @@ class Server(object):
         product, is_new = Product.objects.get_or_create(pk=product_id)
         is_updated = False
         if is_new:
-            product.event_id = [event_id]
+            product.category_key = [category_key]
             product.image_urls = [item.cssselect('a[href] > img')[0].get('src').replace('medium', 'fullzoom')]
             product.short_desc = item.cssselect('h6')[0].text_content()
             product.title = item.cssselect('h5 > a')[0].text_content()
             product.listprice = item.cssselect('ul > li.retail')[0].text_content()
             product.price = item.cssselect('ul > li:nth-of-type(2)')[0].text_content().replace(',','')
             if item.cssselect('em.sold'): product.soldout = True
+            product.event_type = False
             product.updated = False
             product.combine_url = 'https://www.onekingslane.com/vintage-market-finds/product/{0}'.format(product_id)
         else:
-            if event_id not in product.event_id:
-                product.event_id.append(event_id)
+            if category_key not in product.category_key:
+                product.category_key.append(category_key)
             if product.soldout != True:
                 if item.cssselect('em.sold'):
                     product.soldout = True
                     is_updated = True
         product.list_update_time = datetime.utcnow()
         product.save()
-        common_saved.send(sender=ctx, key=product_id, url=self.siteurl + '/vintage-market-finds/' + event_id, is_new=is_new, is_updated=is_updated)
+        common_saved.send(sender=ctx, key=product_id, url=self.siteurl + '/vintage-market-finds/' + category_key, is_new=is_new, is_updated=is_updated)
 
 
     def crawl_sale_list(self, url, tree, ctx):
@@ -419,7 +424,8 @@ class Server(object):
         product.list_info = list_info if isinstance(list_info, list) else [list_info]
         product.returned = node.cssselect('div#productDetails > dl:nth-of-type(2)')[0].text_content()
         end_date = node.cssselect('div#productDetails > p.endDate')[0].text.split('until')[-1].strip() # '11/10 at 11am EST'
-        product.products_end = self.et_time_convert(end_date.rsplit(' ', 1)[0], '%m/%d at %I%p%Y')
+        end_date_str, time_zone = end_date.rsplit(' ', 1)
+        product.products_end = time_convert(end_date_str, '%m/%d at %I%p%Y', time_zone)
         if product.updated == False:
             product.updated = True
             ready = 'Product'
@@ -428,17 +434,6 @@ class Server(object):
         product.save()
         common_saved.send(sender=ctx, key=product_id, url=url, is_new=is_new, is_updated=not is_new, ready=ready)
 
-    def et_time_convert(self, time_str, time_format):
-        """.. :py:method::
-
-        :param time_str: u'SAT OCT 20 9 AM '
-        :param time_format: '%a %b %d %I %p %Y'
-        :rtype: datetime type utc time
-        """
-        pt = pytz.timezone('US/Eastern')
-        tinfo = time_str + str(pt.normalize(datetime.now(tz=pt)).year)
-        endtime = pt.localize(datetime.strptime(tinfo, time_format))
-        return endtime.astimezone(pytz.utc)
 
     def crawl_product_sales(self, url, cont, tree, ctx):
         """.. :py:method::

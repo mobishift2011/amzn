@@ -45,3 +45,4 @@ def common_failed_print(sender, **kwargs):
 @post_general_update.bind
 def post_hook_print(sender, **kwargs):
     logger.error('<{0}> -- {1}'.format(sender, kwargs.items()))
+

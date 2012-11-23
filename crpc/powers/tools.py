@@ -64,7 +64,7 @@ class ImageTool:
             ret = self.upload2s3(image_content, os.path.join(site, image_name)) # post image file to S3, and get back the url.
         except:
             print 's3 upload failed! %s' %image_name
-        return [r for r in ret if r]
+        return ret
     
     def thumnail(self):
         pass

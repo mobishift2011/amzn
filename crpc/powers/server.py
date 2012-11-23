@@ -29,5 +29,6 @@ if __name__ == '__main__':
     site='gilt'
     ctx = site+event.event_id
     doctype = 'event'
+    print 'crawling event_id: %s' % event.event_id
     crawl_images(site, image_urls, ctx, doctype, event_id=event.event_id)
     

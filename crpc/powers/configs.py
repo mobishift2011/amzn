@@ -22,4 +22,5 @@ SITES = (
     'onekingslane',
     'ruelala',
     'zulily',
+    'venteprivee'
 )

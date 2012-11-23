@@ -33,13 +33,14 @@ def process_image(sender, **kwargs):
 
 @ready_for_batch_image_crawling.bind
 def batch_image_crawl(sender, **kwargs):
-    logger.warning("BLAAAAAAAAAAAAAAAAAHHHHHHHHHHHHHH")
+    logger.warning("{0} finish is listened, start to ready for batch {1} image crawl".format(sender, kwargs.get('doctype')))
     site = kwargs.get('site')
     doctype = kwargs.get('doctype')
-    
-    if site and doctype:
-        logger.info('start to get rpc resource for %s.%s' % (site, doctype))
-        gevent.spawn(scan_images, site, doctype, get_rpcs(), 10) #.rawlink(partial(task_completed, site=site, method=method))
+
+batch_image_crawl()
+#    if site and doctype:
+#        logger.info('start to get rpc resource for %s.%s' % (site, doctype))
+#        gevent.spawn(scan_images, site, doctype, get_rpcs(), 10) #.rawlink(partial(task_completed, site=site, method=method))
 
 #@pre_image_crawl.bind
 def stat_pre_general_update(sender, **kwargs):

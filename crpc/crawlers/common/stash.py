@@ -14,6 +14,8 @@ import pytz
 from datetime import datetime
 from gevent.coros import Semaphore
 
+__lock = Semaphore()
+
 login_email = 'huanzhu@favbuy.com'
 login_passwd = '4110050209'
 
@@ -32,6 +34,21 @@ def progress(msg='.'):
     import sys 
     sys.stdout.write('.')
     sys.stdout.flush()
+
+
+def singleton(cls):
+    """.. :py:method::
+        decorator for a singleton class
+        add a lock the keep the singleton is co-routine safe
+    """
+    instances = {}
+    def get_instance(*args, **kwargs):
+        with __lock:
+            if cls not in instances:
+                instances[cls] = cls(*args, **kwargs)
+        return instances[cls]
+    return get_instance
+
 
 def fetch_page(url):
     try:

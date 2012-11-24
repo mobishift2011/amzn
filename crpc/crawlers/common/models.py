@@ -44,7 +44,7 @@ class BaseCategory(Document, BaseDocumentSkeleton):
     pagesize    =   IntField()
 
     meta        =   {
-#        "allow_inheritance": True,
+        "allow_inheritance": True,
         "collection": "category",
         "indexes":  ["is_leaf"],
     }
@@ -76,7 +76,7 @@ class BaseEvent(Document, BaseDocumentSkeleton):
     urgent              = BooleanField(default=True)
     
     meta = {
-#        "allow_inheritance": True,
+        "allow_inheritance": True,
         "collection": "event",
         "indexes": ["urgent", "events_begin", "events_end", "soldout", "event_id"],
     }

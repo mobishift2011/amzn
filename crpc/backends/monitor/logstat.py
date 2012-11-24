@@ -90,14 +90,25 @@ def stat_failed(sender, **kwargs):
     key  = kwargs.get('key', '')
     url  = kwargs.get('url', '')
     reason = repr(kwargs.get('reason', 'undefined'))
+    site, method, dummy = sender.split('.')
 
     try:
-        site, method, dummy = sender.split('.')
-        t = get_or_create_task(sender)
-        t.update(push__fails=fail(site, method, key, url, reason), inc__num_fails=1)
+        Task.objects(ctx=sender).update(set__site=site,
+                                        set__method=method,
+                                        set__status=Task.RUNNING,
+                                        set__updated_at=datetime.utcnow(),
+                                        push__fails=fail(site, method, key, url, reason),
+                                        inc__num_fails=1,
+                                        upsert=True)
     except Exception as e:
         logger.exception(e.message)
-        t.update(push__fails=fail(site, method, key, url, traceback.format_exc()), inc__num_fails=1)
+        Task.objects(ctx=sender).update(set__site=site,
+                                        set__method=method,
+                                        set__status=Task.RUNNING,
+                                        set__updated_at=datetime.utcnow(),
+                                        push__fails=fail(site, method, key, url, traceback.format_exc()),
+                                        inc__num_fails=1,
+                                        upsert=True)
 
 if __name__ == '__main__':
     print 'logstat'

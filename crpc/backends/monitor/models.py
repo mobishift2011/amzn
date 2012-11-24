@@ -108,7 +108,7 @@ class Task(Document):
         return {101:'READY',102:'RUNNING',103:'PAUSED',104:'FAILED',105:'FINISHED'}.get(st,'UNDEFINED')
 
     # timing
-    started_at      =   DateTimeField()
+    started_at      =   DateTimeField(default=datetime.utcnow())
     updated_at      =   DateTimeField(default=datetime.utcnow())
     ended_at        =   DateTimeField()
     status          =   IntField() # READY, RUNNING, PAUSED, FAILED, FINISHED

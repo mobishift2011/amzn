@@ -14,32 +14,7 @@ import requests
 import urllib
 from selenium import webdriver
 import time
-#import zerorpc
-
-locked = {}
-def exclusive_lock(name):
-    """.. :py:method::
-    A common lock for selenium or other crawlers when crawling category.
-    
-    @exclusive_lock(self.__class__.__name__)
-    def crawl_category(self):
-        pass
-
-    @exclusive_lock('myhabit')
-    def crawl_product(self):
-        pass
-
-    """
-    if name not in locked:
-        locked[name] = Semaphore()
-
-    def safe_lock(func, *arg, **kwargs):
-        def wrapper(*arg, **kwargs):
-            with locked[name]:
-                ret = func(*arg,**kwargs)
-                return ret
-        return wrapper
-    return safe_lock
+from crawlers.common.stash import *
 
 
 class BaseServer(object):
@@ -93,9 +68,6 @@ class BaseServer(object):
         else:
             raise HttpError(status_code,url)
 
-    def login(self, email=None, passwd=None):
-        pass
-    
     @exclusive_lock(siteurl)
     def crawl_category(self,*args,**kwargs):
         """.. :py:method::
@@ -119,6 +91,7 @@ class BaseServer(object):
 
 if __name__ == '__main__':
     s = BaserServer()
+    #import zerorpc
     #zs = zerorpc.Server(CrawlerServer()) 
     #zs.bind("tcp://0.0.0.0:{0}".format(CRAWLER_PORT))
     #zs.run()

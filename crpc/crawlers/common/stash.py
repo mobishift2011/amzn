@@ -58,6 +58,7 @@ def fetch_page(url):
         return
 
     if ret.ok: return ret.content
+    else: return ret.status_code
 
 def login_page(url, data):
     """

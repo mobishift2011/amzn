@@ -13,8 +13,6 @@ from crawlers.common.baseserver import BaseServer
 
 from selenium.common.exceptions import *
 from selenium import webdriver
-from crawlers.common.events import category_saved, category_failed, category_deleted
-from crawlers.common.events import product_saved, product_failed, product_deleted
 
 from models import *
 from models import Event as Category

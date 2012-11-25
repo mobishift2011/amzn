@@ -21,6 +21,11 @@ class Category(BaseCategory):
         "db_alias": DB, 
     }
 
+    def url(self):
+        if self.key == '#':
+            return 'http://nomorerack.com'
+        return 'http://nomorerack.com/daily_deals/category/{0}'.format(self.key)
+
 
 class Event(BaseEvent):
 
@@ -32,12 +37,10 @@ class Event(BaseEvent):
         return 'http://nomorerack.com/events/view/{0}'.format(self.event_id)
 
 class Product(LuxuryProduct):
-    event_id = StringField()
-    listprice = StringField()
     color = StringField()
 
     def url(self):
-        return 'http://nomorerack.com/daily_deals/view/{0}-product'.format(self.key)
+        return 'http://nomorerack.com/daily_deals/view/{0}'.format(self.key)
 
     meta = { 
         "db_alias": DB, 

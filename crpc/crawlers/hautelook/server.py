@@ -27,8 +27,9 @@ headers = {
     'Connection': 'keep-alive',
     'Content-encoding': 'gzip,deflate',
     'Content-type': 'application/json',
+    'Cookie': 'optimizelyEndUserId=oeu1351564948213r0.9653669202234596; __qca=P0-1416793214-1351564948681; gaCamp[member_id]=10518956; gaCamp[sid]=100; __cmbU=ABJeb1_oimQsnSgmYYnlsRbGiezTpUBCqvvAcIYXER0O_FQtbdIuS6-xxZaNg5SIUXZza2QPCLxmq-8ahyoGiOcjXi6aMX1e8w; PHPSESSID=dqumpcbp1ecomqvuihjpc04k70; hlmt=509b250e03548; hlma=06011f0ce4dbf20a82467b7ded5ecd9d; HLMEMBER=1; __cmbDomTm=0; __cmbTpvTm=214; __ar_v4=NZUMLDQBFJBCDJO5RYMUQ4%3A20121029%3A13%7C5KKAPNHCHZEFVNM564VIHM%3A20121029%3A13%7C5OCYHSCF4FFDXA7XMFQMH3%3A20121029%3A13; __cmbCk={"eid":"ABJeb1_ux74jBxfmSOAOnqYW4gmznrjOUWWtohdYJaEQGwDIWA8nefT_yk2V5_z_c6DIA5B4i6XFlY8E6_wCyqA6lJ9OM3UPHA","slt":1353829903362,"cbt":10507,"tp":18427}; optimizelySegments=%7B%7D; optimizelyBuckets=%7B%7D; s_sess=%20s_cc%3Dtrue%3B%20s_sq%3D%3B; __utma=116900255.1463618077.1351564949.1353664398.1353829597.32; __utmb=116900255.10.8.1353829910679; __utmc=116900255; __utmz=116900255.1351564949.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); __utmv=116900255.|5=User%20ID=10518956=1; optimizelyPendingLogEvents=%5B%5D; s_vi=[CS]v1|28479F4A851D3270-4000010160002C9E[CE]; hauteLookMember=%7B%22member_id%22%3A10518956%2C%22first_name%22%3A%22stephanie%22%2C%22last_name%22%3A%22zhu%22%2C%22invitation_code%22%3A%22szhu097%22%2C%22role%22%3A1%2C%22gender%22%3A%22F%22%2C%22email%22%3A%22huanzhu@favbuy.com%22%2C%22msa%22%3Anull%2C%22credits%22%3A%220.00%22%2C%22cart_count%22%3A0%2C%22category_order%22%3A%5B%5D%2C%22join_date%22%3A%222012-10-12T01%3A05%3A34-07%3A00%22%2C%22meta%22%3A%7B%22promos%22%3A%5B%5D%7D%2C%22timezone%22%3A%22PST%22%2C%22cart%22%3A0%7D; og=F; cartStamp=nPLuljW; stop_mobi=yes',
     'Host': 'www.hautelook.com',
-    'Referer': 'http://www.hautelook.com/events',
+    'Referer': 'http://www.hautelook.com',
     'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.4 (KHTML, like Gecko) Ubuntu/12.10 Chromium/22.0.1229.94 Chrome/22.0.1229.94 Safari/537.4',
     'X-Requested-With': 'XMLHttpRequest',
 }

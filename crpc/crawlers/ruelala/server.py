@@ -383,10 +383,10 @@ class Server(object):
                 product = Product(key=product_id)
                 product.event_id = [event_id]
                 product.title = title
+                product.updated = False
                 product.combine_url = link
                 product.listprice = strike_price
                 product.price = price
-                product.updated = False
                 product.soldout = True if soldout else False
             else:
                 if product.price != price or product.listprice != strike_price:

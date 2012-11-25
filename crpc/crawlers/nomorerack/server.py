@@ -14,102 +14,43 @@ from models import *
 from crawlers.common.events import *
 from crawlers.common.stash import *
 
+def fetch_page(url):
+    try:
+        ret = request.get(url)
+    except:
+        # page not exist or timeout
+        return
+
+    # nomorerack will redirect to homepage automatically when this product is not exists.
+    if ret.url = u'http://nomorerack.com/' and ret.url[:-1] != url:
+        return 0
+
+    if ret.ok: return ret.content
+    else: return ret.status_code
+
 class Server(object):
     """.. :py:class:: Server
         This is zeroRPC server class for ec2 instance to crawl pages.
     """
     def __init__(self):
-        self.siteurl = 'http://www.nomorerack.com'
-
+        self.siteurl = 'http://nomorerack.com'
+        self.east_tz = pytz.timezone('US/Eastern')
 
     def crawl_category(self, ctx=''):
         """.. :py:method::
-            From top depts, get all the events
+            1. Get exclusive event
+            2. From top depts, get all the category
         """
-        ###########################
-        # section 2, parse deal products
-        ###########################
-        categorys = ['women','men','home','electronics','lifestyle']
-        for name in categorys:
-            self._crawl_category_product(name,ctx)
+        self.get_exclusive_events(ctx)
+        self.get_deals_categroy(ctx)
 
-        # the kids section is diffirent from others 
-        self.crawl_listing('http://nomorerack.com/daily_deals/category/kids', ctx)
-
-        ###########################
-        # section 1, parse events
-        ###########################
-        self.bopen(self.siteurl)
-        for e in self.browser.find_elements_by_css_selector('div.event'):
-            title = e.text
-            if title == 'VIEW EVENT':
-                continue
-            title = e.get_attribute('title')
-
-            a =  e.find_element_by_css_selector('div.image a.image_tag')
-            expires_on = e.find_element_by_css_selector('div.countdown').get_attribute('expires_on')
-            date_obj = datetime.datetime.fromtimestamp(int(expires_on[:10]))
-            href = a.get_attribute('href')
-            url = self.format_url(href)
-            event_id = self.url2event_id(url) # return a string
-            img_url = 'http://nmr.allcdn.net/images/events/all/banners/event-%s-medium.jpg' %event_id
-
-            event ,is_new = Event.objects.get_or_create(event_id=event_id)
-            is_updated = False
-            if is_new:
-                event.urgent = True
-#            elif event.sale_title == title:
-#                is_updated = False
-#            else:
-#                is_updated = True
-
-            event.sale_title = title
-            event.image_urls = [img_url]
-            event.events_end = date_obj
-            event.update_time = datetime.datetime.utcnow()
-#            event.is_leaf = True
-
-            event.save()
-            common_saved.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=is_updated)
-
-
-    def get_deals_categroy(self, ctx=''):
-        """.. :py:method::
-            get deals' categories, can spout them to crawl listing later
-        """
-        # homepage's deals, we can calculate products_begin time
-        is_new, is_updated = False, False
-        categroy = Category.objects(key='#').first()
-        if not category:
-            is_new = True
-            category = Category(key='#')
-            category.is_leaf = True
-            category.combine_url = self.siteurl
-        category.update_time = datetime.utcnow()
-        category.save()
-        common_saved.send(sender=ctx, key='#', url=self.siteurl, is_new=is_new, is_updated=is_updated)
-
-        # categories' deals, with no products_begin time
-        categories = ['women', 'men', 'home', 'electronics', 'kids', 'lifestyle']
-        for categroy in categories:
-            is_new, is_updated = False, False
-            categroy = Category.objects(key=category).first()
-            if not category:
-                is_new = True
-                category = Category(key=category)
-                category.is_leaf = True
-                category.combine_url = 'http://nomorerack.com/daily_deals/category/{0}'.format(category)
-            category.update_time = datetime.utcnow()
-            category.save()
-            common_saved.send(sender=ctx, key=category, url=category.combine_url, is_new=is_new, is_updated=is_updated)
-
-    def exclusive_events(self, ctx=''):
+    def get_exclusive_events(self, ctx=''):
         """.. :py:method::
             homepage's events
         """
-        content = fetch_page(self.siteurl)
+        content = fetch_page(self.siteurl + '/#events')
         if isinstance(content, int) or content is None:
-            common_failed.send(sender=ctx, key='', url=self.siteurl, reason='download error or {0} return'.format(content))
+            common_failed.send(sender=ctx, key='', url=self.siteurl, reason='download homepage error or {0} return'.format(content))
             return
         tree = lxml.html.fromstring(content)
         nodes = tree.cssselect('div#wrapper > div#content > div#front > div#primary > div[style] > div.events > div.event')
@@ -130,13 +71,45 @@ class Server(object):
                 event.sale_title = sale_title
                 if 'large' in img:
                     event.image_urls.append( img.replace('large', 'medium') )
+                    event.image_urls.append( img.replace('large', 'thumb') )
                 elif 'medium' in img:
                     event.image_urls.append( img.replace('medium', 'large') )
+                    event.image_urls.append( img.replace('medium', 'thumb') )
                 event.image_urls.append(img)
-            event.events_end = datetime.fromtimestamp(float(events_end[:10]))
+            event.events_end = datetime.utcfromtimestamp(float(events_end[:10]))
             event.update_time = datetime.utcnow()
             event.save()
             common_saved.send(sender=ctx, key=event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
+
+    def get_deals_categroy(self, ctx=''):
+        """.. :py:method::
+            get deals' categories, can spout them to crawl listing later
+        """
+        # homepage's deals, we can calculate products_begin time
+        is_new, is_updated = False, False
+        category = Category.objects(key='#').first()
+        if not category:
+            is_new = True
+            category = Category(key='#')
+            category.is_leaf = True
+            category.combine_url = self.siteurl
+        category.update_time = datetime.utcnow()
+        category.save()
+        common_saved.send(sender=ctx, key='#', url=self.siteurl, is_new=is_new, is_updated=is_updated)
+
+        # categories' deals, with no products_begin time
+        categories = ['women', 'men', 'home', 'electronics', 'kids', 'lifestyle']
+        for categroy_key in categories:
+            is_new, is_updated = False, False
+            category = Category.objects(key=category_key).first()
+            if not category:
+                is_new = True
+                category = Category(key=category_key)
+                category.is_leaf = True
+                category.combine_url = 'http://nomorerack.com/daily_deals/category/{0}'.format(category_key)
+            category.update_time = datetime.utcnow()
+            category.save()
+            common_saved.send(sender=ctx, key=category_key, url=category.combine_url, is_new=is_new, is_updated=is_updated)
 
 
 
@@ -211,7 +184,7 @@ class Server(object):
         return m[-1]
 
     def url2event_id(self,url):
-        # http://www.nomorerack.com/events/view/1018
+        # http://nomorerack.com/events/view/1018
         m = re.compile(r'^http://(.*)nomorerack.com/events/view/(\d+)').findall(url)[0]
         return m[-1]
 
@@ -224,44 +197,164 @@ class Server(object):
             urls.append(url)
         return urls
     
-    @exclusive_lock(DB)
-    def crawl_listing(self,url,ctx=''):
-#        print 'to open',url
-        self.bopen(url)
-        try:
-            main = self.browser.find_element_by_xpath('//div[@class="raw_grid deals events_page"]')
-        except NoSuchElementException:
-            main = self.browser.find_element_by_css_selector('div#content')
-        print 'main>>>',main
 
-        for item in main.find_elements_by_css_selector('div.deal'):
-            title = item.find_element_by_css_selector('p').text
-            price = item.find_element_by_css_selector('div.pricing ins').text
-            listprice = item.find_element_by_css_selector('div.pricing del').text
-            href = item.find_element_by_css_selector('div.image a').get_attribute('href')
-            item_url = self.format_url(href)
-            key = self.url2product_id(item_url)
-            product ,is_new = Product.objects.get_or_create(key=key)
-            if is_new:
-                is_updated = False
+    def crawl_listing(self, url, ctx=''):
+        """.. :py:method::
+            1. Get events listing page's products
+            2. Get deals from different categories
+        """
+        if 'events' in url:
+            self.get_events_listing(url, ctx)
+        else:
+            self.get_sales_listing(url, ctx)
+
+    def get_events_listing(self, url, ctx):
+        """.. :py:method::
+            Got all the product basic information from events listing
+        """
+        content = fetch_page(url)
+        if isinstance(content, int) or content is None:
+            common_failed.send(sender=ctx, key='', url=url, reason='download events listing error or {0} return'.format(content))
+            return
+        event_id = url.rsplit('/', 1)[-1]
+        tree = lxml.html.fromstring(content)
+        primary = tree.cssselect('div#wrapper > div#content > div#front > div#primary')
+        sale_description = primary.cssselect('div.events_page_heading > div.text > p.description')[0].text_content().strip()
+        nodes = primary.cssselect('div.raw_grid > div.deal')
+        for node in nodes:
+            product_id, img, title, price, listprice, scarcity = self.from_listing_get_info(node)
+            soldout = True if node.cssselect('div.image > div.sold_out') else False
+
+            is_new, is_updated = False, False
+            product = Product.objects(key=product_id).first()
+            if not product:
+                is_new = True
+                product = Product(key=product_id)
                 product.updated = False
+                product.combine_url = 'http://nomorerack.com/daily_deals/view/{0}'.format(product_id)
+                product.title = title
+                product.image_urls = [img]
+                product.price = price
+                product.listprice = listprice
+                product.scarcity = scarcity
+                product.soldout = soldout
             else:
-                if product.price != price or product.listprice != listprice:
+                if scarcity and product.scarcity != scarcity:
+                    product.scarcity = scarcity
+                    is_updated = True
+                if soldout and product.soldout != soldout:
+                    product.soldout = True
                     is_updated = True
 
-            product.price = price
-            product.listproce = listprice
-            product.title = title
+            if event_id not in product.event_id: product.event_id.append(event_id)
+            product.list_update_time = datetime.utcnow()
             product.save()
-            common_saved.send(sender=ctx, site=DB, key=key, is_new=is_new, is_updated=is_updated)
+            common_saved.send(sender=ctx, key=product.key, url=product.combine_url, is_new=is_new, is_updated=is_updated)
 
-        if url.split('/')[-1] != 'kids':
-            event_id = self.url2event_id(url)
-            event, is_new = Event.objects.get_or_create(event_id=event_id)
-            event.urgent = False
-            event.save()
+        # After this event's products have been saved into DB,
+        # send ready signal about this event to image processor
+        event = Event.objects(event_id=event_id).first()
+        if not event: event = Event(event_id=event_id)
+        if not event.sale_description: event.sale_description = sale_description
+        if event.urgent == True:
+            event.urgent=False,
+            ready = 'Event'
+        else: ready = None
+        event.update_time = datetime.utcnow()
+        event.save()
+        common_saved.send(sender=ctx, key=event_id, url=event.combine_url, is_new=False, is_updated=False, ready=ready)
 
-    @exclusive_lock(DB)
+
+    def get_sales_listing(self, url, ctx):
+        """.. :py:method::
+            Got all the product basic information from sales listing
+        """
+        if url == self.siteurl:
+            _get_today_sales_listing(url, ctx)
+        else:
+            _get_category_sales_listing(url, ctx)
+
+    def _get_today_sales_listing(self, url, ctx):
+        """.. :py:method::
+            Got all the product from today's sales listing, products_begin and products_end can be gotten
+        """
+        content = fetch_page(url)
+        if isinstance(content, int) or content is None:
+            common_failed.send(sender=ctx, key='', url=url, reason='download sales listing error or {0} return'.format(content))
+            return
+        tree = lxml.html.fromstring(content)
+        ends = tree.cssselect('div#wrapper > div#content > div#front > div.top > div.ribbon-center > p')[0].text_content()
+        ends = ends.split('until')[-1].strip().replace('st', '').replace('nd', '').replace('rd', '').replace('th', '')
+        time_str, time_zone = ends.rsplit(' ', 1)
+        products_end = time_convert(time_str, '%B %d %I:%M %p%Y', time_zone)
+        _eastnow = datetime.now(tz=self.east_tz)
+        east_today_begin_in_utc = self.east_tz.localize( datetime(_eastnow.year, _eastnow.month, _eastnow.day) ).astimezone(pytz.utc)
+
+        nodes = tree.cssselect('div#wrapper > div#content > div#front > div#primary > div.deals > div.deal')
+        for node in nodes:
+            product_id, img, title, price, listprice, scarcity = self.from_listing_get_info(node)
+            soldout = True if node.cssselect('div.info > h4.sold_out') else False
+
+            is_new, is_updated = False, False
+            product = Product.objects(key=product_id).first()
+            if not product:
+                is_new = True
+                product = Product(key=product_id)
+                product.updated = False
+                product.combine_url = 'http://nomorerack.com/daily_deals/view/{0}'.format(product_id)
+                product.event_type = False # different from events' product
+                product.title = title
+                product.image_urls = [img]
+                product.price = price
+                product.listprice = listprice
+                product.scarcity = scarcity
+                product.soldout = soldout
+            else:
+                if scarcity and product.scarcity != scarcity:
+                    product.scarcity = scarcity
+                    is_updated = True
+                if soldout and product.soldout != soldout:
+                    product.soldout = True
+                    is_updated = True
+
+            product.products_begin = east_today_begin_in_utc
+            product.products_end = products_end
+            product.list_update_time = datetime.utcnow()
+            product.save()
+            common_saved.send(sender=ctx, key=product.key, url=product.combine_url, is_new=is_new, is_updated=is_updated)
+
+    def _get_category_sales_listing(self, url, ctx)
+        """.. :py:method::
+            Got all the product from categories' sales listing
+        """
+        content = fetch_page(url)
+        if isinstance(content, int) or content is None:
+            common_failed.send(sender=ctx, key='', url=url, reason='download sales listing error or {0} return'.format(content))
+            return
+        product_key = url.rsplit('/', 1)[-1]
+        tree = lxml.html.fromstring(content)
+        nodes = tree.cssselect('div#wrapper > div#content > div.deals > div.deal')
+        for node in nodes:
+            node.cssselect('')
+
+
+    def from_listing_get_info(self, node):
+        """.. :py:method::
+            Both events listing page and deals listing have the same cssselect about one product,
+            so collect the same information and return
+        """
+        link = node.cssselect('div.image > a.image_tag')[0].get('href')
+        product_id = link.rsplit('/', 1)[-1]
+        img = node.cssselect('div.image > a.image_tag > img')[0].get('src')
+        title = node.cssselect('div.info > div.display > p')[0].text_content()
+        price = node.cssselect('div.info > div.display > div.pricing > ins')[0].text_content()
+        listprice = node.cssselect('div.info > div.display > div.pricing > del')
+        listprice = listprice[0].text_content() if listprice else ''
+        scarcity = node.cssselect('div.qty > span')
+        scarcity = scarcity[0].text_content() if scarcity else ''
+        return product_id, img, title, price, listprice, scarcity
+
+
     def crawl_product(self,url,ctx=''):
         """.. :py:method::
             Got all the product basic information and save into the database

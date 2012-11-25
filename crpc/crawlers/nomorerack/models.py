@@ -21,6 +21,11 @@ class Category(BaseCategory):
         "db_alias": DB, 
     }
 
+    def url(self):
+        if self.key == '#':
+            return 'http://nomorerack.com'
+        return 'http://nomorerack.com/daily_deals/category/{0}'.format(self.key)
+
 
 class Event(BaseEvent):
 

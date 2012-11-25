@@ -24,53 +24,11 @@ class Server(object):
 
     def crawl_category(self, ctx=''):
         """.. :py:method::
-            From top depts, get all the events
+            1. Get exclusive event
+            2. From top depts, get all the category
         """
-        ###########################
-        # section 2, parse deal products
-        ###########################
-        categorys = ['women','men','home','electronics','lifestyle']
-        for name in categorys:
-            self._crawl_category_product(name,ctx)
-
-        # the kids section is diffirent from others 
-        self.crawl_listing('http://nomorerack.com/daily_deals/category/kids', ctx)
-
-        ###########################
-        # section 1, parse events
-        ###########################
-        self.bopen(self.siteurl)
-        for e in self.browser.find_elements_by_css_selector('div.event'):
-            title = e.text
-            if title == 'VIEW EVENT':
-                continue
-            title = e.get_attribute('title')
-
-            a =  e.find_element_by_css_selector('div.image a.image_tag')
-            expires_on = e.find_element_by_css_selector('div.countdown').get_attribute('expires_on')
-            date_obj = datetime.datetime.fromtimestamp(int(expires_on[:10]))
-            href = a.get_attribute('href')
-            url = self.format_url(href)
-            event_id = self.url2event_id(url) # return a string
-            img_url = 'http://nmr.allcdn.net/images/events/all/banners/event-%s-medium.jpg' %event_id
-
-            event ,is_new = Event.objects.get_or_create(event_id=event_id)
-            is_updated = False
-            if is_new:
-                event.urgent = True
-#            elif event.sale_title == title:
-#                is_updated = False
-#            else:
-#                is_updated = True
-
-            event.sale_title = title
-            event.image_urls = [img_url]
-            event.events_end = date_obj
-            event.update_time = datetime.datetime.utcnow()
-#            event.is_leaf = True
-
-            event.save()
-            common_saved.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=is_updated)
+        self.exclusive_events(ctx)
+        self.get_deals_categroy(ctx)
 
 
     def exclusive_events(self, ctx=''):
@@ -103,7 +61,7 @@ class Server(object):
                 elif 'medium' in img:
                     event.image_urls.append( img.replace('medium', 'large') )
                 event.image_urls.append(img)
-            event.events_end = datetime.fromtimestamp(float(events_end[:10]))
+            event.events_end = datetime.utcfromtimestamp(float(events_end[:10]))
             event.update_time = datetime.utcnow()
             event.save()
             common_saved.send(sender=ctx, key=event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
@@ -224,9 +182,12 @@ class Server(object):
             urls.append(url)
         return urls
     
-    @exclusive_lock(DB)
-    def crawl_listing(self,url,ctx=''):
-#        print 'to open',url
+
+    def crawl_listing(self, url, ctx=''):
+        """.. :py:method::
+            1. Get events listing page's products
+            2. Get deals from different categories
+        """
         self.bopen(url)
         try:
             main = self.browser.find_element_by_xpath('//div[@class="raw_grid deals events_page"]')
@@ -261,7 +222,7 @@ class Server(object):
             event.urgent = False
             event.save()
 
-    @exclusive_lock(DB)
+
     def crawl_product(self,url,ctx=''):
         """.. :py:method::
             Got all the product basic information and save into the database

@@ -73,36 +73,6 @@ class Server(object):
             common_saved.send(sender=ctx, site=DB, key=event_id, is_new=is_new, is_updated=is_updated)
 
 
-    def get_deals_categroy(self, ctx=''):
-        """.. :py:method::
-            get deals' categories, can spout them to crawl listing later
-        """
-        # homepage's deals, we can calculate products_begin time
-        is_new, is_updated = False, False
-        categroy = Category.objects(key='#').first()
-        if not category:
-            is_new = True
-            category = Category(key='#')
-            category.is_leaf = True
-            category.combine_url = self.siteurl
-        category.update_time = datetime.utcnow()
-        category.save()
-        common_saved.send(sender=ctx, key='#', url=self.siteurl, is_new=is_new, is_updated=is_updated)
-
-        # categories' deals, with no products_begin time
-        categories = ['women', 'men', 'home', 'electronics', 'kids', 'lifestyle']
-        for categroy in categories:
-            is_new, is_updated = False, False
-            categroy = Category.objects(key=category).first()
-            if not category:
-                is_new = True
-                category = Category(key=category)
-                category.is_leaf = True
-                category.combine_url = 'http://nomorerack.com/daily_deals/category/{0}'.format(category)
-            category.update_time = datetime.utcnow()
-            category.save()
-            common_saved.send(sender=ctx, key=category, url=category.combine_url, is_new=is_new, is_updated=is_updated)
-
     def exclusive_events(self, ctx=''):
         """.. :py:method::
             homepage's events
@@ -137,6 +107,36 @@ class Server(object):
             event.update_time = datetime.utcnow()
             event.save()
             common_saved.send(sender=ctx, key=event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
+
+    def get_deals_categroy(self, ctx=''):
+        """.. :py:method::
+            get deals' categories, can spout them to crawl listing later
+        """
+        # homepage's deals, we can calculate products_begin time
+        is_new, is_updated = False, False
+        categroy = Category.objects(key='#').first()
+        if not category:
+            is_new = True
+            category = Category(key='#')
+            category.is_leaf = True
+            category.combine_url = self.siteurl
+        category.update_time = datetime.utcnow()
+        category.save()
+        common_saved.send(sender=ctx, key='#', url=self.siteurl, is_new=is_new, is_updated=is_updated)
+
+        # categories' deals, with no products_begin time
+        categories = ['women', 'men', 'home', 'electronics', 'kids', 'lifestyle']
+        for categroy in categories:
+            is_new, is_updated = False, False
+            categroy = Category.objects(key=category).first()
+            if not category:
+                is_new = True
+                category = Category(key=category)
+                category.is_leaf = True
+                category.combine_url = 'http://nomorerack.com/daily_deals/category/{0}'.format(category)
+            category.update_time = datetime.utcnow()
+            category.save()
+            common_saved.send(sender=ctx, key=category, url=category.combine_url, is_new=is_new, is_updated=is_updated)
 
 
 

@@ -220,7 +220,7 @@ class Server(object):
             if cats_path and cats_path not in product.cats: product.cats.append(cats_path)
             product.save()
             common_saved.send(sender=ctx, key=product.key, url=product.combine_url, is_new=is_new, is_updated=is_updated)
-        self._get_js_load_products(category_key)
+        self._get_js_load_products(category_key, ctx)
 
 
     def from_listing_get_info(self, node, soldout):
@@ -265,7 +265,7 @@ class Server(object):
         return product, is_new, is_updated
 
 
-    def _get_js_load_products(self, category_key):
+    def _get_js_load_products(self, category_key, ctx):
         """.. :py:method::
             In listing page of every category, they need js to load more products.
             12 products each times.
@@ -310,94 +310,37 @@ class Server(object):
                     reason='download product detail page error or {0} return'.format(content))
             return
         tree = lxml.html.fromstring(content)
-        nodes = tree.cssselect('div.deal')
+        node = tree.cssselect('div#wrapper > div#content > div#front > div#primary > div#products_view')[0]
+        summary = node.cssselect('div#right > p.description')
+        summary = summary[0].text_content() if summary else ''
+        image_urls = []
+        for img in node.cssselect('div#left > div.images > div.thumbs > img'):
+            image_urls.append( img.get('src') )
+            image_urls.append( img.get('src').replace('tn.', 'rg.') )
+            image_urls.append( img.get('src').replace('tn.', 'lg.') )
+        ends = tree.cssselect('div#wrapper > div#content > div#front > div.top > div.ribbon-center > p')[0].text_content()
+        ends = ends.split('until')[-1].strip().replace('st', '').replace('nd', '').replace('rd', '').replace('th', '')
+        time_str, time_zone = ends.rsplit(' ', 1)
+        products_end = time_convert(time_str, '%B %d %I:%M %p%Y', time_zone)
 
-
-            
-
-
-    def crawl_product(self, url, ctx=''):
-        """.. :py:method::
-            Got all the product information and save into the database
-        """
-        key = url.rsplit('/', 1)[-1]
-        key = self.url2product_id(url)
-        product,is_new = Product.objects.get_or_create(key=key)
-        self.browser.get(url)
-        try:
-            node = self.browser.find_element_by_css_selector('div#products_view.standard')
-        except NoSuchElementException:
-            return False
-
-        cat = node.find_element_by_css_selector('div.right h5').text
-        title = node.find_element_by_css_selector('div.right h2').text
-        summary = node.find_element_by_css_selector('p.description').text
-        thumbs = node.find_element_by_css_selector('div.thumbs')
-        image_count = len(thumbs.find_elements_by_css_selector('img'))
-        try:
-            image_url = thumbs.find_element_by_css_selector('img').get_attribute('src')
-        except NoSuchElementException:
-            image_urls = product.image_urls
-        else:
-            image_urls = self.make_image_urls(image_url,image_count)
-        attributes = node.find_elements_by_css_selector('div.select-cascade select')
-        sizes = []
-        colors = []
-        for attr in attributes:
-            ops = attr.find_elements_by_css_selector('option')
-            m  = ops[0].get_attribute('value')
-            if m == 'Select a size':
-                for op in  ops:
-                    size = op.get_attribute('value')
-                    sizes.append({'size':size})
-            elif m == 'Select a color':
-                for op in  ops:
-                    colors.append(op.text)
-
-        date_str = ''
-        try:
-            date_str = self.browser.find_element_by_css_selector('div.ribbon-center h4').text
-        except NoSuchElementException:
-            date_str = self.browser.find_element_by_css_selector('div.ribbon-center p').text
-        date_obj = self.format_date_str(date_str)
-        price = node.find_element_by_css_selector('div.standard h3 span').text
-        listprice = node.find_element_by_css_selector('div.standard p del').text
+        is_new, is_updated = False, False
+        product = Product.objects(key=product_id).first()
+        if not product:
+            is_new = True
+            product = Product(key=product_id)
         product.summary = summary
-        product.title = title
-        product.cats= [cat]
-        product.image_urls = image_urls
-        product.products_end = date_obj
-        product.price = price
-        product.listprice = listprice
-        product.pagesize    =   sizes
-        product.updated = True
+        for img in image_urls:
+            if img not in product.image_urls: product.image_urls.append(img)
+        product.products_end = products_end
+        product.full_update_time = datetime.utcnow()
 
-#        for i in locals().items():
-#            print 'i',i
+        if product.updated == False:
+            product.updated = True
+            ready = 'Product'
+        else: ready = None
         product.save()
-        common_saved.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
-        print 'product.cats',product.cats
-        return
+        common_saved.send(sender=ctx, key=product.key, url=url, is_new=is_new, is_updated=is_updated, ready=ready)
 
-    def format_date_str(self,date_str):
-        """ translate the string to datetime object """
-
-        # date_str = 'This deal is only live until November 2nd 11:59 AM EST'
-        #        or  'This event is only live until November 2nd 11:59 AM EST'
-        print 're.date str:',date_str
-        m = re.compile(r'This (.*)deal is only live until (.*)$').findall(date_str)
-        print 're.m',m
-        str = m[0][-1]
-        return dt_parser.parse(str)
-
-    def make_image_urls(self,url,count):
-        urls = []
-        m = re.compile(r'^http://nmr.allcdn.net/images/products/(\d+)-').findall(url)
-        img_id = m[0]
-        for i in range(0,count):
-            url = 'http://nmr.allcdn.net/images/products/%s-%d-lg.jpg' %(img_id,i)
-            urls.append(url)
-        return urls
 
 if __name__ == '__main__':
     server = Server()

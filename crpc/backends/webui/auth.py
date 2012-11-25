@@ -1,20 +1,52 @@
 # -*- coding: utf-8 -*-
-from bottle import request, response, HTTPError
+from bottle import request, response, HTTPError, redirect
+
+import uuid
+import time
+
+from settings import MONGODB_HOST
+from mongoengine import *
+DB = "monitor"
+connect(db=DB, alias=DB, host=MONGODB_HOST)
+
+class SimpleSession(Document):
+    """docstring for SimpleSession"""
+    session_id = StringField(unique=True)
+    expires = IntField(required=True)
+
+    meta = {
+        "db_alias": DB,
+        "indexes": [('session_id', 'expires'), 'expires']
+    }
+
+    def query(self, **kwargs):
+        return bool(SimpleSession.objects(session_id=kwargs.get('session_id', ''), expires__gt=int(time.time())))
+
 
 def protected(check, realm="private", text="Access denied"):
     def decorator(func):
         def wrapper(*a, **ka):
-            user, password = request.auth or (None, None)
+            # user, password = request.auth or (None, None)
+            user = request.POST.get('username')
+            password = request.POST.get('password')
             if user is None or not check(user, password):
+                session_id = request.get_cookie('fav_monitor')
+                if session_id and SimpleSession().query(session_id=session_id):
+                    return func(*a, **ka)
                 response.headers['WWW-Authenticate'] = 'Basic realm="%s"' % realm
-                return HTTPError(401, text)
+                redirect('/login')
+                # return HTTPError(401, text)
+            SimpleSession.objects(expires__lt=int(time.time())).delete()
+            session_id = uuid.uuid4().hex
+            SimpleSession(session_id=session_id, expires=int(time.time()+3600)).save()
+            response.set_cookie('fav_monitor', session_id)
             return func(*a, **ka)
         return wrapper
     return decorator
 
 def check_valid_user(usr, pwd):
     ''' Return True if username and password are valid. '''
-    return usr == 'admin' and pwd == 'secret'
+    return usr == 'devadmin' and pwd == 'tempfavbuy88'
 
 login_required = protected(check_valid_user)
 

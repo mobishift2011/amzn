@@ -222,32 +222,10 @@ class Server(object):
         sale_description = primary.cssselect('div.events_page_heading > div.text > p.description')[0].text_content().strip()
         nodes = primary.cssselect('div.raw_grid > div.deal')
         for node in nodes:
-            product_id, img, title, price, listprice, scarcity = self.from_listing_get_info(node)
             soldout = True if node.cssselect('div.image > div.sold_out') else False
-
-            is_new, is_updated = False, False
-            product = Product.objects(key=product_id).first()
-            if not product:
-                is_new = True
-                product = Product(key=product_id)
-                product.updated = False
-                product.combine_url = 'http://nomorerack.com/daily_deals/view/{0}'.format(product_id)
-                product.title = title
-                product.image_urls = [img]
-                product.price = price
-                product.listprice = listprice
-                product.scarcity = scarcity
-                product.soldout = soldout
-            else:
-                if scarcity and product.scarcity != scarcity:
-                    product.scarcity = scarcity
-                    is_updated = True
-                if soldout and product.soldout != soldout:
-                    product.soldout = True
-                    is_updated = True
+            product, is_new, is_updated = self.from_listing_get_info(node, soldout)
 
             if event_id not in product.event_id: product.event_id.append(event_id)
-            product.list_update_time = datetime.utcnow()
             product.save()
             common_saved.send(sender=ctx, key=product.key, url=product.combine_url, is_new=is_new, is_updated=is_updated)
 
@@ -292,34 +270,12 @@ class Server(object):
 
         nodes = tree.cssselect('div#wrapper > div#content > div#front > div#primary > div.deals > div.deal')
         for node in nodes:
-            product_id, img, title, price, listprice, scarcity = self.from_listing_get_info(node)
             soldout = True if node.cssselect('div.info > h4.sold_out') else False
+            product, is_new, is_updated = self.from_listing_get_info(node, soldout)
 
-            is_new, is_updated = False, False
-            product = Product.objects(key=product_id).first()
-            if not product:
-                is_new = True
-                product = Product(key=product_id)
-                product.updated = False
-                product.combine_url = 'http://nomorerack.com/daily_deals/view/{0}'.format(product_id)
-                product.event_type = False # different from events' product
-                product.title = title
-                product.image_urls = [img]
-                product.price = price
-                product.listprice = listprice
-                product.scarcity = scarcity
-                product.soldout = soldout
-            else:
-                if scarcity and product.scarcity != scarcity:
-                    product.scarcity = scarcity
-                    is_updated = True
-                if soldout and product.soldout != soldout:
-                    product.soldout = True
-                    is_updated = True
-
+            if is_new: product.event_type = False # different from events' product
             product.products_begin = east_today_begin_in_utc
             product.products_end = products_end
-            product.list_update_time = datetime.utcnow()
             product.save()
             common_saved.send(sender=ctx, key=product.key, url=product.combine_url, is_new=is_new, is_updated=is_updated)
 
@@ -331,17 +287,30 @@ class Server(object):
         if isinstance(content, int) or content is None:
             common_failed.send(sender=ctx, key='', url=url, reason='download sales listing error or {0} return'.format(content))
             return
-        product_key = url.rsplit('/', 1)[-1]
+        category_key = url.rsplit('/', 1)[-1]
         tree = lxml.html.fromstring(content)
         nodes = tree.cssselect('div#wrapper > div#content > div.deals > div.deal')
         for node in nodes:
-            node.cssselect('')
+            soldout = True if node.cssselect('div.info > h4.sold_out') else False
+            cats_path = node.cssselect('div.info > h4')[0].text_content() if not soldout else ''
+            cats_path = category_key + ' > ' + cats_path if cats_path else ''
+
+            product, is_new, is_updated = self.from_listing_get_info(node, soldout)
+
+            if is_new: product.event_type = False # different from events' product
+            if category_key not in product.category_key: product.category_key.append(category_key)
+            if cats_path and cats_path not in product.cats: product.cats.append(cats_path)
+            product.save()
+            common_saved.send(sender=ctx, key=product.key, url=product.combine_url, is_new=is_new, is_updated=is_updated)
 
 
-    def from_listing_get_info(self, node):
+    def from_listing_get_info(self, node, soldout):
         """.. :py:method::
             Both events listing page and deals listing have the same cssselect about one product,
             so collect the same information and return
+        :param: node, node for cssselect
+        :param: soldout, true of false
+        :rtype: product object, is_new, is_updated
         """
         link = node.cssselect('div.image > a.image_tag')[0].get('href')
         product_id = link.rsplit('/', 1)[-1]
@@ -352,7 +321,29 @@ class Server(object):
         listprice = listprice[0].text_content() if listprice else ''
         scarcity = node.cssselect('div.qty > span')
         scarcity = scarcity[0].text_content() if scarcity else ''
-        return product_id, img, title, price, listprice, scarcity
+
+        is_new, is_updated = False, False
+        product = Product.objects(key=product_id).first()
+        if not product:
+            is_new = True
+            product = Product(key=product_id)
+            product.updated = False
+            product.combine_url = 'http://nomorerack.com/daily_deals/view/{0}'.format(product_id)
+            product.title = title
+            product.image_urls = [img]
+            product.price = price
+            product.listprice = listprice
+            product.scarcity = scarcity
+            product.soldout = soldout
+        else:
+            if scarcity and product.scarcity != scarcity:
+                product.scarcity = scarcity
+                is_updated = True
+            if soldout and product.soldout != soldout:
+                product.soldout = True
+                is_updated = True
+        product.list_update_time = datetime.utcnow()
+        return product, is_new, is_updated
 
 
     def crawl_product(self,url,ctx=''):

@@ -274,7 +274,7 @@ class Server(object):
             self.crawl_category_list_product(category_key, item, east_today_begin_in_utc, ctx)
 
         category.save()
-        common_saved.send(sender=ctx, key=category_key, url=url, is_new=is_new, is_updated=False, ready='Event')
+        common_saved.send(sender=ctx, key=category_key, url=url, is_new=is_new, is_updated=False, ready=None)
 
 
     def crawl_category_list_product(self, category_key, item, products_begin=None, ctx=''):

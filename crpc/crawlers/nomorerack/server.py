@@ -50,7 +50,8 @@ class Server(object):
         """
         content = fetch_page(self.siteurl + '/#events')
         if isinstance(content, int) or content is None:
-            common_failed.send(sender=ctx, key='', url=self.siteurl, reason='download homepage error or {0} return'.format(content))
+            common_failed.send(sender=ctx, key='', url=self.siteurl,
+                    reason='download homepage events error or {0} return'.format(content))
             return
         tree = lxml.html.fromstring(content)
         nodes = tree.cssselect('div#wrapper > div#content > div#front > div#primary > div[style] > div.events > div.event')
@@ -126,11 +127,12 @@ class Server(object):
         """.. :py:method::
             Got all the product basic information from events listing
         """
+        event_id = url.rsplit('/', 1)[-1]
         content = fetch_page(url)
         if isinstance(content, int) or content is None:
-            common_failed.send(sender=ctx, key='', url=url, reason='download events listing error or {0} return'.format(content))
+            common_failed.send(sender=ctx, key=event_id, url=url,
+                    reason='download events listing error or {0} return'.format(content))
             return
-        event_id = url.rsplit('/', 1)[-1]
         tree = lxml.html.fromstring(content)
         primary = tree.cssselect('div#wrapper > div#content > div#front > div#primary')
         sale_description = primary.cssselect('div.events_page_heading > div.text > p.description')[0].text_content().strip()
@@ -172,7 +174,8 @@ class Server(object):
         """
         content = fetch_page(url)
         if isinstance(content, int) or content is None:
-            common_failed.send(sender=ctx, key='', url=url, reason='download sales listing error or {0} return'.format(content))
+            common_failed.send(sender=ctx, key='#', url=url,
+                    reason='download sales listing homepage error or {0} return'.format(content))
             return
         tree = lxml.html.fromstring(content)
         ends = tree.cssselect('div#wrapper > div#content > div#front > div.top > div.ribbon-center > p')[0].text_content()
@@ -197,11 +200,12 @@ class Server(object):
         """.. :py:method::
             Got all the product from categories' sales listing
         """
+        category_key = url.rsplit('/', 1)[-1]
         content = fetch_page(url)
         if isinstance(content, int) or content is None:
-            common_failed.send(sender=ctx, key='', url=url, reason='download sales listing error or {0} return'.format(content))
+            common_failed.send(sender=ctx, key=category_key, url=url,
+                    reason='download sales listing error or {0} return'.format(content))
             return
-        category_key = url.rsplit('/', 1)[-1]
         tree = lxml.html.fromstring(content)
         nodes = tree.cssselect('div#wrapper > div#content > div.deals > div.deal')
         for node in nodes:
@@ -274,7 +278,8 @@ class Server(object):
             number += 12
             content = fetch_page(url)
             if isinstance(content, int) or content is None:
-                common_failed.send(sender=ctx, key='', url=url, reason='download sales listing error or {0} return'.format(content))
+                common_failed.send(sender=ctx, key=category_key, url=url,
+                        reason='download sales listing js products error or {0} return'.format(content))
                 return
             tree = lxml.html.fromstring(content)
             nodes = tree.cssselect('div.deal')
@@ -299,7 +304,23 @@ class Server(object):
             Got all the product information and save into the database
         """
         product_id = url.rsplit('/', 1)[-1]
+        content = fetch_page(url)
+        if isinstance(content, int) or content is None:
+            common_failed.send(sender=ctx, key=product_id, url=url,
+                    reason='download product detail page error or {0} return'.format(content))
+            return
+        tree = lxml.html.fromstring(content)
+        nodes = tree.cssselect('div.deal')
 
+
+            
+
+
+    def crawl_product(self, url, ctx=''):
+        """.. :py:method::
+            Got all the product information and save into the database
+        """
+        key = url.rsplit('/', 1)[-1]
         key = self.url2product_id(url)
         product,is_new = Product.objects.get_or_create(key=key)
         self.browser.get(url)

@@ -7,7 +7,7 @@ import crawllog -> from events import * -> from helpers.signals import Signal ->
     -> gevent.spawn a listener(from settings import *) -> listen from REDIS_HOST[SIGNALS]
     import crawllog # from routine import *, we already bind the signal, and have a gevent.spawned listener,
 """
-from rpcserver import CrawlerServer
+from crawlerserver import CrawlerServer
 from routine import *
 import sys
 import time

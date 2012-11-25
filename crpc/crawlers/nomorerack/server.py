@@ -87,7 +87,7 @@ class Server(object):
         """
         # homepage's deals, we can calculate products_begin time
         is_new, is_updated = False, False
-        categroy = Category.objects(key='#').first()
+        category = Category.objects(key='#').first()
         if not category:
             is_new = True
             category = Category(key='#')
@@ -99,17 +99,17 @@ class Server(object):
 
         # categories' deals, with no products_begin time
         categories = ['women', 'men', 'home', 'electronics', 'kids', 'lifestyle']
-        for categroy in categories:
+        for categroy_key in categories:
             is_new, is_updated = False, False
-            categroy = Category.objects(key=category).first()
+            category = Category.objects(key=category_key).first()
             if not category:
                 is_new = True
-                category = Category(key=category)
+                category = Category(key=category_key)
                 category.is_leaf = True
-                category.combine_url = 'http://nomorerack.com/daily_deals/category/{0}'.format(category)
+                category.combine_url = 'http://nomorerack.com/daily_deals/category/{0}'.format(category_key)
             category.update_time = datetime.utcnow()
             category.save()
-            common_saved.send(sender=ctx, key=category, url=category.combine_url, is_new=is_new, is_updated=is_updated)
+            common_saved.send(sender=ctx, key=category_key, url=category.combine_url, is_new=is_new, is_updated=is_updated)
 
 
 
@@ -290,7 +290,7 @@ class Server(object):
         _eastnow = datetime.now(tz=self.east_tz)
         east_today_begin_in_utc = self.east_tz.localize( datetime(_eastnow.year, _eastnow.month, _eastnow.day) ).astimezone(pytz.utc)
 
-        nodes = tree.cssselect('div#wrapper > div#content > div#front > div#primary > div.deals')
+        nodes = tree.cssselect('div#wrapper > div#content > div#front > div#primary > div.deals > div.deal')
         for node in nodes:
             product_id, img, title, price, listprice, scarcity = self.from_listing_get_info(node)
             soldout = True if node.cssselect('div.info > h4.sold_out') else False
@@ -322,6 +322,20 @@ class Server(object):
             product.list_update_time = datetime.utcnow()
             product.save()
             common_saved.send(sender=ctx, key=product.key, url=product.combine_url, is_new=is_new, is_updated=is_updated)
+
+    def _get_category_sales_listing(self, url, ctx)
+        """.. :py:method::
+            Got all the product from categories' sales listing
+        """
+        content = fetch_page(url)
+        if isinstance(content, int) or content is None:
+            common_failed.send(sender=ctx, key='', url=url, reason='download sales listing error or {0} return'.format(content))
+            return
+        product_key = url.rsplit('/', 1)[-1]
+        tree = lxml.html.fromstring(content)
+        nodes = tree.cssselect('div#wrapper > div#content > div.deals > div.deal')
+        for node in nodes:
+            node.cssselect('')
 
 
     def from_listing_get_info(self, node):

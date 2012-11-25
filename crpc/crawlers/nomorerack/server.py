@@ -22,7 +22,7 @@ def fetch_page(url):
         return
 
     # nomorerack will redirect to homepage automatically when this product is not exists.
-    if ret.url = u'http://nomorerack.com/' and ret.url[:-1] != url:
+    if ret.url == u'http://nomorerack.com/' and ret.url[:-1] != url:
         return 0
 
     if ret.ok: return ret.content
@@ -110,92 +110,6 @@ class Server(object):
             category.update_time = datetime.utcnow()
             category.save()
             common_saved.send(sender=ctx, key=category_key, url=category.combine_url, is_new=is_new, is_updated=is_updated)
-
-
-
-    def _crawl_category_product(self,name,ctx=''):
-        """
-            crawl deals which using waterfall flow
-        """
-        _url = 'http://nomorerack.com/daily_deals/category_jxhrq/%s?sort=best_selling&offset=%d'
-        for i in range(0,10000):
-            if name == 'kids':
-                url = 'http://nomorerack.com/daily_deals/category/kids'
-            else:
-                url = _url%(name,i*12)
-
-            tree = self.ropen(url)
-            try:
-                divs = tree.xpath('//div[starts-with(@class,"deal")]')
-            except NoSuchElementException:
-                return
-            
-            # the cralwer at the end of list page
-            if not divs:
-                return False
-            
-            for div in  divs:
-                img_url = div.xpath('.//img')[0].get('src')
-                category = div.xpath('.//h4')[0].text or ''
-                price = div.xpath('.//div[@class="pricing"]/ins')[0].text
-                listprice = div.xpath('.//div[@class="pricing"]/del')[0].text
-                href = div.xpath('.//a')[0].get('href')
-                detail_url = self.format_url(href)
-                title = div.xpath('.//p')[0].text
-                key = self.url2product_id(detail_url)
-
-#                for i in locals().items():
-#                    print 'i',i
-
-                product,is_new = Product.objects.get_or_create(pk=key)
-
-                is_updated = False
-                if is_new:
-                    product.updated = False
-                    if category.upper() == 'SOLD OUT':
-                        product.soldout = True
-                else:
-                    if product.price != price or product.listprice != listprice:
-                        is_updated = True
-                    if not product.soldout:
-                        if category.upper() == 'SOLD OUT':
-                            product.soldout = True
-                            is_updated = True
-
-                if not product.cats:
-                    if category.upper() != 'SOLD OUT':
-                        product.cats = [name, category]
-                    else:
-                        product.cats = [name]
-
-                product.price = price
-                product.listprice = listprice
-                product.image_urls = [img_url]
-                product.title = title
-                product.save()
-                common_saved.send(sender=ctx, site=DB, key=key, is_new=is_new, is_updated=is_updated)
-            
-#            # the kids category just have one page 
-#            if name == 'kids':
-#                return
-
-    def url2product_id(self,url):
-        m = re.compile(r'^http://(.*)nomorerack.com/daily_deals/view/(\d+)-').findall(url)[0]
-        return m[-1]
-
-    def url2event_id(self,url):
-        # http://nomorerack.com/events/view/1018
-        m = re.compile(r'^http://(.*)nomorerack.com/events/view/(\d+)').findall(url)[0]
-        return m[-1]
-
-    def make_image_urls(self,url,count):
-        urls = []
-        m = re.compile(r'^http://nmr.allcdn.net/images/products/(\d+)-').findall(url)
-        img_id = m[0]
-        for i in range(0,count):
-            url = 'http://nmr.allcdn.net/images/products/%s-%d-lg.jpg' %(img_id,i)
-            urls.append(url)
-        return urls
     
 
     def crawl_listing(self, url, ctx=''):
@@ -279,7 +193,7 @@ class Server(object):
             product.save()
             common_saved.send(sender=ctx, key=product.key, url=product.combine_url, is_new=is_new, is_updated=is_updated)
 
-    def _get_category_sales_listing(self, url, ctx)
+    def _get_category_sales_listing(self, url, ctx):
         """.. :py:method::
             Got all the product from categories' sales listing
         """
@@ -302,14 +216,15 @@ class Server(object):
             if cats_path and cats_path not in product.cats: product.cats.append(cats_path)
             product.save()
             common_saved.send(sender=ctx, key=product.key, url=product.combine_url, is_new=is_new, is_updated=is_updated)
+        self._get_js_load_products(category_key)
 
 
     def from_listing_get_info(self, node, soldout):
         """.. :py:method::
             Both events listing page and deals listing have the same cssselect about one product,
             so collect the same information and return
-        :param: node, node for cssselect
-        :param: soldout, true of false
+        :param node: node for cssselect
+        :param soldout: true of false
         :rtype: product object, is_new, is_updated
         """
         link = node.cssselect('div.image > a.image_tag')[0].get('href')
@@ -346,10 +261,45 @@ class Server(object):
         return product, is_new, is_updated
 
 
-    def crawl_product(self,url,ctx=''):
+    def _get_js_load_products(self, category_key):
         """.. :py:method::
-            Got all the product basic information and save into the database
+            In listing page of every category, they need js to load more products.
+            12 products each times.
+
+        :param category_key: category name of these products
         """
+        number = 12
+        while True:
+            url = 'http://nomorerack.com/daily_deals/category_jxhrq/{0}?offset={1}&sort=best_selling'.format(category_key, number)
+            number += 12
+            content = fetch_page(url)
+            if isinstance(content, int) or content is None:
+                common_failed.send(sender=ctx, key='', url=url, reason='download sales listing error or {0} return'.format(content))
+                return
+            tree = lxml.html.fromstring(content)
+            nodes = tree.cssselect('div.deal')
+            if nodes == []: #this is the stop condition
+                return
+            for node in nodes:
+                soldout = True if node.cssselect('div.info > h4.sold_out') else False
+                cats_path = node.cssselect('div.info > h4')[0].text_content() if not soldout else ''
+                cats_path = category_key + ' > ' + cats_path if cats_path else ''
+
+                product, is_new, is_updated = self.from_listing_get_info(node, soldout)
+
+                if is_new: product.event_type = False # different from events' product
+                if category_key not in product.category_key: product.category_key.append(category_key)
+                if cats_path and cats_path not in product.cats: product.cats.append(cats_path)
+                product.save()
+                common_saved.send(sender=ctx, key=product.key, url=product.combine_url, is_new=is_new, is_updated=is_updated)
+
+
+    def crawl_product(self, url, ctx=''):
+        """.. :py:method::
+            Got all the product information and save into the database
+        """
+        product_id = url.rsplit('/', 1)[-1]
+
         key = self.url2product_id(url)
         product,is_new = Product.objects.get_or_create(key=key)
         self.browser.get(url)
@@ -419,8 +369,15 @@ class Server(object):
         str = m[0][-1]
         return dt_parser.parse(str)
 
+    def make_image_urls(self,url,count):
+        urls = []
+        m = re.compile(r'^http://nmr.allcdn.net/images/products/(\d+)-').findall(url)
+        img_id = m[0]
+        for i in range(0,count):
+            url = 'http://nmr.allcdn.net/images/products/%s-%d-lg.jpg' %(img_id,i)
+            urls.append(url)
+        return urls
 
 if __name__ == '__main__':
     server = Server()
     server.crawl_product('http://nomorerack.com/daily_deals/view/128407-product')
-    import time

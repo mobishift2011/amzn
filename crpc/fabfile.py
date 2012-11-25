@@ -67,26 +67,17 @@ def deploy():
         put(CRPC_ROOT+"/*", "/opt/crpc/")
     execute(restart)
 
-
-@parallel
-@hosts(PEERS)
 def stop():
-    """ stop all remote executions """
-    with settings(warn_only=True):
-        run("killall Xvfb")
-        run("killall chromedriver")
-        run("killall chromium-browser")
-        run("kill -9 `pgrep -f rpcserver.py`")
-        run("kill -9 `pgrep -f crawlerserver.py`")
-        run("kill -9 `pgrep -f apiserver.py`")
-        run("kill -9 `pgrep -f powerserver.py`")
-        run("rm /tmp/*.sock")
+    # TODO should implement better stopping mechanism
+    execute(_stop_crawler)
+    execute(_stop_power)
+    execute(_stop_monitor)
 
-@parallel 
 def start():
     """ start remote executions """
     execute(_start_crawler)
     execute(_start_power)
+    execute(_start_monitor)
 
 def restart():
     """ stop & start """
@@ -101,6 +92,18 @@ def restart():
     sys.stdout.flush()
     execute(start)
 
+@parallel
+@hosts(CRAWLER_PEERS)
+def _stop_crawler():
+    with settings(warn_only=True):
+        run("killall Xvfb")
+        run("killall chromedriver")
+        run("killall chromium-browser")
+        run("kill -9 `pgrep -f rpcserver.py`")
+        run("kill -9 `pgrep -f crawlerserver.py`")
+        run("rm /tmp/*.sock")
+
+@parallel
 @hosts(CRAWLER_PEERS)
 def _start_crawler():
     _runbg("Xvfb :99 -screen 0 1024x768x8 -ac +extension GLX +render -noreset", sockname="graphicXvfb")
@@ -112,6 +115,7 @@ def _start_crawler():
                         with prefix("export DISPLAY=:99"):
                             _runbg("python crawlers/common/crawlerserver.py", sockname="crawlerserver")
 
+@parallel
 @hosts(POWER_PEERS)
 def _start_power():
     with prefix("source /usr/local/bin/virtualenvwrapper.sh"):
@@ -120,6 +124,23 @@ def _start_power():
                 with cd("/opt/crpc"):
                     with prefix("source ./env.sh {0}".format(os.environ.get('ENV',''))):
                         _runbg("python powers/powerserver.py", sockname="powerserver")
+
+@parallel
+@hosts(POWER_PEERS)
+def _stop_power():
+    with settings(warn_only=True):
+        run("kill -9 `pgrep -f apiserver.py`")
+        run("kill -9 `pgrep -f powerserver.py`")
+        run("rm /tmp/*.sock")
+
+def _start_monitor():
+    os.system("ulimit -n 4096 && cd {0}/backends/monitor && dtach -n /tmp/crpcscheduler.sock python run.py".format(CRPC_ROOT))
+    os.system("cd {0}/backends/webui && dtach -n /tmp/crpcwebui.sock python main.py".format(CRPC_ROOT))
+
+def _stop_monitor():
+    os.system("kill -9 `pgrep -f run.py`")
+    os.system("kill -9 `pgrep -f main.py`")
+    os.system("rm /tmp/crpc*.sock")
 
 def _runbg(cmd, sockname="dtach"):
     """ A helper function to run command in background """

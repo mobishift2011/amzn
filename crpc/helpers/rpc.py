@@ -15,8 +15,9 @@ def get_rpcs(peers=CRAWLER_PEERS, port=CRAWLER_PORT):
         setattr(get_rpcs, '_cached_peers', [])
 
     if get_rpcs._cached_peers != peers:
-        for c in get_rpcs._cached_rpcs:
-            c.close()
+        if hasattr(get_rpcs, '_cached_rpcs'):
+            for c in get_rpcs._cached_rpcs:
+                c.close()
 
         setattr(get_rpcs, '_cached_peers', peers)
 

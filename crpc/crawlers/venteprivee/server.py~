@@ -59,23 +59,23 @@ class Server(object):
         """
         sales = vclient.sales()
         for sale in sales:
-            debug_info.send(sender=DB+'.event.{0}.start'.format(sale.get('name').encode('utf-8')))
+            print(DB+'.event.{0}.start'.format(sale.get('name').encode('utf-8')))
             
             is_updated = False
             event, is_new = Event.objects.get_or_create(event_id = str(sale.get('operationId')))
             event.combine_url = 'https://us.venteprivee.com/main/#/catalog/%s' % event.event_id
             event.sale_title = sale.get('name')
             for media in ['home', 'icon', 'preview']:
-                event.image_urls.append("http://pr-media04.venteprivee.com/is/image/VPUSA/{0}".format(sale.get('media').get(media)))
+                event.image_urls.append("http://pr-media04.venteprivee.com/is/image/VPUSA/{0}".format(sale.get(media)))
             event.sale_description = sale.get('brandDescription')
             event.events_begin = datetime.datetime.strptime(sale.get('startDate'), '%Y-%m-%dT%H:%M:%S').replace(tzinfo=pytz.utc)
             event.events_end = datetime.datetime.strptime(sale.get('endDate'), '%Y-%m-%dT%H:%M:%S').replace(tzinfo=pytz.utc)
             event.type = sale.get('type')
-            event.dept = [] # TODO cannot get the info
+            event.dept = []# TODO cannot get the info
             event.urgent = is_new or event.urgent
             event.save()
             
-            debug_info.send(sender=DB+'.event.{0}.end'.format(sale.get('name').encode('utf-8')))
+            print(DB+'.event.{0}.end'.format(sale.get('name').encode('utf-8')))
             common_saved.send(sender=ctx, key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=(not is_new) and is_updated)
 
     def crawl_listing(self, url, ctx):
@@ -83,7 +83,7 @@ class Server(object):
             not useful
         :param url: event url with event_id 
         """
-        debug_info.send(sender=DB+'.listing.{0}.start'.format(url))
+        print(DB+'.listing.{0}.start'.format(url))
         if not self.auth():
             self.login()
         
@@ -115,7 +115,7 @@ class Server(object):
                 product.updated = False
             product.save()
             
-            debug_info.send(sender=DB+'.listing.product.{0}.crawled'.format(product.key))
+            print(DB+'.listing.product.{0}.crawled'.format(product.key))
             common_saved.send(sender=ctx, key=product.key, url=url, is_new=is_new, is_updated=(not is_new) and is_updated)
         
         ready = None
@@ -123,17 +123,16 @@ class Server(object):
         if event and event.urgent:
             event.urgent = False
             ready = 'Event'
-            event.save()
         common_saved.send(sender=ctx, key=event.event_id, url=event.combine_url, is_new=False, is_updated=False, ready=ready)
         
-        debug_info.send(sender=DB+'.listing.{0}.end'.format(url))
+        print(DB+'.listing.{0}.end'.format(url))
 
     def crawl_product(self, url, ctx):
         """.. :py:method::
             Got all the product information and save into the database
         :param url: product url, with product id
         """
-        debug_info.send(sender=DB+'.product.{0}.start'.format(url))
+        print(DB+'.product.{0}.start'.format(url))
         if not self.auth():
             self.login()
         
@@ -154,15 +153,9 @@ class Server(object):
 #            product.combine_url = 'https://us.venteprivee.com/main/#/product/%s/%s' % (event_id, product.key)
         product.listprice = res.get('formattedMsrp')
         product.price = res.get('formattedPrice')
-        for det in res.get('media').get('det'):
-            image_url = 'http://pr-media01.venteprivee.com/is/image/VPUSA/%s' % det.get('fileName')
-            if image_url not in product.image_urls:
-                product.image_urls.append(image_url)
+        product.image_urls = ['http://pr-media01.venteprivee.com/is/image/VPUSA/%s' % res.get('media').get('det')[0].get('fileName')] # TODO
         product.list_info = [] # TODO
         product.soldout = res.get('isSoldOut')
-        breadCrumb = res.get('breadCrumb').get('name')
-        if breadCrumb not in product.dept:
-            product.dept.append(breadCrumb)
         product.returned = res.get('returnPolicy')
         product.sizes = []#res.get('sizes')    # TODO
         product.sizes_scarcity = [] # TODO
@@ -174,20 +167,20 @@ class Server(object):
         product.save()
         
         common_saved.send(sender=ctx, key=product.key, url=url, is_new=is_new, is_updated=(not is_new) and is_updated, ready=ready)
-        debug_info.send(sender=DB+'.product.{0}.end'.format(url))
+        print(DB+'.product.{0}.end'.format(url))
 
 if __name__ == '__main__':
 #    server = zerorpc.Server(Server())
-#    server.bind("tcp://0.0.0.0:{0}".format(CRAWLER_PORT))
+#    server.bind("tcp://0.0.0.0:{0}".format(RPC_PORT))
 #    server.run()
 
     start = time.time()
     
     s = Server()
-    # s.crawl_category('venteprivee')
-    # events = Event.objects(urgent=True).order_by('-update_time').timeout(False)
-    # for event in events:
-    #     s.crawl_listing(event.url(), 'venteprivee')
+    s.crawl_category('venteprivee')
+    events = Event.objects(urgent=False).order_by('-update_time').timeout(False)
+    for event in events:
+        s.crawl_listing(event.url(), 'venteprivee')
     products = Product.objects.filter(updated=True)
     for product in products:
         s.crawl_product(product.url(), 'ventiprivee')

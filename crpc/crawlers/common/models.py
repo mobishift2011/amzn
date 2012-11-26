@@ -78,7 +78,7 @@ class BaseEvent(Document, BaseDocumentSkeleton):
     meta = {
         "allow_inheritance": True,
         "collection": "event",
-        "indexes": ["urgent", "events_begin", "events_end", "soldout", "event_id"],
+        "indexes": ["urgent", "events_begin", "events_end", "soldout", "event_id", "is_leaf"],
     }
 
 

@@ -27,7 +27,7 @@ class PowerServer(object):
             image_path = it.crawl(image_urls, site, key)
             if len(image_path):
                 instance.update(set__image_path = image_path)
-                image_crawled.send(sender=ctx, site=site, key=key, model=doctype.capitalize(), num=len(instance.image_path))
+                image_crawled.send(sender=ctx, site=site, key=key, model=doctype.capitalize(), num=len(image_path))
         else:
             # TODO image_crawled_failed
             pass

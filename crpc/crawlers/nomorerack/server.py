@@ -336,7 +336,10 @@ class Server(object):
             image_urls.append( img.get('src').replace('tn.', 'lg.') )
         ends = tree.cssselect('div#wrapper > div#content > div#front > div.ribbon > div.ribbon-center h4')
         if not ends:
-            ends = tree.cssselect('div#wrapper > div#content > div#front > div.top > div.ribbon-center > p')[0].text_content()
+            ends = tree.cssselect('div#wrapper > div#content > div#front > div.top > div.ribbon-center > p')
+            if not ends:
+                ends = ends[-1].text_content()
+            else: ends = ends[0].text_content()
             print [ends], 'Deals+++++++++++++++++++++++++++++++++++++'
         else:
             ends = ends[0].text_content()

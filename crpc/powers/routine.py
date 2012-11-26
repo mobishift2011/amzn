@@ -23,8 +23,7 @@ from crawlers.common.routine import get_site_module
 
 def call_rpc(rpc, method, *args, **kwargs):
     try:
-        #rpc.process_images(args, kwargs)
-        print 'using rpc', rpc, method, args, kwargs
+        # print 'using rpc', rpc, method, args, kwargs
         getattr(rpc, method)(args, kwargs)
     except Exception:
         print traceback.format_exc()
@@ -109,7 +108,7 @@ def scan_images(site, doctype, rpc, concurrency=3):
 def crawl_images(site, model, key, rpc=None, *args, **kwargs):
     if rpc is None:
         rpc = get_rpcs(POWER_PEERS, POWER_PORT)
-
+    
     method = 'process_image'
     
     with UpdateContext(site, method) as ctx:

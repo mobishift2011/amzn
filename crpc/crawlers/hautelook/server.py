@@ -73,21 +73,31 @@ class Server(object):
             info = event['event']
             event_id = info['event_id']
             event_code = info['event_code']
+            sale_title = info['title']
+            sale_description = requests.get(info['info']).text
+            dept = [i['name'] for i in info['event_types']]
 
             # new upcoming, new now, old upcoming, old now
             events_begin = self.convert_time( info['start_date'] )
             events_end = self.convert_time( info['end_date'] )
             _utcnow = datetime.utcnow()
 #            if events_end < _utcnow:
-#
-            event = Event.objects(event_id=event_id).first()
+
+            is_leaf = True
+            children = info['meta']['nested']['children']
+            if children:
+                for child in children:
+                    self.save_child_event(child['event_id'], events_begin, events_end, sale_title, sale_description, dept, ctx)
+                    is_leaf = False
+
             is_new, is_updated = False, False
+            event = Event.objects(event_id=event_id).first()
             if not event:
                 is_new = True
                 event = Event(event_id=event_id)
-                event.sale_title = info['title']
-                event.sale_description = requests.get(info['info']).text
-                event.dept = [i['name'] for i in info['event_types']]
+                event.sale_title = sale_title
+                event.sale_description = sale_description
+                event.dept = dept
                 event.tagline = info['category']
 
                 pop_img = 'http://www.hautelook.com/assets/{0}/pop-large.jpg'.format(event_code)
@@ -96,6 +106,7 @@ class Server(object):
                 event.sort_order = info['sort_order']
                 event.urgent = True
                 event.combine_url = 'http://www.hautelook.com/v3/catalog/{0}/availability'.format(event_id)
+                if not is_leaf: event.is_leaf = False
             else:
                 if info['sort_order'] != event.sort_order:
                     event.sort_order = info['sort_order']
@@ -106,6 +117,27 @@ class Server(object):
             event.save()
             common_saved.send(sender=ctx, key=event_id, url='{0}/event/{1}'.format(self.siteurl, event_id), is_new=is_new, is_updated=is_updated)
         debug_info.send(sender=DB + '.category.end')
+
+
+    def save_child_event(self, event_id, events_begin, events_end, sale_title, sale_description, dept, ctx):
+        """
+            save a child event
+        """
+        is_new, is_updated = False, False
+        event = Event.objects(event_id=event_id).first()
+        if not event:
+            is_new = True
+            event = Event(event_id=event_id)
+            event.sale_title = sale_title
+            event.sale_description = sale_description
+            event.dept = dept
+            event.urgent = True
+            event.combine_url = 'http://www.hautelook.com/v3/catalog/{0}/availability'.format(event_id)
+        event.events_begin = events_begin
+        event.events_end = events_end
+        event.update_time = datetime.utcnow()
+        event.save()
+        common_saved.send(sender=ctx, key=event_id, url='{0}/event/{1}'.format(self.siteurl, event_id), is_new=is_new, is_updated=is_updated)
 
 
     def crawl_listing(self, url, ctx):

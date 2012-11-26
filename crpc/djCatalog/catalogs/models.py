@@ -15,7 +15,7 @@ class Brand(Document):
     done = BooleanField(default=False)
  
     meta = {
-        'ordering': ['is_delete', 'title']
+        'ordering': ['title']
     }
         
     def __unicode__(self):

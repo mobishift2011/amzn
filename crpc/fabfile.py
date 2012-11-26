@@ -55,18 +55,21 @@ def setup():
                 run("pip install https://github.com/SiteSupport/gevent/tarball/master")
                 run("pip install zerorpc lxml requests pymongo mongoengine redis redisco pytz mock selenium blinker cssselect boto python-dateutil virtualenvwrapper"+USE_INDEX) 
 
-@parallel
-@hosts(PEERS)
 def deploy():
     """ deploy crawler&api server code to remotes """
     execute(stop)
+    execute(copyfiles)
+    execute(start)
+
+@parallel
+@hosts(PEERS)
+def copyfiles():
     # copy files
     with settings(warn_only=True):
         local('find {0} -name "*.pyc" -delete'.format(CRPC_ROOT))
         run("rm -rf /opt/crpc")
         run("mkdir -p /opt/crpc")
         put(CRPC_ROOT+"/*", "/opt/crpc/")
-    execute(restart)
 
 def stop():
     # TODO should implement better stopping mechanism
@@ -112,7 +115,7 @@ def _start_crawler():
         with prefix("ulimit -s 1024"):
             with prefix("ulimit -n 4096"):
                 with cd("/opt/crpc"):
-                    with prefix("source ./env.sh {0}".format(os.environ.get('ENV',''))):
+                    with prefix("source ./env.sh {0}".format(os.environ.get('ENV','TEST'))):
                         with prefix("export DISPLAY=:99"):
                             _runbg("python crawlers/common/crawlerserver.py", sockname="crawlerserver")
 
@@ -123,7 +126,7 @@ def _start_power():
         with prefix("ulimit -s 1024"):
             with prefix("ulimit -n 4096"):
                 with cd("/opt/crpc"):
-                    with prefix("source ./env.sh {0}".format(os.environ.get('ENV',''))):
+                    with prefix("source ./env.sh {0}".format(os.environ.get('ENV','TEST'))):
                         _runbg("python powers/powerserver.py", sockname="powerserver")
 
 @parallel

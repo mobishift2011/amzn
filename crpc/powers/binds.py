@@ -70,29 +70,23 @@ def stat_save(sender, **kwargs):
     num = kwargs.get('num', '')
     
     print '{0}.{1}.{2}.crawled_image_num:{3}'.format(site, key, model, num)
+    # to ensure the event or product flag is indicated after the progress has been done.
     try:
         m = __import__("crawlers."+site+'.models', fromlist=['Event', 'Product'])
         entity = None
         if model == 'Event':
-            progress = EventProgress.objects(site=site, key=key).first()
-            if not progress: progress = EventProgress(site=site, key=key)
-            entity = m.Event.objects.get(event_id=key)
+            EventProgress.objects(site=site, key=key).update(set__image_complete=True,
+                                                             set__num_image=num,
+                                                             set__updated_at=datetime.utcnow(),
+                                                             upsert=True)
+            m.Event.objects(event_id=key).update(set__image_complete=True)
             
         elif model == 'Product':
-            progress = ProductProgress.objects(site=site, key=key).first()
-            if not progress: progress = ProductProgress(site=site, key=key)
-            entity = m.Product.objects.get(key=key)
-        
-        if progress:
-            progress.image_complete = True
-            progress.num_image = num
-            progress.updated_at = datetime.utcnow()
-            progress.save()
+            ProductProgress.objects(site=site, key=key).update(set__image_complete=True,
+                                                               set__num_image=num,
+                                                               set__updated_at=datetime.utcnow(),
+                                                               upsert=True)
+            m.Product.objects(key=key).update(set__image_complete=True)
             
-            # to ensure the event or product flag is indicated after the progress has been done.
-            if entity:
-                entity.image_complete = True
-                entity.save()
-    
     except Exception as e:
         logger.exception(e.message)

@@ -17,19 +17,18 @@ class PowerServer(object):
         """ doctype is either ``event`` or ``product`` """
         key = kwargs.get('event_id', kwargs.get('key'))
         m = __import__("crawlers."+site+'.models', fromlist=['Event', 'Product'])
-        if doctype == 'event':
-            instance = m.Event.objects(event_id=key).first()
-        elif doctype == 'product':
-            instance = m.Product.objects(key=key).first()
+        image_tool = ImageTool()
+        image_path = image_tool.crawl(image_urls, site, key)
+        if len(image_path):
 
-        if instance:
-            it = ImageTool()
-            image_path = it.crawl(image_urls, site, key)
-            if len(image_path):
-                instance.update(set__image_path = image_path)
-                image_crawled.send(sender=ctx, site=site, key=key, model=doctype.capitalize(), num=len(image_path))
+            # I think here need a gevent.coros.Semaphore(1)
+            if doctype == 'event':
+                m.Event.objects(event_id=key).update(set__image_path=image_path)
+            elif doctype == 'product':
+                m.Product.objects(key=key).update(set__image_path=image_path)
+            image_crawled.send(sender=ctx, site=site, key=key, model=doctype.capitalize(), num=len(image_path))
         else:
-            # TODO image_crawled_failed
+            # TODO image_crawled_failed or need try except
             pass
 
 def test():

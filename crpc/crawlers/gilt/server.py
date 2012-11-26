@@ -107,7 +107,7 @@ class Server(object):
         event.save()
 
         debug_info.send(sender=DB+'.event.{0}.end'.format(sale.get('sale_key').encode('utf-8')))
-        common_saved.send(sender=ctx, key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=(not is_new) and is_updated, ready=ready)
+        common_saved.send(sender=ctx, key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=(not is_new) and is_updated)
 
 
     def process_product(self, url, ctx, event_id=None):

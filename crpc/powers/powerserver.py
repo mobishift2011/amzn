@@ -20,7 +20,7 @@ class PowerServer(object):
         if doctype == 'event':
             instance = m.Event.objects(event_id=key).first()
         elif doctype == 'product':
-            instance = m.Product.objects(key=key).qfirst()
+            instance = m.Product.objects(key=key).first()
 
         if instance:
             it = ImageTool()

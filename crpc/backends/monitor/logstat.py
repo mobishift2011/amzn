@@ -4,7 +4,6 @@
     spawn one listener to listen crawlers' signal -- pre_general_update, post_general_update
 """
 from crawlers.common.events import *
-from crawlers.common.stash import *
 
 from helpers.log import getlogger
 import traceback
@@ -17,22 +16,28 @@ from powers.routine import *
 logger = getlogger("crawlerlog")
 
 def get_or_create_task(ctx):
+    """
+        Caution: This function should not update the status,
+        or else, post_general_update will be override.
+    """
     t = Task.objects(ctx=ctx).first()
     if not t:
         t = Task(ctx=ctx)
         t.site, t.method, dummy = ctx.split('.')
         t.started_at = datetime.utcnow()
         t.save()
-    else:
-        t.update(set__status=Task.RUNNING, set__updated_at=datetime.utcnow())
+#    else:
+#        t.update(set__status=Task.RUNNING, set__updated_at=datetime.utcnow())
     return t
 
 @pre_general_update.bind
 def stat_pre_general_update(sender, **kwargs):
+    site, method, dummy = sender.split('.')
     try:
-        site, method, dummy = sender.split('.')
-        t = get_or_create_task(sender)
-        t.save()
+        Task.objects(ctx=sender).update(set__site=site,
+                                        set__method=method,
+                                        set__started_at=datetime.utcnow(),
+                                        upsert=True)
     except Exception as e:
         logger.exception(e.message)
         fail(site, method, kwargs.get('key',''), kwargs.get('url',''), traceback.format_exc())
@@ -44,13 +49,23 @@ def stat_post_general_update(sender, **kwargs):
     reason = repr(kwargs.get('reason', 'undefined'))
     key = kwargs.get('key','')
     url = kwargs.get('url','')
+    site, method, dummy = sender.split('.')
+
     try:
-        site, method, dummy = sender.split('.')
-        t = get_or_create_task(sender)
-        t.status = Task.FINISHED if complete else Task.FAILED
         if not complete:
-            t.fails.append( fail(site, method, key, url, reason) )
-        t.save()
+            Task.objects(ctx=sender).update(set__site=site,
+                                            set__method=method,
+                                            set__status=Task.FAILED,
+                                            push__fails=fail(site, method, key, url, reason),
+                                            inc__num_fails=1,
+                                            set__updated_at=datetime.utcnow(),
+                                            upsert=True)
+        else:
+            Task.objects(ctx=sender).update(set__site=site,
+                                            set__method=method,
+                                            set__status=Task.FINISHED,
+                                            set__updated_at=datetime.utcnow(),
+                                            upsert=True)
     except Exception as e:
         logger.exception(e.message)
         fail(site, method, key, url, traceback.format_exc())
@@ -58,30 +73,33 @@ def stat_post_general_update(sender, **kwargs):
 
 @common_saved.bind
 def stat_save(sender, **kwargs):
-    @exclusive_lock(sender.rsplit('.', 1)[0])
-    def lock_stat_save(sender, is_new, is_updated):
-        try:
-            site, method, dummy = sender.split('.')
-            t = get_or_create_task(sender)
-
-            if is_new:
-                t.num_new += 1
-            if is_updated:
-                t.num_update += 1
-            t.num_finish += 1
-
-            t.update(set__num_new=t.num_new, set__num_update=t.num_update, set__num_finish=t.num_finish)
-        except Exception as e:
-            logger.exception(e.message)
-            t.update(push__fails=fail(site, method, key, url, traceback.format_exc()), inc__num_fails=1)
-
     logger.debug('{0} -> {1}'.format(sender,kwargs.items()))
     key = kwargs.get('key','')
     url = kwargs.get('url','')
     is_new = kwargs.get('is_new', False)
     is_updated = kwargs.get('is_updated', False)
 
-    lock_stat_save(sender, is_new, is_updated)
+    site, method, dummy = sender.split('.')
+    num_new = 1 if is_new else 0
+    num_update = 1 if is_updated else 0
+    num_finish = 1
+
+    try:
+        Task.objects(ctx=sender).update(set__site=site,
+                                        set__method=method,
+                                        inc__num_new=num_new,
+                                        inc__num_update=num_update,
+                                        inc__num_finish=num_finish,
+                                        set__updated_at=datetime.utcnow(),
+                                        upsert=True)
+    except Exception as e:
+        logger.exception(e.message)
+        Task.objects(ctx=sender).update(set__site=site,
+                                        set__method=method,
+                                        inc__num_fails=1,
+                                        push__fails=fail(site, method, key, url, traceback.format_exc()),
+                                        set__updated_at=datetime.utcnow(),
+                                        upsert=True)
 
 
 @common_failed.bind
@@ -96,18 +114,18 @@ def stat_failed(sender, **kwargs):
         Task.objects(ctx=sender).update(set__site=site,
                                         set__method=method,
                                         set__status=Task.RUNNING,
-                                        set__updated_at=datetime.utcnow(),
                                         push__fails=fail(site, method, key, url, reason),
                                         inc__num_fails=1,
+                                        set__updated_at=datetime.utcnow(),
                                         upsert=True)
     except Exception as e:
         logger.exception(e.message)
         Task.objects(ctx=sender).update(set__site=site,
                                         set__method=method,
                                         set__status=Task.RUNNING,
-                                        set__updated_at=datetime.utcnow(),
                                         push__fails=fail(site, method, key, url, traceback.format_exc()),
                                         inc__num_fails=1,
+                                        set__updated_at=datetime.utcnow(),
                                         upsert=True)
 
 if __name__ == '__main__':

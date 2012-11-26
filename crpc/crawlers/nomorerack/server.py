@@ -140,6 +140,7 @@ class Server(object):
         """
         event_id = url.rsplit('/', 1)[-1]
         content = fetch_page(url)
+        if content is None: content = fetch_page(url)
         if isinstance(content, int) or content is None:
             common_failed.send(sender=ctx, key=event_id, url=url,
                     reason='download events listing error or {0} return'.format(content))
@@ -316,6 +317,7 @@ class Server(object):
         """
         product_id = url.rsplit('/', 1)[-1]
         content = fetch_page(url)
+        if content is None: content = fetch_page(url)
         if isinstance(content, int) or content is None:
             common_failed.send(sender=ctx, key=product_id, url=url,
                     reason='download product detail page error or {0} return'.format(content))

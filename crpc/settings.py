@@ -15,7 +15,7 @@ envs = {
     },
     'DEV': {
         'CRAWLER_PEERS': ['root@127.0.0.1'],
-        'POWER_PEERS':['root@127.0.0.1'],
+        'POWER_PEERS':['root@localhost'],
         'USE_INDEX': '',
         'MONGODB_HOST': '127.0.0.1',
         'REDIS_HOST': '127.0.0.1',

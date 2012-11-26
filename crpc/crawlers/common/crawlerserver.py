@@ -7,6 +7,7 @@ crawlers.common.rpcserver
 Provides a meta programmed integrated RPC call for all callers
 
 """
+from gevent import monkey; monkey.patch_all()
 from settings import CRAWLER_PORT, CRPC_ROOT, MONGODB_HOST
 from os import listdir
 from os.path import join, abspath, dirname, isdir

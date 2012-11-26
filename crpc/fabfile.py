@@ -42,13 +42,14 @@ def setup():
 
     with settings(warn_only=True):
         run("killall chromedriver")
-        run("kill -9 `pgrep -f rpcserver`")
+        run("kill -9 `pgrep -f crawlerserver`")
+        run("kill -9 `pgrep -f powerserver`")
         #run("kill -9 `pgrep -f {0}`".format(ENV_NAME))
         run("ln -s /usr/bin/chromium-browser /usr/bin/google-chrome")
 
     with cd("/opt/crpc"):
         with prefix("source /usr/local/bin/virtualenvwrapper.sh"):
-#            run("mkvirtualenv "+ENV_NAME)
+            run("mkvirtualenv "+ENV_NAME)
             with prefix("workon "+ENV_NAME):
                 run("pip install cython"+USE_INDEX)
                 run("pip install https://github.com/SiteSupport/gevent/tarball/master")

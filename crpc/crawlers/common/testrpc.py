@@ -1,11 +1,11 @@
 import zerorpc
-from settings import PEERS, CRAWLER_PORT
+from settings import CRAWLER_PEERS, CRAWLER_PORT
 from routine import *
 #update_category, update_listing, update_product
 
 def get_rpcs():
     rpcs = []
-    for peer in PEERS:
+    for peer in CRAWLER_PEERS:
         host = peer[peer.find('@')+1:]
         c = zerorpc.Client('tcp://{0}:{1}'.format(host, CRAWLER_PORT), timeout=None)
         if c:

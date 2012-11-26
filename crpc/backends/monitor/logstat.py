@@ -18,7 +18,7 @@ logger = getlogger("crawlerlog")
 def get_or_create_task(ctx):
     """
         Caution: This function should not update the status,
-        or else, post_general_update will be override.
+        or else, post_general_update will be override by common_saved.
     """
     t = Task.objects(ctx=ctx).first()
     if not t:

@@ -36,6 +36,7 @@ def stat_pre_general_update(sender, **kwargs):
     try:
         Task.objects(ctx=sender).update(set__site=site,
                                         set__method=method,
+                                        set__status=Task.RUNNING,
                                         set__started_at=datetime.utcnow(),
                                         upsert=True)
     except Exception as e:

@@ -16,6 +16,7 @@ from settings import CRPC_ROOT
 
 from fabric.api import *
 from fabric.contrib.files import exists
+from fabric.contrib.project import rsync_project, upload_project
 
 import os
 import sys
@@ -65,12 +66,14 @@ def deploy():
 @parallel
 @hosts(PEERS)
 def copyfiles():
+    """ rebuild the whole project directory on remotes """
     # copy files
     with settings(warn_only=True):
         local('find {0} -name "*.pyc" -delete'.format(CRPC_ROOT))
         run("rm -rf /opt/crpc")
         run("mkdir -p /opt/crpc")
-        put(CRPC_ROOT+"/*", "/opt/crpc/")
+        #put(CRPC_ROOT+"/*", "/opt/crpc/")
+        upload_project(CRPC_ROOT+'/', '/opt/')
 
 def stop():
     # TODO should implement better stopping mechanism

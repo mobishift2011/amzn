@@ -9,19 +9,16 @@ from datetime import datetime, timedelta
 from powers.models import EventProgress, ProductProgress
 
 def mark_all_failed():
-    for t in Task.objects():
-        if t.status == Task.RUNNING:
-            t.update(set__status=Task.FAILED, push__fails=fail(t.site, t.method, '', '', 'Monitor Restart'), inc__num_fails=1)
+    Task.objects(status=Task.RUNNING) \
+        .update(set__status=Task.FAILED, push__fails=fail(t.site, t.method, '', '', 'Monitor Restart'), inc__num_fails=1)
 
 def task_all_tasks():
     tasks = Task.objects(updated_at__gt=datetime.utcnow()-timedelta(seconds=3600*24)).order_by('-updated_at')
-    print 'task all: %s' % len(tasks)
 #    tasks = Task.objects().fields(slice__fails=-10).order_by('-updated_at').limit(100).select_related()
     return {"tasks":[t.to_json() for t in tasks]}
 
 def task_updates():
     tasks = Task.objects(updated_at__gt=datetime.utcnow()-timedelta(seconds=60)).fields(slice__fails=-10).select_related()
-    print 'task update:%s' % len(tasks)
     return {"tasks":[t.to_json() for t in tasks]}
 
 def delete_schedule(s):
@@ -64,7 +61,6 @@ def update_schedule(d):
         return {'status':'error','reason':repr(e)}
 
 def get_all_fails(ctx):
-    print 'ctx: %s' % ctx
     task = Task.objects.get(ctx=ctx)
     fails = task.fails[-10:]
     return {'fails': [fail.to_json() for fail in fails]}

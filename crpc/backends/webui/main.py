@@ -27,22 +27,22 @@ def signIn():
     redirect('/')
 
 @route('/')
-@login_required
+# @login_required
 def index():
     redirect('/task')
 
 @route('/task')
-@login_required
+# @login_required
 def task():
     return template('task')
 
 @route('/task/all')
-@login_required
+# @login_required
 def task_all():
     return task_all_tasks()
 
 @route('/task/update')
-@login_required
+# @login_required
 def task_update():
     try:
         log_event.wait(timeout=5)
@@ -53,27 +53,27 @@ def task_update():
     return task_updates()
 
 @route('/control')
-@login_required
+# @login_required
 def control():
     return template('control')
 
 @route('/control/all')
-@login_required
+# @login_required
 def all_schedule():
     return {'schedules': get_all_schedules()}
 
 @post('/control/save')
-@login_required
+# @login_required
 def save_schedule():
     return update_schedule(request.json)
 
 @post('/control/del')
-@login_required
+# @login_required
 def del_schedule():
     return delete_schedule(request.json)
 
 @post('/control/run')
-@login_required
+# @login_required
 def execute_command():
     method = request.json['method']
     site = request.json['site']
@@ -81,12 +81,12 @@ def execute_command():
     return {'status':'ok'}
 
 @route('/task/:ctx/fails')
-@login_required
+# @login_required
 def get_task_fails(ctx):
     return get_all_fails(ctx);
 
 @route('/progress')
-@login_required
+# @login_required
 def progress_all():
     return template('process.tpl', progresses=get_all_progresses())
 

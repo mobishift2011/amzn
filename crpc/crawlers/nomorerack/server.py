@@ -355,5 +355,6 @@ class Server(object):
 
 
 if __name__ == '__main__':
-    server = Server()
-    server.crawl_product('http://nomorerack.com/daily_deals/view/128407-product')
+    server = zerorpc.Server(Server())
+    server.bind("tcp://0.0.0.0:{0}".format(CRAWLER_PORT))
+    server.run()

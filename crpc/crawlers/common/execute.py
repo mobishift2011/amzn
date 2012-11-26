@@ -30,7 +30,6 @@ def run(site, rpc):
     update_listing(site, rpc)
 
 if __name__ == '__main__':
-    import crawllog
     rpc = CrawlerServer()
 #    rpc.call('myhabit', 'crawl_category', (), {'ctx':'asdf'})
 #    exit(0)

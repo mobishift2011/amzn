@@ -11,26 +11,20 @@ def get_rpcs(peers=CRAWLER_PEERS, port=CRAWLER_PORT):
         On the other hand, we need to detect PEERS change in settings,
             so we need to keep PEERS in the function, and compare old and new PEERS.
     """
-    if not hasattr(get_rpcs, '_cached_peers'):
-        setattr(get_rpcs, '_cached_peers', [])
+    if not hasattr(get_rpcs, '_cached_rpcs'):
+        setattr(get_rpcs, '_cached_rpcs', {})
 
-    if get_rpcs._cached_peers != peers:
-        if hasattr(get_rpcs, '_cached_rpcs'):
-            for c in get_rpcs._cached_rpcs:
-                c.close()
-
-        setattr(get_rpcs, '_cached_peers', peers)
-
+    peers_key = tuple(peers)
+    if peers_key not in get_rpcs._cached_rpcs:
         rpcs = []
         for peer in peers:
             host = peer[peer.find('@')+1:]
             client_string = 'tcp://{0}:{1}'.format(host, port)
-            print 'connecting to...', client_string
             c = zerorpc.Client(client_string, timeout=None)
             if c:
                rpcs.append(c)
 
-        setattr(get_rpcs, '_cached_rpcs', rpcs)
+        get_rpcs._cached_rpcs[peers_key] = rpcs
 
-    return get_rpcs._cached_rpcs
+    return get_rpcs._cached_rpcs[peers_key]
 

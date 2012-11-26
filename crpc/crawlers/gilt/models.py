@@ -32,7 +32,6 @@ class Event(BaseEvent):
         return "https://api.gilt.com/v1/sales/{0}/{1}/detail.json".format(self.store, self.event_id)
 
 class Product(LuxuryProduct):
-    dept = ListField(StringField()) # Remove when dept is added to Luxurious Product.
     skus = ListField()
     
     meta = {

@@ -14,6 +14,17 @@ from models import *
 from crawlers.common.events import *
 from crawlers.common.stash import *
 
+headers = { 
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    'Accept-Charset': 'UTF-8,*;q=0.5',
+    'Accept-Encoding': 'gzip,deflate,sdch',
+    'Accept-Language': 'zh-CN,en-US;q=0.8,en;q=0.6',
+    'Connection': 'keep-alive',
+    'Host': 'nomorerack.com',
+    'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:17.0) Gecko/17.0 Firefox/17.0',
+}
+request = requests.Session(prefetch=True, timeout=30, config=config, headers=headers)
+
 def fetch_page(url):
     try:
         ret = request.get(url)

@@ -164,9 +164,9 @@ class Server(object):
             Got all the product basic information from sales listing
         """
         if url == self.siteurl:
-            _get_today_sales_listing(url, ctx)
+            self._get_today_sales_listing(url, ctx)
         else:
-            _get_category_sales_listing(url, ctx)
+            self._get_category_sales_listing(url, ctx)
 
     def _get_today_sales_listing(self, url, ctx):
         """.. :py:method::
@@ -311,29 +311,39 @@ class Server(object):
             return
         tree = lxml.html.fromstring(content)
         node = tree.cssselect('div#wrapper > div#content > div#front > div#primary > div#products_view')[0]
-        summary = node.cssselect('div#right > p.description')
-        summary = summary[0].text_content() if summary else ''
+        summary = node.cssselect('div.right > p.description')
+        if summary:
+            summary = summary[0].text_content().split('Want to know more?')
+            if len(summary) == 2:
+                summary, list_info = summary[0].strip(), summary[1].strip().split('\n')
+            else:
+                summary, list_info = summary[0].strip(), []
         image_urls = []
-        for img in node.cssselect('div#left > div.images > div.thumbs > img'):
+        for img in node.cssselect('div.left > div.images > div.thumbs > img'):
             image_urls.append( img.get('src') )
             image_urls.append( img.get('src').replace('tn.', 'rg.') )
             image_urls.append( img.get('src').replace('tn.', 'lg.') )
-        ends = tree.cssselect('div#wrapper > div#content > div#front > div.top > div.ribbon-center > p')[0].text_content()
-        if ends:
-            ends = ends.split('until')[-1].strip().replace('st', '').replace('nd', '').replace('rd', '').replace('th', '')
-            time_str, time_zone = ends.rsplit(' ', 1)
-            products_end = time_convert(time_str, '%B %d %I:%M %p%Y', time_zone)
-        print [ends], '+++++++++++++++++++++++++++++++++++++'
+        ends = tree.cssselect('div#wrapper > div#content > div#front > div.ribbon > div.ribbon-center h4')
+        if not ends:
+            ends = tree.cssselect('div#wrapper > div#content > div#front > div.top > div.ribbon-center > p')[0].text_content()
+            print [ends], 'Deals+++++++++++++++++++++++++++++++++++++'
+        else:
+            ends = ends[0].text_content()
+            print [ends], 'Event+++++++++++++++++++++++++++++++++++++'
+        ends = ends.split('until')[-1].strip().replace('st', '').replace('nd', '').replace('rd', '').replace('th', '')
+        time_str, time_zone = ends.rsplit(' ', 1)
+        products_end = time_convert(time_str, '%B %d %I:%M %p%Y', time_zone)
 
         is_new, is_updated = False, False
         product = Product.objects(key=product_id).first()
         if not product:
             is_new = True
             product = Product(key=product_id)
-        product.summary = summary
+        product.summary = summary if summary else ''
+        product.list_info = list_info if summary else []
         for img in image_urls:
             if img not in product.image_urls: product.image_urls.append(img)
-        if ends: product.products_end = products_end
+        product.products_end = products_end
         product.full_update_time = datetime.utcnow()
 
         if product.updated == False:

@@ -52,7 +52,8 @@ def setup():
             run("mkvirtualenv "+ENV_NAME)
             with prefix("workon "+ENV_NAME):
                 run("pip install cython"+USE_INDEX)
-                run("pip install https://github.com/SiteSupport/gevent/tarball/master")
+                if 'gevent==1.0' not in run("pip freeze|grep gevent").stdout:
+                    run("pip install https://github.com/SiteSupport/gevent/tarball/master")
                 run("pip install zerorpc lxml requests pymongo mongoengine redis redisco pytz mock selenium blinker cssselect boto python-dateutil virtualenvwrapper"+USE_INDEX) 
 
 def deploy():

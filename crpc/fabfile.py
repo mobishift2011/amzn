@@ -142,8 +142,8 @@ def _start_monitor():
     os.system("cd {0}/backends/webui && dtach -n /tmp/crpcwebui.sock python main.py".format(CRPC_ROOT))
 
 def _stop_monitor():
-    os.system("kill -9 `pgrep -f run.py`")
-    os.system("kill -9 `pgrep -f main.py`")
+    os.system("ps aux | grep run.py | grep -v grep | awk '{print $2}' | xargs kill -9")
+    os.system("ps aux | grep main.py | grep -v grep | awk '{print $2}' | xargs kill -9")
     os.system("rm /tmp/crpc*.sock")
 
 def _runbg(cmd, sockname="dtach"):

@@ -18,7 +18,7 @@ from helpers.rpc import get_rpcs
 
 logger = getlogger("powers.bind")
 
-common_saved_lock = gevent.coros.Semaphore()
+#common_saved_lock = gevent.coros.Semaphore()
 
 @common_saved.bind
 def single_process_image(sender, **kwargs):
@@ -33,8 +33,8 @@ def single_process_image(sender, **kwargs):
     if site and key and ready in ('Event', 'Product'):
         logger.warning('%s %s %s queries for crawling images' % (site, ready, key))
         from powers.routine import crawl_images
-        with common_saved_lock:
-            crawl_images(site, ready, key)
+        # with common_saved_lock:
+        crawl_images(site, ready, key)
     else:
         logger.warning('%s failed to start crawling image', sender)
         # TODO send a process_message error signal.

@@ -38,7 +38,7 @@ def protected(check, realm="private", text="Access denied"):
                 # return HTTPError(401, text)
             SimpleSession.objects(expires__lt=int(time.time())).delete()
             session_id = uuid.uuid4().hex
-            SimpleSession(session_id=session_id, expires=int(time.time()+3600)).save()
+            SimpleSession(session_id=session_id, expires=int(time.time()+3600*24)).save()
             response.set_cookie('fav_monitor', session_id)
             return func(*a, **ka)
         return wrapper

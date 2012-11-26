@@ -100,7 +100,7 @@ class Server(object):
 
         # categories' deals, with no products_begin time
         categories = ['women', 'men', 'home', 'electronics', 'kids', 'lifestyle']
-        for categroy_key in categories:
+        for category_key in categories:
             is_new, is_updated = False, False
             category = Category.objects(key=category_key).first()
             if not category:
@@ -134,7 +134,7 @@ class Server(object):
                     reason='download events listing error or {0} return'.format(content))
             return
         tree = lxml.html.fromstring(content)
-        primary = tree.cssselect('div#wrapper > div#content > div#front > div#primary')
+        primary = tree.cssselect('div#wrapper > div#content > div#front > div#primary')[0]
         sale_description = primary.cssselect('div.events_page_heading > div.text > p.description')[0].text_content().strip()
         nodes = primary.cssselect('div.raw_grid > div.deal')
         for node in nodes:
@@ -151,7 +151,7 @@ class Server(object):
         if not event: event = Event(event_id=event_id)
         if not event.sale_description: event.sale_description = sale_description
         if event.urgent == True:
-            event.urgent=False,
+            event.urgent = False
             ready = 'Event'
         else: ready = None
         event.update_time = datetime.utcnow()
@@ -319,9 +319,11 @@ class Server(object):
             image_urls.append( img.get('src').replace('tn.', 'rg.') )
             image_urls.append( img.get('src').replace('tn.', 'lg.') )
         ends = tree.cssselect('div#wrapper > div#content > div#front > div.top > div.ribbon-center > p')[0].text_content()
-        ends = ends.split('until')[-1].strip().replace('st', '').replace('nd', '').replace('rd', '').replace('th', '')
-        time_str, time_zone = ends.rsplit(' ', 1)
-        products_end = time_convert(time_str, '%B %d %I:%M %p%Y', time_zone)
+        if ends:
+            ends = ends.split('until')[-1].strip().replace('st', '').replace('nd', '').replace('rd', '').replace('th', '')
+            time_str, time_zone = ends.rsplit(' ', 1)
+            products_end = time_convert(time_str, '%B %d %I:%M %p%Y', time_zone)
+        print [ends], '+++++++++++++++++++++++++++++++++++++'
 
         is_new, is_updated = False, False
         product = Product.objects(key=product_id).first()
@@ -331,7 +333,7 @@ class Server(object):
         product.summary = summary
         for img in image_urls:
             if img not in product.image_urls: product.image_urls.append(img)
-        product.products_end = products_end
+        if ends: product.products_end = products_end
         product.full_update_time = datetime.utcnow()
 
         if product.updated == False:

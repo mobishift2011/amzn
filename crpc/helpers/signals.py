@@ -43,6 +43,8 @@ from collections import defaultdict
 import cPickle as pickle
 from pickle import loads as unpack, dumps as pack
 
+from gevent.pool import Pool
+
 import log
 import gevent
 import redisco
@@ -57,6 +59,7 @@ class Processer(object):
         self.ps = self.rc.pubsub()
         self.ps.subscribe(self.channel)
         gevent.spawn(self._listen)
+        self.pool = Pool(40)
 
     def add_listener(self, signal, callback):
         cbname = callback.__name__
@@ -79,7 +82,7 @@ class Processer(object):
         else:
             try:
                 for cb in self._listeners[signal]:
-                    gevent.spawn(cb, sender, **kwargs)
+                    self.pool.spawn(cb, sender, **kwargs)
                     #cb(sender, **kwargs)
             except Exception as e:
                 logger.exception("Exception happened when executing callback")

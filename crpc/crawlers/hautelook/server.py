@@ -105,7 +105,7 @@ class Server(object):
                 event.image_urls = [pop_img, grid_img]
                 event.sort_order = info['sort_order']
                 event.urgent = True
-                event.combine_url = 'http://www.hautelook.com/v3/catalog/{0}/availability'.format(event_id)
+                event.combine_url = 'http://www.hautelook.com/event/{0}'.format(event_id)
                 if not is_leaf: event.is_leaf = False
             else:
                 if info['sort_order'] != event.sort_order:
@@ -132,7 +132,7 @@ class Server(object):
             event.sale_description = sale_description
             event.dept = dept
             event.urgent = True
-            event.combine_url = 'http://www.hautelook.com/v3/catalog/{0}/availability'.format(event_id)
+            event.combine_url = 'http://www.hautelook.com/event/{0}'.format(event_id)
         event.events_begin = events_begin
         event.events_end = events_end
         event.update_time = datetime.utcnow()
@@ -171,7 +171,7 @@ class Server(object):
                 product.event_id = [event_id]
                 product.updated = False
                 product.scarcity = scarcity
-                product.combine_url = 'http://www.hautelook.com/v2/product/{0}'.format(key)
+                product.combine_url = 'http://www.hautelook.com/product/{0}'.format(key)
             else:
                 if product.scarcity != scarcity:
                     product.scarcity = scarcity

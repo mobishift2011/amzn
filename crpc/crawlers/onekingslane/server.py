@@ -216,7 +216,7 @@ class Server(object):
                 category = Category(key=category_key)
                 category.is_leaf = True
                 category.combine_url = 'https://www.onekingslane.com/vintage-market-finds/{0}'.format(category_key)
-                category.dept = ['home']
+                category.cats = ['home']
             category.update_time = datetime.utcnow()
             category.save()
             common_saved.send(sender=ctx, key=category_key, url=category.combine_url, is_new=is_new, is_updated=is_updated)

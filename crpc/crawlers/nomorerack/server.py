@@ -342,14 +342,20 @@ class Server(object):
         ends = tree.cssselect('div#wrapper > div#content > div#front > div.ribbon > div.ribbon-center h4')
         if not ends:
             ends = tree.cssselect('div#wrapper > div#content > div#front > div.top > div.ribbon-center > p')
-            if not ends:
-                ends = ends[-1].text_content()
-            else: ends = ends[0].text_content()
+            end = ends[0].text_content()
+            if not end:
+                end = ends[-1].text_content()
+            ends = end 
         else:
             ends = ends[0].text_content()
-        ends = ends.split('until')[-1].strip().replace('st', '').replace('nd', '').replace('rd', '').replace('th', '')
+        ends = ends.split('until')[-1].strip().replace('st', '').replace('nd', '').replace('rd', '').replace('th', '') 
         time_str, time_zone = ends.rsplit(' ', 1)
-        products_end = time_convert(time_str, '%B %d %I:%M %p%Y', time_zone)
+
+        if len(time_str.split(' ')) == 3:
+            time_format = '%B %d %I:%M%p%Y'
+        elif len(time_str.split(' ')) == 4:
+            time_format = '%B %d %I:%M %p%Y'
+        products_end = time_convert(time_str, time_format, time_zone)
 
         is_new, is_updated = False, False
         product = Product.objects(key=product_id).first()

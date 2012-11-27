@@ -39,8 +39,8 @@ class PowerServer(object):
         doctype = kwargs.get('doctype', '').capitalize()
         key = kwargs.get('key', '')
         brand = kwargs.get('brand') or ''
-        title = kwargs.get('title', '')
-        combine_url = kwargs.get('combine_url', '')
+        title = kwargs.get('title') or ''
+        combine_url = kwargs.get('combine_url') or ''
 
         # TO REMOVE
         import time

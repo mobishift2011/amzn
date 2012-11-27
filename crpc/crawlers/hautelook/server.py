@@ -209,59 +209,67 @@ class Server(object):
             except ValueError:
                 common_failed.send(sender=ctx, key='get product twice, url has nothing', url=url, reason='url has nothing')
                 return
-        product = Product.objects(key=url.split('/')[-1]).first()
-        is_new = False
-        if not product:
-            is_new = True
-            product = Product(key=url.split('/')[-1])
 
-#        product.event_id = [str(data['event_id'])]
-        product.title = data['title']
+#        event_id = [str(data['event_id'])]
+        title = data['title']
+        list_info, brand = [], ''
         if 'copy' in data and data['copy']:
-            product.list_info = data['copy'].split('\n')
+            list_info = data['copy'].split('\n')
 
         if data['event_display_brand_name']:
             if data['event_title'] != data['brand_name']:
-                product.brand = data['brand_name']
+                brand = data['brand_name']
 
-        product.sizes = [sz['name'] for sz in data['collections']['size']] # OS -- no size info
-        if data['add_info']: product.additional_info = data['add_info'].split('\n')
-        if data['care']: product.care_info = data['care']
-        if data['fiber']: product.fiber = data['fiber']
-        product.arrives = data['arrives']
 
-        product.returned = str(int(data['returnable'])) # bool
-        product.international_ship = str(int(data['international'])) # bool
-        product.delivery_date = ' to '.join((data['estimated_delivery']['start_date'], data['estimated_delivery']['end_date']))
-        product.choke_hazard = str(int(data['choke_hazard'])) # bool
-
-        color = ''
+        product_id = url.rsplit('/', 1)[-1]
+        color, price, listprice = '', '', ''
         # same product with different colors, all in the same product id
         price_flage = True
         for color_str,v in data['prices'].iteritems():
             if not price_flage: break
             if isinstance(v, list):
                 for val in v:
-                    if product.key == str(val['inventory_id']):
-                        product.price = str(val['sale_price'])
-                        product.listprice = str(val['retail_price'])
+                    if product_id == str(val['inventory_id']):
+                        price = str(val['sale_price'])
+                        listprice = str(val['retail_price'])
                         price_flage = False
                         color = color_str
                         break
                 else:
-                    product.price = str(val['sale_price'])
-                    product.listprice = str(val['retail_price'])
+                    price = str(val['sale_price'])
+                    listprice = str(val['retail_price'])
             elif isinstance(v, dict):
                 for size, val in v.iteritems():
-                    if product.key == str(val['inventory_id']):
-                        product.price = str(val['sale_price'])
-                        product.listprice = str(val['retail_price'])
+                    if product_id == str(val['inventory_id']):
+                        price = str(val['sale_price'])
+                        listprice = str(val['retail_price'])
                         price_flage = False
                         color = color_str
                         break
                 else:
-                    product.price = str(val['sale_price'])
-                    product.listprice = str(val['retail_price'])
+                    price = str(val['sale_price'])
+                    listprice = str(val['retail_price'])
+
+        product = Product.objects(key=url.split('/')[-1]).first()
+        is_new = False
+        if not product:
+            is_new = True
+            product = Product(key=url.split('/')[-1])
+        product.sizes = [sz['name'] for sz in data['collections']['size']] # OS -- no size info
+        if data['add_info']: product.additional_info = data['add_info'].split('\n')
+        if data['care']: product.care_info = data['care']
+        if data['fiber']: product.fiber = data['fiber']
+        product.arrives = data['arrives']
+
+        product.title = title
+        product.list_info = list_info
+        product.brand = brand
+        product.returned = str(int(data['returnable'])) # bool
+        product.international_ship = str(int(data['international'])) # bool
+        product.delivery_date = ' to '.join((data['estimated_delivery']['start_date'], data['estimated_delivery']['end_date']))
+        product.choke_hazard = str(int(data['choke_hazard'])) # bool
+        product.price = price
+        product.listprice = listprice
 
         if color:
             # color: find the color, associate it to get the right images

@@ -7,6 +7,7 @@ This is the server part of zeroRPC module. Call by client automatically, run on 
 
 """
 
+import time
 import lxml.html
 from datetime import datetime
 
@@ -202,7 +203,7 @@ class Server(object):
             soldout = True if node.cssselect('div.info > h4.sold_out') else False
             product, is_new, is_updated = self.from_listing_get_info(node, soldout)
 
-            if is_new: product.event_type = False # different from events' product
+            product.event_type = False # different from events' product
             product.products_begin = east_today_begin_in_utc
             product.products_end = products_end
             product.save()
@@ -317,7 +318,9 @@ class Server(object):
         """
         product_id = url.rsplit('/', 1)[-1]
         content = fetch_page(url)
-        if content is None: content = fetch_page(url)
+        if content is None:
+            time.sleep(0.3)
+            content = fetch_page(url)
         if isinstance(content, int) or content is None:
             common_failed.send(sender=ctx, key=product_id, url=url,
                     reason='download product detail page error or {0} return'.format(content))

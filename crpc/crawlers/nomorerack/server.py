@@ -186,6 +186,7 @@ class Server(object):
             Got all the product from today's sales listing, products_begin and products_end can be gotten
         """
         content = fetch_page(url)
+        if content is None: content = fetch_page(url)
         if isinstance(content, int) or content is None:
             common_failed.send(sender=ctx, key='#', url=url,
                     reason='download sales listing homepage error or {0} return'.format(content))
@@ -215,6 +216,7 @@ class Server(object):
         """
         category_key = url.rsplit('/', 1)[-1]
         content = fetch_page(url)
+        if content is None: content = fetch_page(url)
         if isinstance(content, int) or content is None:
             common_failed.send(sender=ctx, key=category_key, url=url,
                     reason='download sales listing error or {0} return'.format(content))
@@ -290,6 +292,7 @@ class Server(object):
             url = 'http://nomorerack.com/daily_deals/category_jxhrq/{0}?offset={1}&sort=best_selling'.format(category_key, number)
             number += 12
             content = fetch_page(url)
+            if content is None: content = fetch_page(url)
             if isinstance(content, int) or content is None:
                 common_failed.send(sender=ctx, key=category_key, url=url,
                         reason='download sales listing js products error or {0} return'.format(content))
@@ -319,7 +322,7 @@ class Server(object):
         product_id = url.rsplit('/', 1)[-1]
         content = fetch_page(url)
         if content is None:
-            time.sleep(0.3)
+            time.sleep(0.5)
             content = fetch_page(url)
         if isinstance(content, int) or content is None:
             common_failed.send(sender=ctx, key=product_id, url=url,

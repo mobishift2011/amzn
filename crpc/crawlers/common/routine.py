@@ -43,18 +43,22 @@ def spout_listing(site):
     m = get_site_module(site)
     now = datetime.utcnow()
     if hasattr(m, 'Event'):
-        return m.Event.objects(Q(urgent=True) & (Q(events_begin__lte=now) | Q(events_begin__exists=False)) & (Q(events_end__gte=now) | Q(events_end__exists=False)) & (Q(is_leaf=True) | Q(is_leaf__exists=False))).timeout(False)
+        for event in m.Event.objects(Q(urgent=True) & (Q(events_begin__lte=now) | Q(events_begin__exists=False)) & (Q(events_end__gte=now) | Q(events_end__exists=False)) & (Q(is_leaf=True) | Q(is_leaf__exists=False))).timeout(False):
+            yield event
     if hasattr(m, 'Category'):
-        return m.Category.objects(is_leaf=True).order_by('update_time').timeout(False)
+        for category in m.Category.objects(is_leaf=True).order_by('update_time').timeout(False):
+            yield category
 
 def spout_listing_update(site):
     """ return a generator spouting listing pages """
     m = get_site_module(site)
     now = datetime.utcnow()
     if hasattr(m, 'Event'):
-        return m.Event.objects(Q(urgent=False) & (Q(events_begin__lte=now) | Q(events_begin__exists=False)) & (Q(events_end__gte=now) | Q(events_end__exists=False)) & (Q(is_leaf=True) | Q(is_leaf__exists=False))).timeout(False)
+        for event in m.Event.objects(Q(urgent=False) & (Q(events_begin__lte=now) | Q(events_begin__exists=False)) & (Q(events_end__gte=now) | Q(events_end__exists=False)) & (Q(is_leaf=True) | Q(is_leaf__exists=False))).timeout(False):
+            yield event
     if hasattr(m, 'Category'):
-        return m.Category.objects(is_leaf=True).order_by('update_time').timeout(False)
+        for category in m.Category.objects(is_leaf=True).order_by('update_time').timeout(False):
+            yield category
 
 
 def spout_category(site, category):

@@ -9,6 +9,7 @@ from powers.models import EventProgress, ProductProgress
 from datetime import datetime
 
 import gevent
+import gevent.coros
 
 from settings import POWER_PEERS, POWER_PORT
 
@@ -17,6 +18,7 @@ from helpers.rpc import get_rpcs
 
 logger = getlogger("powers.bind")
 
+common_saved_lock = gevent.coros.Semaphore(1)
 
 @common_saved.bind
 def single_process_image(sender, **kwargs):
@@ -31,12 +33,22 @@ def single_process_image(sender, **kwargs):
     if site and key and ready in ('Event', 'Product'):
         logger.warning('%s %s %s queries for crawling images' % (site, ready, key))
         from powers.routine import crawl_images
-        crawl_images(site, ready, key)
+        with common_saved_lock:
+            crawl_images(site, ready, key)
     else:
         logger.warning('%s failed to start crawling image', sender)
         # TODO send a process_message error signal.
 
-@ready_for_batch_image_crawling.bind
+#    if site and key and ready in ('Event', 'Product'):
+#        from settings import *
+#        import redisco
+#        channel = 'imageUps3'
+#        redis_client = redisco.get_client()
+#        pipe = redis_client.pipeline()
+#        pipe.set(site, '{0}.{1}'.format(ready, key))
+#
+
+#@ready_for_batch_image_crawling.bind
 def batch_image_crawl(sender, **kwargs):
     logger.warning("{0} finish is listened, start to ready for batch {1} image crawl".format(sender, kwargs.get('doctype')))
     site = kwargs.get('site')

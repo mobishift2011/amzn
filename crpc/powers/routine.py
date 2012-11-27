@@ -9,7 +9,6 @@ Provides a image processed workflow for all callers
 
 from gevent import monkey; monkey.patch_all()
 from gevent.pool import Pool
-import gevent.coros
 import zerorpc
 import uuid
 import random
@@ -21,8 +20,6 @@ from events import *
 
 from helpers.rpc import get_rpcs
 from crawlers.common.routine import get_site_module
-
-access_db_lock = gevent.coros.Semaphore(1)
 
 def call_rpc(rpc, method, *args, **kwargs):
     try:
@@ -117,23 +114,22 @@ def crawl_images(site, model, key, rpc=None, *args, **kwargs):
     with UpdateContext(site, method) as ctx:
         newargs = {}
         m = __import__("crawlers."+site+'.models', fromlist=['Event', 'Product'])
-        with access_db_lock:
-            if model == 'Event':
-                event = m.Event.objects.get(event_id=key)
-                if event and not event.image_complete:
-                    newargs.__setitem__('site', site)
-                    newargs.__setitem__('event_id', event.event_id)
-                    newargs.__setitem__('image_urls', event.image_urls)
-                    newargs.__setitem__('ctx', ctx)
-                    newargs.__setitem__('doctype', 'event')
-            elif model == 'Product':
-                product = m.Product.objects.get(key=key)
-                if product and not product.image_complete:
-                    newargs.__setitem__('site', site)
-                    newargs.__setitem__('key', product.key)
-                    newargs.__setitem__('image_urls', product.image_urls)
-                    newargs.__setitem__('ctx', ctx)
-                    newargs.__setitem__('doctype', 'product')
+        if model == 'Event':
+            event = m.Event.objects.get(event_id=key)
+            if event and not event.image_complete:
+                newargs.__setitem__('site', site)
+                newargs.__setitem__('event_id', event.event_id)
+                newargs.__setitem__('image_urls', event.image_urls)
+                newargs.__setitem__('ctx', ctx)
+                newargs.__setitem__('doctype', 'event')
+        elif model == 'Product':
+            product = m.Product.objects.get(key=key)
+            if product and not product.image_complete:
+                newargs.__setitem__('site', site)
+                newargs.__setitem__('key', product.key)
+                newargs.__setitem__('image_urls', product.image_urls)
+                newargs.__setitem__('ctx', ctx)
+                newargs.__setitem__('doctype', 'product')
         
         if newargs and method:
             rpcs = [rpc] if not isinstance(rpc, list) else rpc

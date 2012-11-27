@@ -9,7 +9,7 @@ from tools import ImageTool
 from powers.events import image_crawled, image_crawled_failed
 from powers.binds import image_crawled, image_crawled_failed
 
-process_image_lock = Semaphore(1)
+#process_image_lock = Semaphore(1)
 
 class PowerServer(object):
     def process_image(self, args=(), kwargs={}):
@@ -24,12 +24,11 @@ class PowerServer(object):
         image_path = image_tool.crawl(image_urls, site, key)
         if len(image_path):
 
-            with process_image_lock:
-                if doctype == 'event':
-                    m.Event.objects(event_id=key).update(set__image_path=image_path)
-                elif doctype == 'product':
-                    m.Product.objects(key=key).update(set__image_path=image_path)
-                image_crawled.send(sender=ctx, site=site, key=key, model=doctype.capitalize(), num=len(image_path))
+            if doctype == 'event':
+                m.Event.objects(event_id=key).update(set__image_path=image_path)
+            elif doctype == 'product':
+                m.Product.objects(key=key).update(set__image_path=image_path)
+            image_crawled.send(sender=ctx, site=site, key=key, model=doctype.capitalize(), num=len(image_path))
         else:
             # TODO image_crawled_failed or need try except
             pass

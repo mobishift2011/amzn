@@ -345,10 +345,8 @@ class Server(object):
             if not ends:
                 ends = ends[-1].text_content()
             else: ends = ends[0].text_content()
-            print [ends], 'Deals+++++++++++++++++++++++++++++++++++++'
         else:
             ends = ends[0].text_content()
-            print [ends], 'Event+++++++++++++++++++++++++++++++++++++'
         ends = ends.split('until')[-1].strip().replace('st', '').replace('nd', '').replace('rd', '').replace('th', '')
         time_str, time_zone = ends.rsplit(' ', 1)
         products_end = time_convert(time_str, '%B %d %I:%M %p%Y', time_zone)
@@ -370,7 +368,7 @@ class Server(object):
             ready = 'Product'
         else: ready = None
         product.save()
-        common_saved.send(sender=ctx, key=product.key, url=url, is_new=is_new, is_updated=is_updated, ready=ready)
+        common_saved.send(sender=ctx, key=product.key, url=url, is_new=is_new, is_updated=not is_new, ready=ready)
 
 
 if __name__ == '__main__':

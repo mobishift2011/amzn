@@ -255,12 +255,12 @@ class Server(object):
         if not product:
             is_new = True
             product = Product(key=url.split('/')[-1])
-        product.sizes = [sz['name'] for sz in data['collections']['size']] # OS -- no size info
         if data['add_info']: product.additional_info = data['add_info'].split('\n')
         if data['care']: product.care_info = data['care']
         if data['fiber']: product.fiber = data['fiber']
-        product.arrives = data['arrives']
 
+        product.sizes = [sz['name'] for sz in data['collections']['size']] # OS -- no size info
+        product.arrives = data['arrives']
         product.title = title
         product.list_info = list_info
         product.brand = brand

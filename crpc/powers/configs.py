@@ -27,4 +27,4 @@ SITES = (
     'venteprivee'
 )
 
-CATALOG_BASE_URL = 'http://localhost:1319/api'
+CATALOG_BASE_URL = 'http://mongodb.favbuy.org:1319/api'

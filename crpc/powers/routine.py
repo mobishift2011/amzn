@@ -64,12 +64,12 @@ def spout_brands(site, doctype):
         'Event': {
             'key': 'event_id',
             'title': 'sale_title',
-            'kwargs': {'branch_complete': False}
+            'kwargs': {'complete_status': '000'}    # TODO determinate the flag indication.
         },
         'Product': {
             'key': 'key',
             'title': 'title',
-            'kwargs': {'updated': True, 'branch_complete': False}
+            'kwargs': {'updated': True}   # TODO determinate the flag indication.
         }
     }
 
@@ -164,7 +164,7 @@ def crawl_images(site, model, key, rpc=None, *args, **kwargs):
             rpc = random.choice(rpcs)
             call_rpc(rpc, method, **newargs)
 
-def test_brand():
+def test_brand(test_site=None):
     import time
     from powerserver import PowerServer
     start = time.time()
@@ -174,9 +174,9 @@ def test_brand():
         if test_site and site != test_site:
             continue
 
-        events = spout_brands(site, 'event')
-        for event in events:
-            call_rpc(PowerServer(), 'extract_brand', **event)
+        # events = spout_brands(site, 'event')
+        # for event in events:
+        #     call_rpc(PowerServer(), 'extract_brand', **event)
 
         products = spout_brands(site, 'product')
         for product in products:
@@ -192,5 +192,7 @@ if __name__ == '__main__':
     #crawl_images('zulily', 'Event', 'parade-of-toys-112212')
     #scan_images('zulily', 'product', get_rpcs(), 3)
     import sys
-    if len(sys.argv[1]):
+    if len(sys.argv)>1:
         test_brand(sys.argv[1])
+    else:
+        test_brand()

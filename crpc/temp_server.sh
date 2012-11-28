@@ -1,0 +1,1 @@
+nohup python djCatalog/manage.py runserver 0.0.0.0:1319 &

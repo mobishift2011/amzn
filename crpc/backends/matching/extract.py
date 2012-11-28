@@ -3,22 +3,33 @@
 import time
 import esm
 
+from os.path import join, abspath, dirname
+
+tag_path = join(dirname(abspath(__file__)), 'tags.list')
+
 class Extracter(object):
-    def __init__(self):
+    def __init__(self, tags=None):
+        self.stopwords = ' \t\r\n,;.%0123456789\'"_-'
+        self.i = None
+        self.tags = tags or [ t for t in open(tag_path).read().split('\n') if t ]
+        self._rebuild_index()
+
+    def _rebuild_index(self):
         self.i = esm.Index()
-        tags = [ t.lower() for t in open('tags.list').read().split('\n') if t ]
-        for tag in tags:
-            self.i.enter(tag)
+        for tag in self.tags:
+            self.i.enter(tag.lower(), tag)
         self.i.fix()
-        self.stopwords = ' \t\r\n,;.%\d+\'"_-'
 
     def extract(self, s):
+        s = s.lower()
         results = self.i.query(s)
         ret = []
+        lens = len(s)
         for r in results:
             if (r[0][0] == 0 or s[ r[0][0]-1 ] in self.stopwords) and \
-                (r[0][1] == -1 or s[ r[0][1] ] in self.stopwords):  # the char after keyword
-                    ret.append( r[1] )
+                (r[0][1] == lens or s[ r[0][1] ] in self.stopwords) and \
+                    r[1] not in ret:
+                        ret.append( r[1] )
         return ret
 
 def get_site_module(site):
@@ -36,9 +47,12 @@ def extract(site):
                 s.append(getattr(p, name))
         s = '\n'.join([ x.encode('utf-8') for x in s])
         c += 1
-        #print e.extract(s), s
+        es = e.extract(s)
+        if es == []:
+            print s
+            raw_input()
     time_consumed = time.time() - t
-    print 'qps', c/time_consumed
+    #print 'qps', c/time_consumed
 
 
 if __name__ == '__main__':

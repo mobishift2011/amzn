@@ -55,7 +55,7 @@ def match(self, **kwargs):
 	if match:
 		print '%s match:' % indicator
 		print '%s%s%s%s%s%s' % (brand, '\n', title, '\n', match, '\n\n'),
-		return brand
+		return match[-1][1]
 
 	if not match:
 		fail(title=title, model='Brand', content=brand, site=site, doctype=doctype, key=key, url=combine_url)

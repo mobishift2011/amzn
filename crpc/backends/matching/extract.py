@@ -10,9 +10,16 @@ class Extracter(object):
         for tag in tags:
             self.i.enter(tag)
         self.i.fix()
+        self.stopwords = ' \t\r\n,;.%\d+\'"_-'
 
     def extract(self, s):
-        return self.i.query(s)
+        results = self.i.query(s)
+        ret = []
+        for r in results:
+            if (r[0][0] == 0 or s[ r[0][0]-1 ] in self.stopwords) and \
+                (r[0][1] == -1 or s[ r[0][1] ] in self.stopwords):  # the char after keyword
+                    ret.append( r[1] )
+        return ret
 
 def get_site_module(site):
     return __import__('crawlers.'+site+'.models', fromlist=['Category', 'Event', 'Product'])
@@ -29,9 +36,9 @@ def extract(site):
                 s.append(getattr(p, name))
         s = '\n'.join([ x.encode('utf-8') for x in s])
         c += 1
+        #print e.extract(s), s
     time_consumed = time.time() - t
     print 'qps', c/time_consumed
-        #print e.extract(s), s
 
 
 if __name__ == '__main__':

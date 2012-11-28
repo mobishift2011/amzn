@@ -36,23 +36,22 @@ class PowerServer(object):
 
     def extract_brand(self, args=(), kwargs={}):
         site = kwargs.get('site', '')
-        doctype = kwargs.get('doctype', '').capitalize()
+        doctype = kwargs.get('doctype', '')
         key = kwargs.get('key', '')
-        brand = kwargs.get('brand') or ''
-        title = kwargs.get('title') or ''
-        combine_url = kwargs.get('combine_url') or ''
+        brand = kwargs.get('brand', '')
 
-        # TO REMOVE
-        import time
-        print site,'  ' + doctype + '  ',  key + '<'+brand+'>  ',  '<'+ title +'>'+ ':'
-
-        brand = APIClient.brand.match(brand, title, combine_url)
+        m = __import__('crawlers.'+site+'.models', fromlist=[doctype])
+        brand = APIClient.brand.match(**kwargs)
         if brand:
-            m = __import__('crawlers.'+site+'.models', fromlist=[doctype])
             if doctype == 'Event':
-                m.Event.objects(event_id=key).update(set__favbuy_brand=brand, set__complete_status='001')
+                m.Event.objects(event_id=key).update(set__favbuy_brand=brand, set__complete_status='002')
             elif doctype == 'Product':
-                m.Product.objects(key=key).update(set__favbuy_brand=brand, set__complete_status='001')
+                m.Product.objects(key=key).update(set__favbuy_brand=brand, set__complete_status='002')
+        else:
+            if doctype == 'Event':
+                m.Event.objects(event_id=key).update(set__complete_status='001')
+            elif doctype == 'Product':
+                m.Product.objects(key=key).update(set__complete_status='001')
 
             # TODO send a signal to inform the success of brand extract
 
@@ -68,6 +67,8 @@ def test():
     APIServer().process_image(site, image_urls, ctx, doctype, event_id=event.event_id)
 
 if __name__ == '__main__':
-    zs = zerorpc.Server(PowerServer()) 
+    zs = zerorpc.Server(PowerServer(), pool_size=50) 
     zs.bind("tcp://0.0.0.0:{0}".format(POWER_PORT))
     zs.run()
+
+    #APIClient.brand.match(title='fuxin', brand='kuqibalahong', site='onemorerack', doctype='event', key='laji', combine_url='dasdf')

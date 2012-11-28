@@ -59,7 +59,6 @@ class Processer(object):
         self.ps = self.rc.pubsub()
         self.ps.subscribe(self.channel)
         gevent.spawn(self._listen)
-        self.pools = {}
 
     def add_listener(self, signal, callback):
         cbname = callback.__name__
@@ -82,9 +81,7 @@ class Processer(object):
         else:
             try:
                 for cb in self._listeners[signal]:
-                    if signal not in self.pools:
-                        self.pools[signal] = Pool(40)
-                    self.pools[signal].spawn(cb, sender, **kwargs)
+                    gevent.spawn(cb, sender, **kwargs)
                     #cb(sender, **kwargs)
             except Exception as e:
                 logger.exception("Exception happened when executing callback")

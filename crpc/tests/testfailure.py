@@ -2,7 +2,7 @@ import traceback
 from zerorpc import Client
 from settings import *
 
-def test(peers, port):
+def dotest(peers, port):
     for p in peers:
         username, hostname = p.split('@')
         print 'testing', hostname
@@ -14,6 +14,6 @@ def test(peers, port):
 
 
 if __name__ == '__main__':
-    test(CRAWLER_PEERS, CRAWLER_PORT)
-    test(POWER_PEERS, POWER_PORT)
+    dotest(CRAWLER_PEERS, CRAWLER_PORT)
+    dotest(POWER_PEERS, POWER_PORT)
     

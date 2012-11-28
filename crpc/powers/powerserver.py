@@ -6,6 +6,7 @@ import zerorpc
 from gevent.coros import Semaphore
 
 from tools import ImageTool
+from brandAPI import APIClient
 from powers.events import image_crawled, image_crawled_failed
 from powers.binds import image_crawled, image_crawled_failed
 
@@ -32,6 +33,30 @@ class PowerServer(object):
         else:
             # TODO image_crawled_failed or need try except
             pass
+
+    def extract_brand(self, args=(), kwargs={}):
+        site = kwargs.get('site', '')
+        doctype = kwargs.get('doctype', '').capitalize()
+        key = kwargs.get('key', '')
+        brand = kwargs.get('brand') or ''
+        title = kwargs.get('title') or ''
+        combine_url = kwargs.get('combine_url') or ''
+
+        # TO REMOVE
+        import time
+        print site,'  ' + doctype + '  ',  key + '<'+brand+'>  ',  '<'+ title +'>'+ ':'
+
+        brand = APIClient.brand.match(brand, title, combine_url)
+        if brand:
+            m = __import__('crawlers.'+site+'.models', fromlist=[doctype])
+            if doctype == 'Event':
+                m.Event.objects(event_id=key).update(set__favbuy_brand=brand, set__complete_status='001')
+            elif doctype == 'Product':
+                m.Product.objects(key=key).update(set__favbuy_brand=brand, set__complete_status='001')
+
+            # TODO send a signal to inform the success of brand extract
+
+        # TODO set the brand back to the data object in db for cleaning.
 
 def test():
     from crawlers.gilt.models import Event

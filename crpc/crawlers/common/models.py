@@ -24,6 +24,9 @@ class BaseDocumentSkeleton(object):
     image_urls          =   ListField(StringField())
     image_path          =   ListField(StringField())
     image_complete      =   BooleanField(default=False)
+    complete_status     =   StringField(default='000')
+    favbuy_brand        =   StringField(default='')
+    favbuy_tag          =   ListField(StringField())
 
     sale_title          =   StringField()
     sale_description    =   StringField()
@@ -185,7 +188,9 @@ class LuxuryProduct(BaseProduct):
     list_info           =   ListField(StringField())
 
     image_complete      =   BooleanField(default=False)
-    branch_complete     =   BooleanField(default=False)
+    complete_status     =   StringField(default='000')
+    favbuy_brand       =   StringField(default='')
+    favbuy_tag          =   ListField(StringField())
 
     meta                = {
         "indexes": ["soldout"],

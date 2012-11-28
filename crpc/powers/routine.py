@@ -27,12 +27,12 @@ def call_rpc(rpc, method, *args, **kwargs):
         getattr(rpc, method)(args, kwargs)
     except Exception:
         print traceback.format_exc()
-        image_crawled_failed.send(sender=kwargs['ctx'],
-                            site = kwargs['ctx'],
-                            key = kwargs.get('key') or kwargs.get('event_id'),
-                            url = kwargs.get('url'),
-                            reason = traceback.format_exc()
-                            )
+        # image_crawled_failed.send(sender=kwargs['ctx'],
+        #                     site = kwargs['ctx'],
+        #                     key = kwargs.get('key') or kwargs.get('event_id'),
+        #                     url = kwargs.get('url'),
+        #                     reason = traceback.format_exc()
+        #                     )
 
 def spout_images(site, doctype):
     m = get_site_module(site)
@@ -57,6 +57,34 @@ def spout_images(site, doctype):
             'site': site,
             docparam['key']: getattr(instance, docparam['key']),
             'image_urls': instance.image_urls,
+        }
+
+def spout_brands(site, doctype):
+    docdict = {
+        'Event': {
+            'key': 'event_id',
+            'title': 'sale_title',
+            'kwargs': {'complete_status': '000'}    # TODO determinate the flag indication.
+        },
+        'Product': {
+            'key': 'key',
+            'title': 'title',
+            'kwargs': {'updated': True}   # TODO determinate the flag indication.
+        }
+    }
+
+    model = doctype.capitalize()
+    m = __import__('crawlers.{0}.models'.format(site), fromlist=[model])
+    instances = getattr(m, model).objects(**docdict[model]['kwargs'])
+
+    for instance in instances:
+        yield {
+            'site': site,
+            'key': getattr(instance, docdict.get(model)['key']),
+            'title': getattr(instance, docdict.get(model)['title']),
+            'brand': instance.brand,
+            'doctype': model,
+            'combine_url': instance.combine_url,
         }
 
 class UpdateContext(object):
@@ -136,10 +164,35 @@ def crawl_images(site, model, key, rpc=None, *args, **kwargs):
             rpc = random.choice(rpcs)
             call_rpc(rpc, method, **newargs)
 
+def test_brand(test_site=None):
+    import time
+    from powerserver import PowerServer
+    start = time.time()
+
+    for site in SITES:
+        print 'site:%s, test_site:%s' % (site, test_site)
+        if test_site and site != test_site:
+            continue
+
+        # events = spout_brands(site, 'event')
+        # for event in events:
+        #     call_rpc(PowerServer(), 'extract_brand', **event)
+
+        products = spout_brands(site, 'product')
+        for product in products:
+            call_rpc(PowerServer(), 'extract_brand', **product)
+
+    print 'total cost: %s (ms)' % (time.time()-start)
+
 if __name__ == '__main__':
-    from powers.powerserver import PowerServer
-    rpc = PowerServer()
-    print  POWER_PEERS, POWER_PORT
-    scan_images('zulily', 'event', get_rpcs(POWER_PEERS, POWER_PORT) , 3)
+    # from powers.powerserver import PowerServer
+    # rpc = PowerServer()
+    # print  POWER_PEERS, POWER_PORT
+    # scan_images('zulily', 'event', get_rpcs(POWER_PEERS, POWER_PORT) , 3)
     #crawl_images('zulily', 'Event', 'parade-of-toys-112212')
     #scan_images('zulily', 'product', get_rpcs(), 3)
+    import sys
+    if len(sys.argv)>1:
+        test_brand(sys.argv[1])
+    else:
+        test_brand()

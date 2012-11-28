@@ -67,7 +67,7 @@ def test():
     APIServer().process_image(site, image_urls, ctx, doctype, event_id=event.event_id)
 
 if __name__ == '__main__':
-    zs = zerorpc.Server(PowerServer()) 
+    zs = zerorpc.Server(PowerServer(), pool_size=50) 
     zs.bind("tcp://0.0.0.0:{0}".format(POWER_PORT))
     zs.run()
 

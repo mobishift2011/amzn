@@ -1,0 +1,31 @@
+<html>
+<head></head>
+<body>
+	<table>
+		<tr>
+			<th>title</th>
+			<th>model</th>
+			<th>content</th>
+			<th>site</th>
+			<th>doctype</th>
+			<th>key</th>
+			<th>url</th>
+			<th>created_at</th>
+			<th>updated_at</th>
+		</tr>
+		{% for fail in fails %}
+			<tr>
+				<td>{{ fail.title }}</td>
+				<td>{{ fail.model }}</td>
+				<td>{{ fail.content }}</td>
+				<td>{{ fail.site }}</td>
+				<td>{{ fail.doctype }}</td>
+				<td>{{ fail.key }}</td>
+				<td>{{ fail.url }}</td>
+				<td>{{ fail.created_at }}</td>
+				<td>{{ fail.updated_at }}</td>
+			</tr>
+		{% endfor %}
+	</table>
+</body>
+</html>

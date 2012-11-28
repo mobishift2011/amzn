@@ -27,8 +27,9 @@ class Extracter(object):
         lens = len(s)
         for r in results:
             if (r[0][0] == 0 or s[ r[0][0]-1 ] in self.stopwords) and \
-                (r[0][1] == lens or s[ r[0][1] ] in self.stopwords):  # the char after keyword
-                    ret.append( r[1] )
+                (r[0][1] == lens or s[ r[0][1] ] in self.stopwords) and \
+                    r[1] not in ret:
+                        ret.append( r[1] )
         return ret
 
 def get_site_module(site):
@@ -46,9 +47,12 @@ def extract(site):
                 s.append(getattr(p, name))
         s = '\n'.join([ x.encode('utf-8') for x in s])
         c += 1
-        #print e.extract(s), s
+        es = e.extract(s)
+        if es == []:
+            print s
+            raw_input()
     time_consumed = time.time() - t
-    print 'qps', c/time_consumed
+    #print 'qps', c/time_consumed
 
 
 if __name__ == '__main__':

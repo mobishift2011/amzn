@@ -7,7 +7,7 @@ crawlers.hautelook.server
 This is the server part of zeroRPC module. Call by client automatically, run on many differen ec2 instances.
 
 """
-from crawlers.common.imageprocessor import *
+#from crawlers.common.imageprocessor import *
 from crawlers.common.events import *
 from crawlers.common.stash import *
 from models import *

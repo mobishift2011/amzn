@@ -36,14 +36,6 @@ def single_process_image(sender, **kwargs):
         logger.warning('%s failed to start crawling image', sender)
         # TODO send a process_message error signal.
 
-#    if site and key and ready in ('Event', 'Product'):
-#        from settings import *
-#        import redisco
-#        channel = 'imageUps3'
-#        redis_client = redisco.get_client()
-#        pipe = redis_client.pipeline()
-#        pipe.set(site, '{0}.{1}'.format(ready, key))
-#
 
 #@ready_for_batch_image_crawling.bind
 def batch_image_crawl(sender, **kwargs):

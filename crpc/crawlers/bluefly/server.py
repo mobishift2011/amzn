@@ -29,12 +29,19 @@ class Server(object):
         handbags_accessories_url = 'http://www.bluefly.com/a/handbags-accessories'
         jewelry_url = 'http://www.bluefly.com/a/jewelry-shop'
         men_url = 'http://www.bluefly.com/a/men-clothing-shoes-accessories'
+        sale_url = 'http://www.bluefly.com/a/designer-sale'
+        kids_url = 'http://www.bluefly.com/Designer-Kids/_/N-v2wq/list.fly'
+        new_url = 'http://www.bluefly.com/New-Arrivals/_/N-1aaqZapsz/newarrivals.fly'
 
         self.crawl_women_or_shoes_category('women', women_url, ctx)
         self.crawl_women_or_shoes_category('shoes', shoes_url, ctx)
         self.crawl_handbag_accessories_category('handbags&accessories', handbags_accessories_url, ctx)
         self.crawl_jewelry_or_men_category('jewelry', jewelry_url, ctx)
         self.crawl_jewelry_or_men_category('men', men_url, ctx)
+        self.crawl_sale_category('sale', sale_url, ctx)
+        self.crawl_kids_category('kids', kids_url, ctx)
+        self.crawl_newarrivals_category('new', new_url, ctx)
+
 
     def crawl_women_or_shoes_category(self, category, url, ctx):
         content = fetch_page(url)
@@ -106,7 +113,100 @@ class Server(object):
         parts = navigation.xpath('./following-sibling::ul[@id="deptLeftnavList"]')
         for part in parts:
             sub_category = part.xpath('./preceding-sibling::h2[1]/a/text()')
-            part.xpath('')
+            if sub_category == "Men's Sale":
+                continue
+            nodes = part.xpath('./li')
+            for node in nodes:
+                directory = node.xpath('.//text()')
+                link = node.xpath('./a/@href')[0]
+                link = link if link.startswith('http') else self.siteurl + link
+                slug, key = re.compile(r'.*/(.+)/_/N-(.+)/list.fly').match(link).groups()
+
+                is_new, is_updated = False, False
+                category = Category.objects(key=key).first()
+                if not category:
+                    is_new = True
+                    category = Category(key=key)
+                    category.is_leaf = True
+                    category.combine_url = '{0}/_/N-{1}/list.fly'.format(self.siteurl, key)
+                    category.slug = slug
+                    category.cats = [category, sub_category, directory]
+                category.update_time = datetime.utcnow()
+                category.save()
+                common_saved.send(sender=ctx, key=key, url=url, is_new=is_new, is_updated=is_updated)
+
+
+    def crawl_sale_category(self, category, url, ctx):
+        content = fetch_page(url)
+        if content is None or isinstance(content, int):
+            common_failed.send(sender=ctx, key=category, url=url,
+                    reason='download error {0} or {1} return'.format(category, content))
+            return
+        tree = lxml.html.fromstring(content)
+        navigation = tree.xpath('//div[@id="lnavi"]/div[@id="leftDeptColumn"]/div[@id="deptLeftnavContainer"]/h3[text()="categories"]')[0]
+        nodes = navigation.xpath('./following-sibling::h2')
+        for i in range(len(nodes) - 1):
+            directory = node.xpath('.//text()')
+            link = node.xpath('./a/@href')[0]
+            link = link if link.startswith('http') else self.siteurl + link
+            slug, key = re.compile(r'.*/(.+)/_/N-(.+)/list.fly').match(link).groups()
+
+            is_new, is_updated = False, False
+            category = Category.objects(key=key).first()
+            if not category:
+                is_new = True
+                category = Category(key=key)
+                category.is_leaf = True
+                category.combine_url = '{0}/_/N-{1}/list.fly'.format(self.siteurl, key)
+                category.slug = slug
+                category.cats = [category, directory]
+            category.update_time = datetime.utcnow()
+            category.save()
+            common_saved.send(sender=ctx, key=key, url=url, is_new=is_new, is_updated=is_updated)
+
+
+    def crawl_kids_category(self, category, url, ctx):
+        slug, key = re.compile(r'.*/(.+)/_/N-(.+)/list.fly').match(url).groups()
+
+        is_new, is_updated = False, False
+        category = Category.objects(key=key).first()
+        if not category:
+            is_new = True
+            category = Category(key=key)
+            category.is_leaf = True
+            category.combine_url = '{0}/_/N-{1}/list.fly'.format(self.siteurl, key)
+            category.slug = slug
+            category.cats = [category]
+        category.update_time = datetime.utcnow()
+        category.save()
+        common_saved.send(sender=ctx, key=key, url=url, is_new=is_new, is_updated=is_updated)
+
+
+    def crawl_newarrivals_category(self, category, url, ctx):
+        content = fetch_page(url)
+        if content is None or isinstance(content, int):
+            common_failed.send(sender=ctx, key=category, url=url,
+                    reason='download error {0} or {1} return'.format(category, content))
+            return
+        tree = lxml.html.fromstring(content)
+        nodes = tree.xpath('//div[@id="newArrivals"]/div[@id="listProductPage"]/div[@id="listProductContent"]/div[@id="leftPageColumn"]/div[@class="leftNavBlue"]/div[@id="leftNavCategories"]/span[@class="listCategoryItems"]')
+        for node in nodes:
+            link = node.xpath('./a/@href')[0]
+            sub_category = node.xpath('./a/span/text()').strip()
+            slug, key = re.compile(r'.*/(.+)/_/N-(.+)/newarrivals.fly').match(url).groups()
+
+            is_new, is_updated = False, False
+            category = Category.objects(key=key).first()
+            if not category:
+                is_new = True
+                category = Category(key=key)
+                category.is_leaf = True
+                category.combine_url = '{0}/_/N-{1}/newarrivals.fly'.format(self.siteurl, key)
+                category.slug = slug
+                category.cats = [category, sub_category]
+            category.update_time = datetime.utcnow()
+            category.save()
+            common_saved.send(sender=ctx, key=key, url=url, is_new=is_new, is_updated=is_updated)
 
 
     def crawl_listing(self, url):

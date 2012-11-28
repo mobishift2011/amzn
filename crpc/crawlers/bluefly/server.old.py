@@ -1,127 +1,88 @@
 # -*- coding: utf-8 -*-
 """
-crawlers.bluefly.server
+crawlers.ruelala.server
 ~~~~~~~~~~~~~~~~~~~
+
 This is the server part of zeroRPC module. Call by client automatically, run on many differen ec2 instances.
+
 """
 
-from gevent import monkey; monkey.patch_all()
-import lxml.html
-from datetime import datetime, timedelta
+from gevent import monkey
+monkey.patch_all()
+from crawlers.common.baseserver import BaseServer
 
-from .models import *
+from selenium.common.exceptions import *
+from selenium import webdriver
+
+from models import *
+from models import Event as Category
+from crawlers.common.events import *
 from crawlers.common.stash import *
+import urllib
+import lxml.html
+import time
+import datetime
+from dateutil import parser as dt_parser
 from crawlers.common.events import common_saved, common_failed
 
-class Server(object):
+class Server(BaseServer):
     """.. :py:class:: Server
-    This is zeroRPC server class for ec2 instance to crawl bluefly.
+    This is zeroRPC server class for ec2 instance to crawl pages.
     """
     
     def __init__(self):
         self.siteurl = 'http://www.bluefly.com'
+        self.site ='bluefly'
+        self._signin = False
+        #self.login(self.email, self.passwd)
 
-    def crawl_category(self, ctx=''):
-        """.. :py:method::
+    def bopen(self,url):
+        """ open url with browser
         """
-        women_url = 'http://www.bluefly.com/a/women-clothing'
-        shoes_url = 'http://www.bluefly.com/a/shoes'
-        handbags_accessories_url = 'http://www.bluefly.com/a/handbags-accessories'
-        jewelry_url = 'http://www.bluefly.com/a/jewelry-shop'
-        men_url = 'http://www.bluefly.com/a/men-clothing-shoes-accessories'
-
-        self.crawl_women_or_shoes_category('women', women_url, ctx)
-        self.crawl_women_or_shoes_category('shoes', shoes_url, ctx)
-        self.crawl_handbag_accessories_category('handbags&accessories', handbags_accessories_url, ctx)
-        self.crawl_jewelry_or_men_category('jewelry', jewelry_url, ctx)
-        self.crawl_jewelry_or_men_category('men', men_url, ctx)
-
-    def crawl_women_or_shoes_category(self, category, url, ctx):
-        content = fetch_page(url)
-        if content is None or isinstance(content, int):
-            common_failed.send(sender=ctx, key=category, url=url,
-                    reason='download error {0} or {1} return'.format(category, content))
-            return
-        tree = lxml.html.fromstring(content)
-        navigation = tree.xpath('//div[@id="lnavi"]/div[@id="leftDeptColumn"]/div[@id="deptLeftnavContainer"]/h3[text()="categories"]')[0]
-        nodes = navigation.xpath('./following-sibling::ul[@id="deptLeftnavList"]/li[@class="new-link-test"]/following-sibling::li')
-        for i in range(len(nodes) - 2): # sale not need, crawl it separately. all already contains
-            directory = nodes[i].xpath('.//text()')
-            link = nodes[i].xpath('./a/@href')[0]
-            link = link if link.startswith('http') else self.siteurl + link
-            slug, key = re.compile(r'.*/(.+)/_/N-(.+)/list.fly').match(link).groups()
-
-            is_new, is_updated = False, False
-            category = Category.objects(key=key).first()
-            if not category:
-                is_new = True
-                category = Category(key=key)
-                category.is_leaf = True
-                category.combine_url = '{0}/_/N-{1}/list.fly'.format(self.siteurl, key)
-                category.slug = slug
-                category.cats = [category, directory]
-            category.update_time = datetime.utcnow()
-            category.save()
-            common_saved.send(sender=ctx, key=key, url=url, is_new=is_new, is_updated=is_updated)
-
-    def crawl_handbag_accessories_category(self, category, url, ctx):
-        content = fetch_page(url)
-        if content is None or isinstance(content, int):
-            common_failed.send(sender=ctx, key=category, url=url,
-                    reason='download error {0} or {1} return'.format(category, content))
-            return
-        tree = lxml.html.fromstring(content)
-        navigation = tree.xpath('//div[@id="lnavi"]/div[@id="leftDeptColumn"]/div[@id="deptLeftnavContainer"]/h3[text()="categories"]')[0]
-        parts = navigation.xpath('./following-sibling::ul[@id="deptLeftnavList"]')
-        for part in parts: # handbags and accessories 2 parts
-            nodes = part.xpath('./li')
-            # the last [all handbags] don't need, because all children's categories contains more
-            for i in range(len(nodes) - 1):
-                directory = nodes[i].xpath('.//text()')
-                link = nodes[i].xpath('./a/@href')[0]
-                link = link if link.startswith('http') else self.siteurl + link
-                slug, key = re.compile(r'.*/(.+)/_/N-(.+)/list.fly').match(link).groups()
-
-                is_new, is_updated = False, False
-                category = Category.objects(key=key).first()
-                if not category:
-                    is_new = True
-                    category = Category(key=key)
-                    category.is_leaf = True
-                    category.combine_url = '{0}/_/N-{1}/list.fly'.format(self.siteurl, key)
-                    category.slug = slug
-                    category.cats = [category, directory]
-                category.update_time = datetime.utcnow()
-                category.save()
-                common_saved.send(sender=ctx, key=key, url=url, is_new=is_new, is_updated=is_updated)
-
-    def crawl_jewelry_or_men_category(self, category, url, ctx):
-        content = fetch_page(url)
-        if content is None or isinstance(content, int):
-            common_failed.send(sender=ctx, key=category, url=url,
-                    reason='download error {0} or {1} return'.format(category, content))
-            return
-        tree = lxml.html.fromstring(content)
-        navigation = tree.xpath('//div[@id="lnavi"]/div[@id="leftDeptColumn"]/div[@id="deptLeftnavContainer"]/h3[text()="categories"]')[0]
-        parts = navigation.xpath('./following-sibling::ul[@id="deptLeftnavList"]')
-        for part in parts:
-            sub_category = part.xpath('./preceding-sibling::h2[1]/a/text()')
-            part.xpath('')
+        if not self.browser:
+            try:
+                self.browser = webdriver.Chrome()
+            except:
+                self.browser = webdriver.Firefox()
+                self.browser.set_page_load_timeout(10)
 
 
-    def crawl_listing(self, url):
-        content = fetch_page(url)
-        if content is None or isinstance(content, int):
-            common_failed.send(sender=ctx, key='', url=url,
-                    reason='download error listing or {0} return'.format(content))
-            return
-        tree = lxml.html.fromstring(content)
-        nav = tree.xpath('//div[@id="listPage"]/div[@id="listProductPage"]') # normal listing
-        nav = tree.xpath('//div[@id="newArrivals"]/div[@id="listProductPage"]') # new arrival
-        category_path = nav[0].xpath('./div[@class="breadCrumbNav"]/div[@class="breadCrumbMargin"]//text()') # both
-        products = nav[0].cssselect('div#listProductContent > div#rightPageColumn > div.listProductGrid > div#productGridContainer > div.productGridRow div.productContainer') # both
-        nav[0].cssselect('')
+        start = time.time()
+        try:
+            self.browser.get(url)
+        except TimeoutException:
+            return False
+        else:
+            #self.html = self.browser.content
+            #self.tree = lxml.html.fromstring(self.html)
+            print 'bopen used',time.time() - start
+            return True
 
+        #self.browser.implicitly_wait(2)
+        self.browser.get(self.siteurl)
+        time.sleep(3)
+        
+        # click the login link
+        node = self.browser.find_element_by_id('pendingTab')
+        node.click()
+        time.sleep(2)
+
+        a = self.browser.find_element_by_id('txtEmailLogin')
+        a.click()
+        a.send_keys(email)
+
+        b = self.browser.find_element_by_id('txtPass')
+        b.click()
+        b.send_keys(passwd)
+
+        signin_button = self.browser.find_element_by_id('btnEnter')
+        signin_button.click()
+
+        title = self.browser.find_element_by_xpath('//title').text
+        if title  == 'Rue La La - Boutiques':
+            self._signin = True
+        else:
+            self._signin = False
 
     def get_navs(self):
         result = []
@@ -417,6 +378,10 @@ class Server(object):
         common_saved.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
 
 if __name__ == '__main__':
-    server = zerorpc.Server(Server())
-    server.bind("tcp://0.0.0.0:{0}".format(CRAWLER_PORT))
-    server.run()
+    server = Server()
+    import time
+    #server.crawl_category()
+    #server.crawl_listing('http://www.bluefly.com/Designer-Loafers-Flats/_/N-fs8/list.fly')
+    #server._get_all_category('test','http://www.bluefly.com/a/shoes')
+    print 'xxx',server.crawl_product('http://www.bluefly.com/Beyond-Rings-black-and-gold-druzy-ring/p/319923701/detail.fly')
+

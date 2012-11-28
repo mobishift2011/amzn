@@ -28,6 +28,8 @@ class BaseDocumentSkeleton(object):
     favbuy_brand        =   StringField(default='')
     favbuy_tag          =   ListField(StringField())
 
+    # text info
+    slug                =   StringField()
     sale_title          =   StringField()
     sale_description    =   StringField()
 

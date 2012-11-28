@@ -10,15 +10,16 @@ DB = 'bluefly'
 from settings import MONGODB_HOST
 from mongoengine import *
 connect(db=DB, alias=DB, host=MONGODB_HOST)
-from crawlers.common.models import BaseCategory, BaseProduct,BaseReview,LuxuryProduct
+from crawlers.common.models import BaseCategory, BaseProduct, BaseReview, LuxuryProduct
 
-class Event(BaseCategory):
-    """ we generates category by catn identifier """
-    key =   StringField(unique=True)
-    name = StringField()
-    url = StringField()
+class Category(BaseCategory):
+    """ we generates category by catn identifier
+    """
+    key   =     StringField(unique=True)
+    name  =     StringField()
+    url   =     StringField()
 
-    meta        =   {
+    meta  =     {
         "db_alias": DB,
     }
 
@@ -31,12 +32,12 @@ class Product(LuxuryProduct):
     color = StringField()
 
 
-    meta                =   {
+    meta  =   {
         "db_alias": DB,
     }
 
 class  Review(BaseReview):
     product_key = StringField()
-    meta                =   {
+    meta  =   {
         "db_alias": DB,
     }

@@ -14,7 +14,7 @@ import pytz
 from datetime import datetime
 from gevent.coros import Semaphore
 
-__lock = Semaphore()
+__lock = Semaphore(1)
 
 login_email = 'huanzhu@favbuy.com'
 login_passwd = '4110050209'

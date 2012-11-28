@@ -16,12 +16,14 @@ class Category(BaseCategory):
     """ we generates category by catn identifier
     """
     key   =     StringField(unique=True)
-    name  =     StringField()
-    url   =     StringField()
 
     meta  =     {
         "db_alias": DB,
     }
+
+    def url(self):
+        return 'http://www.bluefly.com/_/N-{0}/list.fly'.format(self.key)
+
 
 class Product(LuxuryProduct):
     designer = StringField()

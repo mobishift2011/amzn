@@ -39,19 +39,20 @@ class PowerServer(object):
         doctype = kwargs.get('doctype', '').capitalize()
         key = kwargs.get('key', '')
         brand = kwargs.get('brand') or ''
-        title = kwargs.get('title', '')
+        title = kwargs.get('title') or ''
+        combine_url = kwargs.get('combine_url') or ''
 
         # TO REMOVE
         import time
         print site,'  ' + doctype + '  ',  key + '<'+brand+'>  ',  '<'+ title +'>'+ ':'
 
-        brand = APIClient.brand.match(brand, title)
+        brand = APIClient.brand.match(brand, title, combine_url)
         if brand:
             m = __import__('crawlers.'+site+'.models', fromlist=[doctype])
-            if doctype == 'Event'
-                m.Event.objects(event_id=key).update(set__favbuy_brand=brand, set__complete_status=1)
-            elif doctype == 'Product'
-                m.Product.objects(key=key).update(set__favbuy_brand=brand, set__complete_status=1)
+            if doctype == 'Event':
+                m.Event.objects(event_id=key).update(set__favbuy_brand=brand, set__complete_status='001')
+            elif doctype == 'Product':
+                m.Product.objects(key=key).update(set__favbuy_brand=brand, set__complete_status='001')
 
             # TODO send a signal to inform the success of brand extract
 

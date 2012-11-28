@@ -66,7 +66,9 @@ class Server(object):
             event.combine_url = 'https://us.venteprivee.com/main/#/catalog/%s' % event.event_id
             event.sale_title = sale.get('name')
             for media in ['home', 'icon', 'preview']:
-                event.image_urls.append("http://pr-media04.venteprivee.com/is/image/VPUSA/{0}".format(sale.get('media').get(media)))
+                image_url = "http://pr-media04.venteprivee.com/is/image/VPUSA/{0}".format(sale.get('media').get(media))
+                if image_url not in event.image_urls:
+                    event.image_urls.append(image_url)
             event.sale_description = sale.get('brandDescription')
             event.events_begin = datetime.datetime.strptime(sale.get('startDate'), '%Y-%m-%dT%H:%M:%S').replace(tzinfo=pytz.utc)
             event.events_end = datetime.datetime.strptime(sale.get('endDate'), '%Y-%m-%dT%H:%M:%S').replace(tzinfo=pytz.utc)
@@ -184,10 +186,10 @@ if __name__ == '__main__':
     start = time.time()
     
     s = Server()
-    # s.crawl_category('venteprivee')
-    # events = Event.objects(urgent=True).order_by('-update_time').timeout(False)
-    # for event in events:
-    #     s.crawl_listing(event.url(), 'venteprivee')
+    s.crawl_category('venteprivee')
+    events = Event.objects(urgent=True).order_by('-update_time').timeout(False)
+    for event in events:
+        s.crawl_listing(event.url(), 'venteprivee')
     products = Product.objects.filter(updated=True)
     for product in products:
         s.crawl_product(product.url(), 'ventiprivee')

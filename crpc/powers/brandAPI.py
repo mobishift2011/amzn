@@ -14,12 +14,39 @@ import esm
 APIClient = API(CATALOG_BASE_URL)
 
 def all(self):
-	return json.loads(self.get()).get('response', [])
+	r = requests.get('http://localhost:1319/api/brand/').json
+	return r.get('response', [])
 
 def create(self):
 	return self.post()	# TODO
 
-def match(self, brand='', title='', url=''):
+def fail(*args, **kwargs):
+	"""
+	* params:
+    ** title
+    ** model: Brand, Dept, Tag
+    ** content: The content of failure such as the brand name that can'be extacted.
+    ** site: required
+    ** doctype: Event or Product, required
+    ** key = required
+    ** url
+	"""
+	r = requests.post('http://localhost:1319/api/brand/fail/', data=kwargs)
+	return r.status_code == 200
+
+
+def match(self, **kwargs):
+	site = kwargs.get('site', '')
+	doctype = kwargs.get('doctype', '').capitalize()
+	key = kwargs.get('key', '')
+	brand = kwargs.get('brand') or ''
+	title = kwargs.get('title') or ''
+	combine_url = kwargs.get('combine_url') or ''
+
+	# TO REMOVE
+	import time
+	print site,' ' + doctype + ' ',  key + ' ', 'brand-<'+brand+'>  ',  'title-<'+ title +'>'+ ':'
+
 	indicator = 'brand'
 	match = index.query(brand)
 	if not match:
@@ -31,12 +58,13 @@ def match(self, brand='', title='', url=''):
 		return brand
 
 	if not match:
-		temp_output(brand, title, url)
+		fail(title=title, model='Brand', content=brand, site=site, doctype=doctype, key=key, url=combine_url)
+		# temp_output(brand, title, url)
 		return None
 
-def temp_output(brand, title, url):
-    with open(os.path.dirname(__file__)+'/tempoutput', 'ar') as f:
-        f.write("%s\n%s\n%s\n\n" % ('prod brand: '+ brand,'title: ' + title, 'url: '+url))
+# def temp_output(brand, title, url):
+#     with open(os.path.dirname(__file__)+'/tempoutput', 'ar') as f:
+#         f.write("%s\n%s\n%s\n\n" % ('prod brand: '+ brand,'title: ' + title, 'url: '+url))
 
 setattr(Resource, 'all', all)
 setattr(Resource, 'create', create)
@@ -51,4 +79,6 @@ for brand in brands:
 index.fix()
 
 if __name__ == '__main__':
-	match()
+	# APIClient.brand.fail(site='aaa', doctype='event', key='babala')
+	# APIClient.brand.all()
+	pass

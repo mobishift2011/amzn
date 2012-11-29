@@ -31,17 +31,34 @@ class Server(object):
         r = requests.get(self.rooturl, headers=self.headers)
         data = json.loads(r.text)
 
-        pool = gevent.pool.Pool(30)
-
         for event in data['sales']:
             self._parse_event(event, ctx)
 
             # for each event, crawl all the products below
             for product, detail in event.get('asins', {}).items():
                 product_url = event['prefix'] + detail['url']
-                pool.spawn(self._parse_product, requests.get(product_url).text, ctx)
+                Product.objects(key=product).update(set__jslink=product_url, set__asin=product, updated=False, upsert=True)
 
+
+    def crawl_product_plus(self):
+        pool = gevent.pool.Pool(30)
+        for p in Product.objects(updated=None):
+            if not p.jslink:
+                print p.key, p.jslink, 'not found'
+                continue
+            pool.spawn(self._parse_product, requests.get(p.jslink).text, 'haha')
         pool.join()
+
+    def get_product_abstract_by_url(self, url):
+        asin = re.compile(r'asin=([^&]+)').search(url).group(1)
+        p = Product.objects.get(key=asin)
+        jslink = p.jslink
+        content = requests.get(jslink).content
+        data = re.compile(r'parse_asin_\w+\((.*)\);$').search(content).group(1)
+        data = json.loads(data)
+        title = data['detailJSON']['title']
+        listinfo = '\n'.join( data['productDescription']['bullets'][0]['bulletsList'] )
+        return title.replace(' ','_')+'_'+jslink.rsplit('/',1)[-1][:-3], title + '\n' + listinfo
 
     def _parse_event(self, event, ctx):
         event_id = event['id']
@@ -78,6 +95,15 @@ class Server(object):
         data = re.compile(r'parse_asin_\w+\((.*)\);$').search(content).group(1)
         data = json.loads(data)
         
+        from pprint import pprint
+        print 'title'
+        pprint(data['detailJSON']['title'])
+        pprint(data['productDescription'])
+        p.title = data['detailJSON']['title']
+        p.list_info = data['productDescipriton']['bullets'][0]['bulletsList']
+        print 
+        print 
+        print 
         asin = data['detailJSON']['asin']
         p, is_new = Product.objects.get_or_create(pk=asin)
         
@@ -86,4 +112,6 @@ class Server(object):
 
 if __name__ == '__main__':
     #print time2utc({u'offset': -480, u'time': 1352912400000})
-    Server().crawl_category('haha')
+    #Server().crawl_category('haha')
+    #Server().crawl_product_plus()
+    print Server().get_product_abstract_by_url('http://www.myhabit.com/#page=d&dept=men&sale=A25ZXVWLT0BY7D&asin=B009QTU916&cAsin=B009QTUEM0&ref=qd_b_img_d_1')

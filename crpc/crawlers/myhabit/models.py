@@ -30,6 +30,7 @@ class Event(BaseEvent):
 class Product(LuxuryProduct):
 #    key = StringField(unique=True, spare=True)
     asin = StringField()
+    jslink = StringField() # indicates the url where we can make an "API call" to
 
     video = StringField()
     international_shipping = StringField()

@@ -26,10 +26,6 @@ class Category(BaseCategory):
 
 
 class Product(LuxuryProduct):
-    designer = StringField()
-    #name = StringField()
-    url = StringField()
-    listprice = StringField()
     return_policy  = StringField()
     color = StringField()
 

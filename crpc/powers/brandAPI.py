@@ -1,15 +1,14 @@
 # -*- coding: utf-8 -*-
-from configs import SITES, DEBUG, CATALOG_BASE_URL
-
-from gevent import monkey; monkey.patch_all()
-import gevent
-
 from slumber import API, Resource
 import requests
 import json
 import re
 import os
 import esm
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djCatalog.djCatalog.settings")
+from djCatalog.catalogs.models import Brand
+from configs import SITES, DEBUG, CATALOG_BASE_URL
 
 APIClient = API(CATALOG_BASE_URL)
 
@@ -70,9 +69,10 @@ setattr(Resource, 'all', all)
 setattr(Resource, 'create', create)
 setattr(Resource, 'match', match)
 
+
 print 'brand index init'
 index = esm.Index()
-brands = APIClient.brand.all()
+brands = Brand.objects().values_list('title')
 print 'brands total count:%s' % len(brands)
 for brand in brands:
 	index.enter(brand.encode('utf-8'))

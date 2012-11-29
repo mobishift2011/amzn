@@ -195,7 +195,8 @@ class Server(object):
         navigation = tree.cssselect('div[id] > div#listProductPage')[0]
         products = navigation.cssselect('div#listProductContent > div#rightPageColumn > div.listProductGrid > div#productGridContainer > div.productGridRow div.productContainer')
         for prd in products:
-            prd.
+            prd.cssselect('div.listProdImage ')
+            # prd.cssselect('')
 
 
     def url2category_key(self,href):

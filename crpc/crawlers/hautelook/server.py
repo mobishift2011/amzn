@@ -115,7 +115,8 @@ class Server(object):
             event.events_end = events_end
             event.update_time = _utcnow
             event.save()
-            common_saved.send(sender=ctx, key=event_id, url='{0}/event/{1}'.format(self.siteurl, event_id), is_new=is_new, is_updated=is_updated)
+            common_saved.send(sender=ctx, obj_type='Event', key=event_id,
+                    url='{0}/event/{1}'.format(self.siteurl, event_id), is_new=is_new, is_updated=is_updated)
         debug_info.send(sender=DB + '.category.end')
 
 
@@ -137,7 +138,8 @@ class Server(object):
         event.events_end = events_end
         event.update_time = datetime.utcnow()
         event.save()
-        common_saved.send(sender=ctx, key=event_id, url='{0}/event/{1}'.format(self.siteurl, event_id), is_new=is_new, is_updated=is_updated)
+        common_saved.send(sender=ctx, obj_type='Event', key=event_id,
+                url='{0}/event/{1}'.format(self.siteurl, event_id), is_new=is_new, is_updated=is_updated)
 
 
     def crawl_listing(self, url, ctx):
@@ -179,18 +181,18 @@ class Server(object):
                 if event_id not in product.event_id: product.event_id.append(event_id)
             product.list_update_time = datetime.utcnow()
             product.save()
-            common_saved.send(sender=ctx, key=key, url=url, is_new=is_new, is_updated=is_updated)
+            common_saved.send(sender=ctx, obj_type='Product', key=key, url=url, is_new=is_new, is_updated=is_updated)
 
         event, is_new = Event.objects.get_or_create(event_id=event_id)
         if event.urgent == True:
             event.urgent = False
-            ready = 'Event'
+            ready = True
             event.save()
-        else: ready = None
+        else: ready = False
 #        if ready:
 #            event.image_path = process_image(event.image_urls, DB, 'event', event_id)
 #            event.save()
-        common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=False, ready=ready)
+        common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=url, is_new=is_new, is_updated=False, ready=ready)
 
 
 
@@ -250,8 +252,8 @@ class Server(object):
                     price = str(val['sale_price'])
                     listprice = str(val['retail_price'])
 
+        is_new, is_updated = False, False
         product = Product.objects(key=url.split('/')[-1]).first()
-        is_new = False
         if not product:
             is_new = True
             product = Product(key=url.split('/')[-1])
@@ -287,14 +289,14 @@ class Server(object):
 
         if product.updated == False:
             product.updated = True
-            ready = 'Product'
-        else: ready = None
+            ready = True
+        else: ready = False
         product.full_update_time = datetime.utcnow()
         product.save()
 #        if ready:
 #            product.image_path = process_image(product.image_urls, DB, 'product', url.split('/')[-1])
 #            product.save()
-        common_saved.send(sender=ctx, key=url.split('/')[-1], url=url, is_new=is_new, is_updated=not is_new, ready=ready)
+        common_saved.send(sender=ctx, obj_type='Product', key=url.split('/')[-1], url=url, is_new=is_new, is_updated=is_updated, ready=ready)
 
 
 if __name__ == '__main__':

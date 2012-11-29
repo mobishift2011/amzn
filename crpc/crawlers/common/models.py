@@ -16,7 +16,7 @@ class BaseDocumentSkeleton(object):
     spout_time          =   DateTimeField() # time when we issue a new category fetch operation
     create_time         =   DateTimeField(default=datetime.utcnow)
     update_time         =   DateTimeField(default=datetime.utcnow)
-    is_leaf             =   BooleanField()
+    is_leaf             =   BooleanField() # whether this Event/Category is leaf, need to be spouted
 
     # url this collections' object have
     combine_url         =   StringField()
@@ -78,6 +78,7 @@ class BaseEvent(Document, BaseDocumentSkeleton):
     dept                = ListField(StringField())
 
     # after setting urgent to False, you can't set it back
+    # after event complete by crawler, urgent is False
     urgent              = BooleanField(default=True)
     
     meta = {
@@ -119,7 +120,7 @@ class BaseProduct(Document):
     key                 =   StringField(primary_key=True)
 
     # meta infomation for record keeping
-    updated             =   BooleanField(default=False)
+    updated             =   BooleanField(default=False) # after product is fully crawled, updated is True
     list_update_time    =   DateTimeField(default=datetime.utcnow)
     full_update_time    =   DateTimeField()
 
@@ -130,7 +131,7 @@ class BaseProduct(Document):
     rating              =   StringField()  # how it is rated, if any
     brand               =   StringField()
     model               =   StringField()
-    models              =   ListField()
+    models              =   ListField() # maybe several models in one product
     price               =   StringField()
     sell_rank           =   IntField()
     combine_url         =   StringField()
@@ -143,6 +144,7 @@ class BaseProduct(Document):
     detail              =   StringField()
     shipping            =   StringField()
     available           =   StringField()
+    short_desc          =   StringField()
 
     # reviews
     num_reviews         =   StringField()
@@ -191,7 +193,7 @@ class LuxuryProduct(BaseProduct):
 
     image_complete      =   BooleanField(default=False)
     complete_status     =   StringField(default='000')
-    favbuy_brand       =   StringField(default='')
+    favbuy_brand        =   StringField(default='')
     favbuy_tag          =   ListField(StringField())
 
     meta                = {

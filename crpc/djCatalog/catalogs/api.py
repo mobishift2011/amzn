@@ -66,5 +66,5 @@ def brandFailHandle(request):
 				'message': 'fail info created'
 			})
 
-def match(request):
-	pass
+def test(request):
+	return render(request, 'index.html')

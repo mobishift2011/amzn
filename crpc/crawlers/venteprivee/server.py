@@ -172,7 +172,8 @@ class Server(object):
         product.updated = False if is_new else True
         if product.updated:
             product.full_update_time = datetime.datetime.utcnow()
-            ready = not temp_updated and product.updated
+            if not temp_updated and product.updated:
+                ready = 'Product'
         product.save()
         
         common_saved.send(sender=ctx, key=product.key, url=url, is_new=is_new, is_updated=(not is_new) and is_updated, ready=ready)
@@ -187,10 +188,10 @@ if __name__ == '__main__':
     
     s = Server()
     s.crawl_category('venteprivee')
-    events = Event.objects(urgent=True).order_by('-update_time').timeout(False)
+    events = Event.objects(urgent=True)
     for event in events:
         s.crawl_listing(event.url(), 'venteprivee')
-    products = Product.objects.filter(updated=True)
+    products = Product.objects.filter(updated=False)
     for product in products:
         s.crawl_product(product.url(), 'ventiprivee')
     

@@ -23,15 +23,16 @@ def single_process_image(sender, **kwargs):
     logger.warning('single_process_image enter:{0} -> {1}'.format(sender, kwargs.items()))
     key = kwargs.get('key', None)
     ready = kwargs.get('ready', None)   # Event or Product
+    obj_type = kwargs.get('obj_type', '')
     site, method, dummy = sender.split('.')
 
     if not ready:
         return
 
-    if site and key and ready in ('Event', 'Product'):
-        logger.warning('%s %s %s queries for crawling images' % (site, ready, key))
+    if site and key and obj_type.capitalize() in ('Event', 'Product'):
+        logger.warning('%s %s %s queries for crawling images' % (site, obj_type, key))
         from powers.routine import crawl_images
-        crawl_images(site, ready, key)
+        crawl_images(site, obj_type, key)
     else:
         logger.warning('%s failed to start crawling image', sender)
         # TODO send a process_message error signal.

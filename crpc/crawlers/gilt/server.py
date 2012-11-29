@@ -126,7 +126,7 @@ class Server(object):
 
         is_updated = False
         product, is_new = Product.objects.get_or_create(key=str(res.get('id')))
-        ready = 'Product' if is_new else None
+        ready = is_new
 
         if is_new:
             print(DB+ ' crawling new product %s' % product.key)

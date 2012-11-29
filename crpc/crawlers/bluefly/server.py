@@ -28,6 +28,7 @@ class Server(object):
         self.siteurl = 'http://www.bluefly.com'
         self.extract_slug_key_of_listingurl = re.compile(r'.*/(.+)/_/N-(.+)/list.fly')
         self.extract_category_key = re.compile(r'http://www.bluefly.com/_/N-(.+)/list.fly')
+        self.extract_product_key = re.compile(r'http://www.bluefly.com/(.+)/p/(.+)/detail.fly')
 
     def crawl_category(self, ctx=''):
         """.. :py:method::
@@ -177,6 +178,8 @@ class Server(object):
         tree = lxml.html.fromstring(content)
         navigation = tree.cssselect('div[id] > div#listProductPage')[0]
         category_path = navigation.xpath('./div[@class="breadCrumbNav"]/div[@class="breadCrumbMargin"]//text()')
+        products = navigation.cssselect('div#listProductContent > div#rightPageColumn > div.listProductGrid > div#productGridContainer > div.productGridRow div.productContainer')
+        for prd in products: self.crawl_one_product_in_listing(key, category_path, prd, ctx)
         products_num = navigation.cssselect('div#listProductContent > div#rightPageColumn > div#ls_topRightNavBar > div.ls_pageNav > span#ls_pageNumDisplayInfo > span.ls_minEmphasis')[0].text_content().split('of')[-1].strip()
         pages_num = ( int(products_num) - 1) // NUM_PER_PAGE + 1
         
@@ -184,8 +187,12 @@ class Server(object):
             page_url = '{0}/_/N-{1}/Nao-{2}/list.fly'.format(self.siteurl, key, page_num*NUM_PER_PAGE)
             self.get_next_page_in_listing(key, category_path, page_url, ctx)
 
-
-    def get_next_page_in_listing(self, key, url, ctx):
+    def get_next_page_in_listing(self, key, category_path, url, ctx):
+        """.. :py:method::
+            crawl next listing page
+        :param key: category key in this listing
+        :param category_path:
+        """
         content = fetch_page(url)
         if content is None or isinstance(content, int):
             common_failed.send(sender=ctx, key=key, url=url,
@@ -194,9 +201,28 @@ class Server(object):
         tree = lxml.html.fromstring(content)
         navigation = tree.cssselect('div[id] > div#listProductPage')[0]
         products = navigation.cssselect('div#listProductContent > div#rightPageColumn > div.listProductGrid > div#productGridContainer > div.productGridRow div.productContainer')
-        for prd in products:
-            prd.cssselect('div.listProdImage ')
-            # prd.cssselect('')
+        for prd in products: self.crawl_one_product_in_listing(key, category_path, prd, ctx)
+
+    def crawl_one_product_in_listing(self, category_key, category_path, prd, ctx):
+        """.. :py:method::
+            crawl next listing page
+        """
+        link = prd.cssselect('div.listProdImage a[href]')[0].get('href')
+        link = link if link.startswith('http') else self.siteurl + link
+        slub, key = self.extract_product_key.match(link).groups()
+        soldout = prd.cssselect('div.stockMessage div.listOutOfStock')
+        brand = prd.cssselect('div.layoutChanger > div.listBrand > a')[0].text_content().strip()
+        short_desc = prd.cssselect('div.layoutChanger > div.listLineMargin > div.productShortName')[0].text_content().strip()
+        listprice = prd.cssselect('div.layoutChanger > div.listProductPrices > div.priceRetail > span.priceRetailvalue')
+        if listprice:
+            listprice = listprice[0].text_content().strip()
+        price = prd.xpath('./div[@class="layoutChanger"]/div[@class="listProductPrices"]/div[@class="priceSave"]/preceding-sibling::div[1]').text_content().strip()
+        
+        rating = prd.cssselect('div.layoutChanger > div.product-detail-rating > img')
+        rating = rating[0].get('alt') if rating else ''
+
+        is_new, is_updated = False, False
+        Product.objects(key=key)
 
 
     def url2category_key(self,href):

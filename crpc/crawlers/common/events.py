@@ -8,7 +8,7 @@ pre_general_update = Signal("pre_general_update")
 """ site, method, complete, reason """
 post_general_update = Signal("post_general_update")
 
-""" key, url, is_new, is_updated"""
+""" obj_type, key, url, is_new, is_updated"""
 common_saved = Signal("common_saved")
 
 """ key, url, reason"""

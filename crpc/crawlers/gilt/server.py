@@ -56,10 +56,10 @@ class Server(object):
         except Exception, e:
             common_failed.send(sender=ctx, url=url, reason='event_id does not exist in our db:{0}'.format(str(e)))
         
-        ready = 'Event' if event.urgent else None
+        ready = event.urgent
         event.urgent = False
         event.save()
-        common_saved.send(sender=ctx, key=event.event_id, url=event.combine_url, is_new=False, is_updated=is_updated, ready=ready)
+        common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=False, is_updated=is_updated, ready=ready)
 
         if sale.get('products'):
             event.is_leaf = True
@@ -107,7 +107,7 @@ class Server(object):
         event.save()
 
         debug_info.send(sender=DB+'.event.{0}.end'.format(sale.get('sale_key').encode('utf-8')))
-        common_saved.send(sender=ctx, key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=(not is_new) and is_updated)
+        common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=(not is_new) and is_updated)
 
 
     def process_product(self, url, ctx, event_id=None):
@@ -169,7 +169,7 @@ class Server(object):
         product.save()
         
         debug_info.send(sender=DB+'.product.{0}.end'.format(url))
-        common_saved.send(sender=ctx, key=product.key, url=product.combine_url, is_new=is_new, is_updated=(not is_new) and is_updated, ready=ready)
+        common_saved.send(sender=ctx, obj_type='Product', key=product.key, url=product.combine_url, is_new=is_new, is_updated=(not is_new) and is_updated, ready=ready)
 
 
 #    def crawl_sales(self, ctx, store=None):

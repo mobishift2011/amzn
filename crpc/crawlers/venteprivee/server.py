@@ -78,7 +78,7 @@ class Server(object):
             event.save()
             
             debug_info.send(sender=DB+'.event.{0}.end'.format(sale.get('name').encode('utf-8')))
-            common_saved.send(sender=ctx, key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=(not is_new) and is_updated)
+            common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=(not is_new) and is_updated)
 
     def crawl_listing(self, url, ctx):
         """.. :py:method::
@@ -118,15 +118,15 @@ class Server(object):
             product.save()
             
             debug_info.send(sender=DB+'.listing.product.{0}.crawled'.format(product.key))
-            common_saved.send(sender=ctx, key=product.key, url=url, is_new=is_new, is_updated=(not is_new) and is_updated)
+            common_saved.send(sender=ctx, obj_type='Product', key=product.key, url=url, is_new=is_new, is_updated=(not is_new) and is_updated)
         
-        ready = None
+        ready = False
         event = Event.objects.get(event_id=event_id)
         if event and event.urgent:
             event.urgent = False
-            ready = 'Event'
+            ready = True
             event.save()
-        common_saved.send(sender=ctx, key=event.event_id, url=event.combine_url, is_new=False, is_updated=False, ready=ready)
+        common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=False, is_updated=False, ready=ready)
         
         debug_info.send(sender=DB+'.listing.{0}.end'.format(url))
 
@@ -140,7 +140,7 @@ class Server(object):
             self.login()
         
         is_updated = False
-        ready = None
+        ready = False
         res = self.request.get(url).json
         key = str(res.get('productFamilyId'))
         
@@ -173,10 +173,10 @@ class Server(object):
         if product.updated:
             product.full_update_time = datetime.datetime.utcnow()
             if not temp_updated and product.updated:
-                ready = 'Product'
+                ready = True
         product.save()
         
-        common_saved.send(sender=ctx, key=product.key, url=url, is_new=is_new, is_updated=(not is_new) and is_updated, ready=ready)
+        common_saved.send(sender=ctx, obj_type='Product', key=product.key, url=url, is_new=is_new, is_updated=(not is_new) and is_updated, ready=ready)
         debug_info.send(sender=DB+'.product.{0}.end'.format(url))
 
 if __name__ == '__main__':

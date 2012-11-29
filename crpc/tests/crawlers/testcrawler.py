@@ -62,14 +62,14 @@ class TestCrawler:
     def check_events(self):
         print "Checking events ..."
         total = Event.objects.count()
-        total_proper = Event.objects(events_end__exists=True).count() # is this correct
         now = datetime.utcnow()
-        total_incomplete = Event.objects(Q(urgent=True) & Q(events_begin__lte=now) & Q(events_end__gt=now)).count()
-        title_missing = Event.objects(sale_title__exists=False).count()
-        url_missing = Event.objects(combine_url__exists=False).count()
-        id_missing = Event.objects(event_id__exists=False).count()
-        image_url_missing = Event.objects(image_urls__size=0).count()
-        description_missing = Event.objects(sale_description__exists=False).count()    
+        total_incomplete = Event.objects(Q(urgent=True) & (Q(events_begin__lte=now)|Q(events_begin__exists=False)) & \
+                                         (Q(events_end__gt=now)|Q(events_end__exists=False))).count()
+        title_missing = Event.objects(Q(urgent=False) & Q(sale_title__exists=False)).count()
+        url_missing = Event.objects(Q(urgent=False) & Q(combine_url__exists=False)).count()
+        id_missing = Event.objects(Q(urgent=False) & Q(event_id__exists=False)).count()
+        image_url_missing = Event.objects(Q(urgent=False) & Q(image_urls__size=0)).count()
+        description_missing = Event.objects(Q(urgent=False) & Q(sale_description__exists=False)).count()    
         print "\tTotal events(all/incomplete): {}/{}".format(total,total_incomplete)
         print "\tTitles missing: {}".format(title_missing)
         print "\tURL missing: {}".format(url_missing)
@@ -77,19 +77,19 @@ class TestCrawler:
         print "\tDescription missing: {}".format(description_missing)
         if self.f.has_category:
             total_cat = Category.objects.count()
-            incomplete_cat = Category.objects(urgent=True)
-            print "Total Category(all/incomplete): {}/{}".format(total_cat, incomplete_cat)
+            leaf_cat = Category.objects(is_leaf=True)
+            print "Total Category(all/leaf): {}/{}".format(total_cat, leaf_cat)
             
     def check_products(self):
         print "Checking products ..."
         total = Product.objects.count()
         total_incomplete = Product.objects(updated=False).count()
         total_event = Event.objects(urgent=False).count()
-        title_missing = Product.objects(title__exists=False).count()
-        url_missing = Event.objects(combine_url__exists=False).count()
-        image_url_missing = Product.objects(image_urls__size=0).count()
-        listinfo_missing = Product.objects(list_info__exists=False).count()            
-        summary_missing = Product.objects(summary__exists=False).count()
+        title_missing = Product.objects(Q(updated=True) & Q(title__exists=False)).count()
+        url_missing = Product.objects(Q(updated=True) & Q(combine_url__exists=False)).count()
+        image_url_missing = Product.objects(Q(updated=True) & Q(image_urls__size=0)).count()
+        listinfo_missing = Product.objects(Q(updated=True) & Q(list_info__exists=False)).count()            
+        summary_missing = Product.objects(Q(updated=True) & Q(summary__exists=False)).count()
         print "\tTotal/incomplete products: {}/{}".format(total, total_incomplete)
         print "\tAverage product per event: {}".format(total/total_event)
         print "\tTitles missing: {}".format(title_missing)
@@ -144,7 +144,7 @@ class TestCrawler:
         if f2>0:
             test_alert("fail={0}, not 0. Please check.".format(f2))
         if d2>u2+n2:
-            test_alert("done>update+new, there are unchanged entries?")
+            test_alert("done>update+new, there are overlapped entries?")
         # check why d and u differ by looking into DB $$
         
         test_info("running new_product")

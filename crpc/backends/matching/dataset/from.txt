@@ -1,0 +1,246 @@
+Stores:
+?   Introduction
+?   Shipping Information
+?   CC Payment Information
+Categories
+Women
+?   New Arrivals
+?   Shoes
+http://www.myhabit.com/homepage?#page=d&dept=women&sale=A1S5P2W9R0QRIZ&asin=B00687Y690&cAsin=B00687Y7G2&ref=qd_b_img_d_0
+http://www.myhabit.com/homepage?#page=d&dept=women&sale=A1S5P2W9R0QRIZ&asin=B00687UOEQ&cAsin=B00687UUM2&ref=qd_b_img_d_4
+http://www.myhabit.com/homepage?#page=d&dept=women&sale=A1S5P2W9R0QRIZ&asin=B00687SR54&cAsin=B00687T424&ref=qd_b_img_d_7
+http://www.myhabit.com/homepage?#page=d&dept=women&sale=A1S5P2W9R0QRIZ&asin=B00687TFH8&cAsin=B00687U26G&ref=qd_b_img_d_6
+http://www.myhabit.com/homepage?#page=d&dept=women&sale=A1S5P2W9R0QRIZ&asin=B00687YZBY&cAsin=B00687ZCPM&ref=qd_b_img_d_8
+http://www.myhabit.com/homepage?#page=d&dept=women&sale=A1S5P2W9R0QRIZ&asin=B00687SR54&cAsin=B00687SSNK&ref=qd_b_img_d_11
+http://www.myhabit.com/homepage?#page=d&dept=women&sale=A1S5P2W9R0QRIZ&asin=B00687VNZA&cAsin=B00687VPJO&ref=qd_b_img_d_10
+http://www.myhabit.com/homepage?#page=d&dept=women&sale=A1S5P2W9R0QRIZ&asin=B00687WQ0Q&cAsin=B00687WTIU&ref=qd_b_img_d_9
+http://www.myhabit.com/homepage?#page=d&dept=women&sale=A6U2F86K2JTRO&asin=B005GJWSUK&cAsin=B005FMSZI2&ref=qd_b_img_d_0
+http://www.myhabit.com/homepage?#page=d&dept=women&sale=A6U2F86K2JTRO&asin=B005GJX5TS&cAsin=B005FMSZ9G&ref=qd_b_img_d_1
+http://www.myhabit.com/homepage?#page=d&dept=women&sale=A6U2F86K2JTRO&asin=B005GJX5TS&cAsin=B005FMSZ1E&ref=qd_b_img_d_2
+http://www.myhabit.com/homepage?#page=d&dept=women&sale=A6U2F86K2JTRO&asin=B003I4FGQS&cAsin=B005GJXCBO&ref=qd_b_img_d_3
+?   Handbags
+
+http://www.myhabit.com/#page=d&dept=women&sale=AGF14MNBHE6RY&asin=B009PO00SO&cAsin=B009PO012E&ref=qd_b_img_d_0
+http://www.myhabit.com/#page=d&dept=women&sale=AGF14MNBHE6RY&asin=B009PO00SO&cAsin=B009PO01OM&ref=qd_b_img_d_1
+http://www.myhabit.com/#page=d&dept=women&sale=AGF14MNBHE6RY&asin=B009PO00SO&cAsin=B009PO01DS&ref=qd_b_img_d_2
+http://www.myhabit.com/#page=d&dept=women&sale=AGF14MNBHE6RY&asin=B009PO022I&cAsin=B009PO02QO&ref=qd_b_img_d_3
+http://www.myhabit.com/#page=d&dept=women&sale=AGF14MNBHE6RY&asin=B009PO022I&cAsin=B0081SP3PU&ref=qd_b_img_d_4
+http://www.myhabit.com/#page=d&dept=women&sale=AGF14MNBHE6RY&asin=B009PO022I&cAsin=B009PO02C8&ref=qd_b_img_d_5
+http://www.myhabit.com/#page=d&dept=women&sale=AGF14MNBHE6RY&asin=B009PO022I&cAsin=B00800C4VK&ref=qd_b_img_d_6
+http://www.myhabit.com/#page=d&dept=women&sale=AGF14MNBHE6RY&asin=B009PNZZIK&cAsin=B009PO0070&ref=qd_b_img_d_7
+http://www.myhabit.com/#page=d&dept=women&sale=AGF14MNBHE6RY&asin=B009PNZZIK&cAsin=B009PNZZTY&ref=qd_b_img_d_8
+http://www.myhabit.com/#page=d&dept=women&sale=AGF14MNBHE6RY&asin=B009PNZZIK&cAsin=B009PO00IE&ref=qd_b_img_d_9
+
+?   Accessories
+http://www.myhabit.com/#page=d&dept=women&sale=A3M98BEN2TPC8N&asin=B0078NVLU0&cAsin=B0078NVLZU&ref=qd_b_img_d_2
+
+?   Jewelry & Watches
+
+?   Dresses & Skirts
+http://www.myhabit.com/#page=d&dept=women&sale=A37LAJGJTU1R0P&asin=B00822PRQA&cAsin=B00822PS0A&ref=qd_b_img_d_0
+http://www.myhabit.com/#page=d&dept=women&sale=A37LAJGJTU1R0P&asin=B00822PPPI&cAsin=B00822PQ02&ref=qd_b_img_d_1
+http://www.myhabit.com/#page=d&dept=women&sale=A37LAJGJTU1R0P&asin=B00822PO0O&cAsin=B00822POZO&ref=qd_b_img_d_2
+http://www.myhabit.com/#page=d&dept=women&sale=A37LAJGJTU1R0P&asin=B00822PI5A&cAsin=B00822PIQE&ref=qd_b_img_d_3
+http://www.myhabit.com/#page=d&dept=women&sale=A37LAJGJTU1R0P&asin=B00822PGXY&cAsin=B00822PH74&ref=qd_b_img_d_4
+http://www.myhabit.com/#page=d&dept=women&sale=A37LAJGJTU1R0P&asin=B00822PF1M&cAsin=B00822PFC6&ref=qd_b_img_d_5
+http://www.myhabit.com/#page=d&dept=women&sale=A37LAJGJTU1R0P&asin=B00822PCVK&cAsin=B00822PDJG&ref=qd_b_img_d_6
+http://www.myhabit.com/#page=d&dept=women&sale=A37LAJGJTU1R0P&asin=B00822PA12&cAsin=B00822PB20&ref=qd_b_img_d_7
+http://www.myhabit.com/#page=d&dept=women&sale=A37LAJGJTU1R0P&asin=B00822P7NS&cAsin=B00822P7VA&ref=qd_b_img_d_8
+http://www.myhabit.com/#page=d&dept=women&sale=A37LAJGJTU1R0P&asin=B00822P4R2&cAsin=B00822P62U&ref=qd_b_img_d_9
+http://www.myhabit.com/#page=d&dept=women&sale=A37LAJGJTU1R0P&asin=B00822P4R2&cAsin=B00822P53A&ref=qd_b_img_d_10
+?   Pants & Shorts
+http://www.myhabit.com/#page=d&dept=women&sale=A1FA5UF0Z5ETZE&asin=B006VS6TEG&cAsin=B0058XOMDU&ref=qd_b_img_d_3
+http://www.myhabit.com/#page=d&dept=women&sale=A1FA5UF0Z5ETZE&asin=B00813L4AS&cAsin=B0080BXY3G&ref=qd_b_img_d_4
+?   Shirts & Sweaters
+http://www.myhabit.com/#page=d&dept=women&sale=A1FA5UF0Z5ETZE&asin=B005C95PHC&cAsin=B0058XPBZS&ref=qd_b_img_d_0
+http://www.myhabit.com/#page=d&dept=women&sale=A1FA5UF0Z5ETZE&asin=B006VS6URC&cAsin=B0058XOYEC&ref=qd_b_img_d_1
+http://www.myhabit.com/#page=d&dept=women&sale=A1FA5UF0Z5ETZE&asin=B009PBUD8Y&cAsin=B009OMT2B8&ref=qd_b_img_d_5
+http://www.myhabit.com/#page=d&dept=women&sale=A1FA5UF0Z5ETZE&asin=B00813HDS0&cAsin=B006RM2D3W&ref=qd_b_img_d_6
+http://www.myhabit.com/#page=d&dept=women&sale=A1FA5UF0Z5ETZE&asin=B00813HDS0&cAsin=B006RM2BES&ref=qd_b_img_d_7
+http://www.myhabit.com/#page=d&dept=women&sale=A1FA5UF0Z5ETZE&asin=B00813M7H2&cAsin=B0080BV63Q&ref=qd_b_img_d_9
+http://www.myhabit.com/#page=d&dept=women&sale=A2T3EWTOR666MC&asin=B0099HSF3Y&cAsin=B0099HSHGY&ref=qd_b_img_d_0
+http://www.myhabit.com/#page=d&dept=women&sale=A3M98BEN2TPC8N&asin=B0078NWIC0&cAsin=B0078NWII4&ref=qd_b_img_d_0
+http://www.myhabit.com/#page=d&dept=women&sale=A3M98BEN2TPC8N&asin=B0078NWCX0&cAsin=B0078NWDDY&ref=qd_b_img_d_1
+http://www.myhabit.com/#page=d&dept=women&sale=A3M98BEN2TPC8N&asin=B0078NMC9O&cAsin=B0078NMH62&ref=qd_b_img_d_28
+http://www.myhabit.com/#page=d&dept=women&sale=A3M98BEN2TPC8N&asin=B0078NMSAW&cAsin=B0078NMT8S&ref=qd_b_img_d_29
+
+
+?   Outerwear
+http://www.myhabit.com/homepage?#page=d&dept=women&sale=ARYLKDVSWP4F9&asin=B009F1I7JG&cAsin=B00885OOZQ&ref=qd_b_img_d_0
+http://www.myhabit.com/homepage?#page=d&dept=women&sale=ARYLKDVSWP4F9&asin=B009F1ICEG&cAsin=B00884Z4FQ&ref=qd_b_img_d_1
+http://www.myhabit.com/homepage?#page=d&dept=women&sale=ARYLKDVSWP4F9&asin=B009F1IE5I&cAsin=B00885KZZY&ref=qd_b_img_d_2
+http://www.myhabit.com/homepage?#page=d&dept=women&sale=ARYLKDVSWP4F9&asin=B009F1IFYI&cAsin=B00885LRR4&ref=qd_b_img_d_3
+http://www.myhabit.com/homepage?#page=d&dept=women&sale=ARYLKDVSWP4F9&asin=B009F1IHD2&cAsin=B009AHEOGU&ref=qd_b_img_d_4
+http://www.myhabit.com/homepage?#page=d&dept=women&sale=ARYLKDVSWP4F9&asin=B009F1IJ3K&cAsin=B00885KLO4&ref=qd_b_img_d_5
+http://www.myhabit.com/homepage?#page=d&dept=women&sale=ARYLKDVSWP4F9&asin=B009F1IVL0&cAsin=B005HEN0OC&ref=qd_b_img_d_12
+http://www.myhabit.com/homepage?#page=d&dept=women&sale=ARYLKDVSWP4F9&asin=B009F1IPMA&cAsin=B005TLPXGG&ref=qd_b_img_d_9
+http://www.myhabit.com/homepage?#page=d&dept=women&sale=ARYLKDVSWP4F9&asin=B009F1IRL4&cAsin=B005HENRIQ&ref=qd_b_img_d_10
+http://www.myhabit.com/homepage?#page=d&dept=women&sale=A29V51ULR3FJV4&asin=B0089ZRS5I&cAsin=B0089YSD6M&ref=qd_b_img_d_0
+http://www.myhabit.com/homepage?#page=d&dept=women&sale=A29V51ULR3FJV4&asin=B0089ZRV0A&cAsin=B0089YSRL8&ref=qd_b_img_d_2
+?   Intimates & Loungewear
+
+?   Beauty & Health
+?
+
+
+Men
+?   New Arrivals
+?   Shoes
+?   Accessories
+?   Jewelry & Watches
+?   Suits & Coats
+?   Shirts & Sweaters
+?   Polos & Tees
+?   Pants
+?   Outerwear
+?   Socks, Underwear & Sleepwear
+Kids & Baby
+?   New Arrivals
+?   Girls°Ø Shoes
+?   Girls' Clothing
+?   Boys°Ø Shoes
+?   Boys' Clothing
+?   Toys, Games & Books
+?   Gear & Equipment
+?   Bed, Bath & Furniture
+
+Home
+?   New Arrivals
+?   Furniture & Lighting
+?   Bed & Bath
+?   Rugs & Textiles
+?   Home Accessories
+?   Electronics
+?   Tools
+?   Kitchen & Dining
+
+Handbags
+?   New Arrivals
+?   Shoulder Bags
+http://www.myhabit.com/#page=d&dept=women&sale=A2YR3KUX83YPHB&asin=B009G23MCQ&cAsin=B009G23NC0&ref=qd_b_img_d_26
+http://www.myhabit.com/#page=d&dept=women&sale=A2YR3KUX83YPHB&asin=B0064EGJOW&cAsin=B0064EGKWI&ref=qd_b_img_d_31
+
+?   Tote Bags
+http://www.myhabit.com/#page=d&dept=women&sale=A2YR3KUX83YPHB&asin=B007RJG3US&cAsin=B007RJG4MU&ref=qd_b_img_d_5
+http://www.myhabit.com/#page=d&dept=women&sale=A2YR3KUX83YPHB&asin=B007RJG3US&cAsin=B007RJG4NY&ref=qd_b_img_d_6
+http://www.myhabit.com/#page=d&dept=women&sale=A2YR3KUX83YPHB&asin=B007RJG3US&cAsin=B007VR60F4&ref=qd_b_img_d_7
+http://www.myhabit.com/#page=d&dept=women&sale=A2YR3KUX83YPHB&asin=B008VNEIXS&cAsin=B008VNEIXS&ref=qd_b_img_d_8
+http://www.myhabit.com/#page=d&dept=women&sale=A2YR3KUX83YPHB&asin=B008VNEHES&cAsin=B008VNEHES&ref=qd_b_img_d_9
+http://www.myhabit.com/#page=d&dept=women&sale=A2YR3KUX83YPHB&asin=B008VNEI8I&cAsin=B008VNEI8I&ref=qd_b_img_d_10
+http://www.myhabit.com/#page=d&dept=women&sale=A2YR3KUX83YPHB&asin=B008VNEDS8&cAsin=B008VNEDS8&ref=qd_b_img_d_17
+http://www.myhabit.com/#page=d&dept=women&sale=A2YR3KUX83YPHB&asin=B0064EH0P4&cAsin=B0064EH0XG&ref=qd_b_img_d_18
+http://www.myhabit.com/#page=d&dept=women&sale=A2YR3KUX83YPHB&asin=B008QXYFOK&cAsin=B008QXYFOK&ref=qd_b_img_d_21
+http://www.myhabit.com/#page=d&dept=women&sale=A2YR3KUX83YPHB&asin=B007PS557S&cAsin=B0066E1B5W&ref=qd_b_img_d_29
+http://www.myhabit.com/#page=d&dept=women&sale=A2YR3KUX83YPHB&asin=B007PS557S&cAsin=B0066E1C0Q&ref=qd_b_img_d_30
+http://www.myhabit.com/#page=d&dept=women&sale=A1LEQWLBY9MFVG&asin=B0046W8MZS&cAsin=B009P4QGDC&ref=qd_b_img_d_0
+http://www.myhabit.com/#page=d&dept=women&sale=A1LEQWLBY9MFVG&asin=B0046W8MZS&cAsin=B007T4NN72&ref=qd_b_img_d_1
+
+?   Satchels
+http://www.myhabit.com/#page=d&dept=women&sale=A2YR3KUX83YPHB&asin=B008VNEOF0&cAsin=B008VNEOF0&ref=qd_b_img_d_11
+http://www.myhabit.com/#page=d&dept=women&sale=A2YR3KUX83YPHB&asin=B0089F5AFS&cAsin=B0089F5AFS&ref=qd_b_img_d_25
+http://www.myhabit.com/#page=d&dept=women&sale=A2YR3KUX83YPHB&asin=B008VNENHY&cAsin=B008VNENHY&ref=qd_b_img_d_32
+http://www.myhabit.com/#page=d&dept=women&sale=A2YR3KUX83YPHB&asin=B0085O0IPA&cAsin=B0085O0IPA&ref=qd_b_img_d_38
+?   Clutches
+http://www.myhabit.com/#page=d&dept=women&sale=A2YR3KUX83YPHB&asin=B0081FSOX6&cAsin=B006L9AT9Q&ref=qd_b_img_d_27
+http://www.myhabit.com/#page=d&dept=women&sale=A2YR3KUX83YPHB&asin=B0081FSOX6&cAsin=B006L9AT6O&ref=qd_b_img_d_28
+http://www.myhabit.com/#page=d&dept=women&sale=A2YR3KUX83YPHB&asin=B006M7NF6G&cAsin=B006M7NF6G&ref=qd_b_img_d_37
+?   Hobo Bags
+http://www.myhabit.com/#page=d&dept=women&sale=A2YR3KUX83YPHB&asin=B009AQST3U&cAsin=B009AQSTDA&ref=qd_b_img_d_35
+http://www.myhabit.com/#page=d&dept=women&sale=A2YR3KUX83YPHB&asin=B0064EGI8Y&cAsin=B0064EGIPC&ref=qd_b_img_d_33
+?   Crossbody Bags
+http://www.myhabit.com/#page=d&dept=women&sale=A2YR3KUX83YPHB&asin=B0081FSOX6&cAsin=B006L9AT1Y&ref=qd_b_img_d_4
+http://www.myhabit.com/#page=d&dept=women&sale=A2YR3KUX83YPHB&asin=B007476V9Q&cAsin=B007476T84&ref=qd_b_img_d_22
+http://www.myhabit.com/#page=d&dept=women&sale=A2YR3KUX83YPHB&asin=B007476V9Q&cAsin=B007476Y2U&ref=qd_b_img_d_23
+http://www.myhabit.com/#page=d&dept=women&sale=A2YR3KUX83YPHB&asin=B007476V9Q&cAsin=B007476UXI&ref=qd_b_img_d_24
+http://www.myhabit.com/#page=d&dept=women&sale=A2YR3KUX83YPHB&asin=B007RJG3VM&cAsin=B007RJG4NO&ref=qd_b_img_d_39
+
+?   Evening Bags
+http://www.myhabit.com/#page=d&dept=women&sale=A2YR3KUX83YPHB&asin=B009G23IOS&cAsin=B009G23JEM&ref=qd_b_img_d_13
+?   Backpacks & Laptop Bags
+
+Jewelry & Watches
+?   New Arrivals
+?   Women's Watches
+?   Men's Watches
+?   Bracelets
+http://www.myhabit.com/#page=d&dept=women&sale=AY20Z9LRYSHT3&asin=B0096IF6D8&cAsin=B0096IF6D8&ref=qd_b_img_d_2
+http://www.myhabit.com/#page=d&dept=women&sale=A6FJM9ZAOR2R&asin=B009NGACDW&cAsin=B009NGACDW&ref=qd_b_img_d_4
+http://www.myhabit.com/#page=d&dept=women&sale=A6FJM9ZAOR2R&asin=B005VSM88I&cAsin=B005VSM88I&ref=qd_b_img_d_3
+http://www.myhabit.com/#page=d&dept=women&sale=A6FJM9ZAOR2R&asin=B009NGAC0A&cAsin=B009NGAC0A&ref=qd_b_img_d_5
+?   Earrings
+http://www.myhabit.com/#page=d&dept=women&sale=A6FJM9ZAOR2R&asin=B009NGACT6&cAsin=B009NGACT6&ref=qd_b_img_d_9
+http://www.myhabit.com/#page=d&dept=women&sale=A6FJM9ZAOR2R&asin=B009NGADH2&cAsin=B009NGADH2&ref=qd_b_img_d_10
+http://www.myhabit.com/#page=d&dept=women&sale=A6FJM9ZAOR2R&asin=B009NGAE76&cAsin=B009NGAE76&ref=qd_b_img_d_15
+http://www.myhabit.com/#page=d&dept=women&sale=A6FJM9ZAOR2R&asin=B00767WGUW&cAsin=B00767WGUW&ref=qd_b_img_d_16
+http://www.myhabit.com/#page=d&dept=women&sale=A6FJM9ZAOR2R&asin=B009NGADSQ&cAsin=B009NGADSQ&ref=qd_b_img_d_17
+
+?   Necklaces
+http://www.myhabit.com/#page=d&dept=women&sale=AY20Z9LRYSHT3&asin=B0096IEY7M&cAsin=B0096IEY7M&ref=qd_b_img_d_0
+http://www.myhabit.com/#page=d&dept=women&sale=AY20Z9LRYSHT3&asin=B0096IF5XO&cAsin=B0096IF5XO&ref=qd_b_img_d_1
+http://www.myhabit.com/#page=d&dept=women&sale=AY20Z9LRYSHT3&asin=B0096IF6RO&cAsin=B0096IF6RO&ref=qd_b_img_d_3
+http://www.myhabit.com/#page=d&dept=women&sale=AY20Z9LRYSHT3&asin=B0096IF79Q&cAsin=B0096IF79Q&ref=qd_b_img_d_4
+http://www.myhabit.com/#page=d&dept=women&sale=AY20Z9LRYSHT3&asin=B0096IF7MS&cAsin=B0096IF7MS&ref=qd_b_img_d_5
+http://www.myhabit.com/#page=d&dept=women&sale=AY20Z9LRYSHT3&asin=B0096IF8Y0&cAsin=B0096IF8Y0&ref=qd_b_img_d_8
+http://www.myhabit.com/#page=d&dept=women&sale=AY20Z9LRYSHT3&asin=B0096IF9BW&cAsin=B0096IF9BW&ref=qd_b_img_d_9
+http://www.myhabit.com/#page=d&dept=women&sale=AY20Z9LRYSHT3&asin=B0096IF9R6&cAsin=B0096IF9R6&ref=qd_b_img_d_10
+http://www.myhabit.com/#page=d&dept=women&sale=A6FJM9ZAOR2R&asin=B009NGAG5Q&cAsin=B009NGAG5Q&ref=qd_b_img_d_6
+http://www.myhabit.com/#page=d&dept=women&sale=A6FJM9ZAOR2R&asin=B009NGAGLU&cAsin=B009NGAGLU&ref=qd_b_img_d_7
+http://www.myhabit.com/#page=d&dept=women&sale=A6FJM9ZAOR2R&asin=B009NGAHRI&cAsin=B009NGAHRI&ref=qd_b_img_d_8
+?   Rings
+?   Pendants
+
+Beauty & Health
+?   New Arrivals
+?   Skin Care
+http://www.myhabit.com/#page=d&dept=women&sale=A1HT93TAFZPH2Q&asin=B008LW8M90&cAsin=B008LW8M90&ref=qd_b_img_d_0
+http://www.myhabit.com/#page=d&dept=women&sale=A1HT93TAFZPH2Q&asin=B0077SY392&cAsin=B0077SY392&ref=qd_b_img_d_1
+http://www.myhabit.com/#page=d&dept=women&sale=A1HT93TAFZPH2Q&asin=B0077SY3JC&cAsin=B0077SY3JC&ref=qd_b_img_d_2
+http://www.myhabit.com/#page=d&dept=women&sale=A1HT93TAFZPH2Q&asin=B008BK8FD0&cAsin=B008BK8FD0&ref=qd_b_img_d_3
+http://www.myhabit.com/#page=d&dept=women&sale=A1HT93TAFZPH2Q&asin=B007BDNUZ6&cAsin=B007BDNUZ6&ref=qd_b_img_d_4
+http://www.myhabit.com/#page=d&dept=women&sale=A1HT93TAFZPH2Q&asin=B008BK8JLI&cAsin=B008BK8JLI&ref=qd_b_img_d_5
+http://www.myhabit.com/#page=d&dept=women&sale=A1HT93TAFZPH2Q&asin=B008AYZPIK&cAsin=B008AYZPIK&ref=qd_b_img_d_6
+http://www.myhabit.com/#page=d&dept=women&sale=A1HT93TAFZPH2Q&asin=B003KAROFG&cAsin=B003KAROFG&ref=qd_b_img_d_7
+
+?   Makeup
+http://www.myhabit.com/#page=d&dept=women&sale=A2DUOWSX4WX457&asin=B009HUQ28I&cAsin=B009HUQ28I&ref=qd_b_img_d_0
+http://www.myhabit.com/#page=d&dept=women&sale=A2DUOWSX4WX457&asin=B009FS4JQY&cAsin=B009FS4JQY&ref=qd_b_img_d_1
+http://www.myhabit.com/#page=d&dept=women&sale=A2DUOWSX4WX457&asin=B009FS4JFA&cAsin=B009FS4JFA&ref=qd_b_img_d_2
+http://www.myhabit.com/#page=d&dept=women&sale=A2DUOWSX4WX457&asin=B009FS4HK2&cAsin=B009FS4HK2&ref=qd_b_img_d_3
+http://www.myhabit.com/#page=d&dept=women&sale=A2DUOWSX4WX457&asin=B0088QDDCA&cAsin=B0088QDDCA&ref=qd_b_img_d_4
+http://www.myhabit.com/#page=d&dept=women&sale=A2DUOWSX4WX457&asin=B0088QDCVM&cAsin=B0088QDCVM&ref=qd_b_img_d_5
+http://www.myhabit.com/#page=d&dept=women&sale=A2DUOWSX4WX457&asin=B0088QDB90&cAsin=B0088QDB90&ref=qd_b_img_d_6
+
+?   Fragrance
+?   Body Care
+
+
+?Wine
+?   New Arrivals
+?   Red Wine
+?   White Wine
+?   Champagne
+?   Wine Accessories
+?   Events
+?   New
+?   Ending Soon
+?   Upcoming
+?   
+Events
+?   Name
+?   Begin/End Date
+
+Designers/Brands
+?   Introduction
+?   Lines ®C like Derek Lam/Albertine
+?   URL
+Tags
+?   Designers
+?   Sub-Categories
+?   Styles, Fashion Trends
+
+
+
+
+    
+
+

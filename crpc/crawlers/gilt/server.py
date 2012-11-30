@@ -190,13 +190,13 @@ class Server(object):
 def local_test():
     timer=time.time()
     s = Server()
-    # s.crawl_category('gilt')
+    s.crawl_category('gilt')
     events = Event.objects(urgent=True).order_by('-update_time').timeout(False)
     for event in events:
         s.crawl_listing(event.url(), 'gilt')
-    # products = Product.objects.filter(updated=False)
-    # for product in products:
-    #     s.crawl_product(product.url(), 'gilt')
+    products = Product.objects.filter(updated=False)
+    for product in products:
+        s.crawl_product(product.url(), 'gilt')
     print 'total cost(s): %s' % (time.time()-timer)
 
 if __name__ == '__main__':

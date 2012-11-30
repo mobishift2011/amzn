@@ -304,15 +304,14 @@ class Server(object):
                 sizes_scarcity.append( [size.get('data-size'), size.get('data-stock')] )
 
         shipping = detail.cssselect('div.product-info > div.shipping-policy')
-        shipping = shipping[0].text_content().strip() if shipping else ''
+        shipping = shipping[0].text_content().strip().replace('\n', '') if shipping else ''
         returned = detail.cssselect('div.product-info > div.return-policy')
-        returned = returned[0].text_content().strip() if returned else ''
+        returned = returned[0].text_content().strip().replace('\n', '') if returned else ''
         summary = detail.cssselect('div.product-info > div.product-info-tabs > div.product-detail-list > div.product-description')[0].text_content().strip()
-        # TODO not found in DB list_info
-        property_list_info = detail.cssselect('div.product-info > div.product-info-tabs > ul.property-list > li')
+        property_list_info = detail.cssselect('div.product-info > div.product-info-tabs > div.product-detail-list > ul.property-list > li')
         list_info = []
         for p in property_list_info:
-            list_info.append( p.text_content().strip() )
+            list_info.append( p.text_content().strip().replace('\n', '') )
 
         num_reviews = tree.cssselect('div#page-wrapper > div#ratings-reviews-qa > div.ratings-reviews > div.review-stats > div.product-rating-summary > div.review-count')
         num_reviews = num_reviews[0].text_content() if num_reviews else ''

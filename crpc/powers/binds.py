@@ -38,8 +38,8 @@ def single_process_image(sender, **kwargs):
         # TODO send a process_message error signal.
 
 
-#@ready_for_batch_image_crawling.bind
-def batch_image_crawl(sender, **kwargs):
+@ready_for_batch.bind
+def ready_for_batch_image_crawling(sender, **kwargs):
     logger.warning("{0} finish is listened, start to ready for batch {1} image crawl".format(sender, kwargs.get('doctype')))
     site = kwargs.get('site')
     doctype = kwargs.get('doctype')

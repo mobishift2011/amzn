@@ -6,7 +6,7 @@ import zerorpc
 from gevent.coros import Semaphore
 
 from tools import ImageTool
-from brandAPI import APIClient
+from brandapi import Extracter
 from powers.events import image_crawled, image_crawled_failed
 from powers.binds import image_crawled, image_crawled_failed
 
@@ -38,20 +38,28 @@ class PowerServer(object):
         site = kwargs.get('site', '')
         doctype = kwargs.get('doctype', '')
         key = kwargs.get('key', '')
-        brand = kwargs.get('brand', '')
+        crawled_brand = kwargs.get('brand', '')
 
+        #TO REMOVE
+        import time
+        print site,' ' + doctype + ' ',  key + ' ', 'brand-<'+crawled_brand+'>  ',  'title-<'+ kwargs.get('title', ' ') +'>'+ ':'
+        
         m = __import__('crawlers.'+site+'.models', fromlist=[doctype])
-        brand = APIClient.brand.match(**kwargs)
+        extracter = Extracter()
+        brand = extracter.extract(crawled_brand)
+
         if brand:
-            if doctype == 'Event':
-                m.Event.objects(event_id=key).update(set__favbuy_brand=brand, set__complete_status='002')
-            elif doctype == 'Product':
-                m.Product.objects(key=key).update(set__favbuy_brand=brand, set__complete_status='002')
-        else:
-            if doctype == 'Event':
-                m.Event.objects(event_id=key).update(set__complete_status='001')
-            elif doctype == 'Product':
-                m.Product.objects(key=key).update(set__complete_status='001')
+            print 
+        # if brand:
+        #     if doctype == 'Event':
+        #         m.Event.objects(event_id=key).update(set__favbuy_brand=brand, set__complete_status='002')
+        #     elif doctype == 'Product':
+        #         m.Product.objects(key=key).update(set__favbuy_brand=brand, set__complete_status='002')
+        # else:
+        #     if doctype == 'Event':
+        #         m.Event.objects(event_id=key).update(set__complete_status='001')
+        #     elif doctype == 'Product':
+        #         m.Product.objects(key=key).update(set__complete_status='001')
 
             # TODO send a signal to inform the success of brand extract
 
@@ -71,4 +79,3 @@ if __name__ == '__main__':
     zs.bind("tcp://0.0.0.0:{0}".format(POWER_PORT))
     zs.run()
 
-    #APIClient.brand.match(title='fuxin', brand='kuqibalahong', site='onemorerack', doctype='event', key='laji', combine_url='dasdf')

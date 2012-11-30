@@ -32,6 +32,11 @@ class Extracter(object):
                         ret.append( r[1] )
         return ret
 
+        for match in matches:
+            if (match[0][0] == 0 or brand[ match[0][0] -1 ] in self.stopwords) \
+                and (match[0][1] == len(brand) or brand[ match[0][1] ] in self.stopwords) \
+                ret.append(match[1])
+
 def get_site_module(site):
     return __import__('crawlers.'+site+'.models', fromlist=['Category', 'Event', 'Product'])
 

@@ -9,7 +9,9 @@ framwork used:
 *   nltk
 
 """
-DATAPATH = 'dataset'
+import os
+DIRNAME = os.path.dirname(os.path.abspath(__file__)) 
+DATAPATH = os.path.join(DIRNAME, 'dataset')
 
 import time
 import sklearn
@@ -17,7 +19,8 @@ import sklearn.svm
 import sklearn.naive_bayes
 import sklearn.neighbors
 import sklearn.datasets
-#from pattern.vector import Bayes, SVM, kNN, Document, Corpus
+import pattern
+import pattern.vector
 
 class Classifier(object):
     def __init__(self, name):
@@ -64,9 +67,41 @@ class SklearnClassifier(Classifier):
         ret = []
         index = list(self.clf.predict(self.vectorizer.transform([text])))[0]
         return self.target_names[index]
-            
+
+class PatternClassifier(Classifier):
+    def __init__(self, clf=None):
+        self.name = 'pattern'
+        self.clf = {
+            'svm':pattern.vector.SVM(),
+            'bayes':pattern.vector.Bayes(),
+            'knn':pattern.vector.kNN(),
+        }.get(clf, pattern.vector.SVM())
+        self.corpus = None
+    
+    def load_files(self):
+        self.corpus = pattern.vector.Corpus()
+        for p1 in os.listdir(DATAPATH):
+            directory = os.path.join(DATAPATH, p1)
+            if os.path.isdir(directory):
+                for p2 in os.listdir(directory):
+                    path = os.path.join(DATAPATH, p1, p2)
+                    content = open(path).read()
+                    self.clf.train(content,p1)
+                    self.corpus.append(pattern.vector.Document(content, type=p1))
+    
+    def classify(self, text):
+        return self.clf.classify(text)
+
+    def validate(self):
+        return self.clf.test(self.corpus, d=0.8, folds=5)
+
+class NltkClassifier(Classifier):
+    def __init__(self, clf=None):
+        self.name = 'nltk'
+
 def test_validation():
-    for Clf in [SklearnClassifier]:
+    """ testing different package's accurracy, coverage, ... """
+    for Clf in [SklearnClassifier, PatternClassifier]:
         for method in ['bayes', 'knn', 'svm']:
             print
             print
@@ -82,8 +117,8 @@ def test_validation():
             print 'validating time', t3 - t2
 
 def main():
-    #test_validation()
-    #return
+    test_validation()
+    return
     c = SklearnClassifier('bayes')
     c.load_files()
     s = '''Measurements: shoulder to hemline 36&quot;, sleeve length 25.5&quot;, taken from size S\nAuthentic product'''

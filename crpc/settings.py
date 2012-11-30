@@ -20,6 +20,13 @@ envs = {
         'MONGODB_HOST': '127.0.0.1',
         'REDIS_HOST': '127.0.0.1',
     },
+    'OFFICE': {
+        'CRAWLER_PEERS': ['root@127.0.0.1'],
+        'POWER_PEERS':['root@192.168.2.111'],
+        'USE_INDEX': '', 
+        'MONGODB_HOST': '127.0.0.1',
+        'REDIS_HOST': '127.0.0.1',
+    },
     'HJC': {
         'CRAWLER_PEERS': ['root@192.168.56.102','root@192.168.56.103'],
         'POWER_PEERS':['root@192.168.56.101'],

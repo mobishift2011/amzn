@@ -9,7 +9,7 @@ from gevent import monkey; monkey.patch_all()
 import lxml.html
 from datetime import datetime, timedelta
 
-from .models import *
+from models import *
 from crawlers.common.stash import *
 from crawlers.common.events import common_saved, common_failed
 
@@ -28,7 +28,7 @@ class Server(object):
         self.siteurl = 'http://www.bluefly.com'
         self.extract_slug_key_of_listingurl = re.compile(r'.*/(.+)/_/N-(.+)/list.fly')
         self.extract_category_key = re.compile(r'http://www.bluefly.com/_/N-(.+)/list.fly')
-        self.extract_product_key = re.compile(r'http://www.bluefly.com/(.+)/p/(.+)/detail.fly')
+        self.extract_product_slug_key = re.compile(r'http://www.bluefly.com/(.+)/p/(.+)/detail.fly')
 
     def crawl_category(self, ctx=''):
         """.. :py:method::
@@ -67,7 +67,7 @@ class Server(object):
             category.cats = cats
         category.update_time = datetime.utcnow()
         category.save()
-        common_saved.send(sender=ctx, key=key, url=url, is_new=is_new, is_updated=is_updated)
+        common_saved.send(sender=ctx, obj_type='Category', key=key, url=url, is_new=is_new, is_updated=is_updated)
 
     def download_category_return_xmltree(self, category, url, ctx):
         """.. :py:method::
@@ -171,54 +171,80 @@ class Server(object):
         """
         key = self.extract_category_key.match(url).group(1)
         content = fetch_page(url)
+        if content is None: content = fetch_page(url)
         if content is None or isinstance(content, int):
             common_failed.send(sender=ctx, key=key, url=url,
                     reason='download error listing or {0} return'.format(content))
             return
         tree = lxml.html.fromstring(content)
         navigation = tree.cssselect('div[id] > div#listProductPage')[0]
-        category_path = navigation.xpath('./div[@class="breadCrumbNav"]/div[@class="breadCrumbMargin"]//text()') # TODO
+        category_path = navigation.xpath('./div[@class="breadCrumbNav"]/div[@class="breadCrumbMargin"]//text()')
+        category_path = ' '.join( [c.strip() for c in category_path if c.strip()] )
         products = navigation.cssselect('div#listProductContent > div#rightPageColumn > div.listProductGrid > div#productGridContainer > div.productGridRow div.productContainer')
-        for prd in products: self.crawl_one_product_in_listing(key, category_path, prd, ctx)
+        products_num = navigation.cssselect('div#listProductContent > div#rightPageColumn > div#ls_topRightNavBar > div.ls_pageNav > span#ls_pageNumDisplayInfo > span.ls_minEmphasis')
+        if not products_num:
+            common_failed.send(sender=ctx, key=key, url=url, reason='This url have no product number.')
+            return
         products_num = navigation.cssselect('div#listProductContent > div#rightPageColumn > div#ls_topRightNavBar > div.ls_pageNav > span#ls_pageNumDisplayInfo > span.ls_minEmphasis')[0].text_content().split('of')[-1].strip()
+
         pages_num = ( int(products_num) - 1) // NUM_PER_PAGE + 1
         Category.objects(key=key).update_one(set__num=int(products_num),
                                              set__update_time=datetime.utcnow())
         
+        for prd in products: self.crawl_every_product_in_listing(key, category_path, prd, 1, ctx)
         for page_num in xrange(1, pages_num): # the real page number is page_num+1
             page_url = '{0}/_/N-{1}/Nao-{2}/list.fly'.format(self.siteurl, key, page_num*NUM_PER_PAGE)
-            self.get_next_page_in_listing(key, category_path, page_url, ctx)
+            self.get_next_page_in_listing(key, category_path, page_url, page_num+1, ctx)
 
-    def get_next_page_in_listing(self, key, category_path, url, ctx):
+    def get_next_page_in_listing(self, key, category_path, url, page_num, ctx):
         """.. :py:method::
             crawl next listing page
         :param key: category key in this listing
-        :param category_path:
+        :param category_path: "home > Women's Apparel > Blazers, Jackets & Vests"
+        :param url: url of this page
         """
         content = fetch_page(url)
         if content is None or isinstance(content, int):
             common_failed.send(sender=ctx, key=key, url=url,
-                    reason='download error listing or {0} return'.format(content))
+                    reason='download error listing {0} or {1} return'.format(page_num, content))
             return
         tree = lxml.html.fromstring(content)
         navigation = tree.cssselect('div[id] > div#listProductPage')[0]
         products = navigation.cssselect('div#listProductContent > div#rightPageColumn > div.listProductGrid > div#productGridContainer > div.productGridRow div.productContainer')
-        for prd in products: self.crawl_one_product_in_listing(key, category_path, prd, ctx)
+        for prd in products: self.crawl_every_product_in_listing(key, category_path, prd, page_num, ctx)
 
-    def crawl_one_product_in_listing(self, category_key, category_path, prd, ctx):
+
+    def crawl_every_product_in_listing(self, category_key, category_path, prd, page_num, ctx):
         """.. :py:method::
             crawl next listing page
+
+        :param category_key: category key in this listing
+        :param category_path: "home > Women's Apparel > Blazers, Jackets & Vests"
+        :param prd: product node in this page
+        :param page_num: the categroy listing page number
         """
         link = prd.cssselect('div.listProdImage a[href]')[0].get('href')
         link = link if link.startswith('http') else self.siteurl + link
-        slug, key = self.extract_product_key.match(link).groups()
+        slug, key = self.extract_product_slug_key.match(link).groups()
         soldout = True if prd.cssselect('div.stockMessage div.listOutOfStock') else False
         brand = prd.cssselect('div.layoutChanger > div.listBrand > a')[0].text_content().strip()
         title = prd.cssselect('div.layoutChanger > div.listLineMargin > div.productShortName')[0].text_content().strip()
-        listprice = prd.cssselect('div.layoutChanger > div.listProductPrices > div.priceRetail > span.priceRetailvalue')
-        if listprice:
-            listprice = listprice[0].text_content().strip()
-        price = prd.xpath('./div[@class="layoutChanger"]/div[@class="listProductPrices"]/div[@class="priceSave"]/preceding-sibling::div[1]').text_content().strip()
+
+        try:
+            listprice = prd.cssselect('div.layoutChanger > div.listProductPrices > div.priceRetail > span.priceRetailvalue')
+            listprice = listprice[0].text_content().strip() if listprice else ''
+            price = prd.cssselect('div.layoutChanger > div.listProductPrices div.priceSale > span.priceSalevalue')
+            if not price: price = prd.cssselect('div.layoutChanger > div.listProductPrices div.priceBlueflyFinal > span.priceBlueflyFinalvalue')
+            if not price: price = prd.cssselect('div.layoutChanger > div.listProductPrices div.priceReduced > span.priceReducedvalue')
+            if not price: price = prd.cssselect('div.layoutChanger > div.listProductPrices div.priceClearance > span.priceClearancevalue')
+            if price:
+                price = price[0].text_content().strip()
+            else:
+                common_failed.send(sender=ctx, key=category_key, url=link,
+                        reason='This product have no price.page_num: {0}'.format(page_num))
+        except:
+            common_failed.send(sender=ctx, key=category_key, url=link,
+                    reason='This product have no price node.page_num: {0}'.format(page_num))
         
         rating = prd.cssselect('div.layoutChanger > div.product-detail-rating > img')
         rating = rating[0].get('alt') if rating else ''
@@ -234,8 +260,8 @@ class Server(object):
             product.soldout = soldout
             product.brand = brand
             product.title = title
-            product.listprice = listprice if listprice else ''
-            product.price = price
+            product.listprice = listprice
+            product.price = price if price else ''
             product.rating = rating if rating else ''
         else:
             if soldout and product.soldout != soldout:
@@ -245,163 +271,73 @@ class Server(object):
         if category_path not in product.cats: product.cats.append(category_path)
         product.list_update_time = datetime.utcnow()
         product.save()
-        common_saved.send(sender=ctx, key=key, url=link, is_new=is_new, is_updated=is_updated)
+        common_saved.send(sender=ctx, obj_type='Product', key=key, url=link, is_new=is_new, is_updated=is_updated)
 
 
+    def crawl_product(self, url, ctx=''):
+        """.. :py:method::
+        """
+        slug, key = self.extract_product_slug_key.match(url).groups()
+        content = fetch_page(url)
+        if content is None or isinstance(content, int):
+            common_failed.send(sender=ctx, key=key, url=url,
+                    reason='download product page error or {0} return'.format(content))
+            return
+        tree = lxml.html.fromstring(content)
+        detail = tree.cssselect('div#page-wrapper > div#main-container > section#main-product-detail')[0]
+        imgs = detail.cssselect('div.product-image > div.image-thumbnail-container > a')
+        image_urls = self._make_image_urls(key, len(imgs))
+        color = detail.cssselect('div.product-info > form#product > div.product-variations > div.pdp-label > em')[0].text_content()
+        sizes = detail.cssselect('div.product-info > form#product > div.product-sizes > div.size-picker > ul.product-size > li')
 
-    def url2category_key(self,href):
-        # http://www.bluefly.com/Designer-Baby/_/N-v2ws/list.fly
-        # http://www.bluefly.com/Designer-Handbags-Accessories/_/N-1abcZapsz/newarrivals.fly 
-        # http://www.bluefly.com/Designer-Women/_/N-1pqkZapsz/Nao-288/newarrivals.fly
-        m = re.compile('.*/_/(N-[a-z,A-Z,0-9]{1,20})/.*.fly').findall(href)
-        return m[0]
-
-
-    def url2product_id(self,href):
-        # http://www.bluefly.com/Kelsi-Dagger-tan-suede-Berti-studded-pointed-toe-flats/p/320294403/detail.fly
-        m = re.compile('.*/p/(\d{1,15})/detail.fly').findall(href)
-        return m[0]
-
-    def _make_image_urls(self,product_key,image_count):
-        urls = []
-        for i in range(0,image_count):
-            if i == 0:
-                url = 'http://cdn.is.bluefly.com/mgen/Bluefly/eqzoom85.ms?img=%s.pct&outputx=738&outputy=700&level=1&ver=6' %product_key
+        sizes_scarcity = []
+        for size in sizes:
+            for i in sizes_scarcity:
+                if i[0] == size.get('data-size'):
+                    i[1] = size.get('data-stock')
+                    break
             else:
-                url = 'http://cdn.is.bluefly.com/mgen/Bluefly/eqzoom85.ms?img=%s_alt0%s.pct&outputx=738&outputy=700&level=1&ver=6' %(product_key,i)
+                sizes_scarcity.append( [size.get('data-size'), size.get('data-stock')] )
 
-            urls.append(url)
+        shipping = detail.cssselect('div.product-info > div.shipping-policy')[0].text_content()
+        returned = detail.cssselect('div.product-info > div.return-policy')[0].text_content()
+        summary = detail.cssselect('div.product-info > div.product-info-tabs > div.product-description')[0].text_content().strip()
+        property_list_info = detail.cssselect('div.product-info > div.product-info-tabs > ul.property-list > li')
+        list_info = []
+        for p in property_list_info:
+            list_info.append( p.text_content().strip() )
+
+        num_reviews = tree.cssselect('div#page-wrapper > div#ratings-reviews-qa > div.ratings-reviews > div.review-stats > div.product-rating-summary > div.review-count')
+        num_reviews = num_reviews[0].text_content() if num_reviews else ''
+
+        is_new, is_updated = False, False
+        product = Product.objects(key=key).first()
+        if not product:
+            is_new = True
+            product = Product(key=key)
+        product.image_urls = image_urls
+        product.color = color
+        product.sizes_scarcity = sizes_scarcity
+        product.shipping = shipping
+        product.returned = returned
+        product.summary = summary
+        product.list_info = list_info
+        product.num_reviews = num_reviews
+        product.full_update_time = datetime.utcnow()
+        if product.updated == False:
+            product.updated = True
+            ready = True
+        else: ready = False
+        product.save()
+        common_saved.send(sender=ctx, obj_type='Product', key=key, url=url, is_new=is_new, is_updated=is_updated, ready=ready)
+
+
+    def _make_image_urls(self, product_key, image_count):
+        urls = ['http://cdn.is.bluefly.com/mgen/Bluefly/eqzoom85.ms?img={0}.pct&outputx=1020&outputy=1224&level=1'.format(product_key)]
+        for i in range(1, image_count):
+            urls.append( 'http://cdn.is.bluefly.com/mgen/Bluefly/eqzoom85.ms?img={0}_alt0{1}.pct&outputx=1020&outputy=1224&level=1'.format(product_key, i) )
         return urls
 
-    @exclusive_lock(DB)
-    def crawl_product(self,url,ctx=False):
-        """.. :py:method::
-            Got all the product basic information and save into the database
-        """
-
-        if not url:return
-        if not self.browser:
-            try:
-                self.browser = webdriver.Chrome()
-            except:
-                self.browser = webdriver.Firefox()
-                self.browser.set_page_load_timeout(10)
-
-        #tree = self.ropen(url)
-        self.browser.get(url)
-        key = self.url2product_id(url)
-        main = self.browser.find_element_by_css_selector('section#main-product-detail')
-        title = main.find_element_by_xpath('//h2[starts-with(@class,"product-name")]').text
-        list_info = [] 
-        for li in main.find_elements_by_css_selector('ul.property-list li'):
-            list_info.append(li.text)
-        summary = main.find_element_by_css_selector('div.product-description').text
-        try:
-            shipping = main.find_element_by_css_selector('div.shipping-policy a').text
-        except NoSuchElementException:
-            shipping = ''
-
-        try:
-            returned  = main.find_element_by_css_selector('div.return-policy a').text
-        except NoSuchElementException:
-            returned = ''
-
-        cats = []
-        for a in self.browser.find_elements_by_css_selector('a.product-category'):
-            cats.append(a.text)
-
-        try:
-            color =  main.find_element_by_xpath('//div[@class="pdp-label product-variation-label"]/em').text
-        except NoSuchElementException:
-            color = ''
-
-        image_count = len(main.find_elements_by_css_selector('div.image-thumbnail-container a'))
-        image_urls = self._make_image_urls(key,image_count)
-
-        try:
-            num_reviews = main.find_element_by_css_selector('a.review-count').text.split('reviews')[0]
-        except NoSuchElementException:
-            num_reviews = '0'
-        
-        sizes = []
-        try:
-            bt = self.browser.find_element_by_css_selector('span.selection')
-            left = self.browser.find_element_by_css_selector('div.size-error-message').text
-        except NoSuchElementException:
-            pass
-        else:
-            for li in self.browser.find_elements_by_css_selector('div.size-picker ul.product-size li'):
-                bt.click()
-                size = li.get_attribute('data-size')
-                if li.get_attribute("class") == 'size-sku-waitlist':
-                    continue
-                else:
-                    # find the left count
-                    try:
-                        if li.is_displayed():
-                            li.click()
-                            left = self.browser.find_element_by_css_selector('span.size-info').text
-                        else:
-                            continue
-                    except NoSuchElementException:
-                        i = (size,'')
-                    else:
-                        i = (size,left)
-                    sizes.append(i)
-
-        product,is_new = Product.objects.get_or_create(key=key)
-#        if is_new:
-#            is_updated = False
-#        elif product.title == title:
-#            is_updated = False
-#        else:
-#            is_updated = True
-
-        product.title = title
-        if cats:product.cats = cats
-        product.sizes_scarcity = sizes
-        product.shipping = shipping
-        product.summary = summary
-        product.returned = returned
-        product.color = color
-        product.image_urls = image_urls
-        product.updated = True
-
-        # if not have now reviews,do nothing
-        if not is_new and product.num_reviews == num_reviews:
-            pass
-        else:
-            product.num_reviews = num_reviews
-            reviews = []
-            main = self.browser.find_element_by_xpath('//div[@class="ratings-reviews active"]')
-            try:
-                show_more = self.browser.find_element_by_link_text('SHOW MORE')
-            except NoSuchElementException:
-                show_more = False
-
-            if show_more:
-                show_more.click()
-
-            # remove the old reviews
-            Review.objects.filter(product_key=key).delete()
-            for article in main.find_elements_by_tag_name('article'):
-                review = Review()
-                review.title = self.browser.find_element_by_xpath('//h5[@class="review-title"]').text
-                review.content =  self.browser.find_element_by_xpath('//div[@class="text-preview"]').text
-                date_str=  self.browser.find_element_by_xpath('//div[@class="review-date"]').text
-                # patch
-                if '?' in date_str:
-                    date_str = date_str[:-1].replace('?','-')
-                date_obj = dt_parser.parse(date_str)
-                review.post_time = date_obj
-                review.username = self.browser.find_element_by_xpath('//div[@class="review-author"]/a').text
-                review.save()
-                reviews.append(review)
-            if reviews:
-                product.reviews = reviews
-
-        product.save()
-        common_saved.send(sender=ctx, site=DB, key=product.key, is_new=is_new, is_updated=not is_new)
 
 if __name__ == '__main__':
     server = zerorpc.Server(Server())

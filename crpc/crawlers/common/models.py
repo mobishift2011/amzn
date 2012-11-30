@@ -23,9 +23,13 @@ class BaseDocumentSkeleton(object):
     num                 =   IntField()
     image_urls          =   ListField(StringField())
     image_path          =   ListField(StringField())
+    
     image_complete      =   BooleanField(default=False)
-    complete_status     =   StringField(default='000')
-    favbuy_brand        =   StringField(default='')
+    brand_complete      =   BooleanField(default=False)
+    propagation_complete=   BooleanField(default=False)
+    publish_time        =   DateTimeField()
+
+    favbuy_brand        =   ListField(StringField())
     favbuy_tag          =   ListField(StringField())
 
     # text info
@@ -154,6 +158,15 @@ class BaseProduct(Document):
     image_urls          =   ListField(StringField())
     image_path          =   ListField(StringField())
 
+    image_complete      =   BooleanField(default=False)
+    brand_complete      =   BooleanField(default=False)
+    tag_complete        =   BooleanField(default=False)
+    dept_complete       =   BooleanField(default=False)
+    publish_time        =   DateTimeField()
+
+    favbuy_brand       =   StringField(default='')
+    favbuy_tag          =   ListField(StringField())
+
     meta                =   {
         "allow_inheritance": True,
         "collection": "product",
@@ -190,12 +203,8 @@ class LuxuryProduct(BaseProduct):
     sizes               =   ListField(StringField())
     scarcity            =   StringField()
     list_info           =   ListField(StringField())
-
-    image_complete      =   BooleanField(default=False)
-    complete_status     =   StringField(default='000')
-    favbuy_brand        =   StringField(default='')
-    favbuy_tag          =   ListField(StringField())
-
+    
+    
     meta                = {
         "indexes": ["soldout"],
     }

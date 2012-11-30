@@ -34,6 +34,10 @@ class Product(LuxuryProduct):
         "db_alias": DB,
     }
 
+    def url(self):
+        return 'http://www.bluefly.com/{0}/p/{1}/detail.fly'.format(self.slug, self.key)
+
+
 class  Review(BaseReview):
     product_key = StringField()
     meta  =   {

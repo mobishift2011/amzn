@@ -71,8 +71,6 @@ def spout_category(site, category):
             yield {'url': c.link, 'catstr': c.cat_str, 'num': c.num}
         else:
             yield {'url': c.link, 'catstr': c.cat_str}
-    elif site == 'bluefly':
-        yield {'url':c.url}
     elif site == 'amazon':
         pages = (c.num-1)/c.pagesize+10
         for p in range(1, min(pages+1,MAX_PAGE+1)):
@@ -94,8 +92,6 @@ def spout_product(site):
     for p in chain(p1):
         if site == 'ecost':
             yield {'url': p.url(), 'ecost': p.key}
-        elif site  in ['bluefly']:
-            yield {'url':p.url}
         elif site == 'myhabit':
             yield {'url': p.url(), 'casin': p.key}
         else:

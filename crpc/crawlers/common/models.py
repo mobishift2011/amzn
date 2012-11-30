@@ -140,6 +140,7 @@ class BaseProduct(Document):
     sell_rank           =   IntField()
     combine_url         =   StringField()
     dept                =   ListField(StringField())
+    tagline             =   ListField(StringField(), default=list)
 
     # text info
     title               =   StringField()

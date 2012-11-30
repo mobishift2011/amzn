@@ -132,6 +132,9 @@ class Server(object):
 
 
     def crawl_sale_category(self, category, url, ctx):
+        """
+            This category will generate path, "home > Shoes" ect.
+        """
         tree = self.download_category_return_xmltree(category, url, ctx)
         if tree is None: return
         navigation = tree.xpath('//div[@id="lnavi"]/div[@id="leftDeptColumn"]/div[@id="deptLeftnavContainer"]/h3[text()="categories"]')[0]
@@ -232,20 +235,19 @@ class Server(object):
         listprice = prd.cssselect('div.layoutChanger > div.listProductPrices > div.priceRetail > span.priceRetailvalue')
         listprice = listprice[0].text_content().strip() if listprice else ''
 
-        try:
-            price = prd.xpath('./div[@class="layoutChanger"]/div[@class="listProductPrices"]/div[@class="priceSale"]/span[@class="priceSalevalue"]')
-            if not price: price = prd.cssselect('div.layoutChanger > div.listProductPrices div.priceSale > span.priceSalevalue')
-            if not price: price = prd.cssselect('div.layoutChanger > div.listProductPrices div.priceBlueflyFinal > span.priceBlueflyFinalvalue')
-            if not price: price = prd.cssselect('div.layoutChanger > div.listProductPrices div.priceReduced > span.priceReducedvalue')
-            if not price: price = prd.cssselect('div.layoutChanger > div.listProductPrices div.priceClearance > span.priceClearancevalue')
-            if price:
-                price = price[0].text_content().strip()
-            else:
-                common_failed.send(sender=ctx, key=category_key, url=link,
-                        reason='This product have no price.page_num: {0}'.format(page_num))
-        except:
+        price = prd.xpath('./div[@class="layoutChanger"]/div[@class="listProductPrices"]/div[@class="priceSale"]/span[@class="priceSalevalue"]')
+        if not price: price = prd.cssselect('div.layoutChanger > div.listProductPrices div.priceSale > span.priceSalevalue')
+
+        if not price: price = prd.xpath('./div[@class="layoutChanger"]/div[@class="listProductPrices"]/div[@class="priceBlueflyFinal"]/span[@class="priceBlueflyFinalvalue"]')
+        if not price: price = prd.cssselect('div.layoutChanger > div.listProductPrices div.priceBlueflyFinal > span.priceBlueflyFinalvalue')
+
+        if not price: price = prd.cssselect('div.layoutChanger > div.listProductPrices div.priceReduced > span.priceReducedvalue')
+        if not price: price = prd.cssselect('div.layoutChanger > div.listProductPrices div.priceClearance > span.priceClearancevalue')
+        if price:
+            price = price[0].text_content().strip()
+        else:
             common_failed.send(sender=ctx, key=category_key, url=link,
-                    reason='This product have no price node.page_num: {0}'.format(page_num))
+                    reason='This product have no price.page_num: {0}'.format(page_num))
         
         rating = prd.cssselect('div.layoutChanger > div.product-detail-rating > img')
         rating = rating[0].get('alt') if rating else ''
@@ -302,10 +304,11 @@ class Server(object):
                 sizes_scarcity.append( [size.get('data-size'), size.get('data-stock')] )
 
         shipping = detail.cssselect('div.product-info > div.shipping-policy')
-        shipping = shipping[0].text_content() if shipping else ''
+        shipping = shipping[0].text_content().strip() if shipping else ''
         returned = detail.cssselect('div.product-info > div.return-policy')
-        returned = returned[0].text_content() if returned else ''
+        returned = returned[0].text_content().strip() if returned else ''
         summary = detail.cssselect('div.product-info > div.product-info-tabs > div.product-detail-list > div.product-description')[0].text_content().strip()
+        # TODO not found in DB list_info
         property_list_info = detail.cssselect('div.product-info > div.product-info-tabs > ul.property-list > li')
         list_info = []
         for p in property_list_info:

@@ -148,7 +148,8 @@ class Server(object):
         
         soldout = True
         for sku in res.get('skus'):
-            product.skus.append(sku.get('id'))
+            if sku.get('id') not in product.skus:
+                product.skus.append(sku.get('id'))
             price = sku.get('sale_price')
             is_updated = True if (product.price != price and not is_new) else is_updated
             product.price = price

@@ -20,6 +20,7 @@ def time2utc(t):
 
 class Server(object):
     def __init__(self):
+        self.s = requests.session()
         self.rooturl = 'http://www.myhabit.com/request/getAllPrivateSales'
         self.headers = {
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_2) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11',
@@ -28,7 +29,7 @@ class Server(object):
         }
 
     def crawl_category(self, ctx):
-        r = requests.get(self.rooturl, headers=self.headers)
+        r = self.s.get(self.rooturl, headers=self.headers)
         data = json.loads(r.text)
 
         for event in data['sales']:
@@ -46,14 +47,14 @@ class Server(object):
             if not p.jslink:
                 print p.key, p.jslink, 'not found'
                 continue
-            pool.spawn(self._parse_product, requests.get(p.jslink).text, 'haha')
+            pool.spawn(self._parse_product, self.s.get(p.jslink).text, 'haha')
         pool.join()
 
     def get_product_abstract_by_url(self, url):
         asin = re.compile(r'asin=([^&]+)').search(url).group(1)
         p = Product.objects.get(key=asin)
         jslink = p.jslink
-        content = requests.get(jslink).content
+        content = self.s.get(jslink).content
         data = re.compile(r'parse_asin_\w+\((.*)\);$').search(content).group(1)
         data = json.loads(data)
         title = data['detailJSON']['title']

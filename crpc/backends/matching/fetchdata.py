@@ -18,7 +18,7 @@ def do_fetch():
             if l.startswith('http://'):
                 url = l
                 name, content = myhabit.get_product_abstract_by_url(url)
-                fname = dept+'_'+subdept+'/'+name
+                fname = dept+'_'+subdept+'/'+name.replace('/','_')
                 ensure_dir(fname)
                 open(fname,'w').write(content.encode('utf-8'))
                 print fname
@@ -27,9 +27,9 @@ def do_fetch():
                 print
                 print
             elif l.startswith('?'):
-                subdept = l[1:].strip().replace(' ','_')
+                subdept = l[1:].strip().replace(' ','_').replace('/','_')
             else:
-                dept = l.replace(' ','_')
+                dept = l.replace(' ','_').replace('/','_')
 
 if __name__ == '__main__':
     do_fetch()

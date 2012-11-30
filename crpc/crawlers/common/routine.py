@@ -92,8 +92,6 @@ def spout_product(site):
     for p in chain(p1):
         if site == 'ecost':
             yield {'url': p.url(), 'ecost': p.key}
-        elif site  in ['bluefly']:
-            yield {'url':p.url}
         elif site == 'myhabit':
             yield {'url': p.url(), 'casin': p.key}
         else:

@@ -141,7 +141,7 @@ class Server(object):
             if dept not in brand.dept: brand.dept.append(dept) # events are mixed in different category
             brand.update_time = datetime.utcnow()
             brand.save()
-            common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=False)
+            common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=url, is_new=is_new, is_updated=False)
 
 
     def upcoming_proc(self, ctx):
@@ -190,7 +190,7 @@ class Server(object):
             brand.events_begin = time_convert( ' '.join( start_time.split(' ', 4)[1:-1] ), '%a %m/%d %I%p%Y' ) - timedelta(minutes=10) #'Sat 10/27 6am'
             brand.update_time = datetime.utcnow()
             brand.save()
-            common_saved.send(sender=ctx, key=event_id, url=pair[1], is_new=is_new, is_updated=False)
+            common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=pair[1], is_new=is_new, is_updated=False)
             
 
     def crawl_listing(self, url, ctx):
@@ -230,8 +230,8 @@ class Server(object):
         brand.update_time = datetime.utcnow()
         if brand.urgent == True:
             brand.urgent = False
-            ready = 'Event'
-        else: ready = None
+            ready = True
+        else: ready = False
 
         for item in items: self.crawl_list_product(event_id, item, ctx)
         page_num = 1
@@ -240,7 +240,7 @@ class Server(object):
             self.crawl_list_next(url, next_page_url, page_num + 1, event_id, ctx)
 
         brand.save()
-        common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=False, ready=ready)
+        common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=url, is_new=is_new, is_updated=False, ready=ready)
         debug_info.send(sender=DB + '.crawl_list.end')
 
     def detect_list_next(self, node, page_num):
@@ -321,7 +321,7 @@ class Server(object):
                 is_updated = True
         product.list_update_time = datetime.utcnow()
         product.save()
-        common_saved.send(sender=ctx, key=slug, url=self.siteurl + '/e/' + event_id + '.html', is_new=is_new, is_updated=is_updated)
+        common_saved.send(sender=ctx, obj_type='Product', key=slug, url=self.siteurl + '/e/' + event_id + '.html', is_new=is_new, is_updated=is_updated)
         debug_info.send(sender=DB + ".crawl_listing", url=self.siteurl + '/e/' + event_id + '.html')
 
 #        counter = 0
@@ -382,6 +382,7 @@ class Server(object):
             also_like.append( (a_l.get('title'), a_l.get('href')) )
 
         slug = self.extract_product_re.match(url).group(1)
+        is_updated = False
         product, is_new = Product.objects.get_or_create(pk=slug)
         if description: product.summary = description
         if list_info: product.list_info = list_info
@@ -393,11 +394,11 @@ class Server(object):
 
         if product.updated == False:
             product.updated = True
-            ready = 'Product'
-        else: ready = None
+            ready = True
+        else: ready = False
         product.full_update_time = datetime.utcnow()
         product.save()
-        common_saved.send(sender=ctx, key=slug, url=url, is_new=is_new, is_updated=not is_new, ready=ready)
+        common_saved.send(sender=ctx, obj_type='Product', key=slug, url=url, is_new=is_new, is_updated=is_updated, ready=ready)
 
 
 if __name__ == '__main__':

@@ -92,7 +92,7 @@ class Server(object):
             event.events_end = datetime.utcfromtimestamp(float(events_end[:10]))
             event.update_time = datetime.utcnow()
             event.save()
-            common_saved.send(sender=ctx, key=event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
+            common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
 
     def get_deals_categroy(self, ctx=''):
         """.. :py:method::
@@ -108,7 +108,7 @@ class Server(object):
             category.combine_url = self.siteurl
         category.update_time = datetime.utcnow()
         category.save()
-        common_saved.send(sender=ctx, key='#', url=self.siteurl, is_new=is_new, is_updated=is_updated)
+        common_saved.send(sender=ctx, obj_type='Category', key='#', url=self.siteurl, is_new=is_new, is_updated=is_updated)
 
         # categories' deals, with no products_begin time
         categories = ['women', 'men', 'home', 'electronics', 'kids', 'lifestyle']
@@ -122,7 +122,7 @@ class Server(object):
                 category.combine_url = 'http://nomorerack.com/daily_deals/category/{0}'.format(category_key)
             category.update_time = datetime.utcnow()
             category.save()
-            common_saved.send(sender=ctx, key=category_key, url=category.combine_url, is_new=is_new, is_updated=is_updated)
+            common_saved.send(sender=ctx, obj_type='Category', key=category_key, url=category.combine_url, is_new=is_new, is_updated=is_updated)
     
 
     def crawl_listing(self, url, ctx=''):
@@ -156,7 +156,7 @@ class Server(object):
 
             if event_id not in product.event_id: product.event_id.append(event_id)
             product.save()
-            common_saved.send(sender=ctx, key=product.key, url=product.combine_url, is_new=is_new, is_updated=is_updated)
+            common_saved.send(sender=ctx, obj_type='Product', key=product.key, url=product.combine_url, is_new=is_new, is_updated=is_updated)
 
         # After this event's products have been saved into DB,
         # send ready signal about this event to image processor
@@ -165,11 +165,11 @@ class Server(object):
         if not event.sale_description: event.sale_description = sale_description
         if event.urgent == True:
             event.urgent = False
-            ready = 'Event'
-        else: ready = None
+            ready = True
+        else: ready = False
         event.update_time = datetime.utcnow()
         event.save()
-        common_saved.send(sender=ctx, key=event_id, url=event.combine_url, is_new=False, is_updated=False, ready=ready)
+        common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=event.combine_url, is_new=False, is_updated=False, ready=ready)
 
 
     def get_sales_listing(self, url, ctx):
@@ -208,7 +208,7 @@ class Server(object):
             product.products_begin = east_today_begin_in_utc
             product.products_end = products_end
             product.save()
-            common_saved.send(sender=ctx, key=product.key, url=product.combine_url, is_new=is_new, is_updated=is_updated)
+            common_saved.send(sender=ctx, obj_type='Product', key=product.key, url=product.combine_url, is_new=is_new, is_updated=is_updated)
 
     def _get_category_sales_listing(self, url, ctx):
         """.. :py:method::
@@ -234,7 +234,7 @@ class Server(object):
             if category_key not in product.category_key: product.category_key.append(category_key)
             if cats_path and cats_path not in product.cats: product.cats.append(cats_path)
             product.save()
-            common_saved.send(sender=ctx, key=product.key, url=product.combine_url, is_new=is_new, is_updated=is_updated)
+            common_saved.send(sender=ctx, obj_type='Product', key=product.key, url=product.combine_url, is_new=is_new, is_updated=is_updated)
         self._get_js_load_products(category_key, ctx)
 
 
@@ -312,7 +312,7 @@ class Server(object):
                 if category_key not in product.category_key: product.category_key.append(category_key)
                 if cats_path and cats_path not in product.cats: product.cats.append(cats_path)
                 product.save()
-                common_saved.send(sender=ctx, key=product.key, url=product.combine_url, is_new=is_new, is_updated=is_updated)
+                common_saved.send(sender=ctx, obj_type='Product', key=product.key, url=product.combine_url, is_new=is_new, is_updated=is_updated)
 
 
     def crawl_product(self, url, ctx=''):
@@ -374,10 +374,10 @@ class Server(object):
 
         if product.updated == False:
             product.updated = True
-            ready = 'Product'
-        else: ready = None
+            ready = True
+        else: ready = False
         product.save()
-        common_saved.send(sender=ctx, key=product.key, url=url, is_new=is_new, is_updated=not is_new, ready=ready)
+        common_saved.send(sender=ctx, obj_type='Product', key=product.key, url=url, is_new=is_new, is_updated=is_updated, ready=ready)
 
 
 if __name__ == '__main__':

@@ -150,7 +150,7 @@ class Server(object):
             if image not in event.image_urls: event.image_urls.append(image)
             event.update_time = datetime.utcnow()
             event.save()
-            common_saved.send(sender=ctx, key=event_id, url=link, is_new=is_new, is_updated=False)
+            common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=link, is_new=is_new, is_updated=False)
 
 
     def upcoming_proc(self, ctx):
@@ -185,7 +185,7 @@ class Server(object):
                 event.events_begin = date_begin
                 event.update_time = datetime.utcnow()
                 event.save()
-                common_saved.send(sender=ctx, key=event_id, url=link, is_new=is_new, is_updated=False)
+                common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=link, is_new=is_new, is_updated=False)
 
 
     def utcstr2datetime(self, date_str):
@@ -219,7 +219,7 @@ class Server(object):
                 category.cats = ['home']
             category.update_time = datetime.utcnow()
             category.save()
-            common_saved.send(sender=ctx, key=category_key, url=category.combine_url, is_new=is_new, is_updated=is_updated)
+            common_saved.send(sender=ctx, obj_type='Category', key=category_key, url=category.combine_url, is_new=is_new, is_updated=is_updated)
 
 
     def crawl_listing(self, url, ctx):
@@ -274,7 +274,7 @@ class Server(object):
             self.crawl_category_list_product(category_key, item, east_today_begin_in_utc, ctx)
 
         category.save()
-        common_saved.send(sender=ctx, key=category_key, url=url, is_new=is_new, is_updated=False, ready=None)
+        common_saved.send(sender=ctx, obj_type='Category', key=category_key, url=url, is_new=is_new, is_updated=False, ready=False)
 
 
     def crawl_category_list_product(self, category_key, item, products_begin=None, ctx=''):
@@ -310,7 +310,7 @@ class Server(object):
         if products_begin: product.products_begin = products_begin
         product.list_update_time = datetime.utcnow()
         product.save()
-        common_saved.send(sender=ctx, key=product_id, url=self.siteurl + '/vintage-market-finds/' + category_key, is_new=is_new, is_updated=is_updated)
+        common_saved.send(sender=ctx, obj_type='Product', key=product_id, url=self.siteurl + '/vintage-market-finds/' + category_key, is_new=is_new, is_updated=is_updated)
 
 
     def crawl_sale_list(self, url, tree, ctx):
@@ -339,13 +339,13 @@ class Server(object):
         event.update_time = datetime.utcnow()
         if event.urgent == True:
             event.urgent = False
-            ready = 'Event'
-        else: ready = None
+            ready = True
+        else: ready = False
 
         for item in items: self.crawl_sale_list_product(event_id, item, ctx)
 
         event.save()
-        common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=False, ready=ready)
+        common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=url, is_new=is_new, is_updated=False, ready=ready)
 
 
     def crawl_sale_list_product(self, event_id, item, ctx):
@@ -385,7 +385,7 @@ class Server(object):
                     is_updated = True
         product.list_update_time = datetime.utcnow()
         product.save()
-        common_saved.send(sender=ctx, key=product_id, url=self.siteurl + '/sales/' + event_id, is_new=is_new, is_updated=is_updated)
+        common_saved.send(sender=ctx, obj_type='Product', key=product_id, url=self.siteurl + '/sales/' + event_id, is_new=is_new, is_updated=is_updated)
         debug_info.send(sender=DB + ".crawl_listing", url=self.siteurl + '/sales/' + event_id)
 
 
@@ -450,11 +450,11 @@ class Server(object):
         product.products_end = time_convert(end_date_str, '%m/%d at %I%p%Y', time_zone)
         if product.updated == False:
             product.updated = True
-            ready = 'Product'
-        else: ready = None
+            ready = True
+        else: ready = False
         product.full_update_time = datetime.utcnow()
         product.save()
-        common_saved.send(sender=ctx, key=product_id, url=url, is_new=is_new, is_updated=not is_new, ready=ready)
+        common_saved.send(sender=ctx, obj_type='Product', key=product_id, url=url, is_new=is_new, is_updated=is_updated, ready=ready)
 
 
     def crawl_product_sales(self, url, cont, tree, ctx):
@@ -462,6 +462,7 @@ class Server(object):
         :param url: porduct url need to crawl
         """
         product_id = url.split('/')[-1]
+        is_updated = False
         product, is_new = Product.objects.get_or_create(pk=product_id)
         m = self.get_product_condition.search(cont)
         if m:
@@ -495,11 +496,11 @@ class Server(object):
             product.seller = seller[0].cssselect('div[class]')[0].text_content()
         if product.updated == False:
             product.updated = True
-            ready = 'Product'
-        else: ready = None
+            ready = True
+        else: ready = False
         product.full_update_time = datetime.utcnow()
         product.save()
-        common_saved.send(sender=ctx, key=product_id, url=url, is_new=is_new, is_updated=not is_new, ready=ready)
+        common_saved.send(sender=ctx, obj_type='Product', key=product_id, url=url, is_new=is_new, is_updated=is_updated, ready=ready)
 
         
 

@@ -229,11 +229,12 @@ class Server(object):
         soldout = True if prd.cssselect('div.stockMessage div.listOutOfStock') else False
         brand = prd.cssselect('div.layoutChanger > div.listBrand > a')[0].text_content().strip()
         title = prd.cssselect('div.layoutChanger > div.listLineMargin > div.productShortName')[0].text_content().strip()
+        listprice = prd.cssselect('div.layoutChanger > div.listProductPrices > div.priceRetail > span.priceRetailvalue')
+        listprice = listprice[0].text_content().strip() if listprice else ''
 
         try:
-            listprice = prd.cssselect('div.layoutChanger > div.listProductPrices > div.priceRetail > span.priceRetailvalue')
-            listprice = listprice[0].text_content().strip() if listprice else ''
-            price = prd.cssselect('div.layoutChanger > div.listProductPrices div.priceSale > span.priceSalevalue')
+            price = prd.xpath('./div[@class="layoutChanger"]/div[@class="listProductPrices"]/div[@class="priceSale"]/span[@class="priceSalevalue"]')
+            if not price: price = prd.cssselect('div.layoutChanger > div.listProductPrices div.priceSale > span.priceSalevalue')
             if not price: price = prd.cssselect('div.layoutChanger > div.listProductPrices div.priceBlueflyFinal > span.priceBlueflyFinalvalue')
             if not price: price = prd.cssselect('div.layoutChanger > div.listProductPrices div.priceReduced > span.priceReducedvalue')
             if not price: price = prd.cssselect('div.layoutChanger > div.listProductPrices div.priceClearance > span.priceClearancevalue')
@@ -287,7 +288,8 @@ class Server(object):
         detail = tree.cssselect('div#page-wrapper > div#main-container > section#main-product-detail')[0]
         imgs = detail.cssselect('div.product-image > div.image-thumbnail-container > a')
         image_urls = self._make_image_urls(key, len(imgs))
-        color = detail.cssselect('div.product-info > form#product > div.product-variations > div.pdp-label > em')[0].text_content()
+        color = detail.cssselect('div.product-info > form#product > div.product-variations > div.pdp-label > em')
+        color = color[0].text_content() if color else ''
         sizes = detail.cssselect('div.product-info > form#product > div.product-sizes > div.size-picker > ul.product-size > li')
 
         sizes_scarcity = []
@@ -299,9 +301,11 @@ class Server(object):
             else:
                 sizes_scarcity.append( [size.get('data-size'), size.get('data-stock')] )
 
-        shipping = detail.cssselect('div.product-info > div.shipping-policy')[0].text_content()
-        returned = detail.cssselect('div.product-info > div.return-policy')[0].text_content()
-        summary = detail.cssselect('div.product-info > div.product-info-tabs > div.product-description')[0].text_content().strip()
+        shipping = detail.cssselect('div.product-info > div.shipping-policy')
+        shipping = shipping[0].text_content() if shipping else ''
+        returned = detail.cssselect('div.product-info > div.return-policy')
+        returned = returned[0].text_content() if returned else ''
+        summary = detail.cssselect('div.product-info > div.product-info-tabs > div.product-detail-list > div.product-description')[0].text_content().strip()
         property_list_info = detail.cssselect('div.product-info > div.product-info-tabs > ul.property-list > li')
         list_info = []
         for p in property_list_info:

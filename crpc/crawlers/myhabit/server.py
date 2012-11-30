@@ -200,7 +200,7 @@ class Server:
             if dept not in event.dept: event.dept.append(dept) # for designer dept
             event.update_time = datetime.utcnow()
             event.save()
-            common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=is_updated)
+            common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=url, is_new=is_new, is_updated=is_updated)
 
         # upcoming event
         nodes = browser.xpath('//div[@id="main"]/div[@id="page-content"]/div[@id="upcomingSales"]//div[@class="fourColumnSales"]//div[@class="caption"]/a')
@@ -260,7 +260,7 @@ class Server:
         event.events_begin = utc_begintime
         event.update_time = datetime.utcnow()
         event.save()
-        common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=False)
+        common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=url, is_new=is_new, is_updated=False)
 
 
     @exclusive_lock(DB)
@@ -310,12 +310,11 @@ class Server:
         event.num = num
         if event.urgent == True:
             event.urgent = False
-            ready = 'Event'
-        else:
-            ready = None
+            ready = True
+        else: ready = False
         event.update_time = datetime.utcnow()
         event.save()
-        common_saved.send(sender=ctx, key=event_id, url=url, is_new=is_new, is_updated=is_updated, ready=ready)
+        common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=url, is_new=is_new, is_updated=is_updated, ready=ready)
 #        print 'time proc event list: ', time.time() - time_begin_benchmark
 
 
@@ -363,7 +362,7 @@ class Server:
         if listprice: product.listprice = listprice
         product.list_update_time = datetime.utcnow()
         product.save()
-        common_saved.send(sender=ctx, key=casin, url='', is_new=is_new, is_updated=is_updated)
+        common_saved.send(sender=ctx, obj_type='Product', key=casin, url='', is_new=is_new, is_updated=is_updated)
         debug_info.send(sender="myhabit.parse_category_product", title=title, event_id=event_id, asin=asin, casin=casin)
 
 
@@ -418,6 +417,7 @@ class Server:
         if sizes_node: sizes = [s.text for s in sizes_node if not s.text.startswith('Please')]
         else: sizes = [] 
 
+        is_updated = False
         product, is_new = Product.objects.get_or_create(pk=casin)
         product.summary = shortDesc
         product.list_info = info_table
@@ -443,13 +443,12 @@ class Server:
         if scarcity: product.scarcity = scarcity
         if product.updated == False:
             product.updated = True
-            ready = 'Product'
-        else:
-            ready = None
+            ready = True
+        else: ready = False
         product.full_update_time = datetime.utcnow()
         product.save()
         
-        common_saved.send(sender=ctx, key=casin, url=url, is_new=is_new, is_updated=not is_new, ready=ready)
+        common_saved.send(sender=ctx, obj_type='Product', key=casin, url=url, is_new=is_new, is_updated=is_updated, ready=ready)
 #        print 'time product process benchmark: ', time.time() - time_begin_benchmark
 
 

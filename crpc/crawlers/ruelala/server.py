@@ -143,7 +143,7 @@ class Server(object):
             event.events_begin = events_begin
             event.update_time = datetime.utcnow()
             event.save()
-            common_saved.send(sender=ctx, key=event_id, is_new=is_new, is_updated=is_updated)
+            common_saved.send(sender=ctx, obj_type='Event', key=event_id, is_new=is_new, is_updated=is_updated)
 
     def _get_gifts_event_list(self, dept, url, ctx):
         """.. :py:method::
@@ -169,7 +169,7 @@ class Server(object):
                 event.urgent = True
             event.update_time = datetime.utcnow()
             event.save()
-            common_saved.send(sender=ctx, key=event_id, is_new=is_new, is_updated=False)
+            common_saved.send(sender=ctx, obj_type='Event', key=event_id, is_new=is_new, is_updated=False)
 
 
     def _get_event_list(self, dept, url, ctx):
@@ -273,7 +273,7 @@ class Server(object):
         if dept not in event.dept: event.dept.append(dept)
         event.update_time = datetime.utcnow()
         event.save()
-        common_saved.send(sender=ctx, key=event_id, is_new=is_new, is_updated=False)
+        common_saved.send(sender=ctx, obj_type='Event', key=event_id, is_new=is_new, is_updated=False)
         return event, event_id, link
 
 
@@ -317,11 +317,11 @@ class Server(object):
             product.price = price[0].text_content() if price else ''
             product.updated = True
             product.combine_url = url
-            ready = 'Product'
-        else: ready = None
+            ready = True
+        else: ready = False
         product.full_update_time = datetime.utcnow()
         product.save()
-        common_saved.send(sender=ctx, key=product_id, is_new=is_new, is_updated=is_updated, ready=ready)
+        common_saved.send(sender=ctx, obj_type='Product', key=product_id, is_new=is_new, is_updated=is_updated, ready=ready)
 
 
     def la_perla(self, dept, url, events_end, ctx):
@@ -352,7 +352,7 @@ class Server(object):
             event.events_end = events_end
             event.update_time = datetime.utcnow()
             event.save()
-            common_saved.send(sender=ctx, key=event_id, is_new=is_new, is_updated=is_updated)
+            common_saved.send(sender=ctx, obj_type='Event', key=event_id, is_new=is_new, is_updated=is_updated)
 
 
     def crawl_listing(self, url, ctx=''):
@@ -399,7 +399,7 @@ class Server(object):
                 if event_id not in product.event_id: product.event_id.append(event_id)
             product.list_update_time = datetime.utcnow()
             product.save()
-            common_saved.send(sender=ctx, key=product_id, is_new=is_new, is_updated=is_updated)
+            common_saved.send(sender=ctx, obj_type='Product', key=product_id, is_new=is_new, is_updated=is_updated)
 
         event = Event.objects(event_id=event_id).first()
         if not event: event = Event(event_id=event_id)
@@ -407,7 +407,7 @@ class Server(object):
             event.urgent = False
             event.update_time = datetime.utcnow()
             event.save()
-            common_saved.send(sender=ctx, key=event_id, is_new=False, is_updated=False, ready='Event')
+            common_saved.send(sender=ctx, obj_type='Event', key=event_id, is_new=False, is_updated=False, ready=True)
 
 
     def num_image_urls(self, product_id):
@@ -456,9 +456,7 @@ class Server(object):
         for p in node.cssselect('section#shipping'):
             returned.append(p.text_content())
         
-        #########################
         # section 2 productAttributes
-        #########################
         
         attribute_node = node.cssselect('section#productAttributes')[0]
         size_list = attribute_node.cssselect('section#productSelectors ul#sizeSwatches li.swatch a')
@@ -484,6 +482,7 @@ class Server(object):
             image_count = self.num_image_urls(product_id)
             image_urls = self._make_img_urls(product_id, image_count)
 
+        is_updated = False
         product, is_new = Product.objects.get_or_create(key=product_id)
         product.image_urls = image_urls
         product.list_info = list_info
@@ -495,12 +494,12 @@ class Server(object):
         product.color = '; '.join(colors) if colors else ''
         if product.updated == False:
             product.updated = True
-            ready = 'Product'
+            ready = True
         else:
-            ready = None
+            ready = False
         product.full_update_time = datetime.utcnow()
         product.save()
-        common_saved.send(sender=ctx, key=product_id, url=url, is_new=is_new, is_updated=not is_new, ready=ready)
+        common_saved.send(sender=ctx, obj_type='Product', key=product_id, url=url, is_new=is_new, is_updated=is_updated, ready=ready)
 
 
     def _url2product_id(self, url):
@@ -513,6 +512,5 @@ class Server(object):
 
 if __name__ == '__main__':
     server = Server()
-    #server.crawl_listing('http://www.ruelala.com/event/59935')
     url = 'http://www.ruelala.com/event/product/60496/6020835935/1/DEFAULT'
     server.crawl_product(url)

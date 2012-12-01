@@ -91,11 +91,11 @@ def spout_product(site):
 #            full_update_time__lt = datetime.utcnow()-timedelta(hours=24)).timeout(False)
     for p in chain(p1):
         if site == 'ecost':
-            yield {'url': p.url(), 'ecost': p.key}
+            yield { 'url': p.url(), 'ecost': p.key }
         elif site == 'myhabit':
-            yield {'url': p.url(), 'casin': p.key}
+            yield { 'url': p.url(), 'casin': p.key }
         else:
-            yield {'url': p.url()}
+            yield { 'url': p.url() }
 
 class UpdateContext(object):
     """ the context manager for monitoring 

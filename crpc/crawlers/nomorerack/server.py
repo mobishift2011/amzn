@@ -225,14 +225,15 @@ class Server(object):
         nodes = tree.cssselect('div#wrapper > div#content > div.deals > div.deal')
         for node in nodes:
             soldout = True if node.cssselect('div.info > h4.sold_out') else False
-            cats_path = node.cssselect('div.info > h4')[0].text_content() if not soldout else ''
-            cats_path = category_key + ' > ' + cats_path if cats_path else ''
+            tag = node.cssselect('div.info > h4')[0].text_content() if not soldout else ''
+            cats_path = category_key + ' > ' + tag if tag else ''
 
             product, is_new, is_updated = self.from_listing_get_info(node, soldout)
 
             if is_new: product.event_type = False # different from events' product
             if category_key not in product.category_key: product.category_key.append(category_key)
             if cats_path and cats_path not in product.cats: product.cats.append(cats_path)
+            if tag and tag not in product.tagline: product.tagline.append(tag)
             product.save()
             common_saved.send(sender=ctx, obj_type='Product', key=product.key, url=product.combine_url, is_new=is_new, is_updated=is_updated)
         self._get_js_load_products(category_key, ctx)
@@ -303,14 +304,15 @@ class Server(object):
                 return
             for node in nodes:
                 soldout = True if node.cssselect('div.info > h4.sold_out') else False
-                cats_path = node.cssselect('div.info > h4')[0].text_content() if not soldout else ''
-                cats_path = category_key + ' > ' + cats_path if cats_path else ''
+                tag = node.cssselect('div.info > h4')[0].text_content() if not soldout else ''
+                cats_path = category_key + ' > ' + tag if tag else ''
 
                 product, is_new, is_updated = self.from_listing_get_info(node, soldout)
 
                 if is_new: product.event_type = False # different from events' product
                 if category_key not in product.category_key: product.category_key.append(category_key)
                 if cats_path and cats_path not in product.cats: product.cats.append(cats_path)
+                if tag and tag not in product.tagline: product.tagline.append(tag)
                 product.save()
                 common_saved.send(sender=ctx, obj_type='Product', key=product.key, url=product.combine_url, is_new=is_new, is_updated=is_updated)
 

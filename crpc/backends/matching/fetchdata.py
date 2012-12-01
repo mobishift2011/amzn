@@ -35,7 +35,10 @@ def do_fetch():
                 fname = 'dataset'+'_'+dept+'_'+subdept+'/'+name.replace('/','_')
                 ensure_dir(fname)
 
-                open(fname,'w').write(content.encode('utf-8'))
+                try:
+                    open(fname,'w').write(content.encode('utf-8'))
+                except:
+                    continue
 
                 print fname
                 print content

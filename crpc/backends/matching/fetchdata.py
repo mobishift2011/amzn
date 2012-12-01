@@ -1,9 +1,11 @@
 from crawlers.myhabit.simpleclient import Myhabit
 from crawlers.gilt.simpleclient import Gilt
+from crawlers.ruelala.simpleclient import Ruelala
 import os
 
 myhabit = Myhabit()
 gilt = Gilt()
+ruelala = Ruelala()
 
 def ensure_dir(f):
     d = os.path.dirname(f)
@@ -21,8 +23,10 @@ def do_fetch():
             if l.startswith('http://'):
                 if l.startswith('http://www.myhabit.com'):
                     client = myhabit
-                elif l.startswith('http://www.gilt'):
+                elif l.startswith('http://www.gilt.com'):
                     client = gilt
+                elif l.startswith('http://www.ruelala.com'):
+                    client = ruelala
                 else:
                     raise ValueError('client not found: '+l)
 
@@ -32,7 +36,7 @@ def do_fetch():
                 except:
                     continue
 
-                fname = 'dataset'+'_'+dept+'_'+subdept+'/'+name.replace('/','_')
+                fname = 'dataset'+'/'+dept+'_'+subdept+'/'+name.replace('/','_')
                 ensure_dir(fname)
 
                 try:

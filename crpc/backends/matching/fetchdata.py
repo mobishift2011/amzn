@@ -27,7 +27,10 @@ def do_fetch():
                     raise ValueError('client not found: '+l)
 
                 url = l
-                name, content = client.get_product_abstract_by_url(url)
+                try:
+                    name, content = client.get_product_abstract_by_url(url)
+                except:
+                    continue
 
                 fname = 'dataset'+'_'+dept+'_'+subdept+'/'+name.replace('/','_')
                 ensure_dir(fname)

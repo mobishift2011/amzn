@@ -190,7 +190,7 @@ http://www.myhabit.com/#page=d&dept=men&sale=AZX0QJF5CUHSR&asin=B008PW5SR0&cAsin
 http://www.myhabit.com/#page=d&dept=men&sale=AZX0QJF5CUHSR&asin=B008PW5T88&cAsin=B008PW5T88&ref=qd_b_img_d_1
 http://www.myhabit.com/#page=d&dept=men&sale=A1A7SZH6JXY152&asin=B004VDK6NI&cAsin=B004VDK9JE&ref=qd_b_img_d_0
 http://www.gilt.com/sale/men/via-spiga-belts-2281/product/163709626-via-spiga-genuine-suede-belt
- http://www.gilt.com/sale/men/via-spiga-belts-2281/product/163709641-via-spiga-genuine-suede-belt
+http://www.gilt.com/sale/men/via-spiga-belts-2281/product/163709641-via-spiga-genuine-suede-belt
 http://www.gilt.com/sale/men/via-spiga-belts-2281/product/163709633-via-spiga-genuine-suede-belt
 http://www.gilt.com/sale/men/via-spiga-belts-2281/product/163709657-via-spiga-reversible-leather-belt
 http://www.gilt.com/sale/men/via-spiga-belts-2281/product/163709665-via-spiga-reversible-leather-belt
@@ -198,7 +198,7 @@ http://www.gilt.com/sale/men/cold-weather-color/product/156946336-portolano-meri
 http://www.gilt.com/sale/men/cold-weather-color/product/144391656-chelsey-imports-wool-stripe-scarf
 
 
-£¿      Jewelry & Watches
+    Jewelry & Watches
 ?	Suits & Coats
 http://www.myhabit.com/#page=d&dept=men&sale=A25ZXVWLT0BY7D&asin=B009QTV4SI&cAsin=B009QTV564&ref=qd_b_img_d_13
 http://www.myhabit.com/#page=d&dept=men&sale=A1Z107C0JXM15E&asin=B009P2HMSM&cAsin=B009P2HMX2&ref=qd_b_img_d_0
@@ -373,7 +373,7 @@ http://www.gilt.com/sale/children/beetlejuice-5291/product/169678655-beetlejuice
 http://www.gilt.com/sale/children/beetlejuice-5291/product/169678674-beetlejuice-big-flower-dress
 
 
-?	Boys¡¯ Shoes
+?	Boys' Shoes
 http://www.myhabit.com/#page=d&dept=kids&sale=AUS21IALL1FH0&asin=B007Y5PP68&cAsin=B005B3Z82Q&ref=qd_b_img_d_1
 http://www.myhabit.com/#page=d&dept=kids&sale=AUS21IALL1FH0&asin=B007Y5IE1G&cAsin=B0009A03NK&ref=qd_b_img_d_2
 http://www.myhabit.com/#page=d&dept=kids&sale=AUS21IALL1FH0&asin=B007Y5IE1G&cAsin=B007Y5IECK&ref=qd_b_img_d_3

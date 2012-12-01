@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import re
 import sys
 import sklearn.feature_extraction
 import operator
@@ -33,8 +34,18 @@ def get_document_list():
                 sys.stdout.flush()
     return dl
 
+words = re.compile(ur'\b\w+\b')
+def adjacent_words_tokenizer(doc):
+    l = words.findall(doc)
+    for i in range(len(l)-1):
+        yield l[i]+' '+l[i+1] 
+    for i in range(len(l)-2):
+        yield l[i]+' '+l[i+1]+' '+l[i+2]
+    for i in range(len(l)-3):
+        yield l[i]+' '+l[i+1]+' '+l[i+2]+' '+l[i+3]
+
 def do_counts():
-    vectorizer = sklearn.feature_extraction.text.TfidfVectorizer()
+    vectorizer = sklearn.feature_extraction.text.TfidfVectorizer(tokenizer=adjacent_words_tokenizer)
     topkw = {}
 
     print 'generating document list from database'
@@ -47,16 +58,18 @@ def do_counts():
 
     print 'collecting term frequency'
     terms = vectorizer.get_feature_names()
-    sums = matrix.sum(0).tolist()[0]
-    for term, num in izip(terms, sums):
-        topkw[term] = num
+    means = matrix.mean(0).tolist()[0]
+    for term, mean in izip(terms, means):
+        topkw[term] = mean
     print 'term frequency collected'
     
     print 'sorting dict'
     topkw_list = sorted(topkw.iteritems(), key=operator.itemgetter(1), reverse=True)
 
     with open('topkeywords.txt','w') as f:
-        for term, score in topkw_list[:2000]:
+        for term, score in topkw_list[:5000]:
+            if term in stopwords:
+                continue
             f.write('%-30s%s\n' % (term.encode('utf-8'), score))
 
 if __name__ == '__main__':

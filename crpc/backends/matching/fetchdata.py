@@ -13,6 +13,7 @@ def ensure_dir(f):
         os.makedirs(d)
 
 def do_fetch():
+    print 'started to fetch'
     with open('from.txt') as f:
         dept, subdept = '', ''
         for l in f:
@@ -41,7 +42,7 @@ def do_fetch():
                 fname = fname.encode('ascii', 'xmlcharrefreplace')
                 ensure_dir(fname)
 
-                open(fname,'w').write(content.encode('utf-8'))
+                open(fname,'w').write(content)
 
                 print fname
 

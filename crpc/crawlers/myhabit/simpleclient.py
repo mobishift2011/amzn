@@ -39,8 +39,8 @@ class Myhabit(object):
         content = self.s.get(jslink).content
         data = re.compile(r'parse_asin_\w+\((.*)\);$').search(content).group(1)
         data = json.loads(data)
-        title = data['detailJSON']['title']
-        listinfo = '\n'.join( data['productDescription']['bullets'][0]['bulletsList'] )
+        title = data['detailJSON']['title'].encode('utf-8')
+        listinfo = '\n'.join( data['productDescription']['bullets'][0]['bulletsList'].encode('utf-8') )
         return title.replace(' ','_')+'_'+jslink.rsplit('/',1)[-1][:-3], title + '\n' + listinfo
 
 if __name__ == '__main__':

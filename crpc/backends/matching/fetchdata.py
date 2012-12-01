@@ -34,21 +34,16 @@ def do_fetch():
                 try:
                     name, content = client.get_product_abstract_by_url(url)
                 except:
+                    print 'failed', url,
                     continue
 
                 fname = 'dataset'+'/'+dept+'_'+subdept+'/'+name.replace('/','_')
+                fname = fname.encode('ascii', 'xmlcharrefreplace')
                 ensure_dir(fname)
 
-                try:
-                    open(fname,'w').write(content.encode('utf-8'))
-                except:
-                    continue
+                open(fname,'w').write(content.encode('utf-8'))
 
                 print fname
-                print content
-                print
-                print
-                print
 
             elif l.startswith('?'):
                 subdept = l[1:].strip().replace(' ','_').replace('/','_')

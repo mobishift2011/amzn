@@ -13,8 +13,8 @@ class Gilt(object):
         product_id = re.compile(r'/(\d+)-').search(url).group(1)
         product_info = re.compile(r'new Gilt.Product\((.*?)[\)]+;').search(content).group(1) 
         product_info = json.loads(product_info)
-        title = product_info['name']
-        description = product_info['description'].replace('<br>','\n')
+        title = product_info['name'].encode('utf-8')
+        description = product_info['description'].replace('<br>','\n').encode('utf-8')
         return title.replace(' ','_')+'_'+product_id, title+'\n'+description
 
 if __name__ == '__main__':

@@ -1,7 +1,9 @@
-from crawlers.myhabit.server2 import Server as Myhabit
+from crawlers.myhabit.simpleclient import Myhabit
+from crawlers.gilt.simpleclient import Gilt
 import os
 
 myhabit = Myhabit()
+gilt = Gilt()
 
 def ensure_dir(f):
     d = os.path.dirname(f)
@@ -15,19 +17,32 @@ def do_fetch():
             l = l.strip() 
             if not l:
                 continue
+
             if l.startswith('http://'):
+                if l.startswith('http://www.myhabit.com'):
+                    client = myhabit
+                elif l.startswith('http://www.gilt'):
+                    client = gilt
+                else:
+                    raise ValueError('client not found: '+l)
+
                 url = l
-                name, content = myhabit.get_product_abstract_by_url(url)
-                fname = dept+'_'+subdept+'/'+name.replace('/','_')
+                name, content = client.get_product_abstract_by_url(url)
+
+                fname = 'dataset'+'_'+dept+'_'+subdept+'/'+name.replace('/','_')
                 ensure_dir(fname)
+
                 open(fname,'w').write(content.encode('utf-8'))
+
                 print fname
                 print content
                 print
                 print
                 print
+
             elif l.startswith('?'):
                 subdept = l[1:].strip().replace(' ','_').replace('/','_')
+
             else:
                 dept = l.replace(' ','_').replace('/','_')
 

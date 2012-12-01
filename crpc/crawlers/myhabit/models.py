@@ -41,3 +41,11 @@ class Product(LuxuryProduct):
 
     def url(self):
         return 'http://www.myhabit.com/homepage#page=d&sale={0}&asin={1}&cAsin={2}'.format(self.event_id[0], self.asin, self.key)
+
+class Jslinker(Document):
+    asin = StringField(primary_key=True)
+    jslink = StringField()
+
+    meta = {
+        "db_alias": DB,
+    }

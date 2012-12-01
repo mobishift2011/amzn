@@ -1,11 +1,11 @@
 Stores:
-?   Introduction
-?   Shipping Information
-?   CC Payment Information
+?	Introduction
+?	Shipping Information
+?	CC Payment Information
 Categories
 Women
-?   New Arrivals
-?   Shoes
+?	New Arrivals
+?	Shoes
 http://www.myhabit.com/homepage?#page=d&dept=women&sale=A1S5P2W9R0QRIZ&asin=B00687Y690&cAsin=B00687Y7G2&ref=qd_b_img_d_0
 http://www.myhabit.com/homepage?#page=d&dept=women&sale=A1S5P2W9R0QRIZ&asin=B00687UOEQ&cAsin=B00687UUM2&ref=qd_b_img_d_4
 http://www.myhabit.com/homepage?#page=d&dept=women&sale=A1S5P2W9R0QRIZ&asin=B00687SR54&cAsin=B00687T424&ref=qd_b_img_d_7
@@ -18,7 +18,22 @@ http://www.myhabit.com/homepage?#page=d&dept=women&sale=A6U2F86K2JTRO&asin=B005G
 http://www.myhabit.com/homepage?#page=d&dept=women&sale=A6U2F86K2JTRO&asin=B005GJX5TS&cAsin=B005FMSZ9G&ref=qd_b_img_d_1
 http://www.myhabit.com/homepage?#page=d&dept=women&sale=A6U2F86K2JTRO&asin=B005GJX5TS&cAsin=B005FMSZ1E&ref=qd_b_img_d_2
 http://www.myhabit.com/homepage?#page=d&dept=women&sale=A6U2F86K2JTRO&asin=B003I4FGQS&cAsin=B005GJXCBO&ref=qd_b_img_d_3
-?   Handbags
+http://www.gilt.com/sale/women/kate-spade-new-york-shoes-5091/product/149337903-kate-spade-new-york-shoes-frenchie-ballet-flat
+http://www.gilt.com/sale/women/kate-spade-new-york-shoes-5091/product/149337918-kate-spade-new-york-shoes-frenchie-ballet-flat
+http://www.gilt.com/sale/women/kate-spade-new-york-shoes-5091/product/160877546-kate-spade-new-york-shoes-fae-ballet-flat
+http://www.gilt.com/sale/women/kate-spade-new-york-shoes-5091/product/169370860-kate-spade-new-york-shoes-helen-r-ballet-flat
+http://www.gilt.com/sale/women/kate-spade-new-york-shoes-5091/product/169370862-kate-spade-new-york-shoes-helen-too-ballet-flat
+http://www.gilt.com/sale/women/kate-spade-new-york-shoes-5091/product/169370852-kate-spade-new-york-shoes-essa-flat
+http://www.gilt.com/sale/women/kate-spade-new-york-shoes-5091/product/169370853-kate-spade-new-york-shoes-essa-flat
+http://www.gilt.com/sale/women/kate-spade-new-york-shoes-5091/product/169370851-kate-spade-new-york-shoes-essa-flat
+http://www.gilt.com/sale/women/kate-spade-new-york-shoes-5091/product/165272122-kate-spade-new-york-shoes-felice-ballet-flat
+http://www.gilt.com/sale/women/kate-spade-new-york-shoes-5091/product/160877630-kate-spade-new-york-shoes-stacie-slingback
+http://www.gilt.com/sale/women/kate-spade-new-york-shoes-5091/product/160877740-kate-spade-new-york-shoes-cassidy-slingback
+http://www.gilt.com/sale/women/kate-spade-new-york-shoes-5091/product/160877797-kate-spade-new-york-shoes-darya-boot
+http://www.gilt.com/sale/women/kate-spade-new-york-shoes-5091/product/165272151-kate-spade-new-york-shoes-mechelle-bootie
+http://www.gilt.com/sale/women/kate-spade-new-york-shoes-5091/product/160877442-kate-spade-new-york-shoes-randi-too-boot
+
+?	Handbags
 
 http://www.myhabit.com/#page=d&dept=women&sale=AGF14MNBHE6RY&asin=B009PO00SO&cAsin=B009PO012E&ref=qd_b_img_d_0
 http://www.myhabit.com/#page=d&dept=women&sale=AGF14MNBHE6RY&asin=B009PO00SO&cAsin=B009PO01OM&ref=qd_b_img_d_1
@@ -31,11 +46,37 @@ http://www.myhabit.com/#page=d&dept=women&sale=AGF14MNBHE6RY&asin=B009PNZZIK&cAs
 http://www.myhabit.com/#page=d&dept=women&sale=AGF14MNBHE6RY&asin=B009PNZZIK&cAsin=B009PNZZTY&ref=qd_b_img_d_8
 http://www.myhabit.com/#page=d&dept=women&sale=AGF14MNBHE6RY&asin=B009PNZZIK&cAsin=B009PO00IE&ref=qd_b_img_d_9
 
-?   Accessories
+?	Accessories
+http://www.myhabit.com/#page=d&dept=women&sale=A3M98BEN2TPC8N&asin=B0078NVLU0&cAsin=B0078NVLZU&ref=qd_b_img_d_2
+http://www.gilt.com/sale/women/kate-spade-hosiery/product/168960683-kate-spade-new-york-hosiery-diamond-fishnet-tight
+http://www.gilt.com/sale/women/kate-spade-hosiery/product/168960679-kate-spade-new-york-hosiery-gigantic-swiss-dot-tight
+http://www.gilt.com/sale/women/kate-spade-hosiery/product/168960688-kate-spade-new-york-hosiery-very-opaque-tight
+http://www.gilt.com/sale/women/kate-spade-hosiery/product/168960673-kate-spade-new-york-hosiery-sparkle-fishnet-tight
+http://www.gilt.com/sale/women/kate-spade-hosiery/product/168960690-kate-spade-new-york-hosiery-tonal-argyle-tight
+http://www.gilt.com/sale/women/kate-spade-hosiery/product/168960677-kate-spade-new-york-hosiery-herringbone-stripe-tight
+http://www.gilt.com/sale/women/kate-spade-hosiery/product/168960675-kate-spade-new-york-hosiery-cha-cha-cha-sheer-tight
+http://www.gilt.com/sale/women/kate-spade-hosiery/product/121823812-kate-spade-new-york-hosiery-sparkle-fishnet-tight
+http://www.gilt.com/sale/women/kate-spade-hosiery/product/168960681-kate-spade-new-york-hosiery-solid-spade-footless-legging
+http://www.gilt.com/sale/women/kate-spade-hosiery/product/168960687-kate-spade-new-york-hosiery-very-opaque-tight
+http://www.gilt.com/sale/women/kate-spade-hosiery/product/168960694-kate-spade-new-york-hosiery-bow-flock-sheer-tight
+http://www.gilt.com/sale/women/kate-spade-hosiery/product/168960676-kate-spade-new-york-hosiery-solid-melange-tight
+http://www.gilt.com/sale/women/kate-spade-hosiery/product/168960692-kate-spade-new-york-hosiery-tonal-argyle-tight
+http://www.gilt.com/sale/women/kate-spade-hosiery/product/168960685-kate-spade-new-york-hosiery-diamond-dot-sheer-tight
+http://www.gilt.com/sale/women/kate-spade-hosiery/product/168960668-kate-spade-new-york-hosiery-cashmere-gigantic-dot-knee-high-sock
+http://www.gilt.com/sale/women/kate-spade-hosiery/product/168960670-kate-spade-new-york-hosiery-rugby-stripe-sparkle-sock
+http://www.gilt.com/sale/women/kate-spade-hosiery/product/168960698-kate-spade-new-york-hosiery-holiday-polka-dot-cashmere-trouser-sock
+http://www.gilt.com/sale/women/kate-spade-hosiery/product/168960696-kate-spade-new-york-hosiery-holiday-trouser-sock-gift-box-set-of-3
+http://www.gilt.com/sale/women/deborahs-gift-picks/product/170481672-kate-spade-new-york-sprinkles-scarf-80-x-30
+http://www.gilt.com/sale/women/deborahs-gift-picks/product/170481659-kate-spade-new-york-big-apple-striped-earmuffs
+http://www.gilt.com/sale/women/deborahs-gift-picks/product/170481670-kate-spade-new-york-mod-spot-fingerless-gloves
+http://www.gilt.com/sale/women/kate-spade-new-york-sunglasses-9411/product/168628983-kate-spade-sunglasses-graceann-oversized-round-frame
+http://www.gilt.com/sale/women/kate-spade-new-york-sunglasses-9411/product/168628984-kate-spade-sunglasses-graceann-oversized-round-frame
+http://www.gilt.com/sale/women/kate-spade-new-york-sunglasses-9411/product/168628985-kate-spade-sunglasses-graceann-oversized-round-frame
 
-?   Jewelry & Watches
 
-?   Dresses & Skirts
+?	Jewelry & Watches
+
+?	Dresses & Skirts
 http://www.myhabit.com/#page=d&dept=women&sale=A37LAJGJTU1R0P&asin=B00822PRQA&cAsin=B00822PS0A&ref=qd_b_img_d_0
 http://www.myhabit.com/#page=d&dept=women&sale=A37LAJGJTU1R0P&asin=B00822PPPI&cAsin=B00822PQ02&ref=qd_b_img_d_1
 http://www.myhabit.com/#page=d&dept=women&sale=A37LAJGJTU1R0P&asin=B00822PO0O&cAsin=B00822POZO&ref=qd_b_img_d_2
@@ -47,8 +88,19 @@ http://www.myhabit.com/#page=d&dept=women&sale=A37LAJGJTU1R0P&asin=B00822PA12&cA
 http://www.myhabit.com/#page=d&dept=women&sale=A37LAJGJTU1R0P&asin=B00822P7NS&cAsin=B00822P7VA&ref=qd_b_img_d_8
 http://www.myhabit.com/#page=d&dept=women&sale=A37LAJGJTU1R0P&asin=B00822P4R2&cAsin=B00822P62U&ref=qd_b_img_d_9
 http://www.myhabit.com/#page=d&dept=women&sale=A37LAJGJTU1R0P&asin=B00822P4R2&cAsin=B00822P53A&ref=qd_b_img_d_10
-?   Pants & Shorts
-?   Shirts & Sweaters
+http://www.gilt.com/sale/women/kate-spade-7218/product/167619044-kate-spade-new-york-amanda-cotton-sheath
+http://www.gilt.com/sale/women/kate-spade-7218/product/167619103-kate-spade-new-york-rainey-printed-eyelet-dress
+http://www.gilt.com/sale/women/kate-spade-7218/product/167619064-kate-spade-new-york-amanda-cotton-silk-sheath
+http://www.gilt.com/sale/women/kate-spade-7218/product/167619119-kate-spade-new-york-mollie-pleated-front-wool-skirt
+
+?	Pants & Shorts
+http://www.myhabit.com/#page=d&dept=women&sale=A1FA5UF0Z5ETZE&asin=B006VS6TEG&cAsin=B0058XOMDU&ref=qd_b_img_d_3
+http://www.myhabit.com/#page=d&dept=women&sale=A1FA5UF0Z5ETZE&asin=B00813L4AS&cAsin=B0080BXY3G&ref=qd_b_img_d_4
+http://www.gilt.com/sale/women/kate-spade-7218/product/167619027-kate-spade-new-york-davis-skinny-pant
+http://www.gilt.com/sale/women/kate-spade-7218/product/167619113-kate-spade-new-york-davis-crop-pant
+
+
+?	Shirts & Sweaters
 http://www.myhabit.com/#page=d&dept=women&sale=A1FA5UF0Z5ETZE&asin=B005C95PHC&cAsin=B0058XPBZS&ref=qd_b_img_d_0
 http://www.myhabit.com/#page=d&dept=women&sale=A1FA5UF0Z5ETZE&asin=B006VS6URC&cAsin=B0058XOYEC&ref=qd_b_img_d_1
 http://www.myhabit.com/#page=d&dept=women&sale=A1FA5UF0Z5ETZE&asin=B009PBUD8Y&cAsin=B009OMT2B8&ref=qd_b_img_d_5
@@ -60,9 +112,12 @@ http://www.myhabit.com/#page=d&dept=women&sale=A3M98BEN2TPC8N&asin=B0078NWIC0&cA
 http://www.myhabit.com/#page=d&dept=women&sale=A3M98BEN2TPC8N&asin=B0078NWCX0&cAsin=B0078NWDDY&ref=qd_b_img_d_1
 http://www.myhabit.com/#page=d&dept=women&sale=A3M98BEN2TPC8N&asin=B0078NMC9O&cAsin=B0078NMH62&ref=qd_b_img_d_28
 http://www.myhabit.com/#page=d&dept=women&sale=A3M98BEN2TPC8N&asin=B0078NMSAW&cAsin=B0078NMT8S&ref=qd_b_img_d_29
+http://www.gilt.com/sale/women/kate-spade-7218/product/167619131-kate-spade-new-york-jessie-printed-silk-blouse
+http://www.gilt.com/sale/women/kate-spade-7218/product/167619124-kate-spade-new-york-kyle-peter-pan-collar-sweater
+http://www.gilt.com/sale/women/kate-spade-7218/product/167619031-kate-spade-new-york-caroline-silk-cotton-cardigan
+http://www.gilt.com/sale/women/kate-spade-7218/product/167619135-kate-spade-new-york-steph-colorblock-cardigan
 
-
-?   Outerwear
+?	Outerwear
 http://www.myhabit.com/homepage?#page=d&dept=women&sale=ARYLKDVSWP4F9&asin=B009F1I7JG&cAsin=B00885OOZQ&ref=qd_b_img_d_0
 http://www.myhabit.com/homepage?#page=d&dept=women&sale=ARYLKDVSWP4F9&asin=B009F1ICEG&cAsin=B00884Z4FQ&ref=qd_b_img_d_1
 http://www.myhabit.com/homepage?#page=d&dept=women&sale=ARYLKDVSWP4F9&asin=B009F1IE5I&cAsin=B00885KZZY&ref=qd_b_img_d_2
@@ -74,48 +129,522 @@ http://www.myhabit.com/homepage?#page=d&dept=women&sale=ARYLKDVSWP4F9&asin=B009F
 http://www.myhabit.com/homepage?#page=d&dept=women&sale=ARYLKDVSWP4F9&asin=B009F1IRL4&cAsin=B005HENRIQ&ref=qd_b_img_d_10
 http://www.myhabit.com/homepage?#page=d&dept=women&sale=A29V51ULR3FJV4&asin=B0089ZRS5I&cAsin=B0089YSD6M&ref=qd_b_img_d_0
 http://www.myhabit.com/homepage?#page=d&dept=women&sale=A29V51ULR3FJV4&asin=B0089ZRV0A&cAsin=B0089YSRL8&ref=qd_b_img_d_2
-?   Intimates & Loungewear
+http://www.gilt.com/sale/women/kate-spade-7218/product/167619082-kate-spade-new-york-micah-cotton-coat
+http://www.gilt.com/sale/women/kate-spade-7218/product/167619109-kate-spade-new-york-jenny-cropped-jacket
+http://www.gilt.com/sale/women/kate-spade-7218/product/167619107-kate-spade-new-york-geraldine-tweed-jacket
+http://www.gilt.com/sale/women/kate-spade-7218/product/102650396-kate-spade-new-york-scarlette-wool-blend-stitched-jacket
+http://www.gilt.com/sale/women/kate-spade-7218/product/148108037-kate-spade-new-york-pierce-cropped-brocade-jacket
+http://www.gilt.com/sale/women/kate-spade-7218/product/140300056-kate-spade-new-york-signature-spade-quilted-jacket
+http://www.gilt.com/sale/women/kate-spade-7218/product/102650399-kate-spade-new-york-annie-textured-wool-jacket
+http://www.gilt.com/sale/women/kate-spade-7218/product/167619111-kate-spade-new-york-simmone-cotton-twill-jacket
 
-?   Beauty & Health
+?	Intimates & Loungewear
+
+?	Beauty & Health
 ?
 
 
 Men
-?   New Arrivals
-?   Shoes
-?   Accessories
-?   Jewelry & Watches
-?   Suits & Coats
-?   Shirts & Sweaters
-?   Polos & Tees
-?   Pants
-?   Outerwear
-?   Socks, Underwear & Sleepwear
+?	New Arrivals
+?	Shoes
+http://www.myhabit.com/#page=d&dept=men&sale=AU3LRHC3LBVE7&asin=B00A3210T0&cAsin=B00A32140U&ref=qd_b_img_d_0
+http://www.myhabit.com/#page=d&dept=men&sale=AU3LRHC3LBVE7&asin=B0084BWDZM&cAsin=B0084BWNH0&ref=qd_b_img_d_1
+http://www.myhabit.com/#page=d&dept=men&sale=AU3LRHC3LBVE7&asin=B0084BWDZC&cAsin=B0084BWIYI&ref=qd_b_img_d_2
+http://www.myhabit.com/#page=d&dept=men&sale=AU3LRHC3LBVE7&asin=B0084BWDXO&cAsin=B0084BWF14&ref=qd_b_img_d_3
+http://www.myhabit.com/#page=d&dept=men&sale=AU3LRHC3LBVE7&asin=B006CBFI9E&cAsin=B006DD04DG&ref=qd_b_img_d_4
+http://www.myhabit.com/#page=d&dept=men&sale=AU3LRHC3LBVE7&asin=B006CBFI9E&cAsin=B006DD017U&ref=qd_b_img_d_5
+http://www.myhabit.com/#page=d&dept=men&sale=AU3LRHC3LBVE7&asin=B006CBFI8A&cAsin=B006DCZMUW&ref=qd_b_img_d_6
+http://www.myhabit.com/#page=d&dept=men&sale=AU3LRHC3LBVE7&asin=B006CBFI6C&cAsin=B006DCZ8AG&ref=qd_b_img_d_7
+http://www.myhabit.com/#page=d&dept=men&sale=AU3LRHC3LBVE7&asin=B006CBFI6C&cAsin=B006DCZDY2&ref=qd_b_img_d_8
+http://www.myhabit.com/#page=d&dept=men&sale=AU3LRHC3LBVE7&asin=B006CBFI76&cAsin=B006DCYRJE&ref=qd_b_img_d_9
+http://www.myhabit.com/#page=d&dept=men&sale=AU3LRHC3LBVE7&asin=B006CBFI76&cAsin=B006DCYU1O&ref=qd_b_img_d_10
+http://www.myhabit.com/#page=d&dept=men&sale=AU3LRHC3LBVE7&asin=B006CBFI76&cAsin=B006DCYX84&ref=qd_b_img_d_11
+http://www.gilt.com/sale/men/volta-4614/product/158566864-volta-leather-lace-up-shoes
+http://www.gilt.com/sale/men/volta-4614/product/158566939-volta-low-sneakers
+http://www.gilt.com/sale/men/volta-4614/product/158566950-volta-low-sneakers
+http://www.gilt.com/sale/men/volta-4614/product/158587900-volta-hunting-boots
+http://www.gilt.com/sale/men/volta-4614/product/158587873-volta-woolen-boots
+http://www.gilt.com/sale/men/colorful-kicks-theme-sale/product/163180165-new-balance-leather-and-mesh-running-sneakers
+http://www.gilt.com/sale/men/colorful-kicks-theme-sale/product/162627442-pf-flyers-exeter-low-top-sneaker
+http://www.gilt.com/sale/men/colorful-kicks-theme-sale/product/69356339-vanishing-elephant-wool-classic-derby-shoes
+
+?	Accessories
+http://www.myhabit.com/#page=d&dept=men&sale=A1L4ZH34L5LLCR&asin=B008UXY9S8&cAsin=B008UXYA28&ref=qd_b_img_d_0
+http://www.myhabit.com/#page=d&dept=men&sale=A1L4ZH34L5LLCR&asin=B008UXY9S8&cAsin=B008UXYAEQ&ref=qd_b_img_d_1
+http://www.myhabit.com/#page=d&dept=men&sale=A1L4ZH34L5LLCR&asin=B008UXY9S8&cAsin=B008UXYBWM&ref=qd_b_img_d_3
+http://www.myhabit.com/#page=d&dept=men&sale=A1L4ZH34L5LLCR&asin=B008UXY9S8&cAsin=B008UXYBOA&ref=qd_b_img_d_4
+http://www.myhabit.com/#page=d&dept=men&sale=A1L4ZH34L5LLCR&asin=B008UXY9S8&cAsin=B008UXYC7Q&ref=qd_b_img_d_5
+http://www.myhabit.com/#page=d&dept=men&sale=A1L4ZH34L5LLCR&asin=B008UXY9S8&cAsin=B008UXYCNU&ref=qd_b_img_d_6
+http://www.myhabit.com/#page=d&dept=men&sale=A1L4ZH34L5LLCR&asin=B008UXY9S8&cAsin=B008UXYCYY&ref=qd_b_img_d_7
+http://www.myhabit.com/#page=d&dept=men&sale=A1L4ZH34L5LLCR&asin=B008UXY9S8&cAsin=B008UXYD9S&ref=qd_b_img_d_8
+http://www.myhabit.com/#page=d&dept=men&sale=A1L4ZH34L5LLCR&asin=B008UXYI16&cAsin=B008UXYIE8&ref=qd_b_img_d_9
+http://www.myhabit.com/#page=d&dept=men&sale=A1L4ZH34L5LLCR&asin=B008UXYI16&cAsin=B008UXYISY&ref=qd_b_img_d_10
+http://www.myhabit.com/#page=d&dept=men&sale=A1L4ZH34L5LLCR&asin=B008UXYI16&cAsin=B008UXYJ5Q&ref=qd_b_img_d_11
+http://www.myhabit.com/#page=d&dept=men&sale=A3P6XNVU3TW1FO&asin=B009HNGZQY&cAsin=B009HNGZQY&ref=qd_b_img_d_23
+http://www.myhabit.com/#page=d&dept=men&sale=A3P6XNVU3TW1FO&asin=B009HNGTG0&cAsin=B009HNGTG0&ref=qd_b_img_d_24
+http://www.myhabit.com/#page=d&dept=men&sale=A3P6XNVU3TW1FO&asin=B009HNH0AO&cAsin=B009HNH0AO&ref=qd_b_img_d_25
+http://www.myhabit.com/#page=d&dept=men&sale=A3P6XNVU3TW1FO&asin=B009HNH0L8&cAsin=B009HNH0L8&ref=qd_b_img_d_26
+http://www.myhabit.com/#page=d&dept=men&sale=A3P6XNVU3TW1FO&asin=B009HNH30G&cAsin=B009HNH30G&ref=qd_b_img_d_28
+http://www.myhabit.com/#page=d&dept=men&sale=A3P6XNVU3TW1FO&asin=B009HNH2AM&cAsin=B009HNH2AM&ref=qd_b_img_d_29
+http://www.myhabit.com/#page=d&dept=men&sale=AZX0QJF5CUHSR&asin=B008PW5SR0&cAsin=B008PW5SR0&ref=qd_b_img_d_0
+http://www.myhabit.com/#page=d&dept=men&sale=AZX0QJF5CUHSR&asin=B008PW5T88&cAsin=B008PW5T88&ref=qd_b_img_d_1
+http://www.myhabit.com/#page=d&dept=men&sale=A1A7SZH6JXY152&asin=B004VDK6NI&cAsin=B004VDK9JE&ref=qd_b_img_d_0
+http://www.gilt.com/sale/men/via-spiga-belts-2281/product/163709626-via-spiga-genuine-suede-belt
+ http://www.gilt.com/sale/men/via-spiga-belts-2281/product/163709641-via-spiga-genuine-suede-belt
+http://www.gilt.com/sale/men/via-spiga-belts-2281/product/163709633-via-spiga-genuine-suede-belt
+http://www.gilt.com/sale/men/via-spiga-belts-2281/product/163709657-via-spiga-reversible-leather-belt
+http://www.gilt.com/sale/men/via-spiga-belts-2281/product/163709665-via-spiga-reversible-leather-belt
+http://www.gilt.com/sale/men/cold-weather-color/product/156946336-portolano-merino-ribbed-knit-gloves
+http://www.gilt.com/sale/men/cold-weather-color/product/144391656-chelsey-imports-wool-stripe-scarf
+
+
+£¿      Jewelry & Watches
+?	Suits & Coats
+http://www.myhabit.com/#page=d&dept=men&sale=A25ZXVWLT0BY7D&asin=B009QTV4SI&cAsin=B009QTV564&ref=qd_b_img_d_13
+http://www.myhabit.com/#page=d&dept=men&sale=A1Z107C0JXM15E&asin=B009P2HMSM&cAsin=B009P2HMX2&ref=qd_b_img_d_0
+http://www.myhabit.com/#page=d&dept=men&sale=A1Z107C0JXM15E&asin=B009P2HNBS&cAsin=B009P2HNH2&ref=qd_b_img_d_1
+http://www.myhabit.com/#page=d&dept=men&sale=A1Z107C0JXM15E&asin=B009P2HJQC&cAsin=B009SZ9OC8&ref=qd_b_img_d_11
+http://www.myhabit.com/#page=d&dept=men&sale=A1Z107C0JXM15E&asin=B009P2HJQC&cAsin=B009SZ9N1K&ref=qd_b_img_d_12
+http://www.myhabit.com/#page=d&dept=men&sale=A2N44TOCPPQV04&asin=B008M5B9QE&cAsin=B008M5BH84&ref=qd_b_img_d_6
+http://www.myhabit.com/#page=d&dept=men&sale=A2N44TOCPPQV04&asin=B008KGO0CK&cAsin=B008KGO0RK&ref=qd_b_img_d_15
+http://www.myhabit.com/#page=d&dept=men&sale=A2N44TOCPPQV04&asin=B008KGO9S0&cAsin=B008KGO9ZI&ref=qd_b_img_d_16
+http://www.myhabit.com/#page=d&dept=men&sale=A2N44TOCPPQV04&asin=B008KGOIYU&cAsin=B008KGOJ76&ref=qd_b_img_d_17
+http://www.myhabit.com/#page=d&dept=men&sale=A2N44TOCPPQV04&asin=B008KGOH28&cAsin=B007IVZ9NM&ref=qd_b_img_d_18
+http://www.myhabit.com/#page=d&dept=men&sale=A2N44TOCPPQV04&asin=B0097BJJB4&cAsin=B0097BJJVO&ref=qd_b_img_d_22
+http://www.myhabit.com/#page=d&dept=men&sale=A2N44TOCPPQV04&asin=B0097BJSMO&cAsin=B0097BJT1E&ref=qd_b_img_d_23
+http://www.myhabit.com/#page=d&dept=men&sale=A2N44TOCPPQV04&asin=B0097BJVNK&cAsin=B0097BJW5C&ref=qd_b_img_d_24
+http://www.myhabit.com/#page=d&dept=men&sale=A2N44TOCPPQV04&asin=B0097BINNE&cAsin=B0097BIP00&ref=qd_b_img_d_25
+http://www.myhabit.com/#page=d&dept=men&sale=A2N44TOCPPQV04&asin=B0097BJGI0&cAsin=B0097BJGY4&ref=qd_b_img_d_26
+http://www.myhabit.com/#page=d&dept=men&sale=A2N44TOCPPQV04&asin=B0097BJ8N8&cAsin=B005POFR36&ref=qd_b_img_d_31
+http://www.gilt.com/sale/men/suiting-7469/product/142578168-ben-sherman-suiting-kings-pinstripe-suit
+http://www.gilt.com/sale/men/suiting-7469/product/157963008-hart-schnaffner-marx-wool-plaid-suit
+http://www.gilt.com/sale/men/suiting-7469/product/157962938-hart-schnaffner-marx-wool-pinstripe-suit
+http://www.gilt.com/sale/men/suiting-7469/product/142578132-ben-sherman-suiting-kings-striped-suit
+http://www.gilt.com/sale/men/suiting-7469/product/157962997-hart-schnaffner-marx-shadow-stripe-wool-suit
+http://www.gilt.com/sale/men/suiting-7469/product/157962924-hart-schnaffner-marx-wool-smart-suit
+http://www.gilt.com/sale/men/suiting-7469/product/137168643-luigi-bianchi-mantova-houndstooth-suit
+http://www.gilt.com/sale/men/gilded-age-9015/product/145574423-gilded-age-outcast-racing-jacket
+http://www.gilt.com/sale/men/black-apple-4893/product/142570583-black-apple-golden-hill-bomber-jacket
+
+?	Shirts & Sweaters
+http://www.myhabit.com/#page=d&dept=men&sale=A25ZXVWLT0BY7D&asin=B009QTT962&cAsin=B009QTT9P8&ref=qd_b_img_d_0
+http://www.myhabit.com/#page=d&dept=men&sale=A25ZXVWLT0BY7D&asin=B009QTT4ZS&cAsin=B009QTT5JS&ref=qd_b_img_d_1
+http://www.myhabit.com/#page=d&dept=men&sale=A25ZXVWLT0BY7D&asin=B009QTU916&cAsin=B009QTUEM0&ref=qd_b_img_d_2
+http://www.myhabit.com/#page=d&dept=men&sale=A25ZXVWLT0BY7D&asin=B009QTU4JS&cAsin=B009QTU5FQ&ref=qd_b_img_d_3
+http://www.myhabit.com/#page=d&dept=men&sale=A25ZXVWLT0BY7D&asin=B009QTU1OG&cAsin=B009QTU20Y&ref=qd_b_img_d_4
+http://www.myhabit.com/#page=d&dept=men&sale=A25ZXVWLT0BY7D&asin=B00ADRCOAO&cAsin=B009QTTZ70&ref=qd_b_img_d_5
+http://www.myhabit.com/#page=d&dept=men&sale=A25ZXVWLT0BY7D&asin=B009QTTQZG&cAsin=B009QTTS2M&ref=qd_b_img_d_6
+http://www.myhabit.com/#page=d&dept=men&sale=A25ZXVWLT0BY7D&asin=B009QTTQZG&cAsin=B009QTTWPA&ref=qd_b_img_d_7
+http://www.myhabit.com/#page=d&dept=men&sale=A25ZXVWLT0BY7D&asin=B009QTTQZG&cAsin=B009QTTU52&ref=qd_b_img_d_8
+http://www.myhabit.com/#page=d&dept=men&sale=A25ZXVWLT0BY7D&asin=B009QTTJSA&cAsin=B009QTTK8E&ref=qd_b_img_d_9
+http://www.myhabit.com/#page=d&dept=men&sale=A25ZXVWLT0BY7D&asin=B009QTTJSA&cAsin=B009QTTNQS&ref=qd_b_img_d_10
+http://www.myhabit.com/#page=d&dept=men&sale=A2HN0NM95GWR3K&asin=B008XGQFSE&cAsin=B008XGQJGM&ref=qd_b_img_d_0
+http://www.myhabit.com/#page=d&dept=men&sale=A2HN0NM95GWR3K&asin=B008XGQM0U&cAsin=B008XGQM78&ref=qd_b_img_d_1
+http://www.myhabit.com/#page=d&dept=men&sale=A2HN0NM95GWR3K&asin=B008XGQM0U&cAsin=B008XGQMY6&ref=qd_b_img_d_2
+http://www.gilt.com/sale/men/stone-rose-2551/product/170069469-stone-rose-slim-fit-gingham-sport-shirt
+http://www.gilt.com/sale/men/stone-rose-2551/product/170069458-stone-rose-istanbul-check-sport-shirt
+http://www.gilt.com/sale/men/stone-rose-2551/product/170069453-stone-rose-istanbul-tartan-plaid-sport-shirt
+http://www.gilt.com/sale/men/gilded-age-9015/product/145574429-gilded-age-renegade-cardigan
+http://www.gilt.com/sale/men/dawson-cashmere/product/170345694-dartmoor-partial-zip-front-cashmere-sweater
+http://www.gilt.com/sale/men/dawson-cashmere/product/170345700-dartmoor-plaited-cashmere-sweater
+
+?	Polos & Tees
+http://www.myhabit.com/#page=d&dept=men&sale=A25ZXVWLT0BY7D&asin=B009QTVCE4&cAsin=B009QTVCSA&ref=qd_b_img_d_14
+http://www.myhabit.com/#page=d&dept=men&sale=A25ZXVWLT0BY7D&asin=B009QTVCE4&cAsin=B009QTVF2S&ref=qd_b_img_d_15
+http://www.myhabit.com/#page=d&dept=men&sale=A25ZXVWLT0BY7D&asin=B009QTV7GM&cAsin=B009QTV7UI&ref=qd_b_img_d_16
+http://www.myhabit.com/#page=d&dept=men&sale=A25ZXVWLT0BY7D&asin=B009QTUNIU&cAsin=B009QTUQG4&ref=qd_b_img_d_19
+http://www.myhabit.com/#page=d&dept=men&sale=A25ZXVWLT0BY7D&asin=B009QTV7GM&cAsin=B009QTV9RY&ref=qd_b_img_d_17
+http://www.myhabit.com/#page=d&dept=men&sale=A1Z107C0JXM15E&asin=B009P2HH32&cAsin=B009SZ987E&ref=qd_b_img_d_7
+http://www.myhabit.com/#page=d&dept=men&sale=A1Z107C0JXM15E&asin=B009P2HH32&cAsin=B009SZ99Z0&ref=qd_b_img_d_8
+http://www.myhabit.com/#page=d&dept=men&sale=A1H2GDTYB9SOBV&asin=B008AZ08A4&cAsin=B008AZ1M0Y&ref=qd_b_img_d_48
+http://www.myhabit.com/#page=d&dept=men&sale=A1H2GDTYB9SOBV&asin=B008AZ08N6&cAsin=B008AZ1OCA&ref=qd_b_img_d_49
+http://www.gilt.com/sale/men/black-apple-4893/product/142570607-black-apple-lives-in-black-tee
+http://www.gilt.com/sale/men/black-apple-4893/product/142570601-black-apple-wild-things-tee
+http://www.gilt.com/sale/men/black-apple-4893/product/85501396-black-apple-black-apple-rules-tee
+http://www.gilt.com/sale/men/2xist-underwear-8761/product/74911878-2-x-ist-crewneck-t-shirt-9-pack
+http://www.gilt.com/sale/men/2xist-underwear-8761/product/74911884-2-x-ist-crewneck-t-shirt-9-pack
+http://www.gilt.com/sale/men/2xist-underwear-8761/product/74911890-2-x-ist-crewneck-t-shirt-9-pack
+http://www.gilt.com/sale/men/tees-7606/product/166508649-alternative-apparel-heathered-v-neck-tee
+http://www.gilt.com/sale/men/tees-7606/product/166508648-alternative-apparel-heathered-v-neck-tee
+http://www.gilt.com/sale/men/tees-7606/product/166508655-alternative-apparel-heathered-crewneck-tee
+
+
+?	Pants
+http://www.myhabit.com/#page=d&dept=men&sale=A1Z107C0JXM15E&asin=B009P2HKFW&cAsin=B009P2HKJI&ref=qd_b_img_d_9
+http://www.myhabit.com/#page=d&dept=men&sale=A1Z107C0JXM15E&asin=B009P2HKXO&cAsin=B009P2HL1K&ref=qd_b_img_d_10
+http://www.gilt.com/sale/men/stone-rose-2551/product/170069481-stone-rose-dus-chinos
+http://www.gilt.com/sale/men/stone-rose-2551/product/170069478-stone-rose-dus-chinos
+http://www.gilt.com/sale/men/stone-rose-2551/product/170069474-stone-rose-dus-chinos
+http://www.gilt.com/sale/men/gilded-age-9015/product/145574362-gilded-age-gotham-straight-leg-jeans
+http://www.gilt.com/sale/men/gilded-age-9015/product/145574344-gilded-age-gotham-straight-leg-jeans
+http://www.gilt.com/sale/men/gilded-age-9015/product/145574380-gilded-age-baxten-skinny-jeans
+http://www.gilt.com/sale/men/gilded-age-9015/product/145574353-gilded-age-gotham-straight-leg-jeans
+http://www.gilt.com/sale/men/gilded-age-9015/product/145574390-gilded-age-baxten-skinny-jeans
+http://www.gilt.com/sale/men/gilded-age-9015/product/145574335-gilded-age-gotham-straight-leg-jeans
+http://www.gilt.com/sale/men/gilded-age-9015/product/145574371-gilded-age-baxten-skinny-jeans
+http://www.gilt.com/sale/men/black-apple-4893/product/142570634-black-apple-farook-skinny-jeans
+http://www.gilt.com/sale/men/denim-0912/product/85025130-naked-famous-weird-guy-jeans
+http://www.gilt.com/sale/men/denim-0912/product/85025067-naked-famous-skinny-guy-power-stretch-jeans
+http://www.gilt.com/sale/men/denim-0912/product/153092659-levis-red-tab-513-slim-sta-prest-pants
+
+?	Outerwear
+http://www.myhabit.com/#page=d&dept=men&sale=A25ZXVWLT0BY7D&asin=B009QTVHQC&cAsin=B009QTVI16&ref=qd_b_img_d_21
+http://www.myhabit.com/#page=d&dept=men&sale=A2N44TOCPPQV04&asin=B007OXKLMS&cAsin=B005MZUJOU&ref=qd_b_img_d_0
+http://www.myhabit.com/#page=d&dept=men&sale=A2N44TOCPPQV04&asin=B008S846AQ&cAsin=B008S8483Q&ref=qd_b_img_d_1
+http://www.myhabit.com/#page=d&dept=men&sale=A2N44TOCPPQV04&asin=B008S846AQ&cAsin=B008S8496C&ref=qd_b_img_d_2
+http://www.myhabit.com/#page=d&dept=men&sale=A2N44TOCPPQV04&asin=B008KGNV02&cAsin=B007AVCKKU&ref=qd_b_img_d_4
+http://www.myhabit.com/#page=d&dept=men&sale=A2N44TOCPPQV04&asin=B008KGNZ3A&cAsin=B004XJAFGI&ref=qd_b_img_d_5
+http://www.myhabit.com/#page=d&dept=men&sale=A2N44TOCPPQV04&asin=B008KGO1P6&cAsin=B008KGO1VK&ref=qd_b_img_d_7
+http://www.myhabit.com/#page=d&dept=men&sale=A2N44TOCPPQV04&asin=B008KGO3DG&cAsin=B008KGO3UO&ref=qd_b_img_d_8
+http://www.myhabit.com/#page=d&dept=men&sale=A2N44TOCPPQV04&asin=B008KGOSRM&cAsin=B008KGOT0S&ref=qd_b_img_d_10
+http://www.myhabit.com/#page=d&dept=men&sale=A2N44TOCPPQV04&asin=B008KGO3DG&cAsin=B008KGO5IY&ref=qd_b_img_d_9
+http://www.myhabit.com/#page=d&dept=men&sale=A2N44TOCPPQV04&asin=B0097BJD3I&cAsin=B0097BJDJM&ref=qd_b_img_d_21
+http://www.myhabit.com/#page=d&dept=men&sale=A2N44TOCPPQV04&asin=B005QOZOBU&cAsin=B004NK1LP6&ref=qd_b_img_d_78
+http://www.myhabit.com/#page=d&dept=men&sale=A2N44TOCPPQV04&asin=B005QOZDYI&cAsin=B0059FD4DG&ref=qd_b_img_d_79
+http://www.myhabit.com/#page=d&dept=men&sale=A2N44TOCPPQV04&asin=B007MPFB14&cAsin=B007MPFBIW&ref=qd_b_img_d_80
+http://www.myhabit.com/#page=d&dept=men&sale=A2N44TOCPPQV04&asin=B005Q066PW&cAsin=B005QB19DU&ref=qd_b_img_d_75
+http://www.myhabit.com/#page=d&dept=men&sale=A2N44TOCPPQV04&asin=B007MPFDOY&cAsin=B007MPFDUI&ref=qd_b_img_d_81
+http://www.gilt.com/sale/men/gilded-age-9015/product/145574417-gilded-age-deck-vintage-jacket
+http://www.gilt.com/sale/men/black-apple-4893/product/142570613-black-apple-standard-field-jacket
+http://www.gilt.com/sale/men/black-apple-4893/product/142570558-black-apple-run-denim-jacket
+http://www.gilt.com/sale/men/cold-weather-color/product/162527354-peter-millar-mens-jackson-coat
+http://www.gilt.com/sale/men/cold-weather-color/product/163816907-ben-sherman-plectrum-coated-field-jacket
+http://www.gilt.com/sale/men/cold-weather-color/product/142214988-spiewak-sons-barnes-vest
+http://www.gilt.com/sale/men/cold-weather-color/product/132426256-brooks-brothers-university-short-puffer-jacket
+?	Socks, Underwear & Sleepwear
+http://www.myhabit.com/#page=d&dept=men&sale=A1H2GDTYB9SOBV&asin=B008AZ07E6&cAsin=B008AZ1DSU&ref=qd_b_img_d_0
+http://www.myhabit.com/#page=d&dept=men&sale=A1H2GDTYB9SOBV&asin=B008AZ07E6&cAsin=B008AZ1EKM&ref=qd_b_img_d_1
+http://www.myhabit.com/#page=d&dept=men&sale=A1H2GDTYB9SOBV&asin=B008AZ07E6&cAsin=B008AZ1CSG&ref=qd_b_img_d_2
+http://www.myhabit.com/#page=d&dept=men&sale=A1H2GDTYB9SOBV&asin=B0006HTWPG&cAsin=B0006HGU8I&ref=qd_b_img_d_3
+http://www.myhabit.com/#page=d&dept=men&sale=A1H2GDTYB9SOBV&asin=B008S5NTNO&cAsin=B008S5O8NY&ref=qd_b_img_d_4
+http://www.myhabit.com/#page=d&dept=men&sale=A1H2GDTYB9SOBV&asin=B0089NON8U&cAsin=B0089NOND0&ref=qd_b_img_d_5
+http://www.myhabit.com/#page=d&dept=men&sale=A1H2GDTYB9SOBV&asin=B0089NON8U&cAsin=B0089NOP4C&ref=qd_b_img_d_6
+http://www.myhabit.com/#page=d&dept=men&sale=A1H2GDTYB9SOBV&asin=B0089NOT8E&cAsin=B0089NOUL0&ref=qd_b_img_d_7
+http://www.myhabit.com/#page=d&dept=men&sale=A1H2GDTYB9SOBV&asin=B007IVS0SI&cAsin=B007IVS2SQ&ref=qd_b_img_d_8
+http://www.myhabit.com/#page=d&dept=men&sale=A1H2GDTYB9SOBV&asin=B007IVS0SI&cAsin=B007IVS0V0&ref=qd_b_img_d_9
+http://www.myhabit.com/#page=d&dept=men&sale=A1H2GDTYB9SOBV&asin=B007KMPGT6&cAsin=B007KMT6A6&ref=qd_b_img_d_33
+http://www.myhabit.com/#page=d&dept=men&sale=A1H2GDTYB9SOBV&asin=B007KMPGT6&cAsin=B007KMT59S&ref=qd_b_img_d_34
+http://www.myhabit.com/#page=d&dept=men&sale=A1H2GDTYB9SOBV&asin=B007KMPG6E&cAsin=B007KMT00M&ref=qd_b_img_d_35
+http://www.gilt.com/sale/men/2xist-underwear-8761/product/170337642-2-x-ist-x-treme-pouch-no-show-trunk-3-pack
+http://www.gilt.com/sale/men/2xist-underwear-8761/product/122923720-2-x-ist-x-treme-pouch-no-show-trunk-3-pack
+http://www.gilt.com/sale/men/2xist-underwear-8761/product/122923715-2-x-ist-x-treme-pouch-no-show-trunk-3-pack
+http://www.gilt.com/sale/men/2xist-underwear-8761/product/74904107-2-x-ist-no-show-trunks-3-pack
+
 Kids & Baby
-?   New Arrivals
-?   GirlsÂ°Ã˜ Shoes
-?   Girls' Clothing
-?   BoysÂ°Ã˜ Shoes
-?   Boys' Clothing
-?   Toys, Games & Books
-?   Gear & Equipment
-?   Bed, Bath & Furniture
+?	New Arrivals
+?	Girls' Shoes
+http://www.myhabit.com/#page=d&dept=kids&sale=AUS21IALL1FH0&asin=B007Y5K93W&cAsin=B007Y5K9BO&ref=qd_b_img_d_4
+http://www.myhabit.com/#page=d&dept=kids&sale=AUS21IALL1FH0&asin=B007Y5JOII&cAsin=B007Y5JORE&ref=qd_b_img_d_5
+http://www.myhabit.com/#page=d&dept=kids&sale=A3PY7GK2341KZG&asin=B00815M8P6&cAsin=B00815M97I&ref=qd_b_img_d_3
+http://www.myhabit.com/#page=d&dept=kids&sale=A3PY7GK2341KZG&asin=B007Y5Q9U4&cAsin=B007Y5QA1M&ref=qd_b_img_d_68
+http://www.myhabit.com/#page=d&dept=kids&sale=A3PY7GK2341KZG&asin=B004OBS26A&cAsin=B004OBWGP8&ref=qd_b_img_d_72
+http://www.myhabit.com/#page=d&dept=kids&sale=A3PY7GK2341KZG&asin=B004OBS26A&cAsin=B004OBTWY6&ref=qd_b_img_d_73
+http://www.myhabit.com/#page=d&dept=kids&sale=A3PY7GK2341KZG&asin=B003IWZJNU&cAsin=B003IWZJJ4&ref=qd_b_img_d_74
+http://www.myhabit.com/#page=d&dept=kids&sale=A1JRV9DDJORUKE&asin=B00804ZBN4&cAsin=B00804ZHOC&ref=qd_b_img_d_0
+http://www.myhabit.com/#page=d&dept=kids&sale=A1JRV9DDJORUKE&asin=B009LH5R06&cAsin=B009LH5RJW&ref=qd_b_img_d_2
+http://www.myhabit.com/#page=d&dept=kids&sale=A1JRV9DDJORUKE&asin=B00804Z4W2&cAsin=B00804Z5GC&ref=qd_b_img_d_3
+http://www.myhabit.com/#page=d&dept=kids&sale=A1JRV9DDJORUKE&asin=B007ZT7XXQ&cAsin=B005ORE6VI&ref=qd_b_img_d_5
+http://www.myhabit.com/#page=d&dept=kids&sale=A1JRV9DDJORUKE&asin=B0081SN3J8&cAsin=B0081SN546&ref=qd_b_img_d_6
+http://www.myhabit.com/#page=d&dept=kids&sale=A1JRV9DDJORUKE&asin=B007ZT829U&cAsin=B007ZT85VU&ref=qd_b_img_d_7
+http://www.gilt.com/sale/children/cara-couture-5504/product/163672014-pazitos-metallic-mary-jane
+http://www.gilt.com/sale/children/cara-couture-5504/product/99105150-pazitos-metallic-ballerina-flat
+http://www.gilt.com/sale/children/cara-couture-5504/product/163671994-pazitos-swan-ballerina-flat
+http://www.gilt.com/sale/children/cara-couture-5504/product/163672007-pazitos-blossom-shoe
+http://www.gilt.com/sale/children/cara-couture-5504/product/99105125-pazitos-swan-ballerina-flat
+http://www.gilt.com/sale/children/llum-for-girls-0638/product/146967319-pediped-girls-blaze-boot
+?	Girls' Clothing
+http://www.myhabit.com/#page=d&dept=kids&sale=A3PY7GK2341KZG&asin=B008BVAWBW&cAsin=B008BVAX3E&ref=qd_b_img_d_0
+http://www.myhabit.com/#page=d&dept=kids&sale=A3PY7GK2341KZG&asin=B008BVAWBW&cAsin=B008BVAYME&ref=qd_b_img_d_1
+http://www.myhabit.com/#page=d&dept=kids&sale=A3PY7GK2341KZG&asin=B007VOM4CK&cAsin=B007VONAPU&ref=qd_b_img_d_4
+http://www.myhabit.com/#page=d&dept=kids&sale=A3PY7GK2341KZG&asin=B007VOM4CK&cAsin=B007VONB6I&ref=qd_b_img_d_5
+http://www.myhabit.com/#page=d&dept=kids&sale=A3PY7GK2341KZG&asin=B008BVB0OU&cAsin=B008BVB5RC&ref=qd_b_img_d_6
+http://www.myhabit.com/#page=d&dept=kids&sale=A3PY7GK2341KZG&asin=B008BVB0OU&cAsin=B008BVB1CG&ref=qd_b_img_d_7
+http://www.myhabit.com/#page=d&dept=kids&sale=A3PY7GK2341KZG&asin=B008BVB0OU&cAsin=B008BVB310&ref=qd_b_img_d_8
+http://www.myhabit.com/#page=d&dept=kids&sale=A3PY7GK2341KZG&asin=B008H2IN66&cAsin=B008H2JU8Q&ref=qd_b_img_d_12
+http://www.myhabit.com/#page=d&dept=kids&sale=A3PY7GK2341KZG&asin=B008H2IN66&cAsin=B008H2JVSU&ref=qd_b_img_d_13
+http://www.myhabit.com/#page=d&dept=kids&sale=A3PY7GK2341KZG&asin=B007MDJ9MI&cAsin=B007MDJA0Y&ref=qd_b_img_d_14
+http://www.myhabit.com/#page=d&dept=kids&sale=A3PY7GK2341KZG&asin=B007MDIXZW&cAsin=B007MDIYLA&ref=qd_b_img_d_15
+http://www.myhabit.com/#page=d&dept=kids&sale=A3PY7GK2341KZG&asin=B007MDJ2W0&cAsin=B007MDJ46O&ref=qd_b_img_d_16
+http://www.myhabit.com/#page=d&dept=kids&sale=A3PY7GK2341KZG&asin=B007MDJ2W0&cAsin=B007MDJ39M&ref=qd_b_img_d_17
+http://www.myhabit.com/#page=d&dept=kids&sale=A3PY7GK2341KZG&asin=B006MVQUNC&cAsin=B006MVQUXW&ref=qd_b_img_d_22
+http://www.gilt.com/sale/children/beetlejuice-5291/product/169678672-beetlejuice-bow-tulle-dress
+http://www.gilt.com/sale/children/beetlejuice-5291/product/147931977-eden-esme-ruffle-cardigan
+http://www.gilt.com/sale/children/beetlejuice-5291/product/169678655-beetlejuice-ruffle-denim-dress
+http://www.gilt.com/sale/children/beetlejuice-5291/product/169678674-beetlejuice-big-flower-dress
+
+
+?	Boys¡¯ Shoes
+http://www.myhabit.com/#page=d&dept=kids&sale=AUS21IALL1FH0&asin=B007Y5PP68&cAsin=B005B3Z82Q&ref=qd_b_img_d_1
+http://www.myhabit.com/#page=d&dept=kids&sale=AUS21IALL1FH0&asin=B007Y5IE1G&cAsin=B0009A03NK&ref=qd_b_img_d_2
+http://www.myhabit.com/#page=d&dept=kids&sale=AUS21IALL1FH0&asin=B007Y5IE1G&cAsin=B007Y5IECK&ref=qd_b_img_d_3
+http://www.myhabit.com/#page=d&dept=kids&sale=AUS21IALL1FH0&asin=B007Y5IW2C&cAsin=B007Y5IWAO&ref=qd_b_img_d_6
+http://www.myhabit.com/#page=d&dept=kids&sale=AUS21IALL1FH0&asin=B007Y5IL9G&cAsin=B007Y5ILIM&ref=qd_b_img_d_7
+http://www.myhabit.com/#page=d&dept=kids&sale=A1JRV9DDJORUKE&asin=B00804ZBN4&cAsin=B00804ZICS&ref=qd_b_img_d_1
+http://www.myhabit.com/#page=d&dept=kids&sale=A1JRV9DDJORUKE&asin=B008TYFBIK&cAsin=B008TYFHUM&ref=qd_b_img_d_9
+http://www.myhabit.com/#page=d&dept=kids&sale=A1JRV9DDJORUKE&asin=B008TYFBIK&cAsin=B008TYFC66&ref=qd_b_img_d_10
+http://www.myhabit.com/#page=d&dept=kids&sale=A1JRV9DDJORUKE&asin=B008TYFXZ6&cAsin=B008TYG6E8&ref=qd_b_img_d_15
+?	Boys' Clothing
+http://www.myhabit.com/#page=d&dept=kids&sale=A3PY7GK2341KZG&asin=B00815M8P6&cAsin=B00815M97I&ref=qd_b_img_d_3
+http://www.myhabit.com/#page=d&dept=kids&sale=A3PY7GK2341KZG&asin=B009GKD4QC&cAsin=B009GKD58O&ref=qd_b_img_d_9
+http://www.myhabit.com/#page=d&dept=kids&sale=A3PY7GK2341KZG&asin=B009GKCL6G&cAsin=B009GKCLRA&ref=qd_b_img_d_10
+http://www.myhabit.com/#page=d&dept=kids&sale=A3PY7GK2341KZG&asin=B009GKCZ2G&cAsin=B009GKD2VO&ref=qd_b_img_d_11
+http://www.myhabit.com/#page=d&dept=kids&sale=A3PY7GK2341KZG&asin=B007V76KQ8&cAsin=B007V76PE0&ref=qd_b_img_d_18
+http://www.myhabit.com/#page=d&dept=kids&sale=A3PY7GK2341KZG&asin=B007V76KQ8&cAsin=B007V76SG0&ref=qd_b_img_d_19
+http://www.myhabit.com/#page=d&dept=kids&sale=A3PY7GK2341KZG&asin=B007V76WBG&cAsin=B007V76ZWW&ref=qd_b_img_d_20
+http://www.myhabit.com/#page=d&dept=kids&sale=A3PY7GK2341KZG&asin=B007V76WBG&cAsin=B007V76WW0&ref=qd_b_img_d_21
+http://www.myhabit.com/#page=d&dept=kids&sale=A3PY7GK2341KZG&asin=B007K83QD8&cAsin=B007KB0CAU&ref=qd_b_img_d_23
+http://www.myhabit.com/#page=d&dept=kids&sale=A3PY7GK2341KZG&asin=B00815M0TA&cAsin=B00815M4RS&ref=qd_b_img_d_25
+http://www.myhabit.com/#page=d&dept=kids&sale=A3PY7GK2341KZG&asin=B00815M0TA&cAsin=B00815M2RK&ref=qd_b_img_d_26
+http://www.myhabit.com/#page=d&dept=kids&sale=A3PY7GK2341KZG&asin=B009GKDEC6&cAsin=B009GKDHAA&ref=qd_b_img_d_28
+http://www.myhabit.com/#page=d&dept=kids&sale=A3PY7GK2341KZG&asin=B009GKDJA8&cAsin=B009GKDM8C&ref=qd_b_img_d_29
+http://www.myhabit.com/#page=d&dept=kids&sale=A7XB61YDR7X10&asin=B00815MDFQ&cAsin=B00815MDRE&ref=qd_b_img_d_0
+http://www.myhabit.com/#page=d&dept=kids&sale=A7XB61YDR7X10&asin=B00815MGEY&cAsin=B00815MHW0&ref=qd_b_img_d_1
+http://www.myhabit.com/#page=d&dept=kids&sale=A7XB61YDR7X10&asin=B00815MGEY&cAsin=B00815MIN8&ref=qd_b_img_d_2
+
+?	Toys, Games & Books
+http://www.myhabit.com/#page=d&dept=kids&sale=ASDX1ZHPG1LX2&asin=B00009YOQO&cAsin=B00009YOQO&ref=qd_b_img_d_0
+http://www.myhabit.com/#page=d&dept=kids&sale=ASDX1ZHPG1LX2&asin=B0001VVB9M&cAsin=B0001VVB9M&ref=qd_b_img_d_1
+http://www.myhabit.com/#page=d&dept=kids&sale=ASDX1ZHPG1LX2&asin=B001RRWWB0&cAsin=B001RRWWB0&ref=qd_b_img_d_2
+http://www.myhabit.com/#page=d&dept=kids&sale=ASDX1ZHPG1LX2&asin=B0001VVBB0&cAsin=B0001VVBB0&ref=qd_b_img_d_3
+http://www.myhabit.com/#page=d&dept=kids&sale=ASDX1ZHPG1LX2&asin=B000I8SOYI&cAsin=B000I8SOYI&ref=qd_b_img_d_4
+http://www.myhabit.com/#page=d&dept=kids&sale=ASDX1ZHPG1LX2&asin=B0026MSB7E&cAsin=B0026MSB7E&ref=qd_b_img_d_5
+http://www.myhabit.com/#page=d&dept=kids&sale=ASDX1ZHPG1LX2&asin=B001E83TP0&cAsin=B001E83TP0&ref=qd_b_img_d_6
+http://www.myhabit.com/#page=d&dept=kids&sale=ASDX1ZHPG1LX2&asin=B001E80F0C&cAsin=B001E80F0C&ref=qd_b_img_d_7
+http://www.myhabit.com/#page=d&dept=kids&sale=ASDX1ZHPG1LX2&asin=B000FZSP2K&cAsin=B000FZSP2K&ref=qd_b_img_d_8
+http://www.myhabit.com/#page=d&dept=kids&sale=ASDX1ZHPG1LX2&asin=B0001VVBAQ&cAsin=B0001VVBAQ&ref=qd_b_img_d_9
+http://www.myhabit.com/#page=d&dept=kids&sale=ASDX1ZHPG1LX2&asin=B0001VVBAG&cAsin=B0001VVBAG&ref=qd_b_img_d_10
+http://www.myhabit.com/#page=d&dept=kids&sale=ASDX1ZHPG1LX2&asin=B0001VVBA6&cAsin=B0001VVBA6&ref=qd_b_img_d_11
+http://www.gilt.com/sale/children/playforever-toys-8117/product/172736286-playforever-toys-401-midi-1-race-car
+http://www.gilt.com/sale/children/playforever-toys-8117/product/172736258-playforever-toys-mimmo-aeroplane
+http://www.gilt.com/sale/children/playforever-toys-8117/product/172736225-playforever-toys-streamliner-classic
+http://www.gilt.com/sale/children/playforever-toys-8117/product/172736231-playforever-toys-streamliner-cab
+http://www.gilt.com/sale/children/playforever-toys-8117/product/122722590-playforever-toys-oldtimer
+http://www.gilt.com/sale/children/playforever-toys-8117/product/122722608-playforever-toys-rocking-horse
+http://www.gilt.com/sale/children/playforever-toys-8117/product/172736349-playforever-toys-a-frame-house
+http://www.gilt.com/sale/children/playforever-toys-8117/product/159535092-kata-golda-happy-birthday-banner
+http://www.gilt.com/sale/children/joe-ella-holiday-dresses-3606/product/166508477-cara-couture-jewelry-rhinestone-bow-headbands-br-set-of-2
+http://www.gilt.com/sale/children/ultimate-game-room/product/136113803-green-wildlife-games-zoo-animals-madagascar-4-in-a-row-game
+http://www.gilt.com/sale/children/ultimate-game-room/product/172044766-smart-toys-smartmax-flower-set
+http://www.gilt.com/sale/children/ultimate-game-room/product/101942072-educational-insights-two-sided-bean-bag-toss
+http://www.gilt.com/sale/children/ultimate-game-room/product/172083275-educational-insights-puppet-on-a-stick-br-set-of-3
+http://www.gilt.com/sale/children/ultimate-game-room/product/172044755-smart-toys-smartmax-airborne-set
+http://www.gilt.com/sale/children/my-roots-collection-maps-2719/product/167898596-children-inspire-design-sunshine-collection-br-set-of-4
+http://www.gilt.com/sale/children/my-roots-collection-maps-2719/product/167898594-children-inspire-design-good-manners-collection-br-set-of-4
+http://www.gilt.com/sale/children/our-top-strollers/product/49014975-skip-hop-day-to-night-baby-logbook
+http://www.gilt.com/sale/children/ybike-balance-bikes-for-kids-7660/product/81423548-ybikes-ybike-pewi
+http://www.gilt.com/sale/children/ybike-balance-bikes-for-kids-7660/product/81423546-ybikes-ybike-pewi
+http://www.gilt.com/sale/children/ybike-balance-bikes-for-kids-7660/product/81423544-ybikes-ybike-pewi
+
+?	Gear & Equipment
+http://www.gilt.com/sale/children/joe-ella-holiday-dresses-3606/product/166508489-cara-couture-jewelry-thin-bow-headbands-br-set-of-2
+http://www.gilt.com/sale/children/joe-ella-holiday-dresses-3606/product/166508485-cara-couture-jewelry-silver-beaded-headband
+http://www.gilt.com/sale/children/halo-sleepsacks-1701/product/161075258-aden-anais-princess-posie-snap-bib-3-pack
+http://www.gilt.com/sale/children/halo-sleepsacks-1701/product/161075261-aden-anais-prince-charming-snap-bib-3-pack
+http://www.gilt.com/sale/children/our-top-strollers/product/171120287-quinny-blue-buzz-stroller-with-footmuff
+http://www.gilt.com/sale/children/our-top-strollers/product/171804111-quinny-black-buzz-stroller-with-footmuff
+http://www.gilt.com/sale/children/our-top-strollers/product/171120289-quinny-pink-buzz-stroller-with-footmuff
+http://www.gilt.com/sale/children/our-top-strollers/product/171120285-quinny-red-buzz-stroller-with-footmuff
+http://www.gilt.com/sale/children/our-top-strollers/product/171120293-quinny-red-zapp-xtra-stroller-with-footmuff
+http://www.gilt.com/sale/children/our-top-strollers/product/171120291-quinny-black-zapp-xtra-stroller-with-footmuff
+http://www.gilt.com/sale/children/our-top-strollers/product/171120295-quinny-natural-zapp-xtra-stroller-with-footmuff
+http://www.gilt.com/sale/children/our-top-strollers/product/162925041-bugaboo-bugaboo-cameleon-tailored-fabric-set
+http://www.gilt.com/sale/children/our-top-strollers/product/171804056-maxi-cosi-blue-mico-infant-car-seat-with-footmuff
+http://www.gilt.com/sale/children/our-top-strollers/product/171134407-the-first-years-infant-seat
+http://www.gilt.com/sale/children/our-top-strollers/product/171134418-the-first-years-travel-sytem
+http://www.gilt.com/sale/children/our-top-strollers/product/160641474-maclaren-twin-triumph-br-charcoal
+http://www.gilt.com/sale/children/our-top-strollers/product/160795092-baby-bjorn-active-baby-carrier
+http://www.gilt.com/sale/children/our-top-strollers/product/159959405-baby-bjorn-original-organic-carrier-with-bib
+http://www.gilt.com/sale/children/our-top-strollers/product/151290657-petites-frites-three-bib-set
+http://www.gilt.com/sale/children/our-top-strollers/product/151290651-petites-frites-three-bib-set
+http://www.gilt.com/sale/children/our-top-strollers/product/91967931-baby-bjorn-original-baby-carrier
+
+?	Bed, Bath & Furniture
+http://www.myhabit.com/#page=d&dept=women&sale=A1B6O4SDACFT96&asin=B00872N262&cAsin=B00872N262&ref=qd_b_img_d_0
+http://www.myhabit.com/#page=d&dept=women&sale=A1B6O4SDACFT96&asin=B00872N0D2&cAsin=B00872N0D2&ref=qd_b_img_d_1
+http://www.myhabit.com/#page=d&dept=women&sale=A1B6O4SDACFT96&asin=B00872MZLA&cAsin=B00872MZLA&ref=qd_b_img_d_2
+http://www.myhabit.com/#page=d&dept=women&sale=A1B6O4SDACFT96&asin=B00872MYKW&cAsin=B00872MYKW&ref=qd_b_img_d_3
+http://www.myhabit.com/#page=d&dept=women&sale=A1B6O4SDACFT96&asin=B007KLYZDK&cAsin=B007KLYZDK&ref=qd_b_img_d_4
+http://www.myhabit.com/#page=d&dept=women&sale=A1B6O4SDACFT96&asin=B007KLYYXQ&cAsin=B007KLYYXQ&ref=qd_b_img_d_5
+http://www.gilt.com/sale/children/halo-sleepsacks-1701/product/168641126-halo-set-of-2-cotton-sleepsack-wearable-blankets
+http://www.gilt.com/sale/children/halo-sleepsacks-1701/product/159873183-halo-set-of-2-sleepsack-wearable-blankets
+http://www.gilt.com/sale/children/halo-sleepsacks-1701/product/168641122-halo-set-of-2-cotton-sleepsack-wearable-blankets
+http://www.gilt.com/sale/children/halo-sleepsacks-1701/product/164551869-halo-set-of-2-velboa-sleepsack-wearable-blankets
+http://www.gilt.com/sale/children/halo-sleepsacks-1701/product/135719186-aden-anais-dream-blanket
+http://www.gilt.com/sale/children/halo-sleepsacks-1701/product/76425470-aden-anais-swaddling-wraps-br-set-of-4
+http://www.gilt.com/sale/children/halo-sleepsacks-1701/product/139176761-boppy-bare-naked-boppy-pillow-slipcover
+http://www.gilt.com/sale/children/halo-sleepsacks-1701/product/135719190-aden-anais-dream-blanket
+
 
 Home
-?   New Arrivals
-?   Furniture & Lighting
-?   Bed & Bath
-?   Rugs & Textiles
-?   Home Accessories
-?   Electronics
-?   Tools
-?   Kitchen & Dining
+?	New Arrivals
+?	Furniture & Lighting
+http://www.myhabit.com/#page=d&dept=home&sale=A2KA6U3F5EEY1S&asin=B0051YY1C8&cAsin=B0051YY1C8&ref=qd_b_img_d_0
+http://www.myhabit.com/#page=d&dept=home&sale=A2KA6U3F5EEY1S&asin=B0051YY5PQ&cAsin=B0051YY5PQ&ref=qd_b_img_d_1
+http://www.myhabit.com/#page=d&dept=home&sale=A2KA6U3F5EEY1S&asin=B0051YY5N8&cAsin=B0051YY5N8&ref=qd_b_img_d_2
+http://www.myhabit.com/#page=d&dept=home&sale=A2KA6U3F5EEY1S&asin=B008PPM2Z8&cAsin=B008PPM2Z8&ref=qd_b_img_d_3
+http://www.myhabit.com/#page=d&dept=home&sale=A2KA6U3F5EEY1S&asin=B0051YY1PK&cAsin=B0051YY1PK&ref=qd_b_img_d_4
+http://www.myhabit.com/#page=d&dept=home&sale=A2KA6U3F5EEY1S&asin=B0051YY678&cAsin=B0051YY678&ref=qd_b_img_d_5
+http://www.myhabit.com/#page=d&dept=home&sale=A2KA6U3F5EEY1S&asin=B0051YY1JQ&cAsin=B0051YY1JQ&ref=qd_b_img_d_6
+http://www.myhabit.com/#page=d&dept=home&sale=A2KA6U3F5EEY1S&asin=B004CWH30M&cAsin=B004CWH30M&ref=qd_b_img_d_7
+http://www.myhabit.com/#page=d&dept=home&sale=A2KA6U3F5EEY1S&asin=B00781JFRS&cAsin=B00781JFRS&ref=qd_b_img_d_8
+http://www.myhabit.com/#page=d&dept=home&sale=A2KA6U3F5EEY1S&asin=B00781I8BC&cAsin=B00781I8BC&ref=qd_b_img_d_9
+http://www.myhabit.com/#page=d&dept=home&sale=A2KA6U3F5EEY1S&asin=B0051YXX0Y&cAsin=B0051YXX0Y&ref=qd_b_img_d_10
+http://www.myhabit.com/#page=d&dept=home&sale=A2KA6U3F5EEY1S&asin=B004LWKIW8&cAsin=B004LWKIW8&ref=qd_b_img_d_11
+http://www.gilt.com/home/category/sofas/101079783-by-design-oxford-sofa
+http://www.gilt.com/home/category/sofas/123082043-shine-by-s-h-o-lola-sofa
+http://www.gilt.com/home/category/sofas/123082050-shine-by-s-h-o-lola-sofa
+http://www.gilt.com/home/category/sofas/98015072-a-rudin-2634-sectional
+http://www.gilt.com/home/category/chairs-ottomans/91706706-global-views-black-leather-moroccan-poof
+http://www.gilt.com/home/category/chairs-ottomans/89251171-missoni-home-directors-chair
+http://www.gilt.com/home/category/chairs-ottomans/94205869-safavieh-baby-tufted-chair
+http://www.gilt.com/home/category/chairs-ottomans/98014545-a-rudin-802-chair
+http://www.gilt.com/home/category/chairs-ottomans/171271062-safavieh-gourd-ceramic-table-lamp
+http://www.gilt.com/home/category/dining-accent-tables/94205646-safavieh-lahoma-coffee-table
+http://www.gilt.com/home/category/dining-accent-tables/170327867-safavieh-lahoma-coffee-table
+http://www.gilt.com/home/category/dining-accent-tables/94205781-safavieh-rita-round-weaver-end-table
+
+?	Bed & Bath
+http://www.gilt.com/home/sale/kate-spade-5571/143776818-kate-spade-new-york-bedding-piedmont-park-duvet-cover
+http://www.gilt.com/home/sale/kate-spade-5571/143776832-kate-spade-new-york-bedding-piedmont-park-sham
+http://www.gilt.com/home/sale/kate-spade-5571/143776857-kate-spade-new-york-bedding-piedmont-park-flat-sheet
+http://www.gilt.com/home/sale/kate-spade-5571/143776869-kate-spade-new-york-bedding-piedmont-park-fitted-sheet
+http://www.gilt.com/home/sale/kate-spade-5571/143776844-kate-spade-new-york-bedding-piedmont-park-quilt
+http://www.gilt.com/home/sale/kate-spade-5571/143776771-kate-spade-new-york-bedding-june-lane-duvet-cover
+http://www.gilt.com/home/sale/kate-spade-5571/143776777-kate-spade-new-york-bedding-june-lane-sham
+http://www.gilt.com/home/sale/kate-spade-5571/143776788-kate-spade-new-york-bedding-june-lane-flat-sheet
+http://www.gilt.com/home/sale/kate-spade-5571/143776798-kate-spade-new-york-bedding-june-lane-pillowcases-set-of-2
+http://www.gilt.com/home/category/beds/124396093-platinum-collection-by-sf-designs-upholstered-headboard
+http://www.gilt.com/home/category/beds/93392393-central-station-organic-bed
+http://www.gilt.com/home/category/beds/100803829-michael-taylor-italian-pine-bed
+
+?	Rugs & Textiles
+http://www.gilt.com/sale/children/safavieh-kids-rugs-6745/product/99548705-safavieh-butterfly-rug
+http://www.gilt.com/sale/children/safavieh-kids-rugs-6745/product/99548666-safavieh-rug-23
+http://www.gilt.com/sale/children/safavieh-kids-rugs-6745/product/170168769-safavieh-on-the-move-rug
+http://www.gilt.com/sale/children/safavieh-kids-rugs-6745/product/99548591-safavieh-patchwork-rug
+http://www.gilt.com/sale/children/safavieh-kids-rugs-6745/product/163607859-safavieh-pink-squares-rug
+http://www.gilt.com/sale/children/safavieh-kids-rugs-6745/product/170168771-safavieh-friendly-giraffe-rug
+http://www.gilt.com/sale/children/safavieh-kids-rugs-6745/product/170168753-safavieh-spring-garden-rug
+http://www.gilt.com/sale/children/safavieh-kids-rugs-6745/product/163607881-safavieh-multi-square-rug
+http://www.gilt.com/home/category/area-rugs/98913312-designers-guild-bernadini-hand-tufted-rug
+http://www.gilt.com/home/category/area-rugs/98913315-designers-guild-bernadini-hand-tufted-rug
+http://www.gilt.com/home/category/area-rugs/80724019-designers-guild-christian-lacroix-riviera-hand-tufted-rug
+http://www.gilt.com/home/category/accent-rugs/170067796-life-of-pi-prayer-rug
+http://www.gilt.com/home/category/runner-rugs/170961117-gilt-home-collection-rugs-ethan-organic-hemp-runner
+http://www.gilt.com/home/category/runner-rugs/170961121-gilt-home-collection-rugs-ethan-organic-hemp-runner
+http://www.gilt.com/home/category/runner-rugs/170961135-gilt-home-collection-rugs-noah-hand-knotted-shag-runner
+
+
+?	Home Accessories
+http://www.myhabit.com/#page=d&dept=home&sale=A31797SUP8XC7S&asin=B008F4SRQW&cAsin=B008F4SRQW&ref=qd_b_img_d_0
+http://www.myhabit.com/#page=d&dept=home&sale=A31797SUP8XC7S&asin=B008F4SXKW&cAsin=B008F4SXKW&ref=qd_b_img_d_1
+http://www.myhabit.com/#page=d&dept=home&sale=A31797SUP8XC7S&asin=B008F4SSZ2&cAsin=B008F4SSZ2&ref=qd_b_img_d_2
+http://www.myhabit.com/#page=d&dept=home&sale=A31797SUP8XC7S&asin=B008F4SRH6&cAsin=B008F4SRH6&ref=qd_b_img_d_3
+http://www.myhabit.com/#page=d&dept=home&sale=A31797SUP8XC7S&asin=B008F4SXAC&cAsin=B008F4SXAC&ref=qd_b_img_d_4
+http://www.myhabit.com/#page=d&dept=home&sale=A31797SUP8XC7S&asin=B008F4SQGS&cAsin=B008F4SQGS&ref=qd_b_img_d_5
+http://www.myhabit.com/#page=d&dept=home&sale=A31797SUP8XC7S&asin=B008F4SSGQ&cAsin=B008F4SSGQ&ref=qd_b_img_d_6
+http://www.myhabit.com/#page=d&dept=home&sale=A31797SUP8XC7S&asin=B008F4SQMM&cAsin=B008F4SQMM&ref=qd_b_img_d_7
+http://www.myhabit.com/#page=d&dept=home&sale=A31797SUP8XC7S&asin=B007QBG3GG&cAsin=B007QBG3GG&ref=qd_b_img_d_8
+http://www.myhabit.com/#page=d&dept=home&sale=A31797SUP8XC7S&asin=B0057VRQ2C&cAsin=B0057VRQ2C&ref=qd_b_img_d_9
+http://www.myhabit.com/#page=d&dept=home&sale=A31797SUP8XC7S&asin=B00796IOU6&cAsin=B00796IOU6&ref=qd_b_img_d_10
+http://www.myhabit.com/#page=d&dept=home&sale=A31797SUP8XC7S&asin=B008AS5QTO&cAsin=B008AS5QTO&ref=qd_b_img_d_11
+http://www.myhabit.com/#page=d&dept=home&sale=A1KU3N5O1GU24Q&asin=B009EEZDWS&cAsin=B009EEZDWS&ref=qd_b_img_d_0
+http://www.myhabit.com/#page=d&dept=home&sale=A1KU3N5O1GU24Q&asin=B009EEZDBO&cAsin=B009EEZDBO&ref=qd_b_img_d_1
+http://www.gilt.com/home/category/holiday-seasonal-decor/161459524-arcadia-home-bird-house-ornament
+http://www.gilt.com/home/category/holiday-seasonal-decor/161459476-arcadia-home-blue-elephant
+http://www.gilt.com/home/category/holiday-seasonal-decor/161459515-arcadia-home-cream-ball-ornament
+http://www.gilt.com/home/category/holiday-seasonal-decor/159940193-barreveld-silver-ornaments-set-of-3
+http://www.gilt.com/home/category/holiday-seasonal-decor/159940202-barreveld-silver-star-ornaments-set-of-3
+http://www.gilt.com/home/category/holiday-seasonal-decor/170043344-cody-foster-felted-mistletoe-wreath
+
+?	Electronics
+http://www.gilt.com/home/category/electronics/158337333-crosley-deluxe-keepsake-usb-turntable
+http://www.gilt.com/home/category/electronics/164404476-hex-wallet-for-iphone-4-4s
+http://www.gilt.com/home/category/electronics/154932327-kikkerland-faux-grass-charging-station
+http://www.gilt.com/home/category/electronics/171122583-protocol-3-6v-rechargeable-swivel-screwdriver
+http://www.gilt.com/home/category/electronics/148110817-protocol-adjustable-headlamp
+http://www.gilt.com/home/category/electronics/171122574-protocol-echotalk-two-way-handheld-radio-set-set-of-2
+http://www.gilt.com/home/category/electronics/171122576-protocol-echotalk-two-way-radio-watch-set-set-of-2
+http://www.gilt.com/home/category/electronics/148110876-protocol-golf-pro-caddy-kit
+http://www.gilt.com/home/category/electronics/148110832-protocol-luggage-scales-set-of-2
+http://www.gilt.com/home/category/electronics/171122580-protocol-skyline-with-gyro-3-5-channel-helicopter
+http://www.gilt.com/home/category/electronics/171122578-protocol-smart-check-digital-alcohol-breath-checker
+http://www.gilt.com/home/category/electronics/148110797-protocol-car-utility-light
+http://www.gilt.com/home/category/electronics/167897704-iwave-natural-bamboo-earbud-with-mic
+
+?	Tools
+http://www.myhabit.com/#page=d&dept=home&sale=A39J8KEQ861ZVM&asin=B000X8WOT4&cAsin=B000X8WOT4&ref=qd_b_img_d_5
+http://www.gilt.com/home/category/gadgets-equipment/92734619-harold-imports-measuring-cups
+http://www.gilt.com/home/category/gadgets-equipment/163960360-kikkerland-extra-large-magnetic-kitchen-timer
+http://www.gilt.com/home/category/gadgets-equipment/154419623-kikkerland-magnetic-kitchen-timer
+http://www.gilt.com/home/category/gadgets-equipment/166907328-maverick-digital-fork-and-probe-thermometer
+http://www.gilt.com/home/category/gadgets-equipment/70817529-harold-imports-measuring-spoons
+http://www.gilt.com/home/category/gadgets-equipment/93196213-joseph-joseph-baking-set-4-pc
+http://www.gilt.com/home/category/gadgets-equipment/155224057-joseph-joseph-chop2pot-plus
+http://www.gilt.com/home/category/gadgets-equipment/155224067-joseph-joseph-chop2pot-plus
+http://www.gilt.com/home/category/gadgets-equipment/155224063-joseph-joseph-chop2pot-plus
+http://www.gilt.com/home/category/gadgets-equipment/42841225-joseph-joseph-folding-colander
+http://www.gilt.com/home/category/gadgets-equipment/93196188-joseph-joseph-elevate-carousel-set-br-6-pc
+http://www.gilt.com/home/category/gadgets-equipment/166111413-joseph-joseph-triscale-compact-folding-digital-scale
+http://www.gilt.com/home/category/gadgets-equipment/93556484-oxo-good-grips-food-mill
+http://www.gilt.com/home/category/gadgets-equipment/93189000-rosle-potato-masher
+http://www.gilt.com/home/category/gadgets-equipment/93196191-joseph-joseph-garlic-rocker
+http://www.gilt.com/home/category/gadgets-equipment/93196217-joseph-joseph-kitchen-set-br-6-pc
+http://www.gilt.com/home/category/gadgets-equipment/93556461-oxo-good-grips-clear-salad-spinner
+http://www.gilt.com/home/category/gadgets-equipment/93188996-rosle-can-opener
+http://www.gilt.com/home/category/gadgets-equipment/93971163-oxo-good-grips-convertible-colander
+http://www.gilt.com/home/category/gadgets-equipment/93188990-rosle-swivel-peeler-crosswise
+
+?	Kitchen & Dining
+http://www.myhabit.com/#page=d&dept=home&sale=A2NNRHMFM6WGBW&asin=B007ZXVP36&cAsin=B007ZXVPI6&ref=qd_b_img_d_0
+http://www.myhabit.com/#page=d&dept=home&sale=A2NNRHMFM6WGBW&asin=B007ZXVP36&cAsin=B007ZXVP86&ref=qd_b_img_d_1
+http://www.myhabit.com/#page=d&dept=home&sale=A2NNRHMFM6WGBW&asin=B007ZXVP36&cAsin=B007ZXVPD6&ref=qd_b_img_d_2
+http://www.myhabit.com/#page=d&dept=home&sale=A2NNRHMFM6WGBW&asin=B007ZXVP36&cAsin=B007ZXVPOU&ref=qd_b_img_d_3
+http://www.myhabit.com/#page=d&dept=home&sale=A2NNRHMFM6WGBW&asin=B007ZXVLHG&cAsin=B007ZXVMZW&ref=qd_b_img_d_4
+http://www.myhabit.com/#page=d&dept=home&sale=A2NNRHMFM6WGBW&asin=B007ZXVOI2&cAsin=B007ZXVOTG&ref=qd_b_img_d_5
+http://www.myhabit.com/#page=d&dept=home&sale=A2NNRHMFM6WGBW&asin=B007ZXVOI2&cAsin=B007ZXVOPA&ref=qd_b_img_d_7
+http://www.myhabit.com/#page=d&dept=home&sale=A2NNRHMFM6WGBW&asin=B007ZXVOI2&cAsin=B007ZXVOX2&ref=qd_b_img_d_8
+http://www.myhabit.com/#page=d&dept=home&sale=A2NNRHMFM6WGBW&asin=B007ZXVREI&cAsin=B007ZXVRRU&ref=qd_b_img_d_9
+http://www.myhabit.com/#page=d&dept=home&sale=A2NNRHMFM6WGBW&asin=B007ZXVREI&cAsin=B007ZXVRJS&ref=qd_b_img_d_10
+http://www.myhabit.com/#page=d&dept=home&sale=A2NNRHMFM6WGBW&asin=B007ZXVREI&cAsin=B007ZXVRNE&ref=qd_b_img_d_11
+http://www.myhabit.com/#page=d&dept=home&sale=A2NNRHMFM6WGBW&asin=B007ZXVREI&cAsin=B007ZXVRVQ&ref=qd_b_img_d_12
+http://www.myhabit.com/#page=d&dept=home&sale=A2NNRHMFM6WGBW&asin=B007ZXVPVS&cAsin=B007ZXVQ8A&ref=qd_b_img_d_13
+http://www.myhabit.com/#page=d&dept=home&sale=A2NNRHMFM6WGBW&asin=B007ZXVPVS&cAsin=B007ZXVPZO&ref=qd_b_img_d_14
+http://www.myhabit.com/#page=d&dept=home&sale=A39J8KEQ861ZVM&asin=B00833PF42&cAsin=B000VWF7IC&ref=qd_b_img_d_0
+http://www.myhabit.com/#page=d&dept=home&sale=A39J8KEQ861ZVM&asin=B008JATD3I&cAsin=B008JATD3I&ref=qd_b_img_d_7
+http://www.myhabit.com/#page=d&dept=home&sale=A39J8KEQ861ZVM&asin=B007NFTHBI&cAsin=B007NFTHBI&ref=qd_b_img_d_8
+http://www.gilt.com/home/sale/kate-spade-5571/77524884-kate-spade-new-york-home-primrose-hill-creamer
+http://www.gilt.com/home/sale/kate-spade-5571/77524890-kate-spade-new-york-home-primrose-hill-sugar-bowl
+http://www.gilt.com/home/sale/kate-spade-5571/122010030-kate-spade-new-york-home-pebble-point-sugar-bowl-with-lid
+http://www.gilt.com/home/sale/kate-spade-5571/77524825-kate-spade-new-york-home-noel-serving-set-3-pc
+http://www.gilt.com/home/sale/kate-spade-5571/48649702-kate-spade-new-york-home-primrose-hill-place-setting-5-pc
+http://www.gilt.com/home/category/gadgets-equipment/93188987-rosle-julienne-peeler
+http://www.gilt.com/home/category/gadgets-equipment/93189009-rosle-locking-tongs
+http://www.gilt.com/home/category/gadgets-equipment/93189012-rosle-locking-tongs
 
 Handbags
-?   New Arrivals
-?   Shoulder Bags
+?	New Arrivals
+?	Shoulder Bags
+http://www.myhabit.com/#page=d&dept=women&sale=A2YR3KUX83YPHB&asin=B009G23MCQ&cAsin=B009G23NC0&ref=qd_b_img_d_26
+http://www.myhabit.com/#page=d&dept=women&sale=A2YR3KUX83YPHB&asin=B0064EGJOW&cAsin=B0064EGKWI&ref=qd_b_img_d_31
+http://www.gilt.com/sale/women/kate-spade-new-york-handbags-5860/product/170116242-kate-spade-new-york-carlisle-street-piper-shoulder-bag
+http://www.gilt.com/sale/women/kate-spade-new-york-handbags-5860/product/170116246-kate-spade-new-york-carlisle-street-piper-shoulder-bag
+http://www.gilt.com/sale/women/kate-spade-new-york-handbags-5860/product/168155132-kate-spade-new-york-new-bond-street-sawyer-shoulder-bag
+http://www.gilt.com/sale/women/kate-spade-new-york-handbags-5860/product/167633150-kate-spade-new-york-lori-shoulder-bag
+http://www.gilt.com/sale/women/kate-spade-new-york-handbags-5860/product/167633151-kate-spade-new-york-lori-shoulder-bag
+http://www.gilt.com/sale/women/kate-spade-new-york-handbags-5860/product/167633153-kate-spade-new-york-lori-shoulder-bag
+http://www.gilt.com/sale/women/kate-spade-new-york-handbags-5860/product/167633143-kate-spade-new-york-adela-shoulder-bag
+http://www.gilt.com/sale/women/kate-spade-new-york-handbags-5860/product/167633148-kate-spade-new-york-gabriella-shoulder-bag
+http://www.gilt.com/sale/women/kate-spade-new-york-handbags-5860/product/167633165-kate-spade-new-york-byrd-shoulder-bag
+http://www.gilt.com/sale/women/kate-spade-new-york-handbags-5860/product/172042344-kate-spade-new-york-lindenwood-leopard-elena-shoulder-bag
+http://www.gilt.com/sale/women/kate-spade-new-york-handbags-5860/product/167633172-kate-spade-new-york-kingsbury-park-elena-shoulder-bag
+http://www.gilt.com/sale/women/kate-spade-new-york-handbags-5860/product/167633173-kate-spade-new-york-kingsbury-park-elena-shoulder-bag
+http://www.gilt.com/sale/women/kate-spade-new-york-handbags-5860/product/168155143-kate-spade-new-york-signature-spade-leather-jane-shoulder-bag
+http://www.gilt.com/sale/women/kate-spade-new-york-wallets/product/167633143-kate-spade-new-york-adela-shoulder-bag
+http://www.gilt.com/sale/women/kate-spade-new-york-wallets/product/167633142-kate-spade-new-york-adela-shoulder-bag
+http://www.gilt.com/sale/women/kate-spade-new-york-wallets/product/168155043-kate-spade-new-york-gold-coast-ginnie-crossbody
 
-?   Tote Bags
+?	Tote Bags
 http://www.myhabit.com/#page=d&dept=women&sale=A2YR3KUX83YPHB&asin=B007RJG3US&cAsin=B007RJG4MU&ref=qd_b_img_d_5
 http://www.myhabit.com/#page=d&dept=women&sale=A2YR3KUX83YPHB&asin=B007RJG3US&cAsin=B007RJG4NY&ref=qd_b_img_d_6
 http://www.myhabit.com/#page=d&dept=women&sale=A2YR3KUX83YPHB&asin=B007RJG3US&cAsin=B007VR60F4&ref=qd_b_img_d_7
@@ -129,21 +658,160 @@ http://www.myhabit.com/#page=d&dept=women&sale=A2YR3KUX83YPHB&asin=B007PS557S&cA
 http://www.myhabit.com/#page=d&dept=women&sale=A2YR3KUX83YPHB&asin=B007PS557S&cAsin=B0066E1C0Q&ref=qd_b_img_d_30
 http://www.myhabit.com/#page=d&dept=women&sale=A1LEQWLBY9MFVG&asin=B0046W8MZS&cAsin=B009P4QGDC&ref=qd_b_img_d_0
 http://www.myhabit.com/#page=d&dept=women&sale=A1LEQWLBY9MFVG&asin=B0046W8MZS&cAsin=B007T4NN72&ref=qd_b_img_d_1
+http://www.myhabit.com/#page=d&dept=women&sale=A37MTX4L3C2SSW&asin=B009LE9A0M&cAsin=B009LE9AJ8&ref=qd_b_img_d_2
+http://www.gilt.com/sale/women/kate-spade-new-york-handbags-5860/product/170116248-kate-spade-new-york-carlisle-street-sylvie-tote
+http://www.gilt.com/sale/women/kate-spade-new-york-handbags-5860/product/170116250-kate-spade-new-york-carlisle-street-sylvie-tote
+http://www.gilt.com/sale/women/kate-spade-new-york-handbags-5860/product/170116251-kate-spade-new-york-carlisle-street-sylvie-tote
+?	Satchels
+http://www.myhabit.com/#page=d&dept=women&sale=A2YR3KUX83YPHB&asin=B008VNEOF0&cAsin=B008VNEOF0&ref=qd_b_img_d_11
+http://www.myhabit.com/#page=d&dept=women&sale=A2YR3KUX83YPHB&asin=B0089F5AFS&cAsin=B0089F5AFS&ref=qd_b_img_d_25
+http://www.myhabit.com/#page=d&dept=women&sale=A2YR3KUX83YPHB&asin=B008VNENHY&cAsin=B008VNENHY&ref=qd_b_img_d_32
+http://www.myhabit.com/#page=d&dept=women&sale=A2YR3KUX83YPHB&asin=B0085O0IPA&cAsin=B0085O0IPA&ref=qd_b_img_d_38
+http://www.myhabit.com/#page=d&dept=women&sale=A37MTX4L3C2SSW&asin=B008R9TBZG&cAsin=B008R9TBZG&ref=qd_b_img_d_0
+http://www.myhabit.com/#page=d&dept=women&sale=A37MTX4L3C2SSW&asin=B009LEECIW&cAsin=B009LEECIW&ref=qd_b_img_d_1
+http://www.myhabit.com/#page=d&dept=women&sae=A37MTX4L3C2SSW&asin=B009LE93JU&cAsin=B009LE949O&ref=qd_b_img_d_7
+http://www.myhabit.com/#page=d&dept=women&sale=A37MTX4L3C2SSW&asin=B009LE8N6E&cAsin=B009LE8OMC&ref=qd_b_img_d_14
+http://www.myhabit.com/#page=d&dept=women&sale=A37MTX4L3C2SSW&asin=B009LE8N6E&cAsin=B009LE8P7G&ref=qd_b_img_d_15
+http://www.myhabit.com/#page=d&dept=women&sale=A37MTX4L3C2SSW&asin=B009LE8N6E&cAsin=B009LE8PVW&ref=qd_b_img_d_16
+http://www.myhabit.com/#page=d&dept=women&sale=A37MTX4L3C2SSW&asin=B008R9TA2K&cAsin=B008R9TA2K&ref=qd_b_img_d_19
+http://www.myhabit.com/#page=d&dept=women&sale=A37MTX4L3C2SSW&asin=B008R9295A&cAsin=B008R92F6S&ref=qd_b_img_d_22
+http://www.myhabit.com/#page=d&dept=women&sale=A37MTX4L3C2SSW&asin=B008R9295A&cAsin=B008R92DOW&ref=qd_b_img_d_23
+http://www.gilt.com/sale/women/kate-spade-new-york-handbags-5860/product/168155126-kate-spade-new-york-new-bond-street-florence-satchel
+http://www.gilt.com/sale/women/kate-spade-new-york-handbags-5860/product/169341597-kate-spade-new-york-berkshire-road-stevie-satchel
+http://www.gilt.com/sale/women/kate-spade-new-york-handbags-5860/product/170358592-kate-spade-new-york-mansfield-liv-satchel
+http://www.gilt.com/sale/women/kate-spade-new-york-handbags-5860/product/170358591-kate-spade-new-york-mansfield-liv-satchel
 
-?   Satchels
-?   Clutches
-?   Hobo Bags
-?   Crossbody Bags
-?   Evening Bags
-?   Backpacks & Laptop Bags
+?	Clutches
+http://www.myhabit.com/#page=d&dept=women&sale=A2YR3KUX83YPHB&asin=B0081FSOX6&cAsin=B006L9AT9Q&ref=qd_b_img_d_27
+http://www.myhabit.com/#page=d&dept=women&sale=A2YR3KUX83YPHB&asin=B0081FSOX6&cAsin=B006L9AT6O&ref=qd_b_img_d_28
+http://www.myhabit.com/#page=d&dept=women&sale=A2YR3KUX83YPHB&asin=B006M7NF6G&cAsin=B006M7NF6G&ref=qd_b_img_d_37
+http://www.myhabit.com/#page=d&dept=women&sale=A37MTX4L3C2SSW&asin=B009LE95KW&cAsin=B009LE96RY&ref=qd_b_img_d_6
+http://www.myhabit.com/#page=d&dept=women&sale=A37MTX4L3C2SSW&asin=B009LE95KW&cAsin=B009LE9624&ref=qd_b_img_d_26
+http://www.gilt.com/sale/women/kate-spade-new-york-handbags-5860/product/168155172-kate-spade-new-york-evening-belle-cayla-clutch
+http://www.gilt.com/sale/women/kate-spade-new-york-handbags-5860/product/168155153-kate-spade-new-york-tiki-bar-cocktail-clutch
+http://www.gilt.com/sale/women/deborahs-gift-picks/product/170320827-kate-spade-new-york-april-clutch
+
+
+?	Hobo Bags
+http://www.myhabit.com/#page=d&dept=women&sale=A2YR3KUX83YPHB&asin=B009AQST3U&cAsin=B009AQSTDA&ref=qd_b_img_d_35
+http://www.myhabit.com/#page=d&dept=women&sale=A2YR3KUX83YPHB&asin=B0064EGI8Y&cAsin=B0064EGIPC&ref=qd_b_img_d_33
+http://www.myhabit.com/#page=d&dept=women&sale=A37MTX4L3C2SSW&asin=B009LE8YLS&cAsin=B009LE8ZTE&ref=qd_b_img_d_28
+http://www.myhabit.com/#page=d&dept=women&sale=A37MTX4L3C2SSW&asin=B009LE8YLS&cAsin=B009LE8ZAI&ref=qd_b_img_d_29
+http://www.myhabit.com/#page=d&dept=women&sale=A37MTX4L3C2SSW&asin=B009LE8YLS&cAsin=B009LE90HU&ref=qd_b_img_d_30
+http://www.myhabit.com/#page=d&dept=women&sale=A37MTX4L3C2SSW&asin=B008R8DOQY&cAsin=B008R8DOQY&ref=qd_b_img_d_36
+http://www.ruelala.com/event/product/61521/1111946014/0/DEFAULT
+http://www.ruelala.com/event/product/61521/1111946015/0/DEFAULT
+http://www.ruelala.com/event/product/61992/1111959348/0/DEFAULT
+
+?	Crossbody Bags
+http://www.myhabit.com/#page=d&dept=women&sale=A2YR3KUX83YPHB&asin=B0081FSOX6&cAsin=B006L9AT1Y&ref=qd_b_img_d_4
+http://www.myhabit.com/#page=d&dept=women&sale=A2YR3KUX83YPHB&asin=B007476V9Q&cAsin=B007476T84&ref=qd_b_img_d_22
+http://www.myhabit.com/#page=d&dept=women&sale=A2YR3KUX83YPHB&asin=B007476V9Q&cAsin=B007476Y2U&ref=qd_b_img_d_23
+http://www.myhabit.com/#page=d&dept=women&sale=A2YR3KUX83YPHB&asin=B007476V9Q&cAsin=B007476UXI&ref=qd_b_img_d_24
+http://www.myhabit.com/#page=d&dept=women&sale=A2YR3KUX83YPHB&asin=B007RJG3VM&cAsin=B007RJG4NO&ref=qd_b_img_d_39
+http://www.myhabit.com/#page=d&dept=women&sale=A37MTX4L3C2SSW&asin=B009LE8W8S&cAsin=B009LE8WWY&ref=qd_b_img_d_10
+http://www.myhabit.com/#page=d&dept=women&sale=A37MTX4L3C2SSW&asin=B009LEECQE&cAsin=B009LEECQE&ref=qd_b_img_d_25
+http://www.myhabit.com/#page=d&dept=women&sale=A37MTX4L3C2SSW&asin=B009LE8W8S&cAsin=B009LE8XHS&ref=qd_b_img_d_31
+http://www.myhabit.com/#page=d&dept=women&sale=A37MTX4L3C2SSW&asin=B009LE8W8S&cAsin=B009LE8Y18&ref=qd_b_img_d_32
+http://www.gilt.com/sale/women/kate-spade-new-york-handbags-5860/product/170116212-kate-spade-new-york-post-street-sonia-crossbody
+http://www.gilt.com/sale/women/kate-spade-new-york-handbags-5860/product/170116213-kate-spade-new-york-post-street-sonia-crossbody
+http://www.gilt.com/sale/women/kate-spade-new-york-handbags-5860/product/168155072-kate-spade-new-york-signature-spade-leather-petra-crossbody
+http://www.gilt.com/sale/women/kate-spade-new-york-handbags-5860/product/168155141-kate-spade-new-york-brianne-crossbody
+http://www.gilt.com/sale/women/kate-spade-new-york-handbags-5860/product/167633171-kate-spade-new-york-randi-crossbody
+http://www.gilt.com/sale/women/kate-spade-new-york-handbags-5860/product/170042479-kate-spade-new-york-gold-coast-ginnie-crossbody
+
+?	Evening Bags
+http://www.myhabit.com/#page=d&dept=women&sale=A2YR3KUX83YPHB&asin=B009G23IOS&cAsin=B009G23JEM&ref=qd_b_img_d_13
+http://www.gilt.com/sale/women/deborahs-gift-picks/product/170320819-kate-spade-new-york-gia-pouch
+http://www.gilt.com/sale/women/deborahs-gift-picks/product/170320820-kate-spade-new-york-gia-pouch
+http://www.gilt.com/sale/women/deborahs-gift-picks/product/170320817-kate-spade-new-york-glitterball-coin-purse
+http://www.gilt.com/sale/women/deborahs-gift-picks/product/170320816-kate-spade-new-york-glitterball-coin-purse
+?	Backpacks & Laptop Bags
+http://www.gilt.com/sale/men/k-by-krane-1650/product/159075196-k-by-krane-karel-rucksack
+http://www.gilt.com/sale/men/k-by-krane-1650/product/159075194-k-by-krane-karel-rucksack
+http://www.gilt.com/sale/men/k-by-krane-1650/product/159075192-k-by-krane-karel-rucksack
+http://www.gilt.com/sale/men/k-by-krane-1650/product/159075190-k-by-krane-karel-rucksack
+http://www.gilt.com/sale/children/our-top-strollers/product/50298857-diaper-dude-kids-guitar-peace-backpack
+http://www.gilt.com/sale/children/our-top-strollers/product/50298860-diaper-dude-kids-camo-dragon-backpack
 
 Jewelry & Watches
-?   New Arrivals
-?   Women's Watches
-?   Men's Watches
-?   Bracelets
-?   Earrings
-?   Necklaces
+?	New Arrivals
+?	Women's Watches
+http://www.myhabit.com/#page=d&dept=women&sale=A2BHM2TZR60SDC&asin=B009NVS9OG&cAsin=B009NVS9OG&ref=qd_b_img_d_0
+http://www.myhabit.com/#page=d&dept=women&sale=A2BHM2TZR60SDC&asin=B009NVS8D8&cAsin=B009NVS8D8&ref=qd_b_img_d_1
+http://www.myhabit.com/#page=d&dept=women&sale=A2BHM2TZR60SDC&asin=B009NVS6R6&cAsin=B009NVS6R6&ref=qd_b_img_d_2
+http://www.myhabit.com/#page=d&dept=women&sale=A2BHM2TZR60SDC&asin=B009NVS5GI&cAsin=B009NVS5GI&ref=qd_b_img_d_3
+http://www.myhabit.com/#page=d&dept=women&sale=A2BHM2TZR60SDC&asin=B009NVS4AA&cAsin=B009NVS4AA&ref=qd_b_img_d_4
+http://www.myhabit.com/#page=d&dept=women&sale=A2BHM2TZR60SDC&asin=B009NVS2ZW&cAsin=B009NVS2ZW&ref=qd_b_img_d_5
+http://www.myhabit.com/#page=d&dept=women&sale=A2BHM2TZR60SDC&asin=B009NVS1XA&cAsin=B009NVS1XA&ref=qd_b_img_d_6
+http://www.myhabit.com/#page=d&dept=women&sale=A2BHM2TZR60SDC&asin=B009NVS0UE&cAsin=B009NVS0UE&ref=qd_b_img_d_7
+http://www.myhabit.com/#page=d&dept=women&sale=A2BHM2TZR60SDC&asin=B009NVRZTQ&cAsin=B009NVRZTQ&ref=qd_b_img_d_8
+http://www.myhabit.com/#page=d&dept=women&sale=A2BHM2TZR60SDC&asin=B008BLYN3A&cAsin=B008BLYN3A&ref=qd_b_img_d_9
+http://www.myhabit.com/#page=d&dept=women&sale=A2BHM2TZR60SDC&asin=B00870HV6G&cAsin=B00870HV6G&ref=qd_b_img_d_10
+http://www.myhabit.com/#page=d&dept=women&sale=A2BHM2TZR60SDC&asin=B00870HUW6&cAsin=B00870HUW6&ref=qd_b_img_d_11
+http://www.myhabit.com/#page=d&dept=women&sale=A2BHM2TZR60SDC&asin=B00870HQNE&cAsin=B00870HQNE&ref=qd_b_img_d_12
+http://www.myhabit.com/#page=d&dept=women&sale=A2BHM2TZR60SDC&asin=B0082EF23G&cAsin=B0082EF23G&ref=qd_b_img_d_13
+http://www.myhabit.com/#page=d&dept=women&sale=A2BHM2TZR60SDC&asin=B0082EF0NI&cAsin=B0082EF0NI&ref=qd_b_img_d_14
+http://www.gilt.com/sale/women/deborahs-gift-picks/product/170324458-kate-spade-new-york-metro-watch
+http://www.gilt.com/sale/women/deborahs-gift-picks/product/170324456-kate-spade-new-york-cooper-bow-watch
+http://www.gilt.com/sale/women/deborahs-gift-picks/product/170324462-kate-spade-new-york-gold-carlyle-watch
+
+
+?	Men's Watches
+http://www.myhabit.com/#page=d&dept=men&sale=A3P6XNVU3TW1FO&asin=B009HWDO00&cAsin=B009HWDO00&ref=qd_b_img_d_0
+http://www.myhabit.com/#page=d&dept=men&sale=A3P6XNVU3TW1FO&asin=B009HWDOLY&cAsin=B009HWDOLY&ref=qd_b_img_d_1
+http://www.myhabit.com/#page=d&dept=men&sale=A3P6XNVU3TW1FO&asin=B009HWDQJY&cAsin=B009HWDQJY&ref=qd_b_img_d_2
+http://www.myhabit.com/#page=d&dept=men&sale=A3P6XNVU3TW1FO&asin=B009HWDOSW&cAsin=B009HWDOSW&ref=qd_b_img_d_3
+http://www.myhabit.com/#page=d&dept=men&sale=A3P6XNVU3TW1FO&asin=B009HWDQVW&cAsin=B009HWDQVW&ref=qd_b_img_d_4
+http://www.myhabit.com/#page=d&dept=men&sale=A3P6XNVU3TW1FO&asin=B009HWDPSQ&cAsin=B009HWDPSQ&ref=qd_b_img_d_5
+http://www.myhabit.com/#page=d&dept=men&sale=A3P6XNVU3TW1FO&asin=B009HWDNTW&cAsin=B009HWDNTW&ref=qd_b_img_d_6
+http://www.myhabit.com/#page=d&dept=men&sale=A3P6XNVU3TW1FO&asin=B009HWDP7C&cAsin=B009HWDP7C&ref=qd_b_img_d_7
+http://www.myhabit.com/#page=d&dept=men&sale=A3P6XNVU3TW1FO&asin=B009HWDR66&cAsin=B009HWDR66&ref=qd_b_img_d_8
+http://www.myhabit.com/#page=d&dept=men&sale=A3P6XNVU3TW1FO&asin=B009HWDPI6&cAsin=B009HWDPI6&ref=qd_b_img_d_9
+http://www.myhabit.com/#page=d&dept=men&sale=A3P6XNVU3TW1FO&asin=B009HWDDB0&cAsin=B009HWDDB0&ref=qd_b_img_d_10
+http://www.myhabit.com/#page=d&dept=men&sale=A3P6XNVU3TW1FO&asin=B009HWDO8W&cAsin=B009HWDO8W&ref=qd_b_img_d_11
+
+?	Bracelets
+http://www.myhabit.com/#page=d&dept=women&sale=AY20Z9LRYSHT3&asin=B0096IF6D8&cAsin=B0096IF6D8&ref=qd_b_img_d_2
+http://www.myhabit.com/#page=d&dept=women&sale=A6FJM9ZAOR2R&asin=B009NGACDW&cAsin=B009NGACDW&ref=qd_b_img_d_4
+http://www.myhabit.com/#page=d&dept=women&sale=A6FJM9ZAOR2R&asin=B005VSM88I&cAsin=B005VSM88I&ref=qd_b_img_d_3
+http://www.myhabit.com/#page=d&dept=women&sale=A6FJM9ZAOR2R&asin=B009NGAC0A&cAsin=B009NGAC0A&ref=qd_b_img_d_5
+http://www.myhabit.com/#page=d&dept=women&sale=A19VM1UI6E0CT2&asin=B009NW9J3K&cAsin=B009NW9J3K&ref=qd_b_img_d_8
+http://www.myhabit.com/#page=d&dept=women&sale=A19VM1UI6E0CT2&asin=B009NW9IO0&cAsin=B009NW9IO0&ref=qd_b_img_d_10
+http://www.myhabit.com/#page=d&dept=women&sale=A19VM1UI6E0CT2&asin=B009NW9JSU&cAsin=B009NW9JSU&ref=qd_b_img_d_9
+http://www.gilt.com/sale/women/kate-spade-new-york-jewelry-0293/product/167904942-kate-spade-new-york-purple-link-bracelet
+http://www.gilt.com/sale/women/kate-spade-new-york-jewelry-0293/product/167904824-kate-spade-black-desert-stone-bangle
+http://www.gilt.com/sale/women/kate-spade-new-york-jewelry-0293/product/167904945-kate-spade-new-york-light-dark-green-bracelet
+http://www.gilt.com/sale/women/kate-spade-new-york-jewelry-0293/product/167904883-kate-spade-crystal-chips-bangle
+http://www.gilt.com/sale/children/beetlejuice-5291/product/163854945-tai-jewelry-blue-stone-braided-bracelet
+http://www.gilt.com/sale/children/beetlejuice-5291/product/166005665-ettika-jewelry-sherbert-friendship-thread-bracelet
+http://www.gilt.com/sale/children/beetlejuice-5291/product/162640502-tai-jewelry-jetaime-braided-bracelet
+
+?	Earrings
+http://www.myhabit.com/#page=d&dept=women&sale=A6FJM9ZAOR2R&asin=B009NGACT6&cAsin=B009NGACT6&ref=qd_b_img_d_9
+http://www.myhabit.com/#page=d&dept=women&sale=A6FJM9ZAOR2R&asin=B009NGADH2&cAsin=B009NGADH2&ref=qd_b_img_d_10
+http://www.myhabit.com/#page=d&dept=women&sale=A6FJM9ZAOR2R&asin=B009NGAE76&cAsin=B009NGAE76&ref=qd_b_img_d_15
+http://www.myhabit.com/#page=d&dept=women&sale=A6FJM9ZAOR2R&asin=B00767WGUW&cAsin=B00767WGUW&ref=qd_b_img_d_16
+http://www.myhabit.com/#page=d&dept=women&sale=A6FJM9ZAOR2R&asin=B009NGADSQ&cAsin=B009NGADSQ&ref=qd_b_img_d_17
+http://www.myhabit.com/#page=d&dept=women&sale=A19VM1UI6E0CT2&asin=B009NW9GH4&cAsin=B009NW9GH4&ref=qd_b_img_d_0
+http://www.myhabit.com/#page=d&dept=women&sale=A19VM1UI6E0CT2&asin=B009NW9H4Q&cAsin=B009NW9H4Q&ref=qd_b_img_d_1
+http://www.myhabit.com/#page=d&dept=women&sale=A19VM1UI6E0CT2&asin=B009NW9FRK&cAsin=B009NW9FRK&ref=qd_b_img_d_2
+http://www.myhabit.com/#page=d&dept=women&sale=A19VM1UI6E0CT2&asin=B009NW9G6A&cAsin=B009NW9G6A&ref=qd_b_img_d_11
+http://www.myhabit.com/#page=d&dept=women&sale=A19VM1UI6E0CT2&asin=B009NW9F3Y&cAsin=B009NW9F3Y&ref=qd_b_img_d_12
+http://www.myhabit.com/#page=d&dept=women&sale=A19VM1UI6E0CT2&asin=B009NW9EQM&cAsin=B009NW9EQM&ref=qd_b_img_d_13
+http://www.myhabit.com/#page=d&dept=women&sale=A19VM1UI6E0CT2&asin=B009NW9HVE&cAsin=B009NW9HVE&ref=qd_b_img_d_14
+http://www.myhabit.com/#page=d&dept=women&sale=A19VM1UI6E0CT2&asin=B009NW9GRE&cAsin=B009NW9GRE&ref=qd_b_img_d_15
+http://www.myhabit.com/#page=d&dept=women&sale=A19VM1UI6E0CT2&asin=B009NW9I72&cAsin=B009NW9I72&ref=qd_b_img_d_16
+http://www.myhabit.com/#page=d&dept=women&sale=A19VM1UI6E0CT2&asin=B009NW9FGQ&cAsin=B009NW9FGQ&ref=qd_b_img_d_17
+http://www.gilt.com/sale/women/kate-spade-new-york-jewelry-0293/product/167904918-kate-spade-all-wrapped-up-bow-stud-earrings
+http://www.gilt.com/sale/women/kate-spade-new-york-jewelry-0293/product/167904880-kate-spade-bar-none-huggie-earrings
+http://www.gilt.com/sale/women/kate-spade-new-york-jewelry-0293/product/167904895-kate-spade-frame-of-mind-linear-earrings
+http://www.gilt.com/sale/women/kate-spade-new-york-jewelry-0293/product/169948629-kate-spade-new-york-black-roped-in-earrings
+http://www.gilt.com/sale/women/kate-spade-new-york-jewelry-0293/product/167904821-kate-spade-desert-stone-cluster-earrings
+http://www.gilt.com/sale/women/kate-spade-new-york-jewelry-0293/product/167904834-kate-spade-desert-stone-hoop-earrings
+http://www.gilt.com/sale/children/beetlejuice-5291/product/162640545-tai-jewelry-pink-daisy-stud-earrings
+
+?	Necklaces
 http://www.myhabit.com/#page=d&dept=women&sale=AY20Z9LRYSHT3&asin=B0096IEY7M&cAsin=B0096IEY7M&ref=qd_b_img_d_0
 http://www.myhabit.com/#page=d&dept=women&sale=AY20Z9LRYSHT3&asin=B0096IF5XO&cAsin=B0096IF5XO&ref=qd_b_img_d_1
 http://www.myhabit.com/#page=d&dept=women&sale=AY20Z9LRYSHT3&asin=B0096IF6RO&cAsin=B0096IF6RO&ref=qd_b_img_d_3
@@ -155,12 +823,47 @@ http://www.myhabit.com/#page=d&dept=women&sale=AY20Z9LRYSHT3&asin=B0096IF9R6&cAs
 http://www.myhabit.com/#page=d&dept=women&sale=A6FJM9ZAOR2R&asin=B009NGAG5Q&cAsin=B009NGAG5Q&ref=qd_b_img_d_6
 http://www.myhabit.com/#page=d&dept=women&sale=A6FJM9ZAOR2R&asin=B009NGAGLU&cAsin=B009NGAGLU&ref=qd_b_img_d_7
 http://www.myhabit.com/#page=d&dept=women&sale=A6FJM9ZAOR2R&asin=B009NGAHRI&cAsin=B009NGAHRI&ref=qd_b_img_d_8
-?   Rings
-?   Pendants
+http://www.myhabit.com/#page=d&dept=women&sale=A19VM1UI6E0CT2&asin=B009NW9KEI&cAsin=B009NW9KEI&ref=qd_b_img_d_3
+http://www.myhabit.com/#page=d&dept=women&sale=A19VM1UI6E0CT2&asin=B009NW9KRU&cAsin=B009NW9KRU&ref=qd_b_img_d_4
+http://www.myhabit.com/#page=d&dept=women&sale=A19VM1UI6E0CT2&asin=B009NW9K5W&cAsin=B009NW9K5W&ref=qd_b_img_d_5
+http://www.myhabit.com/#page=d&dept=women&sale=A19VM1UI6E0CT2&asin=B009NW9L4C&cAsin=B009NW9L4C&ref=qd_b_img_d_6
+http://www.gilt.com/sale/women/deborahs-gift-picks/product/170165679-kate-spade-new-york-crescent-moon-necklace
+http://www.gilt.com/sale/women/kate-spade-new-york-jewelry-0293/product/167904889-kate-spade-new-york-crystal-chips-collar-necklace
+http://www.gilt.com/sale/women/kate-spade-new-york-jewelry-0293/product/167904905-kate-spade-new-york-frame-of-mind-pink-purple-necklace
+http://www.gilt.com/sale/women/kate-spade-new-york-jewelry-0293/product/167904953-kate-spade-new-york-purple-multi-statement-necklace
+http://www.gilt.com/sale/women/kate-spade-new-york-jewelry-0293/product/167904940-kate-spade-new-york-purple-multi-scatter-necklace
+http://www.gilt.com/sale/children/beetlejuice-5291/product/162640557-tai-jewelry-gold-plated-wishbone-necklace
+http://www.gilt.com/sale/children/beetlejuice-5291/product/162640554-tai-jewelry-silver-horseshoe-necklace
+http://www.ruelala.com/event/product/61697/6020921426/1/DEFAULT
+http://www.ruelala.com/event/product/61697/6020948332/1/DEFAULT
+http://www.ruelala.com/event/product/61697/6020948380/1/DEFAULT
+http://www.ruelala.com/event/product/61697/6020948378/1/DEFAULT
+http://www.ruelala.com/event/product/61697/6020948336/1/DEFAULT
+
+?	Rings
+http://www.gilt.com/sale/women/kate-spade-new-york-jewelry-0293/product/140601612-kate-spade-new-york-green-glossy-garden-ring
+http://www.gilt.com/sale/women/kate-spade-new-york-jewelry-0293/product/140601281-kate-spade-new-york-pink-cocktail-colorfully-ring
+http://www.gilt.com/sale/women/kate-spade-new-york-jewelry-0293/product/167904887-kate-spade-crystal-chips-ring
+http://www.ruelala.com/event/product/61697/6020948339/1/DEFAULT
+http://www.ruelala.com/event/product/61697/6020948353/1/DEFAULT
+http://www.ruelala.com/event/product/61697/6020948393/1/DEFAULT
+http://www.ruelala.com/event/product/61697/6020948351/1/DEFAULT
+http://www.ruelala.com/event/product/61697/6020948337/1/DEFAULT
+http://www.ruelala.com/event/product/61697/6020948386/1/DEFAULT
+http://www.ruelala.com/event/product/61697/6020948349/1/DEFAULT
+http://www.ruelala.com/event/product/61697/6020948348/1/DEFAULT
+http://www.ruelala.com/event/product/61697/6020948387/1/DEFAULT
+http://www.ruelala.com/event/product/61697/6020921425/1/DEFAULT
+http://www.ruelala.com/event/product/61697/6020948391/1/DEFAULT
+
+?	Pendants
+
+
+
 
 Beauty & Health
-?   New Arrivals
-?   Skin Care
+?	New Arrivals
+?	Skin Care
 http://www.myhabit.com/#page=d&dept=women&sale=A1HT93TAFZPH2Q&asin=B008LW8M90&cAsin=B008LW8M90&ref=qd_b_img_d_0
 http://www.myhabit.com/#page=d&dept=women&sale=A1HT93TAFZPH2Q&asin=B0077SY392&cAsin=B0077SY392&ref=qd_b_img_d_1
 http://www.myhabit.com/#page=d&dept=women&sale=A1HT93TAFZPH2Q&asin=B0077SY3JC&cAsin=B0077SY3JC&ref=qd_b_img_d_2
@@ -169,8 +872,19 @@ http://www.myhabit.com/#page=d&dept=women&sale=A1HT93TAFZPH2Q&asin=B007BDNUZ6&cA
 http://www.myhabit.com/#page=d&dept=women&sale=A1HT93TAFZPH2Q&asin=B008BK8JLI&cAsin=B008BK8JLI&ref=qd_b_img_d_5
 http://www.myhabit.com/#page=d&dept=women&sale=A1HT93TAFZPH2Q&asin=B008AYZPIK&cAsin=B008AYZPIK&ref=qd_b_img_d_6
 http://www.myhabit.com/#page=d&dept=women&sale=A1HT93TAFZPH2Q&asin=B003KAROFG&cAsin=B003KAROFG&ref=qd_b_img_d_7
+http://www.myhabit.com/#page=d&dept=women&sale=A2LWLDF68ZC3G5&asin=B006UCUWKK&cAsin=B006UCUWKK&ref=qd_b_img_d_0
+http://www.myhabit.com/#page=d&dept=women&sale=A2LWLDF68ZC3G5&asin=B005CRN30A&cAsin=B005CRN30A&ref=qd_b_img_d_1
+http://www.myhabit.com/#page=d&dept=women&sale=A2LWLDF68ZC3G5&asin=B00532A5V4&cAsin=B00532A5V4&ref=qd_b_img_d_2
+http://www.myhabit.com/#page=d&dept=women&sale=A2LWLDF68ZC3G5&asin=B00532A53M&cAsin=B00532A53M&ref=qd_b_img_d_3
+http://www.myhabit.com/#page=d&dept=women&sale=A2LWLDF68ZC3G5&asin=B00532A4HE&cAsin=B00532A4HE&ref=qd_b_img_d_4
+http://www.myhabit.com/#page=d&dept=women&sale=A2LWLDF68ZC3G5&asin=B0096CTL5S&cAsin=B0096CTL5S&ref=qd_b_img_d_5
+http://www.myhabit.com/#page=d&dept=women&sale=A2LWLDF68ZC3G5&asin=B005TG88GI&cAsin=B005TG88GI&ref=qd_b_img_d_6
+http://www.myhabit.com/#page=d&dept=women&sale=A2LWLDF68ZC3G5&asin=B005FPWORC&cAsin=B005FPWORC&ref=qd_b_img_d_7
+http://www.myhabit.com/#page=d&dept=women&sale=A2LWLDF68ZC3G5&asin=B004ZP4HPA&cAsin=B004ZP4HPA&ref=qd_b_img_d_8
+http://www.myhabit.com/#page=d&dept=women&sale=A2LWLDF68ZC3G5&asin=B004X7EHKK&cAsin=B004X7EHKK&ref=qd_b_img_d_9
+http://www.myhabit.com/#page=d&dept=women&sale=A2LWLDF68ZC3G5&asin=B004UQPCTO&cAsin=B004UQPCTO&ref=qd_b_img_d_10
 
-?   Makeup
+?	Makeup
 http://www.myhabit.com/#page=d&dept=women&sale=A2DUOWSX4WX457&asin=B009HUQ28I&cAsin=B009HUQ28I&ref=qd_b_img_d_0
 http://www.myhabit.com/#page=d&dept=women&sale=A2DUOWSX4WX457&asin=B009FS4JQY&cAsin=B009FS4JQY&ref=qd_b_img_d_1
 http://www.myhabit.com/#page=d&dept=women&sale=A2DUOWSX4WX457&asin=B009FS4JFA&cAsin=B009FS4JFA&ref=qd_b_img_d_2
@@ -178,38 +892,50 @@ http://www.myhabit.com/#page=d&dept=women&sale=A2DUOWSX4WX457&asin=B009FS4HK2&cA
 http://www.myhabit.com/#page=d&dept=women&sale=A2DUOWSX4WX457&asin=B0088QDDCA&cAsin=B0088QDDCA&ref=qd_b_img_d_4
 http://www.myhabit.com/#page=d&dept=women&sale=A2DUOWSX4WX457&asin=B0088QDCVM&cAsin=B0088QDCVM&ref=qd_b_img_d_5
 http://www.myhabit.com/#page=d&dept=women&sale=A2DUOWSX4WX457&asin=B0088QDB90&cAsin=B0088QDB90&ref=qd_b_img_d_6
+http://www.myhabit.com/#page=d&dept=women&sale=A9T09OSR30BJJ&asin=B00A334KXW&cAsin=B00A334KXW&ref=qd_b_img_d_0
+http://www.myhabit.com/#page=d&dept=women&sale=A9T09OSR30BJJ&asin=B00A334JAG&cAsin=B00A334JAG&ref=qd_b_img_d_1
+http://www.myhabit.com/#page=d&dept=women&sale=A9T09OSR30BJJ&asin=B0081JG3P8&cAsin=B0081JG3P8&ref=qd_b_img_d_3
+http://www.myhabit.com/#page=d&dept=women&sale=A9T09OSR30BJJ&asin=B006YDJVD4&cAsin=B006YDJVD4&ref=qd_b_img_d_4
+http://www.myhabit.com/#page=d&dept=women&sale=A9T09OSR30BJJ&asin=B0081JGCZE&cAsin=B0081JGCZE&ref=qd_b_img_d_5
+http://www.myhabit.com/#page=d&dept=women&sale=A9T09OSR30BJJ&asin=B0081JGDUI&cAsin=B0081JGDUI&ref=qd_b_img_d_7
+http://www.myhabit.com/#page=d&dept=women&sale=A9T09OSR30BJJ&asin=B0081JGG28&cAsin=B0081JGG28&ref=qd_b_img_d_8
+http://www.myhabit.com/#page=d&dept=women&sale=A9T09OSR30BJJ&asin=B0081JGHIQ&cAsin=B0081JGHIQ&ref=qd_b_img_d_9
+http://www.myhabit.com/#page=d&dept=women&sale=A9T09OSR30BJJ&asin=B0081JGGT6&cAsin=B0081JGGT6&ref=qd_b_img_d_10
+http://www.myhabit.com/#page=d&dept=women&sale=A9T09OSR30BJJ&asin=B0081JGFI8&cAsin=B0081JGFI8&ref=qd_b_img_d_11
+http://www.myhabit.com/#page=d&dept=women&sale=A9T09OSR30BJJ&asin=B0081JGEO8&cAsin=B0081JGEO8&ref=qd_b_img_d_12
 
-?   Fragrance
-?   Body Care
+?	Fragrance
+?	Body Care
 
 
 ?Wine
-?   New Arrivals
-?   Red Wine
-?   White Wine
-?   Champagne
-?   Wine Accessories
-?   Events
-?   New
-?   Ending Soon
-?   Upcoming
-?   
+?	New Arrivals
+?	Red Wine
+?	White Wine
+
+?	Champagne
+ 
+?	Wine Accessories
+?	Events
+?	New
+?	Ending Soon
+?	Upcoming
+?	
 Events
-?   Name
-?   Begin/End Date
+?	Name
+?	Begin/End Date
 
 Designers/Brands
-?   Introduction
-?   Lines Â®C like Derek Lam/Albertine
-?   URL
+?	Introduction
+?	Lines ¨C like Derek Lam/Albertine
+?	URL
 Tags
-?   Designers
-?   Sub-Categories
-?   Styles, Fashion Trends
+?	Designers
+?	Sub-Categories
+?	Styles, Fashion Trends
 
 
 
 
-    
-
+	
 

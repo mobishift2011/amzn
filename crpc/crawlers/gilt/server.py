@@ -204,3 +204,4 @@ if __name__ == '__main__':
 #    server.bind("tcp://0.0.0.0:{0}".format(CRAWLER_PORT))
 #    server.run()
     local_test()
+    Server().crawl_product('http://www.gilt.com/sale/women/kate-spade-new-york-jewelry-0293/product/167904918-kate-spade-all-wrapped-up-bow-stud-earrings', ctx='haha')

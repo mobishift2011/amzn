@@ -34,9 +34,11 @@ def get_document_list():
                 sys.stdout.flush()
     return dl
 
-words = re.compile(ur'\b\w+\b')
+words = re.compile(ur'\b\w\w+\b')
 def adjacent_words_tokenizer(doc):
     l = words.findall(doc)
+    for w in l:
+        yield w
     for i in range(len(l)-1):
         yield l[i]+' '+l[i+1] 
     for i in range(len(l)-2):

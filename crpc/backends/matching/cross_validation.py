@@ -10,6 +10,7 @@ framwork used:
 
 """
 import os
+import re
 DIRNAME = os.path.dirname(os.path.abspath(__file__)) 
 DATAPATH = os.path.join(DIRNAME, 'dataset')
 
@@ -35,6 +36,12 @@ class Classifier(object):
     def validate(self):
         pass
 
+words = re.compile(ur'\b\w+\b')
+def adjacent_words_tokenizer(doc):
+    l = words.findall(doc)
+    for i in range(len(l)):
+        yield l[i]
+
 class SklearnClassifier(Classifier):
     def __init__(self, clf=None):
         self.name = 'sklearn'
@@ -51,7 +58,7 @@ class SklearnClassifier(Classifier):
         
     def load_files(self):
         files = sklearn.datasets.load_files(DATAPATH)
-        self.vectorizer = sklearn.feature_extraction.text.TfidfVectorizer()
+        self.vectorizer = sklearn.feature_extraction.text.TfidfVectorizer(tokenizer=adjacent_words_tokenizer)
         self.x = self.vectorizer.fit_transform(files.data)
         self.y = files.target
         self.target_names = files.target_names

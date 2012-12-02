@@ -64,12 +64,12 @@ def spout_brands(site, doctype):
         'Event': {
             'key': 'event_id',
             'title': 'sale_title',
-            'kwargs': {'complete_status': '000'}    # TODO determinate the flag indication.
+            'kwargs': {'brand_complete': False}    # TODO determinate the flag indication.
         },
         'Product': {
             'key': 'key',
             'title': 'title',
-            'kwargs': {'updated': True}   # TODO determinate the flag indication.
+            'kwargs': {'brand_complete': False}   # TODO determinate the flag indication.
         }
     }
 

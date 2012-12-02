@@ -6,20 +6,16 @@ crawlers.myhabit.server
 This is the server part of zeroRPC module. Call by client automatically, run on many differen ec2 instances.
 
 """
-
-import os
-import requests
-import json
-import re
-import esm
-from PIL import Image
-from StringIO import StringIO
+from configs import *
 
 import boto
 from boto.s3.key import Key
 from boto.s3.connection import S3Connection
 
-from configs import *
+import os
+import requests
+from PIL import Image
+from StringIO import StringIO
 
 CURRDIR = os.path.dirname(__file__)
 
@@ -143,54 +139,6 @@ class ImageTool:
         region.save(tempfile, im.format)
         tempfile.seek(0)
         return tempfile
-
-
-def fail(*args, **kwargs):
-    """
-    * params:
-    ** title
-    ** model: Brand, Dept, Tag
-    ** content: The content of failure such as the brand name that can'be extacted.
-    ** site: required
-    ** doctype: Event or Product, required
-    ** key = required
-    ** url
-    """
-    r = requests.post('http://localhost:1319/api/brand/fail/', data=kwargs)
-    return r.status_code == 200
-
-class Extracter(object):
-    def __init__(self):
-        os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djCatalog.djCatalog.settings")
-        from djCatalog.catalogs.models import Brand
-        
-        self.stopwords = ' \t\r\n,;.%0123456789\'"_-'
-        print 'brand index init'
-        self._rebuild_index()
-
-    def _rebuild_index(self):
-        brands = Brand.objects().values_list('title')
-        print 'brands total count:%s' % len(brands)
-
-        self.index = esm.Index()
-        for brand in brands:
-            self.index.enter(brand.lower().encode('utf-8'), brand)
-        self.index.fix()
-
-    def extract(self, brand):
-        ret = ''
-        brand = brand.lower()
-        mathces = self.index.query(brand)
-
-        for match in matches:
-            startPos = match[0][0]
-            endPos = match[0][1]
-            pattern_brand = match[1]
-            if (startPos== 0 or brand[startPos-1] in self.stopwords) and \
-                (endPos == len(brand) or brand[endPos] in self.stopwords) \
-                    and len(pattern_brand) > ret :
-                        ret = pattern_brand
-        return ret
 
 
 if __name__ == '__main__':

@@ -48,17 +48,21 @@ def ready_for_batch_image_crawling(sender, **kwargs):
         logger.info('start to get rpc resource for %s.%s' % (site, doctype))
         gevent.spawn(scan_images, site, doctype, get_rpcs(POWER_PEERS, POWER_PORT), 10) 
 
+
 #@pre_image_crawl.bind
 def stat_pre_general_update(sender, **kwargs):
     pass
+
 
 #@post_image_crawl.bind
 def stat_post_general_update(sender, **kwargs):
     pass
 
+
 #@image_crawled_failed.bind
 def stat_failed(sender, **kwargs):
     pass
+
 
 @image_crawled.bind
 def stat_save(sender, **kwargs):
@@ -89,3 +93,45 @@ def stat_save(sender, **kwargs):
             
     except Exception as e:
         logger.exception(e.message)
+
+
+import os
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djCatalog.djCatalog.settings")
+from djCatalog.catalogs.models import BrandTask
+
+@brand_extracted.bind
+def brand_stat_save(sender, **kwargs):
+    kwargs['brand_complete'] = True
+    brand_stat(sender, **kwargs)
+
+@brand_extracted_failed.bind
+def brand_stat_failed(sender, **kwargs):
+    kwargs['brand_complete'] = False
+    brand_stat(sender, **kwargs)
+
+def brand_stat(sender, **kwargs):
+    site = kwargs.get('site', '')
+    key = kwargs.get('key', '')
+    title = kwargs.get('title', '')
+    brand = kwargs.get('brand', '')
+    doctype = kwargs.get('doctype', '')
+    url = kwargs.get('combine_url', '')
+    brand_complete = kwargs.get('brand_complete', False)
+
+    print 'brand signal %s_%s_%s received: %s > %s' % (site, doctype, key, brand, brand_complete)
+
+    brand_task = BrandTask.objects(site=site, key=key, doctype=doctype).first()
+    if brand_task:
+        brand_task.update(set__brand=brand, set__url=url, \
+            set__brand_complete=brand_complete, set__is_checked=False)
+    else:
+        brand_task = BrandTask()
+        brand_task.title = title
+        brand_task.brand = brand
+        brand_task.site = site
+        brand_task.doctype = doctype
+        brand_task.key = key
+        brand_task.url = url
+        brand_task.brand_complete = brand_complete
+        brand_task.is_checked = False
+        brand_task.save()

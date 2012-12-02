@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from slumber import API, Resource
 import requests
 import json
 import re
@@ -8,7 +7,7 @@ import esm
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djCatalog.djCatalog.settings")
 from djCatalog.catalogs.models import Brand
-from configs import SITES, DEBUG, CATALOG_BASE_URL
+from configs import SITES
 
 def fail(*args, **kwargs):
 	"""

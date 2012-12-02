@@ -6,6 +6,9 @@ from backends.monitor.models import Schedule
 from os import listdir
 import os
 
+"""
+A script tool to insert schedules for monitor.
+"""
 def insert():
     excludes = ['common', 'ecost', 'bhphotovideo', 'bestbuy', 'dickssport', 'overstock', 'cabelas']
     methods = ('new', 'new_category', 'new_listing', 'new_product', 'update', 'update_category', 'update_listing', 'update_product')

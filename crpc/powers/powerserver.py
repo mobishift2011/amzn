@@ -5,8 +5,7 @@ from settings import POWER_PORT
 import zerorpc
 from gevent.coros import Semaphore
 
-from tools import ImageTool
-from brandapi import Extracter
+from tools import ImageTool, Extracter
 from powers.events import image_crawled, image_crawled_failed
 from powers.binds import image_crawled, image_crawled_failed
 

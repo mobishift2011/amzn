@@ -25,6 +25,8 @@ import pattern
 import pattern.vector
 from pprint import pprint
 
+from models import Department, RawDocument
+
 class Classifier(object):
     def __init__(self, name):
         self.name = name
@@ -75,6 +77,12 @@ class SklearnClassifier(Classifier):
         self.vectorizer = sklearn.feature_extraction.text.TfidfVectorizer()
         self.transformed = False
 
+    def load_from_database(self):
+        for doc in RawDocument.objects.all():
+            self.train(doc.content, doc.department)
+        self.vectorizer = sklearn.feature_extraction.text.TfidfVectorizer()
+        self.transformed = False
+
     def transform(self):
         """ vectorize all and fit the classifier """
         self.x = self.vectorizer.fit_transform(self.trainset.data)
@@ -97,12 +105,13 @@ class SklearnClassifier(Classifier):
             self.vectorizer = sklearn.feature_extraction.text.TfidfVectorizer()
 
         # we exclude identical training documents
-        if strict and self.similar(rawdocument)[0] > 0.95:
-            print '==> Warning, document too close to existing documents, ignored'
-            print '==>', rawdocument
-            print '==>'
-            print '==>'
-            return False
+        if strict and len(self.trainset.target_names)>1:
+            if self.similar(rawdocument)[0] > 0.95:
+                print '==> Warning, document too close to existing documents, ignored'
+                print '==>', rawdocument
+                print '==>'
+                print '==>'
+                return False
         
         self.trainset.data.append(rawdocument)
 
@@ -205,10 +214,11 @@ def test_validation():
             print 'validating time', t3 - t2
 
 def main():
-    test_validation()
-    return
+    #test_validation()
+    #return
     clf = SklearnClassifier()
-    clf.load_files()
+    #clf.load_files()
+    clf.load_from_database()
     pprint(clf.similar('''PlanToys Dollhouse Children's Room Déco
 Recycled materials in bright primary colors; includes a desk with lamp and bench, a toy box, bed with duvet and a curved bookcase
 Material type: Rubberwood

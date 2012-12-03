@@ -194,7 +194,9 @@ class Server(object):
         Category.objects(key=key).update_one(set__num=int(products_num),
                                              set__update_time=datetime.utcnow())
         
-        for prd in products: self.crawl_every_product_in_listing(key, category_path, prd, 1, ctx)
+        for prd in products:
+            self.crawl_every_product_in_listing(key, category_path, prd, 1, ctx)
+
         for page_num in xrange(1, pages_num): # the real page number is page_num+1
             page_url = '{0}/_/N-{1}/Nao-{2}/list.fly'.format(self.siteurl, key, page_num*NUM_PER_PAGE)
             self.get_next_page_in_listing(key, category_path, page_url, page_num+1, ctx)
@@ -214,7 +216,8 @@ class Server(object):
         tree = lxml.html.fromstring(content)
         navigation = tree.cssselect('div[id] > div#listProductPage')[0]
         products = navigation.cssselect('div#listProductContent > div#rightPageColumn > div.listProductGrid > div#productGridContainer > div.productGridRow div.productContainer')
-        for prd in products: self.crawl_every_product_in_listing(key, category_path, prd, page_num, ctx)
+        for prd in products:
+            self.crawl_every_product_in_listing(key, category_path, prd, page_num, ctx)
 
 
     def crawl_every_product_in_listing(self, category_key, category_path, prd, page_num, ctx):
@@ -226,6 +229,21 @@ class Server(object):
         :param prd: product node in this page
         :param page_num: the categroy listing page number
         """
+#        price = prd.xpath('./div[@class="layoutChanger"]/div[@class="listProductPrices"]/div[@class="priceSale"]/span[@class="priceSalevalue"]')
+        if not price: price = prd.cssselect('div.layoutChanger > div.listProductPrices div.priceSale > span.priceSalevalue')
+
+#        if not price: price = prd.xpath('./div[@class="layoutChanger"]/div[@class="listProductPrices"]/div[@class="priceBlueflyFinal"]/span[@class="priceBlueflyFinalvalue"]')
+        if not price: price = prd.cssselect('div.layoutChanger > div.listProductPrices div.priceBlueflyFinal > span.priceBlueflyFinalvalue')
+
+#        if not price: price = prd.xpath('./div[@class="layoutChanger"]/div[@class="listProductPrices"]/div[@class="priceReduced"]/span[@class="priceReducedvalue"]')
+        if not price: price = prd.cssselect('div.layoutChanger > div.listProductPrices div.priceReduced > span.priceReducedvalue')
+        if not price: price = prd.cssselect('div.layoutChanger > div.listProductPrices div.priceClearance > span.priceClearancevalue')
+        if price:
+            price = price[0].text_content().strip()
+        else:
+            common_failed.send(sender=ctx, key=category_key, url=link,
+                    reason='This product have no price.page_num: {0}'.format(page_num))
+
         link = prd.cssselect('div.listProdImage a[href]')[0].get('href')
         link = link if link.startswith('http') else self.siteurl + link
         slug, key = self.extract_product_slug_key.match(link).groups()
@@ -234,21 +252,6 @@ class Server(object):
         title = prd.cssselect('div.layoutChanger > div.listLineMargin > div.productShortName')[0].text_content().strip()
         listprice = prd.cssselect('div.layoutChanger > div.listProductPrices > div.priceRetail > span.priceRetailvalue')
         listprice = listprice[0].text_content().strip() if listprice else ''
-
-        price = prd.xpath('./div[@class="layoutChanger"]/div[@class="listProductPrices"]/div[@class="priceSale"]/span[@class="priceSalevalue"]')
-        if not price: price = prd.cssselect('div.layoutChanger > div.listProductPrices div.priceSale > span.priceSalevalue')
-
-        if not price: price = prd.xpath('./div[@class="layoutChanger"]/div[@class="listProductPrices"]/div[@class="priceBlueflyFinal"]/span[@class="priceBlueflyFinalvalue"]')
-        if not price: price = prd.cssselect('div.layoutChanger > div.listProductPrices div.priceBlueflyFinal > span.priceBlueflyFinalvalue')
-
-        if not price: price = prd.xpath('./div[@class="layoutChanger"]/div[@class="listProductPrices"]/div[@class="priceReduced"]/span[@class="priceReducedvalue"]')
-        if not price: price = prd.cssselect('div.layoutChanger > div.listProductPrices div.priceReduced > span.priceReducedvalue')
-        if not price: price = prd.cssselect('div.layoutChanger > div.listProductPrices div.priceClearance > span.priceClearancevalue')
-        if price:
-            price = price[0].text_content().strip()
-        else:
-            common_failed.send(sender=ctx, key=category_key, url=link,
-                    reason='This product have no price.page_num: {0}'.format(page_num))
         
         rating = prd.cssselect('div.layoutChanger > div.product-detail-rating > img')
         rating = rating[0].get('alt') if rating else ''

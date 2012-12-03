@@ -19,7 +19,7 @@ class Ruelala(object):
         description = ''
         for li in t.xpath('//*[@id="info"]/ul/li'):
             description += li.text_content() + '\n'
-        return title.replace(' ','_')+'_'+product_id, title+'_'+description
+        return 'ruelala_'+product_id, title+'_'+description
 
 if __name__ == '__main__':
     print Ruelala().get_product_abstract_by_url(test_url)

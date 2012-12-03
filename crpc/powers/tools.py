@@ -71,7 +71,7 @@ class ImageTool:
             print 's3 upload failed! %s' % image_name
 
         if index == 0:
-            self.thumbnail('Product', image_content, image_name)    # TODO add doctype
+            self.thumbnail('Product', StringIO(image), image_name)    # TODO add doctype
 
         return ret
     

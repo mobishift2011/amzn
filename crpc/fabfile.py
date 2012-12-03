@@ -109,6 +109,7 @@ def _stop_crawler():
         run("killall chromium-browser")
         run("kill -9 `pgrep -f rpcserver.py`")
         run("kill -9 `pgrep -f crawlerserver.py`")
+        run("ps aux | grep crawlerserver.py | grep -v grep | awk '{print $2}' | xargs kill -9")
         run("rm /tmp/*.sock")
 
 @parallel

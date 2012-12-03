@@ -3,7 +3,7 @@ from django.http import HttpResponse
 from django.utils import simplejson
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
-from models import Brand, Fail
+from models import Brand, BrandTask
 
 def JSONResponse(response):
 	return HttpResponse(simplejson.dumps(response))
@@ -16,55 +16,46 @@ def brands(request):
 	return JSONResponse(res)
 
 @csrf_exempt
-def brandFailHandle(request):
+def brandTasksHandle(request):
 	if request.method == 'GET':
 		params = request.GET
-		fails = Fail.objects(**params)
+		brand_complete = params.get('brand_complete')
+		if brand_complete =='True':
+			tasks = BrandTask.objects(brand_complete=True)
+			tab = 'extracted'
+		else:
+			tasks = BrandTask.objects(brand_complete=False)
+			tab = 'unextracted'
 
 		if params.get('format', '').lower() == 'json':
 			return JSONResponse({
-				'response': [fail.to_json() for fail in fails]
+				'response': [task.to_json() for task in tasks]
 			})
 		else:
-			return render(request, 'fails.html', {'fails': [fail.to_json() for fail in fails]}) 
+			return render(request, 'brandtask.html', {'tasks': [task.to_json() for task in tasks], 'tab': tab}) 
 
-	elif request.method == 'POST':
-		params = request.POST
-		site = params.get('site')
-		doctype = params.get('doctype')
-		key = params.get('key')
-		title = params.get('title')
-		model = params.get('model')   # Brand, Dept, Tag
-		content = params.get('content') # The content of failure such as the brand name that can'be extacted.
-		url = params.get('url')
-		
-		try:
-			fail, is_new = Fail.objects.get_or_create(site=site, doctype=doctype, key=key)
-		except Exception, e:
+@csrf_exempt
+def brandTaskHandle(request, task_id):
+	if request.method == 'POST':
+		task = BrandTask.objects.get(pk=task_id)
+		if task:
+			params = request.POST
+			brand_complete = params.get('brand_complete', task.brand_complete)
+			is_checked = params.get('is_checked', task.is_checked)
+			task.brand_complete = True if brand_complete == 'True' or brand_complete == True else False
+			task.is_checked = True if is_checked == 'True' or is_checked == True else False
+			task.save()
+			return  JSONResponse({
+					'code': 0,
+					'response': None,
+					'message': 'updated successfully!'
+				})
+		else:
 			return  JSONResponse({
 					'code': 1,
 					'response': None,
-					'message': str(e)
+					'message': 'object does not exist!'
 				})
-
-		fail.title = title
-		fail.model = model
-		fail.content = content
-		fail.url = url
-		try:
-			fail.save()
-		except Exception, e:
-			return JSONResponse({
-					'code': 1,
-					'response': None,
-					'message': str(e)
-				})
-
-		return  JSONResponse({
-				'code': 0,
-				'response': None,
-				'message': 'fail info created'
-			})
 
 def test(request):
 	return render(request, 'index.html')

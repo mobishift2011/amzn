@@ -31,7 +31,7 @@ from mongoengine import Q
 from crawlers.common.events import pre_general_update, post_general_update, common_failed
 from datetime import datetime, timedelta
 
-from powers.events import ready_for_batch_image_crawling
+from powers.events import ready_for_batch
 
 MAX_PAGE = 400
 
@@ -215,7 +215,7 @@ def new_listing(site, rpc, concurrency=3):
 #                callrpc( rpc, site, 'crawl_listing', **kwargs)
         pool.join()
     
-    ready_for_batch_image_crawling.send(sender=ictx, site=site, doctype='event')
+    ready_for_batch.send(sender=ictx, site=site, doctype='event')
 
 def new_product(site, rpc, concurrency=3):
     ictx = None
@@ -230,7 +230,7 @@ def new_product(site, rpc, concurrency=3):
 #            callrpc( rpc, site, 'crawl_product', **kwargs)
         pool.join()
     
-    ready_for_batch_image_crawling.send(sender=ictx, site=site, doctype='product')
+    ready_for_batch.send(sender=ictx, site=site, doctype='product')
 
 # parent task of new
 def new(site, rpc, concurrency=3):
@@ -260,7 +260,7 @@ def update_listing(site, rpc, concurrency=3):
 #                callrpc( rpc, site, 'crawl_listing', **kwargs)
         pool.join()
     
-    ready_for_batch_image_crawling.send(sender=ictx, site=site, doctype='event')
+    ready_for_batch.send(sender=ictx, site=site, doctype='event')
 
 def update_product(site, rpc, concurrency=3):
     ictx = None
@@ -275,7 +275,7 @@ def update_product(site, rpc, concurrency=3):
 #            callrpc( rpc, site, 'crawl_product', **kwargs)
         pool.join()
     
-    ready_for_batch_image_crawling.send(sender=ictx, site=site, doctype='product')
+    ready_for_batch.send(sender=ictx, site=site, doctype='product')
 
 
 # parent task of update

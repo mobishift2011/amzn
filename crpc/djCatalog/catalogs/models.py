@@ -49,6 +49,7 @@ class Tag(Document):
 class BrandTask(Document):
     title = StringField()
     brand = StringField()
+    favbuy_brand = StringField()
     site = StringField()
     doctype = StringField() # Event or Product
     key = StringField()
@@ -67,8 +68,10 @@ class BrandTask(Document):
 
     def to_json(self):
         return {
+            'pk': self.pk,
             'title': self.title,
             'brand': self.brand,
+            'favbuy_brand': self.favbuy_brand,
             'site': self.site,
             'doctype': self.doctype,
             'key': self.key,
@@ -81,6 +84,6 @@ class BrandTask(Document):
 
     @classmethod
     def pre_save(cls, sender, document, **kwargs):
-         document.updated_at = datetime.utcnow()
+        document.updated_at = datetime.utcnow()
 
 signals.pre_save.connect(BrandTask.pre_save, sender=BrandTask)

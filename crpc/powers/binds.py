@@ -117,13 +117,15 @@ def brand_stat(sender, **kwargs):
     doctype = kwargs.get('doctype', '')
     url = kwargs.get('combine_url', '')
     brand_complete = kwargs.get('brand_complete', False)
+    favbuy_brand = kwargs.get('favbuy_brand', '')
 
-    print 'brand signal %s_%s_%s received: %s > %s' % (site, doctype, key, brand, brand_complete)
+    print 'brand signal %s_%s_%s received: %s > %s' % (site, doctype, key, brand, favbuy_brand)
 
     brand_task = BrandTask.objects(site=site, key=key, doctype=doctype).first()
     if brand_task:
-        brand_task.update(set__brand=brand, set__url=url, \
-            set__brand_complete=brand_complete, set__is_checked=False)
+        brand_task.update(set__brand=brand, set__favbuy_brand=favbuy_brand, \
+            set__url=url, set__brand_complete=brand_complete, \
+                set__is_checked=False)
     else:
         brand_task = BrandTask()
         brand_task.title = title

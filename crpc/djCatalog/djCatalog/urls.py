@@ -23,5 +23,5 @@ urlpatterns += staticfiles_urlpatterns()
 urlpatterns += patterns('',
     (r'^$', 'catalogs.auth.loginHandle'),
     url(r'^login/$', 'catalogs.auth.loginHandle', name='loginHandle'),
-    url(r'^api/', include('catalogs.urls')),
+    url(r'^monitor/', include('catalogs.urls')),
 )

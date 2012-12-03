@@ -2,7 +2,8 @@
 from django.conf.urls import patterns, include, url
 
 urlpatterns = patterns('catalogs',
-    url(r'^brand/$', 'api.brands'),
-    url(r'^brand/tasks/$', 'api.brandTaskHandle'),
+	url(r'^$', 'api.brandTasksHandle'),
+    url(r'^brand/tasks/$', 'api.brandTasksHandle'),
+    url(r'^brand/task/(?P<task_id>\w+)/$', 'api.brandTaskHandle'),
     url(r'^test', 'api.test')
 )

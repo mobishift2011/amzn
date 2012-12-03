@@ -62,12 +62,15 @@ class PowerServer(object):
                 m.Event.objects(event_id=key).update(set__favbuy_brand=brand, set__brand_complete=True)
             elif doctype == 'Product':
                 m.Product.objects(key=key).update(set__favbuy_brand=brand, set__brand_complete=True)
+
+            kwargs['favbuy_brand'] = brand
             brand_extracted.send('%s_%s_%s_brand' % (site, doctype, key), **kwargs)
         else:
             if doctype == 'Event':
                 m.Event.objects(event_id=key).update(set__brand_complete=False)
             elif doctype == 'Product':
                 m.Product.objects(key=key).update(set__brand_complete=False)
+            
             brand_extracted_failed.send('%s_%s_%s_brand' % (site, doctype, key), **kwargs)
 
 

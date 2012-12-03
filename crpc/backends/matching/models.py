@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from settings import MONGODB_HOST
 from mongoengine import *
-connect('training')
+connect(db='training', alias='training', host=MONGODB_HOST)
 
 class Department(Document):
     main    =   StringField()
@@ -12,6 +13,7 @@ class Department(Document):
         'indexes': [
             {'fields':['main','sub'], 'unique':True},
         ],
+        'db_alias': 'training',
     }
     
 class RawDocument(Document):
@@ -23,6 +25,7 @@ class RawDocument(Document):
         'indexes': [
             {'fields':['site_key'], 'unique':True, 'sparse':True}, 
         ],
+        'db_alias': 'training',
     }
 
 

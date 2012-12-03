@@ -205,7 +205,8 @@ def test_validation():
             print 'validating time', t3 - t2
 
 def main():
-    #test_validation()
+    test_validation()
+    return
     clf = SklearnClassifier()
     clf.load_files()
     pprint(clf.similar('''PlanToys Dollhouse Children's Room Déco

@@ -40,8 +40,9 @@ class Myhabit(object):
         data = re.compile(r'parse_asin_\w+\((.*)\);$').search(content).group(1)
         data = json.loads(data)
         title = data['detailJSON']['title'].encode('utf-8')
-        listinfo = '\n'.join( data['productDescription']['bullets'][0]['bulletsList'].encode('utf-8') )
-        return title.replace(' ','_')+'_'+jslink.rsplit('/',1)[-1][:-3], title + '\n' + listinfo
+        listinfo = u'\n'.join( data['productDescription']['bullets'][0]['bulletsList'] )
+        listinfo = listinfo.encode('utf-8', 'xmlcharreplace')
+        return 'myhabit_'+asin, title + '\n' + listinfo
 
 if __name__ == '__main__':
     myhabit = Myhabit()

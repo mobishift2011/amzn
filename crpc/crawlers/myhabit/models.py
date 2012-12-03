@@ -5,7 +5,7 @@
 crawlers.myhabit.models
 ~~~~~~~~~~~~~~~~~~~~~~
 
-Implements Product and Category Model for myhabit 
+Implements Product and Event Model for myhabit 
 """
 
 from crawlers.common.models import BaseEvent, LuxuryProduct

@@ -35,10 +35,12 @@ def do_fetch():
                 try:
                     name, content = client.get_product_abstract_by_url(url)
                 except:
-                    print 'failed', url,
+                    import traceback
+                    traceback.print_exc()
+                    print 'failed', url
                     continue
 
-                fname = 'dataset'+'/'+dept+'_'+subdept+'/'+name.replace('/','_')
+                fname = 'dataset'+'/'+dept+'|'+subdept+'/'+name.replace('/','_')
                 fname = fname.encode('ascii', 'xmlcharrefreplace')
                 ensure_dir(fname)
 
@@ -47,10 +49,10 @@ def do_fetch():
                 print fname
 
             elif l.startswith('?'):
-                subdept = l[1:].strip().replace(' ','_').replace('/','_')
+                subdept = l[1:].strip()
 
             else:
-                dept = l.replace(' ','_').replace('/','_')
+                dept = l
 
 if __name__ == '__main__':
     do_fetch()

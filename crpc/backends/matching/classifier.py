@@ -20,8 +20,10 @@ import sklearn.svm
 import sklearn.naive_bayes
 import sklearn.neighbors
 import sklearn.datasets
+import sklearn.metrics
 import pattern
 import pattern.vector
+from pprint import pprint
 
 class Classifier(object):
     def __init__(self, name):
@@ -36,15 +38,28 @@ class Classifier(object):
     def validate(self):
         pass
 
-words = re.compile(ur'\b\w+\b')
-def adjacent_words_tokenizer(doc):
-    l = words.findall(doc)
-    for i in range(len(l)):
-        yield l[i]
+class TrainSet(object):
+    """ a sturcture similar to sklearn's load_files structure """
+    def __init__(self):
+        self.target_names = []
+        self.target = []
+        self.data = []
 
 class SklearnClassifier(Classifier):
+    """ Wraps sklearn's API to pattern.vector's style
+    
+    >>> clf = SklearnClassifier(clf='svm') # can be bayes/knn, defaults to svm
+    >>> clf.train('big lion', 'lion')
+    >>> clf.train('moutain lion', 'lion')
+    >>> clf.train('moutain mastiff', 'mastiff')
+    >>> clf.train('tibet mastiff', 'mastiff')
+    >>> clf.classify('water mastiff')
+    mastiff
+
+    """
     def __init__(self, clf=None):
         self.name = 'sklearn'
+        self.trainset = TrainSet()
         self.x = None
         self.y = None
         self.clf = {
@@ -52,28 +67,94 @@ class SklearnClassifier(Classifier):
             'bayes':sklearn.naive_bayes.MultinomialNB(),
             'knn':sklearn.neighbors.KNeighborsClassifier(5, weights='uniform'),
         }.get(clf, sklearn.svm.LinearSVC())
-        self.trained = False
+        self.transformed = False
         self.vectorizer = False
-        self.target_names = None
         
     def load_files(self):
-        files = sklearn.datasets.load_files(DATAPATH)
-        self.vectorizer = sklearn.feature_extraction.text.TfidfVectorizer(tokenizer=adjacent_words_tokenizer)
-        self.x = self.vectorizer.fit_transform(files.data)
-        self.y = files.target
-        self.target_names = files.target_names
+        self.trainset = sklearn.datasets.load_files(DATAPATH)
+        self.vectorizer = sklearn.feature_extraction.text.TfidfVectorizer()
+        self.transformed = False
+
+    def transform(self):
+        """ vectorize all and fit the classifier """
+        self.x = self.vectorizer.fit_transform(self.trainset.data)
+        self.y = self.trainset.target
+        self.clf.fit(self.x, self.y)
+        self.transformed = True
+
+    def train(self, rawdocument, type, strict=False):
+        """ train a document to a type 
+
+        :param rawdocument: a str of document
+        :param type: category of the rawdocument, can be string or whatever(?)
+        :param strict:  Whether perform similarity check on receive, default to False
+                        Enable this is very costly, only enable it when training interactively
+
+        returns True on success or False
+
+        """
+        if not self.vectorizer:
+            self.vectorizer = sklearn.feature_extraction.text.TfidfVectorizer()
+
+        # we exclude identical training documents
+        if strict and self.similar(rawdocument)[0] > 0.95:
+            print '==> Warning, document too close to existing documents, ignored'
+            print '==>', rawdocument
+            print '==>'
+            print '==>'
+            return False
+        
+        self.trainset.data.append(rawdocument)
+
+        try:
+            index = self.trainset.target_names.index(type)
+        except ValueError:
+            # not in list
+            index = len(self.trainset.target_names) 
+            self.trainset.target_names.append(type)
+           
+        self.trainset.target.append(index) 
+        self.transformed = False
+        return True
 
     def validate(self):
-        return sklearn.cross_validation.cross_val_score(self.clf, self.x, self.y, cv=5)         
+        if not self.transformed:
+            self.transform()
+        return sklearn.cross_validation.cross_val_score(self.clf, self.x, self.y, cv=5)
 
     def classify(self, text):
-        if not self.trained:
-            self.trained = True
-            self.clf.fit(self.x, self.y)
+        if not self.transformed:
+            self.transform()
         
         ret = []
         index = list(self.clf.predict(self.vectorizer.transform([text])))[0]
-        return self.target_names[index]
+        return self.trainset.target_names[index]
+
+    def similarities(self, text):
+        """ returns an array of similarities to the given text """
+        if not self.transformed:
+            self.transform()
+
+        v = self.vectorizer.transform([text])
+
+        # dot production for distance
+        cosine_similarities = sklearn.metrics.pairwise.linear_kernel(v, self.x).flatten()
+        return cosine_similarities
+
+    def similar(self, text):
+        """ return a pair of (SIMILARITY, TEXT) """
+        cosine_similarities = self.similarities(text)
+        most_similar_doc_index = cosine_similarities.argsort()[-1]
+        similarity = cosine_similarities[most_similar_doc_index]
+        similar_text = self.trainset.data[most_similar_doc_index]
+        return similarity, similar_text
+
+    def similar_top10(self, text):
+        cosine_similarities = self.similarities(text)
+        top10 = []
+        for index in cosine_similarities.argsort()[:-10:-1]:
+            top10.append((cosine_similarities[index], self.trainset.data[index]))
+        return top10
 
 class PatternClassifier(Classifier):
     def __init__(self, clf=None):
@@ -124,12 +205,14 @@ def test_validation():
             print 'validating time', t3 - t2
 
 def main():
-    test_validation()
-    return
-    c = SklearnClassifier('bayes')
-    c.load_files()
-    s = '''Measurements: shoulder to hemline 36&quot;, sleeve length 25.5&quot;, taken from size S\nAuthentic product'''
-    print c.classify(s)
+    #test_validation()
+    clf = SklearnClassifier()
+    clf.load_files()
+    pprint(clf.similar('''PlanToys Dollhouse Children's Room Déco
+Recycled materials in bright primary colors; includes a desk with lamp and bench, a toy box, bed with duvet and a curved bookcase
+Material type: Rubberwood
+Recommended age: 36 months and older
+Country of origin: Thailand'''))
 
 if __name__ == '__main__':
     main()

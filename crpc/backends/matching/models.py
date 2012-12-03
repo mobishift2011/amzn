@@ -1,6 +1,30 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import bottle
+from mongoengine import *
+connect('training')
+
+class Department(Document):
+    main    =   StringField()
+    sub     =   StringField()
+    parent  =   ReferenceField('Department')
+
+    meta    = {
+        'indexes': [
+            {'fields':['main','sub'], 'unique':True},
+        ],
+    }
+    
+class RawDocument(Document):
+    site_key    =   StringField()   
+    text        =   StringField()
+    department  =   ReferenceField(Department)
+    
+    meta = {
+        'indexes': [
+            {'fields':['site_key'], 'unique':True, 'sparse':True}, 
+        ],
+    }
+
 
 CATS = {
     'Women': [
@@ -72,3 +96,8 @@ CATS = {
 	    'Wine Accessories',
     ],
 }
+
+for k, vlist in CATS.iteritems():
+    for v in vlist:
+        print k, v
+        Department.objects(main=k,sub=v).update(set__main=k, set__sub=v, upsert=True)

@@ -9,4 +9,7 @@ mkvirtualenv crpc
 workon crpc
 pip install https://github.com/SiteSupport/gevent/tarball/master
 pip install --upgrade cython
+pip install --upgrade numpy
+pip install --upgrade scipy
+pip install --upgrade scikit-learn
 pip install -r requirements.txt

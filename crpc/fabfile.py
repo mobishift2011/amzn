@@ -32,7 +32,11 @@ def setup():
     """
     run("apt-get update")
     run("apt-get -y upgrade")
-    run("apt-get -y install build-essential python-dev libevent-dev libxslt-dev uuid-dev python-setuptools dtach libzmq-dev redis-server chromium-browser xvfb unzip libjpeg8-dev")
+    run("apt-get -y install build-essential python-dev libevent-dev libxslt-dev uuid-dev python-setuptools dtach libzmq-dev redis-server chromium-browser xvfb unzip libjpeg8-dev gfortran libblas-dev liblapack-dev")
+    run("apt-get -y build-dep python-imaging")
+    run("ln -sf /usr/lib/`uname -i`-linux-gnu/libfreetype.so /usr/lib/")
+    run("ln -sf /usr/lib/`uname -i`-linux-gnu/libjpeg.so /usr/lib/")
+    run("ln -sf /usr/lib/`uname -i`-linux-gnu/libz.so /usr/lib/")
     run("easy_install pip")
     run("pip install virtualenvwrapper")
     run("mkdir -p /opt/crpc")
@@ -52,11 +56,14 @@ def setup():
         with prefix("source /usr/local/bin/virtualenvwrapper.sh"):
             run("mkvirtualenv "+ENV_NAME)
             with prefix("workon "+ENV_NAME):
+                run("pip uninstall -y PIL"+USE_INDEX)
                 run("pip install cython"+USE_INDEX)
+                run("pip install numpy"+USE_INDEX)
+                run("pip install scipy"+USE_INDEX)
+                run("pip install scikit-learn"+USE_INDEX)
                 if 'gevent==1.0' not in run("pip freeze|grep gevent").stdout:
                     run("pip install https://github.com/SiteSupport/gevent/tarball/master")
                 run("pip install zerorpc lxml requests pymongo mongoengine redis redisco pytz PIL mock selenium blinker cssselect boto python-dateutil virtualenvwrapper slumber esmre django"+USE_INDEX) 
-                run("ln -s /usr/lib/x86_64-linux-gnu/libjpeg.so ~/.virtualenvs/"+ENV_NAME+"/lib/")
 
 def deploy():
     """ deploy crawler&api server code to remotes """

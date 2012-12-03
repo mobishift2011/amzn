@@ -241,6 +241,7 @@ class Server(object):
         if not price: price = prd.xpath('./div[@class="layoutChanger"]/div[@class="listProductPrices"]/div[@class="priceBlueflyFinal"]/span[@class="priceBlueflyFinalvalue"]')
         if not price: price = prd.cssselect('div.layoutChanger > div.listProductPrices div.priceBlueflyFinal > span.priceBlueflyFinalvalue')
 
+        if not price: price = prd.xpath('./div[@class="layoutChanger"]/div[@class="listProductPrices"]/div[@class="priceReduced"]/span[@class="priceReducedvalue"]')
         if not price: price = prd.cssselect('div.layoutChanger > div.listProductPrices div.priceReduced > span.priceReducedvalue')
         if not price: price = prd.cssselect('div.layoutChanger > div.listProductPrices div.priceClearance > span.priceClearancevalue')
         if price:
@@ -263,13 +264,13 @@ class Server(object):
             product.soldout = soldout
             product.brand = brand
             product.title = title
-            product.listprice = listprice
-            product.price = price if price else ''
             product.rating = rating if rating else ''
         else:
             if soldout and product.soldout != soldout:
                 product.soldout = True
                 is_updated = True
+        if listprice and not product.listprice: product.listprice = listprice
+        if price and not product.price: product.price = price
         if category_key not in product.category_key: product.category_key.append(category_key)
         if category_path not in product.cats: product.cats.append(category_path)
         product.list_update_time = datetime.utcnow()

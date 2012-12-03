@@ -32,7 +32,7 @@ def setup():
     """
     run("apt-get update")
     run("apt-get -y upgrade")
-    run("apt-get -y install build-essential python-dev libevent-dev libxslt-dev uuid-dev python-setuptools dtach libzmq-dev redis-server chromium-browser xvfb unzip")
+    run("apt-get -y install build-essential python-dev libevent-dev libxslt-dev uuid-dev python-setuptools dtach libzmq-dev redis-server chromium-browser xvfb unzip libjpeg8-dev")
     run("easy_install pip")
     run("pip install virtualenvwrapper")
     run("mkdir -p /opt/crpc")
@@ -55,7 +55,8 @@ def setup():
                 run("pip install cython"+USE_INDEX)
                 if 'gevent==1.0' not in run("pip freeze|grep gevent").stdout:
                     run("pip install https://github.com/SiteSupport/gevent/tarball/master")
-                run("pip install zerorpc lxml requests pymongo mongoengine redis redisco pytz mock selenium blinker cssselect boto python-dateutil virtualenvwrapper slumber esmre django"+USE_INDEX) 
+                run("pip install zerorpc lxml requests pymongo mongoengine redis redisco pytz PIL mock selenium blinker cssselect boto python-dateutil virtualenvwrapper slumber esmre django"+USE_INDEX) 
+                run("ln -s /usr/lib/x86_64-linux-gnu/libjpeg.so ~/.virtualenvs/"+ENV_NAME+"/lib/")
 
 def deploy():
     """ deploy crawler&api server code to remotes """

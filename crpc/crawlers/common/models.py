@@ -29,7 +29,7 @@ class BaseDocumentSkeleton(object):
     propagation_complete=   BooleanField(default=False)
     publish_time        =   DateTimeField()
 
-    favbuy_brand        =   ListField(StringField())
+    favbuy_brand        =   ListField(StringField(default=list))
     favbuy_tag          =   ListField(StringField())
 
     # text info

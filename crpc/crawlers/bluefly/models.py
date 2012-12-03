@@ -26,8 +26,9 @@ class Category(BaseCategory):
 
 
 class Product(LuxuryProduct):
-    return_policy  = StringField()
-    color = StringField()
+    return_policy       = StringField()
+    color               = StringField()
+    event_type          = BooleanField(default=False)
 
 
     meta  =   {

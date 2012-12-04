@@ -85,6 +85,7 @@ class BaseEvent(Document, BaseDocumentSkeleton):
 
     favbuy_brand        =   ListField(StringField(), default=list)
     favbuy_tag          =   ListField(StringField(), default=list)
+    favbuy_dept         =   ListField(StringField(), default=list)
 
     meta = {
         "allow_inheritance": True,
@@ -167,7 +168,8 @@ class BaseProduct(Document):
     publish_time        =   DateTimeField()
 
     favbuy_brand        =   StringField(default='')
-    favbuy_tag          =   ListField(StringField())
+    favbuy_tag          =   ListField(StringField(), default=list)
+    favbuy_dept         =   ListField(StringField(), default=list)
 
     meta                =   {
         "allow_inheritance": True,

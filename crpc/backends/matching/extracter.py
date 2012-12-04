@@ -42,7 +42,7 @@ def get_site_module(site):
 
 def extract(site):
     e = Extracter()
-    m = get_site_module('myhabit')
+    m = get_site_module(site)
     c = 0
     t = time.time()
     for p in m.Product.objects():
@@ -62,5 +62,4 @@ def extract(site):
 
 if __name__ == '__main__':
     for site in ['myhabit','ruelala','zulily','hautelook','gilt','bluefly']:
-        extract('myhabit')
-
+        extract(site)

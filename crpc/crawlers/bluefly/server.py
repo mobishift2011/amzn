@@ -186,7 +186,7 @@ class Server(object):
         products = navigation.cssselect('div#listProductContent > div#rightPageColumn > div.listProductGrid > div#productGridContainer > div.productGridRow div.productContainer')
         products_num = navigation.cssselect('div#listProductContent > div#rightPageColumn > div#ls_topRightNavBar > div.ls_pageNav > span#ls_pageNumDisplayInfo > span.ls_minEmphasis')
         if not products_num:
-            common_failed.send(sender=ctx, key=key, url=url, reason='This url have no product number.')
+            # common_failed.send(sender=ctx, key=key, url=url, reason='This url have no product number.')
             return
         products_num = navigation.cssselect('div#listProductContent > div#rightPageColumn > div#ls_topRightNavBar > div.ls_pageNav > span#ls_pageNumDisplayInfo > span.ls_minEmphasis')[0].text_content().split('of')[-1].strip()
 

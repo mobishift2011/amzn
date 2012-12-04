@@ -191,7 +191,7 @@ class Server(object):
         events_end = segment.cssselect('div.clearfix div#eventTTL')
         events_end = datetime.utcfromtimestamp( float(events_end[0].get('eventttl')) )
         # both button and nth-last-of-type condition
-        page_nums = segment.cssselect('div.clearfix form[method=get] > div.pagination > div.button:nth-last-of-type(2)')
+        page_nums = segment.cssselect('div.clearfix form[method=get] > div.pagination > div.button:nth-last-of-type(1)')
         if page_nums:
             page_nums = int( page_nums[0].text_content() )
         
@@ -217,10 +217,10 @@ class Server(object):
         key = re.compile('.*/event/sku/{0}/(\w+)\??.*'.format(event_id)).match(link).group(1)
 
         brand = prd.cssselect('div.clearfix > div[style]:first-of-type')[0].text_content()
-        title = prd.cssselect('div.clearfix > div[style]:nth-of-type(2)')[0].text_content()
+        title = prd.cssselect('div.clearfix > div[style]:nth-of-type(1)')[0].text_content()
         listprice = prd.cssselect('div.clearfix > div[style] > div.product-price-prev')[0].text_content()
         price = prd.cssselect('div.clearfix > div[style] > div.product-price')[0].text_content()
-        size_nodes = prd.cssselect('div.clearfix > div[style]:nth-of-type(4) > div[style] > select.size-selector > option')
+        size_nodes = prd.cssselect('div.clearfix > div[style]:nth-of-type(3) > div[style] > select.size-selector > option')
         sizes = []
         for size in size_nodes:
             sizes.append( size.text_content().strip() )

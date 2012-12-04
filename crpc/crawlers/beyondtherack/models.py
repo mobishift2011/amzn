@@ -26,4 +26,4 @@ class Product(LuxuryProduct):
     meta    =   { "db_alias": DB, }
 
     def url(self):
-        pass
+        return 'http://www.beyondtherack.com/event/sku/{0}/{1}'.format(self.event_id[0], self.key)

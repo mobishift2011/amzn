@@ -56,7 +56,6 @@ def setup():
         with prefix("source /usr/local/bin/virtualenvwrapper.sh"):
             run("mkvirtualenv "+ENV_NAME)
             with prefix("workon "+ENV_NAME):
-                run("pip uninstall -y PIL"+USE_INDEX)
                 run("pip install cython"+USE_INDEX)
                 run("pip install numpy"+USE_INDEX)
                 run("pip install scipy"+USE_INDEX)

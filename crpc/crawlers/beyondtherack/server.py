@@ -267,11 +267,24 @@ class Server(object):
                     reason='download product error or {0} return'.format(content))
             return
         tree = lxml.html.fromstring(content)
+        nav = tree.cssselect('div.pageframe > div.mainframe > div.clearfix')[0]
         list_info = []
-        for li in tree.cssselect('div.pageframe > div.mainframe > div.clearfix > div > div > ul > li'):
+        for li in nav.cssselect('div > div > ul[style] > li'):
             list_info.append( li.text_content().strip() )
-        
+        summary, list_info = '; '.join(list_info), []
+        for li in nav.cssselect('div > ul[style] > li'):
+            list_info.append( li.text_content().strip() )
+        shipping = nav.xpath('./div[@style="text-align: left;"]/div/a[@id="ship_map"]/parent::div[style]//text()') 
+        returned = nav.xpath('./div[@style="text-align: left;"]//text()') 
+        for img in nav.cssselect('div[style] > div > a.cloud-zoom-gallery > img'):
+            image_urls.append( img.get('src').replace('small', 'large') )
 
+        is_new, is_updated = False, False
+        product = Product.objects(key=key).first()
+        if not product:
+            is_new = True
+            product = Product(key=key)
+            
 
 if __name__ == '__main__':
     import zerorpc

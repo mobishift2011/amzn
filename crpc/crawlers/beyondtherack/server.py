@@ -156,9 +156,10 @@ class Server(object):
                     reason='download error \'{0}\' or {1} return'.format(dept, content))
             return
         tree = lxml.html.fromstring(content)
-        items = tree.cssselect('div.pageframe > div.mainframe > a')
+        items = tree.cssselect('div.pageframe > div.mainframe > a[href]')
         for item in items:
             link = item.get('href')
+            if 'facebook' in link: continue
             event_id = self.extract_event_id.match(link).group(1)
             image_text = item.cssselect('span[style]')[0].get('style')
             image_url = self.extract_image_url.search(image_text).group(1)
@@ -284,6 +285,18 @@ class Server(object):
         if not product:
             is_new = True
             product = Product(key=key)
+        product.summary = summary
+        product.list_info = list_info
+        product.shipping = shipping
+        product.returned = returned
+        product.image_urls = image_urls
+        product.full_update_time = datetime.utcnow()
+        if product.updated == False:
+            product.updated = True
+            ready = True
+        else: ready = False
+        product.save()
+        common_saved.send(sender=ctx, obj_type='Product', key=casin, url=url, is_new=is_new, is_updated=is_updated, ready=ready)
             
 
 if __name__ == '__main__':

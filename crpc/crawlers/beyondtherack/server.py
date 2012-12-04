@@ -73,6 +73,21 @@ class beyondtherackLogin(object):
 
         return ret.status_code
 
+    def fetch_listing_page(self, url):
+        """.. :py:method::
+        """
+        ret = req.get(url)
+
+        if 'https://www.beyondtherack.com/auth/' in ret.url: #login or register
+            self.login_account()
+            ret = req.get(url)
+        if ret.ok and 'sku' in ret.url:
+            return -1
+        else:
+            return ret.content
+
+        return ret.status_code
+
 
 class Server(object):
     """.. :py:class:: Server
@@ -196,11 +211,12 @@ class Server(object):
             page_nums = int( page_nums[0].text_content() )
         
         prds = segment.cssselect('form[method=post] > div#product-list > div.product-row > div.product > div.section')
-        for prd in prds: self.crawl_every_product_in_listing(event_id, url, prd)
+        for prd in prds: self.crawl_every_product_in_listing(event_id, url, prd, ctx)
 
-        for page_num in range(2, page_nums+1):
-            page_url = '{0}?page={1}'.format(url, page_num)
-            self.get_next_page_in_listing(event_id, page_url, page_num)
+        if isinstance(page_nums, int):
+            for page_num in range(2, page_nums+1):
+                page_url = '{0}?page={1}'.format(url, page_num)
+                self.get_next_page_in_listing(event_id, page_url, page_num, ctx)
 
         event = Event.objects(event_id=event_id).first()
         if not event: event = Event(event_id=event_id)
@@ -211,16 +227,20 @@ class Server(object):
             common_saved.send(sender=ctx, obj_type='Event', key=event_id, is_new=False, is_updated=False, ready=True)
 
 
-    def crawl_every_product_in_listing(self, event_id, url, prd):
+    def crawl_every_product_in_listing(self, event_id, url, prd, ctx):
         soldout = True if prd.cssselect('div.section-img > div.showcase-overlay > a > div') else False
-        link = prd.cssselect('div.section-img > a[href]')[0].get('href')
+        link = prd.cssselect('div.section-img > a[href]')
+        if link:
+            link = link[0].get('href')
+        else: # blank place in the last few products' place
+            return
         key = re.compile('.*/event/sku/{0}/(\w+)\??.*'.format(event_id)).match(link).group(1)
 
         brand = prd.cssselect('div.clearfix > div[style]:first-of-type')[0].text_content()
-        title = prd.cssselect('div.clearfix > div[style]:nth-of-type(1)')[0].text_content()
+        title = prd.cssselect('div.clearfix > div[style]:nth-of-type(2)')[0].text_content()
         listprice = prd.cssselect('div.clearfix > div[style] > div.product-price-prev')[0].text_content()
         price = prd.cssselect('div.clearfix > div[style] > div.product-price')[0].text_content()
-        size_nodes = prd.cssselect('div.clearfix > div[style]:nth-of-type(3) > div[style] > select.size-selector > option')
+        size_nodes = prd.cssselect('div.clearfix > div[style]:nth-of-type(4) > div[style] > select.size-selector > option')
         sizes = []
         for size in size_nodes:
             sizes.append( size.text_content().strip() )
@@ -248,8 +268,8 @@ class Server(object):
         common_saved.send(sender=ctx, obj_type='Product', key=key, url=link, is_new=is_new, is_updated=is_updated)
 
 
-    def get_next_page_in_listing(self, event_id, page_url, page_num):
-        content = self.net.fetch_page(url)
+    def get_next_page_in_listing(self, event_id, page_url, page_num, ctx):
+        content = self.net.fetch_page(page_url)
         if content is None or isinstance(content, int):
             common_failed.send(sender=ctx, key='', url=page_url,
                     reason='download listing error or {0} return'.format(content))
@@ -257,7 +277,7 @@ class Server(object):
         tree = lxml.html.fromstring(content)
         segment = tree.cssselect('div.pageframe > div#main-form')[0]
         prds = segment.cssselect('form[method=post] > div#product-list > div.product-row > div.product > div.section')
-        for prd in prds: self.crawl_every_product_in_listing(event_id, page_url, prd)
+        for prd in prds: self.crawl_every_product_in_listing(event_id, page_url, prd, ctx)
 
 
     def crawl_product(self, url, ctx=''):

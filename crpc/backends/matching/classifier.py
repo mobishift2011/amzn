@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-""" testing cross-validation and speed for different frameworks
+""" Department Classifier/Cross Validation
 
-framwork used:
-
-*   sklearn. bayes, svm, knn
-*   pattern. bayes, svm, knn
-*   nltk
+>>> from backends.matching.classifier import Classifier
+>>> c = Classifier()
+>>> c.load_from_database()
+>>> c.classify('this is some text need to be classified')
+(u'Women', u'Shoes')
 
 """
 import os
@@ -79,7 +79,7 @@ class SklearnClassifier(Classifier):
 
     def load_from_database(self):
         for doc in RawDocument.objects.all():
-            self.train(doc.content, doc.department)
+            self.train(doc.content, (doc.department.main, doc.department.sub))
         self.vectorizer = sklearn.feature_extraction.text.TfidfVectorizer()
         self.transformed = False
 
@@ -132,6 +132,7 @@ class SklearnClassifier(Classifier):
         return sklearn.cross_validation.cross_val_score(self.clf, self.x, self.y, cv=5)
 
     def classify(self, text):
+        """ provided some raw documentation, return the 'type' it belongs to """
         if not self.transformed:
             self.transform()
         
@@ -219,7 +220,7 @@ def main():
     clf = SklearnClassifier()
     #clf.load_files()
     clf.load_from_database()
-    pprint(clf.similar('''PlanToys Dollhouse Children's Room Déco
+    pprint(clf.classify('''PlanToys Dollhouse Children's Room Déco
 Recycled materials in bright primary colors; includes a desk with lamp and bench, a toy box, bed with duvet and a curved bookcase
 Material type: Rubberwood
 Recommended age: 36 months and older

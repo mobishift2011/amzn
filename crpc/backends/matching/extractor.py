@@ -1,5 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+""" Tags Extractor
+
+>>> from backends.matching.extractor import Extractor
+>>> e = Extractor()
+>>> e.extract('this is an sample text for extracting tags')
+[u'sample']
+
+"""
 import time
 import esm
 
@@ -7,7 +15,7 @@ from os.path import join, abspath, dirname
 
 tag_path = join(dirname(abspath(__file__)), 'tags.list')
 
-class Extracter(object):
+class Extractor(object):
     def __init__(self, tags=None):
         self.stopwords = ' \t\r\n,;.%0123456789\'"_-'
         self.i = None
@@ -41,7 +49,7 @@ def get_site_module(site):
     return __import__('crawlers.'+site+'.models', fromlist=['Category', 'Event', 'Product'])
 
 def extract(site):
-    e = Extracter()
+    e = Extractor()
     m = get_site_module(site)
     c = 0
     t = time.time()

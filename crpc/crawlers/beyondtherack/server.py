@@ -82,7 +82,7 @@ class beyondtherackLogin(object):
             self.login_account()
             ret = req.get(url)
         if ret.ok and 'sku' in ret.url:
-            return -1
+            return [ret.url, ret.content] 
         else:
             return ret.content
 
@@ -196,7 +196,11 @@ class Server(object):
 
     def crawl_listing(self, url, ctx=''):
         event_id = url.rsplit('/', 1)[-1]
-        content = self.net.fetch_page(url)
+        content = self.net.fetch_listing_page(url)
+        if isinstance(content, list):
+            self.crawl_event_is_product(event_id, content[0], content[1])
+            return
+            
         if content is None or isinstance(content, int):
             common_failed.send(sender=ctx, key='', url=url,
                     reason='download listing error or {0} return'.format(content))
@@ -269,7 +273,7 @@ class Server(object):
 
 
     def get_next_page_in_listing(self, event_id, page_url, page_num, ctx):
-        content = self.net.fetch_page(page_url)
+        content = self.net.fetch_listing_page(page_url)
         if content is None or isinstance(content, int):
             common_failed.send(sender=ctx, key='', url=page_url,
                     reason='download listing error or {0} return'.format(content))
@@ -280,6 +284,19 @@ class Server(object):
         for prd in prds: self.crawl_every_product_in_listing(event_id, page_url, prd, ctx)
 
 
+    def crawl_event_is_product(self, event_id, product_url, content):
+        """.. :py:method::
+
+            event listing page url redirect to product page
+        :param event_id: event id
+        :param product_url: redirect to the product_url
+        :param content: product_url's content
+        """
+        key = re.compile('http://www.beyondtherack.com/event/sku/\w+/(\w+)\??.*').match(product_url).group(1)
+        tree = lxml.html.fromstring(content)
+        list_info, summary, shipping, returned, image_urls = self.parse_product_info(tree)
+
+
     def crawl_product(self, url, ctx=''):
         key = url.rsplit('/', 1)[-1]
         content = self.net.fetch_page(url)
@@ -288,17 +305,7 @@ class Server(object):
                     reason='download product error or {0} return'.format(content))
             return
         tree = lxml.html.fromstring(content)
-        nav = tree.cssselect('div.pageframe > div.mainframe > div.clearfix')[0]
-        list_info = []
-        for li in nav.cssselect('div > div > ul[style] > li'):
-            list_info.append( li.text_content().strip() )
-        summary, list_info = '; '.join(list_info), []
-        for li in nav.cssselect('div > ul[style] > li'):
-            list_info.append( li.text_content().strip() )
-        shipping = nav.xpath('./div[@style="text-align: left;"]/div/a[@id="ship_map"]/parent::div[style]//text()') 
-        returned = nav.xpath('./div[@style="text-align: left;"]//text()') 
-        for img in nav.cssselect('div[style] > div > a.cloud-zoom-gallery > img'):
-            image_urls.append( img.get('src').replace('small', 'large') )
+        list_info, summary, shipping, returned, image_urls = self.parse_product_info(tree)
 
         is_new, is_updated = False, False
         product = Product.objects(key=key).first()
@@ -318,6 +325,24 @@ class Server(object):
         product.save()
         common_saved.send(sender=ctx, obj_type='Product', key=casin, url=url, is_new=is_new, is_updated=is_updated, ready=ready)
             
+    def parse_product_info(self, tree):
+        """.. :py:method::
+
+        :param tree: element tree of product page
+        """
+        nav = tree.cssselect('div.pageframe > div.mainframe > div.clearfix')[0]
+        list_info = []
+        for li in nav.cssselect('div > div > ul[style] > li'):
+            list_info.append( li.text_content().strip() )
+        summary, list_info = '; '.join(list_info), []
+        for li in nav.cssselect('div > ul[style] > li'):
+            list_info.append( li.text_content().strip() )
+        shipping = nav.xpath('./div[@style="text-align: left;"]/div/a[@id="ship_map"]/parent::div[style]//text()') 
+        returned = nav.xpath('./div[@style="text-align: left;"]//text()') 
+        for img in nav.cssselect('div[style] > div > a.cloud-zoom-gallery > img'):
+            image_urls.append( img.get('src').replace('small', 'large') )
+        return list_info, summary, shipping, returned, image_urls
+
 
 if __name__ == '__main__':
     import zerorpc

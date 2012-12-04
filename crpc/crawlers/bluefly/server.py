@@ -229,6 +229,9 @@ class Server(object):
         :param prd: product node in this page
         :param page_num: the categroy listing page number
         """
+        link = prd.cssselect('div.listProdImage a[href]')[0].get('href')
+        link = link if link.startswith('http') else self.siteurl + link
+
         price = prd.xpath('./div[@class="layoutChanger"]/div[@class="listProductPrices"]/div[@class="priceSale"]/span[@class="priceSalevalue"]')
         if not price: price = prd.cssselect('div.layoutChanger > div.listProductPrices div.priceSale > span.priceSalevalue')
 
@@ -240,12 +243,10 @@ class Server(object):
         if not price: price = prd.cssselect('div.layoutChanger > div.listProductPrices div.priceClearance > span.priceClearancevalue')
         if price:
             price = price[0].text_content().strip()
-        else:
-            common_failed.send(sender=ctx, key=category_key, url=link,
-                    reason='This product have no price.page_num: {0}'.format(page_num))
+#        else:
+#            common_failed.send(sender=ctx, key=category_key, url=link,
+#                    reason='This product have no price.page_num: {0}'.format(page_num))
 
-        link = prd.cssselect('div.listProdImage a[href]')[0].get('href')
-        link = link if link.startswith('http') else self.siteurl + link
         slug, key = self.extract_product_slug_key.match(link).groups()
         soldout = True if prd.cssselect('div.stockMessage div.listOutOfStock') else False
         brand = prd.cssselect('div.layoutChanger > div.listBrand > a')[0].text_content().strip()

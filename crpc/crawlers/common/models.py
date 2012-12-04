@@ -24,14 +24,6 @@ class BaseDocumentSkeleton(object):
     image_urls          =   ListField(StringField())
     image_path          =   ListField(StringField())
     
-    image_complete      =   BooleanField(default=False)
-    brand_complete      =   BooleanField(default=False)
-    propagation_complete=   BooleanField(default=False)
-    publish_time        =   DateTimeField()
-
-    favbuy_brand        =   ListField(StringField())
-    favbuy_tag          =   ListField(StringField())
-
     # text info
     slug                =   StringField()
     sale_title          =   StringField()
@@ -85,6 +77,15 @@ class BaseEvent(Document, BaseDocumentSkeleton):
     # after event complete by crawler, urgent is False
     urgent              = BooleanField(default=True)
     
+
+    image_complete      =   BooleanField(default=False)
+    brand_complete      =   BooleanField(default=False)
+    propagation_complete=   BooleanField(default=False)
+    publish_time        =   DateTimeField()
+
+    favbuy_brand        =   ListField(StringField(), default=list)
+    favbuy_tag          =   ListField(StringField(), default=list)
+
     meta = {
         "allow_inheritance": True,
         "collection": "event",
@@ -165,7 +166,7 @@ class BaseProduct(Document):
     dept_complete       =   BooleanField(default=False)
     publish_time        =   DateTimeField()
 
-    favbuy_brand       =   StringField(default='')
+    favbuy_brand        =   StringField(default='')
     favbuy_tag          =   ListField(StringField())
 
     meta                =   {

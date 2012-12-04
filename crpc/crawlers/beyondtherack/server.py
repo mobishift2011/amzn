@@ -219,7 +219,7 @@ class Server(object):
         title = prd.cssselect('div.clearfix > div[style]:nth-of-type(2)')[0].text_content()
         listprice = prd.cssselect('div.clearfix > div[style] > div.product-price-prev')[0].text_content()
         price = prd.cssselect('div.clearfix > div[style] > div.product-price')[0].text_content()
-        size_nodes = prd.cssselect('div.clearfix > div[style]:nth-of-type(4) > div[style] > select.size-selector > option')
+            size_nodes = prd.cssselect('div.clearfix > div[style]:nth-of-type(4) > div[style] > select.size-selector > option')
         sizes = []
         for size in size_nodes:
             sizes.append( size.text_content().strip() )
@@ -260,7 +260,14 @@ class Server(object):
 
 
     def crawl_product(self, url, ctx=''):
-        pass
+        key = url.rsplit('/', 1)[-1]
+        content = self.net.fetch_page(url)
+        if content is None or isinstance(content, int):
+            common_failed.send(sender=ctx, key='', url=page_url,
+                    reason='download product error or {0} return'.format(content))
+            return
+        tree = lxml.html.fromstring(content)
+        tree.cssselect('div.pageframe > div.mainframe > div.clearfix > div > div > ul')
 
 
 if __name__ == '__main__':

@@ -147,6 +147,7 @@ def _stop_power():
     with settings(warn_only=True):
         run("kill -9 `pgrep -f apiserver.py`")
         run("kill -9 `pgrep -f powerserver.py`")
+        run("ps aux | grep powerserver.py | grep -v grep | awk '{print $2}' | xargs kill -9")
         run("rm /tmp/*.sock")
 
 def _start_monitor():

@@ -40,11 +40,6 @@ class Extractor(object):
                         ret.append( r[1] )
         return ret
 
-        for match in matches:
-            if (match[0][0] == 0 or brand[ match[0][0] -1 ] in self.stopwords) \
-                and (match[0][1] == len(brand) or brand[ match[0][1] ] in self.stopwords) \
-                ret.append(match[1])
-
 def get_site_module(site):
     return __import__('crawlers.'+site+'.models', fromlist=['Category', 'Event', 'Product'])
 
@@ -59,15 +54,16 @@ def extract(site):
             if getattr(p, name):
                 s.append(getattr(p, name))
         s = '\n'.join([ x.encode('utf-8') for x in s])
-        c += 1
-        es = e.extract(s)
-        if es == []:
-            print s
+        s = s.strip()
+        if s:
+            c += 1
+            es = e.extract(s)
+            print s, es
             raw_input()
     time_consumed = time.time() - t
     #print 'qps', c/time_consumed
 
 
 if __name__ == '__main__':
-    for site in ['myhabit','ruelala','zulily','hautelook','gilt','bluefly']:
+    for site in ['ruelala', 'myhabit','zulily','hautelook','gilt','bluefly']:
         extract(site)

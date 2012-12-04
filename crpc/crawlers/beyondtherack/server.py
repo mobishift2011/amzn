@@ -212,8 +212,8 @@ class Server(object):
 
 
     def crawl_every_product_in_listing(self, event_id, url, prd):
-        soldout = True if prd.cssselect('div.clearfix > div.section-img > div.showcase-overlay > a > div') else False
-        link = prd.cssselect('div.clearfix > div.section-img > a[href]')[0].get('href')
+        soldout = True if prd.cssselect('div.section-img > div.showcase-overlay > a > div') else False
+        link = prd.cssselect('div.section-img > a[href]')[0].get('href')
         key = re.compile('.*/event/sku/{0}/(\w+)\??.*'.format(event_id)).match(link).group(1)
 
         brand = prd.cssselect('div.clearfix > div[style]:first-of-type')[0].text_content()

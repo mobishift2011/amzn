@@ -58,20 +58,26 @@ class PowerServer(object):
         brand = extracter.extract(crawled_brand)
 
         if brand:
-            if doctype == 'Event':
-                m.Event.objects(event_id=key).update(set__favbuy_brand=brand, set__brand_complete=True)
-            elif doctype == 'Product':
+            if doctype == 'Product':
                 m.Product.objects(key=key).update(set__favbuy_brand=brand, set__brand_complete=True)
 
-            kwargs['favbuy_brand'] = brand
-            brand_extracted.send('%s_%s_%s_brand' % (site, doctype, key), **kwargs)
+                kwargs['favbuy_brand'] = brand
+                brand_extracted.send('%s_%s_%s_brand' % (site, doctype, key), **kwargs)
         else:
-            if doctype == 'Event':
-                m.Event.objects(event_id=key).update(set__brand_complete=False)
-            elif doctype == 'Product':
+            if doctype == 'Product':
                 m.Product.objects(key=key).update(set__brand_complete=False)
-            
-            brand_extracted_failed.send('%s_%s_%s_brand' % (site, doctype, key), **kwargs)
+                
+                brand_extracted_failed.send('%s_%s_%s_brand' % (site, doctype, key), **kwargs)
+
+    # def propagate(self, args=(), kwargs={}):
+    #     site = kwargs.get('site')
+    #     event_id = kwargs.get('event_id')
+    #     m = __import__('crawlers.{0}.models'.format(site), fromlist=['Event'])
+    #     event = m.Event.objects(event_id=event_id).first()
+        
+    #     if event:
+    #         # Does it influence the performance ?
+    #         products = Product.objects(event_id=event.id)
 
 
 def test():

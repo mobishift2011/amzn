@@ -3,7 +3,7 @@
 from gevent import monkey; monkey.patch_all()
 from crawlers.common.events import common_saved
 from powers.events import *
-from powers.routine import scan_images
+from powers.routine import scan_images, propagate
 from powers.models import EventProgress, ProductProgress
 
 from datetime import datetime
@@ -47,6 +47,15 @@ def ready_for_batch_image_crawling(sender, **kwargs):
     if site and doctype:
         logger.info('start to get rpc resource for %s.%s' % (site, doctype))
         gevent.spawn(scan_images, site, doctype, get_rpcs(POWER_PEERS, POWER_PORT), 10) 
+
+
+@ready_for_batch.bind
+def ready_for_extract(sender, **kwargs):
+    doctype = kwargs.get('doctype')
+    if doctype.capitalize() == 'Product':
+        site = kwargs.get('site')
+        logger.info('start to propagate site: %s', site)
+        gevent.spawn(brand_extract, site, get_rpcs(POWER_PEERS, POWER_PORT), 10)
 
 
 #@pre_image_crawl.bind

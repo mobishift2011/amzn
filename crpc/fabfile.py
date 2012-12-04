@@ -40,13 +40,13 @@ def setup():
     if not exists('/usr/bin/chromedriver'):
         run("wget -q -c http://chromedriver.googlecode.com/files/chromedriver_linux64_23.0.1240.0.zip -O tmp.zip && unzip tmp.zip && rm tmp.zip")
         run("chmod a+x chromedriver && mv chromedriver /usr/bin/")
+        run("ln -s /usr/bin/chromium-browser /usr/bin/google-chrome")
 
     with settings(warn_only=True):
         run("killall chromedriver")
         run("kill -9 `pgrep -f crawlerserver`")
         run("kill -9 `pgrep -f powerserver`")
         #run("kill -9 `pgrep -f {0}`".format(ENV_NAME))
-        run("ln -s /usr/bin/chromium-browser /usr/bin/google-chrome")
 
     with cd("/opt/crpc"):
         with prefix("source /usr/local/bin/virtualenvwrapper.sh"):

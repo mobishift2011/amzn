@@ -219,7 +219,7 @@ class Server(object):
         title = prd.cssselect('div.clearfix > div[style]:nth-of-type(2)')[0].text_content()
         listprice = prd.cssselect('div.clearfix > div[style] > div.product-price-prev')[0].text_content()
         price = prd.cssselect('div.clearfix > div[style] > div.product-price')[0].text_content()
-            size_nodes = prd.cssselect('div.clearfix > div[style]:nth-of-type(4) > div[style] > select.size-selector > option')
+        size_nodes = prd.cssselect('div.clearfix > div[style]:nth-of-type(4) > div[style] > select.size-selector > option')
         sizes = []
         for size in size_nodes:
             sizes.append( size.text_content().strip() )
@@ -267,7 +267,10 @@ class Server(object):
                     reason='download product error or {0} return'.format(content))
             return
         tree = lxml.html.fromstring(content)
-        tree.cssselect('div.pageframe > div.mainframe > div.clearfix > div > div > ul')
+        list_info = []
+        for li in tree.cssselect('div.pageframe > div.mainframe > div.clearfix > div > div > ul > li'):
+            list_info.append( li.text_content().strip() )
+        
 
 
 if __name__ == '__main__':

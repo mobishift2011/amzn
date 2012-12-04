@@ -59,7 +59,7 @@ class Server(object):
             if 'brandUrl' in info['primary']:
                 event.brand_link = info['primary']['brandUrl']
 
-            event.listing_url = event_data['prefix'] + event_data['url']
+        event.listing_url = event_data['prefix'] + event_data['url']
         # updating fields
         event.events_begin = time2utc(event_data['start'])
         event.events_end = time2utc(event_data['end'])
@@ -79,9 +79,14 @@ class Server(object):
         r = req.get(url)
         event_id, data = re.compile(r'parse_sale_(\w+)\((.*)\);$').search(r.text).groups()
         data = json.loads(data)
-
         event = Event.objects(event_id=event_id).first()
         if not event: event = Event(event_id=event_id)
+
+        for product_data in data['asins']: # ensure we download the complete data once
+            if 'cAsin' not in product_data:
+                r = req.get(url)
+                event_id, data = re.compile(r'parse_sale_(\w+)\((.*)\);$').search(r.text).groups()
+                data = json.loads(data)
 
         for product_data in data['asins']:
             self._parse_product(event_id, event.asin_detail_page, event.casin_soldout_info, prefix_url, product_data, ctx)

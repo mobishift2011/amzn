@@ -77,6 +77,7 @@ class Server(object):
         self.event_img_prefix = 'http://lp-img-production.ideeli.com/'
         self.net = ideeliLogin()
         self.extract_event_id = re.compile('.*/events/(\w+)/latest_view')
+        self.extract_product_id = re.compile('http://www.ideeli.com/events/\w+/offers/\w+/latest_view/(\w+)')
 
     def crawl_category(self, ctx=''):
         depts = ['women', 'men', 'home', 'holiday',]
@@ -163,6 +164,9 @@ class Server(object):
             sizes = d[1]['pretty_sizes']
             link = d[1]['offer_url']
             link = link if link.startswith('http') else self.siteurl + link
+            image_url = d[1]['image_url'] #http://3.icdn.ideeli.net/attachments/149078386/410104159410-338_grid_imagegrid_image240x340.jpg
+            product_path = d[1]['product_path'] # /products/2044450?color_id=2975222&sku_id=10722246
+            categories = d[1]['categories']
             offer_id = d[1]['offer_id']
 
             is_new, is_updated = False, False
@@ -181,6 +185,8 @@ class Server(object):
                 product.returned = returned
                 product.shipping = shipping
                 product.sizes = sizes
+                product.image_urls = [image_url]
+                product.cats = categories
                 product.offer_id = offer_id
             else:
                 if soldout and product.soldout != True:
@@ -200,11 +206,29 @@ class Server(object):
             common_saved.send(sender=ctx, obj_type='Event', key=event_id, is_new=False, is_updated=False, ready=True)
 
         
+    def crawl_product(self, url, ctx=''):
+        key = self.extract_product_id.match(url).group(1)
+        content = self.net.fetch_page( url )
+        if content is None or isinstance(content, int):
+            common_failed.send(sender=ctx, key='', url=url,
+                    reason='download product page failed: {0}'.format(content))
+        # open('a.html', 'w').write(content)
+        tree = lxml.html.fromstring(content)
+        nav = tree.cssselect('div#container > div#content > div#latest_container > div#latest > div.event > div.offer_container')[0]
+        info = nav.cssselect('div#offer_sizes_colors > div.details_tabs_content > div.spec_on_sku')[0]
+        list_info = []
+        for li in nav.cssselect('ul > li'):
+            list_info.append( li.text_content().strip() )
+        summary, list_info = '; '.join(list_info), []
+        list_info = nav.cssselect('p')[0].text_content().split('\n')
+        image = nav.cssselect('div#offer_photo_and_desc > div.images_container')
+
 
 
 if __name__ == '__main__':
-    import zerorpc
-    from settings import CRAWLER_PORT
-    server = zerorpc.Server(Server())
-    server.bind('tcp://0.0.0.0:{0}'.format(CRAWLER_PORT))
-    server.run()
+    Server().crawl_product('http://www.ideeli.com/events/116902/offers/6261770/latest_view/2945566', 'haha')
+#    import zerorpc
+#    from settings import CRAWLER_PORT
+#    server = zerorpc.Server(Server())
+#    server.bind('tcp://0.0.0.0:{0}'.format(CRAWLER_PORT))
+#    server.run()

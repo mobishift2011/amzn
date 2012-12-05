@@ -191,6 +191,14 @@ class Server(object):
             product.save()
             common_saved.send(sender=ctx, obj_type='Product', key=key, url=link, is_new=is_new, is_updated=is_updated)
 
+        event = Event.objects(event_id=event_id).first()
+        if not event: event = Event(event_id=event_id)
+        if event.urgent == True:
+            event.urgent = False
+            event.update_time = datetime.utcnow()
+            event.save()
+            common_saved.send(sender=ctx, obj_type='Event', key=event_id, is_new=False, is_updated=False, ready=True)
+
         
 
 

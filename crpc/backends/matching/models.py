@@ -4,6 +4,8 @@ from settings import MONGODB_HOST
 from mongoengine import *
 connect(db='training', alias='training', host=MONGODB_HOST)
 
+from datetime import datetime
+
 class Department(Document):
     main    =   StringField()
     sub     =   StringField()
@@ -19,6 +21,7 @@ class Department(Document):
 class RawDocument(Document):
     site_key    =   StringField()   
     content     =   StringField()
+    updated_at  =   DateTimeField(default=datetime.utcnow)
     department  =   ReferenceField(Department)
     
     meta = {

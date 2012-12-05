@@ -1,0 +1,3 @@
+
+MINIMUM_PRODUCTS_READY=10
+MASTIFF_ENDPOINT = "http://localhost:8000/api/v1"

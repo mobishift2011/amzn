@@ -19,9 +19,11 @@ class Event(BaseEvent):
     meta = { "db_alias": DB, }
 
     def url(self):
-        return
+        return 'http://www.ideeli.com/events/{0}/latest_view_colors?force_cache_write=1'.format(event_id)
 
 class Product(LuxuryProduct):
+    offer_id = IntField()
+
     meta = { "db_alias": DB, }
 
     def url(self):

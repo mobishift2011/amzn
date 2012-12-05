@@ -9,6 +9,7 @@ crawlers.ideeli.server
 This is the server part of zeroRPC module. Call by client automatically, run on many differen ec2 instances.
 """
 import urllib
+import json
 import lxml.html
 
 from models import *
@@ -61,13 +62,12 @@ class ideeliLogin(object):
         """
         ret = req.get(url)
 
-        if 'https://www.ideeli.com/login' == ret.url: #login
+        if 'https://www.ideeli.com/login' in ret.url: #login
             self.login_account()
             ret = req.get(url)
         if ret.ok: return ret.content
 
         return ret.status_code
-
 
 
 class Server(object):
@@ -109,6 +109,7 @@ class Server(object):
         """.. :py:method::
 
         :param dept: department
+        :param node: xpath node
         """
         link = node.get('href')
         m = self.extract_event_id.match(link)
@@ -140,6 +141,57 @@ class Server(object):
         event.update_time = datetime.utcnow()
         event.save()
         common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=link, is_new=is_new, is_updated=is_updated)
+
+    def crawl_listing(self, url, ctx=''):
+        event_id = self.extract_event_id.match(url).group(1)
+        content = self.net.fetch_page( url )
+        if content is None or isinstance(content, int):
+            common_failed.send(sender=ctx, key='', url=url,
+                    reason='download listing page failed: {0}'.format(content))
+        data = json.loads(content)['colors']
+        for d in data:
+            key = str(d[0])
+            soldout = not d[1]['available']
+            brand = d[1]['product_brand_name']
+            title = d[1]['strapline']
+            color = d[1]['color_name']
+            listprice = d[1]['offer_retail_price']
+            price = str(d[1]['numeric_offer_price'])
+            price = price[:-2] + '.' + price[-2:]
+            returned = d[1]['offer_return_policy']
+            shipping = d[1]['offer_shipping_window']
+            sizes = d[1]['pretty_sizes']
+            link = d[1]['offer_url']
+            link = link if link.startswith('http') else self.siteurl + link
+            offer_id = d[1]['offer_id']
+
+            is_new, is_updated = False, False
+            product = Product.objects(key=key).first()
+            if not product:
+                is_new = True
+                product = Product(key=key)
+                product.updated = False
+                product.combine_url = link
+                product.soldout = soldout
+                product.brand = brand
+                product.title = title
+                product.color = color
+                product.listprice = listprice
+                product.price = price
+                product.returned = returned
+                product.shipping = shipping
+                product.sizes = sizes
+                product.offer_id = offer_id
+            else:
+                if soldout and product.soldout != True:
+                    product.soldout = True
+                    is_updated = True
+            if event_id not in product.event_id: product.event_id.append(event_id)
+            product.list_update_time = datetime.utcnow()
+            product.save()
+            common_saved.send(sender=ctx, obj_type='Product', key=key, url=link, is_new=is_new, is_updated=is_updated)
+
+        
 
 
 if __name__ == '__main__':

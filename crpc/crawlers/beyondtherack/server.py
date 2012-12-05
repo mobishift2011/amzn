@@ -348,9 +348,11 @@ class Server(object):
     def crawl_product(self, url, ctx=''):
         key = url.rsplit('/', 1)[-1]
         content = self.net.fetch_product_page(url)
-        if content == -1: return # need to change updated status? TODO
+        if content == -1:
+            common_failed.send(sender=ctx, key=key, url=url, reason='download product redirect to homepage')
+            return
         if content is None or isinstance(content, int):
-            common_failed.send(sender=ctx, key='', url=page_url,
+            common_failed.send(sender=ctx, key=key, url=url,
                     reason='download product error or {0} return'.format(content))
             return
         tree = lxml.html.fromstring(content)

@@ -122,7 +122,7 @@ class Publisher:
         
         :param ev: event object
         '''
-        return ev.publish_time and ev.publish_time < update_time
+        return ev.publish_time and ev.publish_time < ev.update_time
     
     def sufficient_products_ready_publish(self, ev, threshold):
         '''is number of products ready for publish no less than threshold?
@@ -174,7 +174,8 @@ class Publisher:
             self.logger.debug("published event %s:%s, resource_id=%s", obj_to_site(ev), ev.event_id, ev_resource['id'])
         except Exception as e:
             self.logger.error(e)
-        
+            self.logger.error("publishing event %s:%s failed", obj_to_site(ev), ev.event_id)
+                    
     def publish_product(self, prod):
         try:
             pdata = { "site_key": obj_to_site(prod)+'_'+prod.key,
@@ -197,10 +198,11 @@ class Publisher:
             print pdata
             r = self.mapi.product.post(pdata)
             prod.muri = r['resource_uri']; prod.publish_time = datetime.utcnow(); prod.save()
-            self.logger.debug("published product %s:%s, resource_id=%s", obj_to_site(prod), prod.event_id, r['id'])
+            self.logger.debug("published product %s:%s, resource_id=%s", obj_to_site(prod), prod.key, r['id'])
         except Exception as e:
             self.logger.error(e)
-
+            self.logger.error("publishing product %s:%s failed", obj_to_site(prod), prod.key)
+            
     def mget_event(self, site, evid):
         return self.mapi.event.get(site+"_"+evid)
         
@@ -235,8 +237,8 @@ def obj_getattr(obj, attr, defval):
         
 @common_saved.bind
 def process_common_saved(sender, **kwargs):
-    is_new = kwargs.get('is_new')
-    if is_new:
+    is_update = kwargs.get('is_update')
+    if not is_update:
         return # obj is not ready for publishing
     
     site = sender_to_site(sender)

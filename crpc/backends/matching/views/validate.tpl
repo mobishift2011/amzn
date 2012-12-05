@@ -15,6 +15,9 @@
         </div><!--/span-->
         <div class="span9">
           <h2> I'll show you how talent I am! </h2>
+          %if url:
+            <a target="_blank" href="{{!url}}">{{!url}}</a>
+          %end
           <h4> for the text below </h4>
           <div class="well">
             {{!content}}

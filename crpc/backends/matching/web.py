@@ -15,7 +15,7 @@ import json
 
 clf = SklearnClassifier('svm')
 clf.load_from_database()
-sites = ['myhabit', 'gilt', 'ruelala', 'hautelook', 'bluefly', 'onekingslane', 'zulily']
+sites = ['myhabit', 'gilt', 'ruelala', 'hautelook', 'nomorerack', 'onekingslane', 'zulily']
 def get_site_module(site):
     return __import__('crawlers.'+site+'.models', fromlist=['Category', 'Event', 'Product'])
 
@@ -47,7 +47,7 @@ def get_text(site_key):
 		if getattr(p, fieldname):
 			content += u'\n' + getattr(p, fieldname)
 
-	return p.url(), content.replace('\n','<br />')
+	return p.combine_url, content.replace('\n','<br />')
 
 @route('/assets/<filepath:path>')
 def server_static(filepath):
@@ -107,7 +107,11 @@ def teach_train():
 	content = request.params['content']
 	site_key = request.params['site_key']
 	d = Department.objects(main=main,sub=sub).first()
-	RawDocument.objects(site_key=site_key).update(set__department=d, set__content=content, upsert=True)
+	if d:
+		clf.train(content, (main, sub))
+		RawDocument.objects(site_key=site_key).update(set__department=d, set__content=content, upsert=True)
+	else:
+		print 'OOOOOPS', main, sub, 'doesnot seems like a department'
 	return {'status':'ok'}
 
 @route('/validate/')

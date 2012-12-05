@@ -59,7 +59,7 @@
             var html = "";
             var sublist = departments_object[main];
             for (var i=0; i<sublist.length; i++){
-              html += "<a class='btn' style='margin:2px;' name='sub' sub='"+sublist[i]+"'>"+sublist[i]+"</a>"
+              html += "<a class='btn' style='margin:2px;' name='sub' sub=\""+sublist[i]+"\">"+sublist[i]+"</a>"
             }
             $('#sub').html(html);
             $('#teach').addClass('disabled').removeClass('btn-primary');

@@ -79,6 +79,9 @@ class SklearnClassifier(Classifier):
 
     def load_from_database(self):
         for doc in RawDocument.objects.all():
+            if not doc.department:
+                doc.delete()
+                continue
             self.train(doc.content, (doc.department.main, doc.department.sub))
         self.vectorizer = sklearn.feature_extraction.text.TfidfVectorizer()
         self.transformed = False

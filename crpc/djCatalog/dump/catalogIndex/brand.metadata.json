@@ -1,1 +1,0 @@
-{ "indexes" : [ { "v" : 1, "key" : { "_id" : 1 }, "ns" : "catalogIndex.brand", "name" : "_id_" }, { "v" : 1, "key" : { "title" : 1 }, "unique" : true, "ns" : "catalogIndex.brand", "name" : "title_1", "background" : false, "dropDups" : false }, { "v" : 1, "key" : { "_types" : 1 }, "ns" : "catalogIndex.brand", "background" : false, "name" : "_types_1" } ] }

@@ -180,7 +180,17 @@ class Server(object):
                     reason='download error listing or {0} return'.format(content))
             return
         tree = lxml.html.fromstring(content)
-        navigation = tree.cssselect('div[id] > div#listProductPage')[0]
+        navigation = tree.cssselect('div[id] > div#listProductPage')
+        if not navigation:
+            with open('test.html', 'w') as fd:
+                fd.write(url)
+                fd.write(content)
+            content = fetch_page(url)
+            tree = lxml.html.fromstring(content)
+            navigation = tree.cssselect('div[id] > div#listProductPage')[0]
+        else:
+            navigation = navigation[0]
+
         category_path = navigation.xpath('./div[@class="breadCrumbNav"]/div[@class="breadCrumbMargin"]//text()')
         category_path = ' '.join( [c.strip() for c in category_path if c.strip()] )
         products = navigation.cssselect('div#listProductContent > div#rightPageColumn > div.listProductGrid > div#productGridContainer > div.productGridRow div.productContainer')

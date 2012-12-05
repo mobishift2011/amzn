@@ -1,1 +1,0 @@
-{ "indexes" : [ { "v" : 1, "key" : { "_id" : 1 }, "ns" : "catalogIndex.django_session", "name" : "_id_" } ] }

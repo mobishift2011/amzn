@@ -45,6 +45,4 @@ class Extracter(object):
 
 
 if __name__ == '__main__':
-	# APIClient.brand.fail(site='aaa', doctype='event', key='babala')
-	# APIClient.brand.all()
 	pass

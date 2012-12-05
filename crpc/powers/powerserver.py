@@ -5,7 +5,7 @@ from settings import POWER_PORT
 import zerorpc
 from gevent.coros import Semaphore
 
-from tools import ImageTool
+from tools import ImageTool, Propagator
 from brandapi import Extracter
 from powers.events import *
 from powers.binds import *
@@ -22,9 +22,8 @@ class PowerServer(object):
         key = kwargs.get('event_id', kwargs.get('key'))
         m = __import__("crawlers."+site+'.models', fromlist=['Event', 'Product'])
         image_tool = ImageTool()
-        image_path = image_tool.crawl(image_urls, site, key)
+        image_path = ['http://2e.zol-img.com.cn/product/97_120x90/500/ce7Raw2CJmTnk.jpg'] # TODO image_tool.crawl(image_urls, site, key)
         if len(image_path):
-
             if doctype == 'event':
                 m.Event.objects(event_id=key).update(set__image_path=image_path)
             elif doctype == 'product':
@@ -69,25 +68,20 @@ class PowerServer(object):
                 
                 brand_extracted_failed.send('%s_%s_%s_brand' % (site, doctype, key), **kwargs)
 
-    # def propagate(self, args=(), kwargs={}):
-    #     site = kwargs.get('site')
-    #     event_id = kwargs.get('event_id')
-    #     m = __import__('crawlers.{0}.models'.format(site), fromlist=['Event'])
-    #     event = m.Event.objects(event_id=event_id).first()
-        
-    #     if event:
-    #         # Does it influence the performance ?
-    #         products = Product.objects(event_id=event.id)
+    def propagate(self, args=(), kwargs={}):
+        site = kwargs.get('site')
+        event_id = kwargs.get('event_id')
+        p = Propagator(site, event_id)
+        if p.propagate():
+            pass
+            # TODO send scuccess signal
+        else:
+            pass
+            # TODO send fail signal
 
 
 def test():
-    from crawlers.gilt.models import Event
-    event = Event.objects().first()
-    image_urls = event.image_urls
-    site='gilt'
-    ctx = site+event.event_id
-    doctype = 'event'
-    APIServer().process_image(site, image_urls, ctx, doctype, event_id=event.event_id)
+    pass
 
 if __name__ == '__main__':
     zs = zerorpc.Server(PowerServer(), pool_size=50) 

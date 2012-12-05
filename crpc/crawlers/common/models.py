@@ -91,6 +91,8 @@ class BaseEvent(Document, BaseDocumentSkeleton):
     lowest_discount     =   StringField()
     highest_discount    =   StringField()
 
+    muri                =   StringField()   # resource URL in mastiff
+    
     meta = {
         "allow_inheritance": True,
         "collection": "event",
@@ -176,6 +178,8 @@ class BaseProduct(Document):
     favbuy_dept         =   ListField(StringField(), default=list)
     favbuy_price        =   StringField()
 
+    muri                =   StringField()   # resource URL in mastiff
+    
     meta                =   {
         "allow_inheritance": True,
         "collection": "product",

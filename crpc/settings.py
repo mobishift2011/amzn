@@ -55,9 +55,9 @@ envs = {
         ],
         'POWER_PEERS': [
             'root@ec2-54-245-35-92.us-west-2.compute.amazonaws.com',
-            'root@ec2-54-245-34-236.us-west-2.compute.amazonaws.com',
-            'root@ec2-54-245-5-250.us-west-2.compute.amazonaws.com',
-            'root@ec2-54-245-137-150.us-west-2.compute.amazonaws.com',
+#            'root@ec2-54-245-17-14.us-west-2.compute.amazonaws.com',
+#            'root@ec2-54-245-27-106.us-west-2.compute.amazonaws.com',
+#            'root@ec2-54-245-158-36.us-west-2.compute.amazonaws.com',
         ],
         'USE_INDEX': '',
         'MONGODB_HOST': '10.252.41.239',

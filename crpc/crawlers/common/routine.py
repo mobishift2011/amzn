@@ -32,6 +32,7 @@ from crawlers.common.events import pre_general_update, post_general_update, comm
 from datetime import datetime, timedelta
 
 from powers.events import ready_for_batch
+from powers.binds import ready_for_batch
 
 MAX_PAGE = 400
 

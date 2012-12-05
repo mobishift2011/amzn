@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # Author: bishop Liu <miracle (at) gmail.com>
-# 30312 It's time for high fashion Mon. Dec 03
-# 30079 Playboy Wed. Dec 26
-# 30791 Dress Your Home Mon. Dec 03
 """
 crawlers.beyondtherack.server
 ~~~~~~~~~~~~~~~~~~~
@@ -82,12 +79,26 @@ class beyondtherackLogin(object):
             self.login_account()
             ret = req.get(url)
         if ret.ok and 'sku' in ret.url:
-            return -1
-        else:
+            return [ret.url, ret.content] 
+        elif ret.ok:
             return ret.content
 
         return ret.status_code
 
+    def fetch_product_page(self, url):
+        """.. :py:method::
+        """
+        ret = req.get(url)
+
+        if 'https://www.beyondtherack.com/auth/' in ret.url: #login or register
+            self.login_account()
+            ret = req.get(url)
+        if ret.ok and ret.url == 'http://www.beyondtherack.com/event/calendar':
+            return -1
+        elif ret.ok:
+            return ret.content
+
+        return ret.status_code
 
 class Server(object):
     """.. :py:class:: Server
@@ -196,7 +207,11 @@ class Server(object):
 
     def crawl_listing(self, url, ctx=''):
         event_id = url.rsplit('/', 1)[-1]
-        content = self.net.fetch_page(url)
+        content = self.net.fetch_listing_page(url)
+        if isinstance(content, list):
+            self.crawl_event_is_product(event_id, content[0], content[1], ctx)
+            return
+            
         if content is None or isinstance(content, int):
             common_failed.send(sender=ctx, key='', url=url,
                     reason='download listing error or {0} return'.format(content))
@@ -204,7 +219,8 @@ class Server(object):
         tree = lxml.html.fromstring(content)
         segment = tree.cssselect('div.pageframe > div#main-form')[0]
         events_end = segment.cssselect('div.clearfix div#eventTTL')
-        events_end = datetime.utcfromtimestamp( float(events_end[0].get('eventttl')) )
+        if events_end:
+            events_end = datetime.utcfromtimestamp( float(events_end[0].get('eventttl')) )
         # both button and nth-last-of-type condition
         page_nums = segment.cssselect('div.clearfix form[method=get] > div.pagination > div.button:nth-last-of-type(1)')
         if page_nums:
@@ -222,9 +238,13 @@ class Server(object):
         if not event: event = Event(event_id=event_id)
         if event.urgent == True:
             event.urgent = False
-            event.update_time = datetime.utcnow()
-            event.save()
-            common_saved.send(sender=ctx, obj_type='Event', key=event_id, is_new=False, is_updated=False, ready=True)
+
+        # some page return 'event has ended', but actually not.I keep record it.
+        if events_end: event.events_end = events_end
+        if isinstance(page_nums, int): event.num = page_nums
+        event.update_time = datetime.utcnow()
+        event.save()
+        common_saved.send(sender=ctx, obj_type='Event', key=event_id, is_new=False, is_updated=False, ready=True)
 
 
     def crawl_every_product_in_listing(self, event_id, url, prd, ctx):
@@ -269,7 +289,7 @@ class Server(object):
 
 
     def get_next_page_in_listing(self, event_id, page_url, page_num, ctx):
-        content = self.net.fetch_page(page_url)
+        content = self.net.fetch_listing_page(page_url)
         if content is None or isinstance(content, int):
             common_failed.send(sender=ctx, key='', url=page_url,
                     reason='download listing error or {0} return'.format(content))
@@ -280,25 +300,61 @@ class Server(object):
         for prd in prds: self.crawl_every_product_in_listing(event_id, page_url, prd, ctx)
 
 
+    def crawl_event_is_product(self, event_id, product_url, content, ctx):
+        """.. :py:method::
+
+            event listing page url redirect to product page
+        :param event_id: event id
+        :param product_url: redirect to the product_url
+        :param content: product_url's content
+        """
+        key = re.compile('http://www.beyondtherack.com/event/sku/\w+/(\w+)\??.*').match(product_url).group(1)
+        tree = lxml.html.fromstring(content)
+        events_end = tree.cssselect('div.pageframe > div.mainframe div#eventTTL')
+        events_end = datetime.utcfromtimestamp( float(events_end[0].get('eventttl')) )
+        event = Event.objects(event_id=event_id).first()
+        title = event.sale_title
+        event.events_end = events_end
+        event.update_time = datetime.utcnow()
+        if event.urgent == True:
+            event.urgent = False
+        event.save()
+        
+        listprice = tree.cssselect('div.pageframe > div.mainframe > div.clearfix div.clearfix span.product-price-prev')[0].text_content()
+        price = tree.cssselect('div.pageframe > div.mainframe > div.clearfix div.clearfix span.product-price')[0].text_content()
+        list_info, summary, shipping, returned, image_urls = self.parse_product_info(tree)
+
+        is_new, is_updated = False, False
+        product = Product.objects(key=key).first()
+        if not product:
+            is_new = True
+            product = Product(key=key)
+        product.title = title
+        product.listprice = listprice
+        product.price = price
+        product.summary = summary
+        product.list_info = list_info
+        product.shipping = shipping
+        product.returned = returned
+        product.image_urls = image_urls
+        product.full_update_time = datetime.utcnow()
+        product.updated = True
+        if is_new: ready = True
+        else: ready = False
+        product.save()
+        common_saved.send(sender=ctx, obj_type='Product', key=key, url=product_url, is_new=is_new, is_updated=is_updated, ready=ready)
+
+
     def crawl_product(self, url, ctx=''):
         key = url.rsplit('/', 1)[-1]
-        content = self.net.fetch_page(url)
+        content = self.net.fetch_product_page(url)
+        if content == -1: return # need to change updated status? TODO
         if content is None or isinstance(content, int):
             common_failed.send(sender=ctx, key='', url=page_url,
                     reason='download product error or {0} return'.format(content))
             return
         tree = lxml.html.fromstring(content)
-        nav = tree.cssselect('div.pageframe > div.mainframe > div.clearfix')[0]
-        list_info = []
-        for li in nav.cssselect('div > div > ul[style] > li'):
-            list_info.append( li.text_content().strip() )
-        summary, list_info = '; '.join(list_info), []
-        for li in nav.cssselect('div > ul[style] > li'):
-            list_info.append( li.text_content().strip() )
-        shipping = nav.xpath('./div[@style="text-align: left;"]/div/a[@id="ship_map"]/parent::div[style]//text()') 
-        returned = nav.xpath('./div[@style="text-align: left;"]//text()') 
-        for img in nav.cssselect('div[style] > div > a.cloud-zoom-gallery > img'):
-            image_urls.append( img.get('src').replace('small', 'large') )
+        list_info, summary, shipping, returned, image_urls = self.parse_product_info(tree)
 
         is_new, is_updated = False, False
         product = Product.objects(key=key).first()
@@ -316,8 +372,35 @@ class Server(object):
             ready = True
         else: ready = False
         product.save()
-        common_saved.send(sender=ctx, obj_type='Product', key=casin, url=url, is_new=is_new, is_updated=is_updated, ready=ready)
+        common_saved.send(sender=ctx, obj_type='Product', key=key, url=url, is_new=is_new, is_updated=is_updated, ready=ready)
             
+    def parse_product_info(self, tree):
+        """.. :py:method::
+
+        :param tree: element tree of product page
+        """
+        nav = tree.cssselect('div.pageframe > div.mainframe > div.clearfix')[0]
+        list_info = []
+        for li in nav.xpath('./div/div/ul[@style]/li'):
+            list_info.append( li.text_content().strip() )
+        summary, list_info = '; '.join(list_info), []
+        for li in nav.xpath('./div/ul[@style]/li'):
+            list_info.append( li.text_content().strip() )
+        shipping = nav.xpath('.//div[@style="text-align: left;"]/div/a[@id="ship_map"]/parent::div[@style]')
+        if shipping:
+            shipping = shipping[0].text_content() 
+        else:
+            shipping = nav.xpath('.//div[@style="text-align: left;"]/div[3]')[0].text_content()
+        returned = ''
+        for r in nav.xpath('.//div[@style="text-align: left;"]//text()'):
+            if r.strip():
+                returned = r.strip()
+                break
+        image_urls = []
+        for img in nav.cssselect('div[style] > div > a.cloud-zoom-gallery > img'):
+            image_urls.append( img.get('src').replace('small', 'large') )
+        return list_info, summary, shipping, returned, image_urls
+
 
 if __name__ == '__main__':
     import zerorpc

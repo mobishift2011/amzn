@@ -182,7 +182,7 @@ class Server(object):
         tree = lxml.html.fromstring(content)
         navigation = tree.cssselect('div[id] > div#listProductPage')
         if not navigation:
-            witho open('test.html', 'w') as fd:
+            with open('test.html', 'w') as fd:
                 fd.write(url)
                 fd.write(content)
             content = fetch_page(url)

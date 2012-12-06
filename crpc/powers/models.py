@@ -12,7 +12,7 @@ from mongoengine import *
 from mongoengine import signals
 from datetime import datetime, timedelta
 DB = 'power'
-connect(db=DB, alias=DB, host=MONGODB_HOST)
+connect(db=DB, alias=DB, host=MONGODB_HOST, , connecttimeoutms=1e10)
 
 class EventProgress(Document):
     site = StringField(required=True)

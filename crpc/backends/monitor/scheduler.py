@@ -47,11 +47,13 @@ class Scheduler(object):
 
     def run(self):
         while True:
-            for s in self.get_schedules():
-                if s.timematch():
-                    execute(s.site, s.method)
-            gevent.sleep(60)
-            gevent.spawn(delete_expire_task)
-
-
+            try:
+                for s in self.get_schedules():
+                    if s.timematch():
+                        execute(s.site, s.method)
+                gevent.sleep(60)
+                gevent.spawn(delete_expire_task)
+            except Exception as e:
+                with open('/tmp/schedule.log', 'a') as fd:
+                    fd.write(str(e) + '\n\n\n')
 

@@ -20,13 +20,18 @@ function TaskCtrl($scope) {
     errorSleepTime: 500,
 
     // initiate table arguments
-    init: function() {
+    init: function(offset=0, limit=50) {
         $.ajax({
             url: "/task/all",
             type: "GET",
+            data: offset:offset, limit:limit},
             dataType: "json",
             success: function(response){
                 updater.updateTasks(response['tasks']);
+                // has more
+                if (len(response['tasks'])==limit) {
+                    init(offset+limit, limit);
+                }
             }
         });
     },

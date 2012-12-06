@@ -37,9 +37,12 @@ def task():
     return template('task')
 
 @route('/task/all')
-# @login_required
 def task_all():
-    return task_all_tasks()
+    offset = request.params.get('offset', '0') 
+    limit = request.params.get('limit', '50')
+    offset, limit = int(offset), int(limit)
+    print offset, limit
+    return task_all_tasks(offset, limit)
 
 @route('/task/update')
 # @login_required

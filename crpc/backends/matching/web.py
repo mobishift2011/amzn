@@ -83,7 +83,14 @@ def trainingset_loaddetail():
 	d = Department.objects(main=main,sub=sub).first()
 	j = []
 	for rd in RawDocument.objects(department=d):
-		j.append({'content':rd.content})
+		try:
+			site, key = rd.site_key.split('_', 1)
+			m = get_site_module(site)
+			p = m.Product.objects.get(key=key)
+			url = p.combine_url
+		except Exception, e:
+			url = ''
+		j.append({'content':rd.content,'site_key':rd.site_key,'url':url})
 	return {'status':'ok','data':j}
 
 @route('/teach/')
@@ -96,7 +103,10 @@ def teach():
 	for d in Department.objects().order_by('main'):
 		departments[d.main].append(d.sub)
 	departments_object = json.dumps(departments)
-	url, content = get_text(site_key)
+	try:
+		url, content = get_text(site_key)
+	except:
+		redirect('/')
 	return template('teach', **locals())
 	#site_key=site_key, url=url, departments=departments, departments_object=departments_object, content=content)
 

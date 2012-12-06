@@ -33,7 +33,7 @@
                 <td>{{count}}</td>
                 <td>
                 <div>
-                  <a href="#detailmodal" role="button" data-toggle="modal" onclick="loadDetail('{{main}}', '{{sub}}');">See Details</a>
+                  <a href="#detailmodal" role="button" data-toggle="modal" onclick="loadDetail(&quot;{{!main}}&quot;, &quot;{{!sub}}&quot;);">See Details</a>
                 </div>
                 </td>
               </tr>
@@ -57,6 +57,7 @@
         </div>
         <script type="text/javascript">
           var loadDetail = function(main, sub, key){
+            console.log(main, sub)
             $.ajax({
               url: "/training-set/load-detail/",
               type: "GET",
@@ -66,7 +67,11 @@
                 if (response['status']=='ok'){
                   var content = '<ul>\n'
                   for (var i=0; i<response['data'].length; i++){
-                    content += '<li>'+response['data'][i]['content']+'</li>\n';
+                    content += '<li>'
+                    content += '<a href="'+response['data'][i]['url']+'">'+response['data'][i]['url']+'</a><br />'
+                    content += response['data'][i]['content'] + '<br />'
+                    content += '<a class="btn btn-primary" href="/teach/?site_key='+response['data'][i]['site_key']+'">TRAIN AGAIN</a>'
+                    content += '</li>\n';
                   }
                   content += '</ul>'
                 }

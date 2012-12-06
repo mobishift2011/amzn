@@ -50,7 +50,7 @@ class PowerServer(object):
 
         #TO REMOVE
         import time
-        print site,' ' + doctype + ' ',  key + ' ', 'brand-<'+crawled_brand+'>  ',  'title-<'+ kwargs.get('title', ' ') +'>'+ ':'
+        # print site,' ' + doctype + ' ',  key + ' ', 'brand-<'+crawled_brand+'>  ',  'title-<'+ kwargs.get('title', ' ') +'>'+ ':'
         
         m = __import__('crawlers.'+site+'.models', fromlist=[doctype])
         extracter = Extracter()

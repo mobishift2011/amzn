@@ -96,6 +96,7 @@ class Processer(object):
         else:
             try:
                 for cb, mode in self._listeners[signal]:
+                    print cb, mode
                     if mode == 'async':
                         gevent.spawn(cb, sender, **kwargs)
                     else:
@@ -139,7 +140,7 @@ class Signal(object):
     def bind(self, formode='async'):
         if hasattr(formode, '__call__'):
             # @xxx.bind
-            mode = 'sync'
+            mode = 'async'
             f = formode
             self.connect(f, mode)
             return f
@@ -168,13 +169,12 @@ if __name__ == '__main__':
     after_item_init = Signal("after_item_init")
 
     @after_item_init.bind
-    def log_item_init(sender, **kwargs):
+    def log_item_init1(sender, **kwargs):
         itemid  = kwargs.get('item_id')
         print("1 sender: {sender}, itemid: {itemid}".format(**locals()))
 
     @after_item_init.bind
-    def log_item_init(sender, **kwargs):
-        time.sleep(1) 
+    def log_item_init2(sender, **kwargs):
         itemid  = kwargs.get('item_id')
         print("0 sender: {sender}, itemid: {itemid}".format(**locals()))
 

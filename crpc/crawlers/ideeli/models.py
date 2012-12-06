@@ -28,3 +28,4 @@ class Product(LuxuryProduct):
 
     def url(self):
         return self.combine_url
+        # return 'http://www.ideeli.com/events/{0}/offers/{1}/latest_view/{2}'.format(self.event_id[0], self.offer_id, self.key)

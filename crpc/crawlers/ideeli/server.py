@@ -217,7 +217,8 @@ class Server(object):
         for li in info.cssselect('ul > li'):
             list_info.append( li.text_content().strip() )
         summary, list_info = '; '.join(list_info), []
-        list_info = info.cssselect('p')[0].text_content().split('\n')
+        list_info = info.cssselect('p') # some products have mixed all list_info into summary
+        list_info = list_info[0].text_content().split('\n') if list_info else []
         images = nav.cssselect('div#offer_photo_and_desc > div#images_container_{0} > div.image_container > a.MagicZoom'.format(key))
         image_urls = []
         for image in images:

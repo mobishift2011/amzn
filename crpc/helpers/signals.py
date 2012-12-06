@@ -96,7 +96,6 @@ class Processer(object):
         else:
             try:
                 for cb, mode in self._listeners[signal]:
-                    print cb, mode
                     if mode == 'async':
                         gevent.spawn(cb, sender, **kwargs)
                     else:

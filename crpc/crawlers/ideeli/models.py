@@ -11,7 +11,7 @@ Implements Product and Event Model for ideeli
 from mongoengine import *
 from settings import MONGODB_HOST
 DB = 'ideeli'
-connect(db=DB, alias=DB, host=MONGODB_HOST)
+connect(db=DB, alias=DB, host=MONGODB_HOST, connecttimeoutms=1e10)
 
 from crawlers.common.models import BaseEvent, LuxuryProduct
 

@@ -17,7 +17,7 @@ from mongoengine import *
 import requests
 
 DB = 'gilt'
-connect(db=DB, alias=DB, host=MONGODB_HOST)
+connect(db=DB, alias=DB, host=MONGODB_HOST, connecttimeoutms=1e10)
 
 
 class Event(BaseEvent):     

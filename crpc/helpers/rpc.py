@@ -14,7 +14,7 @@ def get_rpcs(peers=CRAWLER_PEERS, port=CRAWLER_PORT):
     if not hasattr(get_rpcs, '_cached_rpcs'):
         setattr(get_rpcs, '_cached_rpcs', {})
 
-    peers_key = tuple(peers)
+    peers_key = str(tuple(peers))+str(port)
     if peers_key not in get_rpcs._cached_rpcs:
         rpcs = []
         for peer in peers:

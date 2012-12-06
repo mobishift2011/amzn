@@ -44,6 +44,7 @@ import cPickle as pickle
 from pickle import loads as unpack, dumps as pack
 
 from gevent.pool import Pool
+from gevent.queue import Queue
 
 import log
 import gevent
@@ -58,11 +59,17 @@ class Processer(object):
         self.rc = redisco.get_client()
         self.ps = self.rc.pubsub()
         self.ps.subscribe(self.channel)
+        self.queue = Queue()
         gevent.spawn(self._listen)
+        gevent.spawn(self._queued_executor)
 
-    def add_listener(self, signal, callback):
+    def add_listener(self, signal, callback, mode):
+        """ add listener to hub
+
+        :param mode: can be 'async' or 'sync'
+        """
         cbname = callback.__name__
-        self._listeners[signal].add(callback)
+        self._listeners[signal].add((callback, mode))
         logger.debug("{signal!r} binded by <{cbname}>".format(**locals()))
 
     def _listen(self):
@@ -70,6 +77,14 @@ class Processer(object):
             if m['type'] == 'message':
                 data = unpack(m['data'])
                 self._execute_callbacks(data['sender'], data['signal'], **data['kwargs'])
+
+    def _queued_executor(self):
+        while True:
+            try:
+                cb, sender, kwargs = self.queue.get() 
+                cb(sender, **kwargs)
+            except Exception, e:
+                logger.exception(e.message)
 
     def send_message(self, sender, signal, **kwargs):
         data = pack( {'sender':sender,'signal':signal,'kwargs':kwargs} )       
@@ -80,12 +95,16 @@ class Processer(object):
             logger.warning("signal bindings for {signal!r} not found!".format(**locals()))
         else:
             try:
-                for cb in self._listeners[signal]:
-                    gevent.spawn(cb, sender, **kwargs)
-                    #cb(sender, **kwargs)
+                for cb, mode in self._listeners[signal]:
+                    if mode == 'async':
+                        gevent.spawn(cb, sender, **kwargs)
+                    else:
+                        # put synchronous code into a queue executor
+                        self.queue.put((cb, sender, kwargs))
             except Exception as e:
                 logger.exception("Exception happened when executing callback")
                 logger.error("sender: {sender}, signal: {signal!r}, kwargs: {kwargs!r}".format(**locals()))
+
 
 p = Processer()
 
@@ -104,7 +123,7 @@ class Signal(object):
         data = {'kwargs':kwargs}
         p.send_message(sender, self._name, **kwargs)
         
-    def connect(self, callback):
+    def connect(self, callback, mode):
         with self._lock:
             do_connect = False
             if self._capacity is not None:
@@ -115,13 +134,22 @@ class Signal(object):
                 do_connect = True
             
             if do_connect:
-                p.add_listener(self._name, callback)
+                p.add_listener(self._name, callback, mode)
 
-    def bind(self, f):
-        self.connect(f)
-        def _decorator():
+    def bind(self, formode='async'):
+        if hasattr(formode, '__call__'):
+            # @xxx.bind
+            mode = 'sync'
+            f = formode
+            self.connect(f, mode)
             return f
-        return _decorator
+        else:
+            # @xxx.bind('sync')
+            mode = formode
+            def _deco(f):
+                self.connect(f, mode)
+                return f
+            return _deco
 
     def __str__(self):
         return "<Signal: {name}>".format(name=self._name)
@@ -136,16 +164,19 @@ class SignalQueue(Signal):
 
 
 if __name__ == '__main__':
-    after_item_init = SignalQueue("after_item_init")
-
-    @after_item_init.bind
-    def log_item_init(sender, **kwargs):
-        itemid  = kwargs.get('item_id')
-        print("0 sender: {sender}, itemid: {itemid}".format(**locals()))
+    import time
+    after_item_init = Signal("after_item_init")
 
     @after_item_init.bind
     def log_item_init(sender, **kwargs):
         itemid  = kwargs.get('item_id')
         print("1 sender: {sender}, itemid: {itemid}".format(**locals()))
 
+    @after_item_init.bind
+    def log_item_init(sender, **kwargs):
+        time.sleep(1) 
+        itemid  = kwargs.get('item_id')
+        print("0 sender: {sender}, itemid: {itemid}".format(**locals()))
+
     after_item_init.send(sender="main", item_id=3)
+    time.sleep(2)

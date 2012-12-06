@@ -172,7 +172,7 @@ class Publisher:
                 m = obj_to_module(ev)
                 soldout = m.Product.objects(event_id=ev.event_id, soldout=False).count()==0
                 if not soldout: return
-                ev_data = {"soldout":soldout}
+                ev_data = {"sold_out":soldout}
             else:
                 ev_data = { 
                     "site_key": obj_to_site(ev)+'_'+ev.event_id,
@@ -185,7 +185,7 @@ class Publisher:
                     "department": ev.favbuy_dept[0] if ev.favbuy_dept and len(ev.favbuy_dept)>0 else 'women' }
             self.logger.debug("publish event data: %s", ev_data)
             if upd:
-                self.mapi.event(muri2mid(ev.muri)).put(ev_data)
+                self.mapi.event(muri2mid(ev.muri)).patch(ev_data)
                 self.logger.debug("published event update %s:%s, resource_id=%s", obj_to_site(ev))
             else:
                 ev_resource = self.mapi.event.post(ev_data)
@@ -199,7 +199,7 @@ class Publisher:
     def publish_product(self, prod, upd=False):
         try:
             if upd:
-                pdata = { "soldout": prod.soldout }
+                pdata = { "sold_out": prod.soldout }
             else:
                 pdata = { 
                     "site_key": obj_to_site(prod)+'_'+prod.key,
@@ -222,7 +222,7 @@ class Publisher:
                     }
             self.logger.debug("publish product data: %s", pdata)
             if upd:
-                self.mapi.product(muri2mid(prod.muri)).put(pdata)
+                self.mapi.product(muri2mid(prod.muri)).patch(pdata)
                 self.logger.debug("published product update %s:%s", obj_to_site(prod), prod.key)
             else:
                 r = self.mapi.product.post(pdata)

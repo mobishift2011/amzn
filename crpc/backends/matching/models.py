@@ -60,6 +60,8 @@ CATS = {
 	    'Toys, Games & Books',
 	    'Gear & Equipment',
 	    'Bed, Bath & Furniture',
+        'Maternity',
+        'Accessories',
     ],
     'Home': [
 	    'Furniture & Lighting',
@@ -79,6 +81,8 @@ CATS = {
 	    'Crossbody Bags',
 	    'Evening Bags',
 	    'Backpacks & Laptop Bags',
+        'Wallets',
+        'Luggage & Gear',
     ],
     'Jewelry & Watches': [
 	    'Women\'s Watches',
@@ -93,7 +97,7 @@ CATS = {
 	    'Skin Care',
 	    'Makeup',
 	    'Fragrance',
-	    'Body Care',
+	    'Body Care & Hair',
     ],
     'Wine': [
 	    'Red Wine',

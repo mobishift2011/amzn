@@ -8,7 +8,7 @@ from itertools import izip
 from pprint import pprint
 from stopwords import stopwords
 
-tables = ['myhabit','hautelook', 'gilt', 'bluefly', 'ruelala', 'zulily']
+tables = ['myhabit','hautelook', 'gilt', 'nomorerack', 'ruelala', 'zulily']
 
 def get_site_module(site):
     return __import__('crawlers.'+site+'.models', fromlist=['Category', 'Event', 'Product'])

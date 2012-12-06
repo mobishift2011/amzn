@@ -2,12 +2,12 @@
 from gevent import monkey; monkey.patch_all()
 from crawlers.common.events import common_saved
 from crawlers.common.routine import get_site_module
-from powers.events import image_crawled
+from powers.events import image_crawled, ready_for_publish
 from mongoengine import Q
 from mysettings import MINIMUM_PRODUCTS_READY, MASTIFF_ENDPOINT
 from helpers import log
 import slumber
-from datetime import datetime
+from datetime import datetime, timedelta
 import sys
 
 class Publisher:
@@ -122,9 +122,9 @@ class Publisher:
         
         :param ev: event object
         '''
-        return ev.publish_time and ev.publish_time < update_time
+        return ev.publish_time and ev.publish_time < ev.update_time
     
-    def sufficient_products_ready_publish(self, ev, threhold):
+    def sufficient_products_ready_publish(self, ev, threshold):
         '''is number of products ready for publish no less than threshold?
 
         :param ev: event object
@@ -134,7 +134,7 @@ class Publisher:
         for prod in m.Product.objects(publish_time__exists=False, event_id=ev.event_id):
             if self.should_publish_product(prod): n += 1
             if n>threshold: return True
-        self.logger.debug("insufficient products ready for publish under event %s:%s", obj_to_site(ev), ev.event_id)
+        self.logger.debug("insufficient products ready (%d) for publish under event %s:%s", n, obj_to_site(ev), ev.event_id)
         return False
         
     def should_publish_product(self, prod, chk_ev=False):
@@ -153,48 +153,56 @@ class Publisher:
                     break
             if not allow_publish:
                 return False
-        return not prod.publish_time and prod.image_complete and \
-                    prod.brand_complete and prod.tag_complete
+        return not prod.publish_time and prod.image_complete and prod.dept_complete
 
     def should_publish_product_upd(self, prod):
         '''condition for publishing product update (the product was published before)'''
         return prod.publish_time and prod.publish_time < prod.update_time
         
     def publish_event(self, ev):
-        ev_resource = self.mapi.event.create(
-                site_key = obj_to_site(ev)+'_'+ev.event_id,
-                title = obj_getattr(ev, 'sale_title', ''), 
-                description = obj_getattr(ev, 'sale_description', ''), 
-                ends_at = obj_getattr(ev, 'events_end', datetime.utcnow()+timedelta(days=7)).isoformat(), 
-                starts_at = obj_getattr(ev, 'events_begin', datetime.utcnow()).isoformat(), 
-                cover_image = ev['image_urls'][0] if ev['image_urls'] else '', 
-                department = obj_getattr(ev,'dept', []) #[0] if ev['dept'] else random.choice(['men','women','kids','home','designer','handbags'])
-                # brands $$
-        ev.muri = ev_resource['resource_uri']; ev.publish_time = datetime.utcnow(); ev.save()
-        self.logger.debug("published event %s:%s", obj_to_site(ev), ev.event_id)
-        
+        try:
+            ev_data = { "site_key": obj_to_site(ev)+'_'+ev.event_id,
+                        "title": obj_getattr(ev, 'sale_title', ''),
+                        "description": obj_getattr(ev, 'sale_description', ''),
+                        "ends_at": obj_getattr(ev, 'events_end', datetime.utcnow()+timedelta(days=7)).isoformat(),
+                        "starts_at": obj_getattr(ev, 'events_begin', datetime.utcnow()).isoformat(),
+                        "cover_image": ev['image_urls'][0] if ev['image_urls'] else '', 
+                        "department": ev.favbuy_dept[0] if ev.favbuy_dept and len(ev.favbuy_dept)>0 else 'women' }
+            print ev_data
+            ev_resource = self.mapi.event.post(ev_data)       
+            ev.muri = ev_resource['resource_uri']; ev.publish_time = datetime.utcnow(); ev.save()
+            self.logger.debug("published event %s:%s, resource_id=%s", obj_to_site(ev), ev.event_id, ev_resource['id'])
+        except Exception as e:
+            self.logger.error(e)
+            self.logger.error("publishing event %s:%s failed", obj_to_site(ev), ev.event_id)
+                    
     def publish_product(self, prod):
-        r = self.mapi.product.create(
-                site_key = obj_to_site(prod)+'_'+prod.key,
-                original_url = prod.combine_url,
-                events = self.get_ev_uris(prod),
-                return_policy = prod.returned,
-                shipping_policy = prod.shipping,
-                our_price = obj_getattr(prod, 'price',-1),
-                list_price = obj_getattr(prod, 'listprice',-1),
-                sizes = obj_getattr(prod, 'sizes', []),
-                colors = [p['color']] if 'color' in p else [],
-                title = prod.title,
-                details = obj_getattr(prod, 'list_info', []),
-                cover_image = cover_image,
-                images = obj_getattr(prod, 'image_path', []),
-                brand = obj_getattr(prod, 'favbuy_brand',''),
-                tags = obj_getattr(prod, 'favbuy_tag', [])
-                )
-                #model = ""        
-        prod.publish_time = datetime.utcnow(); prod.save()
-        self.logger.debug("published product %s:%s", obj_to_site(prod), prod.event_id)
-        
+        try:
+            pdata = { "site_key": obj_to_site(prod)+'_'+prod.key,
+                      "original_url": prod.combine_url,
+                      "events": self.get_ev_uris(prod),
+                      #"our_price": obj_getattr(prod, 'price',-1),
+                      #"list_price": obj_getattr(prod, 'listprice',-1),
+                      #"sizes": obj_getattr(prod, 'sizes', []),
+                      "colors": [prod['color']] if 'color' in prod and prod['color'] else [],
+                      "title": prod.title,
+                      "details": obj_getattr(prod, 'list_info', []),
+                      "cover_image": prod.image_path[0] if prod.image_path else '',
+                      "images": obj_getattr(prod, 'image_path', []),
+                      "brand": obj_getattr(prod, 'favbuy_brand',''),
+                      "tags": obj_getattr(prod, 'favbuy_tag', []),
+                      "department_path": obj_getattr(prod, 'favbuy_dept', []),
+                      "return_policy": obj_getattr(prod, 'returned', ''),
+                      "shipping_policy": obj_getattr(prod, 'shipping', '')
+                      }
+            print pdata
+            r = self.mapi.product.post(pdata)
+            prod.muri = r['resource_uri']; prod.publish_time = datetime.utcnow(); prod.save()
+            self.logger.debug("published product %s:%s, resource_id=%s", obj_to_site(prod), prod.key, r['id'])
+        except Exception as e:
+            self.logger.error(e)
+            self.logger.error("publishing product %s:%s failed", obj_to_site(prod), prod.key)
+            
     def mget_event(self, site, evid):
         return self.mapi.event.get(site+"_"+evid)
         
@@ -220,17 +228,17 @@ def obj_to_site(obj):
 def obj_to_module(obj):
     return sys.modules[obj.__module__]
     
-def obj_getattr(obj, attr, def):
+def obj_getattr(obj, attr, defval):
     if not hasattr(obj, attr):
-        return def
+        return defval
     else:
         val = getattr(obj, attr)
-        return val if val else def
+        return val if val else defval
         
 @common_saved.bind
 def process_common_saved(sender, **kwargs):
-    is_new = kwargs.get('is_new')
-    if is_new:
+    is_update = kwargs.get('is_update')
+    if not is_update:
         return # obj is not ready for publishing
     
     site = sender_to_site(sender)
@@ -251,14 +259,14 @@ def process_image_crawled(sender, **kwargs):
     elif obj_type == 'Product':
         p.try_publish_product(site, key)
     
-#@propagation_done.bind
+@ready_for_publish.bind
 def process_propagation_done(sender, **kwargs):
     '''
     Process propagation_done signal. This triggers the publishing of all events
     and products should the publishing conditions for these events and products
     are met.
     '''
-    site = sender_to_site(sender)
+    site = kwargs.get('site', None)
     if not site:
         return
     p.try_publish_all(site)
@@ -308,7 +316,7 @@ if __name__ == '__main__':
             p.publish_event(ev)
         elif options.site and options.prod:
             m = get_site_module(options.site)        
-            prod = m.Event.objects.get(key=options.prod)
+            prod = m.Product.objects.get(key=options.prod)
             p.publish_product(prod)
     elif options.mget:
         from pprint import pprint

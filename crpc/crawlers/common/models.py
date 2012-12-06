@@ -21,8 +21,8 @@ class BaseDocumentSkeleton(object):
     # url this collections' object have
     combine_url         =   StringField()
     num                 =   IntField()
-    image_urls          =   ListField(StringField())
-    image_path          =   ListField(StringField())
+    image_urls          =   ListField(StringField(), default=list)
+    image_path          =   ListField(StringField(), default=list)
     
     # text info
     slug                =   StringField()
@@ -86,7 +86,13 @@ class BaseEvent(Document, BaseDocumentSkeleton):
     favbuy_brand        =   ListField(StringField(), default=list)
     favbuy_tag          =   ListField(StringField(), default=list)
     favbuy_dept         =   ListField(StringField(), default=list)
+    lowest_price        =   StringField()
+    highest_price       =   StringField()
+    lowest_discount     =   StringField()
+    highest_discount    =   StringField()
 
+    muri                =   StringField()   # resource URL in mastiff
+    
     meta = {
         "allow_inheritance": True,
         "collection": "event",
@@ -158,8 +164,8 @@ class BaseProduct(Document):
     reviews             =   ListField(ReferenceField(BaseReview))
 
     # product images
-    image_urls          =   ListField(StringField())
-    image_path          =   ListField(StringField())
+    image_urls          =   ListField(StringField(), default=list)
+    image_path          =   ListField(StringField(), default=list)
 
     image_complete      =   BooleanField(default=False)
     brand_complete      =   BooleanField(default=False)
@@ -170,7 +176,10 @@ class BaseProduct(Document):
     favbuy_brand        =   StringField(default='')
     favbuy_tag          =   ListField(StringField(), default=list)
     favbuy_dept         =   ListField(StringField(), default=list)
+    favbuy_price        =   StringField()
 
+    muri                =   StringField()   # resource URL in mastiff
+    
     meta                =   {
         "allow_inheritance": True,
         "collection": "product",
@@ -208,6 +217,7 @@ class LuxuryProduct(BaseProduct):
     scarcity            =   StringField()
     list_info           =   ListField(StringField())
     
+    favbuy_listprice    =   StringField()
     
     meta                = {
         "indexes": ["soldout"],

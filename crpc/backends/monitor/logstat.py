@@ -34,7 +34,7 @@ def get_or_create_task(ctx):
 def stat_pre_general_update(sender, **kwargs):
     site, method, dummy = sender.split('.')
     try:
-        Task.objects(ctx=sender).update(set__site=site,
+        Task.objects(ctx=sender, status__ne=Task.FINISHED).update(set__site=site,
                                         set__method=method,
                                         set__status=Task.RUNNING,
                                         set__started_at=datetime.utcnow(),

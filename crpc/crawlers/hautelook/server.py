@@ -183,7 +183,12 @@ class Server(object):
             product.save()
             common_saved.send(sender=ctx, obj_type='Product', key=key, url=url, is_new=is_new, is_updated=is_updated)
 
-        event, is_new = Event.objects.get_or_create(event_id=event_id)
+        is_new, is_updated = False, False
+        event = Event.objects(event_id=event_id).first()
+        if not event:
+            is_new = True
+            event = Event(event_id=event_id)
+            common_failed.send(sender=ctx, key=event_id, url=event.combine_url, reason='event new in listing')
         if event.urgent == True:
             event.urgent = False
             ready = True

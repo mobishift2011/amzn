@@ -238,13 +238,15 @@ class Server(object):
         if not event: event = Event(event_id=event_id)
         if event.urgent == True:
             event.urgent = False
+            ready = True
+        else: ready = False
 
         # some page return 'event has ended', but actually not.I keep record it.
         if events_end: event.events_end = events_end
         if isinstance(page_nums, int): event.num = page_nums
         event.update_time = datetime.utcnow()
         event.save()
-        common_saved.send(sender=ctx, obj_type='Event', key=event_id, is_new=False, is_updated=False, ready=True)
+        common_saved.send(sender=ctx, obj_type='Event', key=event_id, is_new=False, is_updated=False, ready=ready)
 
 
     def crawl_every_product_in_listing(self, event_id, url, prd, ctx):

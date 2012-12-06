@@ -111,7 +111,7 @@ class UpdateContext(object):
     def __init__(self, site, method):
         self.site = site
         self.method = method
-        self.sender = "{0}.{1}.{2}".format(self.site, self.method, uuid.uuid4().hex)
+        self.sender = "{0}.{1}.{2}".format(self.site, self.method, uuid.uuid1().hex + uuid.uuid4().hex)
 
     def __enter__(self):
         pre_general_update.send(sender = self.sender,

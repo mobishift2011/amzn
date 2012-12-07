@@ -8,7 +8,6 @@ from gevent.coros import Semaphore
 from tools import ImageTool, Propagator
 from brandapi import Extracter
 from powers.events import *
-from powers.binds import *
 
 #process_image_lock = Semaphore(1)
 

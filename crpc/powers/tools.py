@@ -34,7 +34,7 @@ class ImageTool:
     # sudo ln -s /usr/lib/x86_64-linux-gnu/libjpeg.so ~/.virtualenvs/crpc/lib/
     # pip install PIL
     """
-    def __init__(self, s3conn=None, bucket_name=IMAGE_S3_BUCKET):
+    def __init__(self, s3conn=None, bucket_name=S3_IMAGE_BUCKET):
         self.__s3conn = s3conn or S3Connection(AWS_ACCESS_KEY, AWS_SECRET_KEY)
         try:
             bucket = self.__s3conn.get_bucket(bucket_name)
@@ -44,49 +44,61 @@ class ImageTool:
             else:
                 raise
         self.__key = Key(bucket)
-    
+        self.__image_path = []
+        self.__thumbnails = []
 
-    def crawl(self, image_urls=[], site=None, key=None):
-        print "%s.%s.images_crawling.start" % (site, key)
-        image_path = []
+    @property
+    def image_path(self):
+        return self.__image_path
+
+    @property
+    def thumbnails(self):
+        return self.__thumbnails
+  
+    def crawl(self, image_urls=[], site='', doctype='', key='', thumb=False):
+        self.__image_path = []
+        print "images crawling ---> {0}.{1}.{2}\n".format(site, doctype, key)
+
         for image_url in image_urls:
-            s3_url = self.grab(image_url, site, key, image_urls.index(image_url))
+            path, filename = os.path.split(image_url)
+            image_name = '%s_%s' % (image_urls.index(image_url), filename)
+            s3key= os.path.join(site, doctype, key, image_name)
+            self.__key.key = s3key
+
+            if self.__key.exists():
+                s3_url = '{0}/{1}'.format(S3_IMAGE_URL, self.__key.key)
+                print 'grab existing image from s3 ---> {0}\n'.format(s3_url)
+                self.__image_path.append(s3_url)
+                continue
+
+            image_content = self.download(image_url)
+            s3_url = self.upload2s3(StringIO(image_content), self.__key.key)
             if s3_url:
-                image_path.append(s3_url)
+                self.__image_path.append(s3_url)
             else:
-                image_path = []
+                self.__image_path = []
                 break
-        
-        print "%s.%s.images_crawling.end" % (site, key)
-        return image_path
-    
 
-    def grab(self, image_url, site=None, key=None, index=0):
-        path, filename = os.path.split(image_url)
-        image_name = '%s_%s_%s_%s' % (site, key, index, filename)
-        
-        image = requests.get(image_url).content
-        image_content = StringIO(image)
-        ret = ''
-        try:
-            # post image file to S3, and get back the url.
-            ret = self.upload2s3(image_content, os.path.join(site, image_name))
-        except:
-            print 's3 upload failed! %s' % image_name
+        if thumb:
+            thumbnail_size = self.thumbnail(doctype, StringIO(image_content), key)
+            self.__thumbnails.append(thumbnail_size)
+            pass
 
-        if index == 0:
-            # TODO add doctype
-            self.thumbnail('Product', StringIO(image), image_name)
-
-        return ret
-    
+    def download(self, image_url):
+        print 'downloading image ---> {0}'.format(image_url)
+        r = requests.get(image_url)
+        r.raise_for_status()
+        return r.content
 
     def upload2s3(self, image, key):
-        print "%s.upload2s3:" % (key)
+        print 'upload2s3 ---> {0}'.format(key)
         self.__key.key = key
         self.__key.set_contents_from_file(image)
-        return self.__key.generate_url(URL_EXPIRES_IN)
+        self.__key.make_public()
 
+        image_url = '{0}/{1}'.format(S3_IMAGE_URL, self.__key.key)
+        print 'generate s3 image url ---> {0}\n'.format(image_url)
+        return image_url
 
     def thumbnail(self, doctype, image, image_name):
         thumb_picts = {}
@@ -111,7 +123,6 @@ class ImageTool:
 
         return thumb_picts
 
-
     def resize(self, box, im):
         thumbnail = im.resize(box)
         tempfile = StringIO()
@@ -119,12 +130,10 @@ class ImageTool:
         tempfile.seek(0)
         return tempfile
 
-
     def resize_by_rate(self, rate, im):
         width, height = im.size
         size = tuple([int(i * rate) for i in im.size])
         return self.resize(size, im)
-
 
     def resize_by_crop(self, width=0, height=0, im=None):
         width_rate = 1.0 * width / im.size[0]
@@ -158,7 +167,6 @@ def parse_price(price):
     # $1,200.00
     # lowest_discount = 1-0.8
     # highest_discount = 1-0.4
-
 
 class Propagator(object):
     def __init__(self, site, event_id):
@@ -285,20 +293,34 @@ class Propagator(object):
         return self.event.propagation_complete
 
 
+def test_image():
+    url1 = 'http://cdn1.giltcdn.com/images/share/uploads/0000/0001/7209/172096646/orig.jpg'
+    url2 = 'http://cdn1.giltcdn.com/images/share/uploads/0000/0001/7212/172129909/orig.jpg'
+    url3 = 'http://cdn1.giltcdn.com/images/share/uploads/0000/0001/7212/172126886/orig.jpg'
+    url4 = 'http://cdn1.giltcdn.com/images/share/uploads/0000/0001/7215/172150826/orig.jpg'
+    it = ImageTool()
+    it.crawl([url1, url2], 'gilt', 'event', 'abc123', thumb=False)
+    print 'image path ---> {0}'.format(it.image_path)
+    print 'thumbnails ---> {0}\n'.format(it.thumbnails)
+    it.crawl([url3, url4], 'gilt', 'product', '123456', thumb=False)
+    print 'image path ---> {0}'.format(it.image_path)
+    print 'thumbnails ---> {0}\n'.format(it.thumbnails)
+
 def test_propagate(site, event_id):
     p = Propagator(site, event_id)
     p.propogate()
+
 
 if __name__ == '__main__':
     pass
 
     import time, sys
     start = time.time()
-    # url = ''
-    # image_content = StringIO(requests.get(url).content)
-    # it = ImageTool()
-    # thum_picts = it.thumbnail('Product', image_content, 'lala')
-    # print thum_picts
-    test_propagate(sys.argv[1], sys.argv[2]),
-
+    if len(sys.argv) > 1:
+        if sys.argv[1] == '-i':
+            f = test_image
+            f()
+        elif sys.argv[1] == '-p':
+            f = test_propagate
+            f()
     print time.time() - start, 's'

@@ -13,20 +13,25 @@ from powers.events import *
 
 class PowerServer(object):
     def process_image(self, args=(), kwargs={}):
-        print 'accept', args, kwargs
+        print 'Image Server Accept', args, kwargs
         return self._process_image(*args, **kwargs)
     
     def _process_image(self, site, image_urls, ctx, doctype,  **kwargs):
         """ doctype is either ``event`` or ``product`` """
         key = kwargs.get('event_id', kwargs.get('key'))
         m = __import__("crawlers."+site+'.models', fromlist=['Event', 'Product'])
+
         image_tool = ImageTool()
-        image_path = ['http://2e.zol-img.com.cn/product/97_120x90/500/ce7Raw2CJmTnk.jpg'] # TODO image_tool.crawl(image_urls, site, key)
+        image_tool.crawl(image_urls, site, doctype, key, thumb=False)
+        image_path = image_tool.image_path
+
+        # image_tool = ImageTool()
+        # image_path = ['http://2e.zol-img.com.cn/product/97_120x90/500/ce7Raw2CJmTnk.jpg'] # TODO image_tool.crawl(image_urls, site, doctype, key)
         if len(image_path):
-            if doctype == 'event':
-                m.Event.objects(event_id=key).update(set__image_path=image_path)
-            elif doctype == 'product':
-                m.Product.objects(key=key).update(set__image_path=image_path)
+            if doctype.capitalize() == 'Event':
+                m.Event.objects(event_id=key).update(set__image_path=image_path, set__image_complete=True)
+            elif doctype.capitalize() == 'Product':
+                m.Product.objects(key=key).update(set__image_path=image_path, set__image_complete=True)
             image_crawled.send(sender=ctx, site=site, key=key, model=doctype.capitalize(), num=len(image_path))
         else:
             # TODO image_crawled_failed or need try except
@@ -48,7 +53,6 @@ class PowerServer(object):
         crawled_brand = kwargs.get('brand', '')
 
         #TO REMOVE
-        import time
         # print site,' ' + doctype + ' ',  key + ' ', 'brand-<'+crawled_brand+'>  ',  'title-<'+ kwargs.get('title', ' ') +'>'+ ':'
         
         m = __import__('crawlers.'+site+'.models', fromlist=[doctype])

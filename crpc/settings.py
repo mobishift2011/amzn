@@ -12,6 +12,7 @@ envs = {
         'ENV_NAME': "crpc", 
         'CRAWLER_PORT': 1234,
         'POWER_PORT': 1235,
+        'MASTIFF_HOST': "http://localhost:8001/api/v1"
     },
     'DEV': {
         'CRAWLER_PEERS': ['root@127.0.0.1'],
@@ -62,6 +63,14 @@ envs = {
         'USE_INDEX': '',
         'MONGODB_HOST': '10.252.41.239',
         'REDIS_HOST': '10.252.41.239',
+    },
+    'INTEG': {
+        'CRAWLER_PEERS': ['deploy@127.0.0.1'],
+        'POWER_PEERS': ['deploy@127.0.0.1'],
+        # 'PUBLISH_PEERS': ['deploy@127.0.0.1'], #  TODO
+        'USE_INDEX': '',
+        'MONGODB_HOST': '127.0.0.1',
+        'REDIS_HOST': '127.0.0.1',
     },
 }
 

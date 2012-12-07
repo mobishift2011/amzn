@@ -39,7 +39,7 @@ class Server(object):
         return self.__is_auth
     
     def login(self):
-        accounts = (('ethan@favbuy.com', '200591qq'), ('huanzhu@favbuy.com', 'abcd1234'))
+        accounts = (('ethan@favbuy.com', '200591qq'), ('2012luxurygoods@gmail.com', 'abcd1234'))
         email, password = random.choice(accounts)
         
         url = 'https://us.venteprivee.com/api/membership/signin'

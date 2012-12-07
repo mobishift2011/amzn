@@ -16,7 +16,7 @@ from gevent.coros import Semaphore
 
 __lock = Semaphore(1)
 
-login_email = 'huanzhu@favbuy.com'
+login_email = '2012luxurygoods@gmail.com'
 login_passwd = 'abcd1234'
 
 headers = { 

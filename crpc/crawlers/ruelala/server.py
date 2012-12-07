@@ -25,7 +25,7 @@ headers = {
     'Host': 'www.ruelala.com',
     'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:16.0) Gecko/20100101 Firefox/16.0',
     'Referer': 'http://www.ruelala.com/event',
-    'Cookie': 'X-CCleaned=1; optimizelyEndUserId=oeu1349667187777r0.2759982226275626; optimizelyBuckets=%7B%7D; CoreID6=87382265939413496671878&ci=90210964; userEmail=huanzhu@favbuy.com; optimizelySegments=%7B%7D; symfony=k403lo7sq5qmbfg9t0nj4gips2; aid=1001; NSC_SVF_QPPM_BMM_OPDBDIF=ffffffff096c9d3e45525d5f4f58455e445a4a423660',
+    'Cookie': 'Cookie: X-CCleaned=1; optimizelyEndUserId=oeu1349667187777r0.2759982226275626; optimizelyBuckets=%7B%7D; CoreID6=87382265939413496671878&ci=90210964; userEmail=2012luxurygoods@gmail.com; optimizelySegments=%7B%7D; symfony=k403lo7sq5qmbfg9t0nj4gips2; NSC_SVF_QPPM_BMM_OPDBDIF=ffffffff096c9d3e45525d5f4f58455e445a4a423660; aid=1001; Liberty.QuickBuy.canQuickBuy=0; NSC_SVF_QPPM_BMM=ffffffff096c9d3d45525d5f4f58455e445a4a423660; pgts=1354886699; cmTPSet=Y; 90210964_clogin=l=1354886702&v=1&e=1354888531361; cmRS=&t1=1354886702285&t2=1354886703890&t3=1354886731359&fti=1354886731359&fn=loginHome%3A0%3B&ac=0:S&fd=0%3A1%3Apassword%3B0%3A1%3Apassword%3B0%3A4%3A%3B&uer=&fu=https%3A//www.ruelala.com/registration/login&pi=Access%20%3A%20Home&ho=data.coremetrics.com/cm%3F&ci=90210964&ul=http%3A//www.ruelala.com/access%3Fcm_mmc%3DDirect%2520to%2520Site-_-RueLaLa%2520Top%2520Level-_-RueLaLa%2520Primary_-_-NA&rf=http%3A//www.ruelala.com/event&cjen=1',
 }
 
 req = requests.Session(prefetch=True, timeout=30, config=config, headers=headers)

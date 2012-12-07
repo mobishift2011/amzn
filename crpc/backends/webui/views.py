@@ -13,7 +13,7 @@ def mark_all_failed():
         .update(set__status=Task.FAILED, push__fails=fail(t.site, t.method, '', '', 'Monitor Restart'), inc__num_fails=1)
 
 def task_all_tasks(offset=0, limit=50):
-    tasks = Task.objects(updated_at__gt=datetime.utcnow()-timedelta(seconds=3600*24*7)).order_by('-updated_at')[offset:offset+limit]
+    tasks = Task.objects(updated_at__gt=datetime.utcnow()-timedelta(seconds=3600*24*3)).order_by('-updated_at')[offset:offset+limit]
     return {"tasks":[t.to_json() for t in tasks]}
 
 def task_updates():

@@ -16,6 +16,8 @@ from gevent.coros import Semaphore
 
 __lock = Semaphore(1)
 
+exclude_crawlers = ['common', 'ecost', 'bhphotovideo', 'bestbuy', 'dickssport', 'overstock', 'cabelas']
+
 login_email = '2012luxurygoods@gmail.com'
 login_passwd = 'abcd1234'
 

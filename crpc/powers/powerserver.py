@@ -60,12 +60,12 @@ class PowerServer(object):
                 m.Product.objects(key=key).update(set__favbuy_brand=brand, set__brand_complete=True)
 
                 kwargs['favbuy_brand'] = brand
-                brand_extracted.send('%s_%s_%s_brand' % (site, doctype, key), **kwargs)
+                # brand_extracted.send('%s_%s_%s_brand' % (site, doctype, key), **kwargs)
         else:
             if doctype == 'Product':
                 m.Product.objects(key=key).update(set__brand_complete=False)
                 
-                brand_extracted_failed.send('%s_%s_%s_brand' % (site, doctype, key), **kwargs)
+                # brand_extracted_failed.send('%s_%s_%s_brand' % (site, doctype, key), **kwargs)
 
     def propagate(self, args=(), kwargs={}):
         site = kwargs.get('site')

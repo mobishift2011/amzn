@@ -24,7 +24,7 @@ class BaseServer(object):
 
     """
     siteurl = ''
-    email = 'huanzhu@favbuy.com'
+    email = '2012luxurygoods@gmail.com'
     passwd = 'abcd1234'
     session = requests.session()
     session.headers = {'Accept-Encoding': 'identity, deflate, compress, gzip',

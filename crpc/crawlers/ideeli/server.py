@@ -149,7 +149,12 @@ class Server(object):
         if content is None or isinstance(content, int):
             common_failed.send(sender=ctx, key='', url=url,
                     reason='download listing page failed: {0}'.format(content))
-        data = json.loads(content)['colors']
+        try:
+            data = json.loads(content)['colors']
+        except ValueError:
+            content = self.net.fetch_page( url )
+            data = json.loads(content)['colors']
+            
         for d in data:
             key = str(d[0])
             soldout = not d[1]['available']

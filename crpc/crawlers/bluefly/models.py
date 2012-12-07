@@ -9,7 +9,7 @@ Implements Product and Category Model for Amazon
 DB = 'bluefly'
 from settings import MONGODB_HOST
 from mongoengine import *
-connect(db=DB, alias=DB, host=MONGODB_HOST, connecttimeoutms=1e10)
+connect(db=DB, alias=DB, host=MONGODB_HOST)
 from crawlers.common.models import BaseCategory, BaseProduct, BaseReview, LuxuryProduct
 
 class Category(BaseCategory):

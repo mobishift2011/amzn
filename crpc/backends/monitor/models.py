@@ -7,7 +7,7 @@ from mongoengine import signals
 from datetime import datetime, timedelta
 
 DB = "monitor"
-connect(db=DB, alias=DB, host=MONGODB_HOST, connecttimeoutms=1e10, max_pool_size=50)
+connect(db=DB, alias=DB, host=MONGODB_HOST, max_pool_size=50)
 
 def fail(site, method, key='', url='', message="undefined"):
     f = Fail(site=site, method=method, key=key, url=url, message=message)

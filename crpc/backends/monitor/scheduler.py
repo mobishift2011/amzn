@@ -8,7 +8,7 @@ from gevent import monkey; monkey.patch_all()
 import gevent
 
 from backends.monitor.models import Schedule, Task
-from crawlers.common.routine import new, update, new_category, new_listing, new_product, update_category, update_listing, update_product #update_category, update_listing, update_product, update_listing_update
+from crawlers.common.routine import new, update, new_category, new_listing, new_product, update_category, update_listing, update_product
 
 import zerorpc
 from datetime import datetime, timedelta
@@ -51,7 +51,8 @@ class Scheduler(object):
                 for s in self.get_schedules():
                     if s.timematch():
                         execute(s.site, s.method)
-                gevent.sleep(60)
+                # assume this for loop can be finished in less than one minute
+                gevent.sleep(60 - datetime.utcnow().second)
                 gevent.spawn(delete_expire_task)
             except Exception as e:
                 with open('/tmp/schedule.log', 'a') as fd:

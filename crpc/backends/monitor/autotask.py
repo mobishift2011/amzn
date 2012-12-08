@@ -101,3 +101,13 @@ def autotask():
                         smethod_time[k].remove(update_time)
                 else: break
 
+def avoid_cold_start():
+    """.. :py:method::
+        1. If all the system is no ever running, we need run them when the system started.
+        2. If this process is broke, nothing in the memory kept, maybe the new upcoming all lost,
+            we don't know whether the site have new events or products on sale.
+        Need to crawl all the system first.
+    """
+    crawlers = get_ordinary_crawlers()
+    for crawler_name in crawlers:
+        execute(crawler_name, 'new')

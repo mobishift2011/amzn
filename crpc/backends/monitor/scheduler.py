@@ -10,12 +10,12 @@ import zerorpc
 from functools import partial
 from datetime import datetime, timedelta
 
-from crawlers.common.routine import new, update, new_category, new_listing, new_product, update_category, update_listing, update_product
+from crawlers.common.routine import new, new_thrice, update, new_category, new_listing, new_product, update_category, update_listing, update_product
 from helpers.rpc import get_rpcs
 from settings import CRAWLER_PEERS, CRAWLER_PORT
 from backends.monitor.models import Schedule, Task
 from backends.monitor.throttletask import task_already_running, task_completed, task_broke_completed
-from backends.monitor.autotask import schedule_auto_new_task, schedule_auto_update_task, autotask
+from backends.monitor.autotask import schedule_auto_new_task, schedule_auto_update_task, autotask, avoid_cold_start
 from .setting import EXPIRE_MINUTES
 
 
@@ -46,12 +46,15 @@ class Scheduler(object):
         return Schedule.objects(enabled=True) 
 
     def run(self):
+        gevent.spawn(avoid_cold_start)
         gevent.spawn(schedule_auto_new_task)
         gevent.spawn(schedule_auto_update_task)
 
         while True:
             try:
                 autotask()
+
+                # keep the old crond system
                 for s in self.get_schedules():
                     if s.timematch():
                         execute(s.site, s.method)

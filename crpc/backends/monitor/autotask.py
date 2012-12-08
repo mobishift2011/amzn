@@ -86,8 +86,7 @@ def autotask():
             smethod_time[k] = set(sorted(v))
             for new_time in smethod_time[k]:
                 if new_time <= _utcnow:
-                    # TODO new thrice
-                    execute(site, method)
+                    execute(site, 'new_thrice')
                     smethod_time[k].remove(new_time)
                 else: break
 

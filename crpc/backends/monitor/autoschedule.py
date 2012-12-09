@@ -14,6 +14,7 @@ from backends.monitor.throttletask import task_already_running, task_completed
 
 from crawlers.common.stash import get_ordinary_crawlers
 from backends.monitor.organizetask import smethod_time
+from backends.monitor.setting import EXPIRE_MINUTES
 
 def execute(site, method):
     """ execute CrawlerServer function
@@ -33,6 +34,7 @@ def avoid_cold_start():
     crawlers = get_ordinary_crawlers()
     for crawler_name in crawlers:
         execute(crawler_name, 'new')
+        gevent.sleep(EXPIRE_MINUTES * 60)
 
 
 def auto_schedule():

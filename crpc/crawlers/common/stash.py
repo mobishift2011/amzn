@@ -8,13 +8,17 @@ crawler.common.stash
 This module is a common function collections used by all the crawlers.
 
 """
-import requests
 import re
+import os
 import pytz
+import requests
 from datetime import datetime
 from gevent.coros import Semaphore
+from settings import CRPC_ROOT
 
 __lock = Semaphore(1)
+
+exclude_crawlers = ['common', 'amazon', 'newegg', 'ecost', 'bhphotovideo', 'bestbuy', 'dickssport', 'overstock', 'cabelas']
 
 login_email = '2012luxurygoods@gmail.com'
 login_passwd = 'abcd1234'
@@ -28,6 +32,18 @@ config = {
     'pool_maxsize': 10, 
 }
 request = requests.Session(prefetch=True, timeout=30, config=config, headers=headers)
+
+
+def get_ordinary_crawlers():
+    """.. :py:method::
+        get ordinary crawlers from directory of CRPC_ROOT/crawlers/
+    """
+    crawlers = []
+    for crawler_name in os.listdir( os.path.join(CRPC_ROOT, 'crawlers') ):
+        path = os.path.join(CRPC_ROOT, 'crawlers', crawler_name)
+        if crawler_name not in exclude_crawlers and os.path.isdir(path):
+            crawlers.append(crawler_name)
+    return crawlers
 
 
 def progress(msg='.'):

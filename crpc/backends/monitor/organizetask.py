@@ -23,9 +23,9 @@ def detect_upcoming_new_schedule():
     dbs = conn.database_names()
     for crawler_name in get_ordinary_crawlers():
         if crawler_name in dbs:
-            collections = conn.crawler_name.collection_names()
+            collections = conn[crawler_name].collection_names()
             if 'event' in collections:
-                upcoming_events = conn.crawler_name.event.find({'events_begin': {'$gte': datetime.utcnow()}}, fields=['events_begin'])
+                upcoming_events = conn[crawler_name].event.find({'events_begin': {'$gte': datetime.utcnow()}}, fields=['events_begin'])
                 events_begin = set( [e['events_begin'] for e in upcoming_events] )
                 for begin in events_begin:
                     smethod_time['{0}.new'.format(crawler_name)].add(begin)

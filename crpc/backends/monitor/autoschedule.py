@@ -63,4 +63,3 @@ def auto_schedule():
                         smethod_time[k].remove(update_time)
                 else: break
 
-avoid_cold_start()

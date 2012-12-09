@@ -38,6 +38,8 @@ class Scheduler(object):
         gevent.spawn(avoid_cold_start)
         gevent.spawn(organize_new_task)
         gevent.spawn(organize_update_task)
+        # TODO I have already monkey.patch_all(), why need a sleep
+        gevent.sleep(EXPIRE_MINUTES * 60)
 
         while True:
             try:
@@ -49,6 +51,7 @@ class Scheduler(object):
                         execute(s.site, s.method)
 
                 # assume this for loop can be finished in less than one minute
+                print datetime.utcnow().second
                 gevent.sleep(60 - datetime.utcnow().second)
                 gevent.spawn(delete_expire_task)
             except Exception as e:

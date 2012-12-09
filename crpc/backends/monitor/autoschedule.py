@@ -5,6 +5,7 @@
 from gevent import monkey; monkey.patch_all()
 import gevent
 from functools import partial
+from datetime import datetime
 
 from helpers.rpc import get_rpcs
 from settings import CRAWLER_PEERS, CRAWLER_PORT
@@ -42,7 +43,7 @@ def auto_schedule():
         If 'new' or 'update' already running, all the expire task will try to execute, but failed,
         then removed from the smethod_time. This can avoid too long set() in smethod_time.
     """
-    _utcnow = datetine.utcnow()
+    _utcnow = datetime.utcnow()
 
     for k, v in smethod_time.iteritems():
         site, method = k.split('.')

@@ -3,11 +3,16 @@
 # Author: bishop Liu <miracle (at) gmail.com>
 
 from gevent import monkey; monkey.patch_all()
+import gevent
 from functools import partial
+
+from helpers.rpc import get_rpcs
+from settings import CRAWLER_PEERS, CRAWLER_PORT
+from crawlers.common.routine import new, new_thrice, update, new_category, new_listing, new_product, update_category, update_listing, update_product
+from backends.monitor.throttletask import task_already_running, task_completed
 
 from crawlers.common.stash import get_ordinary_crawlers
 from backends.monitor.organizetask import smethod_time
-from backends.monitor.throttletask import task_already_running, task_completed
 
 def execute(site, method):
     """ execute CrawlerServer function
@@ -42,7 +47,7 @@ def auto_schedule():
     for k, v in smethod_time.iteritems():
         site, method = k.split('.')
         if method == 'new':
-            for new_time in sorted(v)
+            for new_time in sorted(v):
                 if new_time <= _utcnow:
                     execute(site, 'new_thrice')
                     smethod_time[k].remove(new_time)
@@ -58,3 +63,4 @@ def auto_schedule():
                         smethod_time[k].remove(update_time)
                 else: break
 
+avoid_cold_start()

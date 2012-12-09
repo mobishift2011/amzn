@@ -3,13 +3,14 @@
 # Author: bishop Liu <miracle (at) gmail.com>
 
 from gevent import monkey; monkey.patch_all()
+import gevent
 import pymongo
 import collections
 import random
 from datetime import datetime, timedelta
 
 from settings import MONGODB_HOST
-from .setting import UPCOMING_EVENTS_DETECT_INTERVAL, UPDATE_ALL_SITES_INTERVAL
+from backends.monitor.setting import UPCOMING_EVENTS_DETECT_INTERVAL, UPDATE_ALL_SITES_INTERVAL
 from crawlers.common.stash import get_ordinary_crawlers
 
 smethod_time = collections.defaultdict(set)
@@ -55,3 +56,4 @@ def organize_update_task():
     while True:
         arrange_update_schedule()
         gevent.sleep(UPDATE_ALL_SITES_INTERVAL * 60)
+

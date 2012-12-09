@@ -9,15 +9,11 @@ import gevent
 import zerorpc
 from datetime import datetime, timedelta
 
-from crawlers.common.routine import new, new_thrice, update, new_category, new_listing, new_product, update_category, update_listing, update_product
-from helpers.rpc import get_rpcs
-from settings import CRAWLER_PEERS, CRAWLER_PORT
 from backends.monitor.models import Schedule, Task
 from backends.monitor.throttletask import task_broke_completed
 from backends.monitor.autoschedule import execute, avoid_cold_start, auto_schedule
 from backends.monitor.organizetask import organize_new_task, organize_update_task
-from .setting import EXPIRE_MINUTES
-
+from backends.monitor.setting import EXPIRE_MINUTES
 
 
 def delete_expire_task(expire_minutes=EXPIRE_MINUTES):
@@ -59,3 +55,5 @@ class Scheduler(object):
                 with open('/tmp/schedule.log', 'a') as fd:
                     fd.write(str(e) + '\n\n\n')
 
+if __name__ == '__main__':
+    Scheduler().run()

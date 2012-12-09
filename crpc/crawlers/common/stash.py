@@ -18,7 +18,7 @@ from settings import CRPC_ROOT
 
 __lock = Semaphore(1)
 
-exclude_crawlers = ['common', 'ecost', 'bhphotovideo', 'bestbuy', 'dickssport', 'overstock', 'cabelas']
+exclude_crawlers = ['common', 'amazon', 'ecost', 'bhphotovideo', 'bestbuy', 'dickssport', 'overstock', 'cabelas']
 
 login_email = '2012luxurygoods@gmail.com'
 login_passwd = 'abcd1234'

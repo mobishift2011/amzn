@@ -1,4 +1,4 @@
-from scheduler import execute
+from autoschedule import execute
 
 import time
 execute('hautelook', 'update_category')

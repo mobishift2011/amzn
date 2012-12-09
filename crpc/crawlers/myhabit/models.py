@@ -13,7 +13,7 @@ from crawlers.common.models import BaseEvent, LuxuryProduct
 from mongoengine import *
 from settings import MONGODB_HOST
 DB = 'myhabit'
-connect(db=DB, alias='myhabit', host=MONGODB_HOST, connecttimeoutms=1e10)
+connect(db=DB, alias='myhabit', host=MONGODB_HOST)
 
 class Event(BaseEvent):
     """ override them everytime

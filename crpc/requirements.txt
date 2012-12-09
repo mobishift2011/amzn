@@ -18,8 +18,8 @@ mock==1.0.0
 mongoengine==0.7.5
 msgpack-python==0.2.2
 pycrypto==2.6
-pymongo==2.3
-pytz==2012f
+pymongo>=2.4.1
+pytz>=2012f
 pyzmq==2.2.0.1
 pyzmq-static==2.2
 redis==2.7.1

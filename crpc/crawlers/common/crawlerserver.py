@@ -12,6 +12,7 @@ from settings import CRAWLER_PORT, CRPC_ROOT, MONGODB_HOST
 from os import listdir
 from os.path import join, abspath, dirname, isdir
 from helpers import log
+from crawlers.common.stash import exclude_crawlers
         
 import lxml.html
 import requests
@@ -36,12 +37,11 @@ class CrawlerServer(object):
     -  a class named "Server" must exists in that file
     """
     def __init__(self):
-        excludes = ['common', 'ecost', 'bhphotovideo', 'bestbuy', 'dickssport', 'overstock', 'cabelas']
         self.logger = log.getlogger("crawlers.common.rpcserver.CrawlerServer")
         self.crawlers = {}
         for name in listdir(join(CRPC_ROOT, "crawlers")):
             path = join(CRPC_ROOT, "crawlers", name)
-            if name not in excludes and isdir(path):
+            if name not in exclude_crawlers and isdir(path):
                 service = self.get_service(name)
                 if service:
                     self.crawlers[name] = service

@@ -14,7 +14,7 @@ from crawlers.common.models import BaseCategory, BaseEvent, LuxuryProduct
 from mongoengine import *
 from settings import MONGODB_HOST
 DB = 'onekingslane'
-connect(db=DB, alias=DB, host=MONGODB_HOST, connecttimeoutms=1e10)
+connect(db=DB, alias=DB, host=MONGODB_HOST)
 
 class Category(BaseCategory):
     key = StringField(unique=True)

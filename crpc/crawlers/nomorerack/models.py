@@ -12,7 +12,7 @@ from crawlers.common.models import BaseCategory, BaseProduct, BaseReview, Luxury
 from mongoengine import *
 from settings import MONGODB_HOST
 DB = 'nomorerack'
-connect(db=DB, alias=DB, host=MONGODB_HOST, connecttimeoutms=1e10)
+connect(db=DB, alias=DB, host=MONGODB_HOST)
 
 class Category(BaseCategory):
     key = StringField(unique=True)

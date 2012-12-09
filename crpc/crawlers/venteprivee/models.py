@@ -16,7 +16,7 @@ import requests
 from mongoengine import *
 from settings import MONGODB_HOST, CRAWLER_PORT
 DB = 'venteprivee'
-connect(db=DB, alias=DB, host=MONGODB_HOST, connecttimeoutms=1e10)
+connect(db=DB, alias=DB, host=MONGODB_HOST)
 
 
 class Event(BaseEvent):

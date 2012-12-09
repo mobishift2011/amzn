@@ -7,24 +7,17 @@ Scheduler: runs crawlers in background
 from gevent import monkey; monkey.patch_all()
 import gevent
 import zerorpc
-from functools import partial
 from datetime import datetime, timedelta
 
 from crawlers.common.routine import new, new_thrice, update, new_category, new_listing, new_product, update_category, update_listing, update_product
 from helpers.rpc import get_rpcs
 from settings import CRAWLER_PEERS, CRAWLER_PORT
 from backends.monitor.models import Schedule, Task
-from backends.monitor.throttletask import task_already_running, task_completed, task_broke_completed
-from backends.monitor.autoschedule import schedule_auto_new_task, schedule_auto_update_task, auto_schedule, avoid_cold_start
+from backends.monitor.throttletask import task_broke_completed
+from backends.monitor.autoschedule import execute, avoid_cold_start, auto_schedule
+from backends.monitor.organizetask import organize_new_task, organize_update_task
 from .setting import EXPIRE_MINUTES
 
-
-def execute(site, method):
-    """ execute CrawlerServer function
-    """
-    if not task_already_running(site, method):
-        gevent.spawn(globals()[method], site, get_rpcs(CRAWLER_PEERS, CRAWLER_PORT), concurrency=10) \
-                .rawlink(partial(task_completed, site=site, method=method))
 
 
 def delete_expire_task(expire_minutes=EXPIRE_MINUTES):
@@ -47,8 +40,8 @@ class Scheduler(object):
 
     def run(self):
         gevent.spawn(avoid_cold_start)
-        gevent.spawn(schedule_auto_new_task)
-        gevent.spawn(schedule_auto_update_task)
+        gevent.spawn(organize_new_task)
+        gevent.spawn(organize_update_task)
 
         while True:
             try:

@@ -15,7 +15,7 @@ from helpers.rpc import get_rpcs
 from settings import CRAWLER_PEERS, CRAWLER_PORT
 from backends.monitor.models import Schedule, Task
 from backends.monitor.throttletask import task_already_running, task_completed, task_broke_completed
-from backends.monitor.autotask import schedule_auto_new_task, schedule_auto_update_task, autotask, avoid_cold_start
+from backends.monitor.autoschedule import schedule_auto_new_task, schedule_auto_update_task, auto_schedule, avoid_cold_start
 from .setting import EXPIRE_MINUTES
 
 
@@ -52,7 +52,7 @@ class Scheduler(object):
 
         while True:
             try:
-                autotask()
+                auto_schedule()
 
                 # keep the old crond system
                 for s in self.get_schedules():

@@ -58,7 +58,7 @@ def schedule_auto_update_task():
         arrange_update_schedule()
         gevent.sleep(UPDATE_ALL_SITES_INTERVAL * 60)
 
-def autotask():
+def auto_schedule():
     """.. :py:method::
         According to the order of demand, execute 'new' method first, 'update' maybe blocked for some turns.
         This way looks like 'new' have higher priority than 'update'.

@@ -51,7 +51,7 @@ def auto_schedule():
         site, method = k.split('.')
         if method == 'new':
             for new_time in sorted(v):
-                if new_time <= _utcnow:
+                if new_time < _utcnow: # new need to plus 1 minute, so only less than
                     execute(site, 'new_thrice')
                     smethod_time[k].remove(new_time)
                 else: break

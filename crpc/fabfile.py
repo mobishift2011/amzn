@@ -91,7 +91,7 @@ def stop():
 
 def start():
     """ start remote executions """
-    execute(_start_xvfb)
+#    execute(_start_xvfb)
     execute(_start_crawler)
     execute(_start_power)
     execute(_start_monitor)

@@ -22,12 +22,10 @@ class PowerServer(object):
         m = __import__("crawlers."+site+'.models', fromlist=['Event', 'Product'])
 
         image_tool = ImageTool()
-        image_tool.crawl(image_urls, site, doctype, key, thumb=False)
+        image_tool.crawl(image_urls, site, doctype, key, thumb=True)
         image_path = image_tool.image_path
 
-        # image_tool = ImageTool()
-        # image_path = ['http://2e.zol-img.com.cn/product/97_120x90/500/ce7Raw2CJmTnk.jpg'] # TODO image_tool.crawl(image_urls, site, doctype, key)
-        if len(image_path):
+        if image_tool.image_complete:
             if doctype.capitalize() == 'Event':
                 m.Event.objects(event_id=key).update(set__image_path=image_path, set__image_complete=True)
             elif doctype.capitalize() == 'Product':

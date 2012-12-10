@@ -45,7 +45,12 @@ class ImageTool:
                 raise
         self.__key = Key(bucket)
         self.__image_path = []
-        self.__thumbnails = []
+        self.__thumbnail_complete = False
+        self.__image_complete = False
+
+    @property
+    def image_complete(self):
+        return self.__image_complete
 
     @property
     def image_path(self):
@@ -56,33 +61,37 @@ class ImageTool:
         return self.__thumbnails
   
     def crawl(self, image_urls=[], site='', doctype='', key='', thumb=False):
-        self.__image_path = []
         print "images crawling ---> {0}.{1}.{2}\n".format(site, doctype, key)
 
         for image_url in image_urls:
             path, filename = os.path.split(image_url)
-            image_name = '%s_%s' % (image_urls.index(image_url), filename)
+            index = image_urls.index(image_url)
+            image_name = '%s_%s' % (index, filename)
             s3key= os.path.join(site, doctype, key, image_name)
             self.__key.key = s3key
 
             if self.__key.exists():
+                image_content = None
                 s3_url = '{0}/{1}'.format(S3_IMAGE_URL, self.__key.key)
                 print 'grab existing image from s3 ---> {0}\n'.format(s3_url)
                 self.__image_path.append(s3_url)
-                continue
-
-            image_content = self.download(image_url)
-            s3_url = self.upload2s3(StringIO(image_content), self.__key.key)
-            if s3_url:
-                self.__image_path.append(s3_url)
             else:
-                self.__image_path = []
-                break
+                image_content = self.download(image_url)
+                s3_url = self.upload2s3(StringIO(image_content), self.__key.key)
+                if s3_url:
+                    self.__image_path.append(s3_url)
+                else:
+                    self.__image_complete = False
+                    return
 
-        if thumb:
-            thumbnail_size = self.thumbnail(doctype, StringIO(image_content), key)
-            self.__thumbnails.append(thumbnail_size)
-            pass
+            if thumb:
+                if doctype.capitalize() == 'Product' or \
+                    (doctype.capitalize() == 'Event' and index == 0):
+                        if not image_content:
+                            image_content = self.download(image_url)
+                        self.thumbnail(doctype, StringIO(image_content), self.__key.key)
+
+        self.__image_complete = self.__thumbnail_complete if thumb else True
 
     def download(self, image_url):
         print 'downloading image ---> {0}'.format(image_url)
@@ -101,7 +110,6 @@ class ImageTool:
         return image_url
 
     def thumbnail(self, doctype, image, image_name):
-        thumb_picts = {}
         im = Image.open(image)
         for size in IMAGE_SIZE[doctype.capitalize()]:
             width = size.get('width')
@@ -112,16 +120,22 @@ class ImageTool:
             height_rate = 1.0 * height / im.size[1]
             rate = max(width_rate, height_rate)
 
-            print 'thumbnail %s with size width: %s, heigh: %s' % (im.size, width, height)           
-            pict = self.resize_by_rate(rate, im) \
-                    if fluid == True or width == 0 or height == 0 \
-                        else self.resize_by_crop(width=width, height=height, im=im)
+            print 'thumbnail %s to size ---> (%s, %s)' % (im.size, width, height)
+            path, name = os.path.split(image_name)
+            thumb_name = '%sx%s_%s' % (width, height, name)
+            key = os.path.join(path, thumb_name)
+            self.__key.key = key
 
-            thumbnail_url = self.upload2s3(pict, '%sx%s_%s' % (width, height, image_name))
-            if thumbnail_url:
-                thumb_picts['%sx%s' % (width, height)] = thumbnail_url
-
-        return thumb_picts
+            if self.__key.exists():
+                s3_url = '{0}/{1}'.format(S3_IMAGE_URL, self.__key.key)
+                print 'thumbnail already exists on s3 ---> {0}\n'.format(s3_url)
+            else:      
+                thumb_pict = self.resize_by_rate(rate, im) \
+                        if fluid == True or width == 0 or height == 0 \
+                            else self.resize_by_crop(width=width, height=height, im=im)
+                self.upload2s3(thumb_pict, self.__key.key)
+        
+        self.__thumbnail_complete = True
 
     def resize(self, box, im):
         thumbnail = im.resize(box)
@@ -299,12 +313,14 @@ def test_image():
     url3 = 'http://cdn1.giltcdn.com/images/share/uploads/0000/0001/7212/172126886/orig.jpg'
     url4 = 'http://cdn1.giltcdn.com/images/share/uploads/0000/0001/7215/172150826/orig.jpg'
     it = ImageTool()
-    it.crawl([url1, url2], 'gilt', 'event', 'abc123', thumb=False)
+    it.crawl([url1, url2], 'venteprivee', 'event', 'abc123', thumb=True)
     print 'image path ---> {0}'.format(it.image_path)
-    print 'thumbnails ---> {0}\n'.format(it.thumbnails)
-    it.crawl([url3, url4], 'gilt', 'product', '123456', thumb=False)
+    print 'complete ---> {0}\n'.format(it.image_complete)
+
+    it = ImageTool()
+    it.crawl([url3, url4], 'venteprivee', 'product', '123456', thumb=True)
     print 'image path ---> {0}'.format(it.image_path)
-    print 'thumbnails ---> {0}\n'.format(it.thumbnails)
+    print 'complete ---> {0}\n'.format(it.image_complete)
 
 def test_propagate(site, event_id):
     p = Propagator(site, event_id)

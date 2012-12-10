@@ -87,12 +87,14 @@ def stop():
     execute(_stop_crawler)
     execute(_stop_power)
     execute(_stop_monitor)
+    execute(_stop_publish)
 
 def start():
     """ start remote executions """
     execute(_start_crawler)
     execute(_start_power)
     execute(_start_monitor)
+    execute(_start_publish)
 
 def restart():
     """ stop & start """
@@ -159,6 +161,13 @@ def _stop_monitor():
     os.system("ps aux | grep run.py | grep -v grep | awk '{print $2}' | xargs kill -9")
     os.system("ps aux | grep main.py | grep -v grep | awk '{print $2}' | xargs kill -9")
     os.system("rm /tmp/crpc*.sock")
+
+def _start_publish():
+    os.system("dtach -n /tmp/publish.sock python {0}/publisher/publish.py -d".format(CRPC_ROOT))
+
+def _stop_publish():
+    os.system("ps aux | grep publish.py | grep -v grep | awk '{print $2}' | xargs kill -9")
+    os.system("rm /tmp/publish*.sock")
 
 def _runbg(cmd, sockname="dtach"):
     """ A helper function to run command in background """

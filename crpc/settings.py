@@ -16,14 +16,17 @@ envs = {
     },
     'DEV': {
         'CRAWLER_PEERS': ['root@127.0.0.1'],
-        'POWER_PEERS':['root@localhost'],
+        'POWER_PEERS':['root@127.0.0.1'],
+        'PUBLISH_PEERS': ['root@127.0.0.1'],
         'USE_INDEX': '',
         'MONGODB_HOST': '127.0.0.1',
         'REDIS_HOST': '127.0.0.1',
+        'MASTIFF_HOST': "http://localhost:8001/api/v1"
     },
     'OFFICE': {
         'CRAWLER_PEERS': ['root@127.0.0.1'],
         'POWER_PEERS':['root@192.168.2.111'],
+        'PUBLISH_PEERS': ['root@192.168.2.111'],
         'USE_INDEX': '', 
         'MONGODB_HOST': '127.0.0.1',
         'REDIS_HOST': '127.0.0.1',
@@ -31,6 +34,7 @@ envs = {
     'HJC': {
         'CRAWLER_PEERS': ['root@192.168.56.102','root@192.168.56.103'],
         'POWER_PEERS':['root@192.168.56.101'],
+        'PUBLISH_PEERS': ['root@192.168.56.101'],
         'USE_INDEX': '',
         'MONGODB_HOST': '192.168.56.101',
         'REDIS_HOST': '192.168.56.101',
@@ -43,6 +47,7 @@ envs = {
             'root@54.245.70.134',
         ],
         'POWER_PEERS': ['root@mongodb.favbuy.org'],
+        'PUBLISH_PEERS': ['root@mongodb.favbuy.org'],
         'USE_INDEX': '',
         'MONGODB_HOST': 'mongodb.favbuy.org',
         'REDIS_HOST': 'mongodb.favbuy.org',
@@ -60,6 +65,9 @@ envs = {
 #            'root@ec2-54-245-27-106.us-west-2.compute.amazonaws.com',
 #            'root@ec2-54-245-158-36.us-west-2.compute.amazonaws.com',
         ],
+        'PUBLISH_PEERS': [
+            'root@ec2-54-245-35-92.us-west-2.compute.amazonaws.com',
+        ],
         'USE_INDEX': '',
         'MONGODB_HOST': '10.252.41.239',
         'REDIS_HOST': '10.252.41.239',
@@ -67,10 +75,11 @@ envs = {
     'INTEG': {
         'CRAWLER_PEERS': ['deploy@127.0.0.1'],
         'POWER_PEERS': ['deploy@127.0.0.1'],
-        # 'PUBLISH_PEERS': ['deploy@127.0.0.1'], #  TODO
+        'PUBLISH_PEERS': ['deploy@127.0.0.1'],
         'USE_INDEX': '',
         'MONGODB_HOST': '127.0.0.1',
         'REDIS_HOST': '127.0.0.1',
+        'MASTIFF_HOST': "http://localhost:8001/api/v1"
     },
 }
 

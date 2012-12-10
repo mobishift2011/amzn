@@ -12,7 +12,7 @@ envs = {
         'ENV_NAME': "crpc", 
         'CRAWLER_PORT': 1234,
         'POWER_PORT': 1235,
-        'MASTIFF_HOST': "http://localhost:8001/api/v1"
+        'MASTIFF_HOST': "http://intergrate.favbuy.org:8001/api/v1"
     },
     'DEV': {
         'CRAWLER_PEERS': ['root@127.0.0.1'],
@@ -66,7 +66,7 @@ envs = {
 #            'root@ec2-54-245-158-36.us-west-2.compute.amazonaws.com',
         ],
         'PUBLISH_PEERS': [
-            'root@ec2-54-245-35-92.us-west-2.compute.amazonaws.com',
+            'root@mongodb.favbuy.org',
         ],
         'USE_INDEX': '',
         'MONGODB_HOST': '10.252.41.239',

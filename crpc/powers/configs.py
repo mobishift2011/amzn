@@ -55,7 +55,7 @@ IMAGE_SIZE = {
 		{
 			'width': 300,
 			'height': 260,
-			'fluid': True	# not fix, but the smaller size should fill the bound
+			# 'fluid': True	# not fix, but the smaller size should fill the bound
 		},
 		{
 			'width': 50,

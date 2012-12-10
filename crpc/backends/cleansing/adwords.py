@@ -47,7 +47,7 @@ class AdwordsAutomater(object):
         email, passwd = self.email, self.passwd
         try:
             print 'getting adwords.google.com'
-            self.ff.get('https://adwords.google.com')
+            self.ff.get('https://accounts.google.com/ServiceLogin?service=adwords&hl=en_US&ltmpl=signin&continue=https%3A%2F%2Fadwords.google.com%2Fum%2Fgaiaauth%3Fapt%3DNone%26ltmpl%3Dsignin&passive=86400&sacu=1&sarp=1#subid=ww-ww-et-nelson_aw_exp_noprop')
         except TimeoutException:
             pass
         self.ff.find_element_by_id("Email").send_keys(email)
@@ -76,7 +76,7 @@ class AdwordsAutomater(object):
         print 'visiting keyword tools'
         self.ff.get(self.kwurl)
 
-        kwinput = self.ff.find_element_by_class_name("sEAB")
+        kwinput = self.ff.find_element_by_class_name("sJBB")
         kwinput.send_keys('\n'.join(keywords))
 
         self.ff.find_element_by_css_selector("button.gwt-Button").click()
@@ -88,7 +88,7 @@ class AdwordsAutomater(object):
             # if we fail, fail gracefully
             pass 
         else:
-            text = self.ff.find_elements_by_xpath('//table[@class="sMNB"]')[0].text
+            text = self.ff.find_elements_by_xpath('//table[@class="sBPB"]')[0].text
             texts = text.split('\n')
             for i in range(1,len(texts)/4):
                 ret[ texts[i*4] ] = (texts[i*4+2], texts[i*4+3]) 

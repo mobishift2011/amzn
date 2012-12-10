@@ -85,7 +85,7 @@ def test():
     pass
 
 if __name__ == '__main__':
-    zs = zerorpc.Server(PowerServer(), pool_size=50) 
+    zs = zerorpc.Server(PowerServer(), pool_size=50, heartbeat=None) 
     zs.bind("tcp://0.0.0.0:{0}".format(POWER_PORT))
     zs.run()
 

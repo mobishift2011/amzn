@@ -129,6 +129,7 @@ def _start_xvfb():
 
 def _start_crawler():
     for peer in CRAWLER_PEERS:
+        print 'CRAWLER', peer
         multiprocessing.Process(target=__start_crawler, args=(peer['host_string'], peer['port'])).start()
         
 def __start_crawler(host_string, port):
@@ -143,7 +144,8 @@ def __start_crawler(host_string, port):
 
 def _start_power():
     for peer in POWER_PEERS:
-        multiprocessing.Process(target=__start_crawler, args=(peer['host_string'], peer['port'])).start()
+        print 'POWER', peer
+        multiprocessing.Process(target=__start_power, args=(peer['host_string'], peer['port'])).start()
 
 def __start_power(host_string, port):
     with settings(host_string=host_string):

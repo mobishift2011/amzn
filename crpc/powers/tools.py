@@ -63,6 +63,10 @@ class ImageTool:
     def crawl(self, image_urls=[], site='', doctype='', key='', thumb=False):
         print "images crawling ---> {0}.{1}.{2}\n".format(site, doctype, key)
 
+        if len(image_urls) == 0:
+            self.__image_complete = True
+            return
+
         for image_url in image_urls:
             path, filename = os.path.split(image_url)
             index = image_urls.index(image_url)
@@ -171,16 +175,11 @@ class ImageTool:
 
 def parse_price(price):
     amount = 0
-    pattern = re.compile(r'^\$?(\d+(\.\d+|\d*))$')
+    pattern = re.compile(r'^\$?(\d+(,\d{3})*(\.\d+)?)$')
     match = pattern.search(price)
     if match:
-        amount_list = (price_match.groups()[0]).split(',')
-        amount = float(''.join(amount_list))
-    return amount
-
-    # $1,200.00
-    # lowest_discount = 1-0.8
-    # highest_discount = 1-0.4
+        amount = (match.groups()[0]).replace(',', '')
+    return float(amount)
 
 class Propagator(object):
     def __init__(self, site, event_id):
@@ -210,8 +209,8 @@ class Propagator(object):
         highest_price = 0
         lowest_discount = 0
         highest_discount = 0
-        events_begin = self.event.events_begin if hasattr(self.event, 'events_begin') else ''
-        events_end = self.event.events_end if hasattr(self.event, 'events_end') else ''
+        events_begin = self.event.events_begin or ''# if hasattr(self.event, 'events_begin') else ''
+        events_end = self.event.events_end or '' #if hasattr(self.event, 'events_end') else ''
         soldout = True
 
         m = __import__('crawlers.{0}.models'.format(self.site), fromlist=['Product'])
@@ -264,16 +263,11 @@ class Propagator(object):
                 events_end = max(events_end, product.products_end)
 
             # (lowest, highest) discount, (lowest, highest) price propagation
-            # TODO the regex not correct
-            pattern = re.compile(r'^\$?(\d+(\.\d+|\d*))$')
-            price_match = pattern.search(product.price)
-            listprice_match = pattern.search(product.listprice)
-            
-            price = float(price_match.groups()[0]) if price_match else 0
-            listprice = float(listprice_match.groups()[0]) if listprice_match else 0
+            price = parse_price(product.price)
+            listprice = parse_price(product.listprice)
             product.favbuy_price = str(price)
             product.favbuy_listprice = str(listprice)
-
+            
             highest_price = max(price, highest_price) if highest_price else price
             lowest_price = (min(price, lowest_price) or lowest_price) if lowest_price else price
 
@@ -282,8 +276,9 @@ class Propagator(object):
             highest_discount = min(discount, lowest_discount) or discount
 
             # soldout
-            if soldout and (hasattr(product, 'soldout') and not product.soldout):
-                soldout = False
+            if soldout and ((hasattr(product, 'soldout') and not product.soldout) \
+                or (product.scarcity and int(product.scarcity))):
+                    soldout = False
 
             product.save()
 

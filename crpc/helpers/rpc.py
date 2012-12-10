@@ -19,7 +19,7 @@ def get_rpcs(peers=CRAWLER_PEERS):
     if peers_key not in get_rpcs._cached_rpcs:
         rpcs = []
         for peer in peers:
-            host = peer['host_string']
+            host = peer['host_string'][peer['host_string'].index('@')+1:]
             port = peer['port']
             client_string = 'tcp://{0}:{1}'.format(host, port)
             c = zerorpc.Client(client_string, timeout=None, heartbeat=None)

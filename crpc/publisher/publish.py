@@ -3,7 +3,6 @@ from gevent import monkey; monkey.patch_all()
 from crawlers.common.events import common_saved
 from crawlers.common.routine import get_site_module
 from powers.events import image_crawled, ready_for_publish
-from mongoengine import Q
 from mysettings import MINIMUM_PRODUCTS_READY, MASTIFF_ENDPOINT
 from helpers import log
 import slumber
@@ -32,6 +31,9 @@ class Publisher:
     def try_publish_event(self, site, evid):
         '''check if event is ready for publish and if so, publish it.
         Include publishing the contained products if eligible.
+
+        :param site: the site evid is associated with
+        :param evid: event id
         '''
         self.logger.debug("try_publish_event %s:%s", site, evid)
         m = get_site_module(site)        
@@ -39,6 +41,11 @@ class Publisher:
         self._try_publish_event(ev)
         
     def try_publish_product(self, site, prod_key):
+        '''check if product is ready for publish and if so, publish it.
+        
+        :param site: site of the product.
+        :param prod_key: key of the product.
+        '''
         self.logger.debug("try_publish_product %s:%s", site, prod_key)
         m = get_site_module(site)
         prod = m.Product.objects.get(key=prod_key)
@@ -57,6 +64,9 @@ class Publisher:
                             
     def try_publish_event_update(self, site, evid):
         '''try publishing an event update only (not first publish)
+        
+        :param site: site of the event
+        :param evid: event id
         '''
         self.logger.debug("try_publish_event_update %s:%s", site, evid)
         m = get_site_module(site)
@@ -114,7 +124,7 @@ class Publisher:
         :param m: module that contains the products.
         '''
         # $$ include non-obsolete and not out-of-stock condition?
-        return m.Product.objects(publish_time__exists=False, image_complete=True, brand_complete=True,tag_complete=True)
+        return m.Product.objects(publish_time__exists=False, image_complete=True, dept_complete=True)
                     
     def should_publish_event(self, ev):
         '''condition for publishing the event for first time.
@@ -163,10 +173,17 @@ class Publisher:
         return not prod.publish_time and prod.image_complete and prod.dept_complete
 
     def should_publish_product_upd(self, prod):
-        '''condition for publishing product update (the product was published before)'''
+        '''condition for publishing product update (the product was published before).
+        :param prod: product object
+        '''
         return prod.publish_time and prod.publish_time < prod.list_update_time
         
     def publish_event(self, ev, upd=False):
+        '''publish event data to the mastiff service.
+        
+        :param ev: event object.
+        :param upd: update only. (if False it's a full publish.)
+        '''
         try:
             if upd:
                 m = obj_to_module(ev)
@@ -197,6 +214,12 @@ class Publisher:
             self.logger.error("publishing event %s:%s failed", obj_to_site(ev), ev.event_id)
                     
     def publish_product(self, prod, upd=False):
+        '''
+        Publish product data to the mastiff service.
+
+        :param prod: product object.
+        :param upd: update only. (if False, then it'll be a full publish.)
+        '''
         try:
             if upd:
                 pdata = { "sold_out": prod.soldout }
@@ -235,9 +258,13 @@ class Publisher:
             self.logger.error("publishing product %s:%s failed", obj_to_site(prod), prod.key)
             
     def mget_event(self, site, evid):
+        '''get event data back from mastiff service.
+        '''
         return self.mapi.event.get(site+"_"+evid)
         
     def mget_product(self, site, prod_key):
+        '''get product data back from mastiff service.
+        '''
         return self.mapi.event.get(site+"_"+prod_key)
         
     def get_ev_uris(self, prod):
@@ -249,6 +276,8 @@ class Publisher:
 p = Publisher()
 
 def sender_to_site(sender):
+    '''extract site info from signal sender.
+    '''
     return sender.split(".")[0]
 
 def obj_to_site(obj):
@@ -257,9 +286,13 @@ def obj_to_site(obj):
     return obj.__module__.split('.')[1]  # 'crawlers.gilt.models'
     
 def obj_to_module(obj):
+    '''find the corresponding Python module associated with the objhect.
+    '''
     return sys.modules[obj.__module__]
     
 def obj_getattr(obj, attr, defval):
+    '''get attribute value associated with an object. If not found, return a default value.
+    '''
     if not hasattr(obj, attr):
         return defval
     else:
@@ -267,10 +300,14 @@ def obj_getattr(obj, attr, defval):
         return val if val else defval
         
 def muri2mid(muri):
+    '''extract mastiff resource ID from mastiff URI.
+    '''
     return muri.split("/")[-2]
     
 @common_saved.bind('sync')
 def process_common_saved(sender, **kwargs):
+    '''signa handler for common_saved.
+    '''
     is_update = kwargs.get('is_update')
     if not is_update:
         return # obj is not ready for publishing
@@ -285,6 +322,8 @@ def process_common_saved(sender, **kwargs):
 
 @image_crawled.bind('sync')
 def process_image_crawled(sender, **kwargs):
+    '''signal handler for image_crawled.
+    '''
     site = sender_to_site(sender)
     obj_type = kwargs.get('model')
     key = kwargs.get('key')
@@ -295,10 +334,8 @@ def process_image_crawled(sender, **kwargs):
     
 @ready_for_publish.bind('sync')
 def process_propagation_done(sender, **kwargs):
-    '''
-    Process propagation_done signal. This triggers the publishing of all events
-    and products should the publishing conditions for these events and products
-    are met.
+    '''signal handler for ready_for_publish. This triggers the publishing of all events
+    and products should the publishing conditions for these events and products are met.
     '''
     site = kwargs.get('site', None)
     if not site:
@@ -307,7 +344,6 @@ def process_propagation_done(sender, **kwargs):
 
 if __name__ == '__main__':
     from optparse import OptionParser
-    import sys, os
 
     parser = OptionParser(usage='usage: %prog [options]')
     # parameters

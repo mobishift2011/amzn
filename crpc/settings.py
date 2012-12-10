@@ -14,54 +14,66 @@ envs = {
         'POWER_PORT': 1235,
     },
     'DEV': {
-        'CRAWLER_PEERS': ['root@127.0.0.1'],
-        'POWER_PEERS':['root@localhost'],
+        'CRAWLER_PEERS': [
+            {'host_string':'root@127.0.0.1', 'port':1234},
+        ],
+        'POWER_PEERS': [
+            {'host_string':'root@127.0.0.1', 'port':1235},
+        ],
         'USE_INDEX': '',
         'MONGODB_HOST': '127.0.0.1',
         'REDIS_HOST': '127.0.0.1',
     },
     'OFFICE': {
-        'CRAWLER_PEERS': ['root@127.0.0.1'],
-        'POWER_PEERS':['root@192.168.2.111'],
+        'CRAWLER_PEERS': [
+            {'host_string':'root@127.0.0.1', 'port':1234},
+        ],
+        'POWER_PEERS':[
+            {'host_string':'root@192.168.2.111', 'port':1235},
+        ],
         'USE_INDEX': '', 
         'MONGODB_HOST': '127.0.0.1',
         'REDIS_HOST': '127.0.0.1',
     },
     'HJC': {
-        'CRAWLER_PEERS': ['root@192.168.56.102','root@192.168.56.103'],
-        'POWER_PEERS':['root@192.168.56.101'],
+        'CRAWLER_PEERS': [
+            {'host_string':'root@192.168.56.102', 'port':1234},
+            {'host_string':'root@192.168.56.103', 'port':1234},
+        ],
+        'POWER_PEERS':[
+            {'host_string':'root@192.168.56.101', 'port':1235},
+        ],
         'USE_INDEX': '',
         'MONGODB_HOST': '192.168.56.101',
         'REDIS_HOST': '192.168.56.101',
     },
-    'TEST2': {
+    'TEST': {
         'CRAWLER_PEERS': [
-            'root@54.245.60.173',
-            'root@54.245.67.22',
-            'root@54.245.49.77',
-            'root@54.245.70.134',
+            {'host_string':'root@ec2-54-245-60-173.us-west-2.compute.amazonaws.com', 'port':1234},
+            {'host_string':'root@ec2-54-245-67-22.us-west-2.compute.amazonaws.com', 'port':1234},
+            {'host_string':'root@ec2-54-245-49-77.us-west-2.compute.amazonaws.com', 'port':1234},
+            {'host_string':'root@ec2-54-245-70-134.us-west-2.compute.amazonaws.com', 'port':1234},
         ],
-        'POWER_PEERS': ['root@mongodb.favbuy.org'],
+        'POWER_PEERS': [
+            {'host_string':'root@ec2-54-245-35-92.us-west-2.compute.amazonaws.com', 'port':1235},
+        ],
         'USE_INDEX': '',
         'MONGODB_HOST': 'mongodb.favbuy.org',
         'REDIS_HOST': 'mongodb.favbuy.org',
     },
-    'TEST': {
+    'HM': {
         'CRAWLER_PEERS': [
-            'root@ec2-54-245-60-173.us-west-2.compute.amazonaws.com',
-            'root@ec2-54-245-67-22.us-west-2.compute.amazonaws.com',
-            'root@ec2-54-245-49-77.us-west-2.compute.amazonaws.com',
-            'root@ec2-54-245-70-134.us-west-2.compute.amazonaws.com',
+            {'host_string':'root@ec2-50-112-220-196.us-west-2.compute.amazonaws.com', 'port':1023},
+            {'host_string':'root@ec2-50-112-220-196.us-west-2.compute.amazonaws.com', 'port':1024},
+            {'host_string':'root@ec2-50-112-220-196.us-west-2.compute.amazonaws.com', 'port':1025},
+            {'host_string':'root@ec2-50-112-220-196.us-west-2.compute.amazonaws.com', 'port':1027},
         ],
-        'POWER_PEERS': [
-            'root@ec2-54-245-35-92.us-west-2.compute.amazonaws.com',
-#            'root@ec2-54-245-17-14.us-west-2.compute.amazonaws.com',
-#            'root@ec2-54-245-27-106.us-west-2.compute.amazonaws.com',
-#            'root@ec2-54-245-158-36.us-west-2.compute.amazonaws.com',
+        'POWER_PEERS':[
+            {'host_string':'root@ec2-50-112-220-196.us-west-2.compute.amazonaws.com', 'port':1028},
         ],
         'USE_INDEX': '',
-        'MONGODB_HOST': '10.252.41.239',
-        'REDIS_HOST': '10.252.41.239',
+        'MONGODB_HOST': 'ec2-50-112-220-196.us-west-2.compute.amazonaws.com',
+        'REDIS_HOST': 'ec2-50-112-220-196.us-west-2.compute.amazonaws.com',
     },
 }
 

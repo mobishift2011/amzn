@@ -83,7 +83,9 @@ def test():
     pass
 
 if __name__ == '__main__':
+    import os, sys
+    port = POWER_PORT if len(sys.argv) != 2 else int(sys.argv[1])
     zs = zerorpc.Server(PowerServer(), pool_size=50, heartbeat=None) 
-    zs.bind("tcp://0.0.0.0:{0}".format(POWER_PORT))
+    zs.bind("tcp://0.0.0.0:{0}".format(port))
     zs.run()
 

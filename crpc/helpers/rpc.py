@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from settings import CRAWLER_PEERS, CRAWLER_PORT
+from settings import CRAWLER_PEERS
 import zerorpc
+import re
 
-def get_rpcs(peers=CRAWLER_PEERS, port=CRAWLER_PORT):
+def get_rpcs(peers=CRAWLER_PEERS):
     """
         On one hand, we build a zerorpc client object,
             if the program keep going, the open file handler resource is still hold,
@@ -14,11 +15,12 @@ def get_rpcs(peers=CRAWLER_PEERS, port=CRAWLER_PORT):
     if not hasattr(get_rpcs, '_cached_rpcs'):
         setattr(get_rpcs, '_cached_rpcs', {})
 
-    peers_key = str(tuple(peers))+str(port)
+    peers_key = repr(peers)
     if peers_key not in get_rpcs._cached_rpcs:
         rpcs = []
         for peer in peers:
-            host = peer[peer.find('@')+1:]
+            host = peer['host_string']
+            port = peer['port']
             client_string = 'tcp://{0}:{1}'.format(host, port)
             c = zerorpc.Client(client_string, timeout=None, heartbeat=None)
             if c:
@@ -28,3 +30,5 @@ def get_rpcs(peers=CRAWLER_PEERS, port=CRAWLER_PORT):
 
     return get_rpcs._cached_rpcs[peers_key]
 
+if __name__ == '__main__':
+    get_rpcs()

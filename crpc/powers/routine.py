@@ -14,7 +14,7 @@ import uuid
 import random
 import traceback
 
-from settings import POWER_PEERS, POWER_PORT
+from settings import POWER_PEERS
 from configs import SITES
 from events import *
 
@@ -148,7 +148,7 @@ def scan_images(site, doctype, rpc, concurrency=3):
 
 def crawl_images(site, model, key, rpc=None, *args, **kwargs):
     if rpc is None:
-        rpc = get_rpcs(POWER_PEERS, POWER_PORT)
+        rpc = get_rpcs(POWER_PEERS)
     
     method = 'process_image'
     
@@ -222,8 +222,8 @@ def test_brand(site):
 if __name__ == '__main__':
     # from powers.powerserver import PowerServer
     # rpc = PowerServer()
-    # print  POWER_PEERS, POWER_PORT
-    # scan_images('zulily', 'event', get_rpcs(POWER_PEERS, POWER_PORT) , 3)
+    # print  POWER_PEERS
+    # scan_images('zulily', 'event', get_rpcs(POWER_PEERS) , 3)
     #crawl_images('zulily', 'Event', 'parade-of-toys-112212')
     #scan_images('zulily', 'product', get_rpcs(), 3)
     import sys

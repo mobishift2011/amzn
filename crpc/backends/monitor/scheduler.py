@@ -39,7 +39,7 @@ class Scheduler(object):
         gevent.spawn(organize_new_task)
         gevent.spawn(organize_update_task)
         # TODO I have already monkey.patch_all(), why need a sleep
-        gevent.sleep(60)
+        gevent.sleep(0)
 
         while True:
             try:

@@ -11,7 +11,7 @@ from datetime import datetime
 import gevent
 import gevent.coros
 
-from settings import POWER_PEERS, POWER_PORT
+from settings import POWER_PEERS
 
 from helpers.log import getlogger
 from helpers.rpc import get_rpcs
@@ -46,7 +46,7 @@ def ready_for_batch_image_crawling(sender, **kwargs):
 
     if site and doctype:
         logger.info('start to get rpc resource for %s.%s' % (site, doctype))
-        gevent.spawn(scan_images, site, doctype, get_rpcs(POWER_PEERS, POWER_PORT), 10) 
+        gevent.spawn(scan_images, site, doctype, get_rpcs(POWER_PEERS), 10) 
 
 
 @ready_for_batch.bind
@@ -55,7 +55,7 @@ def ready_for_extract(sender, **kwargs):
     if doctype.capitalize() == 'Product':
         site = kwargs.get('site')
         logger.info('start to extract site products brand: %s', site)
-        job = gevent.spawn(brand_extract, site, get_rpcs(POWER_PEERS, POWER_PORT), 10)
+        job = gevent.spawn(brand_extract, site, get_rpcs(POWER_PEERS), 10)
         job.join()
         
         ready_for_publish.send(sender, **kwargs)

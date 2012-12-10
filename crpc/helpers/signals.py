@@ -55,15 +55,28 @@ logger = log.getlogger("helper.signals")
 class Processor(object):
     rc = redisco.get_client()
     channel = 'SIGNALS'
-    channelqueue = 'SIGNALS_QUEUE'
+    channelsingleton = 'SIGNALS_SINGLETON'
+    signalqueue = 'SIGNALS_QUEUE'
+    flagrunning = 'SIGNALS_FLAG_RUNNING'
+
     def __init__(self):
+        if self.rc.get(self.flagrunning) != 'yes':
+            self.rc.set(self.flagrunning, 'yes')
+        else:
+            self.rc.publish(self.channelsingleton, 'exit')
+
         self._listeners = defaultdict(set)
         self.ps = self.rc.pubsub()
         self.ps.subscribe(self.channel)
+        self.ps2 = self.rc.pubsub()
+        self.ps2.subscribe(self.channelsingleton)
         self.queue = Queue()
-        gevent.spawn(self._channel_listener)
-        gevent.spawn(self._queued_executor)
-        gevent.spawn_later(1, self._queue2pubsub_worker)
+        self.jobs = [
+            gevent.spawn(self._channel_listener),
+            gevent.spawn(self._channel_singleton),
+            gevent.spawn(self._queued_executor),
+            gevent.spawn_later(1, self._queue2pubsub_worker)
+        ]
 
     def add_listener(self, signal, callback, mode):
         """ add listener to hub
@@ -76,9 +89,18 @@ class Processor(object):
 
     @classmethod
     def send_message(cls, sender, signal, **kwargs):
-        """ send message to channelqueue """
+        """ send message to signalqueue """
         data = pack( {'sender':sender,'signal':signal,'kwargs':kwargs} )       
-        cls.rc.rpush(cls.channelqueue, data)
+        cls.rc.rpush(cls.signalqueue, data)
+
+    def _channel_singleton(self):
+        """ receives control signals """
+        for m in self.ps2.listen():
+            if m['type'] == 'message':
+                if m['data'] == 'exit':
+                    logger.error('You Initialized Another Processor, This one is Forced to SHUTDOWN!')
+                    logger.error('There should be one and only one Processor around, This means a LOGICAL ERROR in your code')
+                    gevent.killall(self.jobs)
 
     def _channel_listener(self):
         """ listens to the channel, execute callbacks attached to it """
@@ -90,7 +112,7 @@ class Processor(object):
     def _queue2pubsub_worker(self):
         """ Pop Message from List and Push to publish """
         while True:
-            data = self.rc.blpop(self.channelqueue, timeout=5)
+            data = self.rc.blpop(self.signalqueue, timeout=5)
             if data:
                 channel, message = data
                 self.rc.publish(self.channel, message)

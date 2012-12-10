@@ -8,7 +8,7 @@ from functools import partial
 from datetime import datetime
 
 from helpers.rpc import get_rpcs
-from settings import CRAWLER_PEERS, CRAWLER_PORT
+from settings import CRAWLER_PEERS
 from crawlers.common.routine import new, new_thrice, update, new_category, new_listing, new_product, update_category, update_listing, update_product
 from backends.monitor.throttletask import can_task_run, task_completed, is_task_already_running
 
@@ -23,7 +23,7 @@ def execute(site, method):
             False, task already running, this method is not executed
     """
     if can_task_run(site, method):
-        gevent.spawn(globals()[method], site, get_rpcs(CRAWLER_PEERS, CRAWLER_PORT), concurrency=10) \
+        gevent.spawn(globals()[method], site, get_rpcs(CRAWLER_PEERS), concurrency=10) \
                 .rawlink(partial(task_completed, site=site, method=method))
         return True
     else:

@@ -23,10 +23,6 @@ def is_task_already_running(site, method):
     """
     key = '{0}.{1}'.format(site, method.split('_')[0])
     if key in SCHEDULE_STATE:
-        # print 'The Task of {0}:{1} is already running.'.format(key, method)
-        # with open('/tmp/sche.debug', 'a') as fd:
-        #     fd.write('The Task of {0}:{1} is already running.\n'.format(key, method))
-        #     fd.write(str(SCHEDULE_STATE) + '\n\n')
         return True
     return False
 

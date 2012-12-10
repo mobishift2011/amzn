@@ -19,14 +19,20 @@ class Server(object):
     def __init__(self):
         self.siteurl = 'http://www.modnique.com'
         self.eventurl = 'http://www.modnique.com/all-sale-events'
-        self.extract_slug_id = re.compile('.*/saleevent/(\w+)/(\w+)/seeac/gseeac')
+        self.extract_slug_id = re.compile('.*/saleevent/(.+)/(\w+)/seeac/gseeac')
+        self.headers = {
+            'Host':' www.modnique.com',
+            'Referer':' http://www.modnique.com/saleevents',
+            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.4 (KHTML, like Gecko) Ubuntu/12.10 Chromium/22.0.1229.94 Chrome/22.0.1229.94 Safari/537.4',
+            'X-Requested-With': 'XMLHttpRequest',
+        }
 
     def crawl_category(self, ctx=''):
         """.. :py:method::
         """
-        content = fetch_page(self.eventurl)
+        content = fetch_page(self.eventurl, self.headers)
         if content is None or isinstance(content, int):
-            content = fetch_page(self.eventurl)
+            content = fetch_page(self.eventurl, self.headers)
         tree = lxml.html.fromstring(content)
         events = tree.cssselect('div.bgDark > div.mbm > div > div.page > ul#nav > li.fCalc:first-of-type')[0]
         category_link = {}
@@ -35,30 +41,33 @@ class Server(object):
             link = e.get('href')
             category_link[ link.rsplit('/', 1)[-1] ] = link
         
-        for e in tree.cssselect('div.bgDark > div.mbm > div > div.page > ul#nav > li.fCalc:nth-of-type(2) > a.phl')[0].get('href'):
-            link = e.get('href')
-            category_link[ link.rsplit('/', 1)[-1] ] = link
+        link = tree.cssselect('div.bgDark > div.mbm > div > div.page > ul#nav > li.fCalc:nth-of-type(2) > a.phl')[0].get('href')
+        category_link[ link.rsplit('/', 1)[-1] ] = link
 
         # http://www.modnique.com/saleevent/Daily-Deal/2000/seeac/gseeac
         sale = tree.cssselect('div.bgDark > div.mbm > div > div.page > ul#nav > li.fCalc:nth-of-type(3) > a.phl')[0].get('href')
 
         for category, link in category_link.iteritems():
-            self.crawl_dept(category, link)
+            self.crawl_dept(category, link, ctx)
 
-    def crawl_dept(dept, url, ctx):
+    def crawl_dept(self, dept, url, ctx):
         """.. :py:method::
         """
-        content = fetch_page(self.eventurl)
+        content = fetch_page(url, self.headers)
         if content is None or isinstance(content, int):
-            content = fetch_page(self.eventurl)
+            content = fetch_page(url, self.headers)
         tree = lxml.html.fromstring(content)
-        nodes = tree.cssselect('div.bgDark > div#content > div.sales > div.pbm > div.page > ul.bannerfix > li#saleEventContainer > div.sale_thumb > div.media')
+        if dept == 'the-shops':
+            nodes = tree.cssselect('div.bgShops > div#content > div#sales > div.pbm > div.page > ul.bannerfix > li > div.shop_thumb > div.media')
+        else:
+            nodes = tree.cssselect('div.bgDark > div#content > div.sales > div.pbm > div.page > ul.bannerfix > li#saleEventContainer > div.sale_thumb > div.media')
         for node in nodes:
             link = node.cssselect('a.sImage')[0].get('href')
             slug, event_id = self.extract_slug_id.match(link).groups()
             link = link if link.startswith('http') else self.siteurl + link
             img = node.cssselect('a.sImage > img')[0].get('src')
-            image_urls = [img.replace('B.jpg', 'A.jpg'), img]
+            if dept == 'the-shops': image_urls = [img]
+            else: image_urls = [img.replace('B.jpg', 'A.jpg'), img]
             sale_title = node.cssselect('div.sDefault > div > a > span')[0].text_content().strip()
 
             is_new, is_updated = False, False
@@ -82,15 +91,18 @@ class Server(object):
     def crawl_listing(self, url, ctx=''):
         """.. :py:method::
         """
-        content = fetch_page(self.eventurl)
+        content = fetch_page(url)
+        content = fetch_page(url, self.headers)
         if content is None or isinstance(content, int):
-            common_failed.send(sender=ctx, key='', url=self.eventurl,
-                    reason='download event url error, {0}'.format(content))
+            common_failed.send(sender=ctx, key='', url=url,
+                    reason='download listing url error, {0}'.format(content))
             return
+        tree = lxml.html.fromstring(content)
+
 
 if __name__ == '__main__':
-    Server().crawl_category()
-#    import zerorpc
-#    server = zerorpc.Server(Server())
-#    server.bind('tcp://0.0.0.0:{0}'.format(CRAWLER_PORT))
-#    server.run()
+    import zerorpc
+    from settings import CRAWLER_PORT
+    server = zerorpc.Server(Server(), heartbeat=None)
+    server.bind('tcp://0.0.0.0:{0}'.format(CRAWLER_PORT))
+    server.run()

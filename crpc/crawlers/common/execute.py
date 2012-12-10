@@ -37,5 +37,3 @@ if __name__ == '__main__':
         # Attention: the following is not working as we want.
         if sys.argv[1] == 'myhabit' or 'zulily' or 'hautelook' or 'onekingslane' or 'ruelala' or 'venteprivee' or 'nomorerack':
             run(sys.argv[1], rpc)
-    else:
-        update_category('ruelala', rpc)

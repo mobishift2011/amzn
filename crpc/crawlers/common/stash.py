@@ -66,9 +66,9 @@ def singleton(cls):
     return get_instance
 
 
-def fetch_page(url):
+def fetch_page(url, headers=headers):
     try:
-        ret = request.get(url)
+        ret = request.get(url, headers=headers)
     except:
         # page not exist or timeout
         return

@@ -73,9 +73,9 @@ envs = {
         'REDIS_HOST': '10.252.41.239',
     },
     'INTEG': {
-        'CRAWLER_PEERS': ['deploy@127.0.0.1'],
-        'POWER_PEERS': ['deploy@127.0.0.1'],
-        'PUBLISH_PEERS': ['deploy@127.0.0.1'],
+        'CRAWLER_PEERS': ['root@127.0.0.1'],
+        'POWER_PEERS': ['root@127.0.0.1'],
+        'PUBLISH_PEERS': ['root@127.0.0.1'],
         'USE_INDEX': '',
         'MONGODB_HOST': '127.0.0.1',
         'REDIS_HOST': '127.0.0.1',

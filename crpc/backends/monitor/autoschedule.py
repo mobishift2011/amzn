@@ -61,7 +61,7 @@ def auto_schedule():
         if method == 'update':
             for update_time in sorted(v):
                 if update_time <= _utcnow:
-                    if not task_already_running(site, 'new'):
+                    if not task_already_running(site, 'new') and not task_already_running(site, 'update'):
                         execute(site, method)
                         smethod_time[k].remove(update_time)
                 else: break

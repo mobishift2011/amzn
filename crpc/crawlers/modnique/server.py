@@ -107,6 +107,18 @@ class Server(object):
             event.save()
             common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=link, is_new=is_new, is_updated=is_updated)
 
+    def upcoming_proc(self, tree):
+        nodes = tree.cssselect('div#content > div#upcoming_sales li#upcoming_sales_container > div.sale_thumb > div.media')
+        for node in nodes:
+#            link = node.cssselect('a.sImage')[0].get('href')
+#            slug, event_id = self.extract_slug_id.match(link).groups()
+#            link = link if link.startswith('http') else self.siteurl + link
+            img = node.cssselect('a.sImage > img')[0].get('data-original')
+            if img is None:
+                img = node.cssselect('a.sImage > img')[0].get('src')
+            image_urls = [img.replace('M.jpg', 'A.jpg'), img.replace('M.jpg', 'B.jpg')]
+            sale_title = node.cssselect('a.sImage')[0].get('title')
+
     def get_event_from_db(self, event_id, link, slug, sale_title):
         """.. :py:method::
             get a event object from database

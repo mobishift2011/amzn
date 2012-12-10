@@ -51,7 +51,6 @@ class Scheduler(object):
                         execute(s.site, s.method)
 
                 # assume this for loop can be finished in less than one minute
-                print datetime.utcnow().second
                 gevent.sleep(60 - datetime.utcnow().second)
                 gevent.spawn(delete_expire_task)
             except Exception as e:

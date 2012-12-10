@@ -63,7 +63,7 @@ class Processor(object):
         if self.rc.get(self.flagrunning) != 'yes':
             self.rc.set(self.flagrunning, 'yes')
         else:
-            self.rc.publish(self.channelsingleton, 'exit')
+            self.rc.publish(self.channelsingleton, 'another processor forked!')
 
         self._listeners = defaultdict(set)
         self.ps = self.rc.pubsub()
@@ -97,10 +97,8 @@ class Processor(object):
         """ receives control signals """
         for m in self.ps2.listen():
             if m['type'] == 'message':
-                if m['data'] == 'exit':
-                    logger.error('You Initialized Another Processor, This one is Forced to SHUTDOWN!')
-                    logger.error('There should be one and only one Processor around, This means a LOGICAL ERROR in your code')
-                    gevent.killall(self.jobs)
+                logger.error('You Initialized Another Processor!!')
+                #gevent.killall(self.jobs)
 
     def _channel_listener(self):
         """ listens to the channel, execute callbacks attached to it """

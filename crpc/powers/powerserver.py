@@ -22,7 +22,7 @@ class PowerServer(object):
         m = __import__("crawlers."+site+'.models', fromlist=['Event', 'Product'])
 
         image_tool = ImageTool()
-        image_tool.crawl(image_urls, site, doctype, key, thumb=True)
+        image_tool.crawl(image_urls, site, doctype, key, thumb=False)
         image_path = image_tool.image_path
 
         if image_tool.image_complete:
@@ -60,13 +60,11 @@ class PowerServer(object):
         if brand:
             if doctype == 'Product':
                 m.Product.objects(key=key).update(set__favbuy_brand=brand, set__brand_complete=True)
-
                 kwargs['favbuy_brand'] = brand
                 # brand_extracted.send('%s_%s_%s_brand' % (site, doctype, key), **kwargs)
         else:
             if doctype == 'Product':
                 m.Product.objects(key=key).update(set__brand_complete=False)
-                
                 # brand_extracted_failed.send('%s_%s_%s_brand' % (site, doctype, key), **kwargs)
 
     def propagate(self, args=(), kwargs={}):

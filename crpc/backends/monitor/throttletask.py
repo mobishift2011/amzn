@@ -23,7 +23,7 @@ def task_already_running(site, method):
     key = '{0}.{1}'.format(site, method.split('_')[0])
     with lock:
         if key in SCHEDULE_STATE:
-            print 'The Task of {0} is already running.'.format(key)
+            print 'The Task of {0}:{1} is already running.'.format(key, method)
             return True
         SCHEDULE_STATE.add(key)
         return False

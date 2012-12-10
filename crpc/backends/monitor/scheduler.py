@@ -35,15 +35,15 @@ class Scheduler(object):
         return Schedule.objects(enabled=True) 
 
     def run(self):
-        gevent.spawn(avoid_cold_start)
-        gevent.spawn(organize_new_task)
-        gevent.spawn(organize_update_task)
+        # gevent.spawn(avoid_cold_start)
+        # gevent.spawn(organize_new_task)
+        # gevent.spawn(organize_update_task)
         # TODO I have already monkey.patch_all(), why need a sleep
         gevent.sleep(60)
 
         while True:
             try:
-                auto_schedule()
+                # auto_schedule()
 
                 # keep the old crond system
                 for s in self.get_schedules():

@@ -22,7 +22,7 @@ class PowerServer(object):
         m = __import__("crawlers."+site+'.models', fromlist=['Event', 'Product'])
 
         image_tool = ImageTool()
-        image_tool.crawl(image_urls, site, doctype, key, thumb=False)
+        image_tool.crawl(image_urls, site, doctype, key, thumb=True)
         image_path = image_tool.image_path
 
         if image_tool.image_complete:

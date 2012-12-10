@@ -53,10 +53,15 @@ envs = {
             'root@ec2-54-245-49-77.us-west-2.compute.amazonaws.com',
             'root@ec2-54-245-70-134.us-west-2.compute.amazonaws.com',
         ],
-        'POWER_PEERS': ['root@mongodb.favbuy.org'],
+        'POWER_PEERS': [
+            'root@ec2-54-245-35-92.us-west-2.compute.amazonaws.com',
+#            'root@ec2-54-245-17-14.us-west-2.compute.amazonaws.com',
+#            'root@ec2-54-245-27-106.us-west-2.compute.amazonaws.com',
+#            'root@ec2-54-245-158-36.us-west-2.compute.amazonaws.com',
+        ],
         'USE_INDEX': '',
-        'MONGODB_HOST': 'mongodb.favbuy.org',
-        'REDIS_HOST': 'mongodb.favbuy.org',
+        'MONGODB_HOST': '10.252.41.239',
+        'REDIS_HOST': '10.252.41.239',
     },
 }
 

@@ -125,17 +125,16 @@ class Server(object):
                 continue
             link, event_id = m.groups()
             text = node.xpath('./a/span[@class="txt"]')[0]
+            img = node.xpath('./a/span[@class="homepage-image"]/img/@src')[0]
+            image = ''.join( self.extract_event_img.match(img).groups() )
+            sale_title = text.xpath('./span[@class="category-name"]/span/text()')[0]
 
             brand, is_new = Event.objects.get_or_create(event_id=event_id)
             if is_new:
-                img = node.xpath('./a/span[@class="homepage-image"]/img/@src')[0]
-                image = ''.join( self.extract_event_img.match(img).groups() )
-                sale_title = text.xpath('./span[@class="category-name"]/span/text()')[0]
-
-                brand.image_urls = [image]
                 brand.sale_title = sale_title
                 brand.urgent = True
                 brand.combine_url = 'http://www.zulily.com/e/{0}.html'.format(event_id)
+            if image not in brand.image_urls: brand.image_urls.append(image)
             brand.short_desc = text.xpath('.//span[@class="description-highlights"]/text()')[0].strip()
             brand.start_end_date = text.xpath('./span[@class="description"]/span[@class="start-end-date"]')[0].text_content().strip()
             if dept not in brand.dept: brand.dept.append(dept) # events are mixed in different category
@@ -169,23 +168,25 @@ class Server(object):
             node = tree.cssselect('div.event-content-wrapper')[0]
             calendar_file = node.cssselect('div.upcoming-date-reminder a.reminder-ical')[0].get('href')
             ics_file = self.net.fetch_page(calendar_file)
+            img = node.cssselect('div.event-content-image img')[0].get('src')
+            image = ''.join( self.extract_event_img.match(img).groups() )
+            if 'placeholder.jpg' in image:
+                image = ''
+            sale_title = node.cssselect('div.event-content-copy h1')[0].text_content()
+            sale_description = node.cssselect('div.event-content-copy div#desc-with-expanded')[0].text_content().strip()
             m = re.compile(r'URL:http://www.zulily.com/(e|p)/(.+).html.*').search(ics_file)
             if m is None:
                 common_failed.send(sender=ctx, url=pair[1], reason='parse event_id in ics_file failed.')
                 continue
             event_id = m.group(2)
+
             brand, is_new = Event.objects.get_or_create(event_id=event_id)
             if is_new:
-                img = node.cssselect('div.event-content-image img')[0].get('src')
-                image = ''.join( self.extract_event_img.match(img).groups() )
-                sale_title = node.cssselect('div.event-content-copy h1')[0].text_content()
-                sale_description = node.cssselect('div.event-content-copy div#desc-with-expanded')[0].text_content().strip()
-
-                brand.image_urls = [image]
-                brand.sale_title = sale_title 
-                brand.sale_description = sale_description
                 brand.urgent = True
                 brand.combine_url = 'http://www.zulily.com/e/{0}.html'.format(event_id)
+                brand.sale_title = sale_title 
+                brand.sale_description = sale_description
+            if image and image not in brand.image_urls: brand.image_urls.append(image)
             start_time = node.cssselect('div.upcoming-date-reminder span.reminder-text')[0].text_content() # 'Starts Sat 10/27 6am pt - SET REMINDER'
             brand.events_begin = time_convert( ' '.join( start_time.split(' ', 4)[1:-1] ), '%a %m/%d %I%p%Y' ) - timedelta(minutes=10) #'Sat 10/27 6am'
             brand.update_time = datetime.utcnow()

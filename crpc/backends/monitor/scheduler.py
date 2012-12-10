@@ -6,25 +6,14 @@ Scheduler: runs crawlers in background
 """
 from gevent import monkey; monkey.patch_all()
 import gevent
-
-from backends.monitor.models import Schedule, Task
-from crawlers.common.routine import new, update, new_category, new_listing, new_product, update_category, update_listing, update_product #update_category, update_listing, update_product, update_listing_update
-
 import zerorpc
 from datetime import datetime, timedelta
-from settings import CRAWLER_PEERS, CRAWLER_PORT
-from throttletask import task_already_running, task_completed, task_broke_completed
-from functools import partial
-from .setting import EXPIRE_MINUTES
 
-from helpers.rpc import get_rpcs
-
-def execute(site, method):
-    """ execute CrawlerServer function
-    """
-    if not task_already_running(site, method):
-        gevent.spawn(globals()[method], site, get_rpcs(CRAWLER_PEERS, CRAWLER_PORT), 10) \
-                .rawlink(partial(task_completed, site=site, method=method))
+from backends.monitor.models import Schedule, Task
+from backends.monitor.throttletask import task_broke_completed
+from backends.monitor.autoschedule import execute, avoid_cold_start, auto_schedule
+from backends.monitor.organizetask import organize_new_task, organize_update_task
+from backends.monitor.setting import EXPIRE_MINUTES
 
 
 def delete_expire_task(expire_minutes=EXPIRE_MINUTES):
@@ -46,12 +35,28 @@ class Scheduler(object):
         return Schedule.objects(enabled=True) 
 
     def run(self):
+        gevent.spawn(avoid_cold_start)
+        gevent.spawn(organize_new_task)
+        gevent.spawn(organize_update_task)
+        # TODO I have already monkey.patch_all(), why need a sleep
+        gevent.sleep(60)
+
         while True:
-            for s in self.get_schedules():
-                if s.timematch():
-                    execute(s.site, s.method)
-            gevent.sleep(60)
-            gevent.spawn(delete_expire_task)
+            try:
+                auto_schedule()
 
+                # keep the old crond system
+                for s in self.get_schedules():
+                    if s.timematch():
+                        execute(s.site, s.method)
 
+                # assume this for loop can be finished in less than one minute
+                print datetime.utcnow().second
+                gevent.sleep(60 - datetime.utcnow().second)
+                gevent.spawn(delete_expire_task)
+            except Exception as e:
+                with open('/tmp/schedule.log', 'a') as fd:
+                    fd.write(str(e) + '\n\n\n')
 
+if __name__ == '__main__':
+    Scheduler().run()

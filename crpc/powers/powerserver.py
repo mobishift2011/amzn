@@ -5,10 +5,9 @@ from settings import POWER_PORT
 import zerorpc
 from gevent.coros import Semaphore
 
-from tools import ImageTool
+from tools import ImageTool, Propagator
 from brandapi import Extracter
 from powers.events import *
-from powers.binds import *
 
 #process_image_lock = Semaphore(1)
 
@@ -22,9 +21,8 @@ class PowerServer(object):
         key = kwargs.get('event_id', kwargs.get('key'))
         m = __import__("crawlers."+site+'.models', fromlist=['Event', 'Product'])
         image_tool = ImageTool()
-        image_path = image_tool.crawl(image_urls, site, key)
+        image_path = ['http://2e.zol-img.com.cn/product/97_120x90/500/ce7Raw2CJmTnk.jpg'] # TODO image_tool.crawl(image_urls, site, key)
         if len(image_path):
-
             if doctype == 'event':
                 m.Event.objects(event_id=key).update(set__image_path=image_path)
             elif doctype == 'product':
@@ -51,40 +49,41 @@ class PowerServer(object):
 
         #TO REMOVE
         import time
-        print site,' ' + doctype + ' ',  key + ' ', 'brand-<'+crawled_brand+'>  ',  'title-<'+ kwargs.get('title', ' ') +'>'+ ':'
+        # print site,' ' + doctype + ' ',  key + ' ', 'brand-<'+crawled_brand+'>  ',  'title-<'+ kwargs.get('title', ' ') +'>'+ ':'
         
         m = __import__('crawlers.'+site+'.models', fromlist=[doctype])
         extracter = Extracter()
         brand = extracter.extract(crawled_brand)
 
         if brand:
-            if doctype == 'Event':
-                m.Event.objects(event_id=key).update(set__favbuy_brand=brand, set__brand_complete=True)
-            elif doctype == 'Product':
+            if doctype == 'Product':
                 m.Product.objects(key=key).update(set__favbuy_brand=brand, set__brand_complete=True)
 
-            kwargs['favbuy_brand'] = brand
-            brand_extracted.send('%s_%s_%s_brand' % (site, doctype, key), **kwargs)
+                kwargs['favbuy_brand'] = brand
+                # brand_extracted.send('%s_%s_%s_brand' % (site, doctype, key), **kwargs)
         else:
-            if doctype == 'Event':
-                m.Event.objects(event_id=key).update(set__brand_complete=False)
-            elif doctype == 'Product':
+            if doctype == 'Product':
                 m.Product.objects(key=key).update(set__brand_complete=False)
-            
-            brand_extracted_failed.send('%s_%s_%s_brand' % (site, doctype, key), **kwargs)
+                
+                # brand_extracted_failed.send('%s_%s_%s_brand' % (site, doctype, key), **kwargs)
+
+    def propagate(self, args=(), kwargs={}):
+        site = kwargs.get('site')
+        event_id = kwargs.get('event_id')
+        p = Propagator(site, event_id)
+        if p.propagate():
+            pass
+            # TODO send scuccess signal
+        else:
+            pass
+            # TODO send fail signal
 
 
 def test():
-    from crawlers.gilt.models import Event
-    event = Event.objects().first()
-    image_urls = event.image_urls
-    site='gilt'
-    ctx = site+event.event_id
-    doctype = 'event'
-    APIServer().process_image(site, image_urls, ctx, doctype, event_id=event.event_id)
+    pass
 
 if __name__ == '__main__':
-    zs = zerorpc.Server(PowerServer(), pool_size=50) 
+    zs = zerorpc.Server(PowerServer(), pool_size=50, heartbeat=None) 
     zs.bind("tcp://0.0.0.0:{0}".format(POWER_PORT))
     zs.run()
 

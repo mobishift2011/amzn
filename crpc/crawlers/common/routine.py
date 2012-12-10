@@ -26,6 +26,7 @@ import random
 import traceback
 
 from itertools import chain
+from functools import partial
 from mongoengine import Q
 
 from crawlers.common.events import pre_general_update, post_general_update, common_failed
@@ -111,7 +112,7 @@ class UpdateContext(object):
     def __init__(self, site, method):
         self.site = site
         self.method = method
-        self.sender = "{0}.{1}.{2}".format(self.site, self.method, uuid.uuid4().hex)
+        self.sender = "{0}.{1}.{2}".format(self.site, self.method, uuid.uuid1().hex + uuid.uuid4().hex)
 
     def __enter__(self):
         pre_general_update.send(sender = self.sender,
@@ -146,65 +147,20 @@ def callrpc(rpc, site, method, *args, **kwargs):
 def gevent_exception_handler():
     pass
 
-#def update_category(site, rpc, concurrency=3):
-#    with UpdateContext(site=site, method='update_category') as ctx:
-#        rpcs = [rpc] if not isinstance(rpc, list) else rpc
-#        rpc = random.choice(rpcs)
-#        callrpc(rpc, site, 'crawl_category', ctx=ctx)
 
-#def update_listing(site, rpc, concurrency=3):
-#    with UpdateContext(site=site, method='update_listing') as ctx:
-#        rpcs = [rpc] if not isinstance(rpc, list) else rpc
-#        pool = Pool(len(rpcs)*concurrency)
-#        for category in spout_listing(site):
-#            for kwargs in spout_category(site, category):
-#                kwargs['ctx'] = ctx
-#                rpc = random.choice(rpcs)
-#                pool.spawn(callrpc, rpc, site, 'crawl_listing', **kwargs)
-##                callrpc( rpc, site, 'crawl_listing', **kwargs)
-#        pool.join()
-
-#def update_product(site, rpc, concurrency=3):
-#    with UpdateContext(site=site, method='update_product') as ctx:
-#        rpcs = [rpc] if not isinstance(rpc, list) else rpc
-#        pool = Pool(len(rpcs)*concurrency)
-#        for kwargs in spout_product(site):
-#            kwargs['ctx'] = ctx
-#            rpc = random.choice(rpcs)
-#            pool.spawn(callrpc, rpc, site, 'crawl_product', **kwargs)
-##            callrpc( rpc, site, 'crawl_product', **kwargs)
-#        pool.join()
-
-
-#def update_listing_update(site, rpc, concurrency=3):
-#    with UpdateContext(site=site, method='update_listing_update') as ctx:
-#        rpcs = [rpc] if not isinstance(rpc, list) else rpc
-#        pool = Pool(len(rpcs)*concurrency)
-#        for category in spout_listing_update(site):
-#            for kwargs in spout_category(site, category):
-#                kwargs['ctx'] = ctx
-#                rpc = random.choice(rpcs)
-#                pool.spawn(callrpc, rpc, site, 'crawl_listing', **kwargs)
-##                callrpc( rpc, site, 'crawl_listing', **kwargs)
-#        pool.join()
-
-
-"""
-new, update parent task with sevral sequential children tasks
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-"""
-def new_category(site, rpc, concurrency=3):
-    ictx= None
-    with UpdateContext(site=site, method='new_category') as ctx:
-        ictx = ctx
+#
+# new or update parent task with sevral sequential children tasks
+#
+def update_category(site, rpc, method='update_category', concurrency=5):
+    with UpdateContext(site=site, method=method) as ctx:
         rpcs = [rpc] if not isinstance(rpc, list) else rpc
         rpc = random.choice(rpcs)
         callrpc(rpc, site, 'crawl_category', ctx=ctx)
 
-def new_listing(site, rpc, concurrency=3):
-    ictx = None
-    with UpdateContext(site=site, method='new_listing') as ctx:
-        ictx = ctx
+def update_listing(site, rpc, method='update_listing', concurrency=5):
+    keep_ctx = None
+    with UpdateContext(site=site, method=method) as ctx:
+        keep_ctx = ctx
         rpcs = [rpc] if not isinstance(rpc, list) else rpc
         pool = Pool(len(rpcs)*concurrency)
         for category in spout_listing(site):
@@ -212,77 +168,40 @@ def new_listing(site, rpc, concurrency=3):
                 kwargs['ctx'] = ctx
                 rpc = random.choice(rpcs)
                 pool.spawn(callrpc, rpc, site, 'crawl_listing', **kwargs)
-#                callrpc( rpc, site, 'crawl_listing', **kwargs)
         pool.join()
-    
-    ready_for_batch.send(sender=ictx, site=site, doctype='event')
 
-def new_product(site, rpc, concurrency=3):
-    ictx = None
-    with UpdateContext(site=site, method='new_product') as ctx:
-        ictx = ctx
+    ready_for_batch.send(sender=keep_ctx, site=site, doctype='event')
+
+def update_product(site, rpc, method='update_product', concurrency=5):
+    keep_ctx = None
+    with UpdateContext(site=site, method=method) as ctx:
+        keep_ctx = ctx
         rpcs = [rpc] if not isinstance(rpc, list) else rpc
         pool = Pool(len(rpcs)*concurrency)
         for kwargs in spout_product(site):
             kwargs['ctx'] = ctx
             rpc = random.choice(rpcs)
             pool.spawn(callrpc, rpc, site, 'crawl_product', **kwargs)
-#            callrpc( rpc, site, 'crawl_product', **kwargs)
         pool.join()
-    
-    ready_for_batch.send(sender=ictx, site=site, doctype='product')
 
-# parent task of new
-def new(site, rpc, concurrency=3):
-    new_category(site, rpc, concurrency=3)
-    new_listing(site, rpc, concurrency=3)
-    new_product(site, rpc, concurrency=3)
+    ready_for_batch.send(sender=keep_ctx, site=site, doctype='product')
 
-def update_category(site, rpc, concurrency=3):
-    ictx = None
-    with UpdateContext(site=site, method='update_category') as ctx:
-        ictx = ctx
-        rpcs = [rpc] if not isinstance(rpc, list) else rpc
-        rpc = random.choice(rpcs)
-        callrpc(rpc, site, 'crawl_category', ctx=ctx)
+# parent task of new or update
+def update(site, rpc, method='update', concurrency=5):
+    update_category(site, rpc, '{0}_category'.format(method), concurrency)
+    update_listing(site, rpc, '{0}_listing'.format(method), concurrency)
+    update_product(site, rpc, '{0}_product'.format(method), concurrency)
 
-def update_listing(site, rpc, concurrency=3):
-    ictx = None
-    with UpdateContext(site=site, method='update_listing') as ctx:
-        ictx = ctx
-        rpcs = [rpc] if not isinstance(rpc, list) else rpc
-        pool = Pool(len(rpcs)*concurrency)
-        for category in spout_listing_update(site):
-            for kwargs in spout_category(site, category):
-                kwargs['ctx'] = ctx
-                rpc = random.choice(rpcs)
-                pool.spawn(callrpc, rpc, site, 'crawl_listing', **kwargs)
-#                callrpc( rpc, site, 'crawl_listing', **kwargs)
-        pool.join()
-    
-    ready_for_batch.send(sender=ictx, site=site, doctype='event')
+# alias for easily invoking by monitor
+new_category = partial(update_category, method='new_category')
+new_listing = partial(update_listing, method='new_listing')
+new_product = partial(update_product, method='new_product')
+new = partial(update, method='new')
 
-def update_product(site, rpc, concurrency=3):
-    ictx = None
-    with UpdateContext(site=site, method='update_product') as ctx:
-        ictx = ctx
-        rpcs = [rpc] if not isinstance(rpc, list) else rpc
-        pool = Pool(len(rpcs)*concurrency)
-        for kwargs in spout_product(site):
-            kwargs['ctx'] = ctx
-            rpc = random.choice(rpcs)
-            pool.spawn(callrpc, rpc, site, 'crawl_product', **kwargs)
-#            callrpc( rpc, site, 'crawl_product', **kwargs)
-        pool.join()
-    
-    ready_for_batch.send(sender=ictx, site=site, doctype='product')
-
-
-# parent task of update
-def update(site, rpc, concurrency=3):
-    update_category(site, rpc, concurrency=3)
-    update_listing(site, rpc, concurrency=3)
-    update_product(site, rpc, concurrency=3)
+def new_thrice(site, rpc, method='new', concurrency=5):
+    update(site, rpc, method, concurrency)
+    update(site, rpc, method, concurrency)
+    update(site, rpc, method, concurrency)
 
 
 if __name__ == '__main__':
@@ -290,6 +209,5 @@ if __name__ == '__main__':
     site = 'amazon'
     rpc = CrawlerServer() 
     update_category(site,rpc)
-    update_listing('amazon',rpc)
-    #update_product('amazon', rpc)
-    #update_category('myhabit', rpc)
+    update_listing(site,rpc)
+    update_product(site, rpc)

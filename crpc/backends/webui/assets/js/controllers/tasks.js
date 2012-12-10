@@ -7,7 +7,7 @@ function TaskCtrl($scope) {
   $scope.tasks = [];
 
   $(document).ready(function(){
-    updater.init();
+    updater.init(offset=0, limit=50);
     updater.poll();
   });
 
@@ -16,17 +16,25 @@ function TaskCtrl($scope) {
     return r ? r[1] : undefined;
   }
 
+/*  var initFunc = 
+*/
+
   var updater = {
     errorSleepTime: 500,
 
     // initiate table arguments
-    init: function() {
+    init: function(offset, limit){
         $.ajax({
             url: "/task/all",
             type: "GET",
+            data: {offset:offset, limit:limit},
             dataType: "json",
-            success: function(response){
+            success: function(response) {
                 updater.updateTasks(response['tasks']);
+                // has more
+                if (response['tasks'].length==limit) {
+                    updater.init(offset+limit, limit);
+                }
             }
         });
     },
@@ -84,7 +92,7 @@ function TaskCtrl($scope) {
                         "<div class='modal-footer'><p id="+t.ctx+" onclick='showFails(this)'><button class='btn' data-dismiss='modal' onclick='toggleCanUpdate()'>Close</button></p></div>"+
                     "</div>"
                     + "<div><a href='#"+taskid+"' data-toggle='modal' onclick='toggleCanUpdate()'>"+t.fails+"</div>";
-            return [t.name, t.status, t.started_at, t.updated_at, t.dones, t.updates, t.news, failsdiv];
+            return [t.name, t.status, t.started_at, t.updated_at, t.dones, t.updates, t.news, failsdiv, t.ctx];
         }
 
         var rows_to_add = [];
@@ -93,7 +101,7 @@ function TaskCtrl($scope) {
             for(var i=0; i<tasks.length; i++){
                 var found = false;
                 for(var j=0; j<$scope.tasks.length; j++){
-                    if( $scope.tasks[j].started_at == tasks[i].started_at ){
+                    if( $scope.tasks[j].ctx == tasks[i].ctx ){
                         // alter what we binded
                         for (key in $scope.tasks[j]){
                             $scope.tasks[j][key] = tasks[i][key];
@@ -102,7 +110,7 @@ function TaskCtrl($scope) {
                         // alter values in datatable
                         for (var k=0; k<$scope.tasks.length; k++){
                             var therow = $.fn.oTable.fnGetData(k);
-                            if (therow && therow[2] == tasks[i].started_at){
+                            if (therow && therow[8] == tasks[i].ctx){
                                 $.fn.oTable.fnUpdate(task2row(tasks[i]), k);
                             }
                         }

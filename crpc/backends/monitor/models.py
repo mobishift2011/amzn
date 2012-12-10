@@ -7,7 +7,7 @@ from mongoengine import signals
 from datetime import datetime, timedelta
 
 DB = "monitor"
-connect(db=DB, alias=DB, host=MONGODB_HOST)
+connect(db=DB, alias=DB, host=MONGODB_HOST, max_pool_size=50)
 
 def fail(site, method, key='', url='', message="undefined"):
     f = Fail(site=site, method=method, key=key, url=url, message=message)
@@ -151,11 +151,11 @@ class Task(Document):
             #'fail_details': [f.to_json() for f in self.fails][-10:],
         }
 
-    @classmethod
-    def pre_save(cls, sender, document, **kwargs):
-         document.updated_at = datetime.utcnow()
-
-signals.pre_save.connect(Task.pre_save, sender=Task)
+#    @classmethod
+#    def pre_save(cls, sender, document, **kwargs):
+#         document.updated_at = datetime.utcnow()
+#
+#signals.pre_save.connect(Task.pre_save, sender=Task)
 
 if __name__ == '__main__':
     Schedule().timematch()

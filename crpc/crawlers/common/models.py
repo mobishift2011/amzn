@@ -21,17 +21,9 @@ class BaseDocumentSkeleton(object):
     # url this collections' object have
     combine_url         =   StringField()
     num                 =   IntField()
-    image_urls          =   ListField(StringField())
-    image_path          =   ListField(StringField())
+    image_urls          =   ListField(StringField(), default=list)
+    image_path          =   ListField(StringField(), default=list)
     
-    image_complete      =   BooleanField(default=False)
-    brand_complete      =   BooleanField(default=False)
-    propagation_complete=   BooleanField(default=False)
-    publish_time        =   DateTimeField()
-
-    favbuy_brand        =   ListField(StringField())
-    favbuy_tag          =   ListField(StringField())
-
     # text info
     slug                =   StringField()
     sale_title          =   StringField()
@@ -84,6 +76,22 @@ class BaseEvent(Document, BaseDocumentSkeleton):
     # after setting urgent to False, you can't set it back
     # after event complete by crawler, urgent is False
     urgent              = BooleanField(default=True)
+    
+
+    image_complete      =   BooleanField(default=False)
+    brand_complete      =   BooleanField(default=False)
+    propagation_complete=   BooleanField(default=False)
+    publish_time        =   DateTimeField()
+
+    favbuy_brand        =   ListField(StringField(), default=list)
+    favbuy_tag          =   ListField(StringField(), default=list)
+    favbuy_dept         =   ListField(StringField(), default=list)
+    lowest_price        =   StringField()
+    highest_price       =   StringField()
+    lowest_discount     =   StringField()
+    highest_discount    =   StringField()
+
+    muri                =   StringField()   # resource URL in mastiff
     
     meta = {
         "allow_inheritance": True,
@@ -156,8 +164,8 @@ class BaseProduct(Document):
     reviews             =   ListField(ReferenceField(BaseReview))
 
     # product images
-    image_urls          =   ListField(StringField())
-    image_path          =   ListField(StringField())
+    image_urls          =   ListField(StringField(), default=list)
+    image_path          =   ListField(StringField(), default=list)
 
     image_complete      =   BooleanField(default=False)
     brand_complete      =   BooleanField(default=False)
@@ -165,9 +173,13 @@ class BaseProduct(Document):
     dept_complete       =   BooleanField(default=False)
     publish_time        =   DateTimeField()
 
-    favbuy_brand       =   StringField(default='')
-    favbuy_tag          =   ListField(StringField())
+    favbuy_brand        =   StringField(default='')
+    favbuy_tag          =   ListField(StringField(), default=list)
+    favbuy_dept         =   ListField(StringField(), default=list)
+    favbuy_price        =   StringField()
 
+    muri                =   StringField()   # resource URL in mastiff
+    
     meta                =   {
         "allow_inheritance": True,
         "collection": "product",
@@ -205,6 +217,7 @@ class LuxuryProduct(BaseProduct):
     scarcity            =   StringField()
     list_info           =   ListField(StringField())
     
+    favbuy_listprice    =   StringField()
     
     meta                = {
         "indexes": ["soldout"],

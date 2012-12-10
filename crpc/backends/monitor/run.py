@@ -6,7 +6,8 @@ import gevent
 import resource
 resource.setrlimit(resource.RLIMIT_NOFILE, (4096, 4096))
 
-from backends.monitor.scheduler import Scheduler, execute
+from backends.monitor.scheduler import Scheduler
+from backends.monitor.autoschedule import execute
 from backends.monitor.events import run_command # spawn listener to listen webui signal
 
 
@@ -28,5 +29,5 @@ logger = getlogger("monitor")
 
 while True:
 #    logger.warning("looping")
-    gevent.sleep(10)
+    gevent.sleep(60)
     

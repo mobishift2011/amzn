@@ -32,7 +32,11 @@ def setup():
     """
     run("apt-get update")
     run("apt-get -y upgrade")
-    run("apt-get -y install build-essential python-dev libevent-dev libxslt-dev uuid-dev python-setuptools dtach libzmq-dev redis-server chromium-browser xvfb unzip libjpeg8-dev")
+    run("apt-get -y install build-essential python-dev libevent-dev libxslt-dev uuid-dev python-setuptools dtach libzmq-dev redis-server chromium-browser xvfb unzip libjpeg8-dev gfortran libblas-dev liblapack-dev")
+    run("apt-get -y build-dep python-imaging")
+    run("ln -sf /usr/lib/`uname -i`-linux-gnu/libfreetype.so /usr/lib/")
+    run("ln -sf /usr/lib/`uname -i`-linux-gnu/libjpeg.so /usr/lib/")
+    run("ln -sf /usr/lib/`uname -i`-linux-gnu/libz.so /usr/lib/")
     run("easy_install pip")
     run("pip install virtualenvwrapper")
     run("mkdir -p /opt/crpc")
@@ -40,23 +44,25 @@ def setup():
     if not exists('/usr/bin/chromedriver'):
         run("wget -q -c http://chromedriver.googlecode.com/files/chromedriver_linux64_23.0.1240.0.zip -O tmp.zip && unzip tmp.zip && rm tmp.zip")
         run("chmod a+x chromedriver && mv chromedriver /usr/bin/")
+        run("ln -s /usr/bin/chromium-browser /usr/bin/google-chrome")
 
     with settings(warn_only=True):
         run("killall chromedriver")
         run("kill -9 `pgrep -f crawlerserver`")
         run("kill -9 `pgrep -f powerserver`")
         #run("kill -9 `pgrep -f {0}`".format(ENV_NAME))
-        run("ln -s /usr/bin/chromium-browser /usr/bin/google-chrome")
 
     with cd("/opt/crpc"):
         with prefix("source /usr/local/bin/virtualenvwrapper.sh"):
             run("mkvirtualenv "+ENV_NAME)
             with prefix("workon "+ENV_NAME):
                 run("pip install cython"+USE_INDEX)
+                run("pip install numpy"+USE_INDEX)
+                run("pip install scipy"+USE_INDEX)
+                run("pip install scikit-learn pattern"+USE_INDEX)
                 if 'gevent==1.0' not in run("pip freeze|grep gevent").stdout:
                     run("pip install https://github.com/SiteSupport/gevent/tarball/master")
                 run("pip install zerorpc lxml requests pymongo mongoengine redis redisco pytz PIL mock selenium blinker cssselect boto python-dateutil virtualenvwrapper slumber esmre django"+USE_INDEX) 
-                run("ln -s /usr/lib/x86_64-linux-gnu/libjpeg.so ~/.virtualenvs/"+ENV_NAME+"/lib/")
 
 def deploy():
     """ deploy crawler&api server code to remotes """
@@ -141,6 +147,7 @@ def _stop_power():
     with settings(warn_only=True):
         run("kill -9 `pgrep -f apiserver.py`")
         run("kill -9 `pgrep -f powerserver.py`")
+        run("ps aux | grep powerserver.py | grep -v grep | awk '{print $2}' | xargs kill -9")
         run("rm /tmp/*.sock")
 
 def _start_monitor():

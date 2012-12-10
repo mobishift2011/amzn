@@ -21,8 +21,9 @@ DATABASES = {
 }
 
 # mongodb connection
+from configs import MONGODB_HOST
 from mongoengine import connect
-connect('catalogIndex')
+connect(db='catalogIndex', host=MONGODB_HOST)
 
 AUTHENTICATION_BACKENDS = (
     'mongoengine.django.auth.MongoEngineBackend',

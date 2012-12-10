@@ -19,7 +19,10 @@ from configs import SITES
 from events import *
 
 from helpers.rpc import get_rpcs
-from crawlers.common.routine import get_site_module
+# from crawlers.common.routine import get_site_module
+
+def get_site_module(site):
+    return __import__('crawlers.'+site+'.models', fromlist=['Category', 'Event', 'Product'])
 
 def call_rpc(rpc, method, *args, **kwargs):
     try:
@@ -85,6 +88,16 @@ def spout_brands(site, doctype):
             'brand': instance.brand,
             'doctype': model,
             'combine_url': instance.combine_url,
+        }
+
+def spout_propagate_events(site):
+    m = __import__('crawlers.{0}.models'.format(site), fromlist=['Event'])
+    events = m.Event.objects(propagation_complete=False)
+
+    for event in events:
+        yield {
+            'event_id': event.event_id,
+            'site': site,
         }
 
 class UpdateContext(object):
@@ -164,25 +177,47 @@ def crawl_images(site, model, key, rpc=None, *args, **kwargs):
             rpc = random.choice(rpcs)
             call_rpc(rpc, method, **newargs)
 
-def test_brand(test_site=None):
+def brand_extract(site, rpc, concurrency=3):
+    """
+    * Product brand extraction.
+    """
+    rpcs = [rpc] if not isinstance(rpc, list) else rpc
+    pool = Pool(len(rpcs)*concurrency)
+    products = spout_brands(site, 'product')
+
+    for product in products:
+        rpc = random.choice(rpcs)
+        pool.spawn(call_rpc, rpc, 'extract_brand', **product)
+    pool.join()
+    
+    propagate(site, rpc, concurrency)
+
+def propagate(site, rpc, concurrency=3):
+    """
+    * Event brand propagation
+    * Event (lowest, highest) discount, (lowest, highest) price propagation
+    * Event & product begin_date, end_date
+    * Event soldout
+    * tag, dept extraction
+    """
+    rpcs = [rpc] if not isinstance(rpc, list) else rpc
+    pool = Pool(len(rpcs)*concurrency)
+    events = spout_propagate_events(site)
+
+    for event in events:
+        rpc = random.choice(rpcs)
+        pool.spawn(call_rpc, rpc, 'propagate', **event)
+    pool.join()
+
+
+def test_brand(site):
     import time
-    from powerserver import PowerServer
-    start = time.time()
-
-    for site in SITES:
-        print 'site:%s, test_site:%s' % (site, test_site)
-        if test_site and site != test_site:
-            continue
-
-        # events = spout_brands(site, 'event')
-        # for event in events:
-        #     call_rpc(PowerServer(), 'extract_brand', **event)
-
-        products = spout_brands(site, 'product')
-        for product in products:
-            call_rpc(PowerServer(), 'extract_brand', **product)
-
-    print 'total cost: %s (ms)' % (time.time()-start)
+    from powers.powerserver import PowerServer
+    products = spout_brands(site, 'product')
+    for product in products:
+        s = PowerServer()
+        print product
+        s.extract_brand((), product)
 
 if __name__ == '__main__':
     # from powers.powerserver import PowerServer

@@ -31,7 +31,7 @@ class zulilyLogin(object):
         """
         self.login_url = 'https://www.zulily.com/auth'
         self.email = 'huanzhu@favbuy.com'
-        self.passwd = '4110050209'
+        self.passwd = 'abcd1234'
         self.data = { 
             'login[username]': self.email,
             'login[password]': self.passwd

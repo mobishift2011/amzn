@@ -3,7 +3,7 @@
 from gevent import monkey; monkey.patch_all()
 from crawlers.common.events import common_saved
 from powers.events import *
-from powers.routine import scan_images
+from powers.routine import scan_images, brand_extract, propagate
 from powers.models import EventProgress, ProductProgress
 
 from datetime import datetime
@@ -48,6 +48,18 @@ def ready_for_batch_image_crawling(sender, **kwargs):
         logger.info('start to get rpc resource for %s.%s' % (site, doctype))
         gevent.spawn(scan_images, site, doctype, get_rpcs(POWER_PEERS, POWER_PORT), 10) 
 
+
+@ready_for_batch.bind
+def ready_for_extract(sender, **kwargs):
+    doctype = kwargs.get('doctype')
+    if doctype.capitalize() == 'Product':
+        site = kwargs.get('site')
+        logger.info('start to extract site products brand: %s', site)
+        job = gevent.spawn(brand_extract, site, get_rpcs(POWER_PEERS, POWER_PORT), 10)
+        job.join()
+        
+        ready_for_publish.send(sender, **kwargs)
+        
 
 #@pre_image_crawl.bind
 def stat_pre_general_update(sender, **kwargs):
@@ -119,7 +131,7 @@ def brand_stat(sender, **kwargs):
     brand_complete = kwargs.get('brand_complete', False)
     favbuy_brand = kwargs.get('favbuy_brand', '')
 
-    print 'brand signal %s_%s_%s received: %s > %s' % (site, doctype, key, brand, favbuy_brand)
+    # print 'brand signal %s_%s_%s received: %s > %s' % (site, doctype, key, brand, favbuy_brand)
 
     brand_task = BrandTask.objects(site=site, key=key, doctype=doctype).first()
     if brand_task:
@@ -137,3 +149,7 @@ def brand_stat(sender, **kwargs):
         brand_task.brand_complete = brand_complete
         brand_task.is_checked = False
         brand_task.save()
+
+@ready_for_publish.bind
+def publish(sender, **kwargs):
+    logger.warning('publish site -> {0}'.format(sender, kwargs.get('site')))

@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from settings import MONGODB_HOST
 from mongoengine import *
-connect('training')
+connect(db='training', alias='training', host=MONGODB_HOST)
+
+from datetime import datetime
 
 class Department(Document):
     main    =   StringField()
@@ -12,17 +15,20 @@ class Department(Document):
         'indexes': [
             {'fields':['main','sub'], 'unique':True},
         ],
+        'db_alias': 'training',
     }
     
 class RawDocument(Document):
     site_key    =   StringField()   
-    text        =   StringField()
+    content     =   StringField()
+    updated_at  =   DateTimeField(default=datetime.utcnow)
     department  =   ReferenceField(Department)
     
     meta = {
         'indexes': [
             {'fields':['site_key'], 'unique':True, 'sparse':True}, 
         ],
+        'db_alias': 'training',
     }
 
 
@@ -54,6 +60,8 @@ CATS = {
 	    'Toys, Games & Books',
 	    'Gear & Equipment',
 	    'Bed, Bath & Furniture',
+        'Maternity',
+        'Accessories',
     ],
     'Home': [
 	    'Furniture & Lighting',
@@ -73,6 +81,8 @@ CATS = {
 	    'Crossbody Bags',
 	    'Evening Bags',
 	    'Backpacks & Laptop Bags',
+        'Wallets',
+        'Luggage & Gear',
     ],
     'Jewelry & Watches': [
 	    'Women\'s Watches',
@@ -87,7 +97,7 @@ CATS = {
 	    'Skin Care',
 	    'Makeup',
 	    'Fragrance',
-	    'Body Care',
+	    'Body Care & Hair',
     ],
     'Wine': [
 	    'Red Wine',
@@ -97,7 +107,32 @@ CATS = {
     ],
 }
 
-for k, vlist in CATS.iteritems():
-    for v in vlist:
-        print k, v
-        Department.objects(main=k,sub=v).update(set__main=k, set__sub=v, upsert=True)
+def bootstrap():
+    print 'reconstructing categories'
+    for k, vlist in CATS.iteritems():
+        for v in vlist:
+            print k, v
+            Department.objects(main=k,sub=v).update(set__main=k, set__sub=v, upsert=True)
+    # Department.objects(main='Beauty & Health').update(set__parent='Women')
+    # Department.objects(main='Jewelry & Watches').update(set__parent='Women')
+    # Department.objects(main='Handbags').update(set__parent='Women')
+
+    print
+    print 'constructing rawdocs'
+    import os
+    from os.path import join
+    from classifier import SklearnClassifier
+    clf = SklearnClassifier('svm')
+    for dept_subdept in os.listdir('dataset'):
+        dept, subdept = dept_subdept.split('|')
+        print dept, subdept
+        d = Department.objects.get(main=dept, sub=subdept)
+        for site_key in os.listdir(join('dataset',dept_subdept)):
+            content = open(join('dataset', dept_subdept, site_key)).read()
+            if clf.train(content, dept_subdept, strict=True):
+                RawDocument.objects(site_key=site_key).update(set__content=content, set__department=d, upsert=True)
+            else:
+                print 'duplicate document', site_key
+
+if __name__ == '__main__':
+    bootstrap()

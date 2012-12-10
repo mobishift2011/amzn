@@ -163,7 +163,7 @@ def _stop_monitor():
     os.system("rm /tmp/crpc*.sock")
 
 def _start_publish():
-    os.system("dtach -n /tmp/publish.sock python {0}/publisher/publish.py -d".format(CRPC_ROOT))
+    os.system("ulimit -n 4096 && dtach -n /tmp/publish.sock python {0}/publisher/publish.py -d".format(CRPC_ROOT))
 
 def _stop_publish():
     os.system("ps aux | grep publish.py | grep -v grep | awk '{print $2}' | xargs kill -9")

@@ -28,7 +28,7 @@ class Server(object):
             'X-Requested-With': 'XMLHttpRequest',
         }
 
-    def crawl_category(self, ctx=''):
+    def crawl_category(self, ctx='modnique.crawl_listing.xxxxx'):
         """.. :py:method::
             categories should be ['apparel', 'jewelry-watches', 'handbags-accessories', 'shoes', 'beauty', 'men']
         """
@@ -158,7 +158,7 @@ class Server(object):
         return event, is_new, is_updated
 
 
-    def crawl_listing(self, url, ctx=''):
+    def crawl_listing(self, url, ctx='modnique.crawl_listing.xxxxx'):
         """.. :py:method::
         """
         content = fetch_page(url)
@@ -168,11 +168,12 @@ class Server(object):
                     reason='download listing url error, {0}'.format(content))
             return
         tree = lxml.html.fromstring(content)
-
+        nodes = tree.cssselect('div.line > div.page > div#items > ul#products > li.product')
+        for node in nodes:
+            abandon, color = node.get('id').rsplit('_', 1)
+            node.cssselect('div.item_thumb2')
 
 if __name__ == '__main__':
-    Server().crawl_category()
-    exit()
     import zerorpc
     from settings import CRAWLER_PORT
     server = zerorpc.Server(Server(), heartbeat=None)

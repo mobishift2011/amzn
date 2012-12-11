@@ -11,8 +11,7 @@ from datetime import datetime, timedelta
 
 from backends.monitor.models import Schedule, Task
 from backends.monitor.throttletask import task_broke_completed
-from backends.monitor.autoschedule import execute, avoid_cold_start, auto_schedule
-from backends.monitor.organizetask import organize_new_task, organize_update_task
+from backends.monitor.autoschedule import execute
 from backends.monitor.setting import EXPIRE_MINUTES
 
 
@@ -35,27 +34,14 @@ class Scheduler(object):
         return Schedule.objects(enabled=True) 
 
     def run(self):
-        gevent.spawn(avoid_cold_start)
-        gevent.spawn(organize_new_task)
-        gevent.spawn(organize_update_task)
-        # gevent need a 'block' to run spawn.Or we can say gevent will execute spawn until meet a 'block'
-        gevent.sleep(1)
-
         while True:
-            try:
-                # auto_schedule()
+            for s in self.get_schedules():
+                if s.timematch():
+                    execute(s.site, s.method)
 
-                # keep the old crond system
-                for s in self.get_schedules():
-                    if s.timematch():
-                        execute(s.site, s.method)
-
-                # assume this for loop can be finished in less than one minute
-                gevent.sleep(60 - datetime.utcnow().second)
-                gevent.spawn(delete_expire_task)
-            except Exception as e:
-                with open('/tmp/schedule.log', 'a') as fd:
-                    fd.write(str(e) + '\n\n\n')
+            # assume this for loop can be finished in less than one minute
+            gevent.sleep(60 - datetime.utcnow().second)
+            gevent.spawn(delete_expire_task)
 
 if __name__ == '__main__':
     Scheduler().run()

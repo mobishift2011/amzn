@@ -199,9 +199,9 @@ new_product = partial(update_product, method='new_product')
 new = partial(update, method='new')
 
 def new_thrice(site, rpc, method='new', concurrency=5):
-    update(site, rpc, method, concurrency)
-    update(site, rpc, method, concurrency)
-    update(site, rpc, method, concurrency)
+    new(site, rpc, method, concurrency)
+    new(site, rpc, method, concurrency)
+    new(site, rpc, method, concurrency)
 
 
 if __name__ == '__main__':

@@ -6,6 +6,11 @@ Tools for server to processing data
 This is the server part of zeroRPC module. Call by client automatically, run on many differen ec2 instances.
 
 """
+from gevent import monkey; monkey.patch_all()
+from gevent.coros import Semaphore
+from gevent.pool import Pool
+from functools import partial
+
 from configs import *
 from backends.matching.extractor import Extractor
 from backends.matching.classifier import SklearnClassifier
@@ -34,8 +39,8 @@ class ImageTool:
     # sudo ln -s /usr/lib/x86_64-linux-gnu/libjpeg.so ~/.virtualenvs/crpc/lib/
     # pip install PIL
     """
-    def __init__(self, s3conn=None, bucket_name=IMAGE_S3_BUCKET):
-        self.__s3conn = s3conn or S3Connection(AWS_ACCESS_KEY, AWS_SECRET_KEY)
+    def __init__(self, connection=None, bucket_name=S3_IMAGE_BUCKET):
+        self.__s3conn = connection
         try:
             bucket = self.__s3conn.get_bucket(bucket_name)
         except boto.exception.S3ResponseError, e:
@@ -44,52 +49,78 @@ class ImageTool:
             else:
                 raise
         self.__key = Key(bucket)
-    
+        self.__image_path = []
+        self.__thumbnail_complete = False
+        self.__image_complete = False
+        # self.__pool = Pool(10)
+        # self.s3_upload_lock = Semaphore(1)
 
-    def crawl(self, image_urls=[], site=None, key=None):
-        print "%s.%s.images_crawling.start" % (site, key)
-        image_path = []
+    @property
+    def image_complete(self):
+        return self.__image_complete
+
+    @property
+    def image_path(self):
+        return self.__image_path
+
+    @property
+    def thumbnails(self):
+        return self.__thumbnails
+  
+    def crawl(self, image_urls=[], site='', doctype='', key='', thumb=False):
+        print "images crawling ---> {0}.{1}.{2}\n".format(site, doctype, key)
+
+        if len(image_urls) == 0:
+            self.__image_complete = True
+            return
+
         for image_url in image_urls:
-            s3_url = self.grab(image_url, site, key, image_urls.index(image_url))
-            if s3_url:
-                image_path.append(s3_url)
+            path, filename = os.path.split(image_url)
+            index = image_urls.index(image_url)
+            image_name = '%s_%s' % (index, filename)
+            s3key= os.path.join(site, doctype, key, image_name)
+            self.__key.key = s3key
+
+            if self.__key.exists():
+                image_content = None
+                s3_url = '{0}/{1}'.format(S3_IMAGE_URL, self.__key.key)
+                print 'grab existing image from s3 ---> {0}\n'.format(s3_url)
+                self.__image_path.append(s3_url)
             else:
-                image_path = []
-                break
-        
-        print "%s.%s.images_crawling.end" % (site, key)
-        return image_path
-    
+                image_content = self.download(image_url)
+                s3_url = self.upload2s3(StringIO(image_content), self.__key.key)
+                if s3_url:
+                    self.__image_path.append(s3_url)
+                else:
+                    self.__image_complete = False
+                    return
 
-    def grab(self, image_url, site=None, key=None, index=0):
-        path, filename = os.path.split(image_url)
-        image_name = '%s_%s_%s_%s' % (site, key, index, filename)
-        
-        image = requests.get(image_url).content
-        image_content = StringIO(image)
-        ret = ''
-        try:
-            # post image file to S3, and get back the url.
-            ret = self.upload2s3(image_content, os.path.join(site, image_name))
-        except:
-            print 's3 upload failed! %s' % image_name
+            if thumb:
+                if doctype.capitalize() == 'Product' or \
+                    (doctype.capitalize() == 'Event' and index == 0):
+                        if not image_content:
+                            image_content = self.download(s3_url)
+                        self.thumbnail(doctype, StringIO(image_content), self.__key.key)
 
-        if index == 0:
-            # TODO add doctype
-            self.thumbnail('Product', StringIO(image), image_name)
+        self.__image_complete = self.__thumbnail_complete if thumb else True
 
-        return ret
-    
+    def download(self, image_url):
+        print 'downloading image ---> {0}'.format(image_url)
+        r = requests.get(image_url)
+        r.raise_for_status()
+        return r.content
 
     def upload2s3(self, image, key):
-        print "%s.upload2s3:" % (key)
+        print 'upload2s3 ---> {0}'.format(key)
         self.__key.key = key
         self.__key.set_contents_from_file(image)
-        return self.__key.generate_url(URL_EXPIRES_IN)
+        self.__key.make_public()
 
+        image_url = '{0}/{1}'.format(S3_IMAGE_URL, self.__key.key)
+        print 'generate s3 image url ---> {0}\n'.format(image_url)
+        return image_url
 
     def thumbnail(self, doctype, image, image_name):
-        thumb_picts = {}
         im = Image.open(image)
         for size in IMAGE_SIZE[doctype.capitalize()]:
             width = size.get('width')
@@ -100,17 +131,25 @@ class ImageTool:
             height_rate = 1.0 * height / im.size[1]
             rate = max(width_rate, height_rate)
 
-            print 'thumbnail %s with size width: %s, heigh: %s' % (im.size, width, height)           
-            pict = self.resize_by_rate(rate, im) \
-                    if fluid == True or width == 0 or height == 0 \
-                        else self.resize_by_crop(width=width, height=height, im=im)
+            print 'thumbnail %s to size ---> (%s, %s)' % (im.size, width, height)
+            path, name = os.path.split(image_name)
+            thumb_name = '%sx%s_%s' % (width, height, name)
+            key = os.path.join(path, thumb_name)
+            self.__key.key = key
 
-            thumbnail_url = self.upload2s3(pict, '%sx%s_%s' % (width, height, image_name))
-            if thumbnail_url:
-                thumb_picts['%sx%s' % (width, height)] = thumbnail_url
+            if self.__key.exists():
+                s3_url = '{0}/{1}'.format(S3_IMAGE_URL, self.__key.key)
+                print 'thumbnail already exists on s3 ---> {0}\n'.format(s3_url)
+            else:      
+                thumb_pict = self.resize_by_rate(rate, im) \
+                        if fluid == True or width == 0 or height == 0 \
+                            else self.resize_by_crop(width=width, height=height, im=im)
+                self.upload2s3(thumb_pict, self.__key.key)
+                # with self.s3_upload_lock:
+                #     self.__pool.spawn(self.upload2s3, thumb_pict, self.__key.key)
 
-        return thumb_picts
-
+        # self.__pool.join()
+        self.__thumbnail_complete = True
 
     def resize(self, box, im):
         thumbnail = im.resize(box)
@@ -119,12 +158,10 @@ class ImageTool:
         tempfile.seek(0)
         return tempfile
 
-
     def resize_by_rate(self, rate, im):
         width, height = im.size
         size = tuple([int(i * rate) for i in im.size])
         return self.resize(size, im)
-
 
     def resize_by_crop(self, width=0, height=0, im=None):
         width_rate = 1.0 * width / im.size[0]
@@ -148,17 +185,11 @@ class ImageTool:
 
 def parse_price(price):
     amount = 0
-    pattern = re.compile(r'^\$?(\d+(\.\d+|\d*))$')
+    pattern = re.compile(r'^\$?(\d+(,\d{3})*(\.\d+)?)$')
     match = pattern.search(price)
     if match:
-        amount_list = (price_match.groups()[0]).split(',')
-        amount = float(''.join(amount_list))
-    return amount
-
-    # $1,200.00
-    # lowest_discount = 1-0.8
-    # highest_discount = 1-0.4
-
+        amount = (match.groups()[0]).replace(',', '')
+    return float(amount)
 
 class Propagator(object):
     def __init__(self, site, event_id):
@@ -188,8 +219,8 @@ class Propagator(object):
         highest_price = 0
         lowest_discount = 0
         highest_discount = 0
-        events_begin = self.event.events_begin if hasattr(self.event, 'events_begin') else ''
-        events_end = self.event.events_end if hasattr(self.event, 'events_end') else ''
+        events_begin = self.event.events_begin or ''# if hasattr(self.event, 'events_begin') else ''
+        events_end = self.event.events_end or '' #if hasattr(self.event, 'events_end') else ''
         soldout = True
 
         m = __import__('crawlers.{0}.models'.format(self.site), fromlist=['Product'])
@@ -242,16 +273,11 @@ class Propagator(object):
                 events_end = max(events_end, product.products_end)
 
             # (lowest, highest) discount, (lowest, highest) price propagation
-            # TODO the regex not correct
-            pattern = re.compile(r'^\$?(\d+(\.\d+|\d*))$')
-            price_match = pattern.search(product.price)
-            listprice_match = pattern.search(product.listprice)
-            
-            price = float(price_match.groups()[0]) if price_match else 0
-            listprice = float(listprice_match.groups()[0]) if listprice_match else 0
+            price = parse_price(product.price)
+            listprice = parse_price(product.listprice)
             product.favbuy_price = str(price)
             product.favbuy_listprice = str(listprice)
-
+            
             highest_price = max(price, highest_price) if highest_price else price
             lowest_price = (min(price, lowest_price) or lowest_price) if lowest_price else price
 
@@ -260,8 +286,9 @@ class Propagator(object):
             highest_discount = min(discount, lowest_discount) or discount
 
             # soldout
-            if soldout and (hasattr(product, 'soldout') and not product.soldout):
-                soldout = False
+            if soldout and ((hasattr(product, 'soldout') and not product.soldout) \
+                or (product.scarcity and int(product.scarcity))):
+                    soldout = False
 
             product.save()
 
@@ -285,20 +312,37 @@ class Propagator(object):
         return self.event.propagation_complete
 
 
+def test_image():
+    conn = S3Connection(AWS_ACCESS_KEY, AWS_SECRET_KEY)
+    url1 = 'http://cdn04.mbbimg.cn/1308/13080081/01/1024/01.jpg'
+    url2 = 'http://cdn07.mbbimg.cn/1306/13060056/02/1024/01.jpg'
+    url3 = 'http://cdn03.mbbimg.cn/1307/13070129/01/480/01.jpg'
+    url4 = 'http://cdn08.mbbimg.cn/1310/13100015/03/480/02.jpg'
+    it = ImageTool(connection = conn)
+    it.crawl([url1, url2], 'venteprivee', 'event', 'abc123', thumb=True)
+    print 'image path ---> {0}'.format(it.image_path)
+    print 'complete ---> {0}\n'.format(it.image_complete)
+
+    it = ImageTool(connection = conn)
+    it.crawl([url3, url4], 'venteprivee', 'product', '123456', thumb=True)
+    print 'image path ---> {0}'.format(it.image_path)
+    print 'complete ---> {0}\n'.format(it.image_complete)
+
 def test_propagate(site, event_id):
     p = Propagator(site, event_id)
     p.propogate()
+
 
 if __name__ == '__main__':
     pass
 
     import time, sys
     start = time.time()
-    # url = ''
-    # image_content = StringIO(requests.get(url).content)
-    # it = ImageTool()
-    # thum_picts = it.thumbnail('Product', image_content, 'lala')
-    # print thum_picts
-    test_propagate(sys.argv[1], sys.argv[2]),
-
+    if len(sys.argv) > 1:
+        if sys.argv[1] == '-i':
+            f = test_image
+            f()
+        elif sys.argv[1] == '-p':
+            f = test_propagate
+            f()
     print time.time() - start, 's'

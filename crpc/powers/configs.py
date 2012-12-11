@@ -8,8 +8,9 @@ DEBUG = True
 
 AWS_ACCESS_KEY 	= "AKIAIQC5UD4UWIJTBB2A"
 AWS_SECRET_KEY 	= "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"
-IMAGE_S3_BUCKET = 'favbuy'
+S3_IMAGE_BUCKET = 'image_favbuy'
 IMAGE_ROOT 		= ''
+S3_IMAGE_URL	= 'https://s3.amazonaws.com/{0}'.format(S3_IMAGE_BUCKET)
 URL_EXPIRES_IN 	= 60 * 60 * 24 * 365 * 25    # S3 has an epoch time of 03:14 UTC on Tuesday, 19 January 2038.
 
 """
@@ -54,7 +55,7 @@ IMAGE_SIZE = {
 		{
 			'width': 300,
 			'height': 260,
-			'fluid': True	# not fix, but the smaller size should fill the bound
+			# 'fluid': True	# not fix, but the smaller size should fill the bound
 		},
 		{
 			'width': 50,

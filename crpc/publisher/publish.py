@@ -197,7 +197,7 @@ class Publisher:
                     "description": obj_getattr(ev, 'sale_description', ''),
                     "ends_at": obj_getattr(ev, 'events_end', datetime.utcnow()+timedelta(days=7)).isoformat(),
                     "starts_at": obj_getattr(ev, 'events_begin', datetime.utcnow()).isoformat(),
-                    "cover_image": ev['image_urls'][0] if ev['image_urls'] else '',
+                    "cover_image": ev['image_path'][0] if ev['image_path'] else '',
                     "soldout": ev.soldout,
                     "department": ev.favbuy_dept[0] if ev.favbuy_dept and len(ev.favbuy_dept)>0 else 'women' }
             self.logger.debug("publish event data: %s", ev_data)

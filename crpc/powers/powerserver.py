@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 from gevent import monkey; monkey.patch_all()
-from settings import POWER_PORT
-
-import zerorpc
 from gevent.coros import Semaphore
+import zerorpc
+
+from boto.s3.connection import S3Connection
+from settings import POWER_PORT
+from configs import *
 
 from tools import ImageTool, Propagator
 from brandapi import Extracter
@@ -12,6 +14,9 @@ from powers.events import *
 #process_image_lock = Semaphore(1)
 
 class PowerServer(object):
+    def __init__(self):
+        self.__s3conn = S3Connection(AWS_ACCESS_KEY, AWS_SECRET_KEY)
+
     def process_image(self, args=(), kwargs={}):
         print 'Image Server Accept', args, kwargs
         return self._process_image(*args, **kwargs)
@@ -21,7 +26,7 @@ class PowerServer(object):
         key = kwargs.get('event_id', kwargs.get('key'))
         m = __import__("crawlers."+site+'.models', fromlist=['Event', 'Product'])
 
-        image_tool = ImageTool()
+        image_tool = ImageTool(connection=self.__s3conn)
         image_tool.crawl(image_urls, site, doctype, key, thumb=True)
         image_path = image_tool.image_path
 
@@ -48,7 +53,7 @@ class PowerServer(object):
         site = kwargs.get('site', '')
         doctype = kwargs.get('doctype', '')
         key = kwargs.get('key', '')
-        crawled_brand = kwargs.get('brand', '')
+        crawled_brand = kwargs.get('brand') or ''
 
         #TO REMOVE
         print site,' ' + doctype + ' ',  key # + ' ', 'brand-<'+crawled_brand+'>  ',  'title-<'+ kwargs.get('title', ' ') +'>'+ ':'

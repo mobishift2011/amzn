@@ -6,6 +6,11 @@ Tools for server to processing data
 This is the server part of zeroRPC module. Call by client automatically, run on many differen ec2 instances.
 
 """
+from gevent import monkey; monkey.patch_all()
+from gevent.coros import Semaphore
+from gevent.pool import Pool
+from functools import partial
+
 from configs import *
 from backends.matching.extractor import Extractor
 from backends.matching.classifier import SklearnClassifier
@@ -34,8 +39,8 @@ class ImageTool:
     # sudo ln -s /usr/lib/x86_64-linux-gnu/libjpeg.so ~/.virtualenvs/crpc/lib/
     # pip install PIL
     """
-    def __init__(self, s3conn=None, bucket_name=S3_IMAGE_BUCKET):
-        self.__s3conn = s3conn or S3Connection(AWS_ACCESS_KEY, AWS_SECRET_KEY)
+    def __init__(self, connection=None, bucket_name=S3_IMAGE_BUCKET):
+        self.__s3conn = connection
         try:
             bucket = self.__s3conn.get_bucket(bucket_name)
         except boto.exception.S3ResponseError, e:
@@ -47,6 +52,8 @@ class ImageTool:
         self.__image_path = []
         self.__thumbnail_complete = False
         self.__image_complete = False
+        # self.__pool = Pool(10)
+        # self.s3_upload_lock = Semaphore(1)
 
     @property
     def image_complete(self):
@@ -92,7 +99,7 @@ class ImageTool:
                 if doctype.capitalize() == 'Product' or \
                     (doctype.capitalize() == 'Event' and index == 0):
                         if not image_content:
-                            image_content = self.download(image_url)
+                            image_content = self.download(s3_url)
                         self.thumbnail(doctype, StringIO(image_content), self.__key.key)
 
         self.__image_complete = self.__thumbnail_complete if thumb else True
@@ -138,7 +145,10 @@ class ImageTool:
                         if fluid == True or width == 0 or height == 0 \
                             else self.resize_by_crop(width=width, height=height, im=im)
                 self.upload2s3(thumb_pict, self.__key.key)
-        
+                # with self.s3_upload_lock:
+                #     self.__pool.spawn(self.upload2s3, thumb_pict, self.__key.key)
+
+        # self.__pool.join()
         self.__thumbnail_complete = True
 
     def resize(self, box, im):
@@ -303,16 +313,17 @@ class Propagator(object):
 
 
 def test_image():
-    url1 = 'http://cdn1.giltcdn.com/images/share/uploads/0000/0001/7209/172096646/orig.jpg'
-    url2 = 'http://cdn1.giltcdn.com/images/share/uploads/0000/0001/7212/172129909/orig.jpg'
-    url3 = 'http://cdn1.giltcdn.com/images/share/uploads/0000/0001/7212/172126886/orig.jpg'
-    url4 = 'http://cdn1.giltcdn.com/images/share/uploads/0000/0001/7215/172150826/orig.jpg'
-    it = ImageTool()
+    conn = S3Connection(AWS_ACCESS_KEY, AWS_SECRET_KEY)
+    url1 = 'http://cdn04.mbbimg.cn/1308/13080081/01/1024/01.jpg'
+    url2 = 'http://cdn07.mbbimg.cn/1306/13060056/02/1024/01.jpg'
+    url3 = 'http://cdn03.mbbimg.cn/1307/13070129/01/480/01.jpg'
+    url4 = 'http://cdn08.mbbimg.cn/1310/13100015/03/480/02.jpg'
+    it = ImageTool(connection = conn)
     it.crawl([url1, url2], 'venteprivee', 'event', 'abc123', thumb=True)
     print 'image path ---> {0}'.format(it.image_path)
     print 'complete ---> {0}\n'.format(it.image_complete)
 
-    it = ImageTool()
+    it = ImageTool(connection = conn)
     it.crawl([url3, url4], 'venteprivee', 'product', '123456', thumb=True)
     print 'image path ---> {0}'.format(it.image_path)
     print 'complete ---> {0}\n'.format(it.image_complete)

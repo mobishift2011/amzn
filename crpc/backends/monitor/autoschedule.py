@@ -13,7 +13,7 @@ from crawlers.common.routine import new, new_thrice, update, new_category, new_l
 from backends.monitor.throttletask import can_task_run, task_completed, is_task_already_running
 
 from crawlers.common.stash import get_ordinary_crawlers
-from backends.monitor.organizetask import smethod_time
+from backends.monitor.organizetask import organize_new_task, organize_update_task, smethod_time
 from backends.monitor.setting import EXPIRE_MINUTES
 
 def execute(site, method):
@@ -31,10 +31,16 @@ def avoid_cold_start():
             we don't know whether the site have new events or products on sale.
         Need to crawl all the system first.
     """
+    gevent.spawn(organize_new_task)
+    gevent.spawn(organize_update_task)
+    # gevent need a 'block' to run spawn.Or we can say gevent will execute spawn until meet a 'block'
+    gevent.sleep(1)
+
     crawlers = get_ordinary_crawlers()
     for crawler_name in crawlers:
         execute(crawler_name, 'new')
         gevent.sleep(EXPIRE_MINUTES * 60)
+
 
 def auto_schedule():
     """.. :py:method::

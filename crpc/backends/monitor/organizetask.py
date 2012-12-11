@@ -27,7 +27,7 @@ def detect_upcoming_new_schedule():
                 upcoming_events = conn[crawler_name].event.find({'events_begin': {'$gte': datetime.utcnow()}}, fields=['events_begin'])
                 events_begin = set( [e['events_begin'] for e in upcoming_events] )
                 for begin in events_begin:
-                    smethod_time['{0}.new'.format(crawler_name)].add(begin)
+                    smethod_time['{0}.new_thrice'.format(crawler_name)].add(begin)
 
 def arrange_update_schedule():
     """.. :py:method::

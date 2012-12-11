@@ -140,7 +140,7 @@ class Publisher:
         :param ev: event object        
         '''
         now = datetime.utcnow()
-        return not ev.publish_time and ev.image_complete and (ev.ends_at>now or ev.propagation_complete \
+        return not ev.publish_time and ev.image_complete and (ev.events_begin>now or ev.propagation_complete \
             and self.sufficient_products_ready_publish(ev, MINIMUM_PRODUCTS_READY))
     
     def should_publish_event_upd(self, ev):
@@ -201,9 +201,9 @@ class Publisher:
         :param upd: update only. (if False it's a full publish.)
         '''
         try:
+            m = obj_to_module(ev)
             soldout = m.Product.objects(event_id=ev.event_id, soldout=False).count()==0
             if upd:
-                m = obj_to_module(ev)
                 if mode=="soldout":
                     if not soldout: return
                     else: ev_data = {"sold_out":soldout}

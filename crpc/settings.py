@@ -12,7 +12,7 @@ envs = {
         'ENV_NAME': "crpc", 
         'CRAWLER_PORT': 1234,
         'POWER_PORT': 1235,
-        'MASTIFF_HOST': "http://intergrate.favbuy.org:8001/api/v1"
+        'MASTIFF_HOST': "http://integrate.favbuy.org:8001/api/v1"
     },
     'DEV': {
         'CRAWLER_PEERS': [

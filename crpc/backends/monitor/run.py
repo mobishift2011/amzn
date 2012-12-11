@@ -3,8 +3,6 @@
 from gevent import monkey; monkey.patch_all()
 from helpers.log import getlogger
 import gevent
-import resource
-resource.setrlimit(resource.RLIMIT_NOFILE, (4096, 4096))
 
 from backends.monitor.scheduler import Scheduler
 from backends.monitor.autoschedule import execute

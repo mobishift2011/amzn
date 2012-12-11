@@ -114,7 +114,6 @@ def stat_failed(sender, **kwargs):
     try:
         Task.objects(ctx=sender).update(set__site=site,
                                         set__method=method,
-                                        set__status=Task.RUNNING,
                                         push__fails=fail(site, method, key, url, reason),
                                         inc__num_fails=1,
                                         set__updated_at=datetime.utcnow(),
@@ -123,7 +122,6 @@ def stat_failed(sender, **kwargs):
         logger.exception(e.message)
         Task.objects(ctx=sender).update(set__site=site,
                                         set__method=method,
-                                        set__status=Task.RUNNING,
                                         push__fails=fail(site, method, key, url, traceback.format_exc()),
                                         inc__num_fails=1,
                                         set__updated_at=datetime.utcnow(),

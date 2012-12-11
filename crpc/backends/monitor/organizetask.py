@@ -32,10 +32,9 @@ def detect_upcoming_new_schedule():
 
 def arrange_update_schedule():
     """.. :py:method::
-        update schedule
+        update schedule, update sequence is always the same
     """
     crawlers = get_ordinary_crawlers()
-    random.shuffle(crawlers)
     one_interval = timedelta(seconds =  UPDATE_ALL_SITES_INTERVAL * 1.0 / len(crawlers) * 60)
     _utcnow = datetime.utcnow()
     for crawler in crawlers:

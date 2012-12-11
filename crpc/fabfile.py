@@ -23,8 +23,10 @@ import sys
 import time
 import multiprocessing
 
+HOSTS = list(set([ p['host_string'] for p in  PEERS ]))
+
 @parallel
-@hosts(PEERS)
+@hosts(HOSTS)
 def setup():
     """ Setup environment for crpc
     
@@ -71,7 +73,7 @@ def deploy():
     execute(start)
 
 @parallel
-@hosts(PEERS)
+@hosts(HOSTS)
 def copyfiles():
     """ rebuild the whole project directory on remotes """
     # copy files
@@ -84,13 +86,13 @@ def copyfiles():
 
 def stop():
     # TODO should implement better stopping mechanism
-    execute(_stop_crawler)
-    execute(_stop_power)
+    execute(_stop_all)
     execute(_stop_monitor)
     execute(_stop_publish)
 
 def start():
     """ start remote executions """
+#    execute(_start_xvfb)
     execute(_start_crawler)
     execute(_start_power)
     execute(_start_monitor)
@@ -110,48 +112,51 @@ def restart():
     execute(start)
 
 @parallel
-@hosts(CRAWLER_PEERS)
-def _stop_crawler():
+@hosts(HOSTS)
+def _stop_all():
     with settings(warn_only=True):
         run("killall Xvfb")
         run("killall chromedriver")
         run("killall chromium-browser")
-        run("kill -9 `pgrep -f rpcserver.py`")
         run("kill -9 `pgrep -f crawlerserver.py`")
-        run("ps aux | grep crawlerserver.py | grep -v grep | awk '{print $2}' | xargs kill -9")
-        run("rm /tmp/*.sock")
-
-@parallel
-@hosts(CRAWLER_PEERS)
-def _start_crawler():
-    _runbg("Xvfb :99 -screen 0 1024x768x8 -ac +extension GLX +render -noreset", sockname="graphicXvfb")
-    with prefix("source /usr/local/bin/virtualenvwrapper.sh"):
-        with prefix("ulimit -s 1024"):
-            with prefix("ulimit -n 4096"):
-                with cd("/opt/crpc"):
-                    with prefix("source ./env.sh {0}".format(os.environ.get('ENV','TEST'))):
-                        with prefix("export DISPLAY=:99"):
-                            _runbg("python crawlers/common/crawlerserver.py", sockname="crawlerserver")
-
-@parallel
-@hosts(POWER_PEERS)
-def _start_power():
-    with prefix("source /usr/local/bin/virtualenvwrapper.sh"):
-        with prefix("ulimit -s 1024"):
-            with prefix("ulimit -n 4096"):
-                with cd("/opt/crpc"):
-                    with prefix("source ./env.sh {0}".format(os.environ.get('ENV','TEST'))):
-                        _runbg("python powers/powerserver.py", sockname="powerserver")
-
-@parallel
-@hosts(POWER_PEERS)
-def _stop_power():
-    with settings(warn_only=True):
-        run("kill -9 `pgrep -f apiserver.py`")
         run("kill -9 `pgrep -f powerserver.py`")
-        # run("kill -9 `pgrep -f publish.py`")
+        run("ps aux | grep crawlerserver.py | grep -v grep | awk '{print $2}' | xargs kill -9")
         run("ps aux | grep powerserver.py | grep -v grep | awk '{print $2}' | xargs kill -9")
         run("rm /tmp/*.sock")
+
+@parallel
+@hosts(HOSTS)
+def _start_xvfb():
+    _runbg("Xvfb :99 -screen 0 1024x768x8 -ac +extension GLX +render -noreset", sockname="graphicXvfb")
+
+def _start_crawler():
+    for peer in CRAWLER_PEERS:
+        print 'CRAWLER', peer
+        multiprocessing.Process(target=__start_crawler, args=(peer['host_string'], peer['port'])).start()
+        
+def __start_crawler(host_string, port):
+    with settings(host_string=host_string):
+        with prefix("source /usr/local/bin/virtualenvwrapper.sh"):
+            with prefix("ulimit -s 1024"):
+                with prefix("ulimit -n 4096"):
+                    with cd("/opt/crpc"):
+                        with prefix("source ./env.sh {0}".format(os.environ.get('ENV','TEST'))):
+                            with prefix("export DISPLAY=:99"):
+                                _runbg("python crawlers/common/crawlerserver.py {0}".format(port), sockname="crawlerserver.{0}".format(port))
+
+def _start_power():
+    for peer in POWER_PEERS:
+        print 'POWER', peer
+        multiprocessing.Process(target=__start_power, args=(peer['host_string'], peer['port'])).start()
+
+def __start_power(host_string, port):
+    with settings(host_string=host_string):
+        with prefix("source /usr/local/bin/virtualenvwrapper.sh"):
+            with prefix("ulimit -s 1024"):
+                with prefix("ulimit -n 4096"):
+                    with cd("/opt/crpc"):
+                        with prefix("source ./env.sh {0}".format(os.environ.get('ENV','TEST'))):
+                            _runbg("python powers/powerserver.py {0}".format(port), sockname="powerserver.{0}".format(port))
 
 def _start_monitor():
     os.system("ulimit -n 4096 && cd {0}/backends/monitor && dtach -n /tmp/crpcscheduler.sock python run.py".format(CRPC_ROOT))

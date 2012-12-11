@@ -14,12 +14,12 @@ import uuid
 import random
 import traceback
 
+from mongoengine import Q
 from settings import POWER_PEERS
 from configs import SITES
 from events import *
 
 from helpers.rpc import get_rpcs
-# from crawlers.common.routine import get_site_module
 
 def get_site_module(site):
     return __import__('crawlers.'+site+'.models', fromlist=['Category', 'Event', 'Product'])
@@ -92,7 +92,9 @@ def spout_brands(site, doctype):
 
 def spout_propagate_events(site):
     m = __import__('crawlers.{0}.models'.format(site), fromlist=['Event'])
-    events = m.Event.objects(propagation_complete=False)
+    events = m.Event.objects(Q(propagation_complete = False) & \
+        (Q(events_begin__lte=now) | Q(events_begin__exists=False)) & \
+            (Q(events_end__gt=now) | Q(events_end__exists=False)) )
 
     for event in events:
         yield {

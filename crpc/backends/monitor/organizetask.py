@@ -6,7 +6,6 @@ from gevent import monkey; monkey.patch_all()
 import gevent
 import pymongo
 import collections
-import random
 from datetime import datetime, timedelta
 
 from settings import MONGODB_HOST

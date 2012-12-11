@@ -36,6 +36,8 @@ class Server(object):
         if content is None or isinstance(content, int):
             content = fetch_page(self.eventurl, self.headers)
         tree = lxml.html.fromstring(content)
+        self.upcoming_proc(tree, ctx)
+
         events = tree.cssselect('div.bgDark > div.mbm > div > div.page > ul#nav > li.fCalc:first-of-type')[0]
         dept_link = {} # get department, link
         for e in events.cssselect('ul.subnav > li.eventsMenuWidth > ul.pbm > li.unit > a.pvn'):
@@ -107,17 +109,32 @@ class Server(object):
             event.save()
             common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=link, is_new=is_new, is_updated=is_updated)
 
-    def upcoming_proc(self, tree):
+    def upcoming_proc(self, tree, ctx):
+        """.. :py:method::
+        """
+        _utcnow = datetime.utcnow()
         nodes = tree.cssselect('div#content > div#upcoming_sales li#upcoming_sales_container > div.sale_thumb > div.media')
         for node in nodes:
-#            link = node.cssselect('a.sImage')[0].get('href')
-#            slug, event_id = self.extract_slug_id.match(link).groups()
-#            link = link if link.startswith('http') else self.siteurl + link
+            link = node.cssselect('div.sRollover > div.mbs > a')[0].get('href')
+            slug, event_id = self.extract_slug_id.match(link).groups()
+            link = link if link.startswith('http') else self.siteurl + link
             img = node.cssselect('a.sImage > img')[0].get('data-original')
             if img is None:
                 img = node.cssselect('a.sImage > img')[0].get('src')
             image_urls = [img.replace('M.jpg', 'A.jpg'), img.replace('M.jpg', 'B.jpg')]
             sale_title = node.cssselect('a.sImage')[0].get('title')
+
+            day, hour, minute = node.cssselect('div#sDefault_{0} > div'.format(event_id))[0].text_content().split('in')[-1].strip().split()
+            begins = timedelta(days=int(day[:-1]), hours=int(hour[:-1]), minutes=int(minute[:-1])) + _utcnow
+            hour = begins.hour + 1 if begins.minute > 50 else begins.hour
+            events_begin = datetime(begins.year, begins.month, begins.day, hour)
+
+            event, is_new, is_updated = self.get_event_from_db(event_id, link, slug, sale_title)
+            [event.image_urls.append(img) for img in image_urls if img not in event.image_urls]
+            event.events_begin = events_begin
+            event.save()
+            common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=link, is_new=is_new, is_updated=is_updated)
+
 
     def get_event_from_db(self, event_id, link, slug, sale_title):
         """.. :py:method::
@@ -154,6 +171,8 @@ class Server(object):
 
 
 if __name__ == '__main__':
+    Server().crawl_category()
+    exit()
     import zerorpc
     from settings import CRAWLER_PORT
     server = zerorpc.Server(Server(), heartbeat=None)

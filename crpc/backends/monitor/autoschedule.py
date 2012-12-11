@@ -44,8 +44,8 @@ def avoid_cold_start():
 
 def auto_schedule():
     """.. :py:method::
-        According to the order, execute 'new' method first, 'update' maybe blocked for some turns.
-        This way looks like 'new' have higher priority than 'update'.
+        According to the order, execute 'new_thrice' method first, 'update' maybe blocked for some turns.
+        This way looks like 'new_thrice' have higher priority than 'update'.
 
         If 'new' or 'update' already running, all the expire task will try to execute, but failed,
         then removed from the smethod_time. This can avoid too long set() in smethod_time.
@@ -64,11 +64,14 @@ def auto_schedule():
 
     for k, v in smethod_time.iteritems():
         site, method = k.split('.')
-        if method == 'update':
-            for update_time in sorted(v):
-                if update_time <= _utcnow:
+        for run_time in sorted(v):
+            if run_time <= _utcnow:
+                if method == 'update':
                     if not is_task_already_running(site, 'new'):
                         execute(site, method)
-                        smethod_time[k].remove(update_time)
-                else: break
+                        smethod_time[k].remove(run_time)
+                elif method == 'new':
+                    execute(site, method)
+                    smethod_time[k].remove(run_time)
+            else: break
 

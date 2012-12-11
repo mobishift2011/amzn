@@ -13,6 +13,7 @@ import zerorpc
 import uuid
 import random
 import traceback
+from datetime import datetime
 
 from mongoengine import Q
 from settings import POWER_PEERS
@@ -92,6 +93,7 @@ def spout_brands(site, doctype):
 
 def spout_propagate_events(site):
     m = __import__('crawlers.{0}.models'.format(site), fromlist=['Event'])
+    now = datetime.utcnow()
     events = m.Event.objects(Q(propagation_complete = False) & \
         (Q(events_begin__lte=now) | Q(events_begin__exists=False)) & \
             (Q(events_end__gt=now) | Q(events_end__exists=False)) )

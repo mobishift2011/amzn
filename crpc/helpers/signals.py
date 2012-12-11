@@ -182,7 +182,7 @@ class Signal(object):
     def bind(self, formode='async'):
         if hasattr(formode, '__call__'):
             # @xxx.bind
-            mode = 'sync'
+            mode = 'async'
             f = formode
             self.connect(f, mode)
             return f

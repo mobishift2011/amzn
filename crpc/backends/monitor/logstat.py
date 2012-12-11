@@ -72,7 +72,7 @@ def stat_post_general_update(sender, **kwargs):
         fail(site, method, key, url, traceback.format_exc())
 
 
-@common_saved.bind
+@common_saved.bind('sync')
 def stat_save(sender, **kwargs):
     logger.debug('{0} -> {1}'.format(sender,kwargs.items()))
     key = kwargs.get('key','')

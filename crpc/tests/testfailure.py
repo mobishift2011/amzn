@@ -14,6 +14,6 @@ def dotest(peers):
 
 
 if __name__ == '__main__':
-    dotest(CRAWLER_PEERS)
+    #dotest(CRAWLER_PEERS)
     dotest(POWER_PEERS)
     

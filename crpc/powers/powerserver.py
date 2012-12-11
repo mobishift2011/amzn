@@ -56,7 +56,7 @@ class PowerServer(object):
         crawled_brand = kwargs.get('brand') or ''
 
         #TO REMOVE
-        print site,' ' + doctype + ' ',  key # + ' ', 'brand-<'+crawled_brand+'>  ',  'title-<'+ kwargs.get('title', ' ') +'>'+ ':'
+        print 'brand extracting ---> ', site,' ' + doctype + ' ',  key # + ' ', 'brand-<'+crawled_brand+'>  ',  'title-<'+ kwargs.get('title', ' ') +'>'+ ':'
         
         m = __import__('crawlers.'+site+'.models', fromlist=[doctype])
         extracter = Extracter()

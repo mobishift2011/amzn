@@ -328,9 +328,16 @@ def test_image():
     print 'image path ---> {0}'.format(it.image_path)
     print 'complete ---> {0}\n'.format(it.image_complete)
 
-def test_propagate(site, event_id):
-    p = Propagator(site, event_id)
-    p.propogate()
+def test_propagate(site='venteprivee'):
+    from datetime import datetime
+    from mongoengine import Q
+    m = __import__('crawlers.{0}.models'.format(site), fromlist=['Event'])
+    now = datetime.utcnow()
+    events = m.Event.objects(Q(propagation_complete = False) & (Q(events_begin__lte=now) | Q(events_begin__exists=False)) & (Q(events_end__gt=now) | Q(events_end__exists=False)) )
+    print len(events)
+    for event in events:
+        p = Propagator(site, event.event_id)
+        p.propagate()
 
 
 if __name__ == '__main__':
@@ -344,5 +351,5 @@ if __name__ == '__main__':
             f()
         elif sys.argv[1] == '-p':
             f = test_propagate
-            f()
+            f(sys.argv[2])
     print time.time() - start, 's'

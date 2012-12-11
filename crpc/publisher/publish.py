@@ -25,7 +25,7 @@ class Publisher:
 
         # try all unpublished events and published but recently becomes onshelf ones
         for ev in m.Event.objects:
-            if ev.publish_time and ev.publish_time>=ev.events_begin:
+            if ev.publish_time and (not ev.events_begin or ev.publish_time>=ev.events_begin):
                 continue
             self._try_publish_event(ev)
 
@@ -140,8 +140,9 @@ class Publisher:
         :param ev: event object        
         '''
         now = datetime.utcnow()
-        return not ev.publish_time and ev.image_complete and (ev.events_begin>now or ev.propagation_complete \
-            and self.sufficient_products_ready_publish(ev, MINIMUM_PRODUCTS_READY))
+        return not ev.publish_time and ev.image_complete and \
+                (ev.events_begin and ev.events_begin>now or ev.propagation_complete \
+                 and self.sufficient_products_ready_publish(ev, MINIMUM_PRODUCTS_READY))
     
     def should_publish_event_upd(self, ev):
         '''condition for publishing event update. (event was published before)
@@ -154,8 +155,8 @@ class Publisher:
         '''all events that were future events and published before but recently became on-shelf and 
         finished propagation'''
         now = datetime.utcnow()
-        return ev.publish_time and ev.publish_time<ev.events_begin and ev.events_begin<=now and \
-                    ev.image_complete and ev.propagation_complete
+        return ev.publish_time and ev.events_begin and ev.publish_time<ev.events_begin and\
+                ev.events_begin<=now and ev.image_complete and ev.propagation_complete
         
     def sufficient_products_ready_publish(self, ev, threshold):
         '''is number of products ready for publish no less than threshold?

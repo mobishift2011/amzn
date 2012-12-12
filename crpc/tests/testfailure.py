@@ -6,9 +6,9 @@ def dotest(peers):
     for p in peers:
         print p['host_string'][p['host_string'].index('@')+1:], p['port']
         c = Client('tcp://{hostname}:{port}'.format(hostname=p['host_string'][p['host_string'].index('@')+1:],
-                                                    port=p['port']))
+                                                    port=p['port']), timeout=None, heartbeat=None)
         try:
-            c.image('test')
+            c.test('test')
         except:
             traceback.print_exc()
 

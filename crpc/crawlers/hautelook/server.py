@@ -65,7 +65,11 @@ class Server(object):
         debug_info.send(sender=DB + '.category.begin')
 
         resp = request.get(self.event_url)
-        data = json.loads(resp.text)
+        try:
+            data = json.loads(resp.text)
+        except ValueError:
+            resp = request.get(self.event_url)
+            data = json.loads(resp.text)
         lay1 = data['events']
         lay2_upcoming, lay2_ending_soon, lay2_today = lay1['upcoming'], lay1['ending_soon'], lay1['today']
 

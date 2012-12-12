@@ -7,6 +7,7 @@ crawlers.modnique.server
 ~~~~~~~~~~~~~~~~~~~
 
 This is the server part of zeroRPC module. Call by client automatically, run on many differen ec2 instances.
+need to investigate whether 'the-shops' in category, not event.
 """
 import lxml.html
 from datetime import datetime, timedelta
@@ -21,14 +22,14 @@ class Server(object):
         self.siteurl = 'http://www.modnique.com'
         self.eventurl = 'http://www.modnique.com/all-sale-events'
         self.extract_slug_id = re.compile('.*/saleevent/(.+)/(\w+)/seeac/gseeac')
+        self.extract_slug_product = re.compile('.*/product/.+/\w+/(.+)/(\w+)/color/.*size/seeac/gseeac')
         self.headers = {
             'Host':' www.modnique.com',
-            'Referer':' http://www.modnique.com/saleevents',
+            # 'Referer':' http://www.modnique.com/',
             'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.4 (KHTML, like Gecko) Ubuntu/12.10 Chromium/22.0.1229.94 Chrome/22.0.1229.94 Safari/537.4',
-            'X-Requested-With': 'XMLHttpRequest',
         }
 
-    def crawl_category(self, ctx='modnique.crawl_listing.xxxxx'):
+    def crawl_category(self, ctx='modnique.crawl_category.xxxxx'):
         """.. :py:method::
             categories should be ['apparel', 'jewelry-watches', 'handbags-accessories', 'shoes', 'beauty', 'men']
         """
@@ -161,17 +162,102 @@ class Server(object):
     def crawl_listing(self, url, ctx='modnique.crawl_listing.xxxxx'):
         """.. :py:method::
         """
-        content = fetch_page(url)
+        slug, event_id = self.extract_slug_id.match(url).groups()
         content = fetch_page(url, self.headers)
         if content is None or isinstance(content, int):
-            common_failed.send(sender=ctx, key='', url=url,
+            content = fetch_page(url, self.headers)
+            if content is None or isinstance(content, int):
+                common_failed.send(sender=ctx, key=event_id, url=url,
                     reason='download listing url error, {0}'.format(content))
-            return
+                return
         tree = lxml.html.fromstring(content)
         nodes = tree.cssselect('div.line > div.page > div#items > ul#products > li.product')
         for node in nodes:
-            abandon, color = node.get('id').rsplit('_', 1)
-            node.cssselect('div.item_thumb2')
+            abandon, color = node.get('id').rsplit('_', 1) # item_57185525_gunmetal
+            color = '' if color.isdigit() else color
+            title = node.cssselect('div.item_thumb2 > div.itemTitle > h6.neutral')[0].text_content().strip()
+            link = node.cssselect('div.item_thumb2 > div#itemThumb > a[href]')[0].get('href')
+            link = link if link.startswith('http') else self.siteurl + link
+            slug, key = self.extract_slug_product.match(link).groups()
+
+            price = node.cssselect('div.item_thumb2 > div > div.media > div.bd > p > span.price')[0].text_content().replace('modnique', '').strip()
+            listprice = node.cssselect('div.item_thumb2 > div > div.media > div.bd > p > span.bare')
+            listprice = listprice[0].text_content().replace('retail', '').strip() if listprice else ''
+            soldout = True if node.cssselect('div.item_thumb2 > div.soldSticker') else False
+
+            is_new, is_updated = False, False
+            product = Product.objects(key=key).first()
+            if not product:
+                is_new = True
+                product = Product(key=key)
+                product.updated = False
+                product.combine_url = link
+                product.color = color
+                product.title = title
+                product.slug = slug
+                product.listprice = listprice
+                product.price = price
+                product.soldout = soldout
+            else:
+                if soldout and product.soldout != True:
+                    product.soldout = True
+                    is_updated = True
+            if event_id not in product.event_id: product.event_id.append(event_id)
+            product.list_update_time = datetime.utcnow()
+            product.save()
+            common_saved.send(sender=ctx, obj_type='Product', key=key, url=link, is_new=is_new, is_updated=is_updated)
+
+        event = Event.objects(event_id=event_id).first()
+        if not event: event = Event(event_id=event_id)
+        if event.urgent == True:
+            event.urgent = False
+            event.update_time = datetime.utcnow()
+            event.save()
+            common_saved.send(sender=ctx, obj_type='Event', key=event_id, is_new=False, is_updated=False, ready=True)
+
+
+    def crawl_product(self, url, ctx=''):
+        """.. :py:method::
+        """
+        slug, key = self.extract_slug_product.match(url).groups()
+        content = fetch_page(url, self.headers)
+        if content is None or isinstance(content, int):
+            common_failed.send(sender=ctx, key=key, url=url,
+                    reason='download product url error, {0}'.format(content))
+            return
+        tree = lxml.html.fromstring(content)
+        nav = tree.cssselect('div > div.ptl > div.page > div.line')[0] # bgDark or bgShops
+        images = nav.cssselect('div > div#product_gallery > div.line > div#product_imagelist > a')
+        image_urls = []
+        for img in images:
+            image_urls.append( img.get('href') )
+        shipping = nav.cssselect('div.lastUnit > div.line form div#item_content_wrapper > div#item_wrapper > div#product_delivery')[0].text_content()
+        info = nav.cssselect('div.lastUnit > div.line div#showcase > div.container')[0]
+        list_info = []
+        nodes = info.cssselect('div.tab_container > div#tab1 > span > p')
+        for node in nodes:
+            list_info.append( node.text_content().strip() )
+        brand = info.cssselect('div.tab_container > div#tab4')[0].text_content()
+        returned = info.cssselect('div.tab_container > div#tab5')[0].text_content()
+
+        is_new, is_updated = False, False
+        product = Product.objects(key=key).first()
+        if not product:
+            is_new = True
+            product = Product(key=key)
+        [product.image_urls.append(img) for img in image_urls if img not in product.image_urls]
+        product.shipping = shipping
+        product.list_info = list_info
+        product.brand = brand
+        product.returned = returned
+        product.full_update_time = datetime.utcnow()
+        if product.updated == False:
+            product.updated = True
+            ready = True
+        else: ready = False
+        product.save()
+        common_saved.send(sender=ctx, obj_type='Product', key=key, url=url, is_new=is_new, is_updated=is_updated, ready=ready)
+
 
 if __name__ == '__main__':
     import zerorpc

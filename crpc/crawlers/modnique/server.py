@@ -226,7 +226,7 @@ class Server(object):
                     reason='download product url error, {0}'.format(content))
             return
         tree = lxml.html.fromstring(content)
-        nav = tree.cssselect('div.bgDark > div.ptl > div.page > div.line')[0]
+        nav = tree.cssselect('div > div.ptl > div.page > div.line')[0] # bgDark or bgShops
         images = nav.cssselect('div > div#product_gallery > div.line > div#product_imagelist > a')
         image_urls = []
         for img in images:

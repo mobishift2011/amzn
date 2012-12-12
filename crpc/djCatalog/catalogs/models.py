@@ -61,9 +61,9 @@ class BrandTask(Document):
 
     meta = {
         'ordering': ['-updated_at'],
-        # 'indexes': [
-        #     {'fields': [('site', 'doctype', 'key')], 'unique': True},
-        # ]
+        'indexes': [
+            {'fields': [('site', 'doctype', 'key')], 'unique': True},
+        ]
     }
 
     def to_json(self):

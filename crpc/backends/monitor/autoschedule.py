@@ -13,7 +13,7 @@ from crawlers.common.routine import new, new_thrice, update, new_category, new_l
 from backends.monitor.throttletask import can_task_run, task_completed, is_task_already_running
 
 from crawlers.common.stash import get_ordinary_crawlers
-from backends.monitor.organizetask import smethod_time
+from backends.monitor.organizetask import detect_upcoming_new_schedule, arrange_new_schedule, arrange_update_schedule, smethod_time
 from backends.monitor.setting import EXPIRE_MINUTES
 
 def execute(site, method):
@@ -31,15 +31,22 @@ def avoid_cold_start():
             we don't know whether the site have new events or products on sale.
         Need to crawl all the system first.
     """
+    gevent.spawn(detect_upcoming_new_schedule)
+    gevent.spawn(arrange_new_schedule)
+    gevent.spawn(arrange_update_schedule)
+    # gevent need a 'block' to run spawn.Or we can say gevent will execute spawn until meet a 'block'
+    gevent.sleep(1)
+
     crawlers = get_ordinary_crawlers()
     for crawler_name in crawlers:
         execute(crawler_name, 'new')
         gevent.sleep(EXPIRE_MINUTES * 60)
 
+
 def auto_schedule():
     """.. :py:method::
-        According to the order, execute 'new' method first, 'update' maybe blocked for some turns.
-        This way looks like 'new' have higher priority than 'update'.
+        According to the order, execute 'new_thrice' method first, 'update' maybe blocked for some turns.
+        This way looks like 'new_thrice' have higher priority than 'update'.
 
         If 'new' or 'update' already running, all the expire task will try to execute, but failed,
         then removed from the smethod_time. This can avoid too long set() in smethod_time.
@@ -49,20 +56,23 @@ def auto_schedule():
 
     for k, v in smethod_time.iteritems():
         site, method = k.split('.')
-        if method == 'new':
+        if method == 'new_thrice':
             for new_time in sorted(v):
                 if new_time < _utcnow: # new need to plus 1 minute, so only less than
-                    execute(site, 'new_thrice')
+                    execute(site, method)
                     smethod_time[k].remove(new_time)
                 else: break
 
     for k, v in smethod_time.iteritems():
         site, method = k.split('.')
-        if method == 'update':
-            for update_time in sorted(v):
-                if update_time <= _utcnow:
+        for run_time in sorted(v):
+            if run_time <= _utcnow:
+                if method == 'update':
                     if not is_task_already_running(site, 'new'):
                         execute(site, method)
-                        smethod_time[k].remove(update_time)
-                else: break
+                        smethod_time[k].remove(run_time)
+                elif method == 'new':
+                    execute(site, method)
+                    smethod_time[k].remove(run_time)
+            else: break
 

@@ -5,8 +5,7 @@ import re
 import os
 import esm
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djCatalog.djCatalog.settings")
-from djCatalog.catalogs.models import Brand
+from models import Brand
 from configs import SITES
 
 

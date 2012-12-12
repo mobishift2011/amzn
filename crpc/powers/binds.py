@@ -130,26 +130,15 @@ def brand_stat(sender, **kwargs):
     url = kwargs.get('combine_url', '')
     brand_complete = kwargs.get('brand_complete', False)
     favbuy_brand = kwargs.get('favbuy_brand', '')
-
-    # print 'brand signal %s_%s_%s received: %s > %s' % (site, doctype, key, brand, favbuy_brand)
-
-    brand_task = BrandTask.objects(site=site, key=key, doctype=doctype).first()
-    if brand_task:
-        brand_task.update(set__brand=brand, set__favbuy_brand=favbuy_brand, \
-            set__url=url, set__brand_complete=brand_complete, \
-                set__is_checked=False)
-    else:
-        brand_task = BrandTask()
-        brand_task.title = title
-        brand_task.brand = brand
-        brand_task.site = site
-        brand_task.doctype = doctype
-        brand_task.key = key
-        brand_task.url = url
-        brand_task.brand_complete = brand_complete
-        brand_task.is_checked = False
-        brand_task.save()
-
-@ready_for_publish.bind
-def publish(sender, **kwargs):
-    logger.warning('publish site -> {0}'.format(sender, kwargs.get('site')))
+    
+    BrandTask.objects(site=site, key=key, doctype=doctype).update(
+        set__title = title,
+        set__brand = brand,
+        set__site = site,
+        set__doctype = doctype,
+        set__key = key,
+        set__favbuy_brand = favbuy_brand,
+        set__url=url,
+        set__brand_complete=brand_complete,
+        upsert = True
+    )

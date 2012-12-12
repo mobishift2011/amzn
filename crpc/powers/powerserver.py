@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 from gevent import monkey; monkey.patch_all()
-from settings import POWER_PORT
-
-import zerorpc
 from gevent.coros import Semaphore
+import zerorpc
+
+from boto.s3.connection import S3Connection
+from settings import POWER_PORT
+from configs import *
 
 from tools import ImageTool, Propagator
 from brandapi import Extracter
@@ -12,21 +14,27 @@ from powers.events import *
 #process_image_lock = Semaphore(1)
 
 class PowerServer(object):
+    def __init__(self):
+        self.__s3conn = S3Connection(AWS_ACCESS_KEY, AWS_SECRET_KEY)
+
     def process_image(self, args=(), kwargs={}):
-        print 'accept', args, kwargs
+        print 'Image Server Accept', args, kwargs
         return self._process_image(*args, **kwargs)
     
     def _process_image(self, site, image_urls, ctx, doctype,  **kwargs):
         """ doctype is either ``event`` or ``product`` """
         key = kwargs.get('event_id', kwargs.get('key'))
         m = __import__("crawlers."+site+'.models', fromlist=['Event', 'Product'])
-        image_tool = ImageTool()
-        image_path = ['http://2e.zol-img.com.cn/product/97_120x90/500/ce7Raw2CJmTnk.jpg'] # TODO image_tool.crawl(image_urls, site, key)
-        if len(image_path):
-            if doctype == 'event':
-                m.Event.objects(event_id=key).update(set__image_path=image_path)
-            elif doctype == 'product':
-                m.Product.objects(key=key).update(set__image_path=image_path)
+
+        image_tool = ImageTool(connection=self.__s3conn)
+        image_tool.crawl(image_urls, site, doctype, key, thumb=True)
+        image_path = image_tool.image_path
+
+        if image_tool.image_complete:
+            if doctype.capitalize() == 'Event':
+                m.Event.objects(event_id=key).update(set__image_path=image_path, set__image_complete=True)
+            elif doctype.capitalize() == 'Product':
+                m.Product.objects(key=key).update(set__image_path=image_path, set__image_complete=True)
             image_crawled.send(sender=ctx, site=site, key=key, model=doctype.capitalize(), num=len(image_path))
         else:
             # TODO image_crawled_failed or need try except
@@ -45,11 +53,10 @@ class PowerServer(object):
         site = kwargs.get('site', '')
         doctype = kwargs.get('doctype', '')
         key = kwargs.get('key', '')
-        crawled_brand = kwargs.get('brand', '')
+        crawled_brand = kwargs.get('brand') or ''
 
         #TO REMOVE
-        import time
-        # print site,' ' + doctype + ' ',  key + ' ', 'brand-<'+crawled_brand+'>  ',  'title-<'+ kwargs.get('title', ' ') +'>'+ ':'
+        print 'brand extracting ---> ', site,' ' + doctype + ' ',  key # + ' ', 'brand-<'+crawled_brand+'>  ',  'title-<'+ kwargs.get('title', ' ') +'>'+ ':'
         
         m = __import__('crawlers.'+site+'.models', fromlist=[doctype])
         extracter = Extracter()
@@ -58,13 +65,11 @@ class PowerServer(object):
         if brand:
             if doctype == 'Product':
                 m.Product.objects(key=key).update(set__favbuy_brand=brand, set__brand_complete=True)
-
                 kwargs['favbuy_brand'] = brand
                 # brand_extracted.send('%s_%s_%s_brand' % (site, doctype, key), **kwargs)
         else:
             if doctype == 'Product':
                 m.Product.objects(key=key).update(set__brand_complete=False)
-                
                 # brand_extracted_failed.send('%s_%s_%s_brand' % (site, doctype, key), **kwargs)
 
     def propagate(self, args=(), kwargs={}):

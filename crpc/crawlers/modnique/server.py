@@ -231,7 +231,7 @@ class Server(object):
         image_urls = []
         for img in images:
             image_urls.append( img.get('href') )
-        shipping = nav.cssselect('div.lastUnit > div.line > form div#item_content_wrapper > div#item_wrapper > div#product_delivery')[0].text_content()
+        shipping = nav.cssselect('div.lastUnit > div.line form div#item_content_wrapper > div#item_wrapper > div#product_delivery')[0].text_content()
         info = nav.cssselect('div.lastUnit > div.line > div#showcase > div.container')[0]
         list_info = []
         nodes = info.cssselect('div.tab_container > div#tab1 > span > p')

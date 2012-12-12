@@ -187,21 +187,13 @@ class Server(object):
             product.save()
             common_saved.send(sender=ctx, obj_type='Product', key=key, url=url, is_new=is_new, is_updated=is_updated)
 
-        is_new, is_updated = False, False
         event = Event.objects(event_id=event_id).first()
-        if not event:
-            is_new = True
-            event = Event(event_id=event_id)
-            common_failed.send(sender=ctx, key=event_id, url=event.combine_url, reason='event new in listing')
+        if not event: event = Event(event_id=event_id)
         if event.urgent == True:
             event.urgent = False
-            ready = True
+            event.update_time = datetime.utcnow()
             event.save()
-        else: ready = False
-#        if ready:
-#            event.image_path = process_image(event.image_urls, DB, 'event', event_id)
-#            event.save()
-        common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=url, is_new=is_new, is_updated=False, ready=ready)
+            common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=url, is_new=False, is_updated=False, ready=True)
 
 
 

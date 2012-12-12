@@ -39,8 +39,7 @@ def avoid_cold_start():
 
     crawlers = get_ordinary_crawlers()
     for crawler_name in crawlers:
-        execute(crawler_name, 'new')
-        gevent.sleep(EXPIRE_MINUTES * 60)
+        execute(crawler_name, 'new_thrice')
 
 
 def auto_schedule():

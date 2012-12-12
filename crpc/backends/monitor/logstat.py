@@ -53,20 +53,22 @@ def stat_post_general_update(sender, **kwargs):
     site, method, dummy = sender.split('.')
 
     try:
+        utcnow = datetime.utcnow()
         if not complete:
             Task.objects(ctx=sender).update(set__site=site,
                                             set__method=method,
                                             set__status=Task.FAILED,
                                             push__fails=fail(site, method, key, url, reason),
                                             inc__num_fails=1,
-                                            set__updated_at=datetime.utcnow(),
+                                            set__updated_at=utcnow,
                                             upsert=True)
         else:
             Task.objects(ctx=sender).update(set__site=site,
                                             set__method=method,
                                             set__status=Task.FINISHED,
-                                            set__updated_at=datetime.utcnow(),
+                                            set__updated_at=utcnow,
                                             upsert=True)
+        Task.objects(ctx=sender, started_at__exists=False).update(set__started_at=utcnow)
     except Exception as e:
         logger.exception(e.message)
         fail(site, method, key, url, traceback.format_exc())

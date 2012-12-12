@@ -21,7 +21,7 @@ from powers.routine import crawl_images
 logger = getlogger("powers.bind")
 
 import gevent.pool
-process_image_pool = gevent.pool.Pool(50)
+process_image_pool = gevent.pool.Pool(500)
 
 @common_saved.bind
 def single_process_image(sender, **kwargs):

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from settings import CRPC_ROOT
-from configs import SITES
+from powers.configs import SITES
 from backends.monitor.models import Schedule
 from os import listdir
 import os

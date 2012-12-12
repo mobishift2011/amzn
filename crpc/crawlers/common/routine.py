@@ -201,6 +201,10 @@ def new_listing(site, rpc, method='new_listing', concurrency=5):
 
     ready_for_batch.send(sender=keep_ctx, site=site, doctype='event')
 
+# alias for easily invoking by monitor
+new_category = partial(update_category, method='new_category')
+new_product = partial(update_product, method='new_product')
+
 
 # parent task of update
 def update(site, rpc, method='update', concurrency=5):
@@ -214,9 +218,6 @@ def new(site, rpc, method='new', concurrency=5):
     new_listing(site, rpc, '{0}_listing'.format(method), concurrency)
     new_product(site, rpc, '{0}_product'.format(method), concurrency)
 
-# alias for easily invoking by monitor
-new_category = partial(update_category, method='new_category')
-new_product = partial(update_product, method='new_product')
 
 
 def new_thrice(site, rpc, method='new', concurrency=5):

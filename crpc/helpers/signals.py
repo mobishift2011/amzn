@@ -70,7 +70,7 @@ class Processor(object):
         self.ps.subscribe(self.channel)
         self.ps2 = self.rc.pubsub()
         self.ps2.subscribe(self.channelsingleton)
-        self.queue = Queue()
+        self.queues = {} # dict of Queues
         self.jobs = [
             gevent.spawn(self._channel_listener),
             gevent.spawn(self._channel_singleton),
@@ -85,6 +85,8 @@ class Processor(object):
         """
         cbname = callback.__name__
         self._listeners[signal].add((callback, mode))
+        if signal not in self.queues:
+            self.queues[signal] = Queue()
         logger.debug("{signal!r} binded by <{cbname}>".format(**locals()))
 
     @classmethod
@@ -117,9 +119,14 @@ class Processor(object):
 
     def _queued_executor(self):
         """ callback that runs in a 'sync' mode """
+        for signal, queue in self.queues.iteritems():
+            gevent.spawn(self.__queued_executor, queue)
+
+    def __queued_executor(self, queue):
+        """ callback that runs in a 'sync' mode """
         while True:
             try:
-                cb, sender, kwargs = self.queue.get() 
+                cb, sender, kwargs = queue.get() 
                 cb(sender, **kwargs)
             except Exception, e:
                 logger.exception(e.message)
@@ -134,7 +141,7 @@ class Processor(object):
                         gevent.spawn(cb, sender, **kwargs)
                     else:
                         # put synchronous code into a queue executor
-                        self.queue.put((cb, sender, kwargs))
+                        self.queues[signal].put((cb, sender, kwargs))
             except Exception as e:
                 logger.exception("Exception happened when executing callback")
                 logger.error("sender: {sender}, signal: {signal!r}, kwargs: {kwargs!r}".format(**locals()))
@@ -175,7 +182,7 @@ class Signal(object):
     def bind(self, formode='async'):
         if hasattr(formode, '__call__'):
             # @xxx.bind
-            mode = 'async'
+            mode = 'sync'
             f = formode
             self.connect(f, mode)
             return f
@@ -203,13 +210,13 @@ if __name__ == '__main__':
     import time
     after_item_init = Signal("after_item_init")
 
-    @after_item_init.bind
+    @after_item_init.bind('sync')
     def log_item_init1(sender, **kwargs):
         itemid  = kwargs.get('item_id')
         time.sleep(1)
         print("1 sender: {sender}, itemid: {itemid}".format(**locals()))
 
-    @after_item_init.bind
+    @after_item_init.bind('sync')
     def log_item_init2(sender, **kwargs):
         itemid  = kwargs.get('item_id')
         time.sleep(2)

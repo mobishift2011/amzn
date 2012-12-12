@@ -1,0 +1,6 @@
+[2012-12-12 16:55:45,644]<helper.signals>WARNING:Initiating Global Processor for current Process, This message should only be print if you are using monitor/run.py
+[2012-12-12 16:55:45,672]<helper.signals>DEBUG:'after_item_init' binded by <log_item_init1>
+[2012-12-12 16:55:45,672]<helper.signals>DEBUG:'after_item_init' binded by <log_item_init2>
+[2012-12-12 16:56:08,768]<helper.signals>WARNING:Initiating Global Processor for current Process, This message should only be print if you are using monitor/run.py
+[2012-12-12 16:56:08,778]<helper.signals>DEBUG:'after_item_init' binded by <log_item_init1>
+[2012-12-12 16:56:08,778]<helper.signals>DEBUG:'after_item_init' binded by <log_item_init2>

@@ -29,7 +29,7 @@ import logging.handlers
 
 current_path = dirname(__file__)
 
-def getlogger(name, filename=join(current_path, '../logs/general.log'), level=logging.DEBUG):
+def getlogger(name, filename=join(current_path, '/tmp/crpc.log'), level=logging.DEBUG):
     logger = logging.getLogger(name)
     handler = logging.handlers.RotatingFileHandler(filename, maxBytes=2**30, backupCount=10)
     handler.setFormatter(logging.Formatter("[%(asctime)s]<%(name)s>%(levelname)s:%(message)s", None))

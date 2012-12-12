@@ -42,7 +42,7 @@ def spout_images(site, doctype):
     m = get_site_module(site)
     docdict = {
         'event': {
-            'kwargs': {'urgent':False, 'image_complete':False},
+            'kwargs': {'image_complete':False},
             'key': 'event_id',
             'name': 'Event',
          }, 

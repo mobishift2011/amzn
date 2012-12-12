@@ -88,6 +88,7 @@ def stop():
     # TODO should implement better stopping mechanism
     execute(_stop_all)
     execute(_stop_monitor)
+    execute(_stop_publish)
 
 def start():
     """ start remote executions """
@@ -95,6 +96,7 @@ def start():
     execute(_start_crawler)
     execute(_start_power)
     execute(_start_monitor)
+    execute(_start_publish)
 
 def restart():
     """ stop & start """
@@ -164,6 +166,13 @@ def _stop_monitor():
     os.system("ps aux | grep run.py | grep -v grep | awk '{print $2}' | xargs kill -9")
     os.system("ps aux | grep main.py | grep -v grep | awk '{print $2}' | xargs kill -9")
     os.system("rm /tmp/crpc*.sock")
+
+def _start_publish():
+    os.system("ulimit -n 4096 && dtach -n /tmp/publish.sock python {0}/publisher/publish.py -d".format(CRPC_ROOT))
+
+def _stop_publish():
+    os.system("ps aux | grep publish.py | grep -v grep | awk '{print $2}' | xargs kill -9")
+    os.system("rm /tmp/publish*.sock")
 
 def _runbg(cmd, sockname="dtach"):
     """ A helper function to run command in background """

@@ -5,6 +5,7 @@ from crawlers.common.routine import get_site_module
 from powers.events import image_crawled, ready_for_publish
 from mysettings import MINIMUM_PRODUCTS_READY, MASTIFF_ENDPOINT
 from helpers import log
+from mongoengine import Q
 import slumber
 from datetime import datetime, timedelta
 import sys
@@ -21,11 +22,15 @@ class Publisher:
         '''
         self.logger.debug("try_publish_all %s", site)
         m = get_site_module(site)
-        for ev in m.Event.objects(publish_time__exists=False):
+
+        # try all unpublished events and published but recently becomes onshelf ones
+        for ev in m.Event.objects:
+            if ev.publish_time and (not ev.events_begin or ev.publish_time>=ev.events_begin):
+                continue
             self._try_publish_event(ev)
-        # we need to scan database once more for ready products as there are products
-        # that are NOT associated with any events
-        for prod in self.ready_products(m):
+
+        # we need to scan database once more for ready products that are NOT associated with any events
+        for prod in self.ready_standalone_products(m):
             self.publish_product(prod)
         
     def try_publish_event(self, site, evid):
@@ -72,7 +77,7 @@ class Publisher:
         m = get_site_module(site)
         ev = m.Event.objects.get(event_id=evid)
         if self.should_publish_event_upd(ev):
-            self.publish_event(ev, upd=True)  # perhaps just publish portion of data? $$
+            self.publish_event(ev, upd=True)
         else:
             self.logger.debug("event {}:{} not ready for publishing".format(obj_to_site(ev), evid))
             
@@ -92,24 +97,27 @@ class Publisher:
             
     def _try_publish_event(self, ev):
         '''
-        Check if the event meets publish condition and if so, publish it. We also
-        publish all containing products that are ready for publish.
+        Check if the event meets publish condition and if so, publish it. Note we take care of
+        events that were published before but were happening in future, in which case we need
+        to publish additional information of the event such as department, soldout info, etc..
+        We then publish all containing products under the events that are ready for publish.
 
         :param ev: event object
-        ### (obsolte) upd_only: if true then we just need to publish the event due to certain
-        field change and the event was published before; otherwise it's a full
-        publish which should include publishing all contained products.
         '''
         if self.should_publish_event(ev):
             self.publish_event(ev)
-            # it's a full publish, so we need to auto publish all contained products
-            m = obj_to_module(ev)
-            for prod in m.Product.objects(publish_time__exists=False, event_id=ev.event_id):
-                if self.should_publish_product(prod):
-                    self.publish_product(prod)
+        elif self.should_publish_event_newly_onshelf(ev):
+            self.publish_event(ev, upd=True, mode="onshelf")
         else:
             self.logger.debug("event %s:%s not ready for publish", obj_to_site(ev), ev.event_id)
+            return
 
+        # it's a full publish, so we need to auto publish all contained products
+        m = obj_to_module(ev)
+        for prod in m.Product.objects(publish_time__exists=False, event_id=ev.event_id):
+            if self.should_publish_product(prod):
+                self.publish_product(prod)
+        
     def ready_events(self, prod):
         '''return all events the prod is associated with that are ready for publishing.
         
@@ -119,20 +127,22 @@ class Publisher:
         events = [m.Event.objects.get(event_id=evid) for evid in prod.event_id]
         return [ev for ev in events if self.should_publish_event(ev)]
         
-    def ready_products(self, m):
-        '''returns a list of all ready-to-publish products.
+    def ready_standalone_products(self, m):
+        '''returns a list of all ready-to-publish standalone (no events associated with) products.
         :param m: module that contains the products.
         '''
         # $$ include non-obsolete and not out-of-stock condition?
-        return m.Product.objects(publish_time__exists=False, image_complete=True, dept_complete=True)
+        return m.Product.objects(publish_time__exists=False, event_id__exists=False, image_complete=True, dept_complete=True)
                     
     def should_publish_event(self, ev):
         '''condition for publishing the event for first time.
         
         :param ev: event object        
         '''
-        return not ev.publish_time and ev.propagation_complete and ev.image_complete and \
-                self.sufficient_products_ready_publish(ev, MINIMUM_PRODUCTS_READY)
+        now = datetime.utcnow()
+        return not ev.publish_time and ev.image_complete and \
+                (ev.events_begin and ev.events_begin>now or ev.propagation_complete \
+                 and self.sufficient_products_ready_publish(ev, MINIMUM_PRODUCTS_READY))
     
     def should_publish_event_upd(self, ev):
         '''condition for publishing event update. (event was published before)
@@ -140,7 +150,14 @@ class Publisher:
         :param ev: event object
         '''
         return ev.publish_time and ev.publish_time < ev.update_time
-    
+        
+    def should_publish_event_newly_onshelf(self, ev):
+        '''all events that were future events and published before but recently became on-shelf and 
+        finished propagation'''
+        now = datetime.utcnow()
+        return ev.publish_time and ev.events_begin and ev.publish_time<ev.events_begin and\
+                ev.events_begin<=now and ev.image_complete and ev.propagation_complete
+        
     def sufficient_products_ready_publish(self, ev, threshold):
         '''is number of products ready for publish no less than threshold?
 
@@ -178,18 +195,24 @@ class Publisher:
         '''
         return prod.publish_time and prod.publish_time < prod.list_update_time
         
-    def publish_event(self, ev, upd=False):
+    def publish_event(self, ev, upd=False, mode="soldout"):
         '''publish event data to the mastiff service.
         
         :param ev: event object.
         :param upd: update only. (if False it's a full publish.)
         '''
         try:
+            m = obj_to_module(ev)
+            soldout = m.Product.objects(event_id=ev.event_id, soldout=False).count()==0
             if upd:
-                m = obj_to_module(ev)
-                soldout = m.Product.objects(event_id=ev.event_id, soldout=False).count()==0
-                if not soldout: return
-                ev_data = {"sold_out":soldout}
+                if mode=="soldout":
+                    if not soldout: return
+                    else: ev_data = {"sold_out":soldout}
+                else:  # "onshelf" recently
+                    ev_data = {
+                        "department": ev.favbuy_dept[0] if ev.favbuy_dept and len(ev.favbuy_dept)>0 else 'women',
+                        "soldout": soldout
+                    }
             else:
                 ev_data = { 
                     "site_key": obj_to_site(ev)+'_'+ev.event_id,
@@ -197,13 +220,13 @@ class Publisher:
                     "description": obj_getattr(ev, 'sale_description', ''),
                     "ends_at": obj_getattr(ev, 'events_end', datetime.utcnow()+timedelta(days=7)).isoformat(),
                     "starts_at": obj_getattr(ev, 'events_begin', datetime.utcnow()).isoformat(),
-                    "cover_image": ev['image_urls'][0] if ev['image_urls'] else '',
-                    "soldout": ev.soldout,
+                    "cover_image": ev['image_path'][0] if ev['image_path'] else '',
+                    "soldout": soldout,
                     "department": ev.favbuy_dept[0] if ev.favbuy_dept and len(ev.favbuy_dept)>0 else 'women' }
             self.logger.debug("publish event data: %s", ev_data)
             if upd:
                 self.mapi.event(muri2mid(ev.muri)).patch(ev_data)
-                self.logger.debug("published event update %s:%s, resource_id=%s", obj_to_site(ev))
+                self.logger.debug("published event update %s:%s, mode=%s", obj_to_site(ev), ev.event_id, mode)
             else:
                 ev_resource = self.mapi.event.post(ev_data)
                 ev.muri = ev_resource['resource_uri']; 

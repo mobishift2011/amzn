@@ -12,6 +12,7 @@ envs = {
         'ENV_NAME': "crpc", 
         'CRAWLER_PORT': 1234,
         'POWER_PORT': 1235,
+        'MASTIFF_HOST': "http://integrate.favbuy.org:8001/api/v1"
     },
     'DEV': {
         'CRAWLER_PEERS': [
@@ -23,6 +24,7 @@ envs = {
         'USE_INDEX': '',
         'MONGODB_HOST': '127.0.0.1',
         'REDIS_HOST': '127.0.0.1',
+        'MASTIFF_HOST': "http://localhost:8001/api/v1"
     },
     'OFFICE': {
         'CRAWLER_PEERS': [
@@ -63,6 +65,15 @@ envs = {
         'USE_INDEX': '',
         'MONGODB_HOST': 'mongodb.favbuy.org',
         'REDIS_HOST': 'mongodb.favbuy.org',
+    },
+    'INTEG': {
+        'CRAWLER_PEERS': ['root@127.0.0.1'],
+        'POWER_PEERS': ['root@127.0.0.1'],
+        'PUBLISH_PEERS': ['root@127.0.0.1'],
+        'USE_INDEX': '',
+        'MONGODB_HOST': '127.0.0.1',
+        'REDIS_HOST': '127.0.0.1',
+        'MASTIFF_HOST': "http://localhost:8001/api/v1"
     },
 }
 

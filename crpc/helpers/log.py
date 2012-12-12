@@ -19,10 +19,20 @@ from ansistrm import ColorizingStreamHandler
 
 handler = ColorizingStreamHandler()
 handler.setFormatter(logging.Formatter("[%(asctime)s]<%(name)s>%(levelname)s:%(message)s", None))
+handler.setLevel(logging.DEBUG)
 
 root = logging.getLogger()
-root.setLevel(logging.DEBUG)
 root.addHandler(handler)
 
-def getlogger(name):
-    return logging.getLogger(name)
+from os.path import dirname, join
+import logging.handlers
+
+current_path = dirname(__file__)
+
+def getlogger(name, filename=join(current_path, '../logs/general.log'), level=logging.DEBUG):
+    logger = logging.getLogger(name)
+    handler = logging.handlers.RotatingFileHandler(filename, maxBytes=2**20, backupCount=10)
+    handler.setFormatter(logging.Formatter("[%(asctime)s]<%(name)s>%(levelname)s:%(message)s", None))
+    logger.addHandler(handler)
+    logger.setLevel(level)
+    return logger

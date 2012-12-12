@@ -328,6 +328,7 @@ def test_image():
     print 'complete ---> {0}\n'.format(it.image_complete)
 
 def test_propagate(site='venteprivee'):
+    import time
     from datetime import datetime
     from mongoengine import Q
     from backends.matching.extractor import Extractor
@@ -335,6 +336,7 @@ def test_propagate(site='venteprivee'):
     extractor = Extractor()
     classifier = SklearnClassifier()
     classifier.load_from_database()
+    
     m = __import__('crawlers.{0}.models'.format(site), fromlist=['Event'])
     now = datetime.utcnow()
     events = m.Event.objects(Q(propagation_complete = False) & (Q(events_begin__lte=now) | Q(events_begin__exists=False)) & (Q(events_end__gt=now) | Q(events_end__exists=False)) )
@@ -344,8 +346,8 @@ def test_propagate(site='venteprivee'):
     for event in events:
         p = Propagator(site, event.event_id, extractor, classifier)
         p.propagate()
-    print 'cost ', time.time() - start, ' s'
 
+    print 'cost ', time.time() - start, ' s'
 
 if __name__ == '__main__':
     pass

@@ -206,9 +206,6 @@ new_category = partial(update_category, method='new_category')
 new_product = partial(update_product, method='new_product')
 
 
-new_category(a,b,c)
-
-
 # parent task of update
 def update(site, rpc, method='update', concurrency=5):
     update_category(site, rpc, '{0}_category'.format(method), concurrency)

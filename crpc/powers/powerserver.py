@@ -6,6 +6,8 @@ import zerorpc
 from boto.s3.connection import S3Connection
 from settings import POWER_PORT
 from configs import *
+from backends.matching.extractor import Extractor
+from backends.matching.classifier import SklearnClassifier
 
 from tools import ImageTool, Propagator
 from brandapi import Extracter
@@ -16,6 +18,9 @@ from powers.events import *
 class PowerServer(object):
     def __init__(self):
         self.__s3conn = S3Connection(AWS_ACCESS_KEY, AWS_SECRET_KEY)
+        self.__extractor = Extractor()
+        self.__classifier = SklearnClassifier()
+        self.__classifier.load_from_database()
 
     def process_image(self, args=(), kwargs={}):
         print 'Image Server Accept', args, kwargs
@@ -26,19 +31,22 @@ class PowerServer(object):
         key = kwargs.get('event_id', kwargs.get('key'))
         m = __import__("crawlers."+site+'.models', fromlist=['Event', 'Product'])
 
-        image_tool = ImageTool(connection=self.__s3conn)
-        image_tool.crawl(image_urls, site, doctype, key, thumb=True)
-        image_path = image_tool.image_path
+        instance = None
+        if doctype.capitalize() == 'Event':
+            instance = m.Event.objects(event_id=key).first()
+        elif doctype.capitalize() == 'Product':
+            instance = m.Product.objects(key=key).first()
 
-        if image_tool.image_complete:
-            if doctype.capitalize() == 'Event':
-                m.Event.objects(event_id=key).update(set__image_path=image_path, set__image_complete=True)
-            elif doctype.capitalize() == 'Product':
-                m.Product.objects(key=key).update(set__image_path=image_path, set__image_complete=True)
-            image_crawled.send(sender=ctx, site=site, key=key, model=doctype.capitalize(), num=len(image_path))
-        else:
-            # TODO image_crawled_failed or need try except
-            pass
+        if instance and instance.image_complete == False:
+            image_tool = ImageTool(connection=self.__s3conn)
+            image_tool.crawl(image_urls, site, doctype, key, thumb=True)
+            image_path = image_tool.image_path  
+
+            if image_tool.image_complete:
+                instance.update(set__image_path=image_path, set__image_complete=True)
+            else:
+               # TODO image_crawled_failed or need try except
+                pass
 
     def extract_brand(self, args=(), kwargs={}):
         """
@@ -55,10 +63,9 @@ class PowerServer(object):
         key = kwargs.get('key', '')
         crawled_brand = kwargs.get('brand') or ''
 
-        #TO REMOVE
-        print 'brand extracting ---> ', site,' ' + doctype + ' ',  key # + ' ', 'brand-<'+crawled_brand+'>  ',  'title-<'+ kwargs.get('title', ' ') +'>'+ ':'
-        
+        #TO REMOVE     
         print 'import  ', 'crawlers.'+site+'.models', 'doctype:', doctype.capitalize()
+
         m = __import__('crawlers.'+site+'.models', fromlist=[doctype.capitalize()])
         extracter = Extracter()
         brand = extracter.extract(crawled_brand)
@@ -76,7 +83,7 @@ class PowerServer(object):
     def propagate(self, args=(), kwargs={}):
         site = kwargs.get('site')
         event_id = kwargs.get('event_id')
-        p = Propagator(site, event_id)
+        p = Propagator(site, event_id, self.__extractor, self.__classifier)
         if p.propagate():
             pass
             # TODO send scuccess signal

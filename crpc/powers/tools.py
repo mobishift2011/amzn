@@ -12,16 +12,16 @@ from gevent.pool import Pool
 from functools import partial
 
 from configs import *
-from backends.matching.extractor import Extractor
-from backends.matching.classifier import SklearnClassifier
 
 import boto
 from boto.s3.key import Key
 from boto.s3.connection import S3Connection
 
+from hashlib import md5
 import os
 import re
 import requests
+import urllib
 from PIL import Image
 from StringIO import StringIO
 
@@ -77,7 +77,7 @@ class ImageTool:
         for image_url in image_urls:
             path, filename = os.path.split(image_url)
             index = image_urls.index(image_url)
-            image_name = '%s_%s' % (index, filename)
+            image_name = '%s_%s' % (index, md5(filename).hexdigest())
             s3key= os.path.join(site, doctype, key, image_name)
             self.__key.key = s3key
 
@@ -113,7 +113,7 @@ class ImageTool:
     def upload2s3(self, image, key):
         print 'upload2s3 ---> {0}'.format(key)
         self.__key.key = key
-        self.__key.set_contents_from_file(image)
+        self.__key.set_contents_from_file(image, headers={'Content-Type':'image/jpeg'})
         self.__key.make_public()
 
         image_url = '{0}/{1}'.format(S3_IMAGE_URL, self.__key.key)
@@ -145,10 +145,7 @@ class ImageTool:
                         if fluid == True or width == 0 or height == 0 \
                             else self.resize_by_crop(width=width, height=height, im=im)
                 self.upload2s3(thumb_pict, self.__key.key)
-                # with self.s3_upload_lock:
-                #     self.__pool.spawn(self.upload2s3, thumb_pict, self.__key.key)
 
-        # self.__pool.join()
         self.__thumbnail_complete = True
 
     def resize(self, box, im):
@@ -192,14 +189,13 @@ def parse_price(price):
     return float(amount)
 
 class Propagator(object):
-    def __init__(self, site, event_id):
+    def __init__(self, site, event_id, extractor, classifier):
         print 'init propogate %s event %s' % (site, event_id)
         m = __import__('crawlers.{0}.models'.format(site), fromlist=['Event'])
         self.site = site
         self.event = m.Event.objects(event_id=event_id).first()
-        self.extractor = Extractor()
-        self.classifier = SklearnClassifier()
-        self.classifier.load_from_database()
+        self.extractor = extractor
+        self.classifier = classifier
 
     def propagate(self):
         """
@@ -314,31 +310,36 @@ class Propagator(object):
 
 def test_image():
     conn = S3Connection(AWS_ACCESS_KEY, AWS_SECRET_KEY)
-    url1 = 'http://cdn04.mbbimg.cn/1308/13080081/01/1024/01.jpg'
-    url2 = 'http://cdn07.mbbimg.cn/1306/13060056/02/1024/01.jpg'
-    url3 = 'http://cdn03.mbbimg.cn/1307/13070129/01/480/01.jpg'
-    url4 = 'http://cdn08.mbbimg.cn/1310/13100015/03/480/02.jpg'
+    urls = [
+        'http://cdn04.mbbimg.cn/1308/13080081/01/1024/01.jpg',
+        'http://cdn07.mbbimg.cn/1306/13060056/02/1024/01.jpg',
+        'http://cdn03.mbbimg.cn/1307/13070129/01/480/01.jpg',
+        'http://cdn08.mbbimg.cn/1310/13100015/03/480/02.jpg',
+    ]
+
     it = ImageTool(connection = conn)
-    it.crawl([url1, url2], 'venteprivee', 'event', 'abc123', thumb=True)
+    it.crawl(urls[0:2], 'venteprivee', 'event', 'abc123', thumb=True)
     print 'image path ---> {0}'.format(it.image_path)
     print 'complete ---> {0}\n'.format(it.image_complete)
 
     it = ImageTool(connection = conn)
-    it.crawl([url3, url4], 'venteprivee', 'product', '123456', thumb=True)
+    it.crawl(urls[2:], 'venteprivee', 'product', '123456', thumb=True)
     print 'image path ---> {0}'.format(it.image_path)
     print 'complete ---> {0}\n'.format(it.image_complete)
 
 def test_propagate(site='venteprivee'):
+    import time
     from datetime import datetime
     from mongoengine import Q
     m = __import__('crawlers.{0}.models'.format(site), fromlist=['Event'])
     now = datetime.utcnow()
     events = m.Event.objects(Q(propagation_complete = False) & (Q(events_begin__lte=now) | Q(events_begin__exists=False)) & (Q(events_end__gt=now) | Q(events_end__exists=False)) )
     print len(events)
+    start = time.time()
     for event in events:
         p = Propagator(site, event.event_id)
         p.propagate()
-
+    print 'cost %s s' % time.time()-start
 
 if __name__ == '__main__':
     pass

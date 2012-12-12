@@ -86,22 +86,22 @@ def stat_save(sender, **kwargs):
     
     print '{0}.{1}.{2}.crawled_image_num:{3}'.format(site, key, model, num)
     # to ensure the event or product flag is indicated after the progress has been done.
-    try:
-        m = __import__("crawlers."+site+'.models', fromlist=['Event', 'Product'])
-        entity = None
-        if model == 'Event':
-            EventProgress.objects(site=site, key=key).update(set__image_complete=True,
-                                                             set__num_image=num,
-                                                             set__updated_at=datetime.utcnow(),
-                                                             upsert=True)
-            m.Event.objects(event_id=key).update(set__image_complete=True)
+    # try:
+    #     m = __import__("crawlers."+site+'.models', fromlist=['Event', 'Product'])
+    #     entity = None
+    #     if model == 'Event':
+    #         EventProgress.objects(site=site, key=key).update(set__image_complete=True,
+    #                                                          set__num_image=num,
+    #                                                          set__updated_at=datetime.utcnow(),
+    #                                                          upsert=True)
+    #         m.Event.objects(event_id=key).update(set__image_complete=True)
             
-        elif model == 'Product':
-            ProductProgress.objects(site=site, key=key).update(set__image_complete=True,
-                                                               set__num_image=num,
-                                                               set__updated_at=datetime.utcnow(),
-                                                               upsert=True)
-            m.Product.objects(key=key).update(set__image_complete=True)
+    #     elif model == 'Product':
+    #         ProductProgress.objects(site=site, key=key).update(set__image_complete=True,
+    #                                                            set__num_image=num,
+    #                                                            set__updated_at=datetime.utcnow(),
+    #                                                            upsert=True)
+    #         m.Product.objects(key=key).update(set__image_complete=True)
             
     except Exception as e:
         logger.exception(e.message)

@@ -21,7 +21,7 @@ def execute(site, method):
 
     """
     if can_task_run(site, method):
-        gevent.spawn(globals()[method], site, get_rpcs(CRAWLER_PEERS), concurrency=10) \
+        gevent.spawn(globals()[method], site, get_rpcs(CRAWLER_PEERS), method, concurrency=10) \
                 .rawlink(partial(task_completed, site=site, method=method))
 
 def avoid_cold_start():

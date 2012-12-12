@@ -214,9 +214,9 @@ def update(site, rpc, method='update', concurrency=5):
 
 # parent task of new
 def new(site, rpc, method='new', concurrency=5):
-    new_category(site, rpc, concurrency)
-    new_listing(site, rpc, concurrency)
-    new_product(site, rpc, concurrency)
+    new_category(site, rpc, '{0}_category'.format(method), concurrency)
+    new_listing(site, rpc, '{0}_listing'.format(method), concurrency)
+    new_product(site, rpc, '{0}_product'.format(method), concurrency)
 
 
 

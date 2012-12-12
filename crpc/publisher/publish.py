@@ -104,20 +104,24 @@ class Publisher:
 
         :param ev: event object
         '''
+        m = obj_to_module(ev)
         if self.should_publish_event(ev):
             self.publish_event(ev)
+            # republish published products that are associated with the newly published event (event URI field
+            # needs to be updated)
+            for prod in m.Product.objects(publish_time__exists=True, event_id=ev.event_id):
+                self.publish_product(prod, upd=True, fields=['events'])
         elif self.should_publish_event_newly_onshelf(ev):
             self.publish_event(ev, upd=True, mode="onshelf")
         else:
             self.logger.debug("event %s:%s not ready for publish", obj_to_site(ev), ev.event_id)
             return
 
-        # it's a full publish, so we need to auto publish all contained products
-        m = obj_to_module(ev)
+        # it's a full publish, so we need to publish all contained yet unpublished products
         for prod in m.Product.objects(publish_time__exists=False, event_id=ev.event_id):
             if self.should_publish_product(prod):
                 self.publish_product(prod)
-        
+
     def ready_events(self, prod):
         '''return all events the prod is associated with that are ready for publishing.
         
@@ -132,7 +136,7 @@ class Publisher:
         :param m: module that contains the products.
         '''
         # $$ include non-obsolete and not out-of-stock condition?
-        return m.Product.objects(publish_time__exists=False, event_id__exists=False, image_complete=True, dept_complete=True)
+        return m.Product.objects(publish_time__exists=False, event_type=False, image_complete=True, dept_complete=True)
                     
     def should_publish_event(self, ev):
         '''condition for publishing the event for first time.
@@ -200,6 +204,9 @@ class Publisher:
         
         :param ev: event object.
         :param upd: update only. (if False it's a full publish.)
+        :param mode: update mode. "soldout": only soldout info needs to be published;
+            "onshelf": event is recently put on shelf, therefore multiple fields such as soldout, dept
+            need to be published.
         '''
         try:
             m = obj_to_module(ev)
@@ -236,7 +243,7 @@ class Publisher:
             self.logger.error(e)
             self.logger.error("publishing event %s:%s failed", obj_to_site(ev), ev.event_id)
                     
-    def publish_product(self, prod, upd=False):
+    def publish_product(self, prod, upd=False, fields=['soldout']):
         '''
         Publish product data to the mastiff service.
 
@@ -245,7 +252,9 @@ class Publisher:
         '''
         try:
             if upd:
-                pdata = { "sold_out": prod.soldout }
+                pdata = {}
+                if 'soldout' in fields: pdata['sold_out'] = prod.soldout
+                if 'events' in fields: pdata['events'] = self.get_ev_uris(prod)
             else:
                 pdata = { 
                     "site_key": obj_to_site(prod)+'_'+prod.key,

@@ -17,9 +17,11 @@ URL_EXPIRES_IN 	= 60 * 60 * 24 * 365 * 25    # S3 has an epoch time of 03:14 UTC
 The same as the specific crawling name defined in the crawling folder.
 """
 SITES = (
+    'beyondtherack',
     'bluefly',
     'gilt',
     'hautelook',
+    'ideeli',
     'myhabit',
     'nomorerack',
     'onekingslane',

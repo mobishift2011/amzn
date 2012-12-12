@@ -231,14 +231,15 @@ class Server(object):
         image_urls = []
         for img in images:
             image_urls.append( img.get('href') )
-        shipping = nav.cssselect('div.lastUnit > div.line form div#item_content_wrapper > div#item_wrapper > div#product_delivery')[0].text_content()
+        shipping = nav.cssselect('div.lastUnit > div.line form div#item_content_wrapper > div#item_wrapper > div#product_delivery')[0].text_content().strip()
         info = nav.cssselect('div.lastUnit > div.line div#showcase > div.container')[0]
         list_info = []
         nodes = info.cssselect('div.tab_container > div#tab1 p')
         for node in nodes:
-            list_info.append( node.text_content().strip() )
-        brand = info.cssselect('div#tab4')[0].text_content()
-        returned = info.cssselect('div#tab5')[0].text_content()
+            text = node.text_content().strip()
+            if text: list_info.append(text)
+        brand = info.cssselect('div#tab4')[0].text_content().strip()
+        returned = info.cssselect('div#tab5')[0].text_content().strip()
 
         is_new, is_updated = False, False
         product = Product.objects(key=key).first()

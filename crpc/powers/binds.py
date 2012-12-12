@@ -16,7 +16,12 @@ from settings import POWER_PEERS
 from helpers.log import getlogger
 from helpers.rpc import get_rpcs
 
+from powers.routine import crawl_images
+
 logger = getlogger("powers.bind")
+
+import gevent.pool
+process_image_pool = gevent.pool.Pool(50)
 
 @common_saved.bind
 def single_process_image(sender, **kwargs):
@@ -31,8 +36,7 @@ def single_process_image(sender, **kwargs):
 
     if site and key and obj_type.capitalize() in ('Event', 'Product'):
         logger.warning('%s %s %s queries for crawling images' % (site, obj_type, key))
-        from powers.routine import crawl_images
-        crawl_images(site, obj_type, key)
+        process_image_pool.spawn(crawl_images, site, obj_type, key)
     else:
         logger.warning('%s failed to start crawling image', sender)
         # TODO send a process_message error signal.

@@ -103,8 +103,8 @@ def stat_save(sender, **kwargs):
     #                                                            upsert=True)
     #         m.Product.objects(key=key).update(set__image_complete=True)
             
-    except Exception as e:
-        logger.exception(e.message)
+    # except Exception as e:
+    #     logger.exception(e.message)
 
 
 import os

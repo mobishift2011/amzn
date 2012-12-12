@@ -236,7 +236,7 @@ class Server(object):
         list_info = []
         nodes = info.cssselect('div.tab_container > div#tab1 p')
         for node in nodes:
-            text = node.text_content().strip():
+            text = node.text_content().strip()
             if text: list_info.append(text)
         brand = info.cssselect('div#tab4')[0].text_content().strip()
         returned = info.cssselect('div#tab5')[0].text_content().strip()

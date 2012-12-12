@@ -512,7 +512,5 @@ class Server(object):
 
 if __name__ == '__main__':
     server = Server()
-    server.crawl_category()
-    exit()
     url = 'http://www.ruelala.com/event/product/60496/6020835935/1/DEFAULT'
     server.crawl_product(url)

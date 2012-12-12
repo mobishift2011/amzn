@@ -7,6 +7,7 @@ crawlers.modnique.server
 ~~~~~~~~~~~~~~~~~~~
 
 This is the server part of zeroRPC module. Call by client automatically, run on many differen ec2 instances.
+need to investigate whether 'the-shops' in category, not event.
 """
 import lxml.html
 from datetime import datetime, timedelta
@@ -24,9 +25,8 @@ class Server(object):
         self.extract_slug_product = re.compile('.*/product/.+/\w+/(.+)/(\w+)/color/.*size/seeac/gseeac')
         self.headers = {
             'Host':' www.modnique.com',
-            'Referer':' http://www.modnique.com/saleevents',
+            # 'Referer':' http://www.modnique.com/',
             'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.4 (KHTML, like Gecko) Ubuntu/12.10 Chromium/22.0.1229.94 Chrome/22.0.1229.94 Safari/537.4',
-            'X-Requested-With': 'XMLHttpRequest',
         }
 
     def crawl_category(self, ctx='modnique.crawl_category.xxxxx'):
@@ -165,21 +165,24 @@ class Server(object):
         slug, event_id = self.extract_slug_id.match(url).groups()
         content = fetch_page(url, self.headers)
         if content is None or isinstance(content, int):
-            common_failed.send(sender=ctx, key=event_id, url=url,
+            content = fetch_page(url, self.headers)
+            if content is None or isinstance(content, int):
+                common_failed.send(sender=ctx, key=event_id, url=url,
                     reason='download listing url error, {0}'.format(content))
-            return
+                return
         tree = lxml.html.fromstring(content)
         nodes = tree.cssselect('div.line > div.page > div#items > ul#products > li.product')
         for node in nodes:
             abandon, color = node.get('id').rsplit('_', 1) # item_57185525_gunmetal
             color = '' if color.isdigit() else color
             title = node.cssselect('div.item_thumb2 > div.itemTitle > h6.neutral')[0].text_content().strip()
-            link = node.cssselect('div.item_thumb2 > div#itemThumb > div > div.media > a#item_buynow')[0].get('href')
+            link = node.cssselect('div.item_thumb2 > div#itemThumb > a[href]')[0].get('href')
             link = link if link.startswith('http') else self.siteurl + link
             slug, key = self.extract_slug_product.match(link).groups()
 
             price = node.cssselect('div.item_thumb2 > div > div.media > div.bd > p > span.price')[0].text_content().replace('modnique', '').strip()
-            listprice = node.cssselect('div.item_thumb2 > div > div.media > div.bd > p > span.bare')[0].text_content().replace('retail', '').strip()
+            listprice = node.cssselect('div.item_thumb2 > div > div.media > div.bd > p > span.bare')
+            listprice = listprice[0].text_content().replace('retail', '').strip() if listprice else ''
             soldout = True if node.cssselect('div.item_thumb2 > div.soldSticker') else False
 
             is_new, is_updated = False, False

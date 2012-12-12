@@ -52,7 +52,7 @@ def auto_schedule():
         then removed from the smethod_time. This can avoid too long set() in smethod_time.
     """
     _utcnow = datetime.utcnow()
-    # open('/tmp/sche.debug', 'a').write('[{0}]: {1} \n'.format(_utcnow, smethod_time))
+    # open('/tmp/sche.debug', 'a').write('[{0}]: {1} \n\n'.format(_utcnow, smethod_time))
 
     for k, v in smethod_time.iteritems():
         site, method = k.split('.')

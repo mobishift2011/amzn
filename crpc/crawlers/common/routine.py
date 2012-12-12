@@ -163,7 +163,7 @@ def update_listing(site, rpc, method='update_listing', concurrency=5):
         keep_ctx = ctx
         rpcs = [rpc] if not isinstance(rpc, list) else rpc
         pool = Pool(len(rpcs)*concurrency)
-        for category in spout_listing(site):
+        for category in spout_listing_update(site):
             for kwargs in spout_category(site, category):
                 kwargs['ctx'] = ctx
                 rpc = random.choice(rpcs)
@@ -186,17 +186,38 @@ def update_product(site, rpc, method='update_product', concurrency=5):
 
     ready_for_batch.send(sender=keep_ctx, site=site, doctype='product')
 
-# parent task of new or update
+def new_listing(site, rpc, method='new_listing', concurrency=5):
+    keep_ctx = None
+    with UpdateContext(site=site, method=method) as ctx:
+        keep_ctx = ctx
+        rpcs = [rpc] if not isinstance(rpc, list) else rpc
+        pool = Pool(len(rpcs)*concurrency)
+        for category in spout_listing(site):
+            for kwargs in spout_category(site, category):
+                kwargs['ctx'] = ctx
+                rpc = random.choice(rpcs)
+                pool.spawn(callrpc, rpc, site, 'crawl_listing', **kwargs)
+        pool.join()
+
+    ready_for_batch.send(sender=keep_ctx, site=site, doctype='event')
+
+
+# parent task of update
 def update(site, rpc, method='update', concurrency=5):
     update_category(site, rpc, '{0}_category'.format(method), concurrency)
     update_listing(site, rpc, '{0}_listing'.format(method), concurrency)
     update_product(site, rpc, '{0}_product'.format(method), concurrency)
 
+# parent task of new
+def new(site, rpc, method='new', concurrency=5):
+    new_category(site, rpc, '{0}_category'.format(method), concurrency)
+    new_listing(site, rpc, '{0}_listing'.format(method), concurrency)
+    new_product(site, rpc, '{0}_product'.format(method), concurrency)
+
 # alias for easily invoking by monitor
 new_category = partial(update_category, method='new_category')
-new_listing = partial(update_listing, method='new_listing')
 new_product = partial(update_product, method='new_product')
-new = partial(update, method='new')
+
 
 def new_thrice(site, rpc, method='new', concurrency=5):
     new(site, rpc, method, concurrency)

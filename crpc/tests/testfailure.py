@@ -2,18 +2,18 @@ import traceback
 from zerorpc import Client
 from settings import *
 
-def dotest(peers, port):
+def dotest(peers):
     for p in peers:
-        username, hostname = p.split('@')
-        print 'testing', hostname
-        c = Client('tcp://{hostname}:{port}'.format(hostname=hostname, port=port))
+        print p['host_string'][p['host_string'].index('@')+1:], p['port']
+        c = Client('tcp://{hostname}:{port}'.format(hostname=p['host_string'][p['host_string'].index('@')+1:],
+                                                    port=p['port']), timeout=None, heartbeat=None)
         try:
-            c.image('test')
+            c.test('test')
         except:
             traceback.print_exc()
 
 
 if __name__ == '__main__':
-    dotest(CRAWLER_PEERS, CRAWLER_PORT)
-    dotest(POWER_PEERS, POWER_PORT)
+    dotest(CRAWLER_PEERS)
+    dotest(POWER_PEERS)
     

@@ -15,15 +15,15 @@ import time
 def run(site, rpc):
     begin = time.time()
 
-    new_category(site, rpc)
+    update_category(site, rpc)
     category_cost = time.time() - begin
     print '\n\n--++ category {0} ++--\n\n'.format(category_cost)
 
-    new_listing(site, rpc)
+    update_listing(site, rpc)
     list_cost = time.time() - begin
     print '\n\n--++ listing {0} ++--\n\n'.format(list_cost)
 
-    new_product(site, rpc)
+    update_product(site, rpc)
     product_cost = time.time() - begin
     print '\n\n--++ product {0} ++--\n\n'.format(product_cost)
 

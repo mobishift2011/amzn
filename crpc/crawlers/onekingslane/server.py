@@ -441,13 +441,15 @@ class Server(object):
                 if img_url not in product.image_urls:
                     product.image_urls.append(img_url)
 
-        product.summary = node.cssselect('div#productDescription > div#description')[0].text_content()
+        product.summary = node.cssselect('div#productDescription > div#description')[0].text_content().strip()
         if seller: product.seller = seller[0].cssselect('div')[0].text_content()
         product.list_info = list_info if isinstance(list_info, list) else [list_info]
-        product.returned = node.cssselect('div#productDetails > dl:nth-of-type(2)')[0].text_content()
-        end_date = node.cssselect('div#productDetails > p.endDate')[0].text.split('until')[-1].strip() # '11/10 at 11am EST'
-        end_date_str, time_zone = end_date.rsplit(' ', 1)
-        product.products_end = time_convert(end_date_str, '%m/%d at %I%p%Y', time_zone)
+        returned = node.cssselect('div#productDetails > dl:nth-of-type(2)')
+        product.returned = returned[0].text_content() if returned else ''
+        end_date = node.cssselect('div#productDetails > p.endDate') # '11/10 at 11am EST'
+        if end_date:
+            end_date_str, time_zone = end_date[0].text.split('until')[-1].strip().rsplit(' ', 1)
+            product.products_end = time_convert(end_date_str, '%m/%d at %I%p%Y', time_zone)
         if product.updated == False:
             product.updated = True
             ready = True
@@ -482,7 +484,7 @@ class Server(object):
             _date, _time = endDate[0].text_content().strip().split('at')
             time_str = _date.split()[-1] + ' ' +  _time.split()[0] + ' '
             product.products_end = time_convert(time_str, '%m/%d %I%p %Y')
-        product.summary = node.cssselect('div#productDescription > div#description')[0].text_content()
+        product.summary = node.cssselect('div#productDescription > div#description')[0].text_content().strip()
 
         img = node.cssselect('div#productDescription > div#altImages')
         if img:

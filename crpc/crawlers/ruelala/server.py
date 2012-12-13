@@ -23,9 +23,9 @@ import re
 
 headers = { 
     'Host': 'www.ruelala.com',
-    'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:16.0) Gecko/20100101 Firefox/16.0',
-    'Referer': 'http://www.ruelala.com/event',
-    'Cookie': 'X-CCleaned=1; optimizelyEndUserId=oeu1349667187777r0.2759982226275626; optimizelyBuckets=%7B%7D; CoreID6=87382265939413496671878&ci=90210964; userEmail=2012luxurygoods@gmail.com; optimizelySegments=%7B%7D; symfony=qetib49pctdo8o2qabfb0cj645; Liberty.QuickBuy.canQuickBuy=0; pgts=1355321500; NSC_SVF_QPPM_BMM=ffffffff096c9d3c45525d5f4f58455e445a4a423660; cmTPSet=Y; 90210964_clogin=l=1355321222&v=1&e=1355323301860; aid=1001; NSC_SVF_QPPM_BMM_OPDBDIF=ffffffff096c9d3e45525d5f4f58455e445a4a423660; optimizelyPendingLogEvents=%5B%5D',
+    'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:17.0) Gecko/20100101 Firefox/17.0',
+    # 'Referer': 'http://www.ruelala.com/event',
+    # 'Referer': 'https://www.ruelala.com/access',
 }
 
 req = requests.Session(prefetch=True, timeout=30, config=config, headers=headers)
@@ -511,6 +511,9 @@ class Server(object):
 
 
 if __name__ == '__main__':
+    rue = ruelalaLogin()
+    ret = rue.fetch_page('http://www.ruelala.com/event')
+    print ret
+
     server = Server()
-    url = 'http://www.ruelala.com/event/product/60496/6020835935/1/DEFAULT'
-    server.crawl_product(url)
+    server.crawl_category()

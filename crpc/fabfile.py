@@ -96,6 +96,7 @@ def start():
 #    execute(_start_xvfb)
     execute(_start_crawler)
     execute(_start_power)
+    execute(_start_text)
     execute(_start_monitor)
     execute(_start_publish)
     execute(_start_catalog)
@@ -122,8 +123,10 @@ def _stop_all():
         run("killall chromium-browser")
         run("kill -9 `pgrep -f crawlerserver.py`")
         run("kill -9 `pgrep -f powerserver.py`")
+        run("kill -9 `pgrep -f textserver.py`")
         run("ps aux | grep crawlerserver.py | grep -v grep | awk '{print $2}' | xargs kill -9")
         run("ps aux | grep powerserver.py | grep -v grep | awk '{print $2}' | xargs kill -9")
+        run("ps aux | grep textserver.py | grep -v grep | awk '{print $2}' | xargs kill -9")
         run("rm /tmp/*.sock")
 
 @parallel
@@ -159,6 +162,20 @@ def __start_power(host_string, port):
                     with cd("/opt/crpc"):
                         with prefix("source ./env.sh {0}".format(os.environ.get('ENV','TEST'))):
                             _runbg("python powers/powerserver.py {0}".format(port), sockname="powerserver.{0}".format(port))
+
+def _start_text():
+    for peer in TEXT_PEERS:
+        print 'TEXT', peer
+        multiprocessing.Process(target=__start_text, args=(peer['host_string'], peer['port'])).start()
+
+def __start_text(host_string, port):
+    with settings(host_string=host_string):
+        with prefix("source /usr/local/bin/virtualenvwrapper.sh"):
+            with prefix("ulimit -s 1024"):
+                with prefix("ulimit -n 4096"):
+                    with cd("/opt/crpc"):
+                        with prefix("source ./env.sh {0}".format(os.environ.get('ENV','TEST'))):
+                            _runbg("python powers/textserver.py {0}".format(port), sockname="textserver.{0}".format(port))
 
 def _start_monitor():
     os.system("ulimit -n 4096 && cd {0}/backends/monitor && dtach -n /tmp/crpcscheduler.sock python run.py".format(CRPC_ROOT))

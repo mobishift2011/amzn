@@ -1,21 +1,19 @@
 # -*- coding: utf-8 -*-
-import requests
-import json
-import re
-import os
 import esm
-
 from models import Brand
-from configs import SITES
+from helpers.log import getlogger
 
+logger = getlogger('textserver', filename='/tmp/textserver.log')
 
-print 'brand index init'
-brands = Brand.objects().values_list('title')
-print 'brands total count:%s' % len(brands)
+logger.info('init brands index...')
+brands = Brand.objects(is_delete = False).values_list('title', 'title_edit')
 index = esm.Index()
-for brand in brands:
+for brand_tuple in brands:
+    title, title_edit = brand_tuple
+    brand = title_edit if title_edit else title
     index.enter(brand.lower().encode('utf-8'), brand)
 index.fix()
+logger.info('total brands index count:{0}'.format(len(brands)))
 
 class Extracter(object):
     def __init__(self):

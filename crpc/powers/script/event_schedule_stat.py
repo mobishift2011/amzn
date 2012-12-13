@@ -17,13 +17,13 @@ def count_schedule():
 	tomorrow = today + timedelta(days=1)
 
 	for site in SITES:
-		SITE_STAT[site] = {}
 		m = get_site_module(site)
 
 		if not hasattr(m, 'Event'):
 			print 'site ', site, ' has not Event model\n'
 			continue
 
+		SITE_STAT[site] = {}
 		events = m.Event.objects(Q(events_begin__gte=today) & Q(events_begin__lte=tomorrow))
 		for event in events:
 			begin = str(event.events_begin.time())

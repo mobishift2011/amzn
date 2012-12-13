@@ -57,10 +57,16 @@ $.extend( $.fn.dataTableExt.oPagination, {
         },
 
         "fnUpdate": function ( oSettings, fnDraw ) {
-            var iListLength = 5;
+            var iListLength = 10;
             var oPaging = oSettings.oInstance.fnPagingInfo();
             var an = oSettings.aanFeatures.p;
             var i, j, sClass, iStart, iEnd, iHalf=Math.floor(iListLength/2);
+
+            if (oPaging.iPage == 0){
+                disableUpdate = false;
+            } else{
+                disableUpdate = true;
+            }
 
             if ( oPaging.iTotalPages < iListLength) {
                 iStart = 1;

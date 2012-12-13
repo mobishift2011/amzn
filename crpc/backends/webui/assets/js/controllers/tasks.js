@@ -30,7 +30,10 @@ function TaskCtrl($scope) {
             data: {offset:offset, limit:limit},
             dataType: "json",
             success: function(response) {
-                updater.updateTasks(response['tasks']);
+                var tasks = response['tasks'];
+                if (tasks!=[] && canUpdate && (!disableUpdate)){
+                    updater.updateTasks(tasks);
+                }
                 // has more
                 if (response['tasks'].length==limit) {
                     updater.init(offset+limit, limit);
@@ -52,11 +55,10 @@ function TaskCtrl($scope) {
 
     onSuccess: function(response) {
         try {
-            console.log(response);
             var tasks = response['tasks'];
             // we will block updates if we are viewing fails
             // canUpdate is a global variable (I apologize for that)
-            if (tasks!=[] && canUpdate){
+            if (tasks!=[] && canUpdate && (!disableUpdate)){
                 updater.updateTasks(tasks);
             }
         } catch (e) {
@@ -136,6 +138,7 @@ function TaskCtrl($scope) {
 
 // dirty works
 var canUpdate = true;
+var disableUpdate = false;
 var toggleCanUpdate = function(){
     canUpdate = !canUpdate;
 }

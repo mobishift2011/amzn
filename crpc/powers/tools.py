@@ -215,8 +215,8 @@ class Propagator(object):
         highest_price = 0
         lowest_discount = 0
         highest_discount = 0
-        events_begin = self.event.events_begin or ''# if hasattr(self.event, 'events_begin') else ''
-        events_end = self.event.events_end or '' #if hasattr(self.event, 'events_end') else ''
+        events_begin = self.event.events_begin or None# if hasattr(self.event, 'events_begin') else ''
+        events_end = self.event.events_end or None #if hasattr(self.event, 'events_end') else ''
         soldout = True
 
         m = __import__('crawlers.{0}.models'.format(self.site), fromlist=['Product'])
@@ -331,15 +331,23 @@ def test_propagate(site='venteprivee'):
     import time
     from datetime import datetime
     from mongoengine import Q
+    from backends.matching.extractor import Extractor
+    from backends.matching.classifier import SklearnClassifier
+    extractor = Extractor()
+    classifier = SklearnClassifier()
+    classifier.load_from_database()
+    
     m = __import__('crawlers.{0}.models'.format(site), fromlist=['Event'])
     now = datetime.utcnow()
     events = m.Event.objects(Q(propagation_complete = False) & (Q(events_begin__lte=now) | Q(events_begin__exists=False)) & (Q(events_end__gt=now) | Q(events_end__exists=False)) )
     print len(events)
+
     start = time.time()
     for event in events:
-        p = Propagator(site, event.event_id)
+        p = Propagator(site, event.event_id, extractor, classifier)
         p.propagate()
-    print 'cost %s s' % time.time()-start
+
+    print 'cost ', time.time() - start, ' s'
 
 if __name__ == '__main__':
     pass

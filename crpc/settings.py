@@ -61,21 +61,6 @@ envs = {
             {'host_string':'root@ec2-54-245-149-120.us-west-2.compute.amazonaws.com', 'port':1245},
             {'host_string':'root@ec2-54-245-149-120.us-west-2.compute.amazonaws.com', 'port':1246},
             {'host_string':'root@ec2-54-245-149-120.us-west-2.compute.amazonaws.com', 'port':1247},
-
-            {'host_string':'root@ec2-54-245-137-124.us-west-2.compute.amazonaws.com', 'port':1244},
-            {'host_string':'root@ec2-54-245-137-124.us-west-2.compute.amazonaws.com', 'port':1245},
-            {'host_string':'root@ec2-54-245-137-124.us-west-2.compute.amazonaws.com', 'port':1246},
-            {'host_string':'root@ec2-54-245-137-124.us-west-2.compute.amazonaws.com', 'port':1247},
-
-            {'host_string':'root@ec2-54-245-162-182.us-west-2.compute.amazonaws.com', 'port':1244},
-            {'host_string':'root@ec2-54-245-162-182.us-west-2.compute.amazonaws.com', 'port':1245},
-            {'host_string':'root@ec2-54-245-162-182.us-west-2.compute.amazonaws.com', 'port':1246},
-            {'host_string':'root@ec2-54-245-162-182.us-west-2.compute.amazonaws.com', 'port':1247},
-
-            {'host_string':'root@ec2-54-245-4-176.us-west-2.compute.amazonaws.com', 'port':1244},
-            {'host_string':'root@ec2-54-245-4-176.us-west-2.compute.amazonaws.com', 'port':1245},
-            {'host_string':'root@ec2-54-245-4-176.us-west-2.compute.amazonaws.com', 'port':1246},
-            {'host_string':'root@ec2-54-245-4-176.us-west-2.compute.amazonaws.com', 'port':1247},
         ],
         'USE_INDEX': '',
         'MONGODB_HOST': '10.252.14.6',

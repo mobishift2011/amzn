@@ -21,11 +21,13 @@ import lxml.html
 import urllib
 import re
 
+import time
 headers = { 
     'Host': 'www.ruelala.com',
-    'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:16.0) Gecko/20100101 Firefox/16.0',
+    'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:17.0) Gecko/20100101 Firefox/17.0',
     'Referer': 'http://www.ruelala.com/event',
-    'Cookie': 'X-CCleaned=1; optimizelyEndUserId=oeu1349667187777r0.2759982226275626; optimizelyBuckets=%7B%7D; CoreID6=87382265939413496671878&ci=90210964; userEmail=2012luxurygoods@gmail.com; optimizelySegments=%7B%7D; symfony=qetib49pctdo8o2qabfb0cj645; Liberty.QuickBuy.canQuickBuy=0; pgts=1355321500; NSC_SVF_QPPM_BMM=ffffffff096c9d3c45525d5f4f58455e445a4a423660; cmTPSet=Y; 90210964_clogin=l=1355321222&v=1&e=1355323301860; aid=1001; NSC_SVF_QPPM_BMM_OPDBDIF=ffffffff096c9d3e45525d5f4f58455e445a4a423660; optimizelyPendingLogEvents=%5B%5D',
+#'Cookie': 'X-CCleaned=1; optimizelyEndUserId=oeu1349667187777r0.2759982226275626; optimizelyBuckets=%7B%7D; CoreID6=87382265939413496671878&ci=90210964; userEmail=2012luxurygoods@gmail.com; optimizelySegments=%7B%7D; symfony=vq72a0g2ln0gbgu2hsbu7m6n37; Liberty.QuickBuy.canQuickBuy=0; cmTPSet=Y; 90210964_clogin=l=1355371341&v=1&e=1355373144030; aid=1001; pgts={0}; NSC_SVF_QPPM_BMM=ffffffff096c9d3c45525d5f4f58455e445a4a423660; urk=153f9ae7be27a389f232a046280ce14724e4d590; urkm=6fb2f52e9bffc7ec8187bec354dcae484cc5e371; uid=10456083; rusersign=CTE44i9QXMTEBL1FN%2Figudt%2B1QkDpl0szU%2FIefZKpMbaPrdX5XrMFcZB1zhZIla4ijsr9t731Tsn%0D%0Ar4hpQAu9DdIw8XU9suZVNiY3ja%2BlF%2F31l1mabPb1htG3Zzuqm1WfvQhWBIZth9uXW2H%2FToAnqvN3%0D%0A8l%2F59iiuniJNF9weIv2ghA4qdRJggVTCYXl3pke6A2%2BmqmUkraRX0GIDF6uW8Vb8%2FLkH8fWizSsn%0D%0ALW29l4VAVQme71eJCvS6Y%2BRpvjQWYuXIqKhNIJOpUbdC5u60a3Um5czZwC%2FBWOHX2NLFfoVSASBJ%0D%0AT7Q%2BVhlXLDcdTojB5Gtzo%2FsSgbcuK%2BvAbSpCaA%3D%3D; ruserbase=eyJpZCI6W3siaWQiOjEwNDU2MDgzLCJ0eXBlIjoicnVlbGFsYSJ9XSwidHJhY2tpbmciOlt7Im5h%0D%0AbWUiOiJyZWZlcnJlcklkIiwidmFsdWUiOiJNVEEwTlRZd09ETT0ifSx7Im5hbWUiOiJlS2V5Iiwi%0D%0AdmFsdWUiOiJNakF4TW14MWVIVnllV2R2YjJSelFHZHRZV2xzTG1OdmJRPT0ifV19; uhv=8983318ed03011dacdf62f083899b18df1a142340d8d6adea2df794ca083fd63; siteid=full; stid=MjAxMmx1eHVyeWdvb2RzQGdtYWlsLmNvbToxMzcwOTIzMzYwOlNDdUFiZUVnelcyZjcvQWhaVXB2SVMydGlMYk1mY0VDMjBLOE40SnRVM2M9'.format(int(time.time())),
+    'Cookie': 'X-CCleaned=1; optimizelyEndUserId=oeu1349667187777r0.2759982226275626; optimizelyBuckets=%7B%7D; CoreID6=87382265939413496671878&ci=90210964; userEmail=2012luxurygoods@gmail.com; optimizelySegments=%7B%7D; symfony=vq72a0g2ln0gbgu2hsbu7m6n37; Liberty.QuickBuy.canQuickBuy=0; cmTPSet=Y; 90210964_clogin=l=1355371341&v=1&e=1355373144030; aid=1001; pgts={0}; NSC_SVF_QPPM_BMM=ffffffff096c9d3c45525d5f4f58455e445a4a423660; urk=153f9ae7be27a389f232a046280ce14724e4d590; urkm=6fb2f52e9bffc7ec8187bec354dcae484cc5e371; uid=10456083'.format(int(time.time())),
 }
 
 req = requests.Session(prefetch=True, timeout=30, config=config, headers=headers)
@@ -52,7 +54,8 @@ class ruelalaLogin(object):
         """.. :py:method::
             use post method to login
         """
-        req.post(self.login_url, data=self.data)
+        cookie = req.get(self.login_url).cookies
+        req.post(self.login_url, data=self.data, cookies=cookie)
         self._signin = True
 
     def check_signin(self):
@@ -511,6 +514,10 @@ class Server(object):
 
 
 if __name__ == '__main__':
-    server = Server()
-    url = 'http://www.ruelala.com/event/product/60496/6020835935/1/DEFAULT'
-    server.crawl_product(url)
+    rue = ruelalaLogin()
+    upcoming_url = 'http://www.ruelala.com/event/showReminders?id=1'
+    ret = rue.fetch_page(upcoming_url)
+    print ret[:100]
+
+#    server = Server()
+#    server.crawl_category()

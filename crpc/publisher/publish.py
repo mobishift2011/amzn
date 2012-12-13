@@ -62,7 +62,7 @@ class Publisher:
             # current product may not get published in the above, as it may not be associated
             # with any events
             prod.reload()  # db content modified in the above step
-            if self.should_publish_product(prod):
+            if self.should_publish_product(prod) and not prod.event_id:
                 self.publish_product(prod)
         else:
             self.logger.debug("product {}:{} not ready for publishing".format(obj_to_site(prod),prod_key))

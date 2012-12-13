@@ -15,7 +15,7 @@ def count_schedule():
 	now = datetime.utcnow()
 	today = now.replace(hour=0, minute=0, second=0, microsecond=0)
 	tomorrow = today + timedelta(days=1)
-	
+
 	for site in SITES:
 		SITE_STAT[site] = {}
 		m = get_site_module(site)
@@ -40,6 +40,3 @@ if __name__ == '__main__':
 		for time, count in chain(value.items()):
 			print time, ' -> ', count
 		print '\n'
-
-# for key, value in chain(envs['COMMON'].iteritems(), envs[env].iteritems()):
-#     globals()[key] = value

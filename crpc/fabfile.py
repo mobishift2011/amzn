@@ -89,6 +89,7 @@ def stop():
     execute(_stop_all)
     execute(_stop_monitor)
     execute(_stop_publish)
+    execute(_stop_catalog)
 
 def start():
     """ start remote executions """
@@ -97,6 +98,7 @@ def start():
     execute(_start_power)
     execute(_start_monitor)
     execute(_start_publish)
+    execute(_start_catalog)
 
 def restart():
     """ stop & start """
@@ -173,6 +175,13 @@ def _start_publish():
 def _stop_publish():
     os.system("ps aux | grep publish.py | grep -v grep | awk '{print $2}' | xargs kill -9")
     os.system("rm /tmp/publish*.sock")
+
+def _start_catalog():
+    os.system("dtach -n /tmp/catalog.sock python {0}/djCatalog/manage.py runserver 0.0.0.0:1319".format(CRPC_ROOT))    
+
+def _stop_catalog():
+    os.system("ps aux | grep 'runserver 0.0.0.0:1319' | grep -v grep | awk '{print $2}' | xargs kill -9")
+    os.system("rm /tmp/catalog*.sock")
 
 def _runbg(cmd, sockname="dtach"):
     """ A helper function to run command in background """

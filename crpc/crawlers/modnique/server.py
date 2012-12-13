@@ -46,7 +46,7 @@ class Server(object):
             'Host':' www.modnique.com',
             'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.4 (KHTML, like Gecko) Ubuntu/12.10 Chromium/22.0.1229.94 Chrome/22.0.1229.94 Safari/537.4',
         }
-        self.pt = pytze.timezone('US/Pacific')
+        self.pt = pytz.timezone('US/Pacific')
 
     def crawl_category(self, ctx='modnique.crawl_category.xxxxx'):
         """.. :py:method::

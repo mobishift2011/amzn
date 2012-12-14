@@ -27,7 +27,8 @@ SITES = (
     'onekingslane',
     'ruelala',
     'zulily',
-    'venteprivee'
+    'venteprivee',
+    'modnique'
 )
 
 IMAGE_SIZE = {

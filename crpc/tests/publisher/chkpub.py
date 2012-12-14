@@ -16,25 +16,46 @@ class PubChecker:
         now = datetime.utcnow()
 
         total = m.Event.objects.count()
-        published = m.Event.objects(publish_time__exists=True).count()
         print "total events:", total
-        print "unpublished events:", total-published
+        image_incomplete = m.Event.objects(image_complete=False).count()
+        print "image not completed:", image_incomplete
+        #print "propagation not complete: {}".format(propagation_incomplete)
 
-        noproduct = 0
-        for ev in m.Event.objects(publish_time__exists=False):
-            if m.Product.objects(event_id=ev.event_id).count()==0: noproduct+=1
-        print "unpublished_events that has no product", noproduct
-
-        image_complete = m.Event.objects(image_complete=True).count()
-        propagation_incomplete = m.Event.objects(propagation_complete=False).count()
-        propagation_incomplete_onshelf = m.Event.objects(Q(propagation_complete=False)&(Q(events_begin__exists=False)|Q(events_begin__lt=now))).count()
-        print "image not completed:", total - image_complete
-        print "propagation not complete(onshelf/total): {}/{}".format(propagation_incomplete_onshelf, propagation_incomplete)
-        
+        published = m.Event.objects(publish_time__exists=True).count()
         unpublished_new = m.Event.objects(publish_time__exists=False, events_begin__gt=now).count()
         total_new = m.Event.objects(events_begin__gt=now).count()
-        print "unpublished upcoming/total upcoming: {}/{}".format(unpublished_new, total_new)
-        
+        print "upcoming events(unpublished/total): {}/{}".format(unpublished_new, total_new)
+        print
+
+        # analyze on-shelf event
+        onshelf_q  = (Q(events_begin__exists=False) | Q(events_begin__lt=now))
+        print "on-shelf events:", m.Event.objects(Q(events_begin__exists=False) | Q(events_begin__lt=now)).count()
+        nodept = m.Event.objects((Q(events_begin__exists=False) | Q(events_begin__lt=now)) & Q(favbuy_dept=[])).count()
+        print "on-shelf and empty dept events:", nodept
+        propagation_incomplete_onshelf = m.Event.objects((Q(events_begin__exists=False) | Q(events_begin__lt=now)) & Q(propagation_complete=False)).count()
+        print "on-shelf and propagation incomplete events:", propagation_incomplete_onshelf
+        print
+
+        # analyze unpublished events
+        noprod = 0  # how many events have no product underneath
+        noreadyprod = 0  # how many events have no ready products
+        notready = 0 # how many events that have ready products but itself is not ready
+        unknown = []
+        for ev in m.Event.objects(publish_time__exists=False):
+            if m.Product.objects(event_id=ev.event_id).count()==0: 
+                noprod += 1
+            elif m.Product.objects(event_id=ev.event_id, image_complete=True, dept_complete=True).count()==0:
+                noreadyprod += 1
+            elif not ev.image_complete or not ev.propagation_complete:
+                notready += 1
+            else:
+                unknown.append(ev.event_id)
+        print "unpublished events:", total-published
+        print "unpublished_events that has no product:", noprod
+        print "unpublished_events that has no readyproduct:", noreadyprod
+        print "unpublished_events that has ready products but itself not ready:", notready
+        print "unpublished (unknow reason) event:", ",".join(unknown)
+
 if __name__ == '__main__':
     from optparse import OptionParser
     import sys, os
@@ -43,7 +64,6 @@ if __name__ == '__main__':
     # parameters
     parser.add_option('-s', '--site', dest='site', help='site', default='all')
     parser.add_option('--event', dest='event', action="store_true", help='reset crawler database', default=False)
-    parser.add_option('--chkdb', dest='chkdb', action="store_true", help='check crawler database', default=False)    
 
     if len(sys.argv)==1:
         parser.print_help()

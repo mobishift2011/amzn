@@ -157,7 +157,7 @@ class Server(object):
             sale_title = up.text_content().strip()
             uptime = up.xpath('./following-sibling::span[@class="time"]/text()')[0] #'Fri. Dec 14'
             events_begin = time_convert(uptime+' 9 ', '%a. %b %d %H %Y', 'ET')
-            _utcnow = datetime.utcnow(pytz.utc)
+            _utcnow = datetime.now(pytz.utc)
             if events_begin.day == _utcnow.day and events_begin < _utcnow:
                 if '5PM' in sale_title or '5pm' in sale_title:
                     events_begin += timedelta(hours=8)

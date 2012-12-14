@@ -13,7 +13,7 @@ import sys
 class Publisher:
     def __init__(self):
         self.mapi = slumber.API(MASTIFF_ENDPOINT)
-        self.logger = log.getlogger("publisher", "/tmp/publisher-11.log")
+        self.logger = log.getlogger("publisher", "/tmp/publisher.log")
 
     def try_publish_all(self, site):
         '''publish all events and products in a site that meet publish condition.

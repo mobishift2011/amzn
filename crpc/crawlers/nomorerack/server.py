@@ -249,7 +249,7 @@ class Server(object):
         """
         link = node.cssselect('div.image > a.image_tag')[0].get('href')
         product_id = link.rsplit('/', 1)[-1]
-        img = node.cssselect('div.image > a.image_tag > img')[0].get('src')
+        # img = node.cssselect('div.image > a.image_tag > img')[0].get('src')
         title = node.cssselect('div.info > div.display > p')[0].text_content()
         price = node.cssselect('div.info > div.display > div.pricing > ins')[0].text_content()
         listprice = node.cssselect('div.info > div.display > div.pricing > del')
@@ -265,7 +265,7 @@ class Server(object):
             product.updated = False
             product.combine_url = 'http://nomorerack.com/daily_deals/view/{0}'.format(product_id)
             product.title = title
-            product.image_urls = [img]
+            # product.image_urls = [img]
             product.price = price
             product.listprice = listprice
             product.scarcity = scarcity
@@ -341,9 +341,9 @@ class Server(object):
                 summary, list_info = summary[0].strip(), []
         image_urls = []
         for img in node.cssselect('div.left > div.images > div.thumbs > img'):
-            image_urls.append( img.get('src') )
-            image_urls.append( img.get('src').replace('tn.', 'rg.') )
-            image_urls.append( img.get('src').replace('tn.', 'lg.') )
+            # image_urls.append( img.get('src') )
+            # image_urls.append( img.get('src').replace('tn.', 'rg.') )
+            image_urls.append( img.get('src').replace('tn.', 'lg.') ) # we just need one large image
         ends = tree.cssselect('div#wrapper > div#content > div#front > div.ribbon > div.ribbon-center h4')
         if not ends:
             ends = tree.cssselect('div#wrapper > div#content > div#front > div.top > div.ribbon-center > p')

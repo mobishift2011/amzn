@@ -28,12 +28,21 @@ class PubChecker:
         print
 
         # analyze on-shelf event
-        onshelf_q  = (Q(events_begin__exists=False) | Q(events_begin__lt=now))
-        print "on-shelf events:", m.Event.objects(Q(events_begin__exists=False) | Q(events_begin__lt=now)).count()
-        nodept = m.Event.objects((Q(events_begin__exists=False) | Q(events_begin__lt=now)) & Q(favbuy_dept=[])).count()
-        print "on-shelf and empty dept events:", nodept
-        propagation_incomplete_onshelf = m.Event.objects((Q(events_begin__exists=False) | Q(events_begin__lt=now)) & Q(propagation_complete=False)).count()
-        print "on-shelf and propagation incomplete events:", propagation_incomplete_onshelf
+        onshelf = 0; noprod = 0; noreadyprod = 0; nodept = 0; nodept_evid=[]
+        for ev in m.Event.objects(Q(events_begin__exists=False) | Q(events_begin__lt=now)):
+            onshelf += 1
+            if m.Product.objects(event_id=ev.event_id).count()==0:
+                noprod += 1
+            elif m.Product.objects(event_id=ev.event_id, image_complete=True, dept_complete=True).count()==0:
+                noreadyprod += 1
+            elif not ev.favbuy_dept:
+                nodept += 1
+                nodept_evid.append(ev.event_id)
+            
+        print "on-shelf events:", onshelf
+        print "on-shelf and no product events:", noprod
+        print "on-shelf and no ready product events:", noreadyprod
+        print "on-shelf remaining and no department events:", nodept, "({})".format(nodept_evid)
         print
 
         # analyze unpublished events

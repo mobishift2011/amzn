@@ -19,51 +19,48 @@ class PubChecker:
         print "total events:", total
         image_incomplete = m.Event.objects(image_complete=False).count()
         print "image not completed:", image_incomplete
-        #print "propagation not complete: {}".format(propagation_incomplete)
-
+        print
+        
+        # upcoming events
+        total_new = m.Event.objects(events_begin__gt=now).count()
+        print "upcoming events:", total_new
         published = m.Event.objects(publish_time__exists=True).count()
         unpublished_new = m.Event.objects(publish_time__exists=False, events_begin__gt=now).count()
-        total_new = m.Event.objects(events_begin__gt=now).count()
-        print "upcoming events(unpublished/total): {}/{}".format(unpublished_new, total_new)
+        print "upcoming events unpublished:", unpublished_new
         print
 
         # analyze on-shelf event
-        onshelf = 0; noprod = 0; noreadyprod = 0; nodept = 0; nodept_evid=[]
+        onshelf = 0  # on-shelf events
+        published= 0  # published
+        noprod = 0   # no product underneath
+        noreadyprod = 0  # no ready-product underneath
+        notready = 0   # itself not ready
+        noimage = 0   # no image
+        noprop = 0; noprop_evid=[]  # propagation incomplete
+        unknown = 0; unknown_evid = []
         for ev in m.Event.objects(Q(events_begin__exists=False) | Q(events_begin__lt=now)):
             onshelf += 1
-            if m.Product.objects(event_id=ev.event_id).count()==0:
+            if ev.publish_time:
+                published += 1
+            elif m.Product.objects(event_id=ev.event_id).count()==0:
                 noprod += 1
             elif m.Product.objects(event_id=ev.event_id, image_complete=True, dept_complete=True).count()==0:
                 noreadyprod += 1
-            elif not ev.favbuy_dept:
-                nodept += 1
-                nodept_evid.append(ev.event_id)
-            
+            elif not ev.image_complete:
+                noimage +=1 
+            elif not ev.propagation_complete:
+                noprop += 1
+                noprop_evid.append(ev.event_id)
+            else:
+                unknown += 1
+                unknown_evid.append(ev.event_id)
         print "on-shelf events:", onshelf
+        print "on-shelf and published events:", published
         print "on-shelf and no product events:", noprod
         print "on-shelf and no ready product events:", noreadyprod
-        print "on-shelf remaining and no department events:", nodept, "({})".format(nodept_evid)
-        print
-
-        # analyze unpublished events
-        noprod = 0  # how many events have no product underneath
-        noreadyprod = 0  # how many events have no ready products
-        notready = 0 # how many events that have ready products but itself is not ready
-        unknown = []
-        for ev in m.Event.objects(publish_time__exists=False):
-            if m.Product.objects(event_id=ev.event_id).count()==0: 
-                noprod += 1
-            elif m.Product.objects(event_id=ev.event_id, image_complete=True, dept_complete=True).count()==0:
-                noreadyprod += 1
-            elif not ev.image_complete or not ev.propagation_complete:
-                notready += 1
-            else:
-                unknown.append(ev.event_id)
-        print "unpublished events:", total-published
-        print "unpublished_events that has no product:", noprod
-        print "unpublished_events that has no readyproduct:", noreadyprod
-        print "unpublished_events that has ready products but itself not ready:", notready
-        print "unpublished (unknow reason) event:", ",".join(unknown)
+        print "on-shelf remaining and no image events:", noimage
+        print "on-shelf remaining and no propagation events:", noprop, "({})".format(",".join(noprop_evid))
+        print "on-shelf remaining and unknown events:", unknown, "({})".format(",".join(unknown_evid))
 
 if __name__ == '__main__':
     from optparse import OptionParser

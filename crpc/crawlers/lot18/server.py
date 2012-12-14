@@ -12,6 +12,7 @@ class Server(object):
         pass
 
     def crawl_listing(self, url, ctx=''):
+        return
         tree = lxml.html.fromstring(content)
         nodes = tree.cssselect('div#page > div.container-content > div.product-wrapper div.product')
 

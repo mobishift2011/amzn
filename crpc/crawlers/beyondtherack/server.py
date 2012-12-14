@@ -10,7 +10,7 @@ This is the server part of zeroRPC module. Call by client automatically, run on 
 """
 
 import lxml.html
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from models import *
 from crawlers.common.stash import *
@@ -128,6 +128,15 @@ class Server(object):
         for dept, url in self.dept_link.iteritems():
             self.crawl_one_dept_image(dept, url, ctx)
 
+    def get_or_create_event(self, event_id):
+        is_new, is_updated = False, False
+        event = Event.objects(event_id=event_id).first()
+        if not event:
+            is_new = True
+            event = Event(event_id=event_id)
+            event.urgent = True
+            event.combine_url = 'http://www.beyondtherack.com/event/showcase/{0}'.format(event_id)
+        return event, is_new, is_updated
 
     def crawl_category_text_info(self, url, ctx):
         """.. :py:method::
@@ -141,6 +150,27 @@ class Server(object):
                     reason='download error or {1} return'.format(content))
             return
         tree = lxml.html.fromstring(content)
+
+        upcomings = tree.cssselect('div.pageframe > table.upcomingEvents > tbody > tr > td.data-row > div.item')
+        for up in upcomings:
+            event_id = up.get('data-event')
+            sale_title = up.text_content().strip()
+            uptime = up.xpath('./following-sibling::span[@class="time"]/text()')[0] #'Fri. Dec 14'
+            events_begin = time_convert(uptime+' 9 ', '%a. %b %d %H %Y', 'ET')
+            _utcnow = datetime.utcnow()
+            if events_begin.day == _utcnow.day and events_begin < _utcnow:
+                if '5PM' in sale_title or '5pm' in sale_title:
+                    events_begin += timedelta(hours=8)
+                else:
+                    events_begin += timedelta(hours=1)
+
+            event, is_new, is_updated = self.get_or_create_event(event_id)
+            if not event.sale_title: event.sale_title = sale_title
+            event.events_begin = events_begin
+            event.update_time = _utcnow
+            event.save()
+            common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
+
         for dept in self.dept_link.keys():
             self.crawl_one_dept_text_info(dept, tree, ctx)
 
@@ -161,15 +191,10 @@ class Server(object):
             else:
                 sale_title = item.cssselect('div.menu-item')[0].text_content()
 
-            is_new, is_updated = False, False
-            event = Event.objects(event_id=event_id).first()
-            if not event:
-                is_new = True
-                event = Event(event_id=event_id)
-                event.urgent = True
-                event.combine_url = 'http://www.beyondtherack.com/event/showcase/{0}'.format(event_id)
+            event, is_new, is_updated = self.get_or_create_event(event_id)
+
             if dept not in event.dept: event.dept.append(dept)
-            if not event.sale_title: event.sale_title = sale_title
+            event.sale_title = sale_title
             event.update_time = datetime.utcnow()
             event.save()
             common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
@@ -190,13 +215,7 @@ class Server(object):
             image_text = item.cssselect('span[style]')[0].get('style')
             image_url = self.extract_image_url.search(image_text).group(1)
         
-            is_new, is_updated = False, False
-            event = Event.objects(event_id=event_id).first()
-            if not event:
-                is_new = True
-                event = Event(event_id=event_id)
-                event.urgent = True
-                event.combine_url = 'http://www.beyondtherack.com/event/showcase/{0}'.format(event_id)
+            event, is_new, is_updated = self.get_or_create_event(event_id)
 
             if dept not in event.dept: event.dept.append(dept)
             if image_url not in event.image_urls: event.image_urls.append(image_url)

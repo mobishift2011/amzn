@@ -477,7 +477,7 @@ class Server(object):
         color = attribute_node.cssselect('section#productSelectors ul#colorSwatches > li > a')
         if color:
             for c in color:
-                colors.append( c.get('title').lower() )
+                colors.append( c.get('src').rsplit('_', 1)[-1].split('.')[0] )
             for c in colors:
                 image_urls.append('http://www.ruelala.com/images/product/{0}/{1}_RLLZ_{2}.jpg'.format(product_id[:6], product_id, c))
 
@@ -514,10 +514,5 @@ class Server(object):
 
 
 if __name__ == '__main__':
-    rue = ruelalaLogin()
-    upcoming_url = 'http://www.ruelala.com/event/showReminders?id=1'
-    ret = rue.fetch_page(upcoming_url)
-    print ret[:100]
-
-#    server = Server()
-#    server.crawl_category()
+    server = Server()
+    server.crawl_product('http://www.ruelala.com/event/product/59042/6020822693/1/DEFAULT')

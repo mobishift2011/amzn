@@ -94,7 +94,6 @@ def scan_images(site, doctype, concurrency=3):
     rpcs = get_rpcs(POWER_PEERS)
     pool = Pool(len(rpcs)*concurrency)
     for kwargs in spout_images(site, doctype):
-        kwargs['ctx'] = ctx
         rpc = random.choice(rpcs)
         pool.spawn(call_rpc, rpc, 'process_image', **kwargs)
 
@@ -139,7 +138,7 @@ def propagate(site, concurrency=3):
         pool.spawn(call_rpc, rpc, 'propagate', **event)
     pool.join()
 
-    ready_for_publish.send(sender, **{'site': site})
+    ready_for_publish.send(None, **{'site': site})
 
 def brand_extract(site, concurrency=3):
     """

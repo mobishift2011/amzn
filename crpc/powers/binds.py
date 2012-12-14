@@ -45,7 +45,7 @@ def batch_image_crawling(sender, **kwargs):
         # TODO send a process_message error signal.
 
 @ready_for_batch.bind
-def brand_extract(sender, **kwargs):
+def batch_brand_extract(sender, **kwargs):
     logger.info('brand extract listens: {0} -> {1}'.format(sender, kwargs.items()))
     doctype = kwargs.get('doctype') or ''
     if doctype.capitalize() == 'Product':

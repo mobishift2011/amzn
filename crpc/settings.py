@@ -89,7 +89,7 @@ if not env:
 for key, value in chain(envs['COMMON'].iteritems(), envs[env].iteritems()):
     globals()[key] = value
 
-PEERS = CRAWLER_PEERS + POWER_PEERS
+PEERS = CRAWLER_PEERS + POWER_PEERS + TEXT_PEERS
 
 import redisco
 redisco.connection_setup(host=REDIS_HOST)

@@ -25,6 +25,10 @@ import urllib
 from PIL import Image
 from StringIO import StringIO
 
+from helpers.log import getlogger
+txtlogger = getlogger('textserver', filename='/tmp/textserver.log')
+imglogger = getlogger('powerserver', filename='/tmp/powerserver.log')
+
 CURRDIR = os.path.dirname(__file__)
 
 class ImageTool:
@@ -78,7 +82,10 @@ class ImageTool:
             path, filename = os.path.split(image_url)
             index = image_urls.index(image_url)
             image_name = '%s_%s' % (index, md5(filename).hexdigest())
-            s3key= os.path.join(site, doctype, key, image_name)
+            # s3key= os.path.join(site, doctype, key, image_name)
+            # TO backward test
+            s3key= os.path.join('test_'+site, doctype, key, image_name)
+
             self.__key.key = s3key
 
             if self.__key.exists():
@@ -87,7 +94,10 @@ class ImageTool:
                 print 'grab existing image from s3 ---> {0}\n'.format(s3_url)
                 self.__image_path.append(s3_url)
             else:
-                image_content = self.download(image_url)
+                try:
+                    image_content = self.download(image_url)
+                except Exception, e:
+                    imglogger.error('download image {0} exception'.format(image_url))
                 s3_url = self.upload2s3(StringIO(image_content), self.__key.key)
                 if s3_url:
                     self.__image_path.append(s3_url)
@@ -227,66 +237,69 @@ class Propagator(object):
             return self.event
 
         for product in products:
-            print 'start to propogate from  %s product %s' % (self.site, product.key)
+            try:
+                print 'start to propogate from  %s product %s' % (self.site, product.key)
 
-            # Tag, Dept extraction and propagation
-            source_infos = product.list_info or []
-            source_infos.append(product.title or '')
-            source_infos.append(product.summary or '')
-            source_infos.append(product.short_desc or '')
-            source_infos.extend(product.tagline or [])
+                # Tag, Dept extraction and propagation
+                source_infos = product.list_info or []
+                source_infos.append(product.title or '')
+                source_infos.append(product.summary or '')
+                source_infos.append(product.short_desc or '')
+                source_infos.extend(product.tagline or [])
 
-            product.favbuy_tag = self.extractor.extract('\n'.join(source_infos).encode('utf-8'))
-            source_infos.extend(product.dept)
-            product.favbuy_dept = list(self.classifier.classify( '\n'.join(source_infos) ))
+                product.favbuy_tag = self.extractor.extract('\n'.join(source_infos).encode('utf-8'))
+                source_infos.extend(product.dept)
+                product.favbuy_dept = list(self.classifier.classify( '\n'.join(source_infos) ))
 
-            product.tag_complete = True
-            product.dept_complete = True
+                product.tag_complete = True
+                product.dept_complete = True
 
-            tags = tags.union(product.favbuy_tag)
-            depts = depts.union([ product.favbuy_dept[0] ])
+                tags = tags.union(product.favbuy_tag)
+                depts = depts.union([ product.favbuy_dept[0] ])
 
-            # Event brand propagation
-            if hasattr(product, 'favbuy_brand') and product.favbuy_brand:
-                event_brands.add(product.favbuy_brand)
+                # Event brand propagation
+                if hasattr(product, 'favbuy_brand') and product.favbuy_brand:
+                    event_brands.add(product.favbuy_brand)
 
-            # Event & Product begin_date, end_date
-            if not hasattr(product, 'products_begin') \
-                or not product.products_begin:
-                    product.products_begin = events_begin
-            if not hasattr(product, 'products_end') \
-                or not product.products_end:
-                    product.products_end = events_end
+                # Event & Product begin_date, end_date
+                if not hasattr(product, 'products_begin') \
+                    or not product.products_begin:
+                        product.products_begin = events_begin
+                if not hasattr(product, 'products_end') \
+                    or not product.products_end:
+                        product.products_end = events_end
 
-            if not events_begin and product.products_begin:
-                events_begin = product.products_begin
-            if not events_end and product.products_end:
-                events_end = product.products_end
+                if not events_begin and product.products_begin:
+                    events_begin = product.products_begin
+                if not events_end and product.products_end:
+                    events_end = product.products_end
 
-            if events_begin and product.products_begin:
-                events_begin = min(events_begin, product.products_begin)
-            if events_end and product.products_end:
-                events_end = max(events_end, product.products_end)
+                if events_begin and product.products_begin:
+                    events_begin = min(events_begin, product.products_begin)
+                if events_end and product.products_end:
+                    events_end = max(events_end, product.products_end)
 
-            # (lowest, highest) discount, (lowest, highest) price propagation
-            price = parse_price(product.price)
-            listprice = parse_price(product.listprice)
-            product.favbuy_price = str(price)
-            product.favbuy_listprice = str(listprice)
-            
-            highest_price = max(price, highest_price) if highest_price else price
-            lowest_price = (min(price, lowest_price) or lowest_price) if lowest_price else price
+                # (lowest, highest) discount, (lowest, highest) price propagation
+                price = parse_price(product.price)
+                listprice = parse_price(product.listprice)
+                product.favbuy_price = str(price)
+                product.favbuy_listprice = str(listprice)
+                
+                highest_price = max(price, highest_price) if highest_price else price
+                lowest_price = (min(price, lowest_price) or lowest_price) if lowest_price else price
 
-            discount = 1.0 * price / listprice if listprice else 0
-            lowest_discount = max(discount, highest_discount)
-            highest_discount = min(discount, lowest_discount) or discount
+                discount = 1.0 * price / listprice if listprice else 0
+                lowest_discount = max(discount, highest_discount)
+                highest_discount = min(discount, lowest_discount) or discount
 
-            # soldout
-            if soldout and ((hasattr(product, 'soldout') and not product.soldout) \
-                or (product.scarcity and int(product.scarcity))):
-                    soldout = False
+                # soldout
+                if soldout and ((hasattr(product, 'soldout') and not product.soldout) \
+                    or (product.scarcity and int(product.scarcity))):
+                        soldout = False
 
-            product.save()
+                product.save()
+            except Exception, e:
+                txtlogger.error('{0}.{1} product propagation exception'.format(self.site, product.key))
 
         self.event.favbuy_brand = list(event_brands)
         self.event.brand_complete = True

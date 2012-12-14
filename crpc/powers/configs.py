@@ -45,7 +45,7 @@ IMAGE_SIZE = {
 			'height': 200,
 		},
 		{
-			'width': 244,
+			'width': 224,
 			'height': 0,
 		},
 		{

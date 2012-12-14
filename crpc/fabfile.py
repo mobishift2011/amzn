@@ -11,7 +11,7 @@ fabric is used to:
 this module should not consider the following:
     1. monitor the code runs on remote machine
 """
-from settings import PEERS, CRAWLER_PEERS, POWER_PEERS, ENV_NAME, USE_INDEX
+from settings import PEERS, CRAWLER_PEERS, POWER_PEERS, TEXT_PEERS, ENV_NAME, USE_INDEX
 from settings import CRPC_ROOT
 
 from fabric.api import *

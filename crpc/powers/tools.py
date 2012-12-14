@@ -98,6 +98,7 @@ class ImageTool:
                     image_content = self.download(image_url)
                 except Exception, e:
                     imglogger.error('download image {0} exception'.format(image_url))
+                    return
                 s3_url = self.upload2s3(StringIO(image_content), self.__key.key)
                 if s3_url:
                     self.__image_path.append(s3_url)

@@ -157,7 +157,7 @@ class Server(object):
             sale_title = up.text_content().strip()
             uptime = up.xpath('./following-sibling::span[@class="time"]/text()')[0] #'Fri. Dec 14'
             events_begin = time_convert(uptime+' 9 ', '%a. %b %d %H %Y', 'ET')
-            _utcnow = datetime.utcnow()
+            _utcnow = datetime.utcnow(pytz.utc)
             if events_begin.day == _utcnow.day and events_begin < _utcnow:
                 if '5PM' in sale_title or '5pm' in sale_title:
                     events_begin += timedelta(hours=8)
@@ -167,7 +167,7 @@ class Server(object):
             event, is_new, is_updated = self.get_or_create_event(event_id)
             if not event.sale_title: event.sale_title = sale_title
             event.events_begin = events_begin
-            event.update_time = _utcnow
+            event.update_time = datetime.utcnow()
             event.save()
             common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
 

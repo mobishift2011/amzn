@@ -29,6 +29,7 @@ class Server(object):
         self.extract_slug_key_of_listingurl = re.compile(r'.*/(.+)/_/N-(.+)/list.fly')
         self.extract_category_key = re.compile(r'http://www.bluefly.com/_/N-(.+)/list.fly')
         self.extract_product_slug_key = re.compile(r'http://www.bluefly.com/(.+)/p/(.+)/detail.fly')
+        self.extract_large_image = re.compile('.*largeimage: \'([^\']+)') 
 
     def crawl_category(self, ctx=''):
         """.. :py:method::
@@ -303,8 +304,11 @@ class Server(object):
             return
         tree = lxml.html.fromstring(content)
         detail = tree.cssselect('div#page-wrapper > div#main-container > section#main-product-detail')[0]
+
+        image_urls = []
         imgs = detail.cssselect('div.product-image > div.image-thumbnail-container > a')
-        image_urls = self._make_image_urls(key, len(imgs))
+        for img in imgs:
+            image_urls.append( self.extract_large_image.search(img.get('rel')).group(1) )
         color = detail.cssselect('div.product-info > form#product > div.product-variations > div.pdp-label > em')
         color = color[0].text_content() if color else ''
         sizes = detail.cssselect('div.product-info > form#product > div.product-sizes > div.size-picker > ul.product-size > li')
@@ -354,6 +358,9 @@ class Server(object):
 
 
     def _make_image_urls(self, product_key, image_count):
+        """
+            not use this function anymore, because image may have 1,2,3,5, no 4 in the middle
+        """
         urls = ['http://cdn.is.bluefly.com/mgen/Bluefly/eqzoom85.ms?img={0}.pct&outputx=1020&outputy=1224&level=1'.format(product_key)]
         for i in range(1, image_count):
             urls.append( 'http://cdn.is.bluefly.com/mgen/Bluefly/eqzoom85.ms?img={0}_alt0{1}.pct&outputx=1020&outputy=1224&level=1'.format(product_key, i) )
@@ -361,6 +368,8 @@ class Server(object):
 
 
 if __name__ == '__main__':
+    Server().crawl_product('http://www.bluefly.com/slug/p/321206501/detail.fly')
+    exit()
     server = zerorpc.Server(Server())
     server.bind("tcp://0.0.0.0:{0}".format(CRAWLER_PORT))
     server.run()

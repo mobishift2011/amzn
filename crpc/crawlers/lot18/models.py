@@ -7,9 +7,9 @@ from settings import MONGODB_HOST
 DB = 'lot18'
 connect(db=DB, alias=DB, host=MONGODB_HOST)
 
-from crawlers.common.models import BaseEvent, LuxuryProduct
+from crawlers.common.models import BaseCategory, LuxuryProduct
 
-class Event(BaseEvent):
+class Category(BaseCategory):
     meta = {
         'db_alias': DB,
     }

@@ -180,7 +180,7 @@ class Server(object):
 
             day, hour, minute = node.cssselect('div#sDefault_{0} > div'.format(event_id))[0].text_content().split('in')[-1].strip().split()
             begins = timedelta(days=int(day[:-1]), hours=int(hour[:-1]), minutes=int(minute[:-1])) + _utcnow
-            hour = begins.hour + 1 if begins.minute > 50 else begins.hour
+            hour = (begins.hour+1) % 24 if begins.minute > 50 else begins.hour
             events_begin = datetime(begins.year, begins.month, begins.day, hour)
 
             event, is_new, is_updated = self.get_event_from_db(event_id, link, slug, sale_title)

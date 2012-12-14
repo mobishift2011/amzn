@@ -61,6 +61,40 @@ class PubChecker:
         print "on-shelf remaining and no image events:", noimage
         print "on-shelf remaining and no propagation events:", noprop, "({})".format(",".join(noprop_evid))
         print "on-shelf remaining and unknown events:", unknown, "({})".format(",".join(unknown_evid))
+        
+    def check_product(self, site):
+        m = get_site_module(site)
+        total = m.Product.objects.count()
+        total_noimage = m.Product.objects(image_complete=False).count()
+        total_nodept = m.Product.objects(favbuy_dept=[]).count()
+        total_nobrand = m.Product.objects(favbuy_brand__exists=False).count()
+        print "total:", total
+        print "no image:", total_noimage
+        print "no department:", total_nodept
+        print "no brand:", total_nobrand
+        print
+        
+        unpub = 0
+        noimage = 0
+        nodept = 0
+        eventnotready = 0
+        unknown = 0
+        for p in m.Product.objects(publish_time__exists=False):
+            unpub += 1
+            if not p.image_complete:
+                noimage += 1
+            elif not p.dept_complete:
+                nodept += 1
+            elif not [ev for ev in [m.Event.objects.get(event_id=evid) for evid in p.event_id] if ev.publish_time]:
+                eventnotready += 1
+            else:
+                unknown += 1
+        print "unpublished:", unpub
+        print "image incomplete:", noimage
+        print "no department:", nodept
+        print "event not ready:", eventnotready
+        print "unknown:", unknown
+        
 
 if __name__ == '__main__':
     from optparse import OptionParser
@@ -69,8 +103,9 @@ if __name__ == '__main__':
     parser = OptionParser(usage='usage: %prog [options]')
     # parameters
     parser.add_option('-s', '--site', dest='site', help='site', default='all')
-    parser.add_option('--event', dest='event', action="store_true", help='reset crawler database', default=False)
-
+    parser.add_option('--event', dest='event', action="store_true", help='check event', default=False)
+    parser.add_option('--product', dest='prod', action="store_true", help='check product', default=False)
+    
     if len(sys.argv)==1:
         parser.print_help()
         sys.exit()
@@ -92,5 +127,11 @@ if __name__ == '__main__':
             print "Checking events in", site, "........."
             chk.check_event(site)
             print
+    elif options.prod:
+        for site in sites:
+            print "Checking products in", site, "......"
+            chk.check_product(site)
+            print
+            
 
 

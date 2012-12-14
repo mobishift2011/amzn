@@ -30,6 +30,7 @@ class Publisher:
             self._try_publish_event(ev)
 
         # we need to scan database once more for ready products that are NOT associated with any events
+        self.logger.debug("now publishing standalone products ...")
         for prod in self.ready_standalone_products(m):
             self.publish_product(prod)
         
@@ -107,6 +108,7 @@ class Publisher:
         m = obj_to_module(ev)
         if self.should_publish_event(ev):
             self.publish_event(ev)
+            if not ev.publish_time: return
             # republish published products that are associated with the newly published event (event URI field
             # needs to be updated)
             for prod in m.Product.objects(publish_time__exists=True, event_id=ev.event_id):
@@ -168,10 +170,17 @@ class Publisher:
         :param ev: event object
         :param threshold: threshold for the number of products ready for publishing
         '''
-        m = obj_to_module(ev); n = 0
+        m = obj_to_module(ev)
+
+        # there could be many products published already, due to they are associated to both this event
+        # and other published events. So we need to perform first check on published products.
+        n = m.Product.objects(publish_time__exists=True, event_id=ev.event_id).count()
+        if n>threshold: return True
+
         for prod in m.Product.objects(publish_time__exists=False, event_id=ev.event_id):
             if self.should_publish_product(prod): n += 1
             if n>threshold: return True
+        
         self.logger.debug("insufficient products ready (%d) for publish under event %s:%s", n, obj_to_site(ev), ev.event_id)
         return False
         
@@ -381,6 +390,7 @@ if __name__ == '__main__':
     # parameters
     parser.add_option('-c', '--cmd', dest='cmd', help='command of the signal(update, initial, all)', default='')
     parser.add_option('--mput', dest='mput', action="store_true", help='publish to mastiff service', default=False)
+    parser.add_option('--upd', dest='upd', help='update mode(mput only)', default='')
     parser.add_option('--mget', dest='mget', action="store_true", help='get published result back from mastiff service', default=False)    
     parser.add_option('-s', '--site', dest='site', help='site info', default='')
     parser.add_option('-e', '--ev', dest='ev', help='event id', default='')
@@ -415,7 +425,10 @@ if __name__ == '__main__':
         if options.site and options.ev:
             m = get_site_module(options.site)        
             ev = m.Event.objects.get(event_id=options.ev)
-            p.publish_event(ev)
+            if not options.upd:
+                p.publish_event(ev)
+            else:
+                p.publish_event(ev, upd=True, mode=options.upd)
         elif options.site and options.prod:
             m = get_site_module(options.site)        
             prod = m.Product.objects.get(key=options.prod)

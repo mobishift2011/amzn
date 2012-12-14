@@ -71,7 +71,7 @@ class TextServer(object):
             logger.info('{0}.{1} propagation OK'.format(site, event_id))
             # TODO send scuccess signal
         else:
-            logger.warning('{0}.{1} propagation failed'.format(site, event_id))
+            logger.error('{0}.{1} propagation failed'.format(site, event_id))
             # TODO send fail signal
 
 

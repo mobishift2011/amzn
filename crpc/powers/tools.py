@@ -84,7 +84,7 @@ class ImageTool:
             image_name = '%s_%s' % (index, md5(filename).hexdigest())
             # s3key= os.path.join(site, doctype, key, image_name)
             # TO backward test
-            s3key= os.path.join('test_'+site, doctype, key, image_name)
+            s3key= os.path.join(site, doctype, key, image_name)
 
             self.__key.key = s3key
 

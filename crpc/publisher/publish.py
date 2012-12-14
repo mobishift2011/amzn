@@ -13,7 +13,7 @@ import sys
 class Publisher:
     def __init__(self):
         self.mapi = slumber.API(MASTIFF_ENDPOINT)
-        self.logger = log.getlogger("publisher", "/tmp/publisher.log")
+        self.logger = log.getlogger("publisher", "/tmp/publisher-11.log")
 
     def try_publish_all(self, site):
         '''publish all events and products in a site that meet publish condition.
@@ -25,8 +25,8 @@ class Publisher:
 
         # try all unpublished events and published but recently becomes onshelf ones
         for ev in m.Event.objects:
-            if ev.publish_time and (not ev.events_begin or ev.publish_time>=ev.events_begin):
-                continue
+            #if ev.publish_time and (not ev.events_begin or ev.publish_time>=ev.events_begin):
+            #    continue
             self._try_publish_event(ev)
 
         # we need to scan database once more for ready products that are NOT associated with any events
@@ -63,7 +63,7 @@ class Publisher:
             # current product may not get published in the above, as it may not be associated
             # with any events
             prod.reload()  # db content modified in the above step
-            if self.should_publish_product(prod) and not prod.event_id:
+            if self.should_publish_product(prod, chk_ev=True):
                 self.publish_product(prod)
         else:
             self.logger.debug("product {}:{} not ready for publishing".format(obj_to_site(prod),prod_key))
@@ -108,16 +108,17 @@ class Publisher:
         m = obj_to_module(ev)
         if self.should_publish_event(ev):
             self.publish_event(ev)
-            if not ev.publish_time: return
+            if not ev.publish_time: return # publishing failure
             # republish published products that are associated with the newly published event (event URI field
             # needs to be updated)
             for prod in m.Product.objects(publish_time__exists=True, event_id=ev.event_id):
                 self.publish_product(prod, upd=True, fields=['events'])
         elif self.should_publish_event_newly_onshelf(ev):
             self.publish_event(ev, upd=True, mode="onshelf")
+        elif ev.publish_time:
+            self.logger.debug("event %s:%s already published", obj_to_site(ev), ev.event_id)
         else:
             self.logger.debug("event %s:%s not ready for publish", obj_to_site(ev), ev.event_id)
-            return
 
         # it's a full publish, so we need to publish all contained yet unpublished products
         for prod in m.Product.objects(publish_time__exists=False, event_id=ev.event_id):
@@ -194,7 +195,8 @@ class Publisher:
         '''
         if chk_ev:
             allow_publish = False
-            for ev in [Event.objects.get(event_id=evid) for evid in prod.event_id]:
+            m = obj_to_module(prod)
+            for ev in [m.Event.objects.get(event_id=evid) for evid in prod.event_id]:
                 if ev.publish_time:
                     allow_publish = True
                     break

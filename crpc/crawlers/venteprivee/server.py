@@ -50,6 +50,7 @@ class Server(object):
         res = self.request.post(url, data=data)
         res.raise_for_status()
         self.__is_auth = True
+        self.et = pytz.timezone('US/Eastern')
 
     def crawl_category(self, ctx):
         """.. :py:method::
@@ -68,8 +69,8 @@ class Server(object):
                 if image_url not in event.image_urls:
                     event.image_urls.append(image_url)
             event.sale_description = sale.get('brandDescription')
-            event.events_begin = datetime.datetime.strptime(sale.get('startDate'), '%Y-%m-%dT%H:%M:%S').replace(tzinfo=pytz.utc)
-            event.events_end = datetime.datetime.strptime(sale.get('endDate'), '%Y-%m-%dT%H:%M:%S').replace(tzinfo=pytz.utc)
+            event.events_begin = self.et.localize(datetime.datetime.strptime(sale.get('startDate'), '%Y-%m-%dT%H:%M:%S')).astimezone(pytz.utc)
+            event.events_end = self.et.localize(datetime.datetime.strptime(sale.get('endDate'), '%Y-%m-%dT%H:%M:%S')).astimezone(pytz.utc)
             event.type = sale.get('type')
             event.dept = [] # TODO cannot get the info
             event.urgent = is_new or event.urgent

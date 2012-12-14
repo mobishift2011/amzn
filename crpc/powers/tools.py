@@ -159,9 +159,9 @@ class ImageTool:
         self.__thumbnail_complete = True
 
     def resize(self, box, im):
-        thumbnail = im.resize(box)
+        thumbnail = im.resize(box, Image.ANTIALIAS)
         tempfile = StringIO()
-        thumbnail.save(tempfile, im.format)
+        thumbnail.save(tempfile, 'JPEG', quality=95)
         tempfile.seek(0)
         return tempfile
 
@@ -176,7 +176,7 @@ class ImageTool:
         rate = max(width_rate, height_rate)
 
         (im.size[0]*rate, im.size[1]*rate)
-        thumnail = im.resize( tuple( [int(i*rate) for i in im.size] ) )
+        thumnail = im.resize( tuple( [int(i*rate) for i in im.size] ), Image.ANTIALIAS )
         left = (thumnail.size[0] - width) / 2  if (thumnail.size[0] - width) > 0 else 0
         upper = (thumnail.size[1] - height) / 2 if (thumnail.size[1] - height) > 0 else 0
         right = left + width
@@ -185,7 +185,7 @@ class ImageTool:
         region = thumnail.crop(box)
 
         tempfile = StringIO()
-        region.save(tempfile, im.format)
+        region.save(tempfile, 'JPEG', quality=95)
         tempfile.seek(0)
         return tempfile
 

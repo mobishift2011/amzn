@@ -11,7 +11,6 @@ from backends.webui.events import log_event
 from backends.monitor.events import run_command
 from backends.webui.views import task_updates, task_all_tasks, mark_all_failed, get_all_fails
 from backends.webui.views import update_schedule, get_all_schedules, delete_schedule 
-from backends.webui.views import get_all_progresses
 
 @route('/assets/<filepath:path>')
 def server_static(filepath):
@@ -91,7 +90,7 @@ def get_task_fails(ctx):
 @route('/progress')
 # @login_required
 def progress_all():
-    return template('process.tpl', progresses=get_all_progresses())
+    return template('process.tpl')
 
 
 #mark_all_failed()

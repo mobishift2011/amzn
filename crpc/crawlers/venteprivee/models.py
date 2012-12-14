@@ -32,7 +32,7 @@ class Event(BaseEvent):
 
 class Product(LuxuryProduct):
     meta = {
-        'db_name': DB,
+        # 'db_name': DB,
         'db_alias': DB,
     }
     

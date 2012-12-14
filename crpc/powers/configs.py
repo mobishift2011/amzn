@@ -57,7 +57,7 @@ IMAGE_SIZE = {
 	'Product': (
 		{
 			'width': 300,
-			'height': 260,
+			'height': 400,
 			# 'fluid': True	# not fix, but the smaller size should fill the bound
 		},
 		{

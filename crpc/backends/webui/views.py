@@ -6,8 +6,6 @@ from backends.monitor.models import Task, Schedule, fail
 from bson.objectid import ObjectId
 from datetime import datetime, timedelta
 
-from powers.models import EventProgress, ProductProgress
-
 def mark_all_failed():
     Task.objects(status=Task.RUNNING) \
         .update(set__status=Task.FAILED, push__fails=fail(t.site, t.method, '', '', 'Monitor Restart'), inc__num_fails=1)
@@ -63,11 +61,3 @@ def get_all_fails(ctx):
     task = Task.objects.get(ctx=ctx)
     fails = task.fails[-10:]
     return {'fails': [fail.to_json() for fail in fails]}
-
-def get_all_progresses():
-    eps = EventProgress.objects() # TODO some filtering.
-    pps = ProductProgress.objects()
-    ep_list = [p.to_json() for p in eps]
-    pp_list = [p.to_json() for p in pps]
-    ep_list.extend(pp_list)
-    return ep_list

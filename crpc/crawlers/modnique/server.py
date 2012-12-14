@@ -121,11 +121,12 @@ class Server(object):
             common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=link, is_new=is_new, is_updated=is_updated)
             event_id_page.append(event_id)
 
-        for e in event_id_db:
-            if e.event_id not in event_id_page:
-                e.events_end = datetime.utcnow()
-                e.save()
-                common_saved.send(sender=ctx, obj_type='Event', key=e.event_id, url=e.combine_url, is_new=False, is_updated=True)
+        if len(event_id_page) > 1: # no download or parse error condition
+            for e in event_id_db:
+                if e.event_id not in event_id_page:
+                    e.events_end = datetime.utcnow()
+                    e.save()
+                    common_saved.send(sender=ctx, obj_type='Event', key=e.event_id, url=e.combine_url, is_new=False, is_updated=True)
 
 
     def crawl_dept(self, dept, url, ctx):

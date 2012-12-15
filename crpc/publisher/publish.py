@@ -310,7 +310,7 @@ class Publisher:
             if not ev.muri:
                 self.logger.error("event %s:%s has not been published before", site, evid)
             else:
-                return self.mapi.event.get(muri2mid(ev.muri))
+                return self.mapi.event(muri2mid(ev.muri)).get()
         except Exception as e:
             self.logger.error(e)
             
@@ -323,7 +323,7 @@ class Publisher:
             if not p.muri:
                 self.logger.error("product %s:%s has not been published before", site, prod_key)
             else:
-                return self.mapi.product.get(muri2mid(p.muri))
+                return self.mapi.product(muri2mid(p.muri)).get()
         except Exception as e:
             self.logger.error(e)
             
@@ -457,7 +457,7 @@ if __name__ == '__main__':
         if options.site and options.ev:
             pprint(p.mget_event(options.site, options.ev))
         elif options.site and options.prod:
-            pprint(p.mget_product(optins.site, options.prod))
+            pprint(p.mget_product(options.site, options.prod))
 
     else:
         parser.print_help()

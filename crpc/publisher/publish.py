@@ -304,13 +304,29 @@ class Publisher:
     def mget_event(self, site, evid):
         '''get event data back from mastiff service.
         '''
-        return self.mapi.event.get(site+"_"+evid)
-        
+        m = get_site_module(site)
+        try:
+            ev = m.Event.objects.get(event_id=evid)
+            if not ev.muri:
+                self.logger.error("event %s:%s has not been published before", site, evid)
+            else:
+                return self.mapi.event.get(muri2mid(ev.muri))
+        except Exception as e:
+            self.logger.error(e)
+            
     def mget_product(self, site, prod_key):
         '''get product data back from mastiff service.
         '''
-        return self.mapi.event.get(site+"_"+prod_key)
-        
+        m = get_site_module(site)
+        try:
+            p = m.Product.objects.get(key=prod_key)
+            if not p.muri:
+                self.logger.error("product %s:%s has not been published before", site, prod_key)
+            else:
+                return self.mapi.product.get(muri2mid(p.muri))
+        except Exception as e:
+            self.logger.error(e)
+            
     def get_ev_uris(self, prod):
         '''return a list of Mastiff URLs corresponding to the events associated with the product.
         '''

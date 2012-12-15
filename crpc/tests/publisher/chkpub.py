@@ -68,12 +68,15 @@ class PubChecker:
         total_noimage = m.Product.objects(image_complete=False).count()
         total_nodept = m.Product.objects(favbuy_dept=[]).count()
         total_nobrand = m.Product.objects(favbuy_brand__exists=False).count()
+        total_notag = m.Product.objects(favbuy_tag__exists=False).count()        
         print "total:", total
         print "no image:", total_noimage
         print "no department:", total_nodept
         print "no brand:", total_nobrand
+        print "no tag:", total_notag
         print
         
+        # analyze unpublished
         unpub = 0
         noimage = 0
         nodept = 0
@@ -90,12 +93,35 @@ class PubChecker:
             else:
                 unknown += 1
         print "unpublished:", unpub
-        print "image incomplete:", noimage
-        print "no department:", nodept
-        print "event not ready:", eventnotready
-        print "unknown:", unknown
-        
+        print "unpublished and image incomplete:", noimage
+        print "unpublished remaining and no department:", nodept
+        print "unpublished remaining and event not ready:", eventnotready
+        print "unpublished remaining and unknown:", unknown
+        print
 
+        # analyze published
+        pub = 0  # total publised
+        standalone = 0  # not assoc with any event
+        evpublished = 0  # assoc with events and one of events are published
+        evunpublished = 0 # all associated events are not published
+        for p in m.Product.objects(publish_time__exists=True):
+            pub += 1
+            if not p.event_id:
+                standalone += 1
+            else:
+                done = False
+                for evid in p.event_id:
+                    ev = m.Event.objects.get(event_id=evid)
+                    if ev.publish_time:
+                        evpublished += 1; done=True; break
+                if not done: 
+                    evunpublished += 1
+        print "published:", pub
+        print "published and standalone", standalone
+        print "published remaining and has a published event:", evpublished
+        print "published remaining and not of its events published:", evunpublished
+        print
+        
 if __name__ == '__main__':
     from optparse import OptionParser
     import sys, os

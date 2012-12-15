@@ -119,6 +119,7 @@ class Publisher:
             self.logger.debug("event %s:%s already published", obj_to_site(ev), ev.event_id)
         else:
             self.logger.debug("event %s:%s not ready for publish", obj_to_site(ev), ev.event_id)
+            return # we know event is not ready, therefore no need to continue to next step
 
         # it's a full publish, so we need to publish all contained yet unpublished products
         for prod in m.Product.objects(publish_time__exists=False, event_id=ev.event_id):

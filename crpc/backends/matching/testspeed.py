@@ -105,7 +105,7 @@ class Esm(object):
     def inquire(self):
         hit_list = []
         for k, v in self.dataset.iteritems():
-            for pos, hit_word in self.i1.query(v):
+            for pos, hit_word in self.i1.query(v.lower()):
                 hit_list.append(hit_word)
         return hit_list
 
@@ -120,7 +120,7 @@ class Esmre(object):
     def inquire(self):
         hit_list = []
         for k, v in self.dataset.iteritems():
-            for hit_word in self.i2.query(v):
+            for hit_word in self.i2.query(v.lower()):
                 hit_list.append(hit_word)
         return hit_list
 
@@ -136,8 +136,7 @@ class Ahocorasick(object):
     def inquire(self):
         hit_list = []
         for k, v in self.dataset.iteritems():
-            for start, end in self.__tree.findall(v):
-                print start, end, v
+            for start, end in self.__tree.findall(v.lower()):
                 hit_list.append(v[start:end])
         return hit_list
 
@@ -152,7 +151,7 @@ class Acora(object):
     def inquire(self):
         hit_list = []
         for k, v in self.dataset.iteritems():
-            for hit_word, pos in self.__tree.finditer(v):
+            for hit_word, pos in self.__tree.finditer(v.lower()):
                 hit_list.append(hit_word)
         return hit_list
 
@@ -178,21 +177,21 @@ if __name__ == '__main__':
     print 'ahocorasick init: %f' % ahocorasick_init
     print 'acora init: %f' % acora_init
 
-    esm_obj.inquire()
+    a1 = esm_obj.inquire()
     t5 = time.time()
-    esmre_obj.inquire()
+    a2 = esmre_obj.inquire()
     t6 = time.time()
-    # ahocorasick_obj.inquire()
+    a3 = ahocorasick_obj.inquire()
     t7 = time.time()
-    acora_obj.inquire()
+    a4 = acora_obj.inquire()
     t8 = time.time()
 
     esm_process = t5 - t4
     esmre_process = t6 - t5
     ahocorasick_process = t7 - t6
     acora_process = t8 - t7
-    print 'esm process: %f' % esm_process
-    print 'esmre process: %f' % esmre_process
-    print 'ahocorasick process: %f' % ahocorasick_process
-    print 'acora process: %f' % acora_process
+    print 'esm process: %f, hit: %d' % (esm_process, len(a1))
+    print 'esmre process: %f, hit: %d' % (esmre_process, len(a2))
+    print 'ahocorasick process: %f, hit: %d' % (ahocorasick_process, len(a3))
+    print 'acora process: %f, hit: %d' % (acora_process, len(a4))
 

@@ -342,7 +342,7 @@ class Server(object):
 #                print 'NO', self.siteurl + '/e/' + event_id + '.html', self.siteurl + '/p/' + slug + '.html'
 
 
-    def crawl_product(self, url, ctx):
+    def crawl_product(self, url, ctx=''):
         """.. :py:method::
             Got all the product information and save into the database
 

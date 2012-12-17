@@ -18,6 +18,8 @@ class Category(BaseCategory):
         pass
 
 class Product(LuxuryProduct):
+    bottle_count = IntField()
+
     meta = {
         'db_alias': DB,
     }

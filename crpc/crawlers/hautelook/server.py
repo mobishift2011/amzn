@@ -46,6 +46,15 @@ class Server(object):
     def __init__(self):
         self.siteurl = 'http://www.hautelook.com'
         self.event_url = 'http://www.hautelook.com/v3/events?upcoming_soon_days=7'
+        self.login_url = 'https://www.hautelook.com/login'
+        self.post_url = 'https://www.hautelook.com/v3/credential'
+        self.data = {
+            "email": login_email,
+            "password": login_passwd,
+            "meta": {
+                "screen_resolution": {"height":768, "width":1366}
+            }
+        }
 
     def convert_time(self, date_str):
         """.. :py:method::
@@ -78,14 +87,13 @@ class Server(object):
             event_id = info['event_id']
             event_code = info['event_code']
             sale_title = info['title']
-            sale_description = requests.get(info['info']).text
             dept = [i['name'] for i in info['event_types']]
 
             # new upcoming, new now, old upcoming, old now
             events_begin = self.convert_time( info['start_date'] )
             events_end = self.convert_time( info['end_date'] )
             _utcnow = datetime.utcnow()
-#            if events_end < _utcnow:
+            sale_description = requests.get(info['info']).text if events_begin < _utcnow else ''
 
             is_leaf = True
             children = info['meta']['nested']['children']
@@ -100,7 +108,6 @@ class Server(object):
                 is_new = True
                 event = Event(event_id=event_id)
                 event.sale_title = sale_title
-                event.sale_description = sale_description
                 event.dept = dept
                 event.tagline = info['category']
 
@@ -115,6 +122,8 @@ class Server(object):
                 if info['sort_order'] != event.sort_order:
                     event.sort_order = info['sort_order']
                     is_updated = True
+            if sale_description and not event.sale_description:
+                event.sale_description = sale_description
             event.events_begin = events_begin
             event.events_end = events_end
             event.update_time = _utcnow

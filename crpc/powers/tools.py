@@ -238,7 +238,8 @@ class Propagator(object):
             return self.event
 
         for product in products:
-            try:
+            if True:
+            #try:
                 print 'start to propogate from  %s product %s' % (self.site, product.key)
 
                 # Tag, Dept extraction and propagation
@@ -299,8 +300,8 @@ class Propagator(object):
                         soldout = False
 
                 product.save()
-            except Exception, e:
-                txtlogger.error('{0}.{1} product propagation exception'.format(self.site, product.key))
+            #except Exception, e:
+            #    txtlogger.error('{0}.{1} product propagation exception'.format(self.site, product.key))
 
         self.event.favbuy_brand = list(event_brands)
         self.event.brand_complete = True
@@ -341,7 +342,7 @@ def test_image():
     print 'image path ---> {0}'.format(it.image_path)
     print 'complete ---> {0}\n'.format(it.image_complete)
 
-def test_propagate(site='venteprivee'):
+def test_propagate(site='venteprivee', event_id=None):
     import time
     from datetime import datetime
     from mongoengine import Q
@@ -352,14 +353,18 @@ def test_propagate(site='venteprivee'):
     classifier.load_from_database()
     
     m = __import__('crawlers.{0}.models'.format(site), fromlist=['Event'])
-    now = datetime.utcnow()
-    events = m.Event.objects(Q(propagation_complete = False) & (Q(events_begin__lte=now) | Q(events_begin__exists=False)) & (Q(events_end__gt=now) | Q(events_end__exists=False)) )
-    print len(events)
-
     start = time.time()
-    for event in events:
-        p = Propagator(site, event.event_id, extractor, classifier)
+
+    if event_id:
+        p = Propagator(site, event_id, extractor, classifier)
         p.propagate()
+    else:
+        now = datetime.utcnow()
+        events = m.Event.objects(Q(propagation_complete = False) & (Q(events_begin__lte=now) | Q(events_begin__exists=False)) & (Q(events_end__gt=now) | Q(events_end__exists=False)) )
+        print len(events)
+        for event in events:
+            p = Propagator(site, event.event_id, extractor, classifier)
+            p.propagate()
 
     print 'cost ', time.time() - start, ' s'
 
@@ -370,9 +375,9 @@ if __name__ == '__main__':
     start = time.time()
     if len(sys.argv) > 1:
         if sys.argv[1] == '-i':
-            f = test_image
-            f()
+            test_image()
         elif sys.argv[1] == '-p':
             f = test_propagate
-            f(sys.argv[2])
+            event_id = sys.argv[3] if len(sys.argv)>3 else None
+            f(sys.argv[2], event_id)
     print time.time() - start, 's'

@@ -201,7 +201,7 @@ def parse_price(price):
 
 class Propagator(object):
     def __init__(self, site, event_id, extractor, classifier, module=None):
-        print 'init propogate %s event %s' % (site, event_id)
+        print '\ninit propogate %s event %s' % (site, event_id)
 
         self.site = site
         self.extractor = extractor
@@ -354,11 +354,11 @@ def test_propagate(site='venteprivee', event_id=None):
     classifier = SklearnClassifier()
     classifier.load_from_database()
     
-    m = __import__('crawlers.{0}.models'.format(site), fromlist=['Event'])
+    m = __import__('crawlers.{0}.models'.format(site), fromlist=['Event', 'Product'])
     start = time.time()
 
     if event_id:
-        p = Propagator(site, event_id, extractor, classifier)
+        p = Propagator(site, event_id, extractor, classifier, module=m)
         p.propagate()
     else:
         now = datetime.utcnow()
@@ -367,7 +367,7 @@ def test_propagate(site='venteprivee', event_id=None):
         counter = len(events)
         for event in events:
             print counter, ' left.'
-            p = Propagator(site, event.event_id, extractor, classifier)
+            p = Propagator(site, event.event_id, extractor, classifier, module=m)
             p.propagate()
 
             counter -= 1

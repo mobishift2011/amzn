@@ -66,7 +66,7 @@ class TextServer(object):
     def propagate(self, args=(), kwargs={}):
         site = kwargs.get('site')
         event_id = kwargs.get('event_id')
-        p = Propagator(site, event_id, self.__extractor, self.__classifier)
+        p = Propagator(site, event_id, self.__extractor, self.__classifier, module=self.__m[site])
         if p.propagate():
             logger.info('{0}.{1} propagation OK'.format(site, event_id))
             # TODO send scuccess signal

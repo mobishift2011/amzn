@@ -200,13 +200,16 @@ def parse_price(price):
     return float(amount)
 
 class Propagator(object):
-    def __init__(self, site, event_id, extractor, classifier):
+    def __init__(self, site, event_id, extractor, classifier, module=None):
         print 'init propogate %s event %s' % (site, event_id)
-        m = __import__('crawlers.{0}.models'.format(site), fromlist=['Event'])
+
         self.site = site
-        self.event = m.Event.objects(event_id=event_id).first()
         self.extractor = extractor
         self.classifier = classifier
+
+        self.__module = module if module else \
+                        __import__('crawlers.{0}.models'.format(site), fromlist=['Event', 'Product'])
+        self.event = self.__module.Event.objects(event_id=event_id).first()
 
     def propagate(self):
         """
@@ -230,16 +233,15 @@ class Propagator(object):
         events_end = self.event.events_end or None #if hasattr(self.event, 'events_end') else ''
         soldout = True
 
-        m = __import__('crawlers.{0}.models'.format(self.site), fromlist=['Product'])
-        products = m.Product.objects(event_id=self.event.event_id)
+        products = self.__module.Product.objects(event_id=self.event.event_id)
         print 'start to propogate %s event %s' % (self.site, self.event.event_id)
 
         if not len(products):
             return self.event
 
         for product in products:
-            if True:
-            #try:
+            #if True:
+            try:
                 print 'start to propogate from  %s product %s' % (self.site, product.key)
 
                 # Tag, Dept extraction and propagation
@@ -300,8 +302,8 @@ class Propagator(object):
                         soldout = False
 
                 product.save()
-            #except Exception, e:
-            #    txtlogger.error('{0}.{1} product propagation exception'.format(self.site, product.key))
+            except Exception, e:
+                txtlogger.error('{0}.{1} product propagation exception'.format(self.site, product.key))
 
         self.event.favbuy_brand = list(event_brands)
         self.event.brand_complete = True

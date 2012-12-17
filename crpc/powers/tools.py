@@ -360,7 +360,8 @@ def test_propagate(site='venteprivee', event_id=None):
         p.propagate()
     else:
         now = datetime.utcnow()
-        events = m.Event.objects(Q(propagation_complete = False) & (Q(events_begin__lte=now) | Q(events_begin__exists=False)) & (Q(events_end__gt=now) | Q(events_end__exists=False)) )
+        # Q(propagation_complete = False) & 
+        events = m.Event.objects((Q(events_begin__lte=now) | Q(events_begin__exists=False)) & (Q(events_end__gt=now) | Q(events_end__exists=False)) )
         print len(events)
         for event in events:
             p = Propagator(site, event.event_id, extractor, classifier)

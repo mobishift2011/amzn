@@ -201,12 +201,12 @@ def parse_price(price):
 
 class Propagator(object):
     def __init__(self, site, event_id, extractor, classifier, module=None):
-        print '\ninit propogate %s event %s' % (site, event_id)
+        print 'init propogate %s event %s' % (site, event_id)
 
         self.site = site
         self.extractor = extractor
         self.classifier = classifier
-
+        
         self.__module = module if module else \
                         __import__('crawlers.{0}.models'.format(site), fromlist=['Event', 'Product'])
         self.event = self.__module.Event.objects(event_id=event_id).first()
@@ -236,9 +236,7 @@ class Propagator(object):
         products = self.__module.Product.objects(event_id=self.event.event_id)
         print 'start to propogate %s event %s' % (self.site, self.event.event_id)
 
-        if not len(products):
-            return self.event
-
+        counter = 0
         for product in products:
             if True:
             #try:
@@ -302,8 +300,12 @@ class Propagator(object):
                         soldout = False
 
                 product.save()
+                counter += 1
             #except Exception, e:
             #    txtlogger.error('{0}.{1} product propagation exception'.format(self.site, product.key))
+
+        if counter == 0:
+            return self.event
 
         self.event.favbuy_brand = list(event_brands)
         self.event.brand_complete = True
@@ -365,7 +367,7 @@ def test_propagate(site='venteprivee', event_id=None):
         events = m.Event.objects(Q(propagation_complete = False) & (Q(events_begin__lte=now) | Q(events_begin__exists=False)) & (Q(events_end__gt=now) | Q(events_end__exists=False)) )
         counter = len(events)
         for event in events:
-            print counter, ' left.'
+            print '\n', counter, ' left.'
             p = Propagator(site, event.event_id, extractor, classifier, module=m)
             p.propagate()
 

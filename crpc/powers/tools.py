@@ -193,7 +193,7 @@ class ImageTool:
 
 def parse_price(price):
     amount = 0
-    pattern = re.compile(r'^\$?(\d+(,\d{3})*(\.\d+)?)$')
+    pattern = re.compile(r'^\$?(\d+(,\d{3})*(\.\d+)?)')
     match = pattern.search(price)
     if match:
         amount = (match.groups()[0]).replace(',', '')
@@ -362,8 +362,7 @@ def test_propagate(site='venteprivee', event_id=None):
         p.propagate()
     else:
         now = datetime.utcnow()
-        # Q(propagation_complete = False) & 
-        events = m.Event.objects((Q(events_begin__lte=now) | Q(events_begin__exists=False)) & (Q(events_end__gt=now) | Q(events_end__exists=False)) )
+        events = m.Event.objects(Q(propagation_complete = False) & (Q(events_begin__lte=now) | Q(events_begin__exists=False)) & (Q(events_end__gt=now) | Q(events_end__exists=False)) )
         counter = len(events)
         for event in events:
             print counter, ' left.'

@@ -139,7 +139,7 @@ class Server(object):
             if 'day' in period:
                 products_end = _utcnow + timedelta(days=int(num))
             elif 'hour' in period:
-                products_end = _utcnow + timedelta(hours=int(num))
+                products_end = _utcnow + timedelta(hours=int(num)+1)
             elif 'minute' in period:
                 products_end = _utcnow + timedelta(minutes=int(num))
             else:

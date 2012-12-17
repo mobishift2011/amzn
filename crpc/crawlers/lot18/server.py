@@ -57,6 +57,9 @@ class lot18Login(object):
         return ret.status_code
 
     def post_to_get(self, url, data):
+        """.. :py:method::
+            post to get listing information
+        """
         ret = request.post(url, data=data)
         return ret.content
 
@@ -107,8 +110,9 @@ class Server(object):
             product = Product(key=prd['id'])
             product.combine_url = 'http://www.lot18.com/product/{0}'.format(prd['id'])
             product.updated = False
+            product.event_type = False
             product.title = prd['title']
-            product.image_urls = ['http:' + prd['images']['large'], 'http:' + prd['images']['xlarge']]
+            # product.image_urls = ['http:' + prd['images']['large'], 'http:' + prd['images']['xlarge']]
             if prd['bottle_count'] == 0:
                 product.listprice = prd['prices']['msrp']
             else:
@@ -148,4 +152,37 @@ class Server(object):
     def crawl_product(self, url, ctx=''):
         """.. :py:method::
         """
-        pass
+        content = self.net.fetch_page(url)
+        if content is None or isinstance(content, int):
+            common_failed.send(sender=ctx, key=url.rsplit('/', 1)[-1], url=url,
+                    reason='download product page failed: {0}'.format(content))
+        tree = lxml.html.fromstring(content)
+        nav = tree.cssselect('div#page > div.container-content')[0]
+        tagline = nav.cssselect('div.container-product-detail-outer > div.container-product-info > div.product-attributes')[0].text_content().strip().split(u' • ')
+        shipping = nav.cssselect('div.container-product-review > span.product-review-additional > p.states')[0].text_content()
+        summary = nav.cssselect('div.container-product-review > span.product-review-main > p:first-of-type')[0].text_content().strip()
+        image_urls = []
+        imgs = nav.cssselect('div.container-product-review > span.product-review-additional > div.product-detail-thumb > img')
+        for img in imgs:
+            image_urls.append( 'http:' + img.get('src') )
+
+        is_new, is_updated = False, False
+        product = Product.objects(key=url.rsplit('/', 1)[-1]).first()
+        if not product:
+            is_new = True
+            product = Product(key=url.rsplit('/', 1)[-1])
+        product.tagline = tagline
+        product.shipping = shipping
+        product.summary = summary
+        product.image_urls = image_urls
+        product.full_update_time = datetime.utcnow()
+        if product.updated == False:
+            product.updated = True
+            ready = True
+        else: ready = False
+        product.save()
+        common_saved.send(sender=ctx, obj_type='Product', key=url.rsplit('/', 1)[-1], url=url, is_new=is_new, is_updated=is_updated, ready=ready)
+
+
+if __name__ == '__main__':
+    pass

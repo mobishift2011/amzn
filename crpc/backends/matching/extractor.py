@@ -40,6 +40,14 @@ class Extractor(object):
                         ret.append( r[1] )
         return ret
 
+    def extract(self, s):
+        s = s.lower()
+        ret = []
+        for pos, hit in self.i.query(s):
+            if hit not in ret:
+                ret.append(hit)
+        return ret
+
 def get_site_module(site):
     return __import__('crawlers.'+site+'.models', fromlist=['Category', 'Event', 'Product'])
 

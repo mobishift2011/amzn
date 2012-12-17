@@ -194,7 +194,7 @@ class Server(object):
             common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=pair[1], is_new=is_new, is_updated=False)
             
 
-    def crawl_listing(self, url, ctx):
+    def crawl_listing(self, url, ctx=''):
         """.. :py:method::
             from url get listing page.
             from listing page get Eventi's description, endtime, number of products.
@@ -210,7 +210,7 @@ class Server(object):
         debug_info.send(sender=DB + '.crawl_list.begin')
         cont = self.net.fetch_page(url)
         tree = lxml.html.fromstring(cont)
-        node = tree.cssselect('div.container>div#main>div#category-view')[0]
+        node = tree.cssselect('div.container > div#main > div#category-view')[0]
         event_id = self.extract_event_id.match(url).group(2)
         brand, is_new = Event.objects.get_or_create(event_id=event_id)
         if not brand.sale_description:
@@ -406,6 +406,7 @@ if __name__ == '__main__':
     from optparse import OptionParser
 
     parser = OptionParser(usage='usage: %program [options]')
+    parser.add_option('-l', '--listing', dest='listing', help='test of list page', default=False)
     parser.add_option('-p', '--product', dest='product', help='test of product page', default=False)
     parser.add_option('-d', '--daemon', dest='daemon', help='run as a rpc server daemon', default=False)
 
@@ -418,6 +419,8 @@ if __name__ == '__main__':
         server = zerorpc.Server(Server(), heartbeat=None)
         server.bind("tcp://0.0.0.0:{0}".format(options.daemon))
         server.run()
+    elif options.listing:
+        Server().crawl_listing(options.listing)
     elif options.product:
         Server().crawl_product(options.product)
     else:

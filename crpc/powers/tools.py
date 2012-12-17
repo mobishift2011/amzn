@@ -229,8 +229,8 @@ class Propagator(object):
         highest_price = 0
         lowest_discount = 0
         highest_discount = 0
-        events_begin = self.event.events_begin or None# if hasattr(self.event, 'events_begin') else ''
-        events_end = self.event.events_end or None #if hasattr(self.event, 'events_end') else ''
+        events_begin = self.event.events_begin or None
+        events_end = self.event.events_end or None
         soldout = True
 
         products = self.__module.Product.objects(event_id=self.event.event_id)
@@ -316,8 +316,8 @@ class Propagator(object):
         self.event.highest_price = str(highest_price)
         self.event.lowest_discount = str(1.0 - lowest_discount)
         self.event.highest_discount = str(1.0 - highest_discount)
-        self.event.events_begin = events_begin
-        self.event.events_end = events_end
+        self.event.events_begin = self.event.events_begin or events_begin
+        self.event.events_end = self.event.events_end or events_end
         self.event.soldout = soldout
         self.event.propagation_complete = True
         self.event.save()

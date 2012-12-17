@@ -19,6 +19,7 @@ class Category(BaseCategory):
 
 class Product(LuxuryProduct):
     bottle_count = IntField()
+    page_num = IntField()
 
     meta = {
         'db_alias': DB,

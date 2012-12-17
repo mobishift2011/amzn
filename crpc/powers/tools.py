@@ -240,8 +240,8 @@ class Propagator(object):
             return self.event
 
         for product in products:
-            #if True:
-            try:
+            if True:
+            #try:
                 print 'start to propogate from  %s product %s' % (self.site, product.key)
 
                 # Tag, Dept extraction and propagation
@@ -302,8 +302,8 @@ class Propagator(object):
                         soldout = False
 
                 product.save()
-            except Exception, e:
-                txtlogger.error('{0}.{1} product propagation exception'.format(self.site, product.key))
+            #except Exception, e:
+            #    txtlogger.error('{0}.{1} product propagation exception'.format(self.site, product.key))
 
         self.event.favbuy_brand = list(event_brands)
         self.event.brand_complete = True

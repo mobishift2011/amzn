@@ -362,10 +362,13 @@ def test_propagate(site='venteprivee', event_id=None):
         now = datetime.utcnow()
         # Q(propagation_complete = False) & 
         events = m.Event.objects((Q(events_begin__lte=now) | Q(events_begin__exists=False)) & (Q(events_end__gt=now) | Q(events_end__exists=False)) )
-        print len(events)
+        counter = len(events)
         for event in events:
+            print counter, ' left.'
             p = Propagator(site, event.event_id, extractor, classifier)
             p.propagate()
+
+            counter -= 1
 
     print 'cost ', time.time() - start, ' s'
 

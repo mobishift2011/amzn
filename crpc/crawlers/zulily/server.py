@@ -88,8 +88,8 @@ class Server(object):
         self.extract_product_img = re.compile(r'(http://mcdn.zulily.com/images/cache/product/)\d+x\d+/(.+)')
         self.extract_product_re = re.compile(r'http://www.zulily.com/p/(.+).html.*')
 
-        self.returned_re = re.compile(r'<strong>Return Policy:</strong>(.*)<a')
-        self.shipping_re = re.compile(r'<strong>Shipping:</strong>(.*)<a')
+        self.returned_re = re.compile(r'<strong>Return Policy:</strong>(.*)<')
+        self.shipping_re = re.compile(r'<strong>Shipping:</strong>(.*)<')
 
     def crawl_category(self, ctx):
         """.. :py:method::
@@ -403,6 +403,22 @@ class Server(object):
 
 
 if __name__ == '__main__':
-    server = zerorpc.Server(Server())
-    server.bind("tcp://0.0.0.0:{0}".format(CRAWLER_PORT))
-    server.run()
+    from optparse import OptionParser
+
+    parser = OptionParser(usage='usage: %program [options]')
+    parser.add_option('-p', '--product', dest='product', help='test of product page', default=False)
+    parser.add_option('-d', '--daemon', dest='daemon', help='run as a rpc server daemon', default=False)
+
+    if len(sys.argv) == 1:
+        parser.print_help()
+        exit()
+
+    options, args = parser.parse_args(sys.argv[1:])
+    if options.daemon:
+        server = zerorpc.Server(Server(), heartbeat=None)
+        server.bind("tcp://0.0.0.0:{0}".format(options.daemon))
+        server.run()
+    elif options.product:
+        Server().crawl_product(options.product)
+    else:
+        parser.print_help()

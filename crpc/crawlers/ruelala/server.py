@@ -457,7 +457,7 @@ class Server(object):
             list_info.append(li.text_content())
         returned = []
         for p in node.cssselect('section#shipping'):
-            returned.append(p.text_content())
+            returned.append(p.text_content().strip())
         
         # section 2 productAttributes
         
@@ -471,13 +471,14 @@ class Server(object):
         limit = attribute_node.cssselect('div#cartLimit')
         limit = limit[0].text_content() if limit else ''
         ship_rule = attribute_node.cssselect('div#returnsLink ')
-        ship_rule = ship_rule[0].text_content() if ship_rule else ''
+        ship_rule = ship_rule[0].text_content().strip() if ship_rule else ''
 
         colors, image_urls = [], []
         color = attribute_node.cssselect('section#productSelectors ul#colorSwatches > li > a')
         if color:
             for c in color:
-                colors.append( c.get('src').rsplit('_', 1)[-1].split('.')[0] )
+                if c.get('src'): # don't have src, duplicate
+                    colors.append( c.get('src').rsplit('_', 1)[-1].split('.')[0] )
             for c in colors:
                 image_urls.append('http://www.ruelala.com/images/product/{0}/{1}_RLLZ_{2}.jpg'.format(product_id[:6], product_id, c))
 
@@ -515,4 +516,4 @@ class Server(object):
 
 if __name__ == '__main__':
     server = Server()
-    server.crawl_product('http://www.ruelala.com/event/product/59042/6020822693/1/DEFAULT')
+    server.crawl_product('http://www.ruelala.com/event/product/63415/1411876124/1/DEFAULT')

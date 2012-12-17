@@ -18,9 +18,12 @@ class Category(BaseCategory):
         pass
 
 class Product(LuxuryProduct):
+    bottle_count = IntField()
+    page_num = IntField()
+
     meta = {
         'db_alias': DB,
     }
 
     def url(self):
-        pass
+        return 'http://www.lot18.com/product/{0}'.format(self.key)

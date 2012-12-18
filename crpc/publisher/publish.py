@@ -232,9 +232,11 @@ class Publisher:
                 ev_data = {}
                 for f in fields:
                     if f=="favbuy_dept":
-                        ev_data['department'] = ev.favbuy_dept[0] if ev.favbuy_dept and len(ev.favbuy_dept)>0 else 'women'
-                    if f=="favbuy_brand":
-                        ev_data['brand'] = ev.favbuy_brand
+                        ev_data['departments'] = ev.favbuy_dept
+                    elif f=="favbuy_brand":
+                        ev_data['brands'] = ev.favbuy_brand
+                    elif f=="favbuy_tag":
+                        ev_data["tags"] = ev.favbuy_tag
             else:
                 ev_data = { 
                     "site_key": obj_to_site(ev)+'_'+ev.event_id,
@@ -244,8 +246,9 @@ class Publisher:
                     "starts_at": obj_getattr(ev, 'events_begin', datetime.utcnow()).isoformat(),
                     "cover_image": ev['image_path'][0] if ev['image_path'] else '',
                     "soldout": soldout,
-                    "brand": ev.favbuy_brand,
-                    "department": ev.favbuy_dept[0] if ev.favbuy_dept and len(ev.favbuy_dept)>0 else 'women' }
+                    "tags": ev.favbuy_tag,
+                    "brands": ev.favbuy_brand,
+                    "departments": ev.favbuy_dept }
             self.logger.debug("publish event data: %s", ev_data)
             if upd:
                 self.mapi.event(muri2mid(ev.muri)).patch(ev_data)
@@ -285,6 +288,7 @@ class Publisher:
                     #"sizes": obj_getattr(prod, 'sizes', []),
                     "colors": [prod['color']] if 'color' in prod and prod['color'] else [],
                     "title": prod.title,
+                    "info": prod.summary,
                     "details": obj_getattr(prod, 'list_info', []),
                     "cover_image": prod.image_path[0] if prod.image_path else '',
                     "images": obj_getattr(prod, 'image_path', []),
@@ -293,7 +297,7 @@ class Publisher:
                     "department_path": obj_getattr(prod, 'favbuy_dept', []),
                     "return_policy": obj_getattr(prod, 'returned', ''),
                     "shipping_policy": obj_getattr(prod, 'shipping', '')
-                    }
+                }
             self.logger.debug("publish product data: %s", pdata)
             if upd:
                 self.mapi.product(muri2mid(prod.muri)).patch(pdata)

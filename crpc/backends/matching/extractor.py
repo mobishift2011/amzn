@@ -40,6 +40,7 @@ class Extractor(object):
                         ret.append( r[1] )
         return ret
 
+
 def get_site_module(site):
     return __import__('crawlers.'+site+'.models', fromlist=['Category', 'Event', 'Product'])
 

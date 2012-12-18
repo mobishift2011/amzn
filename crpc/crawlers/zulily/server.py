@@ -88,8 +88,8 @@ class Server(object):
         self.extract_product_img = re.compile(r'(http://mcdn.zulily.com/images/cache/product/)\d+x\d+/(.+)')
         self.extract_product_re = re.compile(r'http://www.zulily.com/p/(.+).html.*')
 
-        self.returned_re = re.compile(r'<strong>Return Policy:</strong>(.*)<a')
-        self.shipping_re = re.compile(r'<strong>Shipping:</strong>(.*)<a')
+        self.returned_re = re.compile(r'<strong>Return Policy:</strong>(.*)<')
+        self.shipping_re = re.compile(r'<strong>Shipping:</strong>(.*)<')
 
     def crawl_category(self, ctx):
         """.. :py:method::
@@ -160,7 +160,7 @@ class Server(object):
     def upcoming_detail(self, upcoming_list, ctx):
         """.. :py:method::
             zulily will on sale the events in advance, maybe 10~30 minutes,
-            so events_begin - timedelta(minutes=10) as the events_begin time
+            so events_begin - timedelta(minutes=5) as the events_begin time
         """
         for pair in upcoming_list:
             cont = self.net.fetch_page(pair[1])
@@ -188,13 +188,13 @@ class Server(object):
                 brand.sale_description = sale_description
             if image and image not in brand.image_urls: brand.image_urls.append(image)
             start_time = node.cssselect('div.upcoming-date-reminder span.reminder-text')[0].text_content() # 'Starts Sat 10/27 6am pt - SET REMINDER'
-            brand.events_begin = time_convert( ' '.join( start_time.split(' ', 4)[1:-1] ), '%a %m/%d %I%p%Y' ) - timedelta(minutes=10) #'Sat 10/27 6am'
+            brand.events_begin = time_convert( ' '.join( start_time.split(' ', 4)[1:-1] ), '%a %m/%d %I%p%Y' ) - timedelta(minutes=5) #'Sat 10/27 6am'
             brand.update_time = datetime.utcnow()
             brand.save()
             common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=pair[1], is_new=is_new, is_updated=False)
             
 
-    def crawl_listing(self, url, ctx):
+    def crawl_listing(self, url, ctx=''):
         """.. :py:method::
             from url get listing page.
             from listing page get Eventi's description, endtime, number of products.
@@ -210,7 +210,7 @@ class Server(object):
         debug_info.send(sender=DB + '.crawl_list.begin')
         cont = self.net.fetch_page(url)
         tree = lxml.html.fromstring(cont)
-        node = tree.cssselect('div.container>div#main>div#category-view')[0]
+        node = tree.cssselect('div.container > div#main > div#category-view')[0]
         event_id = self.extract_event_id.match(url).group(2)
         brand, is_new = Event.objects.get_or_create(event_id=event_id)
         if not brand.sale_description:
@@ -403,6 +403,25 @@ class Server(object):
 
 
 if __name__ == '__main__':
-    server = zerorpc.Server(Server())
-    server.bind("tcp://0.0.0.0:{0}".format(CRAWLER_PORT))
-    server.run()
+    from optparse import OptionParser
+
+    parser = OptionParser(usage='usage: %program [options]')
+    parser.add_option('-l', '--listing', dest='listing', help='test of list page', default=False)
+    parser.add_option('-p', '--product', dest='product', help='test of product page', default=False)
+    parser.add_option('-d', '--daemon', dest='daemon', help='run as a rpc server daemon', default=False)
+
+    if len(sys.argv) == 1:
+        parser.print_help()
+        exit()
+
+    options, args = parser.parse_args(sys.argv[1:])
+    if options.daemon:
+        server = zerorpc.Server(Server(), heartbeat=None)
+        server.bind("tcp://0.0.0.0:{0}".format(options.daemon))
+        server.run()
+    elif options.listing:
+        Server().crawl_listing(options.listing)
+    elif options.product:
+        Server().crawl_product(options.product)
+    else:
+        parser.print_help()

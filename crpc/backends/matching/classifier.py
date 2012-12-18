@@ -223,11 +223,10 @@ def main():
     clf = SklearnClassifier()
     #clf.load_files()
     clf.load_from_database()
-    pprint(clf.classify('''PlanToys Dollhouse Children's Room Déco
-Recycled materials in bright primary colors; includes a desk with lamp and bench, a toy box, bed with duvet and a curved bookcase
-Material type: Rubberwood
-Recommended age: 36 months and older
-Country of origin: Thailand'''))
+    pprint(clf.classify('''Material: 67% Polyester 28% Rayon 5% Spandex, Lining: 100% PolyesterApprox. measurements (size 4): sleeve length 24", shoulder to hem 38"Care: Dry cleanOrigin: Imported Fit: This brand runs true to size. To ensure the best fit, we suggest consulting the size chart.
+Double-Breasted Long Belted Car Coat
+Long car coat; Collarless neck; Topstitch detail; Long sleeves with button cuffs; Epaulet button tabs on shoulders; Double-breasted button front closure; Optional studded belt with chain tassel detail; Button-close front patch pockets; Vented slit at back hem; Fully lined
+'''))
 
 if __name__ == '__main__':
     main()

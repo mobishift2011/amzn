@@ -66,7 +66,7 @@ class PubChecker:
         m = get_site_module(site)
         total = m.Product.objects.count()
         total_noimage = m.Product.objects(image_complete=False).count()
-        total_nodept = m.Product.objects(favbuy_dept=[]).count()
+        total_nodept = m.Product.objects(dept_complete=False).count()
         total_nobrand = m.Product.objects(favbuy_brand__exists=False).count()
         total_notag = m.Product.objects(favbuy_tag__exists=False).count()        
         print "total:", total

@@ -409,7 +409,7 @@ class Server(object):
         summary, list_info = '; '.join(list_info), []
         for li in nav.xpath('./div/ul[@style]/li'):
             list_info.append( li.text_content().strip() )
-        shipping = nav.xpath('.//div[@style="text-align: left;"]/div/a[@id="ship_map"]/parent::div[@style]')
+        shipping = nav.xpath('.//div[@style]/div/a[@id="ship_map"]/parent::div[@style]')
         if shipping:
             shipping = shipping[0].text_content() 
         else:

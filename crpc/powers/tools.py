@@ -194,20 +194,23 @@ class ImageTool:
 
 def parse_price(price):
     amount = 0
-    pattern = re.compile(r'^\$?(\d+(,\d{3})*(\.\d+)?)$')
+    pattern = re.compile(r'^\$?(\d+(,\d{3})*(\.\d+)?)')
     match = pattern.search(price)
     if match:
         amount = (match.groups()[0]).replace(',', '')
     return float(amount)
 
 class Propagator(object):
-    def __init__(self, site, event_id, extractor, classifier):
+    def __init__(self, site, event_id, extractor, classifier, module=None):
         print 'init propogate %s event %s' % (site, event_id)
-        m = __import__('crawlers.{0}.models'.format(site), fromlist=['Event'])
+
         self.site = site
-        self.event = m.Event.objects(event_id=event_id).first()
         self.extractor = extractor
         self.classifier = classifier
+        
+        self.__module = module if module else \
+                        __import__('crawlers.{0}.models'.format(site), fromlist=['Event', 'Product'])
+        self.event = self.__module.Event.objects(event_id=event_id).first()
 
     def propagate(self):
         """
@@ -227,12 +230,11 @@ class Propagator(object):
         highest_price = 0
         lowest_discount = 0
         highest_discount = 0
-        events_begin = self.event.events_begin or None# if hasattr(self.event, 'events_begin') else ''
-        events_end = self.event.events_end or None #if hasattr(self.event, 'events_end') else ''
+        events_begin = self.event.events_begin or None
+        events_end = self.event.events_end or None
         soldout = True
 
-        m = __import__('crawlers.{0}.models'.format(self.site), fromlist=['Product'])
-        products = m.Product.objects(event_id=self.event.event_id)
+        products = self.__module.Product.objects(event_id=self.event.event_id)
         print 'start to propogate %s event %s' % (self.site, self.event.event_id)
 
         counter = 0
@@ -306,8 +308,8 @@ class Propagator(object):
         self.event.highest_price = str(highest_price)
         self.event.lowest_discount = str(1.0 - lowest_discount)
         self.event.highest_discount = str(1.0 - highest_discount)
-        self.event.events_begin = events_begin
-        self.event.events_end = events_end
+        self.event.events_begin = self.event.events_begin or events_begin
+        self.event.events_end = self.event.events_end or events_end
         self.event.soldout = soldout
         self.event.propagation_complete = True
         self.event.propagation_time = datetime.utcnow()
@@ -344,19 +346,22 @@ def test_propagate(site='venteprivee', event_id=None):
     classifier = SklearnClassifier()
     classifier.load_from_database()
     
-    m = __import__('crawlers.{0}.models'.format(site), fromlist=['Event'])
+    m = __import__('crawlers.{0}.models'.format(site), fromlist=['Event', 'Product'])
     start = time.time()
 
     if event_id:
-        p = Propagator(site, event_id, extractor, classifier)
+        p = Propagator(site, event_id, extractor, classifier, module=m)
         p.propagate()
     else:
         now = datetime.utcnow()
         events = m.Event.objects(Q(propagation_complete = False) & (Q(events_begin__lte=now) | Q(events_begin__exists=False)) & (Q(events_end__gt=now) | Q(events_end__exists=False)) )
-        print len(events)
+        counter = len(events)
         for event in events:
-            p = Propagator(site, event.event_id, extractor, classifier)
+            print '\n', counter, ' left.'
+            p = Propagator(site, event.event_id, extractor, classifier, module=m)
             p.propagate()
+
+            counter -= 1
 
     print 'cost ', time.time() - start, ' s'
 

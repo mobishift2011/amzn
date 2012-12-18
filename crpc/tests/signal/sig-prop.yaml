@@ -1,0 +1,9 @@
+
+signal: propagation
+sender: gilt
+kwargs:
+    obj_type: Event
+    url: http://www.gilt.com/home/sale/home-4866
+    is_new: False
+    key: home-4866
+    ready: False

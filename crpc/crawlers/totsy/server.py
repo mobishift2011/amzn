@@ -3,6 +3,7 @@
 # Author: bishop Liu <miracle (at) gmail.com>
 
 import lxml.html
+from datetime import datetime, timedelta
 
 from crawlers.common.stash import *
 from crawlers.common.events import common_saved, common_failed
@@ -59,6 +60,8 @@ class Server(object):
         self.eventurl = 'http://www.totsy.com/event'
         self.net = totsyLogin()
         self.extract_event_id = re.compile('http://www.totsy.com/sales/(.+).html')
+        self.extract_events_end = re.compile("getTimerHtml\(.+('|\")(.+)('|\")\);")
+
 
     def crawl_category(self, ctx=''):
         content = self.net.fetch_page(self.eventurl)
@@ -81,6 +84,8 @@ class Server(object):
                     for d in n.getnext().text_content().split('\n'):
                         if d.strip(): ages.append(d.strip())
             text = node.cssselect('a.thumbnail > script')[0].text_content()
+            ends = self.extract_events_end.search(text).group(2) # 'December 23, 2012, 8:00:00' the timezone when you regist
+            utc_events_end = datetime.strptime(ends, '%B %d, %Y, %X') - timedelta(hours=8) # -8 hours, set beijing to utc
 
             is_new, is_updated = False, False
             event = Event.objects(event_id=event_id).first()
@@ -92,12 +97,14 @@ class Server(object):
                 event.sale_title = sale_title
             [event.dept.append(d) for d in dept if d not in event.dept]
             [event.ages.append(d) for d in ages if d not in event.ages]
+            event.events_end = utc_events_end
             event.update_time = datetime.utcnow()
             event.save()
             common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=link, is_new=is_new, is_updated=is_updated)
 
-
         upcoming_nodes = tree.cssselect('div#stickywrap section#events-upcoming > ul.thumbnails > li.catalog-event')
+        for upnode in upcoming_nodes:
+            pass
 
     def crawl_listing(self, url, ctx=''):
         pass

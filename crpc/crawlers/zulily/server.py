@@ -160,7 +160,7 @@ class Server(object):
     def upcoming_detail(self, upcoming_list, ctx):
         """.. :py:method::
             zulily will on sale the events in advance, maybe 10~30 minutes,
-            so events_begin - timedelta(minutes=10) as the events_begin time
+            so events_begin - timedelta(minutes=5) as the events_begin time
         """
         for pair in upcoming_list:
             cont = self.net.fetch_page(pair[1])
@@ -188,7 +188,7 @@ class Server(object):
                 brand.sale_description = sale_description
             if image and image not in brand.image_urls: brand.image_urls.append(image)
             start_time = node.cssselect('div.upcoming-date-reminder span.reminder-text')[0].text_content() # 'Starts Sat 10/27 6am pt - SET REMINDER'
-            brand.events_begin = time_convert( ' '.join( start_time.split(' ', 4)[1:-1] ), '%a %m/%d %I%p%Y' ) - timedelta(minutes=10) #'Sat 10/27 6am'
+            brand.events_begin = time_convert( ' '.join( start_time.split(' ', 4)[1:-1] ), '%a %m/%d %I%p%Y' ) - timedelta(minutes=5) #'Sat 10/27 6am'
             brand.update_time = datetime.utcnow()
             brand.save()
             common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=pair[1], is_new=is_new, is_updated=False)

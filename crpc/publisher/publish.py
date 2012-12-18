@@ -214,7 +214,7 @@ class Publisher:
         if fields==['soldout']:
             return prod.publish_time and prod.publish_time < prod.list_update_time
         else:
-            return True
+            return prod.publish_time
         
     def publish_event(self, ev, upd=False, fields=[]):
         '''publish event data to the mastiff service.

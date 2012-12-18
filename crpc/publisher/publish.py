@@ -375,7 +375,7 @@ def muri2mid(muri):
     '''
     return muri.split("/")[-2]
     
-@common_saved.bind('sync')
+@common_saved.bind('globalsync')
 def process_common_saved(sender, **kwargs):
     '''signa handler for common_saved. Currently common_saved
     signal is only useful in publisher to monitor soldout updates.
@@ -392,7 +392,7 @@ def process_common_saved(sender, **kwargs):
     elif obj_type == 'Product':
         p.try_publish_product_update(site, key, ['soldout'])
 
-@update_for_publish.bind('sync')
+@update_for_publish.bind('globalsync')
 def process_update_for_publish(sender, **kwargs):
     '''signal handler for update_for_publish signal. This signal
     is sent whenever there is any update on certain fields of
@@ -410,7 +410,7 @@ def process_update_for_publish(sender, **kwargs):
     elif obj_type == 'Product':
         p.try_publish_product_update(site, key, fields)
     
-@image_crawled.bind('sync')
+@image_crawled.bind('globalsync')
 def process_image_crawled(sender, **kwargs):
     '''signal handler for image_crawled.
     '''
@@ -422,7 +422,7 @@ def process_image_crawled(sender, **kwargs):
     elif obj_type == 'Product':
         p.try_publish_product(site, key)
     
-@ready_for_publish.bind('sync')
+@ready_for_publish.bind('globalsync')
 def process_propagation_done(sender, **kwargs):
     '''signal handler for ready_for_publish. This triggers the publishing of all events
     and products should the publishing conditions for these events and products are met.

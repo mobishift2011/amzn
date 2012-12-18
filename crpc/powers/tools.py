@@ -24,6 +24,7 @@ import requests
 import urllib
 from PIL import Image
 from StringIO import StringIO
+from datetime import datetime
 
 from helpers.log import getlogger
 txtlogger = getlogger('textserver', filename='/tmp/textserver.log')
@@ -243,21 +244,10 @@ class Propagator(object):
                 print 'start to propogate from  %s product %s' % (self.site, product.key)
 
                 # Tag, Dept extraction and propagation
-                source_infos = product.list_info or []
-                source_infos.append(product.title or '')
-                source_infos.append(product.summary or '')
-                source_infos.append(product.short_desc or '')
-                source_infos.extend(product.tagline or [])
-
-                product.favbuy_tag = self.extractor.extract('\n'.join(source_infos).encode('utf-8'))
-                source_infos.extend(product.dept)
-                product.favbuy_dept = list(self.classifier.classify( '\n'.join(source_infos) ))
-
-                product.tag_complete = True
-                product.dept_complete = True
-
-                tags = tags.union(product.favbuy_tag)
-                depts = depts.union([ product.favbuy_dept[0] ])
+                if product.favbuy_tag:
+                    tags = tags.union(product.favbuy_tag)
+                if product.favbuy_dept:
+                    depts = depts.union([ product.favbuy_dept[0] ])
 
                 # Event brand propagation
                 if hasattr(product, 'favbuy_brand') and product.favbuy_brand:
@@ -283,7 +273,7 @@ class Propagator(object):
 
                 # (lowest, highest) discount, (lowest, highest) price propagation
                 price = parse_price(product.price)
-                listprice = parse_price(product.listprice)
+                listprice = parse_price(product.listprice) or price
                 product.favbuy_price = str(price)
                 product.favbuy_listprice = str(listprice)
                 
@@ -318,6 +308,7 @@ class Propagator(object):
         self.event.events_end = events_end
         self.event.soldout = soldout
         self.event.propagation_complete = True
+        self.event.propagation_time = datetime.utcnow()
         self.event.save()
 
         return self.event.propagation_complete
@@ -344,7 +335,6 @@ def test_image():
 
 def test_propagate(site='venteprivee', event_id=None):
     import time
-    from datetime import datetime
     from mongoengine import Q
     from backends.matching.extractor import Extractor
     from backends.matching.classifier import SklearnClassifier

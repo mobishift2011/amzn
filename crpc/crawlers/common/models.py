@@ -81,6 +81,7 @@ class BaseEvent(Document, BaseDocumentSkeleton):
     image_complete      =   BooleanField(default=False)
     brand_complete      =   BooleanField(default=False)
     propagation_complete=   BooleanField(default=False)
+    propagation_time    =   DateTimeField()
     publish_time        =   DateTimeField()
 
     favbuy_brand        =   ListField(StringField(), default=list)

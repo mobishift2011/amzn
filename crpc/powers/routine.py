@@ -2,6 +2,7 @@
 
 from gevent import monkey; monkey.patch_all()
 from gevent.pool import Pool
+import gevent
 from mongoengine import Q
 
 from settings import POWER_PEERS, TEXT_PEERS
@@ -19,7 +20,7 @@ def get_site_module(site):
 def call_rpc(rpc, method, *args, **kwargs):
     if True:
     # try:
-        getattr(rpc, method)(args, kwargs)
+        return getattr(rpc, method)(args, kwargs)
     # except Exception:
         print traceback.format_exc()
 
@@ -49,38 +50,31 @@ def spout_images(site, doctype):
             'image_urls': instance.image_urls,
         }
 
-def spout_brands(site, doctype):
-    docdict = {
-        'Event': {
-            'key': 'event_id',
-            'title': 'sale_title',
-            'kwargs': {'brand_complete': False}    # TODO determinate the flag indication.
-        },
-        'Product': {
-            'key': 'key',
-            'title': 'title',
-            'kwargs': {'brand_complete': False}   # TODO determinate the flag indication.
-        }
-    }
+def spout_extracted_products(site):
+    m = get_site_module(site)
+    now = datetime.utcnow()
+    products = m.Product.objects((Q(brand_complete = False) | \
+                Q(tag_complete = False) | Q(dept_complete = False)) & \
+                    (Q(products_begin__lte=now) | Q(products_begin__exists=False)) & \
+                        (Q(products_end__gt=now) | Q(products_end__exists=False)))
 
-    model = doctype.capitalize()
-    m = __import__('crawlers.{0}.models'.format(site), fromlist=[model])
-    instances = getattr(m, model).objects(**docdict[model]['kwargs'])
-
-    for instance in instances:
+    for product in products:
         yield {
             'site': site,
-            'key': getattr(instance, docdict.get(model)['key']),
-            'title': getattr(instance, docdict.get(model)['title']),
-            'brand': instance.brand,
-            'doctype': model,
-            'combine_url': instance.combine_url,
+            'key': product.key,
+            # 'title': product.title,
+            # 'brand': product.brand,
+            # 'list_info': product.list_info,
+            # 'summary': product.summary,
+            # 'short_desc': product.short_desc,
+            # 'tagline': product.tagline,
+            # 'dept': product.dept
         }
 
-def spout_propagate_events(site):
+def spout_propagate_events(site, complete=False):
     m = __import__('crawlers.{0}.models'.format(site), fromlist=['Event'])
     now = datetime.utcnow()
-    events = m.Event.objects(Q(propagation_complete = False) & \
+    events = m.Event.objects(Q(propagation_complete = complete) & \
         (Q(events_begin__lte=now) | Q(events_begin__exists=False)) & \
             (Q(events_end__gt=now) | Q(events_end__exists=False)) )
 
@@ -137,23 +131,70 @@ def propagate(site, concurrency=3):
         rpc = random.choice(rpcs)
         pool.spawn(call_rpc, rpc, 'propagate', **event)
     pool.join()
-
+    
     ready_for_publish.send(None, **{'site': site})
 
-def brand_extract(site, concurrency=3):
+def generate_event_dict(site, complete=True):
+    """
+    @return:
+    {
+        event_id: {
+            'event': object,
+            'propagation_updated': False
+        },
+        ......
+    }
+    """
+    m = __import__('crawlers.{0}.models'.format(site), fromlist=['Event'])
+    now = datetime.utcnow()
+    events = m.Event.objects(Q(propagation_complete = complete) & \
+        (Q(events_begin__lte=now) | Q(events_begin__exists=False)) & \
+            (Q(events_end__gt=now) | Q(events_end__exists=False)) )
+    event_dict = {}
+    for event in events:
+        event_dict[event.event_id] = {}
+        event_dict[event.event_id]['event'] = event
+        event_dict[event.event_id]['propagation_updated'] = False
+
+    return event_dict
+
+def text_extract(site, concurrency=3):
     """
     * Product brand extraction.
     """
     rpcs = get_rpcs(TEXT_PEERS)
     pool = Pool(len(rpcs)*concurrency)
-    products = spout_brands(site, 'product')
-
+    products = spout_extracted_products(site)
+    event_dict = generate_event_dict(site)
+    
     for product in products:
         rpc = random.choice(rpcs)
-        pool.spawn(call_rpc, rpc, 'extract_brand', **product)
+        pool.spawn(extract_and_propagate, rpc, 'extract_text', event_dict, **product)
     pool.join()
-    
-    propagate(site, concurrency)
+
+    gevent.spawn(update_propation, event_dict, site)
+    gevent.spawn(propagate, site, concurrency)
+
+def extract_and_propagate(rpc, method, event_dict, *args, **kwargs):
+    res = call_rpc(rpc, method, *args, **kwargs) or {}
+    print '~~~~~~~~res:', res
+    for event_id in (res.get('event_id') or []):
+        if event_id not in event_dict:
+            continue
+        event = event_dict[event_id]
+        instance = event['event']
+        fields = res.get('fields')
+        for key in fields:
+            setattr(instance, key, fields[key])
+        event['propagation_updated'] = True
+
+def update_propation(event_dict, site):
+    for event_id in event_dict:
+        # print event_dict
+        # event = event_dict[event_id]
+        # if event['propagation_updated']:
+        #     event['event'].save()
+        #     update_for_publish.send(sender=None, site=site, doctype='Event', key=event_id)
 
 
 if __name__ == '__main__':

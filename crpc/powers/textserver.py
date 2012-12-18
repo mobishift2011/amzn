@@ -32,46 +32,102 @@ class TextServer(object):
             if name not in exclude_crawlers and isdir(path):
                 self.__m[name] = __import__("crawlers."+name+'.models', fromlist=['Event', 'Product'])
 
-    def extract_brand(self, args=(), kwargs={}):
+    def extract_text(self, args=(), kwargs={}):
         """
-        @param: kwargs contains several keys as followed:
-        * site
-        * key
-        * title
-        * brand
-        * doctype
-        * combine_url
+        To extract product brand, tag, dept.
         """
-        site = kwargs.get('site', '')
-        doctype = (kwargs.get('doctype') or '').capitalize()
-        key = kwargs.get('key', '')
-        crawled_brand = kwargs.get('brand') or ''
-        title = kwargs.get('title') or ''
+        site        =   kwargs.get('site', '')
+        key         =   kwargs.get('key', '')
+        product     =   self.__m[site].Product.objects(key=key).first()
 
-        brand = self.__extracter.extract(crawled_brand) or \
-                    self.__extracter.extract(title)
-        # m = __import__('crawlers.'+site+'.models', fromlist=[doctype])
+        if not product:
+            logger.error('{0}.product extract text failed: no key {1} '.format(site, key))
+            return
 
-        if brand:
-            if doctype == 'Product':
-                self.__m[site].Product.objects(key=key).update(set__favbuy_brand=brand, set__brand_complete=True)
-                logger.info('{0}.{1}.{2} extract brand {3} OK---> {4}'.format(site, doctype, key, crawled_brand, brand))
+        title           =   product.title
+        brand_complete  =   product.brand_complete
+        tag_complete    =   product.tag_complete
+        dept_complete   =   product.dept_complete
+
+        flags = {
+            'favbuy_brand': False,    # To indicate whether changes occur on brand extraction.
+            'favbuy_tag': False,      # To indicate whether changes occur on tag extraction.
+            'favbuy_dept': False,     # To indicate whether changes occur on dept classification.
+        }  
+
+        if not brand_complete:
+            crawled_brand = product.brand
+            brand = self.__extracter.extract(crawled_brand) or \
+                        self.__extracter.extract(title)
+            if brand:
+                product.favbuy_brand=brand
+                product.brand_complete=True
+                flags['favbuy_brand'] = True
+                logger.info('{0}.product.{1} extract brand {2} -> {3} OK'.format(site, key, crawled_brand, brand))
                 # TODO send scuccess signal
-        else:
-            if doctype == 'Product':
-                self.__m[site].Product.objects(key=key).update(set__brand_complete=False)
-                logger.warning('{0}.{1}.{2} extract brand {3} failed'.format(site, doctype, key, crawled_brand))
+            else:
+                product.update(set__brand_complete=False)
+                logger.warning('{0}.product.{1} extract brand {2} failed'.format(site, key, crawled_brand))
                 # TODO send fail signal
+
+        text_list = []
+        text_list.append(product.title or '')
+        text_list.extend(product.list_info or [])
+        text_list.append(product.summary or '')
+        text_list.append(product.short_desc or '')
+        text_list.extend(product.tagline or [])
+        if not tag_complete:
+            favbuy_tag = self.__extractor.extract( '\n'.join(text_list).encode('utf-8') )
+            product.favbuy_tag = favbuy_tag
+            product.tag_complete = bool(favbuy_tag)
+
+            if product.tag_complete:
+                flags['favbuy_tag'] = True
+            else:
+                logger.info('{0}.product.{1} extract tag failed'.format(site, key))
+        
+        if not dept_complete:
+            text_list.extend(product.dept)
+            logger.debug(text_list)
+            favbuy_dept = list(self.__classifier.classify( '\n'.join(text_list) ))
+            product.favbuy_dept = favbuy_dept
+            product.dept_complete = bool(favbuy_dept)
+
+            if product.dept_complete:
+                flags['favbuy_dept'] = True
+            else:
+                logger.info('{0}.product.{1} extract dept failed'.format(site, key))
+
+        try:
+            product.save()
+        except:
+            logger.error('{0}.product.{1} extract save exception'.format(site, key))
+            return {}
+
+        # for updating product publish
+        res = {}
+        fields = [key for key in flags if flags[key]]
+        if fields:
+            update_for_publish.send(sender=None, site=site, doctype='Product', key=product.key, fields=fields)
+
+            res['event_id'] = product.event_id or []
+            res['fields'] = {}
+            for field in fields:
+                res['fields'][field] = getattr(product, field)
+
+        # for updating event propagation
+        logger.debug( 'text server extract res ---> {0}'.format(res))
+        return res
 
     def propagate(self, args=(), kwargs={}):
         site = kwargs.get('site')
         event_id = kwargs.get('event_id')
         p = Propagator(site, event_id, self.__extractor, self.__classifier, module=self.__m[site])
         if p.propagate():
-            logger.info('{0}.{1} propagation OK'.format(site, event_id))
+            logger.info('{0}.event.{1} propagation OK'.format(site, event_id))
             # TODO send scuccess signal
         else:
-            logger.error('{0}.{1} propagation failed'.format(site, event_id))
+            logger.error('{0}.event.{1} propagation failed'.format(site, event_id))
             # TODO send fail signal
 
 

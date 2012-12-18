@@ -159,10 +159,14 @@ class Server(object):
         """.. :py:method::
         """
         content = self.net.fetch_page(url)
+        try:
+            tree = lxml.html.fromstring(content)
+        except TypeError:
+            content = self.net.fetch_page(url)
+            tree = lxml.html.fromstring(content)
         if content is None or isinstance(content, int):
             common_failed.send(sender=ctx, key=url.rsplit('/', 1)[-1], url=url,
                     reason='download product page failed: {0}'.format(content))
-        tree = lxml.html.fromstring(content)
         nav = tree.cssselect('div#page > div.container-content')[0]
         tagline = nav.cssselect('div.container-product-detail-outer > div.container-product-info > div.product-attributes')[0].text_content()
         tagline = tagline.strip().split(u'\x95')

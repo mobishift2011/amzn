@@ -56,7 +56,7 @@ class TextServer(object):
         }  
 
         if not brand_complete:
-            crawled_brand = product.brand
+            crawled_brand = product.brand or ''
             brand = self.__extracter.extract(crawled_brand) or \
                         self.__extracter.extract(title)
             if brand:
@@ -84,7 +84,7 @@ class TextServer(object):
             if product.tag_complete:
                 flags['favbuy_tag'] = True
             else:
-                logger.info('{0}.product.{1} extract tag failed'.format(site, key))
+                logger.warning('{0}.product.{1} extract tag failed'.format(site, key))
         
         if not dept_complete:
             text_list.extend(product.dept)
@@ -96,7 +96,7 @@ class TextServer(object):
             if product.dept_complete:
                 flags['favbuy_dept'] = True
             else:
-                logger.info('{0}.product.{1} extract dept failed'.format(site, key))
+                logger.error('{0}.product.{1} extract dept failed'.format(site, key))
 
         try:
             product.save()
@@ -116,6 +116,7 @@ class TextServer(object):
                 res['fields'][field] = getattr(product, field)
 
         # for updating event propagation
+        logger.debug('site: %s' % site)
         logger.debug( 'text server extract res ---> {0}'.format(res))
         return res
 

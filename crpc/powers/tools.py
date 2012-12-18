@@ -97,6 +97,8 @@ class ImageTool:
             else:
                 try:
                     image_content = self.download(image_url)
+                    if not image_content:
+                        continue
                 except Exception, e:
                     imglogger.error('download image {0} exception'.format(image_url))
                     return
@@ -119,7 +121,10 @@ class ImageTool:
     def download(self, image_url):
         print 'downloading image ---> {0}'.format(image_url)
         r = requests.get(image_url)
-        r.raise_for_status()
+        if r.status_code == 403:
+            return None
+        else:
+            r.raise_for_status()
         return r.content
 
     def upload2s3(self, image, key):
@@ -321,8 +326,8 @@ class Propagator(object):
 def test_image():
     conn = S3Connection(AWS_ACCESS_KEY, AWS_SECRET_KEY)
     urls = [
-        'http://cdn04.mbbimg.cn/1308/13080081/01/1024/01.jpg',
-        'http://cdn07.mbbimg.cn/1306/13060056/02/1024/01.jpg',
+        'http://3.icdn.ideeli.net/attachments/147066986/430115381280-1_grid_image_zoom_largegrid_image_zoom_large900x1275.jpg',
+        'http://1.icdn.ideeli.net/attachments/147067318/430115381280-2_grid_image_zoom_largegrid_image_zoom_large900x1275.jpg',
         'http://cdn03.mbbimg.cn/1307/13070129/01/480/01.jpg',
         'http://cdn08.mbbimg.cn/1310/13100015/03/480/02.jpg',
     ]

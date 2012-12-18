@@ -25,7 +25,7 @@ class Extracter(object):
 
     def extract(self, brand):
         ret = ''
-        brand = brand.lower()
+        brand = brand.lower() if brand else ''
         matches = self.index.query(brand)
 
         for match in matches:

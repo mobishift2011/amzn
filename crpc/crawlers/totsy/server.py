@@ -72,8 +72,7 @@ class Server(object):
             event_id = self.extract_event_id.match(link).group(1)
             sale_title = node.cssselect('a.thumbnail > hgroup')[0].text_content().strip()
             nav = node.cssselect('a.thumbnail > div.more > div.more-content > section.container > h6')
-            dept = []
-            ages = []
+            dept, ages = [], []
             for n in nav:
                 if n.text_content() == 'Categories:':
                     for d in n.getnext().text_content().split('\n'):

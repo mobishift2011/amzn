@@ -105,7 +105,7 @@ class Server(object):
         """
         bottle_count = prd['bottle_count']
         if bottle_count == 0:
-            listprice = prd['prices']['msrp']
+            listprice = float(prd['prices']['msrp'])
         else:
             listprice = float(prd['prices']['msrp']) * prd['bottle_count']
         listprice = '' if listprice - 0 < 0.001 else str(listprice) # listprice is u'0.0'

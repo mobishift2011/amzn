@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """ testing matching functions """
-from backends.matching.extract import Extracter
+from backends.matching.extractor import Extractor
 
-e = Extracter(tags=['One','Two','Three','Th'])    
+e = Extractor(tags=['One','Two','Three','Th'])    
 
 def test_simple_extract():
     assert e.extract('One') == ['One']

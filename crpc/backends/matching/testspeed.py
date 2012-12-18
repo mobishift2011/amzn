@@ -99,7 +99,7 @@ class Esm(object):
         self.dataset = globals()['get_data']()
         self.i1 = esm.Index()
         for tag in tags:
-            self.i1.enter(tag, tag)
+            self.i1.enter(tag)
         self.i1.fix() 
 
     def inquire(self):

@@ -1,0 +1,11 @@
+
+signal: common_saved
+sender: venteprivee.new_category.803385b45b0449ee94b66ac6ae81af28
+kwargs:
+    obj_type: Event
+    url: http://www.gilt.com/home/sale/home-4866
+    is_new: False
+    is_update: True
+    key: '10646'
+    ready: False
+    fields: ['favbuy_dept']

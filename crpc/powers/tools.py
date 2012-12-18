@@ -243,7 +243,8 @@ class Propagator(object):
                 print 'start to propogate from  %s product %s' % (self.site, product.key)
 
                 # Tag, Dept extraction and propagation
-                source_infos = product.list_info or []
+                source_infos = []
+                source_infos.extend(product.list_info or [])
                 source_infos.append(product.title or '')
                 source_infos.append(product.summary or '')
                 source_infos.append(product.short_desc or '')

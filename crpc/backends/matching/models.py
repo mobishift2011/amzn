@@ -129,7 +129,7 @@ def bootstrap():
         d = Department.objects.get(main=dept, sub=subdept)
         for site_key in os.listdir(join('dataset',dept_subdept)):
             content = open(join('dataset', dept_subdept, site_key)).read()
-            if clf.train(content, dept_subdept, strict=True):
+            if clf.train(content, dept_subdept, strict=False):
                 RawDocument.objects(site_key=site_key).update(set__content=content, set__department=d, upsert=True)
             else:
                 print 'duplicate document', site_key

@@ -177,24 +177,25 @@ def text_extract(site, concurrency=3):
 
 def extract_and_propagate(rpc, method, event_dict, *args, **kwargs):
     res = call_rpc(rpc, method, *args, **kwargs) or {}
-    print '~~~~~~~~res:', res
     for event_id in (res.get('event_id') or []):
         if event_id not in event_dict:
             continue
         event = event_dict[event_id]
         instance = event['event']
         fields = res.get('fields')
+
         for key in fields:
-            setattr(instance, key, fields[key])
+            value = fields[key]
+            values = set(value) if hasattr(value, '__iter__') else set([value])
+            setattr(instance, key, list(set(getattr(instance, key)) | values))
         event['propagation_updated'] = True
 
 def update_propation(event_dict, site):
     for event_id in event_dict:
-        # print event_dict
-        # event = event_dict[event_id]
-        # if event['propagation_updated']:
-        #     event['event'].save()
-        #     update_for_publish.send(sender=None, site=site, doctype='Event', key=event_id)
+        event = event_dict[event_id]
+        if event['propagation_updated']:
+            event['event'].save()
+            update_for_publish.send(sender=None, site=site, doctype='Event', key=event_id)
 
 
 if __name__ == '__main__':

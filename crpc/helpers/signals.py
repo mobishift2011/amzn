@@ -71,6 +71,7 @@ class Processor(object):
         self.ps2 = self.rc.pubsub()
         self.ps2.subscribe(self.channelsingleton)
         self.queues = {} # dict of Queues
+        self.globalqueue = Queue()
         self.jobs = [
             gevent.spawn(self._channel_listener),
             gevent.spawn(self._channel_singleton),
@@ -121,6 +122,7 @@ class Processor(object):
         """ callback that runs in a 'sync' mode """
         for signal, queue in self.queues.iteritems():
             gevent.spawn(self.__queued_executor, queue)
+        gevent.spawn(self.__queued_executor, self.globalqueue)
 
     def __queued_executor(self, queue):
         """ callback that runs in a 'sync' mode """
@@ -139,6 +141,8 @@ class Processor(object):
                 for cb, mode in self._listeners[signal]:
                     if mode == 'async':
                         gevent.spawn(cb, sender, **kwargs)
+                    elif mode == 'globalsync':
+                        self.globalqueue.put((cb, sender, kwargs))
                     else:
                         # put synchronous code into a queue executor
                         self.queues[signal].put((cb, sender, kwargs))
@@ -210,13 +214,13 @@ if __name__ == '__main__':
     import time
     after_item_init = Signal("after_item_init")
 
-    @after_item_init.bind('sync')
+    @after_item_init.bind('globalsync')
     def log_item_init1(sender, **kwargs):
         itemid  = kwargs.get('item_id')
         time.sleep(1)
         print("1 sender: {sender}, itemid: {itemid}".format(**locals()))
 
-    @after_item_init.bind('sync')
+    @after_item_init.bind('globalsync')
     def log_item_init2(sender, **kwargs):
         itemid  = kwargs.get('item_id')
         time.sleep(2)

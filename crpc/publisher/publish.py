@@ -2,7 +2,7 @@
 from gevent import monkey; monkey.patch_all()
 from crawlers.common.events import common_saved
 from crawlers.common.routine import get_site_module
-from powers.events import image_crawled, ready_for_publish
+from powers.events import image_crawled, ready_for_publish, update_for_publish
 from mysettings import MINIMUM_PRODUCTS_READY, MASTIFF_ENDPOINT
 from helpers import log
 from mongoengine import Q
@@ -377,7 +377,8 @@ def muri2mid(muri):
     
 @common_saved.bind('sync')
 def process_common_saved(sender, **kwargs):
-    '''signa handler for common_saved.
+    '''signa handler for common_saved. Currently common_saved
+    signal is only useful in publisher to monitor soldout updates.
     '''
     is_update = kwargs.get('is_update')
     if not is_update:
@@ -385,6 +386,22 @@ def process_common_saved(sender, **kwargs):
     
     site = sender_to_site(sender)
     obj_type = kwargs.get('obj_type')
+    
+    if obj_type == 'Event':
+        p.try_publish_event_update(site, key, ['soldout'])
+    elif obj_type == 'Product':
+        p.try_publish_product_update(site, key, ['soldout'])
+
+@update_for_publish.bind('sync')
+def process_update_for_publish(sender, **kwargs):
+    '''signal handler for update_for_publish signal. This signal
+    is sent whenever there is any update on certain fields of
+    a product or an event, due to processing steps such as
+    extraction or propagation.
+    '''
+    # sender=None, site=site, doctype='Product', key=product.key, fields=fields
+    site = kwargs.get('site')
+    obj_type = kwargs.get('doctype')
     fields = kwargs.get('fields',['soldout'])
     key = kwargs.get('key')
     
@@ -392,7 +409,7 @@ def process_common_saved(sender, **kwargs):
         p.try_publish_event_update(site, key, fields)
     elif obj_type == 'Product':
         p.try_publish_product_update(site, key, fields)
-
+    
 @image_crawled.bind('sync')
 def process_image_crawled(sender, **kwargs):
     '''signal handler for image_crawled.

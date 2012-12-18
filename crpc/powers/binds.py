@@ -5,7 +5,7 @@ import gevent
 
 from crawlers.common.events import common_saved
 from powers.events import *
-from powers.routine import crawl_images, scan_images, brand_extract
+from powers.routine import crawl_images, scan_images, text_extract
 from settings import POWER_PEERS, TEXT_PEERS
 
 from helpers.rpc import get_rpcs
@@ -45,7 +45,7 @@ def batch_image_crawling(sender, **kwargs):
         # TODO send a process_message error signal.
 
 @ready_for_batch.bind
-def batch_brand_extract(sender, **kwargs):
+def batch_text_extract(sender, **kwargs):
     logger.info('brand extract listens: {0} -> {1}'.format(sender, kwargs.items()))
     doctype = kwargs.get('doctype') or ''
     if doctype.capitalize() == 'Product':
@@ -54,7 +54,7 @@ def batch_brand_extract(sender, **kwargs):
             logger.error('{0} failed in batch image crawling: {1} {2}'.format(sender, site, doctype))
             return
         
-        brand_extract(site, 10)
+        text_extract(site, 10)
 
 
 #@pre_image_crawl.bind

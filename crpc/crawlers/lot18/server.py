@@ -57,6 +57,9 @@ class lot18Login(object):
         return ret.status_code
 
     def post_to_get(self, url, data):
+        """.. :py:method::
+            post to get listing information
+        """
         ret = request.post(url, data=data)
         return ret.content
 
@@ -88,18 +91,25 @@ class Server(object):
         ret = self.net.post_to_get(self.post_url, data)
         d = json.loads(ret)['data']
         for prd in d['products']:
-            self.build_listing_product(prd, ctx)
+            self.build_listing_product(prd, 1, ctx)
         for i in xrange( 2, int(d['page_count'])+1 ):
             data['page'] = i
             ret = self.net.post_to_get(self.post_url, data)
             d = json.loads(ret)['data']
             for prd in d['products']:
-                self.build_listing_product(prd, ctx)
+                self.build_listing_product(prd, i, ctx)
 
-    def build_listing_product(self, prd, ctx):
+    def build_listing_product(self, prd, page_num, ctx):
         """.. :py:method::
             save the field to database
         """
+        bottle_count = prd['bottle_count']
+        if bottle_count == 0:
+            listprice = float(prd['prices']['msrp'])
+        else:
+            listprice = float(prd['prices']['msrp']) * prd['bottle_count']
+        listprice = '' if listprice - 0 < 0.001 else str(listprice) # listprice is u'0.0'
+
         is_new, is_updated = False, False
         product = Product.objects(key=prd['id']).first()
         if not product:
@@ -107,13 +117,12 @@ class Server(object):
             product = Product(key=prd['id'])
             product.combine_url = 'http://www.lot18.com/product/{0}'.format(prd['id'])
             product.updated = False
+            product.event_type = False
+            product.page_num = page_num
             product.title = prd['title']
-            product.image_urls = ['http:' + prd['images']['large'], 'http:' + prd['images']['xlarge']]
-            if prd['bottle_count'] == 0:
-                product.listprice = prd['prices']['msrp']
-            else:
-                product.bottle_count = prd['bottle_count']
-                product.listprice = str( float(prd['prices']['msrp']) * prd['bottle_count'] )
+            # product.image_urls = ['http:' + prd['images']['large'], 'http:' + prd['images']['xlarge']]
+            product.bottle_count = bottle_count
+            product.listprice = listprice
             product.price = prd['prices']['price']
             product.short_desc = prd['headline']
             product.soldout = prd['is_soldout']
@@ -130,7 +139,7 @@ class Server(object):
             if 'day' in period:
                 products_end = _utcnow + timedelta(days=int(num))
             elif 'hour' in period:
-                products_end = _utcnow + timedelta(hours=int(num))
+                products_end = _utcnow + timedelta(hours=int(num)+1)
             elif 'minute' in period:
                 products_end = _utcnow + timedelta(minutes=int(num))
             else:
@@ -148,4 +157,38 @@ class Server(object):
     def crawl_product(self, url, ctx=''):
         """.. :py:method::
         """
-        pass
+        content = self.net.fetch_page(url)
+        if content is None or isinstance(content, int):
+            common_failed.send(sender=ctx, key=url.rsplit('/', 1)[-1], url=url,
+                    reason='download product page failed: {0}'.format(content))
+        tree = lxml.html.fromstring(content)
+        nav = tree.cssselect('div#page > div.container-content')[0]
+        tagline = nav.cssselect('div.container-product-detail-outer > div.container-product-info > div.product-attributes')[0].text_content()
+        tagline = tagline.strip().split(u'\x95')
+        shipping = nav.cssselect('div.container-product-review > span.product-review-additional > p.states')[0].text_content()
+        summary = nav.cssselect('div.container-product-review > span.product-review-main > p:first-of-type')[0].text_content().strip()
+        image_urls = []
+        imgs = nav.cssselect('div.container-product-review > span.product-review-additional > div.product-detail-thumb > img')
+        for img in imgs:
+            image_urls.append( 'http:' + img.get('src') )
+
+        is_new, is_updated = False, False
+        product = Product.objects(key=url.rsplit('/', 1)[-1]).first()
+        if not product:
+            is_new = True
+            product = Product(key=url.rsplit('/', 1)[-1])
+        product.tagline = tagline
+        product.shipping = shipping
+        product.summary = summary
+        product.image_urls = image_urls
+        product.full_update_time = datetime.utcnow()
+        if product.updated == False:
+            product.updated = True
+            ready = True
+        else: ready = False
+        product.save()
+        common_saved.send(sender=ctx, obj_type='Product', key=url.rsplit('/', 1)[-1], url=url, is_new=is_new, is_updated=is_updated, ready=ready)
+
+
+if __name__ == '__main__':
+    Server().crawl_product('http://www.lot18.com/product/2891/2001-seavey-napa-valley-cabernet-sauvignon-magnum')

@@ -27,8 +27,8 @@ from StringIO import StringIO
 from datetime import datetime
 
 from helpers.log import getlogger
-txtlogger = getlogger('textserver', filename='/tmp/textserver.log')
-imglogger = getlogger('powerserver', filename='/tmp/powerserver.log')
+txtlogger = getlogger('powertools', filename='/tmp/textserver.log')
+imglogger = getlogger('powertools', filename='/tmp/powerserver.log')
 
 CURRDIR = os.path.dirname(__file__)
 
@@ -235,9 +235,7 @@ class Propagator(object):
         products = m.Product.objects(event_id=self.event.event_id)
         print 'start to propogate %s event %s' % (self.site, self.event.event_id)
 
-        if not len(products):
-            return self.event
-
+        counter = 0
         for product in products:
             if True:
             #try:
@@ -290,8 +288,12 @@ class Propagator(object):
                         soldout = False
 
                 product.save()
+                counter += 1
             #except Exception, e:
             #    txtlogger.error('{0}.{1} product propagation exception'.format(self.site, product.key))
+
+        if not counter:
+            return self.event.propagation_complete
 
         self.event.favbuy_brand = list(event_brands)
         self.event.brand_complete = True

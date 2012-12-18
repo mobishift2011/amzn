@@ -20,7 +20,7 @@ def get_site_module(site):
 def call_rpc(rpc, method, *args, **kwargs):
     if True:
     # try:
-        getattr(rpc, method)(args, kwargs)
+        return getattr(rpc, method)(args, kwargs)
     # except Exception:
         print traceback.format_exc()
 
@@ -134,7 +134,7 @@ def propagate(site, concurrency=3):
     
     ready_for_publish.send(None, **{'site': site})
 
-def generate_event_dict(complete=True):
+def generate_event_dict(site, complete=True):
     """
     @return:
     {
@@ -145,14 +145,17 @@ def generate_event_dict(complete=True):
         ......
     }
     """
-    event_dict = {}
+    m = __import__('crawlers.{0}.models'.format(site), fromlist=['Event'])
+    now = datetime.utcnow()
     events = m.Event.objects(Q(propagation_complete = complete) & \
         (Q(events_begin__lte=now) | Q(events_begin__exists=False)) & \
             (Q(events_end__gt=now) | Q(events_end__exists=False)) )
+    event_dict = {}
     for event in events:
         event_dict[event.event_id] = {}
         event_dict[event.event_id]['event'] = event
-        event_dict['propagation_updated'] = False
+        event_dict[event.event_id]['propagation_updated'] = False
+
     return event_dict
 
 def text_extract(site, concurrency=3):
@@ -162,18 +165,19 @@ def text_extract(site, concurrency=3):
     rpcs = get_rpcs(TEXT_PEERS)
     pool = Pool(len(rpcs)*concurrency)
     products = spout_extracted_products(site)
-    event_dict = generate_event_dict()
-
+    event_dict = generate_event_dict(site)
+    
     for product in products:
         rpc = random.choice(rpcs)
         pool.spawn(extract_and_propagate, rpc, 'extract_text', event_dict, **product)
     pool.join()
 
-    gevent.spawn(update_propation, event_dict)
+    gevent.spawn(update_propation, event_dict, site)
     gevent.spawn(propagate, site, concurrency)
 
 def extract_and_propagate(rpc, method, event_dict, *args, **kwargs):
     res = call_rpc(rpc, method, *args, **kwargs) or {}
+    print '~~~~~~~~res:', res
     for event_id in (res.get('event_id') or []):
         if event_id not in event_dict:
             continue
@@ -184,10 +188,13 @@ def extract_and_propagate(rpc, method, event_dict, *args, **kwargs):
             setattr(instance, key, fields[key])
         event['propagation_updated'] = True
 
-def update_propation(event_dict):
-    for event in event_dict:
-        if event['propagation_updated']:
-            event['event'].save()
+def update_propation(event_dict, site):
+    for event_id in event_dict:
+        # print event_dict
+        # event = event_dict[event_id]
+        # if event['propagation_updated']:
+        #     event['event'].save()
+        #     update_for_publish.send(sender=None, site=site, doctype='Event', key=event_id)
 
 
 if __name__ == '__main__':

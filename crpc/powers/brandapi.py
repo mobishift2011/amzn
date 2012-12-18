@@ -3,7 +3,7 @@ import esm
 from models import Brand
 from helpers.log import getlogger
 
-logger = getlogger('textserver', filename='/tmp/textserver.log')
+logger = getlogger('brandapi', filename='/tmp/textserver.log')
 
 logger.info('init brands index...')
 brands = Brand.objects(is_delete = False).values_list('title', 'title_edit')

@@ -60,7 +60,8 @@ class TextServer(object):
             brand = self.__extracter.extract(crawled_brand) or \
                         self.__extracter.extract(title)
             if brand:
-                product.update(set__favbuy_brand=brand, set__brand_complete=True)
+                product.favbuy_brand=brand
+                product.brand_complete=True
                 flags['favbuy_brand'] = True
                 logger.info('{0}.product.{1} extract brand {2} -> {3} OK'.format(site, key, crawled_brand, brand))
                 # TODO send scuccess signal
@@ -70,14 +71,15 @@ class TextServer(object):
                 # TODO send fail signal
 
         text_list = []
+        text_list.append(product.title or '')
+        text_list.extend(product.list_info or [])
+        text_list.append(product.summary or '')
+        text_list.append(product.short_desc or '')
+        text_list.extend(product.tagline or [])
         if not tag_complete:
-            text_list.append(product.title or '')
-            text_list.extend(product.list_info or [])
-            text_list.append(product.summary or '')
-            text_list.append(product.short_desc or '')
-            text_list.extend(product.tagline or [])
-            favbuy_tag = self.extractor.extract( '\n'.join(text_list).encode('utf-8') )
-            product.update(set__favbuy_tag = favbuy_tag, set__tag_complete=bool(favbuy_tag))
+            favbuy_tag = self.__extractor.extract( '\n'.join(text_list).encode('utf-8') )
+            product.favbuy_tag = favbuy_tag
+            product.tag_complete = bool(favbuy_tag)
 
             if product.tag_complete:
                 flags['favbuy_tag'] = True
@@ -86,20 +88,27 @@ class TextServer(object):
         
         if not dept_complete:
             text_list.extend(product.dept)
-            favbuy_dept = list(self.classifier.classify( '\n'.join(text_list) ))
-            product.update(set__favbuy_dept = favbuy_dept, set__dept_complete=bool(favbuy_dept))
+            logger.debug(text_list)
+            favbuy_dept = list(self.__classifier.classify( '\n'.join(text_list) ))
+            product.favbuy_dept = favbuy_dept
+            product.dept_complete = bool(favbuy_dept)
 
             if product.dept_complete:
                 flags['favbuy_dept'] = True
             else:
                 logger.info('{0}.product.{1} extract dept failed'.format(site, key))
 
+        try:
+            product.save()
+        except:
+            logger.error('{0}.product.{1} extract save exception'.format(site, key))
+            return {}
+
         # for updating product publish
         res = {}
         fields = [key for key in flags if flags[key]]
         if fields:
-            common_saved.send(sender=None, obj_type='Product', key=product.key, url=product.combine_url, \
-                is_new=false, is_updated=True, fields=fields)
+            update_for_publish.send(sender=None, site=site, doctype='Product', key=product.key, fields=fields)
 
             res['event_id'] = product.event_id or []
             res['fields'] = {}
@@ -107,6 +116,7 @@ class TextServer(object):
                 res['fields'][field] = getattr(product, field)
 
         # for updating event propagation
+        logger.debug( 'text server extract res ---> {0}'.format(res))
         return res
 
     def propagate(self, args=(), kwargs={}):
@@ -114,10 +124,10 @@ class TextServer(object):
         event_id = kwargs.get('event_id')
         p = Propagator(site, event_id, self.__extractor, self.__classifier)
         if p.propagate():
-            logger.info('{0}.{1} propagation OK'.format(site, event_id))
+            logger.info('{0}.event.{1} propagation OK'.format(site, event_id))
             # TODO send scuccess signal
         else:
-            logger.error('{0}.{1} propagation failed'.format(site, event_id))
+            logger.error('{0}.event.{1} propagation failed'.format(site, event_id))
             # TODO send fail signal
 
 

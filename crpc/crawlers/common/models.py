@@ -215,7 +215,7 @@ class LuxuryProduct(BaseProduct):
     sizes_scarcity      =   ListField()
     sizes               =   ListField(StringField())
     scarcity            =   StringField()
-    list_info           =   ListField(StringField())
+    list_info           =   ListField(StringField(), default=list)
     
     favbuy_listprice    =   StringField()
     

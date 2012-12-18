@@ -121,7 +121,7 @@ class Server(object):
             m = self.extract_event_id.match(link)
             # the error: it is an event, but also a product page
             if not m:
-                common_failed.send(sender=ctx, url=url, reason='the link[{0}] can not extract event_id'.format(link))
+                # common_failed.send(sender=ctx, url=url, reason='the link[{0}] can not extract event_id'.format(link))
                 continue
             link, event_id = m.groups()
             text = node.xpath('./a/span[@class="txt"]')[0]

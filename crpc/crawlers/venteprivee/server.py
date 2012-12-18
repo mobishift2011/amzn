@@ -88,6 +88,11 @@ class ventepriveeLogin(object):
         """
         ret = req.get(url)
 
+        if ret.status_code == 401:
+            self.login_account()
+            ret = req.get(url)
+        if ret.ok: return ret
+
 
 
 class Server(object):
@@ -123,10 +128,11 @@ class Server(object):
             event.type = sale.get('type')
             event.dept = [] # TODO cannot get the info
             event.urgent = is_new or event.urgent
+            event.update_time = datetime.datetime.utcnow()
             event.save()
             
             debug_info.send(sender=DB+'.event.{0}.end'.format(sale.get('name').encode('utf-8')))
-            common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=(not is_new) and is_updated)
+            common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
 
     def crawl_listing(self, url, ctx):
         """.. :py:method::
@@ -137,8 +143,10 @@ class Server(object):
         self.net.check_signin()
         
         response = self.net.fetch_page(url)
-        if int(response.status_code) != 200:
-            common_failed.send(sender=ctx, key='', url=url, reason="%s: events has no products to crawl" % response.status_code)
+        if response is None:
+            common_failed.send(sender=ctx, key=url.rsplit('/', 1)[-1],
+                    url='https://us.venteprivee.com/main/#/catalog/{0}'.format(url.rsplit('/', 1)[-1]),
+                    reason="%s: download error, status code: " % response.status_code)
             return
         res = response.json
         
@@ -162,6 +170,7 @@ class Server(object):
             if is_new:
                 product.combine_url = 'https://us.venteprivee.com/main/#/product/%s/%s' % (event_id, product.key)
                 product.updated = False
+            product.list_update_time = datetime.datetime.utcnow()
             product.save()
             
             debug_info.send(sender=DB+'.listing.product.{0}.crawled'.format(product.key))
@@ -173,7 +182,7 @@ class Server(object):
             event.urgent = False
             ready = True
             event.save()
-        common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=False, is_updated=False, ready=ready)
+            common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=False, is_updated=False, ready=ready)
         
         debug_info.send(sender=DB+'.listing.{0}.end'.format(url))
 
@@ -191,9 +200,9 @@ class Server(object):
         key = str(res.get('productFamilyId'))
         
         product, is_new = Product.objects.get_or_create(key=key)
-        if not is_new:
-            is_updated = (product.price != res.get('formattedPrice')) or is_updated
-            is_updated = (product.soldout != res.get('isSoldOut')) or is_updated
+#        if not is_new:
+#            is_updated = (product.price != res.get('formattedPrice')) or is_updated
+#            is_updated = (product.soldout != res.get('isSoldOut')) or is_updated
         
         product.title = res.get('name')
         product.brand = res.get('operationName')
@@ -212,8 +221,8 @@ class Server(object):
         if breadCrumb not in product.dept:
             product.dept.append(breadCrumb)
         product.returned = res.get('returnPolicy')
-        product.sizes = []#res.get('sizes')    # TODO
-        product.sizes_scarcity = [] # TODO
+#        product.sizes = []#res.get('sizes')    # TODO
+#        product.sizes_scarcity = [] # TODO
         temp_updated = product.updated
         product.updated = False if is_new else True
         if product.updated:

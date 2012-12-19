@@ -193,7 +193,7 @@ def text_extract(site, concurrency=3):
         gevent.spawn(propagate, site, concurrency)
 
     gevent.joinall()
-    logger.info('ready for publish site -> {0}'.format(site))
+    txtlogger.info('ready for publish site -> {0}'.format(site))
     ready_for_publish.send(None, **{'site': site})
 
 def extract_and_propagate(rpc, method, event_dict, *args, **kwargs):

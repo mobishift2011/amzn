@@ -73,6 +73,10 @@ IMAGE_SIZE = {
 		{
 			'width': 146,	# for mobile waterfall layout
 			'height': 0,
-		}
+		},
+		{
+			'width': 320,
+			'height': 169,
+		},
 	)
 }

@@ -93,7 +93,7 @@ class Server(object):
             events_begin = self.convert_time( info['start_date'] )
             events_end = self.convert_time( info['end_date'] )
             _utcnow = datetime.utcnow()
-            sale_description = requests.get(info['info']).text if events_begin < _utcnow else ''
+            sale_description = requests.get(info['info']).text.strip() if events_begin < _utcnow else ''
 
             is_leaf = True
             children = info['meta']['nested']['children']

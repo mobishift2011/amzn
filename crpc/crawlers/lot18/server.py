@@ -10,6 +10,7 @@ from crawlers.common.events import common_saved, common_failed
 from crawlers.common.stash import *
 from models import *
 
+req = requests.Session(prefetch=True, timeout=30, config=config, headers=headers)
 
 class lot18Login(object):
     """.. :py:class:: lot18Login
@@ -31,8 +32,8 @@ class lot18Login(object):
         """.. :py:method::
             use post method to login
         """
-        request.get(self.login_url)
-        request.post(self.login_url, self.data)
+        req.get(self.login_url)
+        req.post(self.login_url, self.data)
         self._signin = True
 
     def check_signin(self):
@@ -47,11 +48,11 @@ class lot18Login(object):
             fetch page.
             check whether the account is login, if not, login and fetch again
         """
-        ret = request.get(url)
+        ret = req.get(url)
 
         if 'http://www.lot18.com/login' in ret.url:
             self.login_account()
-            ret = request.get(url)
+            ret = req.get(url)
         if ret.ok: return ret.content
 
         return ret.status_code
@@ -60,7 +61,7 @@ class lot18Login(object):
         """.. :py:method::
             post to get listing information
         """
-        ret = request.post(url, data=data)
+        ret = req.post(url, data=data)
         return ret.content
 
 
@@ -158,10 +159,14 @@ class Server(object):
         """.. :py:method::
         """
         content = self.net.fetch_page(url)
+        try:
+            tree = lxml.html.fromstring(content)
+        except TypeError:
+            content = self.net.fetch_page(url)
+            tree = lxml.html.fromstring(content)
         if content is None or isinstance(content, int):
             common_failed.send(sender=ctx, key=url.rsplit('/', 1)[-1], url=url,
                     reason='download product page failed: {0}'.format(content))
-        tree = lxml.html.fromstring(content)
         nav = tree.cssselect('div#page > div.container-content')[0]
         tagline = nav.cssselect('div.container-product-detail-outer > div.container-product-info > div.product-attributes')[0].text_content()
         tagline = tagline.strip().split(u'\x95')

@@ -12,7 +12,7 @@ Created on 2012-11-16
 
 from crawlers.common.events import *
 from crawlers.common.crawllog import debug_info
-from crawlers.common.stash import config, headers
+from crawlers.common.stash import *
 from models import *
 
 import datetime, time
@@ -21,7 +21,79 @@ import random
 from lxml import html
 import zerorpc
 
-DEBUG = False
+req = requests.Session(prefetch=True, timeout=30, config=config, headers=headers)
+
+class VClient(object):
+    __base_call_url = 'http://us.venteprivee.com/v1/api'
+    
+    def __init__(self):
+        self.__is_auth = False
+    
+    def request(self, url):
+        r = requests.get(url)
+        r.raise_for_status()
+        return r.json
+    
+    def sales(self):
+        url = "%s/shop/default" % self.__base_call_url
+        return self.request(url).get('sales')
+    
+    def catalog(self, event_id):
+        url = "%s/catalog/content/%s" % (self.__base_call_url, event_id)
+        return self.request(url) 
+    
+    def product_detail(self, pfid):
+        url = "%s/productdetail/content/%s" % (self.__base_call_url, pfid)
+        return self.request(url)
+
+class ventepriveeLogin(object):
+    """.. :py:class:: ventepriveeLogin
+        login, check whether login, fetch page.
+    """
+    def __init__(self):
+        """.. :py:method::
+            variables need to be used
+        """
+        self.login_url = 'https://us.venteprivee.com/main/'
+        accounts = (('ethan@favbuy.com', '200591qq'), ('2012luxurygoods@gmail.com', 'abcd1234'))
+        email, password = random.choice(accounts)
+        self.data = {
+            'email': email,
+            'password': password,
+            'rememberMe': False,
+        }
+
+        self._signin = False
+
+    def login_account(self):
+        """.. :py:method::
+            use post method to login
+        """
+        req.get(self.login_url)
+        url = 'https://us.venteprivee.com/api/membership/signin'
+        req.post(url, data=self.data)
+        self._signin = True
+
+    def check_signin(self):
+        """.. :py:method::
+            check whether the account is login
+        """
+        if not self._signin:
+            self.login_account()
+
+    def fetch_page(self, url):
+        """.. :py:method::
+            fetch page.
+            check whether the account is login, if not, login and fetch again
+        """
+        ret = req.get(url)
+
+        if ret.status_code == 401:
+            self.login_account()
+            ret = req.get(url)
+        if ret.ok: return ret
+
+
 
 class Server(object):
     """.. :py:class:: Server
@@ -30,32 +102,15 @@ class Server(object):
 
     """
     def __init__(self):
-        self.__is_auth = False
-        self.request = None
-    
-    def auth(self):
-        return self.__is_auth
-    
-    def login(self):
-        accounts = (('ethan@favbuy.com', '200591qq'), ('2012luxurygoods@gmail.com', 'abcd1234'))
-        email, password = random.choice(accounts)
-        
-        url = 'https://us.venteprivee.com/api/membership/signin'
-        data = {
-            'email': email,
-            'password': password,
-            'rememberMe': False,
-        }
-        self.request = requests.Session(prefetch=True, timeout=30, config=config, headers=headers)
-        res = self.request.post(url, data=data)
-        res.raise_for_status()
-        self.__is_auth = True
+        self.vclient = VClient()
+        self.net = ventepriveeLogin()
+
 
     def crawl_category(self, ctx):
         """.. :py:method::
             from self.event_url get all the events
         """
-        sales = vclient.sales()
+        sales = self.vclient.sales()
         for sale in sales:
             debug_info.send(sender=DB+'.event.{0}.start'.format(sale.get('name').encode('utf-8')))
             
@@ -73,10 +128,11 @@ class Server(object):
             event.type = sale.get('type')
             event.dept = [] # TODO cannot get the info
             event.urgent = is_new or event.urgent
+            event.update_time = datetime.datetime.utcnow()
             event.save()
             
             debug_info.send(sender=DB+'.event.{0}.end'.format(sale.get('name').encode('utf-8')))
-            common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=(not is_new) and is_updated)
+            common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
 
     def crawl_listing(self, url, ctx):
         """.. :py:method::
@@ -84,12 +140,13 @@ class Server(object):
         :param url: event url with event_id 
         """
         debug_info.send(sender=DB+'.listing.{0}.start'.format(url))
-        if not self.auth():
-            self.login()
+        self.net.check_signin()
         
-        response = self.request.get(url)
-        if int(response.status_code) != 200:
-            common_failed.send(sender=ctx, key='', url=url, reason="%s: upcoming events has no products to crawl" % response.status_code)
+        response = self.net.fetch_page(url)
+        if response is None:
+            common_failed.send(sender=ctx, key=url.rsplit('/', 1)[-1],
+                    url='https://us.venteprivee.com/main/#/catalog/{0}'.format(url.rsplit('/', 1)[-1]),
+                    reason="%s: download error, status code: " % response.status_code)
             return
         res = response.json
         
@@ -113,6 +170,7 @@ class Server(object):
             if is_new:
                 product.combine_url = 'https://us.venteprivee.com/main/#/product/%s/%s' % (event_id, product.key)
                 product.updated = False
+            product.list_update_time = datetime.datetime.utcnow()
             product.save()
             
             debug_info.send(sender=DB+'.listing.product.{0}.crawled'.format(product.key))
@@ -124,7 +182,7 @@ class Server(object):
             event.urgent = False
             ready = True
             event.save()
-        common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=False, is_updated=False, ready=ready)
+            common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=False, is_updated=False, ready=ready)
         
         debug_info.send(sender=DB+'.listing.{0}.end'.format(url))
 
@@ -134,18 +192,17 @@ class Server(object):
         :param url: product url, with product id
         """
         debug_info.send(sender=DB+'.product.{0}.start'.format(url))
-        if not self.auth():
-            self.login()
+        self.net.check_signin()
         
         is_updated = False
         ready = False
-        res = self.request.get(url).json
+        res = self.net.fetch_page(url).json
         key = str(res.get('productFamilyId'))
         
         product, is_new = Product.objects.get_or_create(key=key)
-        if not is_new:
-            is_updated = (product.price != res.get('formattedPrice')) or is_updated
-            is_updated = (product.soldout != res.get('isSoldOut')) or is_updated
+#        if not is_new:
+#            is_updated = (product.price != res.get('formattedPrice')) or is_updated
+#            is_updated = (product.soldout != res.get('isSoldOut')) or is_updated
         
         product.title = res.get('name')
         product.brand = res.get('operationName')
@@ -164,8 +221,8 @@ class Server(object):
         if breadCrumb not in product.dept:
             product.dept.append(breadCrumb)
         product.returned = res.get('returnPolicy')
-        product.sizes = []#res.get('sizes')    # TODO
-        product.sizes_scarcity = [] # TODO
+#        product.sizes = []#res.get('sizes')    # TODO
+#        product.sizes_scarcity = [] # TODO
         temp_updated = product.updated
         product.updated = False if is_new else True
         if product.updated:

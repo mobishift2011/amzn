@@ -10,7 +10,7 @@ from settings import POWER_PEERS, TEXT_PEERS
 
 from helpers.rpc import get_rpcs
 from helpers.log import getlogger
-logger = getlogger("powersignals", '/tmp/powersignals_temp.log')
+logger = getlogger("powersignals", '/tmp/powersignals.log')
 
 import gevent.pool
 process_image_pool = gevent.pool.Pool(500)

@@ -139,7 +139,7 @@ class Server(object):
             link = l if l.startswith('http') else self.siteurl + l
             event_id = self.extract_eventid.match(link).group(1)
             img = node.cssselect('div.eventStatus > a.trackEventPosition > img')[0].get('src')
-            image = self.extract_large_img.match(img).group(1) + '$fullzoom$'
+            image = self.extract_large_img.match(img).group(1) + '$mp_hero_standard$'
 
             event, is_new = Event.objects.get_or_create(event_id=event_id)
             if is_new:
@@ -171,7 +171,7 @@ class Server(object):
                 event_id = self.extract_eventid.match(link).group(1)
                 event, is_new = Event.objects.get_or_create(event_id=event_id)
                 if is_new:
-                    img = market.cssselect('h4 > a > img')[0].get('src') + '?$fullzoom$'
+                    img = market.cssselect('h4 > a > img')[0].get('src') + '?$mp_hero_standard$'
                     event.image_urls = [img]
                     event.sale_title = market.cssselect('h4 > a')[0].text_content()
                     event.short_desc = market.cssselect('p.shortDescription')[0].text_content()

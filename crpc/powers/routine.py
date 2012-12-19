@@ -56,6 +56,7 @@ def spout_images(site, doctype):
         }
 
 def spout_extracted_products(site):
+    print 'enter spout {0}'.format(site)
     txtlogger.debug('enter spout {0}'.format(site))
     m = get_site_module(site)
     txtlogger.debug('get module {0}'.format(m))
@@ -155,11 +156,16 @@ def generate_event_dict(site, complete=True):
     }
     """
     m = __import__('crawlers.{0}.models'.format(site), fromlist=['Event'])
-    now = datetime.utcnow()
-    events = m.Event.objects(Q(propagation_complete = complete) & \
-        (Q(events_begin__lte=now) | Q(events_begin__exists=False)) & \
-            (Q(events_end__gt=now) | Q(events_end__exists=False)) )
     event_dict = {}
+    now = datetime.utcnow()
+
+    try:
+        events = m.Event.objects(Q(propagation_complete = complete) & \
+            (Q(events_begin__lte=now) | Q(events_begin__exists=False)) & \
+                (Q(events_end__gt=now) | Q(events_end__exists=False)) )
+    except AttributeError:
+        return event_dict
+
     for event in events:
         event_dict[event.event_id] = {}
         event_dict[event.event_id]['event'] = event
@@ -182,12 +188,18 @@ def text_extract(site, concurrency=3):
         pool.spawn(extract_and_propagate, rpc, 'extract_text', event_dict, **product)
     pool.join()
 
-    gevent.spawn(update_propation, event_dict, site)
-    gevent.spawn(propagate, site, concurrency)
+    # If site has event model, it should update and new the event propagation
+    if event_dict:
+        gevent.spawn(update_propation, event_dict, site)
+        gevent.spawn(propagate, site, concurrency)
 
 def extract_and_propagate(rpc, method, event_dict, *args, **kwargs):
     res = call_rpc(rpc, method, *args, **kwargs) or {}
     txtlogger.debug('extraction result ---> {0}'.format(res))
+
+    if not event_dict:
+        return
+    
     for event_id in (res.get('event_id') or []):
         if event_id not in event_dict:
             continue

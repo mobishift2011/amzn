@@ -45,7 +45,7 @@ class Server(object):
     """
     def __init__(self):
         self.siteurl = 'http://www.hautelook.com'
-        self.event_url = 'http://www.hautelook.com/v3/events?upcoming_soon_days=7'
+        self.event_url = 'http://www.hautelook.com/v3/events'
         self.login_url = 'https://www.hautelook.com/login'
         self.post_url = 'https://www.hautelook.com/v3/credential'
         self.data = {
@@ -88,20 +88,29 @@ class Server(object):
             event_code = info['event_code']
             sale_title = info['title']
             dept = [i['name'] for i in info['event_types']]
+            tagline = []
+            if info['tagline']: tagline.append(info['tagline'])
+            if info['category']: tagline.append(info['category'])
 
             # new upcoming, new now, old upcoming, old now
             events_begin = self.convert_time( info['start_date'] )
             events_end = self.convert_time( info['end_date'] )
             _utcnow = datetime.utcnow()
-            sale_description = requests.get(info['info']).text if events_begin < _utcnow else ''
+            sale_description = requests.get(info['info']).text.strip() if events_begin < _utcnow else ''
 
             is_leaf = True
-            children = info['meta']['nested']['children']
-            if children:
-                for child in children:
-                    self.save_child_event(child['event_id'], events_begin, events_end, sale_title, sale_description, dept, ctx)
-                    is_leaf = False
+            # "Daily Deal" only have product on webpage, but whole process in API
+            # "Regular" may have children, but its children maybe not displayed on webpage
+            # "Nested Parent Child" have official child event
+            if info['event_display_format'] == 'Nested Parent Child':
+                children = info['meta']['nested']['children']
+                if children:
+                    for child in children:
+                        self.save_child_event(child['event_id'], events_begin, events_end, sale_title, sale_description, dept, tagline, ctx)
+                        is_leaf = False
 
+            pop_img = 'http://www.hautelook.com/assets/{0}/pop-large.jpg'.format(event_code)
+            grid_img = 'http://www.hautelook.com/assets/{0}/grid-large.jpg'.format(event_code)
             is_new, is_updated = False, False
             event = Event.objects(event_id=event_id).first()
             if not event:
@@ -109,14 +118,11 @@ class Server(object):
                 event = Event(event_id=event_id)
                 event.sale_title = sale_title
                 event.dept = dept
-                event.tagline = info['category']
-
-                pop_img = 'http://www.hautelook.com/assets/{0}/pop-large.jpg'.format(event_code)
-                grid_img = 'http://www.hautelook.com/assets/{0}/grid-large.jpg'.format(event_code)
-                event.image_urls = [pop_img, grid_img]
-                event.sort_order = info['sort_order']
+                event.tagline = tagline
                 event.urgent = True
                 event.combine_url = 'http://www.hautelook.com/event/{0}'.format(event_id)
+
+                event.sort_order = info['sort_order']
                 if not is_leaf: event.is_leaf = False
             else:
                 if info['sort_order'] != event.sort_order:
@@ -124,6 +130,8 @@ class Server(object):
                     is_updated = True
             if sale_description and not event.sale_description:
                 event.sale_description = sale_description
+            if pop_img not in event.image_urls: event.image_urls.append(pop_img)
+            if grid_img not in event.image_urls: event.image_urls.append(grid_img)
             event.events_begin = events_begin
             event.events_end = events_end
             event.update_time = _utcnow
@@ -133,7 +141,7 @@ class Server(object):
         debug_info.send(sender=DB + '.category.end')
 
 
-    def save_child_event(self, event_id, events_begin, events_end, sale_title, sale_description, dept, ctx):
+    def save_child_event(self, event_id, events_begin, events_end, sale_title, sale_description, dept, tagline, ctx):
         """
             save a child event
         """
@@ -143,10 +151,12 @@ class Server(object):
             is_new = True
             event = Event(event_id=event_id)
             event.sale_title = sale_title
-            event.sale_description = sale_description
             event.dept = dept
+            event.tagline = tagline
             event.urgent = True
             event.combine_url = 'http://www.hautelook.com/event/{0}'.format(event_id)
+        if sale_description and not event.sale_description:
+            event.sale_description = sale_description
         event.events_begin = events_begin
         event.events_end = events_end
         event.update_time = datetime.utcnow()
@@ -172,7 +182,19 @@ class Server(object):
         if data.keys()[0] != 'availabilities':
             common_failed.send(sender=ctx, key='get availabilities twice, both error', url=url, reason=data)
             return
+
         event_id = re.compile('http://www.hautelook.com/v3/catalog/(.+)/availability').match(url).group(1)
+        event = Event.objects(event_id=event_id).first()
+        if not event: event = Event(event_id=event_id)
+        if not event.image_urls: # child events don't fill up image_urls in crawl_category, until following code block
+            resp = request.get('http://www.hautelook.com/v3/event/{0}'.format(event_id))
+            jsd = json.loads(resp.content)
+            image_url = jsd['event']['image_url'].replace('event-small', 'pop-large')
+            event.sale_title = jsd['event']['title']
+            event.image_urls = [image_url]
+            event.update_time = datetime.utcnow()
+            event.save()
+
         for item in data['availabilities']:
             info = item['availability']
             key = info['inventory_id']
@@ -196,8 +218,6 @@ class Server(object):
             product.save()
             common_saved.send(sender=ctx, obj_type='Product', key=key, url=url, is_new=is_new, is_updated=is_updated)
 
-        event = Event.objects(event_id=event_id).first()
-        if not event: event = Event(event_id=event_id)
         if event.urgent == True:
             event.urgent = False
             event.update_time = datetime.utcnow()

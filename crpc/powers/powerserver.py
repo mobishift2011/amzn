@@ -49,7 +49,7 @@ class PowerServer(object):
             image_tool = ImageTool(connection=self.__s3conn)
             try:
                 image_tool.crawl(image_urls, site, doctype, key, thumb=True)
-            except Exception, e:
+            except:
                 logger.error('crawling image of {0}.{1}.{2} exception: {3}'.format(site, doctype, key, traceback.print_exc()))
                 return
             image_path = image_tool.image_path  

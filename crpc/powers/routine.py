@@ -63,6 +63,7 @@ def spout_extracted_products(site):
                     (Q(products_begin__lte=now) | Q(products_begin__exists=False)) & \
                         (Q(products_end__gt=now) | Q(products_end__exists=False)))
 
+    txtlogger.debug('spout extracted products {0}'.format(len(products)))
     for product in products:
         yield {
             'site': site,
@@ -169,6 +170,7 @@ def text_extract(site, concurrency=3):
     """
     rpcs = get_rpcs(TEXT_PEERS)
     pool = Pool(len(rpcs)*concurrency)
+    txtlogger.debug('to text extract site {0} products'.format(site))
     products = spout_extracted_products(site)
     event_dict = generate_event_dict(site)
     
@@ -182,6 +184,7 @@ def text_extract(site, concurrency=3):
 
 def extract_and_propagate(rpc, method, event_dict, *args, **kwargs):
     res = call_rpc(rpc, method, *args, **kwargs) or {}
+    txtlogger.debug('extraction result ---> {0}'.format(res))
     for event_id in (res.get('event_id') or []):
         if event_id not in event_dict:
             continue

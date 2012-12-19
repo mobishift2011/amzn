@@ -122,7 +122,7 @@ class ImageTool:
     def download(self, image_url):
         print 'downloading image ---> {0}'.format(image_url)
         r = requests.get(image_url)
-        if r.status_code == 403:
+        if r.status_code == 403 or r.status_code == 404:
             return None
         else:
             r.raise_for_status()

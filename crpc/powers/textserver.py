@@ -55,6 +55,7 @@ class TextServer(object):
             'favbuy_dept': False,     # To indicate whether changes occur on dept classification.
         }  
 
+        logger.debug('flag init status: {0}'.format(brand_complete, tag_complete, dept_complete))
         if not brand_complete:
             crawled_brand = product.brand or ''
             brand = self.__extracter.extract(crawled_brand) or \

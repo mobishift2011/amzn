@@ -46,7 +46,7 @@ def batch_image_crawling(sender, **kwargs):
 
 @ready_for_batch.bind
 def batch_text_extract(sender, **kwargs):
-    logger.info('brand extract listens: {0} -> {1}'.format(sender, kwargs.items()))
+    logger.info('Text extract listens: {0} -> {1}'.format(sender, kwargs.items()))
     doctype = kwargs.get('doctype') or ''
     if doctype.capitalize() == 'Product':
         site = kwargs.get('site') or ''

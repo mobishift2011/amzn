@@ -1,1 +1,0 @@
-{ "indexes" : [ { "v" : 1, "key" : { "_id" : 1 }, "ns" : "training.department", "name" : "_id_" }, { "v" : 1, "key" : { "_types" : 1, "main" : 1, "sub" : 1 }, "unique" : true, "ns" : "training.department", "name" : "_types_1_main_1_sub_1", "background" : false } ] }

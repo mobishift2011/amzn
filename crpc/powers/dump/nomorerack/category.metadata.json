@@ -1,1 +1,0 @@
-{ "indexes" : [ { "v" : 1, "key" : { "_id" : 1 }, "ns" : "nomorerack.category", "name" : "_id_" }, { "v" : 1, "key" : { "key" : 1 }, "unique" : true, "ns" : "nomorerack.category", "name" : "key_1", "background" : false, "dropDups" : false }, { "v" : 1, "key" : { "_types" : 1, "is_leaf" : 1 }, "ns" : "nomorerack.category", "background" : false, "name" : "_types_1_is_leaf_1" } ] }

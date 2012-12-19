@@ -1,1 +1,0 @@
-{ "indexes" : [ { "v" : 1, "key" : { "_id" : 1 }, "ns" : "lot18.category", "name" : "_id_" }, { "v" : 1, "key" : { "_types" : 1, "is_leaf" : 1 }, "ns" : "lot18.category", "background" : false, "name" : "_types_1_is_leaf_1" } ] }

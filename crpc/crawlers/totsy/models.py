@@ -11,12 +11,13 @@ from crawlers.common.models import BaseEvent, LuxuryProduct
 
 class Event(BaseEvent):
     ages = ListField(StringField(), default=list)
+
     meta = {
         'db_alias': DB,
     }
 
     def url(self):
-        pass
+        return self.combine_url
 
 class Product(LuxuryProduct):
     meta = {

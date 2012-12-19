@@ -14,6 +14,10 @@ import random
 import traceback
 from datetime import datetime
 
+from helpers.log import getlogger
+txtlogger = getlogger('powerroutine', filename='/tmp/textserver.log')
+imglogger = getlogger('powerroutine', filename='/tmp/powerserver.log')
+
 def get_site_module(site):
     return __import__('crawlers.'+site+'.models', fromlist=['Category', 'Event', 'Product'])
 
@@ -43,6 +47,7 @@ def spout_images(site, doctype):
     instances = getattr(m, docparam['name']).objects(**docparam['kwargs'])
 
     for instance in instances:
+        imglogger.debug(instance.image_urls)
         yield {
             'site': site,
             'doctype': doctype,

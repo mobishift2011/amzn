@@ -29,7 +29,7 @@ def single_image_crawling(sender, **kwargs):
     if site and key and doctype.capitalize() in ('Event', 'Product'):
         process_image_pool.spawn(crawl_images, site, doctype, key)
     else:
-        logger.error('{0} failed in single image crawling: {1} {2} {3}'.format(sender, site, doctype, key))
+        logger.error('{0} failed to single image crawling: {1} {2} {3}'.format(sender, site, doctype, key))
         # TODO send a process_message error signal.
 
 @ready_for_batch.bind
@@ -41,7 +41,7 @@ def batch_image_crawling(sender, **kwargs):
     if site and doctype:
         scan_images(site, doctype, 10)
     else:
-        logger.error('{0} failed in batch image crawling: {1} {2}'.format(sender, site, doctype))
+        logger.error('{0} failed to batch image crawling: {1} {2}'.format(sender, site, doctype))
         # TODO send a process_message error signal.
 
 @ready_for_batch.bind
@@ -51,7 +51,7 @@ def batch_text_extract(sender, **kwargs):
     if doctype.capitalize() == 'Product':
         site = kwargs.get('site') or ''
         if not site:
-            logger.error('{0} failed in batch image crawling: {1} {2}'.format(sender, site, doctype))
+            logger.error('{0} failed to batch image crawling: {1} {2}'.format(sender, site, doctype))
             return
         
         text_extract(site, 10)
@@ -104,6 +104,7 @@ def brand_stat(sender, **kwargs):
     )
 
 if __name__ == '__main__':
+    import sys
     if len(sys.argv) > 1:
         if sys.argv[1] == '-si':
             site = sys.argv[2]

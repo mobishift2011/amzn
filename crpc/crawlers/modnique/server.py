@@ -17,13 +17,29 @@ from models import *
 from crawlers.common.events import common_saved, common_failed
 from crawlers.common.stash import *
 
-def fetch_product(url, headers=headers):
+headers = {
+    'Host':' www.modnique.com',
+    'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.4 (KHTML, like Gecko) Ubuntu/12.10 Chromium/22.0.1229.94 Chrome/22.0.1229.94 Safari/537.4',
+}
+req = requests.Session(prefetch=True, timeout=30, config=config, headers=headers)
+
+def fetch_event(url):
+    try:
+        ret = req.get(url)
+    except:
+        # page not exist or timeout
+        return
+
+    if ret.ok: return ret.content
+    else: return ret.status_code
+
+def fetch_product(url):
     """.. :py:method::
 
     :rtype: -1 redirect to homepage
     """
     try:
-        ret = request.get(url, headers=headers)
+        ret = req.get(url)
     except:
         # page not exist or timeout
         return
@@ -42,19 +58,15 @@ class Server(object):
         self.eventurl = 'http://www.modnique.com/all-sale-events'
         self.extract_slug_id = re.compile('.*/saleevent/(.+)/(\w+)/seeac/gseeac')
         self.extract_slug_product = re.compile('.*/product/.+/\w+/(.+)/(\w+)/color/.*size/seeac/gseeac')
-        self.headers = {
-            'Host':' www.modnique.com',
-            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.4 (KHTML, like Gecko) Ubuntu/12.10 Chromium/22.0.1229.94 Chrome/22.0.1229.94 Safari/537.4',
-        }
         self.pt = pytz.timezone('US/Pacific')
 
     def crawl_category(self, ctx='modnique.crawl_category.xxxxx'):
         """.. :py:method::
             categories should be ['apparel', 'jewelry-watches', 'handbags-accessories', 'shoes', 'beauty', 'men']
         """
-        content = fetch_page(self.eventurl, self.headers)
+        content = fetch_event(self.eventurl)
         if content is None or isinstance(content, int):
-            content = fetch_page(self.eventurl, self.headers)
+            content = fetch_event(self.eventurl)
         tree = lxml.html.fromstring(content)
         self.upcoming_proc(tree, ctx)
 
@@ -96,9 +108,9 @@ class Server(object):
         :param str dept: department
         :param str url: department url
         """
-        content = fetch_page(url, self.headers)
+        content = fetch_event(url)
         if content is None or isinstance(content, int):
-            content = fetch_page(url, self.headers)
+            content = fetch_event(url)
         tree = lxml.html.fromstring(content)
         nodes = tree.cssselect('div.bgShops > div#content > div#sales > div.pbm > div.page > ul.bannerfix > li > div.shop_thumb > div.media')
         _utcnow = datetime.utcnow()
@@ -137,9 +149,9 @@ class Server(object):
         :param str dept: department
         :param str url: department url
         """
-        content = fetch_page(url, self.headers)
+        content = fetch_event(url)
         if content is None or isinstance(content, int):
-            content = fetch_page(url, self.headers)
+            content = fetch_event(url)
         tree = lxml.html.fromstring(content)
         nodes = tree.cssselect('div.bgDark > div#content > div.sales > div.pbm > div.page > ul.bannerfix > li#saleEventContainer > div.sale_thumb > div.media')
         _utcnow = datetime.utcnow()
@@ -216,9 +228,9 @@ class Server(object):
         """.. :py:method::
         """
         slug, event_id = self.extract_slug_id.match(url).groups()
-        content = fetch_page(url, self.headers)
+        content = fetch_event(url)
         if content is None or isinstance(content, int):
-            content = fetch_page(url, self.headers)
+            content = fetch_event(url)
             if content is None or isinstance(content, int):
                 common_failed.send(sender=ctx, key=event_id, url=url,
                     reason='download listing url error, {0}'.format(content))
@@ -273,7 +285,7 @@ class Server(object):
         """.. :py:method::
         """
         slug, key = self.extract_slug_product.match(url).groups()
-        content = fetch_product(url, self.headers)
+        content = fetch_product(url)
         if content is None or isinstance(content[0], int):
             common_failed.send(sender=ctx, key=key, url=url,
                     reason='download product url error, {0}'.format(content))
@@ -320,7 +332,7 @@ class Server(object):
 
 
     def parse_sale(self, url, ctx):
-        content = fetch_product(url, self.headers)
+        content = fetch_product(url)
         if content is None or isinstance(content[0], int):
             common_failed.send(sender=ctx, key='', url=url,
                     reason='download product url error, {0}'.format(content))

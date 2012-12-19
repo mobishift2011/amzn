@@ -9,6 +9,8 @@ from crawlers.common.stash import *
 from crawlers.common.events import common_saved, common_failed
 from models import *
 
+req = requests.Session(prefetch=True, timeout=30, config=config, headers=headers)
+
 class totsyLogin(object):
     """.. :py:class:: totsyLogin
         login, check whether login, fetch page.
@@ -29,8 +31,8 @@ class totsyLogin(object):
         """.. :py:method::
             use post method to login
         """
-        request.get(self.login_url)
-        request.post('https://www.totsy.com/customer/account/loginPost/', data=self.data)
+        req.get(self.login_url)
+        req.post('https://www.totsy.com/customer/account/loginPost/', data=self.data)
         self._signin = True
 
     def check_signin(self):
@@ -45,11 +47,11 @@ class totsyLogin(object):
             fetch page.
             check whether the account is login, if not, login and fetch again
         """
-        ret = request.get(url)
+        ret = req.get(url)
 
         if 'https://www.totsy.com/customer/account/login' in ret.url:
             self.login_account()
-            ret = request.get(url)
+            ret = req.get(url)
         if ret.ok: return ret.content
 
         return ret.status_code
@@ -149,7 +151,11 @@ class Server(object):
         return event, is_new, is_updated
 
     def crawl_listing(self, url, ctx=''):
-        pass
+        content = self.net.fetch_page(url)
+        if content is None or isinstance(content, int):
+            common_failed.send(sender=ctx, key='', url=url,
+                    reason='download event listing page failed: {0}'.format(content))
+        tree = lxml.html.fromstring(content)
 
     def crawl_product(self, url, ctx=''):
         pass

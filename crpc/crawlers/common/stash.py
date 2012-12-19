@@ -31,7 +31,10 @@ config = {
     'pool_connections': 10, 
     'pool_maxsize': 10, 
 }
-request = requests.Session(prefetch=True, timeout=30, config=config, headers=headers)
+
+# this request_only should not be override or used in multiple crawler,
+# because one crawler change its header or config, the other crawler will mess.
+request_only = requests.Session(prefetch=True, timeout=30, config=config, headers=headers)
 
 
 def get_ordinary_crawlers():
@@ -66,21 +69,15 @@ def singleton(cls):
     return get_instance
 
 
-def fetch_page(url, headers=headers):
+def fetch_page(url):
     try:
-        ret = request.get(url, headers=headers)
+        ret = request_only.get(url)
     except:
         # page not exist or timeout
         return
 
     if ret.ok: return ret.content
     else: return ret.status_code
-
-def login_page(url, data):
-    """
-        data = {key1: value1, key2: value2}
-    """
-    request.post(url, data=data)
 
 
 locked = {}

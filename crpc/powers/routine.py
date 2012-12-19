@@ -69,7 +69,7 @@ def spout_extracted_products(site):
     # products = m.Product.objects(Q(dept_complete = False) & \
     #                 (Q(products_begin__lte=now) | Q(products_begin__exists=False)) & \
     #                     (Q(products_end__gt=now) | Q(products_end__exists=False)))
-    
+
     for product in products:
         yield {
             'site': site,
@@ -142,9 +142,6 @@ def propagate(site, concurrency=3):
     for event in events:
         rpc = random.choice(rpcs)
         pool.spawn(call_rpc, rpc, 'propagate', **event)
-    pool.join()
-    
-    ready_for_publish.send(None, **{'site': site})
 
 def generate_event_dict(site, complete=True):
     """
@@ -195,6 +192,10 @@ def text_extract(site, concurrency=3):
         gevent.spawn(update_propation, event_dict, site)
         gevent.spawn(propagate, site, concurrency)
 
+    gevent.joinall()
+    logger.info('ready for publish site -> {0}'.format(site))
+    ready_for_publish.send(None, **{'site': site})
+
 def extract_and_propagate(rpc, method, event_dict, *args, **kwargs):
     res = call_rpc(rpc, method, *args, **kwargs) or {}
     txtlogger.debug('extraction result ---> {0}'.format(res))
@@ -219,8 +220,8 @@ def update_propation(event_dict, site):
     for event_id in event_dict:
         event = event_dict[event_id]
         if event['propagation_updated']:
+            event.update_time = datetime.utcnow()
             event['event'].save()
-            update_for_publish.send(sender=None, site=site, doctype='Event', key=event_id)
 
 
 if __name__ == '__main__':

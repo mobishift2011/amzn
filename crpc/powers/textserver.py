@@ -11,6 +11,7 @@ from tools import Propagator
 from powers.events import *
 
 from crawlers.common.stash import exclude_crawlers
+from datetime import datetime
 from os import listdir
 from os.path import join, isdir
 
@@ -55,7 +56,6 @@ class TextServer(object):
             'favbuy_dept': False,     # To indicate whether changes occur on dept classification.
         }  
 
-        logger.debug('flag init status: {0}'.format(brand_complete, tag_complete, dept_complete))
         if not brand_complete:
             try:
                 crawled_brand = product.brand or ''
@@ -99,26 +99,19 @@ class TextServer(object):
             else:
                 logger.error('{0}.product.{1} extract dept failed'.format(site, key))
 
-        try:
-            product.save()
-        except:
-            logger.error('{0}.product.{1} extract save exception'.format(site, key))
-            return {}
 
-        # for updating product publish
+        # For updating event propagation, we should put some info back to the rpc caller.
         res = {}
         fields = [key for key in flags if flags[key]]
         if fields:
-            update_for_publish.send(sender=None, site=site, doctype='Product', key=product.key, fields=fields)
+            product.list_update_time = datetime.utcnow()
+            product.save()
 
             res['event_id'] = product.event_id or []
             res['fields'] = {}
             for field in fields:
                 res['fields'][field] = getattr(product, field)
-
-        # for updating event propagation
-        logger.debug('site: %s' % site)
-        logger.debug( 'text server extract res ---> {0}'.format(res))
+        
         return res
 
     def propagate(self, args=(), kwargs={}):
@@ -127,10 +120,8 @@ class TextServer(object):
         p = Propagator(site, event_id, self.__extractor, self.__classifier, module=self.__m[site])
         if p.propagate():
             logger.info('{0}.event.{1} propagation OK'.format(site, event_id))
-            # TODO send scuccess signal
         else:
             logger.error('{0}.event.{1} propagation failed'.format(site, event_id))
-            # TODO send fail signal
 
 
 if __name__ == '__main__':

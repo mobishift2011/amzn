@@ -47,7 +47,7 @@ def spout_images(site, doctype):
     instances = getattr(m, docparam['name']).objects(**docparam['kwargs'])
 
     for instance in instances:
-        imglogger.debug(instance.image_urls)
+        # imglogger.debug(instance.image_urls)
         yield {
             'site': site,
             'doctype': doctype,
@@ -56,8 +56,11 @@ def spout_images(site, doctype):
         }
 
 def spout_extracted_products(site):
+    txtlogger.debug('enter spout {0}'.format(site))
     m = get_site_module(site)
+    txtlogger.debug('get module {0}'.format(m))
     now = datetime.utcnow()
+    txtlogger.debug('to get now {0}'.format(now))
     products = m.Product.objects((Q(brand_complete = False) | \
                 Q(tag_complete = False) | Q(dept_complete = False)) & \
                     (Q(products_begin__lte=now) | Q(products_begin__exists=False)) & \

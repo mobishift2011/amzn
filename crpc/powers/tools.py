@@ -91,6 +91,7 @@ class ImageTool:
 
             if self.__key.exists():
                 image_content = None
+                self.__key.make_public()
                 s3_url = '{0}/{1}'.format(S3_IMAGE_URL, self.__key.key)
                 print 'grab existing image from s3 ---> {0}\n'.format(s3_url)
                 self.__image_path.append(s3_url)

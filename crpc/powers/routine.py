@@ -61,13 +61,15 @@ def spout_extracted_products(site):
     m = get_site_module(site)
     txtlogger.debug('get module {0}'.format(m))
     now = datetime.utcnow()
-    txtlogger.debug('to get now {0}'.format(now))
-    products = m.Product.objects((Q(brand_complete = False) | \
-                Q(tag_complete = False) | Q(dept_complete = False)) & \
+    # products = m.Product.objects((Q(brand_complete = False) | \
+    #             Q(tag_complete = False) | Q(dept_complete = False)) & \
+    #                 (Q(products_begin__lte=now) | Q(products_begin__exists=False)) & \
+    #                     (Q(products_end__gt=now) | Q(products_end__exists=False)))
+
+    products = m.Product.objects(Q(dept_complete = False) & \
                     (Q(products_begin__lte=now) | Q(products_begin__exists=False)) & \
                         (Q(products_end__gt=now) | Q(products_end__exists=False)))
-
-    txtlogger.debug('spout extracted products {0}'.format(len(products)))
+    
     for product in products:
         yield {
             'site': site,

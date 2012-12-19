@@ -56,19 +56,20 @@ class TextServer(object):
         }  
 
         if not brand_complete:
-            crawled_brand = product.brand or ''
-            brand = self.__extracter.extract(crawled_brand) or \
-                        self.__extracter.extract(title)
-            if brand:
-                product.favbuy_brand=brand
-                product.brand_complete=True
-                flags['favbuy_brand'] = True
-                logger.info('{0}.product.{1} extract brand {2} -> {3} OK'.format(site, key, crawled_brand, brand))
-                # TODO send scuccess signal
-            else:
-                product.update(set__brand_complete=False)
-                logger.warning('{0}.product.{1} extract brand {2} failed'.format(site, key, crawled_brand))
-                # TODO send fail signal
+            try:
+                crawled_brand = product.brand or ''
+                brand = self.__extracter.extract(crawled_brand) or \
+                            self.__extracter.extract(title)
+                if brand:
+                    product.favbuy_brand=brand
+                    product.brand_complete=True
+                    flags['favbuy_brand'] = True
+                    logger.info('{0}.product.{1} extract brand {2} -> {3} OK'.format(site, key, crawled_brand, brand))
+                else:
+                    product.update(set__brand_complete=False)
+                    logger.warning('{0}.product.{1} extract brand {2} failed'.format(site, key, crawled_brand))
+            except:
+                logger.error('{0}.product.{1} extract brand exception'.format(site, key))
 
         text_list = []
         text_list.append(product.title or '')
@@ -88,7 +89,6 @@ class TextServer(object):
         
         if not dept_complete:
             text_list.extend(product.dept)
-            logger.debug(text_list)
             favbuy_dept = list(self.__classifier.classify( '\n'.join(text_list) ))
             product.favbuy_dept = favbuy_dept
             product.dept_complete = bool(favbuy_dept)

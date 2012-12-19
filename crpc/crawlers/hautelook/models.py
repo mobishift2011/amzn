@@ -18,7 +18,7 @@ connect(db=DB, alias=DB, host=MONGODB_HOST)
 
 class Event(BaseEvent):
     sort_order  = StringField()
-    tagline     = StringField()
+    tagline     = ListField(StringField())
 
     meta = {
         "db_alias": DB,

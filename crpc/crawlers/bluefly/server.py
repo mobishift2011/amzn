@@ -29,7 +29,7 @@ class Server(object):
         self.extract_slug_key_of_listingurl = re.compile(r'.*/(.+)/_/N-(.+)/list.fly')
         self.extract_category_key = re.compile(r'http://www.bluefly.com/_/N-(.+)/list.fly')
         self.extract_product_slug_key = re.compile(r'http://www.bluefly.com/(.+)/p/(.+)/detail.fly')
-        self.extract_large_image = re.compile('.*largeimage: \'([^\']+)') 
+        self.extract_large_image = re.compile(".*smallimage: \'(.+?outputx=)(\d+)(&outputy=)(\d+)(&.+?)\'")
 
     def crawl_category(self, ctx=''):
         """.. :py:method::
@@ -308,7 +308,9 @@ class Server(object):
         image_urls = []
         imgs = detail.cssselect('div.product-image > div.image-thumbnail-container > a')
         for img in imgs:
-            image_urls.append( self.extract_large_image.search(img.get('rel')).group(1) )
+            aa, outx, bb, outy, cc = self.extract_large_image.search(img.get('rel')).groups()
+            image_urls.append( '{0}{1}{2}{3}{4}'.format(aa, int(outx)*2, bb, int(outy)*2, cc) )
+            
         color = detail.cssselect('div.product-info > form#product > div.product-variations > div.pdp-label > em')
         color = color[0].text_content() if color else ''
         sizes = detail.cssselect('div.product-info > form#product > div.product-sizes > div.size-picker > ul.product-size > li')

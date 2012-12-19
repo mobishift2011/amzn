@@ -56,6 +56,7 @@ def spout_images(site, doctype):
         }
 
 def spout_extracted_products(site):
+    print 'enter spout {0}'.format(site)
     txtlogger.debug('enter spout {0}'.format(site))
     m = get_site_module(site)
     txtlogger.debug('get module {0}'.format(m))

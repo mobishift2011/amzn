@@ -10,7 +10,6 @@ from tools import ImageTool
 from powers.events import *
 
 from crawlers.common.stash import exclude_crawlers
-import traceback
 from os import listdir
 from os.path import join, isdir
 
@@ -49,8 +48,8 @@ class PowerServer(object):
             image_tool = ImageTool(connection=self.__s3conn)
             try:
                 image_tool.crawl(image_urls, site, doctype, key, thumb=True)
-            except:
-                logger.error('crawling image of {0}.{1}.{2} exception: {3}'.format(site, doctype, key, str(traceback.print_exc())))
+            except Exception, e:
+                logger.error('crawling image of {0}.{1}.{2} exception: {3}'.format(site, doctype, key, str(e)))
                 return
             image_path = image_tool.image_path  
 

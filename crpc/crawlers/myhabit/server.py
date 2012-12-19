@@ -14,12 +14,12 @@ from models import Product, Event
 from crawlers.common.events import common_saved
 from crawlers.common.stash import *
 
-headers = {
+header = {
     'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.4 (KHTML, like Gecko) Ubuntu/12.10 Chromium/22.0.1229.94 Chrome/22.0.1229.94 Safari/537.4',
     'Cookie': 'session-id=187-2590046-5168141; session-id-time=1981953112l; session-token="Du3P0R8YKirRoBoLUW7vGfb+S4AxLHVDHugauuoNNbe7GL7+HdYVbj4R6E0qd0kOYZP1p08iLRS4ifjAM9g3q++7Lnin99mUIyiifqkyaVyFlYZgMzNQRFPtBch2NtU6zsVHt7E0ZipCJzZCBR9wa0RcALAyoWXh3O3XQ2LqcmilYQDqvGwRruHKDHBMFGrsJ8m23uWs+OU9tEn4C9p0IO9kl6t0xjv/0im28qSEE+s="; ct-main=dggZr9fLGRQ6nJUa9lswPE8VamKEexge; ubid-main=180-1581204-1041538',
     'x-amzn-auth': '187-2590046-5168141',
 }
-req = requests.Session(prefetch=False, timeout=30, config=config, headers=headers)
+req = requests.Session(prefetch=False, timeout=30, config=config, headers=header)
 
 def time2utc(t):
     """ convert myhabit time format (json) to utc """

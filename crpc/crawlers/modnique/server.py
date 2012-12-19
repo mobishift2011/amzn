@@ -17,11 +17,11 @@ from models import *
 from crawlers.common.events import common_saved, common_failed
 from crawlers.common.stash import *
 
-headers = {
+header = {
     'Host':' www.modnique.com',
     'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.4 (KHTML, like Gecko) Ubuntu/12.10 Chromium/22.0.1229.94 Chrome/22.0.1229.94 Safari/537.4',
 }
-req = requests.Session(prefetch=True, timeout=30, config=config, headers=headers)
+req = requests.Session(prefetch=True, timeout=30, config=config, headers=header)
 
 def fetch_event(url):
     try:

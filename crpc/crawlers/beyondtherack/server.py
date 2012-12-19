@@ -16,12 +16,12 @@ from models import *
 from crawlers.common.stash import *
 from crawlers.common.events import common_saved, common_failed
 
-headers = {
+header = {
     'Host': 'www.beyondtherack.com',
     'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:16.0) Gecko/20100101 Firefox/16.0',
 }
 
-req = requests.Session(prefetch=True, timeout=30, config=config, headers=headers)
+req = requests.Session(prefetch=True, timeout=30, config=config, headers=header)
 
 class beyondtherackLogin(object):
     """.. :py:class:: beyondtherackLogin

@@ -22,14 +22,14 @@ import urllib
 import re
 
 import time
-headers = { 
+header = { 
     'Host': 'www.ruelala.com',
     'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:17.0) Gecko/20100101 Firefox/17.0',
     'Referer': 'http://www.ruelala.com/event',
 #'Cookie': 'X-CCleaned=1; optimizelyEndUserId=oeu1349667187777r0.2759982226275626; optimizelyBuckets=%7B%7D; CoreID6=87382265939413496671878&ci=90210964; userEmail=2012luxurygoods@gmail.com; optimizelySegments=%7B%7D; symfony=vq72a0g2ln0gbgu2hsbu7m6n37; Liberty.QuickBuy.canQuickBuy=0; cmTPSet=Y; 90210964_clogin=l=1355371341&v=1&e=1355373144030; aid=1001; pgts={0}; NSC_SVF_QPPM_BMM=ffffffff096c9d3c45525d5f4f58455e445a4a423660; urk=153f9ae7be27a389f232a046280ce14724e4d590; urkm=6fb2f52e9bffc7ec8187bec354dcae484cc5e371; uid=10456083'.format(int(time.time())),
 }
 
-req = requests.Session(prefetch=True, timeout=30, config=config)#, headers=headers)
+req = requests.Session(prefetch=True, timeout=30, config=config)#, headers=header)
 
 class ruelalaLogin(object):
     """.. :py:class:: ruelalaLogin

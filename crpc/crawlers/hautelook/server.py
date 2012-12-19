@@ -18,7 +18,7 @@ import json
 import itertools
 
 
-headers = { 
+header = { 
     'Accept': 'application/json',
     'Accept-Charset': 'UTF-8,*;q=0.5',
     'Accept-Encoding': 'gzip,deflate,sdch',
@@ -34,7 +34,7 @@ headers = {
     'X-Requested-With': 'XMLHttpRequest',
 }
 
-request = requests.Session(prefetch=True, timeout=30, config=config, headers=headers)
+request = requests.Session(prefetch=True, timeout=30, config=config, headers=header)
 
 
 class Server(object):

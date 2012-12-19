@@ -40,13 +40,13 @@ def connect_vnew(self):
 
 VerifiedHTTPSConnection.connect = connect_vnew
 
-headers = {
+header = {
     'Host': 'www.onekingslane.com',
     'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:15.2) Gecko/20121028 Firefox/15.2.1 PaleMoon/15.2.1',
     'Referer': 'https://www.onekingslane.com/login',
 }
 
-req = requests.Session(prefetch=True, timeout=30, config=config, headers=headers)
+req = requests.Session(prefetch=True, timeout=30, config=config, headers=header)
 
 
 class onekingslaneLogin(object):

@@ -135,10 +135,7 @@ class Server(object):
             event.events_begin = events_begin
             event.events_end = events_end
             event.update_time = _utcnow
-            try:
-                event.save()
-            except ValidationError:
-                open('/tmp/hautelook_tagline_error.txt', 'w').write('{0}, {1}'.format(event_id, tagline))
+            event.save()
             common_saved.send(sender=ctx, obj_type='Event', key=event_id,
                     url='{0}/event/{1}'.format(self.siteurl, event_id), is_new=is_new, is_updated=is_updated)
         debug_info.send(sender=DB + '.category.end')

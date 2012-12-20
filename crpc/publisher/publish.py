@@ -24,11 +24,12 @@ class Publisher:
         m = get_site_module(site)
 
         # try look for both unpublished events and events published but requiring update
-        for ev in m.Event.objects:
-            if self.should_publish_event_upd(ev):
-                self.publish_event(ev, upd=True, fields=['soldout', 'favbuy_brand', 'favbuy_dept', 'favbuy_tag'])
-            else:
-                self._try_publish_event(ev, skip_products=True)
+        if hasattr(m, 'Event'):
+            for ev in m.Event.objects:
+                if self.should_publish_event_upd(ev):
+                    self.publish_event(ev, upd=True, fields=['soldout', 'favbuy_brand', 'favbuy_dept', 'favbuy_tag'])
+                else:   
+                    self._try_publish_event(ev, skip_products=True)
 
         # try look for both unpublished products and products published but requiring update
         for prod in m.Product.objects:

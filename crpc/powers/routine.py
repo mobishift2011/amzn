@@ -159,7 +159,7 @@ def generate_event_dict(site, complete=True):
     now = datetime.utcnow()
 
     try:
-        events = m.Event.objects(Q(propagation_complete = complete) & \
+        events = m.Event.objects( \
             (Q(events_begin__lte=now) | Q(events_begin__exists=False)) & \
                 (Q(events_end__gt=now) | Q(events_end__exists=False)) )
     except AttributeError:
@@ -188,11 +188,10 @@ def text_extract(site, concurrency=3):
     pool.join()
 
     # If site has event model, it should update and new the event propagation
-    if event_dict:
-        gevent.spawn(update_propation, event_dict, site)
-        gevent.spawn(propagate, site, concurrency)
+    jobs = [gevent.spawn(update_propation, event_dict, site), \
+                gevent.spawn(propagate, site, concurrency)]
+    gevent.joinall(jobs)
 
-    gevent.joinall()
     txtlogger.info('ready for publish site -> {0}'.format(site))
     ready_for_publish.send(None, **{'site': site})
 
@@ -220,7 +219,7 @@ def update_propation(event_dict, site):
     for event_id in event_dict:
         event = event_dict[event_id]
         if event['propagation_updated']:
-            event.update_time = datetime.utcnow()
+            event['event'].update_time = datetime.utcnow()
             event['event'].save()
 
 

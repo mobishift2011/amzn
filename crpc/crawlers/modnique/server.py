@@ -82,7 +82,9 @@ class Server(object):
             link = e.cssselect('a')[0].get('href')
             slug, event_id = self.extract_slug_id.match(link).groups()
             link = link if link.startswith('http') else self.siteurl + link
-            dept = e.xpath('./preceding-sibling::a[contains(@class, "pvn")]/@href')[0].rsplit('/', 1)[-1]
+            for ii in e.itersiblings(tag='a', preceding=True):
+                dept = ii.get('href').rsplit('/', 1)[-1]
+                break
 
             event, is_new, is_updated = self.get_event_from_db(event_id, link, slug, sale_title)
             if dept not in event.dept: event.dept.append(dept)

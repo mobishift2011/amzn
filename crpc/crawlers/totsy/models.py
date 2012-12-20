@@ -25,4 +25,4 @@ class Product(LuxuryProduct):
     }
 
     def url(self):
-        pass
+        return self.combine_url

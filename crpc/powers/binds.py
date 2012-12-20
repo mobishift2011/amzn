@@ -15,7 +15,7 @@ logger = getlogger("powersignals", '/tmp/powersignals.log')
 import gevent.pool
 process_image_pool = gevent.pool.Pool(500)
 
-#@common_saved.bind
+@common_saved.bind
 def single_image_crawling(sender, **kwargs):
     ready = kwargs.get('ready', False)
     if not ready:
@@ -32,7 +32,7 @@ def single_image_crawling(sender, **kwargs):
         logger.error('{0} failed to single image crawling: {1} {2} {3}'.format(sender, site, doctype, key))
         # TODO send a process_message error signal.
 
-#@ready_for_batch.bind
+@ready_for_batch.bind
 def batch_image_crawling(sender, **kwargs):
     logger.info('batch image crawling listens: {0} -> {1}'.format(sender, kwargs.items()))
     site = kwargs.get('site')

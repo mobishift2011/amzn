@@ -142,6 +142,7 @@ def propagate(site, concurrency=3):
     for event in events:
         rpc = random.choice(rpcs)
         pool.spawn(call_rpc, rpc, 'propagate', **event)
+    pool.join()
 
 def generate_event_dict(site, complete=True):
     """

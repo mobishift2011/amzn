@@ -61,7 +61,7 @@ class Server(object):
         """.. :py:method::
         """
         self.net.check_signin()
-        categories = ['women', 'men', 'children', 'home',]
+        categories = ['women', 'men', 'children', ]
         for cat in categories:
             link = 'http://www.gilt.com/sale/{0}'.format(cat)
             cont = self.net.fetch_page(link)
@@ -71,16 +71,26 @@ class Server(object):
             tree = lxml.html.fromstring(cont)
             self.parse_event(tree)
 
+        link = 'http://www.gilt.com/home/sale'
+
     def parse_event(self, tree):
         nodes = tree.cssselect('section#main > div.sales-container > section.new-sales > article.sale')
+        nodes = tree.cssselect('section#main > div.sales-container > section.new-sales')
+        print nodes
+        exit()
         for node in nodes:
             link = node.xpath('./a/@href')
             link = link if link.startswith('http') else self.siteurl + link
-            title = node.xpath('./a/img/@alt')
+            title = node.xpath('./a/img/@alt').strip()
             image = node.xpath('./a/img/@src')
+            if link.rsplit('/', 1)[-1] == 'ss':
+                print title, title, image
 
     def crawl_listing(self, url, ctx=''):
         pass
 
-    def crawl_product(self, url. ctx=''):
+    def crawl_product(self, url, ctx=''):
         pass
+
+if __name__ == '__main__':
+    Server().crawl_category()

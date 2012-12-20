@@ -45,7 +45,7 @@ def fetch_product(url):
         return
 
     if ret.ok:
-        if 'bzJApp/SalesEventsHome' in ret.url:
+        if 'bzJApp/SalesEventsHome' in ret.url or 'bzJApp/SalesEventDisplay' in ret.url:
             return -302, ret.url
         return ret.content, ret.url
     else:

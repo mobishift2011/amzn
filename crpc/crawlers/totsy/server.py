@@ -180,11 +180,11 @@ class Server(object):
         event_id = self.extract_event_id.match(url).group(1)
         ret = self.net.fetch_listing_page(url)
         if isinstance(ret, tuple):
-            self.event_is_product(ret[0], ret[1], ret[2], ctx)
+            self.crawl_event_is_product(event_id, ret[0], ret[1], ret[2], ctx)
             return
         elif ret is None or isinstance(ret, int):
             common_failed.send(sender=ctx, key=event_id, url=url,
-                    reason='download event listing page failed: {0}: {1}'.format(ret.status_code, ret.content))
+                    reason='download event listing page failed: {0}'.format(ret))
             return
         else:
             pass
@@ -238,7 +238,7 @@ class Server(object):
             common_saved.send(sender=ctx, obj_type='Event', key=event_id, is_new=False, is_updated=False, ready=ready)
 
 
-    def event_is_product(self, key, url, content, ctx):
+    def crawl_event_is_product(self, event_id, key, url, content, ctx):
         """.. :py:method::
         """
         tree = lxml.html.fromstring(content)
@@ -260,6 +260,7 @@ class Server(object):
                 product.soldout = True
                 is_updated = True
             ready = False
+        if event_id not in product.event_id: product.event_id.append(event_id)
         product.save()
         common_saved.send(sender=ctx, obj_type='Product', key=key, url=url, is_new=is_new, is_updated=is_updated, ready=ready)
 

@@ -15,7 +15,9 @@ import json
 
 clf = SklearnClassifier('svm')
 clf.load_from_database()
-sites = ['myhabit', 'gilt', 'ruelala', 'hautelook', 'nomorerack', 'onekingslane', 'zulily']
+sites = ['beyondtherack', 'bluefly', 'gilt', 'hautelook', 'ideeli', 'lot18', 'modnique', 'myhabit', 'nomorerack', 'onekingslane', 'ruelala', 'venteprivee', 'zulily']
+sites = ['ideeli']
+
 def get_site_module(site):
     return __import__('crawlers.'+site+'.models', fromlist=['Category', 'Event', 'Product'])
 
@@ -32,7 +34,7 @@ def get_site_key():
     index = random.randint(1, count-1)
     p = m.Product.objects().skip(index).first()
 
-    if (not p.list_info) or (not p.title):
+    if (not p.list_info) and (not p.title):
         return get_site_key()
 
     return site+'_'+p.key
@@ -41,14 +43,23 @@ def get_text(site_key):
     site, key = site_key.split('_', 1)
     m = get_site_module(site)
     p = m.Product.objects.get(key=key)
+    try:
+        depts = []
+        for eid in p.event_id:
+            e = m.Event.objects.get(event_id=eid)
+            depts.extend( e.dept )
+            if hasattr(e, 'short_desc'):
+                depts.append( e.short_desc )
 
-    content = p.title + u'\n' + u'\n'.join(p.list_info)
+        content = site + u'\n' + u'; '.join(depts) + u'\n' + u'; '.join(p.cats) 
+        if p.tagline:
+            content += u'\n' + u'; '.join(p.tagline)
+        content += u'\n' +  p.title 
+    except:
+        import traceback
+        traceback.print_exc()
 
-    for fieldname in ['short_desc', 'summary', 'detail']:
-        if getattr(p, fieldname):
-            content += u'\n' + getattr(p, fieldname)
-
-    return p.combine_url, content.replace('\n','<br />')
+    return p.combine_url, p.image_urls, content.replace('\n','<br />')
 
 @route('/assets/<filepath:path>')
 def server_static(filepath):
@@ -105,7 +116,7 @@ def teach():
         departments[d.main].append(d.sub)
     departments_object = json.dumps(departments)
     try:
-        url, content = get_text(site_key)
+        url, image_urls, content = get_text(site_key)
     except:
         redirect('/')
     return template('teach', **locals())
@@ -128,7 +139,7 @@ def teach_train():
 @route('/validate/')
 def validate():
     site_key = get_site_key()
-    url, content = get_text(site_key)
+    url, image_urls, content = get_text(site_key)
     result = clf.classify(content)
     return template('validate', **locals())
 

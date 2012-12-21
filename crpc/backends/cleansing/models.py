@@ -29,7 +29,7 @@ class Product(Base):
 Index('product_site_key', Product.site, Product.key)
 
 class Model(Base):
-    __tablename__ = 'model'
+    __tablename__ = 'model2'
 
     id              =   Column(Integer, primary_key=True)
     model           =   Column(String(128), unique=True, index=True)

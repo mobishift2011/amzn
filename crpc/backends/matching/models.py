@@ -113,6 +113,7 @@ def bootstrap():
         for v in vlist:
             print k, v
             Department.objects(main=k,sub=v).update(set__main=k, set__sub=v, upsert=True)
+    return
     # Department.objects(main='Beauty & Health').update(set__parent='Women')
     # Department.objects(main='Jewelry & Watches').update(set__parent='Women')
     # Department.objects(main='Handbags').update(set__parent='Women')

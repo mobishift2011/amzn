@@ -48,7 +48,7 @@ class Server(object):
         self.event_url = 'http://www.hautelook.com/v3/events'
         self.login_url = 'https://www.hautelook.com/login'
         self.post_url = 'https://www.hautelook.com/v3/credential'
-        self.data = {
+        self.data = { # If want to login, maybe need more header to masquerading like a browser
             "email": login_email,
             "password": login_passwd,
             "meta": {

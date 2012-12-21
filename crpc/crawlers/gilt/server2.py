@@ -75,9 +75,6 @@ class Server(object):
 
     def parse_event(self, tree):
         nodes = tree.cssselect('section#main > div.sales-container > section.new-sales > article.sale')
-        nodes = tree.cssselect('section#main > div.sales-container > section.new-sales')
-        print nodes
-        exit()
         for node in nodes:
             link = node.xpath('./a/@href')
             link = link if link.startswith('http') else self.siteurl + link

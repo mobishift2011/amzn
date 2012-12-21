@@ -2,7 +2,7 @@
 from gevent import monkey; monkey.patch_all()
 from crawlers.common.events import common_saved
 from crawlers.common.routine import get_site_module
-from powers.events import image_crawled, ready_for_publish, update_for_publish
+from powers.events import image_crawled, ready_for_publish
 from mysettings import MINIMUM_PRODUCTS_READY, MASTIFF_ENDPOINT
 from helpers import log
 from mongoengine import Q
@@ -20,19 +20,24 @@ class Publisher:
         
         :param site: all objects under site will be examined for publishing.
         '''
-        self.logger.debug("try_publish_all %s", site)
+        self.logger.debug("try_publish_all site:%s", site)
         m = get_site_module(site)
 
-        # try all unpublished events and published but recently becomes onshelf ones
-        for ev in m.Event.objects:
-            #if ev.publish_time and (not ev.events_begin or ev.publish_time>=ev.events_begin):
-            #    continue
-            self._try_publish_event(ev)
+        # try look for both unpublished events and events published but requiring update
+        if hasattr(m, 'Event'):
+            for ev in m.Event.objects:
+                if self.should_publish_event_upd(ev):
+                    self.publish_event(ev, upd=True, fields=['soldout', 'favbuy_brand', 'favbuy_dept', 'favbuy_tag'])
+                else:   
+                    self._try_publish_event(ev, skip_products=True)
 
-        # we need to scan database once more for ready products that are NOT associated with any events
-        self.logger.debug("now publishing standalone products ...")
-        for prod in self.ready_standalone_products(m):
-            self.publish_product(prod)
+        # try look for both unpublished products and products published but requiring update
+        for prod in m.Product.objects:
+            if self.should_publish_product(prod, chk_ev=True):
+                self.publish_product(prod)
+            elif self.should_publish_product_upd(prod):
+                self.publish_product(prod, upd=True, fields=['soldout', 'favbuy_brand', 'favbuy_dept', 'favbuy_tag'])
+        self.logger.debug("try_publish_all completed site:%s", site)
         
     def try_publish_event(self, site, evid):
         '''check if event is ready for publish and if so, publish it.
@@ -91,14 +96,13 @@ class Publisher:
         '''
         self.logger.debug("try_publish_product_update %s:%s, fields:%s", site, prod_key, fields)
         m = get_site_module(site)
-        print m.Product
         prod = m.Product.objects.get(key=prod_key)
         if self.should_publish_product_upd(prod, fields):
             self.publish_product(prod, upd=True, fields=fields)  # perhaps just publish portion of data? $$
         else:
             self.logger.debug("product %s:%s not ready for publishing", obj_to_site(prod),prod_key)
             
-    def _try_publish_event(self, ev):
+    def _try_publish_event(self, ev, skip_products=False):
         '''
         Check if the event meets publish condition and if so, publish it. Note we take care of
         events that were published before but were happening in future, in which case we need
@@ -116,13 +120,15 @@ class Publisher:
             for prod in m.Product.objects(publish_time__exists=True, event_id=ev.event_id):
                 self.publish_product(prod, upd=True, fields=['events'])
         elif self.should_publish_event_newly_onshelf(ev):
-            self.publish_event(ev, upd=True, fields=['favbuy_brand', 'favbuy_dept'])
+            self.publish_event(ev, upd=True, fields=['favbuy_brand', 'favbuy_dept', 'favbuy_tag'])
         elif ev.publish_time:
             self.logger.debug("event %s:%s already published", obj_to_site(ev), ev.event_id)
         else:
             self.logger.debug("event %s:%s not ready for publish", obj_to_site(ev), ev.event_id)
             return # we know event is not ready, therefore no need to continue to next step
 
+        if skip_products:
+            return
         # it's a full publish, so we need to publish all contained yet unpublished products
         for prod in m.Product.objects(publish_time__exists=False, event_id=ev.event_id):
             if self.should_publish_product(prod):
@@ -159,7 +165,7 @@ class Publisher:
         
         :param ev: event object
         '''
-        return ev.publish_time # and ev.publish_time < ev.update_time
+        return ev.publish_time and ev.publish_time < ev.update_time
         
     def should_publish_event_newly_onshelf(self, ev):
         '''all events that were future events and published before but recently became on-shelf and 
@@ -196,7 +202,7 @@ class Publisher:
         Interestingly, seems all user case are setting chk_ev=False. Perhaps we don't
         need this parameter??
         '''
-        if chk_ev:
+        if chk_ev and prod.event_id:
             allow_publish = False
             m = obj_to_module(prod)
             for ev in [m.Event.objects.get(event_id=evid) for evid in prod.event_id]:
@@ -207,14 +213,11 @@ class Publisher:
                 return False
         return not prod.publish_time and prod.image_complete and prod.dept_complete
 
-    def should_publish_product_upd(self, prod, fields):
+    def should_publish_product_upd(self, prod):
         '''condition for publishing product update (the product was published before).
         :param prod: product object
         '''
-        if fields==['soldout']:
-            return prod.publish_time and prod.publish_time < prod.list_update_time
-        else:
-            return prod.publish_time
+        return prod.publish_time and prod.publish_time < prod.list_update_time
         
     def publish_event(self, ev, upd=False, fields=[]):
         '''publish event data to the mastiff service.
@@ -391,24 +394,6 @@ def process_common_saved(sender, **kwargs):
         p.try_publish_event_update(site, key, ['soldout'])
     elif obj_type == 'Product':
         p.try_publish_product_update(site, key, ['soldout'])
-
-@update_for_publish.bind('globalsync')
-def process_update_for_publish(sender, **kwargs):
-    '''signal handler for update_for_publish signal. This signal
-    is sent whenever there is any update on certain fields of
-    a product or an event, due to processing steps such as
-    extraction or propagation.
-    '''
-    # sender=None, site=site, doctype='Product', key=product.key, fields=fields
-    site = kwargs.get('site')
-    obj_type = kwargs.get('doctype')
-    fields = kwargs.get('fields',['soldout'])
-    key = kwargs.get('key')
-    
-    if obj_type == 'Event':
-        p.try_publish_event_update(site, key, fields)
-    elif obj_type == 'Product':
-        p.try_publish_product_update(site, key, fields)
     
 @image_crawled.bind('globalsync')
 def process_image_crawled(sender, **kwargs):
@@ -439,7 +424,7 @@ if __name__ == '__main__':
     # parameters
     parser.add_option('-c', '--cmd', dest='cmd', help='command of the signal(update, initial, all)', default='')
     parser.add_option('--mput', dest='mput', action="store_true", help='publish to mastiff service', default=False)
-    parser.add_option('--upd', dest='upd', help='update mode(mput only)', default='')
+    parser.add_option('--upd', dest='upd', action="store_true", help='update mode(mput only)', default=False)
     parser.add_option('--mget', dest='mget', action="store_true", help='get published result back from mastiff service', default=False)    
     parser.add_option('-s', '--site', dest='site', help='site info', default='')
     parser.add_option('-e', '--ev', dest='ev', help='event id', default='')
@@ -477,7 +462,7 @@ if __name__ == '__main__':
             if not options.upd:
                 p.publish_event(ev)
             else:
-                p.publish_event(ev, upd=True, mode=options.upd)
+                p.publish_event(ev, upd=True, fields=['favbuy_brand', 'favbuy_dept', 'favbuy_tag'])
         elif options.site and options.prod:
             m = get_site_module(options.site)        
             prod = m.Product.objects.get(key=options.prod)

@@ -15,12 +15,16 @@
         </div><!--/span-->
         <div class="span9">
           <h2> I'll show you how talent I am! </h2>
-          %if url:
-            <a target="_blank" href="{{!url}}">{{!url}}</a>
-          %end
           <h4> for the text below </h4>
           <div class="well">
-            {{!content}}
+            <p>
+              {{!content}}
+            </p>
+            <p>
+            %for url in image_urls[:3]:
+              <img src="{{!url}}" width="300px"/>
+            %end
+            </p>
           </div>
           <h4>I guess it belongs to {{result}}</h4>
           <a id="ok" class="btn btn-success">Good Job!</a>

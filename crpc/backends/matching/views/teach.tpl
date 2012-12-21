@@ -16,12 +16,14 @@
         <div class="span9 row-fluidi">
           <h2>Thank you for sharing knowledge with me!</h2>
           <h3>Here's some text from my database:</h3>
-          %if url:
-            <h3><a target="_blank" href="{{!url}}">{{!url}}</a></h3>
-          %end
           <div class="well">
             <p id="content">
             {{!content}}
+            </p>
+            <p id="images">
+            %for url in image_urls[:3]:
+              <img src="{{!url}}" width="300px"/>
+            %end
             </p>
           </div>
           <br />

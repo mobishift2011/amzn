@@ -34,6 +34,19 @@ from imglib import trim, scale
 
 CURRDIR = os.path.dirname(__file__)
 
+import json
+policy = {
+  "Version": "2008-10-17",
+  "Statement": [{
+    "Sid": "AllowPublicRead",
+    "Effect": "Allow",
+    "Principal": { "AWS": "*" },
+    "Action": ["s3:GetObject"],
+    "Resource": ["arn:aws:s3:::{0}/*".format(S3_IMAGE_BUCKET) ]
+  }]
+}
+
+
 class ImageTool:
     """
     The class about images to power image data to the front-end.
@@ -53,6 +66,7 @@ class ImageTool:
         except boto.exception.S3ResponseError, e:
             if '404' in e.message:
                 bucket = self.__s3conn.create_bucket(bucket_name)
+                bucket.set_policy(json.dumps(policy))
             else:
                 raise
         self.__bucket = bucket
@@ -141,7 +155,7 @@ class ImageTool:
         """
         self.__key.key = key
         self.__key.set_contents_from_file(image, headers={'Content-Type':'image/jpeg'})
-        self.__key.make_public()
+        # self.__key.make_public()
 
     def thumbnail_and_upload(self, doctype, image, s3key, exist_keys):
         """ creates thumbnail and upload them to s3
@@ -339,12 +353,12 @@ def test_image():
     ]
 
     it = ImageTool(connection = conn)
-    it.crawl(urls[0:2], 'venteprivee', 'event', 'abc123456', thumb=True)
+    it.crawl(urls[0:2], 'venteprivee', 'event', 'abc123457', thumb=True)
     print 'image path ---> {0}'.format(it.image_path)
     print 'complete ---> {0}\n'.format(it.image_complete)
 
     it = ImageTool(connection = conn)
-    it.crawl(urls[2:], 'venteprivee', 'product', '123456789', thumb=True)
+    it.crawl(urls[2:], 'venteprivee', 'product', '123456790', thumb=True)
     print 'image path ---> {0}'.format(it.image_path)
     print 'complete ---> {0}\n'.format(it.image_complete)
 

@@ -322,6 +322,7 @@ class Server(object):
             product.combine_url = url
             ready = True
         else: ready = False
+        if event_id not in product.event_id: product.event_id.append(event_id)
         product.full_update_time = datetime.utcnow()
         product.save()
         common_saved.send(sender=ctx, obj_type='Product', key=product_id, is_new=is_new, is_updated=is_updated, ready=ready)

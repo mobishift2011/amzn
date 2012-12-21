@@ -8,6 +8,7 @@ from settings import POWER_PORT, CRPC_ROOT
 from configs import *
 from tools import ImageTool
 from powers.events import *
+from imglib import trim, scale
 
 from crawlers.common.stash import exclude_crawlers
 from os import listdir
@@ -35,30 +36,29 @@ class PowerServer(object):
     def _process_image(self, site, doctype, image_urls,  **kwargs):
         """ doctype is either ``event`` or ``product`` """
         key = kwargs.get('event_id', kwargs.get('key'))
-        # m = __import__("crawlers."+site+'.models', fromlist=['Event', 'Product'])
-
+        model = doctype.capitalize()
+        sender = '{0}.{1}.{2}'.format(site, model, key)
         instance = None
-        if doctype.capitalize() == 'Event':
+
+        if model == 'Event':
             instance = self.__m[site].Event.objects(event_id=key).first()
-        elif doctype.capitalize() == 'Product':
+        elif model == 'Product':
             instance = self.__m[site].Product.objects(key=key).first()
 
         if instance and instance.image_complete == False:
-            logger.info('crawling image of {0}.{1}.{2}'.format(site, doctype, key))
-            image_tool = ImageTool(connection=self.__s3conn)
+            logger.info('To crawl image of {0}'.format(sender))
+            it = ImageTool(connection=self.__s3conn)
             try:
-                image_tool.crawl(image_urls, site, doctype, key, thumb=True)
+                it.crawl(image_urls, site, model, key, thumb=True)
             except Exception, e:
-                logger.error('crawling image of {0}.{1}.{2} exception: {3}'.format(site, doctype, key, str(e)))
+                logger.error('crawling image of {0} exception: {3}'.format(sender, str(e)))
                 return
-            image_path = image_tool.image_path  
 
-            if image_tool.image_complete:
-                instance.update(set__image_path=image_path, set__image_complete=True)
+            if it.image_complete:
+                instance.update(set__image_path=it.image_path, set__image_complete=True)
+                image_crawled.send(sender=sender, model=model, key=key)
             else:
-                logger.error('crawling image of {0}.{1}.{2} failed'.format(site, doctype, key))
-               # TODO image_crawled_failed or need try except
-                pass
+                logger.error('crawling image of {0} failed'.format(sender))
 
 
 if __name__ == '__main__':

@@ -22,7 +22,7 @@ class BaseDocumentSkeleton(object):
     combine_url         =   StringField()
     num                 =   IntField()
     image_urls          =   ListField(StringField(), default=list)
-    image_path          =   ListField(StringField(), default=list)
+    image_path          =   ListField(DictField(), default=list)
     
     # text info
     slug                =   StringField()
@@ -166,7 +166,7 @@ class BaseProduct(Document):
 
     # product images
     image_urls          =   ListField(StringField(), default=list)
-    image_path          =   ListField(StringField(), default=list)
+    image_path          =   ListField(DictField(), default=list)
 
     image_complete      =   BooleanField(default=False)
     brand_complete      =   BooleanField(default=False)

@@ -20,9 +20,10 @@ from boto.s3.connection import S3Connection
 from hashlib import md5
 import os
 import re
+import json
 import requests
 import urllib
-from PIL import Image, ImageOps
+import Image, ImageChops
 from cStringIO import StringIO
 from datetime import datetime
 
@@ -30,11 +31,8 @@ from helpers.log import getlogger
 txtlogger = getlogger('powertools', filename='/tmp/textserver.log')
 imglogger = getlogger('powertools', filename='/tmp/powerserver.log')
 
-from imglib import trim, scale
-
 CURRDIR = os.path.dirname(__file__)
 
-import json
 policy = {
   "Version": "2008-10-17",
   "Statement": [{
@@ -45,7 +43,6 @@ policy = {
     "Resource": ["arn:aws:s3:::{0}/*".format(S3_IMAGE_BUCKET) ]
   }]
 }
-
 
 class ImageTool:
     """
@@ -68,16 +65,16 @@ class ImageTool:
                 bucket = self.__s3conn.create_bucket(bucket_name)
                 bucket.set_policy(json.dumps(policy))
             else:
+                imglogger.error('Connect to bucket {0} exception: {1}'.format(bucket_name, str(e)))
                 raise
         self.__bucket = bucket
         self.__key = Key(bucket)
         self.__image_path = []
-        self.__thumbnail_complete = False
         self.__image_complete = False
 
-    @property
-    def image_resolutions(self):
-        return self.__image_resolutions
+    # @property
+    # def image_resolutions(self):
+    #     return self.__image_resolutions
 
     @property
     def image_complete(self):
@@ -86,10 +83,6 @@ class ImageTool:
     @property
     def image_path(self):
         return self.__image_path
-
-    @property
-    def thumbnails(self):
-        return self.__thumbnails
   
     def crawl(self, image_urls=[], site='', doctype='', key='', thumb=False):
         """ process all the image stuff """
@@ -98,7 +91,7 @@ class ImageTool:
             return
 
         for image_url in image_urls:
-            imglogger.info("processing {0}".format(image_url))
+            imglogger.debug("processing {0}".format(image_url))
             path, filename = os.path.split(image_url)
             index = image_urls.index(image_url)
             image_name = '%s_%s' % (md5(filename).hexdigest(), index)
@@ -110,13 +103,15 @@ class ImageTool:
             if not exist_keys:
                 try:
                     image_content = self.download(image_url)
-                    if not image_content:
-                        continue
                 except Exception, e:
-                    imglogger.error('download image {0} exception'.format(image_url))
-                    return
+                    imglogger.error('download image {0}.{1}.{2}.{3} exception: {4}'.format(site, doctype, key, image_url, str(e)))
+                    continue
 
-                self.upload2s3(StringIO(image_content), self.__key.key)
+                try:
+                    self.upload2s3(StringIO(image_content), self.__key.key)
+                except Exception, e:
+                    imglogger.error('upload image {0}.{1}.{2}.{3} exception: {4}'.format(site, doctype, key, image_url, str(e)))
+                    return
 
             resolutions = []
             s3_url = '{0}/{1}'.format(S3_IMAGE_URL, self.__key.key)
@@ -132,17 +127,12 @@ class ImageTool:
     def download(self, image_url):
         """ download image from image_url
 
-        if status code is 403 or 404, we just ignore the error, return None(WHY???!!!)
-
         :param image_url: an url to the image
         
         Returns the content of the image
         """
         r = requests.get(image_url)
-        if r.status_code == 403 or r.status_code == 404:
-            return
-        else:
-            r.raise_for_status()
+        r.raise_for_status()
         return r.content
 
     def upload2s3(self, image, key):
@@ -170,7 +160,7 @@ class ImageTool:
         s3_url = '{0}/{1}'.format(S3_IMAGE_URL, s3key)
         imglogger.info("thumbnail&upload @ {0}".format(s3key))
 
-        im = None
+        im = Image.open(image) if image else None
 
         resolutions = []
         for size in IMAGE_SIZE[doctype.capitalize()]:
@@ -200,7 +190,6 @@ class ImageTool:
             fileobj = self.create_thumbnail(im, (width, height))
             self.upload2s3(fileobj, self.__key.key)
 
-        self.__thumbnail_complete = True
         return resolutions
 
     def create_thumbnail(self, im, size):
@@ -297,8 +286,17 @@ class Propagator(object):
                     events_end = max(events_end, product.products_end)
 
                 # (lowest, highest) discount, (lowest, highest) price propagation
-                price = parse_price(product.price)
-                listprice = parse_price(product.listprice) or price
+                try:
+                    price = parse_price(product.price)
+                except Exception, e:
+                    txtlogger.error('{0}.product.{1} parse price -> {2} exception: {3}'.format(self.site, product.key, product.price, str(e)))
+                    price = 0
+                try:
+                    listprice = parse_price(product.listprice) or price
+                except Exception, e:
+                    txtlogger.error('{0}.product.{1} parse listprice -> {2} exception: {3}'.format(self.site, product.key, product.listprice, str(e)))
+                    listprice = price
+
                 product.favbuy_price = str(price)
                 product.favbuy_listprice = str(listprice)
                 

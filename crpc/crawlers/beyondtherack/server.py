@@ -358,6 +358,7 @@ class Server(object):
         product.shipping = shipping
         product.returned = returned
         product.image_urls = image_urls
+        if event_id not in product.event_id: product.event_id.append(event_id)
         product.full_update_time = datetime.utcnow()
         product.updated = True
         if is_new: ready = True

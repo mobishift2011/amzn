@@ -184,7 +184,7 @@ class Server(object):
             return
         elif ret is None or isinstance(ret, int):
             common_failed.send(sender=ctx, key=event_id, url=url,
-                    reason='download event listing page failed: {0}: {1}'.format(ret.status_code, ret.content))
+                    reason='download event listing page failed: {0}'.format(ret))
             return
         else:
             pass

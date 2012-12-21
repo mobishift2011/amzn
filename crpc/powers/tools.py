@@ -30,6 +30,8 @@ from helpers.log import getlogger
 txtlogger = getlogger('powertools', filename='/tmp/textserver.log')
 imglogger = getlogger('powertools', filename='/tmp/powerserver.log')
 
+from imglib import trim, scale
+
 CURRDIR = os.path.dirname(__file__)
 
 class ImageTool:
@@ -53,6 +55,7 @@ class ImageTool:
                 bucket = self.__s3conn.create_bucket(bucket_name)
             else:
                 raise
+        self.__bucket = bucket
         self.__key = Key(bucket)
         self.__image_path = []
         self.__thumbnail_complete = False
@@ -84,12 +87,13 @@ class ImageTool:
             imglogger.info("processing {0}".format(image_url))
             path, filename = os.path.split(image_url)
             index = image_urls.index(image_url)
-            image_name = '%s_%s' % (index, md5(filename).hexdigest())
+            image_name = '%s_%s' % (md5(filename).hexdigest(), index)
 
             self.__key.key = os.path.join(site, doctype, key, image_name)
             image_content = None
 
-            if not self.__key.exists():
+            exist_keys = list(k.key for k in self.__bucket.list(prefix=self.__key.key))
+            if not exist_keys:
                 try:
                     image_content = self.download(image_url)
                     if not image_content:
@@ -105,14 +109,11 @@ class ImageTool:
             if thumb:
                 if doctype.capitalize() == 'Product' or \
                     (doctype.capitalize() == 'Event' and index == 0):
-                        if not image_content:
-                            image_content = self.download(s3_url)
-                        resolutions = self.thumbnail_and_upload(doctype, StringIO(image_content), self.__key.key)
+                        resolutions = self.thumbnail_and_upload(doctype, image_content, self.__key.key, exist_keys)
 
             self.__image_path.append({'url':s3_url, 'resolutions':resolutions})
 
-        if not thumb:
-            self.__image_complete = True
+        self.__image_complete = bool(self.__image_path)
 
     def download(self, image_url):
         """ download image from image_url
@@ -142,27 +143,48 @@ class ImageTool:
         self.__key.set_contents_from_file(image, headers={'Content-Type':'image/jpeg'})
         self.__key.make_public()
 
-    def thumbnail_and_upload(self, doctype, image, s3key):
+    def thumbnail_and_upload(self, doctype, image, s3key, exist_keys):
         """ creates thumbnail and upload them to s3
 
         :param doctype: either 'event' or 'product'
         :param image: an fileobj of image
         :param s3key: a (s3) path/key to image
+        :param exist_keys: exist keys prefix in s3key
     
         Returns resolutions of thumbnails
         """
+        s3_url = '{0}/{1}'.format(S3_IMAGE_URL, s3key)
         imglogger.info("thumbnail&upload @ {0}".format(s3key))
-        im = Image.open(image)
+
+        im = None
+
         resolutions = []
         for size in IMAGE_SIZE[doctype.capitalize()]:
+            width, height = size['width'], size['height']
+            skip = False
+            for key in exist_keys:
+                if '_{0}x'.format(width) in key:
+                    width, height = key.rsplit('_',1)[-1].split('x')
+                    resolutions.append((int(width), int(height)))
+                    skip = True
+                    break
+            if skip:
+                continue
+
+            if not im:
+                im = Image.open(StringIO(self.download(s3_url)))
+
+            if height == 0:
+                height = int(round(1. * im.size[1] * width/im.size[0]))
+                
+            resolutions.append((width, height))
+
             path, name = os.path.split(s3key)
-            thumbnail_name = '{width}x{height}_{name}'.format(width=size['width'], height=size['height'], name=name)
+            thumbnail_name = '{name}_{width}x{height}'.format(width=width, height=height, name=name)
             self.__key.key = os.path.join(path, thumbnail_name)
 
-            if not self.__key.exists():
-                realsize, fileobj = self.create_thumbnail(im, (size['width'], size['height']))
-                resolutions.append(realsize)
-                self.upload2s3(fileobj, self.__key.key)
+            fileobj = self.create_thumbnail(im, (width, height))
+            self.upload2s3(fileobj, self.__key.key)
 
         self.__thumbnail_complete = True
         return resolutions
@@ -171,23 +193,15 @@ class ImageTool:
         """ create thumbnail from a size
             
         :param im: an Image object opened by PIL
-        :param size: a tuple (width, height), can be fixed or fluid (height==0)
+        :param size: a tuple (width, height)
     
-        Returns an (size, fileobj(an StringIO instance)) tuple
+        Returns a fileobj(an StringIO instance))
         """
-        width, height = size
-
-        if height == 0:
-            height = 1. * im.size[1] * width/im.size[0]
-            im = im.resize((width, height), Image.ANTIALIAS)
-        else:
-            im = ImageOps.fit(im, size, Image.ANTIALIAS)
-
+        im = scale(trim(im), size)
         fileobj = StringIO()
         im.save(fileobj, 'JPEG', quality=95)
         fileobj.seek(0)
-
-        return (width, height), fileobj
+        return fileobj
          
 def parse_price(price):
     amount = 0
@@ -325,12 +339,12 @@ def test_image():
     ]
 
     it = ImageTool(connection = conn)
-    it.crawl(urls[0:2], 'venteprivee', 'event', 'abc123', thumb=True)
+    it.crawl(urls[0:2], 'venteprivee', 'event', 'abc123456', thumb=True)
     print 'image path ---> {0}'.format(it.image_path)
     print 'complete ---> {0}\n'.format(it.image_complete)
 
     it = ImageTool(connection = conn)
-    it.crawl(urls[2:], 'venteprivee', 'product', '123456', thumb=True)
+    it.crawl(urls[2:], 'venteprivee', 'product', '123456789', thumb=True)
     print 'image path ---> {0}'.format(it.image_path)
     print 'complete ---> {0}\n'.format(it.image_complete)
 

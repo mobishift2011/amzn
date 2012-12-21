@@ -146,7 +146,7 @@ def propagate(site, concurrency=3):
 
 def generate_event_dict(site, complete=True):
     """
-    @return:
+    @return: To filter all the propagated events to generate a dictionary.
     {
         event_id: {
             'event': object,
@@ -160,7 +160,7 @@ def generate_event_dict(site, complete=True):
     now = datetime.utcnow()
 
     try:
-        events = m.Event.objects( \
+        events = m.Event.objects( Q(propagation_complete = complete) & \
             (Q(events_begin__lte=now) | Q(events_begin__exists=False)) & \
                 (Q(events_end__gt=now) | Q(events_end__exists=False)) )
     except AttributeError:
@@ -179,7 +179,6 @@ def text_extract(site, concurrency=3):
     """
     rpcs = get_rpcs(TEXT_PEERS)
     pool = Pool(len(rpcs)*concurrency)
-    txtlogger.debug('to text extract site {0} products'.format(site))
     products = spout_extracted_products(site)
     event_dict = generate_event_dict(site)
     
@@ -198,7 +197,7 @@ def text_extract(site, concurrency=3):
 
 def extract_and_propagate(rpc, method, event_dict, *args, **kwargs):
     res = call_rpc(rpc, method, *args, **kwargs) or {}
-    txtlogger.debug('extraction result ---> {0}'.format(res))
+    txtlogger.debug('extraction result -> {0}'.format(res))
 
     if not event_dict:
         return

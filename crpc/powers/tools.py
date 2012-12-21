@@ -22,8 +22,8 @@ import os
 import re
 import requests
 import urllib
-from PIL import Image
-from StringIO import StringIO
+from PIL import Image, ImageOps
+from cStringIO import StringIO
 from datetime import datetime
 
 from helpers.log import getlogger
@@ -49,7 +49,7 @@ class ImageTool:
         try:
             bucket = self.__s3conn.get_bucket(bucket_name)
         except boto.exception.S3ResponseError, e:
-            if str(e).find('404 Not Found'):
+            if '404' in e.message:
                 bucket = self.__s3conn.create_bucket(bucket_name)
             else:
                 raise
@@ -57,8 +57,10 @@ class ImageTool:
         self.__image_path = []
         self.__thumbnail_complete = False
         self.__image_complete = False
-        # self.__pool = Pool(10)
-        # self.s3_upload_lock = Semaphore(1)
+
+    @property
+    def image_resolutions(self):
+        return self.__image_resolutions
 
     @property
     def image_complete(self):
@@ -73,29 +75,21 @@ class ImageTool:
         return self.__thumbnails
   
     def crawl(self, image_urls=[], site='', doctype='', key='', thumb=False):
-        print "images crawling ---> {0}.{1}.{2}\n".format(site, doctype, key)
-
+        """ process all the image stuff """
         if len(image_urls) == 0:
             self.__image_complete = True
             return
 
         for image_url in image_urls:
+            imglogger.info("processing {0}".format(image_url))
             path, filename = os.path.split(image_url)
             index = image_urls.index(image_url)
             image_name = '%s_%s' % (index, md5(filename).hexdigest())
-            # s3key= os.path.join(site, doctype, key, image_name)
-            # TO backward test
-            s3key= os.path.join(site, doctype, key, image_name)
 
-            self.__key.key = s3key
+            self.__key.key = os.path.join(site, doctype, key, image_name)
+            image_content = None
 
-            if self.__key.exists():
-                image_content = None
-                self.__key.make_public()
-                s3_url = '{0}/{1}'.format(S3_IMAGE_URL, self.__key.key)
-                print 'grab existing image from s3 ---> {0}\n'.format(s3_url)
-                self.__image_path.append(s3_url)
-            else:
+            if not self.__key.exists():
                 try:
                     image_content = self.download(image_url)
                     if not image_content:
@@ -103,101 +97,98 @@ class ImageTool:
                 except Exception, e:
                     imglogger.error('download image {0} exception'.format(image_url))
                     return
-                s3_url = self.upload2s3(StringIO(image_content), self.__key.key)
-                if s3_url:
-                    self.__image_path.append(s3_url)
-                else:
-                    self.__image_complete = False
-                    return
 
+                self.upload2s3(StringIO(image_content), self.__key.key)
+
+            resolutions = []
+            s3_url = '{0}/{1}'.format(S3_IMAGE_URL, self.__key.key)
             if thumb:
                 if doctype.capitalize() == 'Product' or \
                     (doctype.capitalize() == 'Event' and index == 0):
                         if not image_content:
                             image_content = self.download(s3_url)
-                        self.thumbnail(doctype, StringIO(image_content), self.__key.key)
+                        resolutions = self.thumbnail_and_upload(doctype, StringIO(image_content), self.__key.key)
 
-        self.__image_complete = self.__thumbnail_complete if thumb else True
+            self.__image_path.append({'url':s3_url, 'resolutions':resolutions})
+
+        if not thumb:
+            self.__image_complete = True
 
     def download(self, image_url):
-        print 'downloading image ---> {0}'.format(image_url)
+        """ download image from image_url
+
+        if status code is 403 or 404, we just ignore the error, return None(WHY???!!!)
+
+        :param image_url: an url to the image
+        
+        Returns the content of the image
+        """
         r = requests.get(image_url)
         if r.status_code == 403 or r.status_code == 404:
-            return None
+            return
         else:
             r.raise_for_status()
         return r.content
 
     def upload2s3(self, image, key):
-        print 'upload2s3 ---> {0}'.format(key)
+        """ upload image to s3 in key 
+
+        :param image: fileobj for an image
+        :param key: s3 key name
+
+        Returns None
+        """
         self.__key.key = key
         self.__key.set_contents_from_file(image, headers={'Content-Type':'image/jpeg'})
         self.__key.make_public()
 
-        image_url = '{0}/{1}'.format(S3_IMAGE_URL, self.__key.key)
-        print 'generate s3 image url ---> {0}\n'.format(image_url)
-        return image_url
+    def thumbnail_and_upload(self, doctype, image, s3key):
+        """ creates thumbnail and upload them to s3
 
-    def thumbnail(self, doctype, image, image_name):
+        :param doctype: either 'event' or 'product'
+        :param image: an fileobj of image
+        :param s3key: a (s3) path/key to image
+    
+        Returns resolutions of thumbnails
+        """
+        imglogger.info("thumbnail&upload @ {0}".format(s3key))
         im = Image.open(image)
+        resolutions = []
         for size in IMAGE_SIZE[doctype.capitalize()]:
-            width = size.get('width')
-            height = size.get('height')
-            fluid = size.get('fluid')
+            path, name = os.path.split(s3key)
+            thumbnail_name = '{width}x{height}_{name}'.format(width=size['width'], height=size['height'], name=name)
+            self.__key.key = os.path.join(path, thumbnail_name)
 
-            width_rate = 1.0 * width / im.size[0]
-            height_rate = 1.0 * height / im.size[1]
-            rate = max(width_rate, height_rate)
-
-            print 'thumbnail %s to size ---> (%s, %s)' % (im.size, width, height)
-            path, name = os.path.split(image_name)
-            thumb_name = '%sx%s_%s' % (width, height, name)
-            key = os.path.join(path, thumb_name)
-            self.__key.key = key
-
-            if self.__key.exists():
-                s3_url = '{0}/{1}'.format(S3_IMAGE_URL, self.__key.key)
-                print 'thumbnail already exists on s3 ---> {0}\n'.format(s3_url)
-            else:      
-                thumb_pict = self.resize_by_rate(rate, im) \
-                        if fluid == True or width == 0 or height == 0 \
-                            else self.resize_by_crop(width=width, height=height, im=im)
-                self.upload2s3(thumb_pict, self.__key.key)
+            if not self.__key.exists():
+                realsize, fileobj = self.create_thumbnail(im, (size['width'], size['height']))
+                resolutions.append(realsize)
+                self.upload2s3(fileobj, self.__key.key)
 
         self.__thumbnail_complete = True
+        return resolutions
 
-    def resize(self, box, im):
-        thumbnail = im.resize(box, Image.ANTIALIAS)
-        tempfile = StringIO()
-        thumbnail.save(tempfile, 'JPEG', quality=95)
-        tempfile.seek(0)
-        return tempfile
+    def create_thumbnail(self, im, size):
+        """ create thumbnail from a size
+            
+        :param im: an Image object opened by PIL
+        :param size: a tuple (width, height), can be fixed or fluid (height==0)
+    
+        Returns an (size, fileobj(an StringIO instance)) tuple
+        """
+        width, height = size
 
-    def resize_by_rate(self, rate, im):
-        width, height = im.size
-        size = tuple([int(i * rate) for i in im.size])
-        return self.resize(size, im)
+        if height == 0:
+            height = 1. * im.size[1] * width/im.size[0]
+            im = im.resize((width, height), Image.ANTIALIAS)
+        else:
+            im = ImageOps.fit(im, size, Image.ANTIALIAS)
 
-    def resize_by_crop(self, width=0, height=0, im=None):
-        width_rate = 1.0 * width / im.size[0]
-        height_rate = 1.0 * height / im.size[1]
-        rate = max(width_rate, height_rate)
+        fileobj = StringIO()
+        im.save(fileobj, 'JPEG', quality=95)
+        fileobj.seek(0)
 
-        (im.size[0]*rate, im.size[1]*rate)
-        thumnail = im.resize( tuple( [int(i*rate) for i in im.size] ), Image.ANTIALIAS )
-        left = (thumnail.size[0] - width) / 2  if (thumnail.size[0] - width) > 0 else 0
-        upper = (thumnail.size[1] - height) / 2 if (thumnail.size[1] - height) > 0 else 0
-        right = left + width
-        lower = upper + height
-        box = (left, upper, right, lower)
-        region = thumnail.crop(box)
-
-        tempfile = StringIO()
-        region.save(tempfile, 'JPEG', quality=95)
-        tempfile.seek(0)
-        return tempfile
-
-
+        return (width, height), fileobj
+         
 def parse_price(price):
     amount = 0
     pattern = re.compile(r'^\$?(\d+(,\d{3})*(\.\d+)?)')
@@ -215,7 +206,7 @@ class Propagator(object):
         self.classifier = classifier
         
         self.__module = module if module else \
-                        __import__('crawlers.{0}.models'.format(site), fromlist=['Event', 'Product'])
+                        __import__('crawlers.{0}.models'.format(site), fromlist=['Event', 'Product', 'Category'])
         self.event = self.__module.Event.objects(event_id=event_id).first()
 
     def propagate(self):
@@ -227,7 +218,7 @@ class Propagator(object):
         * Event soldout
         """
         if not self.event:
-            return self.event
+            return
 
         event_brands = set()
         tags = set()
@@ -372,8 +363,6 @@ def test_propagate(site='venteprivee', event_id=None):
     print 'cost ', time.time() - start, ' s'
 
 if __name__ == '__main__':
-    pass
-
     import time, sys
     start = time.time()
     if len(sys.argv) > 1:

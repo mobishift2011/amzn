@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from gevent import monkey; monkey.patch_all()
+import gevent
 import zerorpc
 
 from settings import TEXT_PORT, CRPC_ROOT
@@ -18,7 +19,6 @@ from os.path import join, isdir
 from helpers.log import getlogger
 logger = getlogger('textserver', filename='/tmp/textserver.log')
 
-#process_image_lock = Semaphore(1)
 
 class TextServer(object):
     def __init__(self):
@@ -32,6 +32,51 @@ class TextServer(object):
             path = join(CRPC_ROOT, "crawlers", name)
             if name not in exclude_crawlers and isdir(path):
                 self.__m[name] = __import__("crawlers."+name+'.models', fromlist=['Event', 'Product'])
+
+    def __extract_brand(self, brand_complete, product, flags, site):
+        if brand_complete:
+            return
+
+        crawled_brand = product.brand or ''
+        brand = self.__extracter.extract(crawled_brand) or \
+                    self.__extracter.extract(product.title)
+        if brand:
+            product.favbuy_brand = brand
+            product.brand_complete=True
+            flags['favbuy_brand'] = True
+            logger.info('{0}.product.{1} extract brand {2} -> {3} OK'.format(site, product.key, crawled_brand, brand))
+        else:
+            product.update(set__brand_complete=False)
+            logger.warning('{0}.product.{1} extract brand {2} Failed'.format(site, product.key, crawled_brand))
+
+    def __extract_tag(self, tag_complete, text_list, product, flags, site):
+        if tag_complete:
+            return
+
+        favbuy_tag = self.__extractor.extract( '\n'.join(text_list).encode('utf-8') )
+        product.favbuy_tag = favbuy_tag
+        product.tag_complete = bool(favbuy_tag)
+
+        if product.tag_complete:
+            flags['favbuy_tag'] = True
+            logger.info('{0}.product.{1} extract tag OK -> {2}'.format(site, product.key, product.favbuy_tag))
+        else:
+            logger.warning('{0}.product.{1} extract tag Failed'.format(site, product.key))
+
+    def __extract_dept(self, dept_complete, text_list, product, flags, site):
+        if dept_complete:
+            return
+
+        text_list.extend(product.dept)
+        favbuy_dept = list(self.__classifier.classify( '\n'.join(text_list) ))
+        product.favbuy_dept = favbuy_dept
+        product.dept_complete = bool(favbuy_dept)
+
+        if product.dept_complete:
+            flags['favbuy_dept'] = True
+            logger.info('{0}.product.{1} extract dept OK -> {2}'.format(site, product.key, product.favbuy_dept))
+        else:
+            logger.error('{0}.product.{1} extract dept Failed'.format(site, product.key))
 
     def extract_text(self, args=(), kwargs={}):
         """
@@ -56,49 +101,19 @@ class TextServer(object):
             'favbuy_dept': False,     # To indicate whether changes occur on dept classification.
         }  
 
-        if not brand_complete:
-            try:
-                crawled_brand = product.brand or ''
-                brand = self.__extracter.extract(crawled_brand) or \
-                            self.__extracter.extract(title)
-                if brand:
-                    product.favbuy_brand=brand
-                    product.brand_complete=True
-                    flags['favbuy_brand'] = True
-                    logger.info('{0}.product.{1} extract brand {2} -> {3} OK'.format(site, key, crawled_brand, brand))
-                else:
-                    product.update(set__brand_complete=False)
-                    logger.warning('{0}.product.{1} extract brand {2} failed'.format(site, key, crawled_brand))
-            except:
-                logger.error('{0}.product.{1} extract brand exception'.format(site, key))
-
         text_list = []
         text_list.append(product.title or '')
         text_list.extend(product.list_info or [])
         text_list.append(product.summary or '')
         text_list.append(product.short_desc or '')
         text_list.extend(product.tagline or [])
-        if not tag_complete:
-            favbuy_tag = self.__extractor.extract( '\n'.join(text_list).encode('utf-8') )
-            product.favbuy_tag = favbuy_tag
-            product.tag_complete = bool(favbuy_tag)
 
-            if product.tag_complete:
-                flags['favbuy_tag'] = True
-            else:
-                logger.warning('{0}.product.{1} extract tag failed'.format(site, key))
-        
-        if not dept_complete:
-            text_list.extend(product.dept)
-            favbuy_dept = list(self.__classifier.classify( '\n'.join(text_list) ))
-            product.favbuy_dept = favbuy_dept
-            product.dept_complete = bool(favbuy_dept)
-
-            if product.dept_complete:
-                flags['favbuy_dept'] = True
-            else:
-                logger.error('{0}.product.{1} extract dept failed'.format(site, key))
-
+        jobs = [
+            gevent.spawn(self.__extract_brand, brand_complete, product, flags, site),
+            gevent.spawn(self.__extract_tag, tag_complete, text_list, product, flags, site),
+            gevent.spawn(self.__extract_dept, dept_complete, text_list, product, flags, site),
+        ]
+        gevent.joinall(jobs)
 
         # For updating event propagation, we should put some info back to the rpc caller.
         res = {}
@@ -112,8 +127,9 @@ class TextServer(object):
             for field in fields:
                 res['fields'][field] = getattr(product, field)
         
+        logger.debug('text server extract res -> {0}'.format(res))
         return res
-
+    
     def propagate(self, args=(), kwargs={}):
         site = kwargs.get('site')
         event_id = kwargs.get('event_id')

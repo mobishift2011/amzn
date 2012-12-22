@@ -62,7 +62,7 @@ class ImageTool:
             bucket = self.__s3conn.get_bucket(bucket_name)
         except boto.exception.S3ResponseError, e:
             if '404' in e.message:
-                bucket = self.__s3conn.create_bucket(bucket_name)
+                bucket = self.__s3conn.create_bucket(bucket_name, location='us-west-2')
                 bucket.set_policy(json.dumps(policy))
             else:
                 imglogger.error('Connect to bucket {0} exception: {1}'.format(bucket_name, str(e)))

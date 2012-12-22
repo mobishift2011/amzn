@@ -195,7 +195,7 @@ class ImageTool:
 
         return resolutions
 
-    def create_thumbnail(self, im, size):
+    def create_thumbnail(self, im, size, policy, color):
         """ create thumbnail from a size
             
         :param im: an Image object opened by PIL

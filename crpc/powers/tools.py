@@ -33,7 +33,7 @@ imglogger = getlogger('powertools', filename='/tmp/powerserver.log')
 
 CURRDIR = os.path.dirname(__file__)
 
-from imglib import scale, trim
+from imglib import scale, trim, crop
 
 policy = {
   "Version": "2008-10-17",
@@ -167,6 +167,7 @@ class ImageTool:
         resolutions = []
         for size in IMAGE_SIZE[doctype.capitalize()]:
             width, height = size['width'], size['height']
+            policy, color = size['thumbnail-policy'], size['background-color']
             skip = False
             for key in exist_keys:
                 if '_{0}x'.format(width) in key:
@@ -189,7 +190,7 @@ class ImageTool:
             thumbnail_name = '{name}_{width}x{height}'.format(width=width, height=height, name=name)
             self.__key.key = os.path.join(path, thumbnail_name)
 
-            fileobj = self.create_thumbnail(im, (width, height))
+            fileobj = self.create_thumbnail(im, (width, height), policy, color)
             self.upload2s3(fileobj, self.__key.key)
 
         return resolutions
@@ -202,7 +203,12 @@ class ImageTool:
     
         Returns a fileobj(an StringIO instance))
         """
-        im = scale(trim(im), size)
+        if policy == 'scale-trim':
+            im = scale(trim(im), size, bgcolor=color)
+        elif policy == 'crop':
+            im = crop(im, size)
+        else:
+            raise ValueError("unsupported thumbnail policy")
         fileobj = StringIO()
         im.save(fileobj, 'JPEG', quality=95)
         fileobj.seek(0)

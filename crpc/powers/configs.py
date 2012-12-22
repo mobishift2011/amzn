@@ -38,45 +38,65 @@ IMAGE_SIZE = {
 		{
 			'width': 280,
 			'height': 280,
+            'background-color': '#e5e5e5',
+            'thumbnail-policy': 'crop'
 		},
 		{
 			'width': 280,
 			'height': 135,
+            'background-color': '#e5e5e5',
+            'thumbnail-policy': 'crop'
 		},
 		{
 			'width': 244,
 			'height': 200,
+            'background-color': '#e5e5e5',
+            'thumbnail-policy': 'crop'
 		},
 		{
 			'width': 224,
 			'height': 0,
+            'background-color': '#e5e5e5',
+            'thumbnail-policy': 'scale-trim'
 		},
 		{
 			'width': 316,
 			'height': 196,
+            'background-color': '#d6d6d6',
+            'thumbnail-policy': 'scale-trim'
 		},
 	),
 	'Product': (
 		{
 			'width': 220,
 			'height': 300,
+            'background-color': '#e5e5e5',
+            'thumbnail-policy': 'scale-trim'
 			# 'fluid': True	# not fix, but the smaller size should fill the bound
 		},
 		{
 			'width': 50,
 			'height': 66,
+            'background-color': '#e5e5e5',
+            'thumbnail-policy': 'scale-trim'
 		},
 		{
 			'width': 224,
 			'height': 0,
+            'background-color': '#e5e5e5',
+            'thumbnail-policy': 'scale-trim'
 		},
 		{
 			'width': 146,	# for mobile waterfall layout
 			'height': 0,
+            'background-color': '#e5e5e5',
+            'thumbnail-policy': 'scale-trim'
 		},
 		{
 			'width': 320,
 			'height': 169,
+            'background-color': '#e5e5e5',
+            'thumbnail-policy': 'scale-trim'
 		},
 	)
 }

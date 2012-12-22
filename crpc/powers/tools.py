@@ -33,6 +33,8 @@ imglogger = getlogger('powertools', filename='/tmp/powerserver.log')
 
 CURRDIR = os.path.dirname(__file__)
 
+from imglib import scale, trim
+
 policy = {
   "Version": "2008-10-17",
   "Statement": [{
@@ -61,7 +63,7 @@ class ImageTool:
         try:
             bucket = self.__s3conn.get_bucket(bucket_name)
         except boto.exception.S3ResponseError, e:
-            if '404' in e.message:
+            if '404' in repr(e):
                 bucket = self.__s3conn.create_bucket(bucket_name)
                 bucket.set_policy(json.dumps(policy))
             else:
@@ -160,7 +162,7 @@ class ImageTool:
         s3_url = '{0}/{1}'.format(S3_IMAGE_URL, s3key)
         imglogger.info("thumbnail&upload @ {0}".format(s3key))
 
-        im = Image.open(image) if image else None
+        im = Image.open(StringIO(image)) if image else None
 
         resolutions = []
         for size in IMAGE_SIZE[doctype.capitalize()]:

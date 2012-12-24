@@ -18,7 +18,7 @@ from models import *
 import datetime, time
 import pytz
 import random
-from lxml import html
+import lxml.html
 import zerorpc
 
 req = requests.Session(prefetch=True, timeout=30, config=config, headers=headers)

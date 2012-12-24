@@ -119,7 +119,8 @@ class Server(object):
         if product_data['teenagers']: # no size it is {}
             for k, v in product_data['teenagers'].iteritems():
                 if v['size'] not in sizes: sizes.append(v['size'])
-        tag = product_data['productGL'] if 'productGL' in product_data else '' # 'apparel', 'home', 'jewelry'
+        # tag is not precision. e.g. a bag is in shoes
+        # tag = product_data['productGL'] if 'productGL' in product_data else '' # 'apparel', 'home', 'jewelry', ''
         if casin in cAsins and 'soldOut' in cAsins[casin] and cAsins[casin]['soldOut'] == 1:
             soldout = True
         else: soldout = False
@@ -143,7 +144,6 @@ class Server(object):
             if soldout and product.soldout != soldout:
                 product.soldout = True
                 is_updated = True
-        if tag and tag not in product.tagline: product.tagline.append(tag)
         if event_id not in product.event_id: product.event_id.append(event_id)
         product.jslink = jslink
         product.list_update_time = datetime.utcnow()

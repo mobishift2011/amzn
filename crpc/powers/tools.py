@@ -10,6 +10,7 @@ from gevent import monkey; monkey.patch_all()
 from gevent.coros import Semaphore
 from gevent.pool import Pool
 from functools import partial
+from collections import Counter
 
 from configs import *
 
@@ -247,7 +248,7 @@ class Propagator(object):
 
         event_brands = set()
         tags = set()
-        depts = set()
+        depts = Counter()
         lowest_price = 0
         highest_price = 0
         lowest_discount = 0
@@ -269,7 +270,7 @@ class Propagator(object):
                 if product.favbuy_tag:
                     tags = tags.union(product.favbuy_tag)
                 if product.favbuy_dept:
-                    depts = depts.union([ product.favbuy_dept[0] ])
+                    depts[product.favbuy_dept[0]] += 1
 
                 # Event brand propagation
                 if hasattr(product, 'favbuy_brand') and product.favbuy_brand:
@@ -332,9 +333,7 @@ class Propagator(object):
         self.event.brand_complete = True
         
         self.event.favbuy_tag = list(tags)
-        if self.event.dept:
-            depts.add(self.classifier.classify('\n'.join(self.event.dept))[0])
-        self.event.favbuy_dept = list(depts)
+        self.event.favbuy_dept = depts.keys()[0]
         self.event.lowest_price = str(lowest_price)
         self.event.highest_price = str(highest_price)
         self.event.lowest_discount = str(1.0 - lowest_discount)

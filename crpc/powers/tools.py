@@ -258,6 +258,8 @@ class Propagator(object):
         soldout = True
 
         products = self.__module.Product.objects(event_id=self.event.event_id)
+        num_products = len(products)
+        dept_threshold = int(.23*num_products)
         print 'start to propogate %s event %s' % (self.site, self.event.event_id)
 
         counter = 0
@@ -333,7 +335,8 @@ class Propagator(object):
         self.event.brand_complete = True
         
         self.event.favbuy_tag = list(tags)
-        self.event.favbuy_dept = [ depts.keys()[0] ]
+        self.event.favbuy_dept = [ k for k, v in depts.items() if v>=dept_threshold ]
+        print self.event.favbuy_dept
         self.event.lowest_price = str(lowest_price)
         self.event.highest_price = str(highest_price)
         self.event.lowest_discount = str(1.0 - lowest_discount)

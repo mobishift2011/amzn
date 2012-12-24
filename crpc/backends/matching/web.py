@@ -16,7 +16,7 @@ import json
 clf = SklearnClassifier('svm')
 clf.load_from_database()
 sites = ['beyondtherack', 'bluefly', 'gilt', 'hautelook', 'ideeli', 'lot18', 'modnique', 'myhabit', 'nomorerack', 'onekingslane', 'ruelala', 'venteprivee', 'zulily']
-sites = ['venteprivee']
+#sites = ['venteprivee']
 
 def get_site_module(site):
     return __import__('crawlers.'+site+'.models', fromlist=['Category', 'Event', 'Product'])
@@ -130,6 +130,40 @@ def teach():
     return template('teach', **locals())
     #site_key=site_key, url=url, departments=departments, departments_object=departments_object, content=content)
 
+@route('/event/list/')
+def event_list():
+    sk = {}
+    for site in sites:
+        m = get_site_module(site)
+        if hasattr(m, 'Event'):
+            sk[site] = [ (e.event_id, e.image_urls[0] if e.image_urls else u'') for e in m.Event.objects().only('event_id','image_urls') ]
+    return template('event_list', **locals())
+
+@route('/event/:site_key/')
+def event_detail(site_key):
+    site, key = site_key.split('_', 1)
+    m = get_site_module(site)  
+    products = m.Product.objects(event_id=key)
+    return template('event_detail', **locals())
+
+@post('/event/train/')
+def event_train():
+    site = request.params['site']
+    key = request.params['key']
+    main = request.params['main']
+    sub = request.params['sub']
+    d = Department.objects(main=main,sub=sub).first()
+    m = get_site_module(site)  
+    if d:
+        for p in m.Product.objects(event_id=key):
+            __, ___, content = get_text(site+'_'+p.key)
+            clf.train(content, (main, sub))
+            RawDocument.objects(site_key=site_key).update(set__department=d, set__content=content, upsert=True)
+    else:
+        print 'OOOOOPS', main, sub, 'doesnot seems like a department'
+    return {'status':'ok'}
+        
+
 @post('/teach/train/')
 def teach_train():
     main = request.params['main']
@@ -157,4 +191,5 @@ def crossvalidation():
 
 debug(True)
 
-run(server='gevent', host='0.0.0.0', port=1321, debug=True)
+if __name__ == '__main__':
+    run(server='gevent', host='0.0.0.0', port=1321, debug=True)

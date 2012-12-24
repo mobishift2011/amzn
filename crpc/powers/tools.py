@@ -333,7 +333,7 @@ class Propagator(object):
         self.event.brand_complete = True
         
         self.event.favbuy_tag = list(tags)
-        self.event.favbuy_dept = depts.keys()[0]
+        self.event.favbuy_dept = [ depts.keys()[0] ]
         self.event.lowest_price = str(lowest_price)
         self.event.highest_price = str(highest_price)
         self.event.lowest_discount = str(1.0 - lowest_discount)

@@ -63,22 +63,21 @@ IMAGE_SIZE = {
 			'width': 316,
 			'height': 196,
             'background-color': '#d6d6d6',
-            'thumbnail-policy': 'scale-trim'
+            'thumbnail-policy': 'crop'
 		},
 	),
 	'Product': (
 		{
-			'width': 220,
-			'height': 300,
+			'width': 205,
+			'height': 0,
             'background-color': '#e5e5e5',
             'thumbnail-policy': 'scale-trim'
-			# 'fluid': True	# not fix, but the smaller size should fill the bound
 		},
 		{
 			'width': 50,
-			'height': 66,
+			'height': 50,
             'background-color': '#e5e5e5',
-            'thumbnail-policy': 'scale-trim'
+            'thumbnail-policy': 'crop'
 		},
 		{
 			'width': 224,
@@ -96,7 +95,7 @@ IMAGE_SIZE = {
 			'width': 320,
 			'height': 169,
             'background-color': '#e5e5e5',
-            'thumbnail-policy': 'scale-trim'
+            'thumbnail-policy': 'crop'
 		},
 	)
 }

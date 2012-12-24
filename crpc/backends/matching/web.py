@@ -16,7 +16,7 @@ import json
 clf = SklearnClassifier('svm')
 clf.load_from_database()
 sites = ['beyondtherack', 'bluefly', 'gilt', 'hautelook', 'ideeli', 'lot18', 'modnique', 'myhabit', 'nomorerack', 'onekingslane', 'ruelala', 'venteprivee', 'zulily']
-sites = ['ideeli']
+sites = ['venteprivee']
 
 def get_site_module(site):
     return __import__('crawlers.'+site+'.models', fromlist=['Category', 'Event', 'Product'])
@@ -30,11 +30,11 @@ def get_site_key():
         #sites.remove(site)
         return get_site_key()
 
-
     index = random.randint(1, count-1)
     p = m.Product.objects().skip(index).first()
 
-    if (not p.list_info) and (not p.title):
+    if (not p.title) or (not p.list_info):
+        print p.title
         return get_site_key()
 
     return site+'_'+p.key
@@ -45,16 +45,24 @@ def get_text(site_key):
     p = m.Product.objects.get(key=key)
     try:
         depts = []
+        depts.extend(p.dept)
         for eid in p.event_id:
             e = m.Event.objects.get(event_id=eid)
             depts.extend( e.dept )
             if hasattr(e, 'short_desc'):
                 depts.append( e.short_desc )
 
-        content = site + u'\n' + u'; '.join(depts) + u'\n' + u'; '.join(p.cats) 
+        content = u'==site==: ' + site + u'\n'
+        if depts:
+            content += u'==depts==: ' + u'; '.join(depts) + u'\n'
+        if p.cats:
+            content += u'==cats==: ' +  u'; '.join(p.cats) + u'\n'
+        if p.brand:
+            content += u'==brand==: ' + p.brand + u'\n'
         if p.tagline:
-            content += u'\n' + u'; '.join(p.tagline)
-        content += u'\n' +  p.title 
+            content += u'==tagline==: ' + u'; '.join(p.tagline) + u'\n'
+        content += u'==title==: ' +  p.title + u'\n'
+        content += u'==listinfo==: ' + u'\n'.join(p.list_info)
     except:
         import traceback
         traceback.print_exc()

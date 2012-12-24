@@ -64,7 +64,6 @@ class Server(object):
         """
         self.net.check_signin()
         categories = ['women', 'men', 'children', ]
-        categories = [ 'men', ]
         for cat in categories:
             link = 'http://www.gilt.com/sale/{0}'.format(cat)
             tree = self.download_page_get_correct_tree(link, cat, 'download category error')
@@ -75,8 +74,7 @@ class Server(object):
                 tree = self.download_page_get_correct_tree(link, cat, 'download shop error')
                 self.save_group_of_event('', tree, cat, ctx)
 
-        tree = self.download_page_get_correct_tree('http://www.gilt.com/home/sale', 'home', 'download \'home\' error')
-        tree.cssselect('div.content-container > section.content > div > div.position > section.module')
+        self.crawl_category_home(ctx)
 
 
     def download_page_get_correct_tree(self, url, key, warning):
@@ -151,9 +149,11 @@ class Server(object):
             begins = node.cssselect('header > hgroup > h3 > span')[0].get('data-gilt-date')
             event.events_begin = datetime.strptime(begins[:begins.index('+')], '%m/%d/%Y %H:%M ')
             if not event.sale_description:
-                image, sale_description, events_begin = self.get_picture_description(event.combine_url)
-                event.image_urls = image
-                event.sale_description = sale_description
+                ret = self.get_picture_description(event.combine_url)
+                if ret is not None: # starting later today, already on sale
+                    image, sale_description, events_begin = ret
+                    event.image_urls = image
+                    event.sale_description = sale_description
 
             event.save()
             common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
@@ -220,7 +220,14 @@ class Server(object):
             if image:
                 event.image_urls.append(image)
             event.is_leaf = is_leaf
-        if dept not in event.dept: event.dept.append(dept)
+            if '/sale/women' in link:
+                event.dept = ['women']
+            elif '/sale/men' in link:
+                event.dept = ['men']
+            elif '/sale/children' in link:
+                event.dept = ['children']
+            elif '/home/sale' in link:
+                event.dept = ['home']
         return event, is_new, is_updated
 
 
@@ -228,10 +235,11 @@ class Server(object):
         """.. :py:method::
         """
         tree = self.download_page_get_correct_tree(url, '', 'download upcoming page error')
-        #TODO: already on sale
-        nav = tree.cssselect('section#main > article.sale-brand-summary')[0]
-        image = nav.xpath('./img/@src')
-        sale_description = nav.cssselect('section.copy > p.bio')[0].text_content().strip()
+        nav = tree.cssselect('section#main > article.sale-brand-summary')
+        # kids event already on sale, but in men's starting later today
+        if not nav: return
+        image = nav[0].xpath('./img/@src')
+        sale_description = nav[0].cssselect('section.copy > p.bio')[0].text_content().strip()
 
         data_gilt_time = tree.cssselect('span#shopInCountdown')[0].get('data-gilt-time')
         events_begin = self.gilt_time(data_gilt_time)
@@ -274,6 +282,63 @@ class Server(object):
         _time = datetime.utcnow() + timedelta(seconds= int(data_gilt_time) // 1000)
         return _time.replace(second=0, microsecond=0)
 
+
+
+    def crawl_category_home(self, ctx):
+        dept = 'home'
+        url = 'http://www.gilt.com/home/sale'
+        tree = self.download_page_get_correct_tree(url, dept, 'download \'home\' error')
+
+        nav = tree.cssselect('div.content-container > section.content > div > div.position')[0]
+        # hero 'div.elements-container > article.element'
+        hero = nav.cssselect('section.module-full > div.elements-container > article.element-hero')[0]
+        sale_title = hero.cssselect('div.hero-center-wrapper > div.hero-center-container > div.hero-editorial > header.element-header > hgroup > .headline')[0].text_content().strip()
+        event, is_new, is_updated = self.parse_one_home_node(hero, dept, ctx)
+        event.sale_title = sale_title
+        event.save()
+        common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
+
+
+        # on sale
+        nodes = nav.cssselect('section.module-sale-mosaic > div.elements-container > article.element')
+        for node in nodes:
+            event, is_new, is_updated = self.parse_one_home_node(node, dept, ctx)
+            event.save()
+            common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
+
+        # start later today & ending soon
+        for sale_small in nav.cssselect('section.module-additional-sale-mosaic'):
+            if 'Starting Later Today' == sale_small.cssselect('module-header > hgroup h1.headline')[0].text_content().strip():
+                nodes = sale_small.cssselect('div.elements-container > article.element')
+                for node in nodes:
+                    event, is_new, is_updated = self.parse_one_home_node(node, dept, ctx)
+                    event.save()
+                    common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
+            elif 'Ending Soon' == sale_small.cssselect('module-header > hgroup h1.headline')[0].text_content().strip():
+                nodes = sale_small.cssselect('div.elements-container > article.element')
+                for node in nodes:
+                    event, is_new, is_updated = self.parse_one_home_node(node, dept, ctx)
+                    event.save()
+                    common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
+
+        # upcoming
+        nav.cssselect('section.module-sidebar-mosaic > div.elements-container > article.element-cms-default > ul.nav > li.nav-item > div.nav-dropdown > section.nav-section')
+
+
+    def parse_one_home_node(self, node, dept, ctx):
+        """.. :py:method::
+        """
+        bottom_node = node.cssselect('figure.element-image > span.media > a')[0]
+        link = bottom_node.get('href')
+        link = link if link.startswith('http') else self.siteurl + link
+        if self.siteurl in link: # have www.giltcity.com and www.jetsetter.com
+            image = bottom_node.cssselect('img')[0].get('src')
+            image = image if image.startswith('http:') else 'http:' + image
+            sale_title = bottom_node.cssselect('img')[0].get('alt')
+
+            event, is_new, is_updated = self.get_or_create_event(link.rsplit('/', 1)[-1], link, dept, sale_title, image, is_leaf=True)
+            event.update_time = datetime.utcnow()
+            return event, is_new, is_updated
 
 
     def crawl_listing(self, url, ctx=''):

@@ -64,18 +64,19 @@ class Server(object):
         """
         self.net.check_signin()
         categories = ['women', 'men', 'children', ]
+        categories = [ 'men', ]
         for cat in categories:
             link = 'http://www.gilt.com/sale/{0}'.format(cat)
             tree = self.download_page_get_correct_tree(link, cat, 'download category error')
-            self.parse_event(tree)
+            self.parse_event(tree, cat, ctx)
 
             if cat != 'children':
                 link = 'http://www.gilt.com/sale/{cat}/{cat}s-shop/ss'.format(cat=cat)
                 tree = self.download_page_get_correct_tree(link, cat, 'download shop error')
-                self.save_group_of_event('', tree)
+                self.save_group_of_event('', tree, cat, ctx)
 
         tree = self.download_page_get_correct_tree('http://www.gilt.com/home/sale', 'home', 'download \'home\' error')
-        tree.cssselect('')
+        tree.cssselect('div.content-container > section.content > div > div.position > section.module')
 
 
     def download_page_get_correct_tree(self, url, key, warning):
@@ -101,10 +102,11 @@ class Server(object):
         return tree
 
 
-    def parse_event(self, tree):
+    def parse_event(self, tree, dept, ctx):
         """.. :py:method::
         """
         # hero event
+        sale_title = tree.cssselect('div#sticky-nav > div.sticky-nav-container > ul.tabs > li.sales > div > div.bg_container > div.column_currentcol_height > ul > li > a')[0].text_content().strip()
         img = tree.cssselect('section#main > div.hero-container > section.hero')[0]
         image = self.extract_hero_image.search(img.get('style')).group(1)
         image = image if image.startswith('http:') else 'http:' + image
@@ -116,8 +118,8 @@ class Server(object):
             event_id = link.rsplit('/', 1)[-1]
             is_leaf = True
         if is_leaf is False:
-            self.get_child_event(event_id, link)
-        event, is_new, is_updated = self.get_or_create_event(event_id, link, '', image, is_leaf)
+            self.get_child_event(event_id, link, dept, ctx)
+        event, is_new, is_updated = self.get_or_create_event(event_id, link, dept, sale_title, image, is_leaf)
         event.update_time = datetime.utcnow()
         event.save()
         common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=link, is_new=is_new, is_updated=is_updated)
@@ -126,21 +128,25 @@ class Server(object):
         # on sale events
         nodes = tree.cssselect('section#main > div.sales-container > section.new-sales > article.sale')
         for node in nodes:
-            event, is_new, is_updated = self.parse_one_node(node)
+            ret = self.parse_one_node(node, dept, ctx)
+            if ret is None: continue
+            event, is_new, is_updated = ret
             event.save()
             common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
 
         # ending soon
         nodes = tree.cssselect('section#main > div.sales-container > section.sales-ending-soon > article.sale')
         for node in nodes:
-            event, is_new, is_updated = self.parse_one_node(node)
+            ret = self.parse_one_node(node, dept, ctx)
+            if ret is None: continue
+            event, is_new, is_updated = ret
             event.save()
             common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
 
-        # starting later. When first started, this column disappear
+        # starting later. When today's upcoming on sale, this column disappear for a while
         nodes = tree.cssselect('section#main > div.sales-container > section.sales-starting-later > article.sale')
         for node in nodes:
-            event, is_new, is_updated = self.parse_one_node(node)
+            event, is_new, is_updated = self.parse_one_node(node, dept, ctx)
 
             begins = node.cssselect('header > hgroup > h3 > span')[0].get('data-gilt-date')
             event.events_begin = datetime.strptime(begins[:begins.index('+')], '%m/%d/%Y %H:%M ')
@@ -155,7 +161,7 @@ class Server(object):
         # upcoming
         nodes = tree.cssselect('section#main > div.sales-container > div.sales-promos > section.calendar-sales > div.tab_content > div.scroll-container > article.sale')
         for node in nodes:
-            event, is_new, is_updated = self.parse_one_node(node)
+            event, is_new, is_updated = self.parse_one_node(node, dept, ctx)
             if not event.sale_description:
                 image, sale_description, events_begin = self.get_picture_description(event.combine_url)
                 event.image_urls = image
@@ -166,18 +172,18 @@ class Server(object):
             common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
 
 
-    def parse_one_node(self, node):
+    def parse_one_node(self, node, dept, ctx):
         """.. :py:method::
             parse one event node
         """
-        link = node.xpath('./a/@href')[0]
+        link = node.xpath('./a')[0].get('href')
         link = link if link.startswith('http') else self.siteurl + link
         if self.siteurl not in link: # women have www.giltcity.com and www.jetsetter.com
             return
-        sale_title = node.xpath('./a/img/@alt')[0].strip()
+        sale_title = node.xpath('./a/img')[0].get('alt').strip()
         image = node.xpath('./a/img/@src')
-        if image:
-            image = image[0] if image[0].startswith('http:') else 'http:' + image[0]
+        if image: # type lxml.etree._ElementStringResult
+            image = str(image[0]) if image[0].startswith('http:') else 'http:' + image[0]
         if link.rsplit('/', 1)[-1] == 'ss':
             event_id = link.rsplit('/', 2)[-2]
             is_leaf = False
@@ -186,19 +192,22 @@ class Server(object):
             is_leaf = True
 
         if is_leaf is False:
-            self.get_child_event(event_id, link)
-        event, is_new, is_updated = self.get_or_create_event(event_id, link, sale_title, image, is_leaf)
+            self.get_child_event(event_id, link, dept, ctx)
+        event, is_new, is_updated = self.get_or_create_event(event_id, link, dept, sale_title, image, is_leaf)
         event.update_time = datetime.utcnow()
         return event, is_new, is_updated
 
 
-    def get_or_create_event(self, event_id, link, sale_title, image, is_leaf):
+    def get_or_create_event(self, event_id, link, dept, sale_title, image, is_leaf):
         """.. :py:method::
             upcoming image > on sale image > ending soon image,
             so event image only add once when you first meet it
         :param event_id:
         :param link: event listing url
+        :param dept: department
         :param sale_title: event title 
+        :param image: str image or []
+        :param is_leaf: whether it is a leaf event
         """
         is_new, is_updated = False, False
         event = Event.objects(event_id=event_id).first()
@@ -208,8 +217,10 @@ class Server(object):
             event.urgent = True
             event.combine_url = link
             event.sale_title = sale_title
-            event.image_urls.extend(image)
+            if image:
+                event.image_urls.append(image)
             event.is_leaf = is_leaf
+        if dept not in event.dept: event.dept.append(dept)
         return event, is_new, is_updated
 
 
@@ -217,25 +228,26 @@ class Server(object):
         """.. :py:method::
         """
         tree = self.download_page_get_correct_tree(url, '', 'download upcoming page error')
+        #TODO: already on sale
         nav = tree.cssselect('section#main > article.sale-brand-summary')[0]
         image = nav.xpath('./img/@src')
         sale_description = nav.cssselect('section.copy > p.bio')[0].text_content().strip()
 
-        data_gilt_time = tree.cssselect('div#main span#shopInCountdown').get('data-gilt-time')
+        data_gilt_time = tree.cssselect('span#shopInCountdown')[0].get('data-gilt-time')
         events_begin = self.gilt_time(data_gilt_time)
         return image, sale_description, events_begin
 
 
-    def get_child_event(self, event_id, link):
+    def get_child_event(self, event_id, link, dept, ctx):
         """.. :py:method::
         :param event_id: this parent event id
         :param link: this event list link
         """
         tree = self.download_page_get_correct_tree(link, event_id, 'download parent event list error')
-        self.save_group_of_event(event_id, tree)
+        self.save_group_of_event(event_id, tree, dept, ctx)
 
 
-    def save_group_of_event(self, event_id, tree):
+    def save_group_of_event(self, event_id, tree, dept, ctx):
         """.. :py:method::
 
         :param event_id: parent event id, if no event_id passed,
@@ -246,7 +258,7 @@ class Server(object):
             group_title = group.cssselect('h2.row_group_title')[0].text_content().strip()
             nodes = group.cssselect('ul.sales > li.brand_square')
             for node in nodes:
-                event, is_new, is_updated = self.parse_one_node(node)
+                event, is_new, is_updated = self.parse_one_node(node, dept, ctx)
                 if is_new:
                     if event_id: event.parent_id = event_id
                     if group_title: event.group_title = group_title
@@ -265,6 +277,8 @@ class Server(object):
 
 
     def crawl_listing(self, url, ctx=''):
+        """ http://www.gilt.com/home/sale/almost-gone-bedding-3351?layout=f&grid-variant=new-grid&
+        """
         pass
 
     def crawl_product(self, url, ctx=''):

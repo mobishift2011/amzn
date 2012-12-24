@@ -215,12 +215,14 @@ class Server(object):
             image_url = 'http://pr-media01.venteprivee.com/is/image/VPUSA/%s' % det.get('fileName')
             if image_url not in product.image_urls:
                 product.image_urls.append(image_url)
-        product.list_info = [] # TODO
         product.soldout = res.get('isSoldOut')
         breadCrumb = res.get('breadCrumb').get('name')
         if breadCrumb not in product.dept:
             product.dept.append(breadCrumb)
         product.returned = res.get('returnPolicy')
+        product.shipping = '; '.join( res.get('estimatedDeliveryDates') )
+        list_info = lxml.html.fromstring( res.get('description') ).xpath('.//div[@class="FTCopierColler_RDV"]/dl[@class="ftBloc"]/dt[contains(text(), "Description")]')[0].getnext()
+        product.list_info = list_info.xpath('.//text()')
 #        product.sizes = []#res.get('sizes')    # TODO
 #        product.sizes_scarcity = [] # TODO
         temp_updated = product.updated

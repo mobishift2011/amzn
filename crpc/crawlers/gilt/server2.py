@@ -118,7 +118,6 @@ class Server(object):
         if is_leaf is False:
             self.get_child_event(event_id, link, dept, ctx)
         event, is_new, is_updated = self.get_or_create_event(event_id, link, dept, sale_title, image, is_leaf)
-        event.update_time = datetime.utcnow()
         event.save()
         common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=link, is_new=is_new, is_updated=is_updated)
 
@@ -194,7 +193,6 @@ class Server(object):
         if is_leaf is False:
             self.get_child_event(event_id, link, dept, ctx)
         event, is_new, is_updated = self.get_or_create_event(event_id, link, dept, sale_title, image, is_leaf)
-        event.update_time = datetime.utcnow()
         return event, is_new, is_updated
 
 
@@ -228,6 +226,7 @@ class Server(object):
                 event.dept = ['children']
             elif '/home/sale' in link:
                 event.dept = ['home']
+        event.update_time = datetime.utcnow()
         return event, is_new, is_updated
 
 
@@ -298,7 +297,6 @@ class Server(object):
         event.save()
         common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
 
-
         # on sale
         nodes = nav.cssselect('section.module-sale-mosaic > div.elements-container > article.element')
         for node in nodes:
@@ -306,15 +304,22 @@ class Server(object):
             event.save()
             common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
 
-        # start later today & ending soon
+        # start later today & ending soon, sometimes ending soon is disappeared
         for sale_small in nav.cssselect('section.module-additional-sale-mosaic'):
             if 'Starting Later Today' == sale_small.cssselect('module-header > hgroup h1.headline')[0].text_content().strip():
                 nodes = sale_small.cssselect('div.elements-container > article.element')
                 for node in nodes:
                     event, is_new, is_updated = self.parse_one_home_node(node, dept, ctx)
+
+                    events_begin, events_end, image, sale_description = self.get_home_events_begin_end(link, dept)
+                    if not sale_description:
+                        events_begin, events_end, image, sale_description = self.get_home_events_begin_end(link, dept)
+                        event.events_begin = events_begin
+                        event.events_end = events_end
+                        event.image_urls = [image]
+                        event.sale_description = sale_description
                     event.save()
                     common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
-                    # TODO Go to that page to see starting time
             elif 'Ending Soon' == sale_small.cssselect('module-header > hgroup h1.headline')[0].text_content().strip():
                 nodes = sale_small.cssselect('div.elements-container > article.element')
                 for node in nodes:
@@ -323,14 +328,9 @@ class Server(object):
                     common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
 
         # upcoming
-        nav.cssselect('section.module-sidebar-mosaic > div.elements-container > article.element-cms-default > ul.nav > li.nav-item > div.nav-dropdown > section.nav-section')
-        tree = self.download_page_get_correct_tree(url, dept, 'download upcoming \'home\' error')
-        timer = tree.cssselect('div.page-container > div.content-container > section.page-details > div.layout-background > div.layout-wrapper > div.layout-container > section.sale-details > div.sale-time')
-        _begin = timer.get('data-timer-start')
-        datetime.utcfromtimestamp(float(_begin[:10]))
-        _end = timer.get('data-timer-end') # 1356714000000
-        datetime.utcfromtimestamp(float(_end[:10]))
-
+        nodes = nav.cssselect('section.module-sidebar-mosaic > div.elements-container > article.element-cms-default > ul.nav > li.nav-item > div.nav-dropdown > section.nav-section > ul > li.nav-topic')
+        for node in nodes:
+            self.parse_one_home_upcoming_node(node, dept, ctx)
 
 
     def parse_one_home_node(self, node, dept, ctx):
@@ -345,8 +345,43 @@ class Server(object):
             sale_title = bottom_node.cssselect('img')[0].get('alt')
 
             event, is_new, is_updated = self.get_or_create_event(link.rsplit('/', 1)[-1], link, dept, sale_title, image, is_leaf=True)
-            event.update_time = datetime.utcnow()
             return event, is_new, is_updated
+
+
+    def parse_one_home_upcoming_node(self, node, dept, ctx):
+        """.. :py:method::
+        """
+        link = node.cssselect('span.topic-label > a')[0].get('href')
+        link = link if link.startswith('http') else self.siteurl + link
+        if self.siteurl in link: # have www.giltcity.com and www.jetsetter.com
+            # image = node.cssselect('figure.element-media > a > img')[0].get('src')
+            # image = image if image.startswith('http:') else 'http:' + image
+            sale_title = node.cssselect('span.topic-label > a')[0].text_content()
+            event, is_new, is_updated = self.get_or_create_event(link.rsplit('/', 1)[-1], link, dept, sale_title, image='', is_leaf=True)
+
+            if not sale_description:
+                events_begin, events_end, image, sale_description = self.get_home_events_begin_end(link, dept)
+                event.events_begin = events_begin
+                event.events_end = events_end
+                event.image_urls = [image]
+                event.sale_description = sale_description
+            event.save()
+            common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
+
+
+    def get_home_events_begin_end(self, link, dept):
+        """.. :py:method::
+        """
+        tree = self.download_page_get_correct_tree(link, dept, 'download \'home\' upcoming event page error')
+        timer = tree.cssselect('div.page-container > div.content-container > section.page-details > div.layout-background > div.layout-wrapper > div.layout-container > section.sale-details > div.sale-time')
+        _begin = timer.get('data-timer-start')
+        events_begin = datetime.utcfromtimestamp(float(_begin[:10]))
+        _end = timer.get('data-timer-end') # 1356714000000
+        events_end = datetime.utcfromtimestamp(float(_end[:10]))
+        bottom_node = timer = tree.cssselect('div.page-container > div.content-container > section.content > div > div.position > section.module > div.elements-container > article.element')[0]
+        image = bottom_node.cssselect('figure.element-image > span.media > img')[0].get('src')
+        sale_description = bottom_node.cssselect('div.sharable-editorial > header.element-header > div.element-content')[0].text_content().strip()
+        return events_begin, events_end, image, sale_description
 
 
     def crawl_listing(self, url, ctx=''):

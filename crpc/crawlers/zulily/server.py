@@ -126,7 +126,9 @@ class Server(object):
             link, event_id = m.groups()
             text = node.xpath('./a/span[@class="txt"]')[0]
             img = node.xpath('./a/span[@class="homepage-image"]/img/@src')[0]
-            image = ''.join( self.extract_event_img.match(img).groups() )
+            m = self.extract_event_img.match(img)
+            if m: image = ''.join( m.groups() )
+            else: image = img
             sale_title = text.xpath('./span[@class="category-name"]/span/text()')[0]
 
             brand, is_new = Event.objects.get_or_create(event_id=event_id)
@@ -169,7 +171,9 @@ class Server(object):
             calendar_file = node.cssselect('div.upcoming-date-reminder a.reminder-ical')[0].get('href')
             ics_file = self.net.fetch_page(calendar_file)
             img = node.cssselect('div.event-content-image img')[0].get('src')
-            image = ''.join( self.extract_event_img.match(img).groups() )
+            m = self.extract_event_img.match(img)
+            if m: image = ''.join( m.groups() )
+            else: image = img
             if 'placeholder.jpg' in image:
                 image = ''
             sale_title = node.cssselect('div.event-content-copy h1')[0].text_content()

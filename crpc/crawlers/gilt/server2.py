@@ -314,6 +314,7 @@ class Server(object):
                     event, is_new, is_updated = self.parse_one_home_node(node, dept, ctx)
                     event.save()
                     common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
+                    # TODO Go to that page to see starting time
             elif 'Ending Soon' == sale_small.cssselect('module-header > hgroup h1.headline')[0].text_content().strip():
                 nodes = sale_small.cssselect('div.elements-container > article.element')
                 for node in nodes:
@@ -323,6 +324,13 @@ class Server(object):
 
         # upcoming
         nav.cssselect('section.module-sidebar-mosaic > div.elements-container > article.element-cms-default > ul.nav > li.nav-item > div.nav-dropdown > section.nav-section')
+        tree = self.download_page_get_correct_tree(url, dept, 'download upcoming \'home\' error')
+        timer = tree.cssselect('div.page-container > div.content-container > section.page-details > div.layout-background > div.layout-wrapper > div.layout-container > section.sale-details > div.sale-time')
+        _begin = timer.get('data-timer-start')
+        datetime.utcfromtimestamp(float(_begin[:10]))
+        _end = timer.get('data-timer-end') # 1356714000000
+        datetime.utcfromtimestamp(float(_end[:10]))
+
 
 
     def parse_one_home_node(self, node, dept, ctx):

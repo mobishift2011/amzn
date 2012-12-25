@@ -328,7 +328,7 @@ class Server(object):
         if not event.sale_description:
             sale_description = path.cssselect('div#okl-bio > div.event-description .description')
             if sale_description:
-                event.sale_description = sale_description[0].text.strip()
+                event.sale_description = sale_description[0].text_content().strip()
         if not event.events_end:
             end_date = path.cssselect('div#okl-bio > h2.share')[0].get('data-end')
             event.events_end = self.utcstr2datetime(end_date)

@@ -6,31 +6,104 @@ connect(db='training', alias='training', host=MONGODB_HOST)
 
 from datetime import datetime
 
-class Department(Document):
-    main    =   StringField()
-    sub     =   StringField()
-    parent  =   ReferenceField('Department')
-
-    meta    = {
-        'indexes': [
-            {'fields':['main','sub'], 'unique':True},
-        ],
-        'db_alias': 'training',
-    }
-    
-class RawDocument(Document):
-    site_key    =   StringField()   
-    content     =   StringField()
-    updated_at  =   DateTimeField(default=datetime.utcnow)
-    department  =   ReferenceField(Department)
-    
-    meta = {
-        'indexes': [
-            {'fields':['site_key'], 'unique':True, 'sparse':True}, 
-        ],
-        'db_alias': 'training',
-    }
-
+D0 = ["Men","Women","Adult","Home","Boys","Girls","Kids","Baby","Human"]
+D1 = ["Books","Electronics","Computers","Home","Garden & Tools","Wine","Beauty","Toys & Games","Clothing","Shoes","Handbags","Accessories","Luggage","Jewelry","Watches"]
+D2DICT = {
+    "Home":{
+        "Kitchen & Dinning",
+        "Furniture & Lighting",
+        "Rugs & Textiles",
+        "Bedding & Bath",
+        "Appliances",
+        "Arts, Crafts & Sewing",
+        "Tools, Home Improvement",
+    },
+    "Wine":{
+        "Red Wine",
+        "White Wine",
+        "Sparkling",
+        "Others",
+    },
+    "Beauty":{
+        "Makeup",
+        "Skin Care",
+        "Hair Care",
+        "Fragrance",
+        "Tools & Accessories",
+    },
+    "Clothing":{
+        "Tops & Tees",
+        "Sweaters",
+        "Hoodies & Sweatshirts",
+        "Active",
+        "Dresses",
+        "Jumpsuits & Rompers",
+        "Jeans",
+        "Pants",
+        "Leggings",
+        "Shorts",
+        "Skirts",
+        "Blazers & Jackets",
+        "Suits",
+        "Outerwear & Coats",
+        "Socks & Hosiery",
+        "Sleep & Lounge",
+        "Intimates & Underwear",
+        "Swim",
+        "Accessories",
+        "Maternity",
+    },
+    "Accessories":{
+        "Belts",
+        "Ties",
+        "Scarves",
+        "Cufflinks"
+        "Hats & Caps",
+        "Wallets",
+        "Card Cases",
+        "Sunglasses",
+        "Others",
+    },
+    "Shoes": {
+        "Athletic & Outdoor",
+        "Boots",
+        "Sneakers",
+        "Flats",
+        "Mules & Clogs",
+        "Loafers & Slip-Ons",
+        "Oxfords",
+        "Pumps",
+        "Sandals",
+        "Slippers",
+        "Work & Safety",
+    },
+    "Handbags":{
+        "Cluthes",
+        "Crossbody Bags",
+        "Evening Bags",
+        "Hobo Bags"
+        "Satchels",
+        "Shoulder Bags",
+        "Tote Bags",
+        "Others",
+    },
+    "Luggage":{
+        "Backpacks",
+        "Briefcases",
+        "Laptop Bags",
+        "Messenger Bags",
+        "Others",
+    },
+    "Jewelry":{
+        "Rings",
+        "Necklaces",
+        "Earrings",
+        "Bracelets",
+        "Charms",
+        "Anklets",
+        "Others",
+    },
+}
 
 CATS = {
     'Women': [
@@ -61,6 +134,7 @@ CATS = {
 	    'Gear & Equipment',
 	    'Bed, Bath & Furniture',
         'Maternity',
+        'Baby',
         'Accessories',
     ],
     'Home': [
@@ -107,33 +181,61 @@ CATS = {
     ],
 }
 
-def bootstrap():
-    print 'reconstructing categories'
-    for k, vlist in CATS.iteritems():
-        for v in vlist:
-            print k, v
-            Department.objects(main=k,sub=v).update(set__main=k, set__sub=v, upsert=True)
-    return
-    # Department.objects(main='Beauty & Health').update(set__parent='Women')
-    # Department.objects(main='Jewelry & Watches').update(set__parent='Women')
-    # Department.objects(main='Handbags').update(set__parent='Women')
+class RawDocument(Document):
+    site_key    =   StringField()   
+    content     =   StringField()
+    main        =   StringField()
+    sub         =   StringField()
+    d0          =   StringField(default="")
+    d1          =   StringField(default="")
+    d2          =   StringField(default="")
+    updated_at  =   DateTimeField(default=datetime.utcnow)
+    
+    meta = {
+        'indexes': [
+            {'fields':['site_key'], 'unique':True, 'sparse':True}, 
+        ],
+        'db_alias': 'training',
+    }
 
-    print
-    print 'constructing rawdocs'
-    import os
-    from os.path import join
-    from classifier import SklearnClassifier
-    clf = SklearnClassifier('svm')
-    for dept_subdept in os.listdir('dataset'):
-        dept, subdept = dept_subdept.split('|')
-        print dept, subdept
-        d = Department.objects.get(main=dept, sub=subdept)
-        for site_key in os.listdir(join('dataset',dept_subdept)):
-            content = open(join('dataset', dept_subdept, site_key)).read()
-            if clf.train(content, dept_subdept, strict=False):
-                RawDocument.objects(site_key=site_key).update(set__content=content, set__department=d, upsert=True)
-            else:
-                print 'duplicate document', site_key
+def convert(d0, d1, d2):
+    """ convert d0,d1,d2 to a list of CATS """
+    results = []
+    if d0 == "Baby":
+        results.append(("Kids & Baby", "Baby"))
+    if d1 in ("Electronics", "Computers"):
+        results.append(("Home", "Electronics"))
+    elif d1 == "Garden & Tools":
+        results.append(("Home", "Tools"))
+    elif (d1 == "Books" and d0 in ["Kids","Girls","Boys"]) \
+        or (d1 == "Toys & Games"):
+        results.append(("Kids & Baby", "Toys, Games & Books"))
+    elif d1 == "Shoes":
+        if d0 in ["Men","Adult","Human"]:
+            results.append(("Men", "Shoes"))
+        elif d0 in ["Women","Adult","Human"]:
+            results.append(("Women", "Shoes"))
+        elif d0 in ["Kids","Girls","Boys","Baby","Human"]:
+            results.append(("Kids & Baby", "Shoes"))
+    elif d1 == "Watches":
+        if d0 in ["Men", "Adult", "Boys", "Kids", "Baby", "Human"]:
+            results.append(("Jewelry & Watches", "Men's Watches"))
+        elif d0 in ["Women", "Adult", "Girls", "Kids", "Baby", "Human"]:
+            results.append(("Jewelry & Watches", "Women's Watches"))
+    elif d1 == "Accessories":
+        if d0 in ["Men", "Adult", "Boys", "Kids", "Baby", "Human"]:
+            results.append(("Men", "Accessories"))
+        elif d0 in ["Women", "Adult", "Girls", "Kids", "Baby", "Human"]:
+            results.append(("Women", "Accessories"))
+        else:
+            results.append(("Home", "Home Accessories"))
+    elif d1 in ["Luggage", "Handbags"]:
+        results.append(("Handbags", d2))
+    elif d1 == "Jewelry":
+        results.append(("Jewelry & Watches", d2))
+    else:
+        results.append((d1, d2))
+    return results[0]
 
 if __name__ == '__main__':
-    bootstrap()
+    print convert("Human", "Home", "Furniture & Lighting")

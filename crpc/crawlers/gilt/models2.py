@@ -20,5 +20,5 @@ class Event(BaseEvent):
 class Product(LuxuryProduct):
     meta = { 'db_alias': DB, }
     def url(self):
-        return
+        return self.combine_url
 

@@ -318,7 +318,7 @@ class Server(object):
                     event, is_new, is_updated = self.parse_one_home_node(node, dept, ctx)
 
                     if not event.sale_description:
-                        events_begin, events_end, image, sale_description = self.get_home_events_begin_end(event.combine_url, event.event_id)
+                        events_begin, events_end, image, sale_description = self.get_home_future_events_begin_end(event.combine_url, event.event_id)
                         event.events_begin = events_begin
                         event.events_end = events_end
                         event.image_urls = [image]
@@ -365,7 +365,7 @@ class Server(object):
             event, is_new, is_updated = self.get_or_create_event(link.rsplit('/', 1)[-1], link, dept, sale_title, image='', is_leaf=True)
 
             if not event.sale_description:
-                events_begin, events_end, image, sale_description = self.get_home_events_begin_end(link, link.rsplit('/', 1)[-1])
+                events_begin, events_end, image, sale_description = self.get_home_future_events_begin_end(link, link.rsplit('/', 1)[-1])
                 event.events_begin = events_begin
                 event.events_end = events_end
                 event.image_urls = [image]
@@ -374,8 +374,10 @@ class Server(object):
             common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
 
 
-    def get_home_events_begin_end(self, link, key):
+    def get_home_future_events_begin_end(self, link, key):
         """.. :py:method::
+        :param link: link to upcoming page
+        :param key: event id or department
         """
         tree = self.download_page_get_correct_tree(link, key, 'download \'home\' upcoming event page error')
         timer = tree.cssselect('div.page-container > div.content-container > section.page-details > div.layout-background > div.layout-wrapper > div.layout-container > section.sale-details > div.sale-time')[0]
@@ -389,16 +391,116 @@ class Server(object):
         return events_begin, events_end, image, sale_description
 
 
+#####################################################
 
     def crawl_listing(self, url, ctx=''):
         """ http://www.gilt.com/home/sale/almost-gone-bedding-3351?layout=f&grid-variant=new-grid&
         """
+        event_id = url.rsplit('/', 1)[-1]
         self.net.check_signin()
-        tree = self.download_page_get_correct_tree(url, url.rsplit('/', 1)[-1], 'download listing page error')
-        _end = tree.cssselect('section#main > div > section.page-header-container > section.page-head-top  > div.clearfix > section.sale-countdown > time.sale-end-time')[0].get('datetime')
-        events_end = datetime.strptime(_end, '%Y-%m-%dT%XZ') # 2012-12-26T05:00:00Z
+        tree = self.download_page_get_correct_tree(url, event_id, 'download listing page error')
+
+        if '/home/sale' in url: # home
+            timer = tree.cssselect('div.page-container > div.content-container > section.page-details > div.layout-background > div.layout-wrapper > div.layout-container > section.sale-details > div.sale-time')[0]
+            _begin = timer.get('data-timer-start')
+            events_begin = datetime.utcfromtimestamp(float(_begin[:10]))
+            _end = timer.get('data-timer-end')
+            events_end = datetime.utcfromtimestamp(float(_end[:10]))
+            bottom_node = tree.cssselect('div.page-container > div.content-container > section.content-area-wrapper > section.content > div.position > section.module > div.elements-container > article.element')[0]
+            image = bottom_node.cssselect('figure.element-media > span.media > img')[0].get('src')
+            sale_description = bottom_node.cssselect('div.promo-content-wrapper > header.element-header > div.element-content')[0].text_content().strip()
+
+        else: # women, men, children
+            events_begin, image, sale_description = None, None, None
+            _end = tree.cssselect('section#main > div > section.page-header-container  section.page-head-top  > div.clearfix > section.sale-countdown > time.sale-end-time')[0].get('datetime')
+            events_end = datetime.strptime(_end, '%Y-%m-%dT%XZ') # 2012-12-26T05:00:00Z
+
+            nodes = tree.cssselect('section#main > div > section#product-listing > div.elements-container > article[id^="look-"]')
+            for node in nodes:
+                look_id, brand, link, title, price, listprice, soldout = self.parse_listing_one_product_node(node)
+                product, is_new, is_updated = self.get_or_create_product(event_id, link.rsplit('/', 1)[-1], link, title, listprice, price, brand, soldout)
+
+            self.detect_rest_product(url, look_id)
+
+        event = Event.objects(event_id=event_id).first()
+        if not event: event = Event(event_id=event_id)
+        if events_begin: event.events_begin = events_begin
+        event.events_end = events_end
+        if '/home/sale' in url: # home
+            if not event.sale_description:
+                event.sale_description = sale_description
+            event.image_urls = [image]
+        event.save()
+        if event.urgent == True:
+            event.urgent = False
+            event.update_time = datetime.utcnow()
+            event.save()
+            common_saved.send(sender=ctx, obj_type='Event', key=event_id, is_new=False, is_updated=False, ready=True)
 
 
+    def get_or_create_product(self, event_id, key, link, title, listprice, price, brand, soldout):
+        """.. :py:method::
+        """
+        is_new, is_updated = False, False
+        product = Product.objects(key=key).first()
+        if not product:
+            is_new = True
+            product = Product(key=key)
+            product.combine_url = link
+            product.updated = False
+            product.title = title
+            product.listprice = listprice
+            product.price = price
+            product.brand = brand
+            product.soldout = soldout
+        else:
+            if soldout and product.soldout != True:
+                product.soldout = True
+                is_updated = True
+        if event_id not in product.event_id: product.event_id.append(event_id)
+        product.list_update_time = datetime.utcnow()
+        product.save()
+        common_saved.send(sender=ctx, obj_type='Product', key=key, url=link, is_new=is_new, is_updated=is_updated)
+        return product, is_new, is_updated
+
+
+    def parse_listing_one_product_node(self, node):
+        """.. :py:method::
+        """
+        garbage, look_id = node.get('id').split('-')
+        brand = node.cssselect('header.overview > hgroup.look-name > h2.brand-name > div.primary > div.favorite-tooltip-link > button.favorite-star-button')[0].get('data-gilt-brand-name')
+        product_name = node.cssselect('header.overview > hgroup.look-name > h1.product-name > a')[0]
+        link = product_name.get('href')
+        link = link if link.startswith('http') else self.siteurl + link
+        title = product_name.text_content()
+        price = node.cssselect('header.overview > div.price > div.sale-price > span.nouveau-price')[0].text_content().strip()
+        listprice = node.cssselect('header.overview > div.price > div.original-price > span')[0].text_content().strip()
+        soldout = True if 'Sold Out' == node.cssselect('section.inventory-status > h1.inventory-state')[0].text_content().strip() else False
+        return look_id, brand, link, title, price, listprice, soldout
+
+
+    def detect_rest_product(self, url, look_id):
+        """.. :py:method::
+        """
+        cont = self.net.fetch_page('{0}?layout=f&angle=0&&ending_element_id={1}'.format(url, look_id))
+        if cont is None or isinstance(cont, int):
+            common_failed.send(sender=ctx, key=look_id, url=url,
+                    reason='Download rest product of url error: {1}'.format(cont))
+            return
+        # The position is 111, if no more products get
+        if cont.find('registerLooks') < 200:
+            return
+
+        tree = lxml.html.fromstring(cont)
+        nodes = tree.cssselect('div.elements-container > article')
+        for node in nodes:
+            look_id, brand, link, title, price, listprice, soldout = self.parse_listing_one_product_node(node)
+            product, is_new, is_updated = self.get_or_create_product(url.rsplit('/', 1)[-1], link.rsplit('/', 1)[-1], link, title, listprice, price, brand, soldout)
+
+        self.detect_rest_product(url, look_id)
+
+
+#####################################################
 
     def crawl_product(self, url, ctx=''):
         self.net.check_signin()
@@ -406,5 +508,5 @@ class Server(object):
 
 
 if __name__ == '__main__':
-    Server().crawl_category()
-    # Server().crawl_listing('http://www.gilt.com/sale/women/kelsi-dagger-handbags-1204')
+    Server().crawl_listing('http://www.gilt.com/sale/women/timeless-trend-the-ballet-flat-4633')
+    # Server().crawl_category()

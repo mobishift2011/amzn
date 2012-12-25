@@ -10,6 +10,9 @@ connect(db=DB, alias=DB, host=MONGODB_HOST)
 from crawlers.common.models import BaseEvent, LuxuryProduct
 
 class Event(BaseEvent):
+    parent_id   = StringField()
+    group_title = StringField()
+
     meta = { 'db_alias': DB, }
     def url(self):
         return

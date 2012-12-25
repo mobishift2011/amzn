@@ -67,8 +67,29 @@ class TextServer(object):
         if dept_complete:
             return
 
-        text_list.extend(product.dept)
-        favbuy_dept = list(self.__classifier.classify( '\n'.join(text_list) ))
+        p = product
+        depts = []
+        depts.extend(p.dept)
+        for eid in p.event_id:
+            e = self.__m[site].Event.objects.get(event_id=eid)
+            depts.extend( e.dept )
+            if hasattr(e, 'short_desc'):
+                depts.append( e.short_desc )
+
+        content = u'==site==: ' + site + u'\n'
+        if depts:
+            content += u'==depts==: ' + u'; '.join(depts) + u'\n'
+        if p.cats:
+            content += u'==cats==: ' +  u'; '.join(p.cats) + u'\n'
+        if p.brand:
+            content += u'==brand==: ' + p.brand + u'\n'
+        if p.tagline:
+            content += u'==tagline==: ' + u'; '.join(p.tagline) + u'\n'
+        content += u'==title==: ' +  p.title + u'\n'
+        content += u'==listinfo==: ' + u'\n'.join(p.list_info)
+        print content
+
+        favbuy_dept = list(self.__classifier.classify( content ))
         product.favbuy_dept = favbuy_dept
         product.dept_complete = bool(favbuy_dept)
 
@@ -102,10 +123,10 @@ class TextServer(object):
         }  
 
         text_list = []
-        text_list.append(product.title or '')
+        text_list.append(product.title or u'')
         text_list.extend(product.list_info or [])
-        text_list.append(product.summary or '')
-        text_list.append(product.short_desc or '')
+        text_list.append(product.summary or u'')
+        text_list.append(product.short_desc or u'')
         text_list.extend(product.tagline or [])
 
         jobs = [
@@ -141,6 +162,9 @@ class TextServer(object):
 
 
 if __name__ == '__main__':
+    #ts = TextServer()
+    #print ts.extract_text(kwargs=dict(site='myhabit', key='B008UW2L7K'))
+    #exit(0)
     import os, sys
     port = TEXT_PORT if len(sys.argv) != 2 else int(sys.argv[1])
     zs = zerorpc.Server(TextServer(), pool_size=50, heartbeat=None) 

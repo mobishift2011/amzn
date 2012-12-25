@@ -66,6 +66,7 @@ class SklearnClassifier(Classifier):
         self.y = None
         self.clf = {
             'svm':sklearn.svm.LinearSVC(),
+            'svm-rbf':sklearn.svm.SVC(),
             'bayes':sklearn.naive_bayes.MultinomialNB(),
             'knn':sklearn.neighbors.KNeighborsClassifier(5, weights='uniform'),
         }.get(clf, sklearn.svm.LinearSVC())
@@ -141,7 +142,7 @@ class SklearnClassifier(Classifier):
         
         ret = []
         index = list(self.clf.predict(self.vectorizer.transform([text])))[0]
-        return self.trainset.target_names[index]
+        return self.trainset.target_names[int(index)]
 
     def similarities(self, text):
         """ returns an array of similarities to the given text """

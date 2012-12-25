@@ -8,6 +8,7 @@
               <li class="nav-header">Train</li>
               <li><a href="/teach/">Teach</a></li>
               <li><a href="/validate/">Validate</a></li>
+              <li><a href="/event/list/">Events</a></li>
               <li class="nav-header">Test</li>
               <li class="active"><a href="/cross-validation/">Cross Validation</a></li>
             </ul>

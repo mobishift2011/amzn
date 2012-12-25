@@ -65,6 +65,19 @@ IMAGE_SIZE = {
             'background-color': '#d6d6d6',
             'thumbnail-policy': 'crop'
 		},
+		# For iPhone
+		{
+			'width': 320,
+			'height': 168,
+            'background-color': '#e5e5e5',
+            'thumbnail-policy': 'crop'
+		},
+		{
+			'width': 156,
+			'height': 82,
+            'background-color': '#e5e5e5',
+            'thumbnail-policy': 'scale-trim'
+		},
 	),
 	'Product': (
 		{
@@ -85,15 +98,28 @@ IMAGE_SIZE = {
             'background-color': '#e5e5e5',
             'thumbnail-policy': 'scale-trim'
 		},
+		# For iPhone
 		{
-			'width': 146,	# for mobile waterfall layout
+			'width': 146,
 			'height': 0,
             'background-color': '#e5e5e5',
             'thumbnail-policy': 'scale-trim'
 		},
 		{
+			'width': 176,
+			'height': 253,
+            'background-color': '#e5e5e5',
+            'thumbnail-policy': 'crop'
+		},
+		{
 			'width': 320,
-			'height': 169,
+			'height': 460,
+            'background-color': '#e5e5e5',
+            'thumbnail-policy': 'crop'
+		},
+		{
+			'width': 84,
+			'height': 106,
             'background-color': '#e5e5e5',
             'thumbnail-policy': 'crop'
 		},

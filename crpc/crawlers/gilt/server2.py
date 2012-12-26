@@ -478,7 +478,7 @@ class Server(object):
             return
         return self.get_correct_tree(cont)
 
-    def get_or_create_product(self, ctx, event_id, key, link, title, listprice, price, brand, soldout, color=''):
+    def get_or_create_product(self, ctx, event_id, key, link, title, listprice, price, brand, soldout, color='', sizes=[]):
         """.. :py:method::
         """
         is_new, is_updated = False, False
@@ -494,6 +494,7 @@ class Server(object):
             product.brand = brand
             product.soldout = soldout
             if color: product.color = color
+            if sizes: product.sizes = sizes
         else:
             if soldout and product.soldout != True:
                 product.soldout = True
@@ -570,10 +571,15 @@ class Server(object):
             price = node.cssselect('div.product-price > div.gilt-price')[0].text_content().strip()
             status = node.cssselect('section.product-details > section.inventory-status')
             soldout = True if status and 'Sold Out' in status[0].text_content() else False
-            attribute_color = node.cssselect('div.quickadd-wrapper > section.quickadd > form.sku-selection > div[data-gilt-attribute-name=Color]')
-            color = attribute_color[0].cssselect('ul.sku-attribute-values > li.swatch-attribute')[0].get('data-gilt-value-name') if attribute_color else ''
+            attribute = node.cssselect('div.quickadd-wrapper > section.quickadd > form.sku-selection')[0]
+            attribute_color = attribute.cssselect('div[data-gilt-attribute-name=Color]')
+            color = attribute_color[0].cssselect('ul.sku-attribute-values > li[data-gilt-value-name]')[0].get('data-gilt-value-name') if attribute_color else ''
+            attribute_size = attribute.cssselect('div[data-gilt-attribute-name=Size]')
+            sizes = []
+            for size in attribute_size[0].cssselect('ul.sku-attribute-values > li[data-gilt-value-name]'):
+                sizes.append( size[0].get('data-gilt-value-name') )
 
-            self.get_or_create_product(ctx, url.rsplit('/', 1)[-1], link.rsplit('/', 1)[-1], link, title, listprice, price, brand, soldout, color)
+            self.get_or_create_product(ctx, url.rsplit('/', 1)[-1], link.rsplit('/', 1)[-1], link, title, listprice, price, brand, soldout, color, sizes)
         self.detect_rest_home_product(url, look_id, ctx)
 
 
@@ -582,27 +588,85 @@ class Server(object):
     def crawl_product(self, url, ctx=''):
         """.. :py:method::
         """
+        key = url.rsplit('/', 1)[-1]
         self.net.check_signin()
         tree = self.download_listing_page_get_correct_tree(url, url.rsplit('/', 1)[-1], 'download product page error', ctx)
         if tree is None: return
 
         if '/home/sale' in url: # home
-            pass
-        else:
-            nav = tree.cssselect('section#main > section#product-detail > article.product > div.summary')[0]
-            shipping = nav.cssselect('div.details > dl.delivery > dd.delivery-window')[0].text_content().strip()
-            returned = nav.cssselect('div.details > dl.return-policy > dd')[0].text_content().strip()
-            for desc in nav.cssselect('div.structured-description > section.fragment'):
+            nav = tree.cssselect('div.page-container > div.content-container > section.content > div.layout-container > div.positions > div.position-2 > section.module > div.elements-container > article.element-product')[0]
+            text = nav.cssselect('section.product-details')[0]
+            shipping = text.cssselect('div.delivery-estimate')[0].text_content()
+            returned = text.cssselect('div.return-policy')[0].text_content()
+            list_info = []
+            detail = text.cssselect('section.product-description > div#PRODUCT_DETAILS')[0]
+            lis = detail.xpath('.//li'):
+            if not lis: # make sure not miss 'ul'
+                for i in detail.iterchildren():
+                    list_info.append(i.text_content())
+            else: # use 'li' and 'p' to fill list_info
+                for i in lis:
+                    list_info.append(i.text_content())
+                for i in detail.xpath('p'):
+                    list_info.append(i.text_content())
+            use_care = text.cssselect('section.product-description > div#USE_AND_CARE')
+            if use_care:
+                list_info.append( use_care[0].text_content() )
+
+            image_urls = []
+            for img in nav.cssselect('section.product-image > ul.photo-selection > li.photo > img'):
+                image = img.get('src').rsplit('/', 1)[0] + '/lg.jpg'
+                image = image if image.startswith('http:') else 'http:' + image
+                image_urls.append(image)
+            color, sizes = None, None
+        else: # women, men, children
+            nav = tree.cssselect('section#main > section#product-detail > article.product')[0]
+            text = nav.cssselect('div.summary')[0]
+            shipping = text.cssselect('div.details > dl.delivery > dd.delivery-window')[0].text_content().strip()
+            returned = text.cssselect('div.details > dl.return-policy > dd')[0].text_content().strip()
+            list_info = []
+            for desc in text.cssselect('div.structured-description > section.fragment'):
                 desc_title = desc.cssselect('header.structure-title > h1')[0].text_content()
                 if desc_title == 'Description':
-                    desc.cssselect('')
-                elif desc_title == 'At a Glance':
-                    desc.cssselect('')
+                    for i in desc.cssselect('header.structure-title')[0].xpath('./following-sibling::*'):
+                        list_info.append( i.text_content() )
                 elif desc_title == 'Use and Care':
-                    desc.cssselect('')
-                elif desc_title == 'Designer':
-                    desc.cssselect('')
+                    list_info.append( desc.text_content().replace('Use and Care', '').strip() )
+                # elif desc_title == 'At a Glance':
+                #     desc.text_content().replace('At a Glance', '').strip()
+                # elif desc_title == 'Designer':
+                #     desc.text_content().replace('Designer', '').strip()
+            sizes = []
+            for i in text.cssselect('form.sku-selection > div[data-gilt-attribute-name=Size] > ul.sku-attribute-values > li[data-gilt-value-name]'):
+                sizes.append(i.get('data-gilt-value-name'))
+            color = text.cssselect('form.sku-selection > div[data-gilt-attribute-name=Color] > dl.attribute-label > dd.selected-attribute-value')
+            color = color[0].text_content().strip() if color else ''
 
+            image_urls = []
+            for img in nav.cssselect('div.photos > ul.photo-selection > li.photo > img'):
+                image = img.get('src').rsplit('/', 1)[0] + '/lg.jpg'
+                image = image if image.startswith('http:') else 'http:' + image
+                image_urls.append(image)
+
+        is_new, is_updated = False, False
+        product = Product.objects(key=key).first()
+        if not product:
+            is_new = True
+            product = Product(key=key)
+        product.shipping = shipping
+        product.returned = returned
+        product.list_info = list_info
+        if sizes: product.sizes = sizes
+        if color: product.color = color
+        product.image_urls = image_urls
+        product.full_update_time = datetime.utcnow()
+
+        if product.updated == False:
+            product.updated = True
+            ready = True
+        else: ready = False
+        product.save()
+        common_saved.send(sender=ctx, obj_type='Product', key=key, url=url, is_new=is_new, is_updated=is_updated, ready=ready)
 
 
 if __name__ == '__main__':

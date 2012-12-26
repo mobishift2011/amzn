@@ -406,6 +406,7 @@ class Server(object):
         events_end = datetime.utcfromtimestamp(float(_end[:10]))
         bottom_node = timer = tree.cssselect('div.page-container > div.content-container > section.content > div > div.position > section.module > div.elements-container > article.element')[0]
         image = bottom_node.cssselect('figure > span > img')[0].get('src')
+        image = image if image.startswith('http:') else 'http:' + image
         sale_description = bottom_node.cssselect('div.sharable-editorial > header.element-header > div.element-content')[0].text_content().strip()
         return events_begin, events_end, image, sale_description
 
@@ -430,6 +431,7 @@ class Server(object):
             events_end = datetime.utcfromtimestamp(float(_end[:10]))
             bottom_node = tree.cssselect('div.page-container > div.content-container > div.content-area-wrapper > section.content > div.position > section.module > div.elements-container > article.element')[0]
             image = bottom_node.cssselect('figure.element-media > span.media > img')[0].get('src')
+            image = image if image.startswith('http:') else 'http:' + image
             sale_description = bottom_node.cssselect('div.promo-content-wrapper > header.element-header > div.element-content')[0].text_content().strip()
 
             self.detect_rest_home_product(url, '', ctx)
@@ -542,7 +544,7 @@ class Server(object):
         """.. :py:method::
             recursively detect whether home listing page still have some products
         """
-        if look_id: # first time to get the listing product, there is no ending element
+        if not look_id: # first time to get the listing product, there is no ending element
             link = '{0}?layout=f&grid-variant=new-grid&'.format(url)
         else:
             link = '{0}?layout=f&grid-variant=new-grid&&ending_element_id={1}'.format(url, look_id)
@@ -581,7 +583,9 @@ class Server(object):
         """.. :py:method::
         """
         self.net.check_signin()
-        tree = self.download_page_get_correct_tree(url, url.rsplit('/', 1)[-1], 'download product page error', ctx)
+        tree = self.download_listing_page_get_correct_tree(url, url.rsplit('/', 1)[-1], 'download product page error', ctx)
+        if tree is None: return
+
 
 
 if __name__ == '__main__':
@@ -591,4 +595,4 @@ if __name__ == '__main__':
     server.crawl_listing('http://www.gilt.com/sale/women/m-4018')
     server.crawl_listing('http://www.gilt.com/sale/men/spoil-yourself')
     server.crawl_listing('http://www.gilt.com/sale/children/winter-maternity-1821')
-    Server().crawl_listing('http://www.gilt.com/home/sale/candle-blowout-7052')
+    server.crawl_listing('http://www.gilt.com/home/sale/candle-blowout-7052')

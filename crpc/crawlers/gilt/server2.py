@@ -596,11 +596,11 @@ class Server(object):
         if '/home/sale' in url: # home
             nav = tree.cssselect('div.page-container > div.content-container > section.content > div.layout-container > div.positions > div.position-2 > section.module > div.elements-container > article.element-product')[0]
             text = nav.cssselect('section.product-details')[0]
-            shipping = text.cssselect('div.delivery-estimate')[0].text_content()
-            returned = text.cssselect('div.return-policy')[0].text_content()
+            shipping = text.cssselect('div.delivery-estimate')[0].text_content().strip()
+            returned = text.cssselect('div.return-policy')[0].text_content().strip()
             list_info = []
             detail = text.cssselect('section.product-description > div#PRODUCT_DETAILS')[0]
-            lis = detail.xpath('.//li'):
+            lis = detail.xpath('.//li')
             if not lis: # make sure not miss 'ul'
                 for i in detail.iterchildren():
                     list_info.append(i.text_content())
@@ -611,7 +611,7 @@ class Server(object):
                     list_info.append(i.text_content())
             use_care = text.cssselect('section.product-description > div#USE_AND_CARE')
             if use_care:
-                list_info.append( use_care[0].text_content() )
+                list_info.append( use_care[0].text_content().strip() )
 
             image_urls = []
             for img in nav.cssselect('section.product-image > ul.photo-selection > li.photo > img'):
@@ -671,6 +671,8 @@ class Server(object):
 
 if __name__ == '__main__':
     server = Server()
+    server.crawl_product('http://www.gilt.com/home/sale/pillows-that-pop/153869001-thro-by-marlo-lorenz-mongolian-fur-pillow')
+    exit()
     server.crawl_category()
     server.crawl_listing('http://www.gilt.com/sale/women/timeless-trend-the-ballet-flat-4633')
     server.crawl_listing('http://www.gilt.com/sale/women/m-4018')

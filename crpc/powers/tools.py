@@ -375,9 +375,9 @@ def test_propagate(site='venteprivee', event_id=None):
     import time
     from mongoengine import Q
     from backends.matching.extractor import Extractor
-    from backends.matching.classifier import SklearnClassifier
+    from backends.matching.classifier import FavbuyClassifier
     extractor = Extractor()
-    classifier = SklearnClassifier()
+    classifier = FavbuyClassifier()
     classifier.load_from_database()
     
     m = __import__('crawlers.{0}.models'.format(site), fromlist=['Event', 'Product'])
@@ -388,7 +388,8 @@ def test_propagate(site='venteprivee', event_id=None):
         p.propagate()
     else:
         now = datetime.utcnow()
-        events = m.Event.objects(Q(propagation_complete = False) & (Q(events_begin__lte=now) | Q(events_begin__exists=False)) & (Q(events_end__gt=now) | Q(events_end__exists=False)) )
+        #events = m.Event.objects(Q(propagation_complete = False) & (Q(events_begin__lte=now) | Q(events_begin__exists=False)) & (Q(events_end__gt=now) | Q(events_end__exists=False)) )
+        events = m.Event.objects()
         counter = len(events)
         for event in events:
             print '\n', counter, ' left.'

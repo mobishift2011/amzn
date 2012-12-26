@@ -10,6 +10,7 @@ from backends.matching.classifier import SklearnClassifier
 from brandapi import Extracter
 from tools import Propagator
 from powers.events import *
+from models import Stat
 
 from crawlers.common.stash import exclude_crawlers
 from datetime import datetime
@@ -157,6 +158,8 @@ class TextServer(object):
         p = Propagator(site, event_id, self.__extractor, self.__classifier, module=self.__m[site])
         if p.propagate():
             logger.info('{0}.event.{1} propagation OK'.format(site, event_id))
+            interval = datetime.utcnow().replace(second=0, microsecond=0)
+            Stat.objects(site=site, doctype='event', interval=interval).update(inc__prop_num=1, upsert=True)
         else:
             logger.error('{0}.event.{1} propagation failed'.format(site, event_id))
 

@@ -61,14 +61,30 @@ class PubChecker:
         print "on-shelf remaining and no image events:", noimage
         print "on-shelf remaining and no propagation events:", noprop, "({})".format(",".join(noprop_evid))
         print "on-shelf remaining and unknown events:", unknown, "({})".format(",".join(unknown_evid))
+
+        return [
+            ('total_events', total),
+            ('image not completed', image_incomplete),
+
+            ('upcoming events', total_new),
+            ('upcoming events unpublished', unpublished_new),
+
+            ('on-shelf events', onshelf),
+            ('on-shelf and published events', published),
+            ('on-shelf and no product events:', noprod),
+            ('on-shelf and no ready product events', noreadyprod,),
+            ('on-shelf remaining and no image events', noimage),
+            ('on-shelf remaining and no propagation events', noprop),
+            ('on-shelf remaining and unknown events', unknown),
+        ]
         
     def check_product(self, site):
         m = get_site_module(site)
         total = m.Product.objects.count()
         total_noimage = m.Product.objects(image_complete=False).count()
         total_nodept = m.Product.objects(dept_complete=False).count()
-        total_nobrand = m.Product.objects(favbuy_brand__exists=False).count()
-        total_notag = m.Product.objects(favbuy_tag__exists=False).count()        
+        total_nobrand = m.Product.objects(brand_complete=False).count()
+        total_notag = m.Product.objects(tag_complete=False).count()        
         print "total:", total
         print "no image:", total_noimage
         print "no department:", total_nodept
@@ -121,6 +137,26 @@ class PubChecker:
         print "published remaining and has a published event:", evpublished
         print "published remaining and not of its events published:", evunpublished
         print
+
+        return [
+            ('total', total),
+            ('no image', total_noimage),
+            ('no department', total_nodept),
+            ('no brand', total_nobrand),
+            ('no tag', total_notag),
+
+            ('unpublished', unpub),
+            ('unpublished and image incomplete', noimage),
+            ('unpublished remaining and no department', nodept),
+            ('unpublished remaining and event not ready', eventnotready),
+            ('unpublished remaining and unknown', unknown,),
+
+            ('published', pub),
+            ('published and standalone', standalone),
+            ('published remaining and has a published event', evpublished,),
+            ('published remaining and not of its events published', evunpublished),
+        ]
+
         
 if __name__ == '__main__':
     from optparse import OptionParser

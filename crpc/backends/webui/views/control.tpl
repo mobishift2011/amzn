@@ -13,7 +13,7 @@
         <ul class="nav nav-pills">
           <li><a href="/task">Tasks</a></li>
           <li class="active"><a href="#">Control</a></li>
-          <li><a href="/progress">Progress</a></li>
+          <li><a href="/publish">Publish</a></li>
         </ul>
         <div class="container" style="margin-top: 10px" ng-controller="ScheduleCtrl">
 

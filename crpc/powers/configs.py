@@ -43,7 +43,7 @@ IMAGE_SIZE = {
 		},
 		{
 			'width': 280,
-			'height': 135,
+			'height': 136,
             'background-color': '#e5e5e5',
             'thumbnail-policy': 'crop'
 		},
@@ -81,8 +81,8 @@ IMAGE_SIZE = {
 	),
 	'Product': (
 		{
-			'width': 205,
-			'height': 0,
+			'width': 244,
+			'height': 200,
             'background-color': '#e5e5e5',
             'thumbnail-policy': 'scale-trim'
 		},

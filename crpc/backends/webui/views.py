@@ -2,9 +2,14 @@
 # -*- coding: utf-8 -*-
 import traceback
 from backends.monitor.models import Task, Schedule, fail
+from powers.models import Stat
 
 from bson.objectid import ObjectId
 from datetime import datetime, timedelta
+from collections import Counter
+
+from mongoengine import Q
+
 
 def mark_all_failed():
     Task.objects(status=Task.RUNNING) \
@@ -61,3 +66,57 @@ def get_all_fails(ctx):
     task = Task.objects.get(ctx=ctx)
     fails = task.fails[-10:]
     return {'fails': [fail.to_json() for fail in fails]}
+
+def get_publish_stats(site, doctype, time_value, time_cell):
+    start_at = datetime.utcnow().replace(day=24, hour=22, minute=0, second=0, microsecond=0)
+    end_at = datetime.utcnow().replace(day=26, hour=23, minute=0, second=0, microsecond=0)
+
+    data = []
+    kwargs = {}
+    kwargs[time_cell] = time_value
+    interval = timedelta(**kwargs)
+    extent_right = end_at
+    extent_left = (extent_right - interval) if (extent_right - interval) > start_at else start_at
+    c = Counter()
+
+    extents = []
+    while extent_right > extent_left:
+        extents.append((extent_left, extent_right))
+        extent_right = extent_left
+        extent_left  = (extent_right - interval) if (extent_right - interval) > start_at else start_at
+
+    try:
+        extent = extents.pop(0)
+        stats = Stat.objects(site=site, doctype=doctype, interval__gte=start_at, interval__lt=end_at)
+        for stat in stats:
+            while stat.interval < extent[0]:
+                if c['image_num'] or c['prop_num'] or c['publish_num']:
+                    data.append({
+                        'extent_left': extent[0],
+                        'extent_right': extent[1],
+                        'image_num': c['image_num'],
+                        'prop_num': c['prop_num'],
+                        'publish_num': c['publish_num']
+                    })
+                    c = Counter()
+                try:
+                    extent = extents.pop(0)
+                except:
+                    break
+
+            if stat.interval >= extent[0] and stat.interval < extent[1]:
+                for key in ('image_num', 'prop_num', 'publish_num'):
+                    c[key] += getattr(stat, key)
+
+        if c['image_num'] or c['prop_num'] or c['publish_num']:
+            data.append({
+                'extent_left': extent[0],
+                'extent_right': extent[1],
+                'image_num': c['image_num'],
+                'prop_num': c['prop_num'],
+                'publish_num': c['publish_num']
+            })
+    except:
+        pass
+
+    return data

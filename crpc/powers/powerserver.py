@@ -9,10 +9,12 @@ from configs import *
 from tools import ImageTool
 from powers.events import *
 from imglib import trim, scale
+from models import Stat
 
 from crawlers.common.stash import exclude_crawlers
 from os import listdir
 from os.path import join, isdir
+from datetime import datetime
 
 from helpers.log import getlogger
 logger = getlogger('powerserver', filename='/tmp/powerserver.log')
@@ -51,12 +53,17 @@ class PowerServer(object):
             try:
                 it.crawl(image_urls, site, model, key, thumb=True)
             except Exception, e:
-                logger.error('crawling image of {0} exception: {3}'.format(sender, str(e)))
+                logger.error('crawling image of {0} exception: {1}'.format(sender, str(e)))
                 return
 
             if it.image_complete:
+                instance.reload()
+                if instance.image_complete:
+                    return
                 instance.update(set__image_path=it.image_path, set__image_complete=True)
                 image_crawled.send(sender=sender, model=model, key=key)
+                interval = datetime.utcnow().replace(second=0, microsecond=0)
+                Stat.objects(site=site, doctype=doctype.lower(), interval=interval).update(inc__image_num=1, upsert=True)
             else:
                 logger.error('crawling image of {0} failed'.format(sender))
 

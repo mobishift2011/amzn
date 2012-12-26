@@ -3,14 +3,17 @@
 from gevent import monkey; monkey.patch_all()
 import gevent
 
-from bottle import route, post, request, run, template, static_file, redirect
+from bottle import route, get, post, request, run, template, static_file, redirect
 from os.path import join, dirname
 
 from auth import *
 from backends.webui.events import log_event
 from backends.monitor.events import run_command
 from backends.webui.views import task_updates, task_all_tasks, mark_all_failed, get_all_fails
-from backends.webui.views import update_schedule, get_all_schedules, delete_schedule 
+from backends.webui.views import update_schedule, get_all_schedules, delete_schedule
+from backends.webui.views import get_publish_stats
+
+from tests.publisher.chkpub import PubChecker
 
 @route('/assets/<filepath:path>')
 def server_static(filepath):
@@ -87,12 +90,40 @@ def execute_command():
 def get_task_fails(ctx):
     return get_all_fails(ctx);
 
-@route('/progress')
+@route('/publish')
 # @login_required
-def progress_all():
-    return template('process.tpl')
+def publish():
+    return template('publish.tpl')
+
+@get('/publish/chkpub')
+# @login_required
+def chkpub_template():
+    return template('chkpub.tpl', {'stats':None})
+
+@post('/publish/chkpub')
+# @login_required
+def chkpub():
+    site = request.forms.get('site')
+    doctype = request.forms.get('doctype')
+    data = getattr(PubChecker(), 'check_{0}'.format(doctype))(site)
+    return template('chkpub.tpl', {'stats': data})
+
+@get('/publish/stats')
+# @login_required
+def publish_stats_template():
+    return template('pubstats.tpl', {'stats':None})
+
+@post('/publish/stats')
+# @login_required
+def publish_stats():
+    site = request.forms.get('site')
+    doctype = request.forms.get('doctype')
+    time_value = int(request.forms.get('time_value'))
+    time_cell = request.forms.get('time_cell')
+    data = get_publish_stats(site, doctype, time_value, time_cell)
+    return template('pubstats.tpl', {'stats': data})
 
 
-#mark_all_failed()
+#mark_all_failed():
 
 run(server='gevent', host='0.0.0.0', port=1317, debug=True)

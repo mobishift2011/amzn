@@ -586,6 +586,23 @@ class Server(object):
         tree = self.download_listing_page_get_correct_tree(url, url.rsplit('/', 1)[-1], 'download product page error', ctx)
         if tree is None: return
 
+        if '/home/sale' in url: # home
+            pass
+        else:
+            nav = tree.cssselect('section#main > section#product-detail > article.product > div.summary')[0]
+            shipping = nav.cssselect('div.details > dl.delivery > dd.delivery-window')[0].text_content().strip()
+            returned = nav.cssselect('div.details > dl.return-policy > dd')[0].text_content().strip()
+            for desc in nav.cssselect('div.structured-description > section.fragment'):
+                desc_title = desc.cssselect('header.structure-title > h1')[0].text_content()
+                if desc_title == 'Description':
+                    desc.cssselect('')
+                elif desc_title == 'At a Glance':
+                    desc.cssselect('')
+                elif desc_title == 'Use and Care':
+                    desc.cssselect('')
+                elif desc_title == 'Designer':
+                    desc.cssselect('')
+
 
 
 if __name__ == '__main__':

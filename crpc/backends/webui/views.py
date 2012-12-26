@@ -4,10 +4,14 @@ import traceback
 from backends.monitor.models import Task, Schedule, fail
 from powers.models import Stat
 
-from bson.objectid import ObjectId
+from settings import CRPC_ROOT
+from crawlers.common.stash import exclude_crawlers
+from os import listdir
+from os.path import join, isdir
 from datetime import datetime, timedelta
 from collections import Counter
 
+from bson.objectid import ObjectId
 from mongoengine import Q
 
 
@@ -67,10 +71,11 @@ def get_all_fails(ctx):
     fails = task.fails[-10:]
     return {'fails': [fail.to_json() for fail in fails]}
 
-def get_publish_stats(site, doctype, time_value, time_cell):
-    start_at = datetime.utcnow().replace(day=24, hour=22, minute=0, second=0, microsecond=0)
-    end_at = datetime.utcnow().replace(day=26, hour=23, minute=0, second=0, microsecond=0)
+def get_all_sites():
+    return [name for name in listdir(join(CRPC_ROOT, 'crawlers')) \
+            if name not in exclude_crawlers and isdir(join(CRPC_ROOT, 'crawlers', name))]
 
+def get_publish_stats(site, doctype, time_value, time_cell, start_at, end_at):
     data = []
     kwargs = {}
     kwargs[time_cell] = time_value

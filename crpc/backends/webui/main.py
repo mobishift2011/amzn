@@ -5,13 +5,15 @@ import gevent
 
 from bottle import route, get, post, request, run, template, static_file, redirect
 from os.path import join, dirname
+from datetime import datetime
+import pytz
 
 from auth import *
 from backends.webui.events import log_event
 from backends.monitor.events import run_command
 from backends.webui.views import task_updates, task_all_tasks, mark_all_failed, get_all_fails
 from backends.webui.views import update_schedule, get_all_schedules, delete_schedule
-from backends.webui.views import get_publish_stats
+from backends.webui.views import get_all_sites, get_publish_stats
 
 from tests.publisher.chkpub import PubChecker
 
@@ -98,20 +100,20 @@ def publish():
 @get('/publish/chkpub')
 # @login_required
 def chkpub_template():
-    return template('chkpub.tpl', {'stats':None})
+    return template('chkpub.tpl', {'stats':None, 'sites': get_all_sites()})
 
 @post('/publish/chkpub')
 # @login_required
 def chkpub():
     site = request.forms.get('site')
     doctype = request.forms.get('doctype')
-    data = getattr(PubChecker(), 'check_{0}'.format(doctype))(site)
-    return template('chkpub.tpl', {'stats': data})
+    data = getattr(PubChecker(), 'check_{0}'.format(doctype))(site) or []
+    return template('chkpub.tpl', {'stats': data, 'sites': [site]})
 
 @get('/publish/stats')
 # @login_required
 def publish_stats_template():
-    return template('pubstats.tpl', {'stats':None})
+    return template('pubstats.tpl', {'stats':None, 'sites': get_all_sites()})
 
 @post('/publish/stats')
 # @login_required
@@ -120,8 +122,18 @@ def publish_stats():
     doctype = request.forms.get('doctype')
     time_value = int(request.forms.get('time_value'))
     time_cell = request.forms.get('time_cell')
-    data = get_publish_stats(site, doctype, time_value, time_cell)
-    return template('pubstats.tpl', {'stats': data})
+    str_begin = request.forms.get('begin_at')
+    str_end = request.forms.get('end_at')
+
+    begin_at = datetime.strptime(str_begin, '%Y-%m-%d %H:%M:%S').replace(tzinfo=pytz.utc) \
+                if str_begin else datetime.utcnow()
+    end_at = datetime.strptime(str_end, '%Y-%m-%d %H:%M:%S').replace(tzinfo=pytz.utc) \
+                if str_end else datetime.utcnow()
+
+    print '~~~~~~~~~~~~~~', begin_at, end_at
+
+    data = get_publish_stats(site, doctype, time_value, time_cell, begin_at, end_at)
+    return template('pubstats.tpl', {'stats': data, 'sites': [site]})
 
 
 #mark_all_failed():

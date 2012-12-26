@@ -75,8 +75,9 @@
                 <div class='span4'>
                   <label>site</label>
                   <select name='site'>
-                    <option>venteprivee</option>
-                    <option>gilt</option>
+                    %for site in sites:
+                    <option>{{ site }}</option>
+                    %end
                   </select>             
                 </div>
                 <div class='span4'>
@@ -114,15 +115,15 @@
         inputField : "f_begin",
         trigger    : "f_btn_begin",
         onSelect   : function() { this.hide() },
-        showTime   : 12,
-        dateFormat : "%Y-%m-%d %I:%M %p"
+        showTime   : true,
+        dateFormat : "%Y-%m-%d %H:%M:00"
       });
       Calendar.setup({
         inputField : "f_end",
         trigger    : "f_btn_end",
         onSelect   : function() { this.hide() },
-        showTime   : 12,
-        dateFormat : "%Y-%m-%d %I:%M %p"
+        showTime   : true,
+        dateFormat : "%Y-%m-%d %H:%M:00"
       });
     //]]></script>
   </body>

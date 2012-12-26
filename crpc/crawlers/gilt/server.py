@@ -244,7 +244,7 @@ class Server(object):
                 event.dept = ['men']
             elif '/sale/children' in link:
                 event.dept = ['children']
-            elif '/home/sale' in link:
+            elif '/home/sale' in link or '/sale/home' in link:
                 event.dept = ['home']
         event.update_time = datetime.utcnow()
         return event, is_new, is_updated
@@ -424,7 +424,7 @@ class Server(object):
         tree = self.download_listing_page_get_correct_tree(url, event_id, 'download listing page error', ctx)
         if tree is None: return
 
-        if '/home/sale' in url: # home
+        if '/home/sale' in url or '/sale/home' in url: # home
             timer = tree.cssselect('div.page-container > div.content-container > section.page-details > div.layout-background > div.layout-wrapper > div.layout-container > section.sale-details > div.sale-time')[0]
             _begin = timer.get('data-timer-start')
             events_begin = datetime.utcfromtimestamp(float(_begin[:10]))
@@ -452,7 +452,7 @@ class Server(object):
         if not event: event = Event(event_id=event_id)
         if events_begin: event.events_begin = events_begin
         event.events_end = events_end
-        if '/home/sale' in url: # home
+        if '/home/sale' in url or '/sale/home' in url: # home
             if not event.sale_description:
                 event.sale_description = sale_description
             event.image_urls = [image]
@@ -596,7 +596,7 @@ class Server(object):
         tree = self.download_listing_page_get_correct_tree(url, url.rsplit('/', 1)[-1], 'download product page error', ctx)
         if tree is None: return
 
-        if '/home/sale' in url: # home
+        if '/home/sale' in url or '/sale/home' in url: # home
             nav = tree.cssselect('div.page-container > div.content-container > section.content > div.layout-container > div.positions > div.position-2 > section.module > div.elements-container > article.element-product')[0]
             text = nav.cssselect('section.product-details')[0]
             shipping = text.cssselect('div.delivery-estimate')[0].text_content().strip()

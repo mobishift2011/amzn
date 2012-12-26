@@ -173,9 +173,9 @@ def classify_event_department(site, event):
         results = mapping(site, event)
     return list(set(results))
 
-if __name__ == '__main__':
-    from web import sites
+def test_event():
     import random
+    from web import sites
     while True:
         site = random.choice(sites)
         m = get_site_module(site)
@@ -185,3 +185,6 @@ if __name__ == '__main__':
             print e.sale_title, e.dept, e.event_id
             print "==>", site, classify_event_department(site, e)
         raw_input()
+
+if __name__ == '__main__':
+    test_event()

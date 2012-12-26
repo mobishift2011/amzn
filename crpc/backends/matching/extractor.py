@@ -66,5 +66,16 @@ def extract(site):
 
 
 if __name__ == '__main__':
-    for site in ['ruelala', 'myhabit','zulily','hautelook','gilt','bluefly']:
-        extract(site)
+    from feature import sites, get_site_module, get_text
+    import random
+    e = Extractor()
+    for site in sites:
+        m = get_site_module(site)
+        count = m.Product.objects().count()
+        index = random.randint(0, count-1) 
+        p = m.Product.objects().skip(index).first()
+        _, __, text = get_text(site+'_'+p.key)
+        print text
+        print e.extract(text)
+        raw_input()
+       

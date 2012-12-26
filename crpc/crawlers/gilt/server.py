@@ -254,6 +254,8 @@ class Server(object):
         """.. :py:method::
         """
         tree = self.download_page_get_correct_tree(url, '', 'download upcoming page error', ctx)
+        if tree is None:
+            tree = self.download_page_get_correct_tree(url, '', 'download upcoming page twice error', ctx)
         nav = tree.cssselect('section#main > article.sale-brand-summary')
         # kids event already on sale, but in men's starting later today
         if not nav: return

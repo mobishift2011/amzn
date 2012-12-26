@@ -630,7 +630,10 @@ class Server(object):
             text = nav.cssselect('div.summary')[0]
             shipping = text.cssselect('div.details > dl.delivery > dd.delivery-window')
             shipping = shipping[0].text_content().strip() if shipping else ''
-            returned = text.cssselect('div.details > dl.return-policy > dd')[0].text_content().strip()
+            try:
+                returned = text.cssselect('div.details > dl.return-policy > dd')[0].text_content().strip()
+            except:
+                open('/tmp/gilt_ghost.html', 'w').write(lxml.etree.tostring(tree))
             list_info = []
             for desc in text.cssselect('div.structured-description > section.fragment'):
                 desc_title = desc.cssselect('header.structure-title > h1')[0].text_content()
@@ -678,8 +681,6 @@ class Server(object):
 
 if __name__ == '__main__':
     server = Server()
-    server.crawl_listing('http://www.gilt.com/home/sale/the-italian-kitchen')
-    exit()
     server.crawl_category()
     server.crawl_listing('http://www.gilt.com/sale/women/timeless-trend-the-ballet-flat-4633')
     server.crawl_listing('http://www.gilt.com/sale/women/m-4018')

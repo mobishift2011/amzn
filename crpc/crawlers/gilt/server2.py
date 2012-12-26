@@ -3,6 +3,7 @@
 # Author: bishop Liu <miracle (at) gmail.com>
 
 import lxml.html
+import time
 from datetime import datetime, timedelta
 
 from crawlers.common.stash import *
@@ -32,7 +33,10 @@ class giltLogin(object):
         """.. :py:method::
             use post method to login
         """
-        req.get(self.login_url)
+        _now = int(time.time()) * 1000
+        auth_url = 'https://www.gilt.com/login/auth?callback=jQuery17203001268294174224_{0}&email={1}&password={2}&remember_me=on&_={3}'.format(_now - 21, self.data['email'], self.data['password'], _now)
+        req.get(auth_url)
+
         req.post('https://www.gilt.com/login/redirect', data=self.data)
         self._signin = True
 
@@ -46,10 +50,19 @@ class giltLogin(object):
     def fetch_page(self, url):
         """.. :py:method::
             fetch page.
-            check whether the account is login, if not, login and fetch again
         """
         ret = req.get(url)
 
+        if ret.ok: return ret.content
+        return ret.status_code
+
+    def fetch_listing_page(self, url):
+        """.. :py:method::
+            fetch listing page.
+        """
+        ret = req.get(url)
+        if ret.url == 'http://www.gilt.com/sale/women':
+            return -302
         if ret.ok: return ret.content
         return ret.status_code
 
@@ -66,18 +79,18 @@ class Server(object):
         categories = ['women', 'men', 'children', ]
         for cat in categories:
             link = 'http://www.gilt.com/sale/{0}'.format(cat)
-            tree = self.download_page_get_correct_tree(link, cat, 'download category error')
+            tree = self.download_page_get_correct_tree(link, cat, 'download category error', ctx)
             self.parse_event(tree, cat, ctx)
 
             if cat != 'children':
                 link = 'http://www.gilt.com/sale/{cat}/{cat}s-shop/ss'.format(cat=cat)
-                tree = self.download_page_get_correct_tree(link, cat, 'download shop error')
+                tree = self.download_page_get_correct_tree(link, cat, 'download shop error', ctx)
                 self.save_group_of_event('', tree, cat, ctx)
 
         self.crawl_category_home(ctx)
 
 
-    def download_page_get_correct_tree(self, url, key, warning):
+    def download_page_get_correct_tree(self, url, key, warning, ctx):
         """.. :py:method::
             women page, upcoming page, parent event page, shop page,
             They both have two </html>, 200 is random by me
@@ -91,7 +104,13 @@ class Server(object):
             common_failed.send(sender=ctx, key=key, url=url,
                     reason='{0}: {1}'.format(warning, cont))
             return
+        return self.get_correct_tree(cont)
 
+    def get_correct_tree(self, cont):
+        """.. :py:method::
+        :param cont: page content
+        :rtype: right xml tree
+        """
         end_html_position = cont.find('</html>')
         if len(cont) - end_html_position > 200:
             tree = lxml.html.fromstring(cont[:end_html_position] + cont[end_html_position+7:])
@@ -104,7 +123,7 @@ class Server(object):
         """.. :py:method::
         """
         # hero event
-        sale_title = tree.cssselect('div#sticky-nav > div.sticky-nav-container > ul.tabs > li.sales > div > div.bg_container > div.column_currentcol_height > ul > li > a')[0].text_content().strip()
+        sale_title = tree.cssselect('div#sticky-nav > div.sticky-nav-container > ul.tabs > li.sales > div > div.bg_container > div.column > ul > li > a')[0].text_content().strip()
         img = tree.cssselect('section#main > div.hero-container > section.hero')[0]
         image = self.extract_hero_image.search(img.get('style')).group(1)
         image = image if image.startswith('http:') else 'http:' + image
@@ -148,7 +167,7 @@ class Server(object):
             begins = node.cssselect('header > hgroup > h3 > span')[0].get('data-gilt-date')
             event.events_begin = datetime.strptime(begins[:begins.index('+')], '%m/%d/%Y %H:%M ')
             if not event.sale_description:
-                ret = self.get_picture_description(event.combine_url)
+                ret = self.get_picture_description(event.combine_url, ctx)
                 if ret is not None: # starting later today, already on sale
                     image, sale_description, events_begin = ret
                     event.image_urls = image
@@ -162,7 +181,7 @@ class Server(object):
         for node in nodes:
             event, is_new, is_updated = self.parse_one_node(node, dept, ctx)
             if not event.sale_description:
-                image, sale_description, events_begin = self.get_picture_description(event.combine_url)
+                image, sale_description, events_begin = self.get_picture_description(event.combine_url, ctx)
                 event.image_urls = image
                 event.sale_description = sale_description
                 event.events_begin = events_begin
@@ -230,10 +249,10 @@ class Server(object):
         return event, is_new, is_updated
 
 
-    def get_picture_description(self, url):
+    def get_picture_description(self, url, ctx):
         """.. :py:method::
         """
-        tree = self.download_page_get_correct_tree(url, '', 'download upcoming page error')
+        tree = self.download_page_get_correct_tree(url, '', 'download upcoming page error', ctx)
         nav = tree.cssselect('section#main > article.sale-brand-summary')
         # kids event already on sale, but in men's starting later today
         if not nav: return
@@ -250,7 +269,7 @@ class Server(object):
         :param event_id: this parent event id
         :param link: this event list link
         """
-        tree = self.download_page_get_correct_tree(link, event_id, 'download parent event list error')
+        tree = self.download_page_get_correct_tree(link, event_id, 'download parent event list error', ctx)
         self.save_group_of_event(event_id, tree, dept, ctx)
 
 
@@ -289,7 +308,7 @@ class Server(object):
         """
         dept = 'home'
         url = 'http://www.gilt.com/home/sale'
-        tree = self.download_page_get_correct_tree(url, dept, 'download \'home\' error')
+        tree = self.download_page_get_correct_tree(url, dept, 'download \'home\' error', ctx)
 
         nav = tree.cssselect('div.content-container > section.content > div.holds-position-2 > div.position')[0]
         # hero 'div.elements-container > article.element'
@@ -318,7 +337,7 @@ class Server(object):
                     event, is_new, is_updated = self.parse_one_home_node(node, dept, ctx)
 
                     if not event.sale_description:
-                        events_begin, events_end, image, sale_description = self.get_home_future_events_begin_end(event.combine_url, event.event_id)
+                        events_begin, events_end, image, sale_description = self.get_home_future_events_begin_end(event.combine_url, event.event_id, ctx)
                         event.events_begin = events_begin
                         event.events_end = events_end
                         event.image_urls = [image]
@@ -365,7 +384,7 @@ class Server(object):
             event, is_new, is_updated = self.get_or_create_event(link.rsplit('/', 1)[-1], link, dept, sale_title, image='', is_leaf=True)
 
             if not event.sale_description:
-                events_begin, events_end, image, sale_description = self.get_home_future_events_begin_end(link, link.rsplit('/', 1)[-1])
+                events_begin, events_end, image, sale_description = self.get_home_future_events_begin_end(link, link.rsplit('/', 1)[-1], ctx)
                 event.events_begin = events_begin
                 event.events_end = events_end
                 event.image_urls = [image]
@@ -374,12 +393,12 @@ class Server(object):
             common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
 
 
-    def get_home_future_events_begin_end(self, link, key):
+    def get_home_future_events_begin_end(self, link, key, ctx):
         """.. :py:method::
         :param link: link to upcoming page
         :param key: event id or department
         """
-        tree = self.download_page_get_correct_tree(link, key, 'download \'home\' upcoming event page error')
+        tree = self.download_page_get_correct_tree(link, key, 'download \'home\' upcoming event page error', ctx)
         timer = tree.cssselect('div.page-container > div.content-container > section.page-details > div.layout-background > div.layout-wrapper > div.layout-container > section.sale-details > div.sale-time')[0]
         _begin = timer.get('data-timer-start')
         events_begin = datetime.utcfromtimestamp(float(_begin[:10]))
@@ -394,11 +413,14 @@ class Server(object):
 #####################################################
 
     def crawl_listing(self, url, ctx=''):
-        """ http://www.gilt.com/home/sale/almost-gone-bedding-3351?layout=f&grid-variant=new-grid&
+        """.. :py:method::
+            crawl women, men, children listing page
+            crawl home listing page
         """
         event_id = url.rsplit('/', 1)[-1]
         self.net.check_signin()
-        tree = self.download_page_get_correct_tree(url, event_id, 'download listing page error')
+        tree = self.download_listing_page_get_correct_tree(url, event_id, 'download listing page error', ctx)
+        if tree is None: return
 
         if '/home/sale' in url: # home
             timer = tree.cssselect('div.page-container > div.content-container > section.page-details > div.layout-background > div.layout-wrapper > div.layout-container > section.sale-details > div.sale-time')[0]
@@ -406,10 +428,11 @@ class Server(object):
             events_begin = datetime.utcfromtimestamp(float(_begin[:10]))
             _end = timer.get('data-timer-end')
             events_end = datetime.utcfromtimestamp(float(_end[:10]))
-            bottom_node = tree.cssselect('div.page-container > div.content-container > section.content-area-wrapper > section.content > div.position > section.module > div.elements-container > article.element')[0]
+            bottom_node = tree.cssselect('div.page-container > div.content-container > div.content-area-wrapper > section.content > div.position > section.module > div.elements-container > article.element')[0]
             image = bottom_node.cssselect('figure.element-media > span.media > img')[0].get('src')
             sale_description = bottom_node.cssselect('div.promo-content-wrapper > header.element-header > div.element-content')[0].text_content().strip()
 
+            self.detect_rest_home_product(url, '', ctx)
         else: # women, men, children
             events_begin, image, sale_description = None, None, None
             _end = tree.cssselect('section#main > div > section.page-header-container  section.page-head-top  > div.clearfix > section.sale-countdown > time.sale-end-time')[0].get('datetime')
@@ -418,9 +441,9 @@ class Server(object):
             nodes = tree.cssselect('section#main > div > section#product-listing > div.elements-container > article[id^="look-"]')
             for node in nodes:
                 look_id, brand, link, title, price, listprice, soldout = self.parse_listing_one_product_node(node)
-                product, is_new, is_updated = self.get_or_create_product(event_id, link.rsplit('/', 1)[-1], link, title, listprice, price, brand, soldout)
+                self.get_or_create_product(ctx, event_id, link.rsplit('/', 1)[-1], link, title, listprice, price, brand, soldout)
 
-            self.detect_rest_product(url, look_id)
+            self.detect_rest_product(url, look_id, ctx)
 
         event = Event.objects(event_id=event_id).first()
         if not event: event = Event(event_id=event_id)
@@ -437,8 +460,23 @@ class Server(object):
             event.save()
             common_saved.send(sender=ctx, obj_type='Event', key=event_id, is_new=False, is_updated=False, ready=True)
 
+    def download_listing_page_get_correct_tree(self, url, key, warning, ctx):
+        """.. :py:method::
+            women page will redirect to 'http://www.gilt.com/sale/women'
+            They both have two </html>, 200 is random by me
 
-    def get_or_create_product(self, event_id, key, link, title, listprice, price, brand, soldout):
+        :param url: url of the page
+        :param key: key of the event
+        :param warning: if download error, warning raise
+        """
+        cont = self.net.fetch_listing_page(url)
+        if cont is None or isinstance(cont, int):
+            common_failed.send(sender=ctx, key=key, url=url,
+                    reason='{0}: {1}'.format(warning, cont))
+            return
+        return self.get_correct_tree(cont)
+
+    def get_or_create_product(self, ctx, event_id, key, link, title, listprice, price, brand, soldout, color=''):
         """.. :py:method::
         """
         is_new, is_updated = False, False
@@ -453,6 +491,7 @@ class Server(object):
             product.price = price
             product.brand = brand
             product.soldout = soldout
+            if color: product.color = color
         else:
             if soldout and product.soldout != True:
                 product.soldout = True
@@ -461,7 +500,6 @@ class Server(object):
         product.list_update_time = datetime.utcnow()
         product.save()
         common_saved.send(sender=ctx, obj_type='Product', key=key, url=link, is_new=is_new, is_updated=is_updated)
-        return product, is_new, is_updated
 
 
     def parse_listing_one_product_node(self, node):
@@ -479,8 +517,9 @@ class Server(object):
         return look_id, brand, link, title, price, listprice, soldout
 
 
-    def detect_rest_product(self, url, look_id):
+    def detect_rest_product(self, url, look_id, ctx):
         """.. :py:method::
+            recursively detect whether there is still some products
         """
         cont = self.net.fetch_page('{0}?layout=f&angle=0&&ending_element_id={1}'.format(url, look_id))
         if cont is None or isinstance(cont, int):
@@ -495,18 +534,61 @@ class Server(object):
         nodes = tree.cssselect('div.elements-container > article')
         for node in nodes:
             look_id, brand, link, title, price, listprice, soldout = self.parse_listing_one_product_node(node)
-            product, is_new, is_updated = self.get_or_create_product(url.rsplit('/', 1)[-1], link.rsplit('/', 1)[-1], link, title, listprice, price, brand, soldout)
+            self.get_or_create_product(ctx, url.rsplit('/', 1)[-1], link.rsplit('/', 1)[-1], link, title, listprice, price, brand, soldout)
 
-        self.detect_rest_product(url, look_id)
+        self.detect_rest_product(url, look_id, ctx)
+
+    def detect_rest_home_product(self, url, look_id, ctx):
+        """.. :py:method::
+            recursively detect whether home listing page still have some products
+        """
+        if look_id: # first time to get the listing product, there is no ending element
+            link = '{0}?layout=f&grid-variant=new-grid&'.format(url)
+        else:
+            link = '{0}?layout=f&grid-variant=new-grid&&ending_element_id={1}'.format(url, look_id)
+        cont = self.net.fetch_page(link)
+        if cont is None or isinstance(cont, int):
+            common_failed.send(sender=ctx, key=look_id, url=url,
+                    reason='Download rest home product of url error: {1}'.format(cont))
+            return
+        # The position is 39, if no more products get
+        if cont.find('requireModules') < 100:
+            return
+
+        tree = lxml.html.fromstring(cont)
+        nodes = tree.cssselect('article.element-product')
+        for node in nodes:
+            look_id = node.get('data-home-look-id')
+            text = node.cssselect('section.product-details > header > hgroup')[0]
+            brand = text.cssselect('h3.product-brand')[0].text_content().strip()
+            link = text.cssselect('h1.product-name > a')[0].get('href')
+            link = link if link.startswith('http') else self.siteurl + link
+            title = text.cssselect('h1.product-name > a')[0].text_content()
+            listprice = node.cssselect('div.product-price > div.original-price')[0].text_content()
+            price = node.cssselect('div.product-price > div.gilt-price')[0].text_content().strip()
+            status = node.cssselect('section.product-details > section.inventory-status')
+            soldout = True if status and 'Sold Out' in status[0].text_content() else False
+            attribute_color = node.cssselect('div.quickadd-wrapper > section.quickadd > form.sku-selection > div[data-gilt-attribute-name=Color]')
+            color = attribute_color[0].cssselect('ul.sku-attribute-values > li.swatch-attribute')[0].get('data-gilt-value-name') if attribute_color else ''
+
+            self.get_or_create_product(ctx, url.rsplit('/', 1)[-1], link.rsplit('/', 1)[-1], link, title, listprice, price, brand, soldout, color)
+        self.detect_rest_home_product(url, look_id, ctx)
 
 
 #####################################################
 
     def crawl_product(self, url, ctx=''):
+        """.. :py:method::
+        """
         self.net.check_signin()
-        tree = self.download_page_get_correct_tree(url, url.rsplit('/', 1)[-1], 'download product page error')
+        tree = self.download_page_get_correct_tree(url, url.rsplit('/', 1)[-1], 'download product page error', ctx)
 
 
 if __name__ == '__main__':
-    Server().crawl_listing('http://www.gilt.com/sale/women/timeless-trend-the-ballet-flat-4633')
-    # Server().crawl_category()
+    server = Server()
+    server.crawl_category()
+    server.crawl_listing('http://www.gilt.com/sale/women/timeless-trend-the-ballet-flat-4633')
+    server.crawl_listing('http://www.gilt.com/sale/women/m-4018')
+    server.crawl_listing('http://www.gilt.com/sale/men/spoil-yourself')
+    server.crawl_listing('http://www.gilt.com/sale/children/winter-maternity-1821')
+    Server().crawl_listing('http://www.gilt.com/home/sale/candle-blowout-7052')

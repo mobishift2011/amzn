@@ -16,25 +16,28 @@
         </div><!--/span-->
         <div class="span9">
           <h2> Training Sets </h2>
-          <h4>Total Classes: {{len(ts)}}, Totoal Documents: {{sum([x[-1] for x in ts])}}</h4>
-          <table class="table table-striped span7">
+          <h4>Total Classes: {{len(dc)}}, Totoal Documents: {{sum(dc.values())}}</h4>
+          <table class="table table-striped span8">
             <thead>
               <tr>
-                <th class='span2'>Tier1</th>
-                <th class='span2'>Tier2</th>
+                <th class='span1'>D0</th>
+                <th class='span2'>D1</th>
+                <th class='span2'>D2</th>
                 <th class='span1'>Counts</th>
                 <th class='span2'>Details</th>
               </tr>
             </thead>
             <tbody>
-            %for main, sub, count in ts:
+            %for k, count in dc.iteritems():
+              %d0, d1, d2 = k
               <tr>
-                <td>{{main}}</td>
-                <td>{{sub}}</td>
+                <td>{{d0}}</td>
+                <td>{{d1}}</td>
+                <td>{{d2}}</td>
                 <td>{{count}}</td>
                 <td>
                 <div>
-                  <a href="#detailmodal" role="button" data-toggle="modal" onclick="loadDetail(&quot;{{!main}}&quot;, &quot;{{!sub}}&quot;);">See Details</a>
+                  <a href="#detailmodal" role="button" data-toggle="modal" onclick="loadDetail(&quot;{{!d0}}&quot;, &quot;{{!d1}}&quot;, &quot;{{!d2}}&quot;);">See Details</a>
                 </div>
                 </td>
               </tr>
@@ -57,12 +60,11 @@
           </div>
         </div>
         <script type="text/javascript">
-          var loadDetail = function(main, sub, key){
-            console.log(main, sub)
+          var loadDetail = function(d0, d1, d2, key){
             $.ajax({
               url: "/training-set/load-detail/",
               type: "GET",
-              data: {main:main, sub:sub},
+              data: {d0:d0, d1:d1, d2:d2},
               dataType: "json",
               success: function(response){
                 if (response['status']=='ok'){

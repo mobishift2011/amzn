@@ -14,26 +14,30 @@
             </ul>
           </div><!--/.well -->
         </div><!--/span-->
-        <div class="span9">
-          <h2> Department List </h2>
-          <table class="table table-striped span5">
-            <thead>
-              <tr>
-                <th>Tier1</th>
-                <th>Tier2</th>
-              </tr>
-            </thead>
-            <tbody>
-            %for main, sublist in departments.items():
-              %for sub in sublist:
-              <tr>
-                <td>{{main}}</td>
-                <td>{{sub}}</td>
-              </tr>
+        <div class="container span9">
+          <div>
+          <h3>D0 List</h3>
+          %for name in d0:
+            <button class="btn" style="margin:3px;">{{name}}</button>
+          %end
+          </div>
+          <div>
+          <h3>D1 List</h3>
+          %for name in d1:
+            <button class="btn" style="margin:3px;">{{name}}</button>
+          %end
+          </div>
+          <div>
+          <h3>D2 List</h3>
+            %for d1, d2list in d2dict.iteritems():
+              <div>
+              <span style="font-size:1.5em;">{{d1}}</span> 
+              %for name in d2list:
+                <button class="btn" style="margin:3px;">{{name}}</button>
               %end
+              </div>
             %end
-            </tbody>
-          </table>
+          </div>
         </div><!--/span-->
 
         %rebase layout

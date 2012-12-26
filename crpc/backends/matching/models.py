@@ -9,7 +9,7 @@ from datetime import datetime
 D0 = ["Men","Women","Adult","Home","Boys","Girls","Kids","Baby","Human"]
 D1 = ["Books","Electronics","Computers","Home","Garden & Tools","Wine","Beauty","Toys & Games","Clothing","Shoes","Handbags","Accessories","Luggage","Jewelry","Watches"]
 D2DICT = {
-    "Home":{
+    "Home":[
         "Kitchen & Dinning",
         "Furniture & Lighting",
         "Rugs & Textiles",
@@ -17,21 +17,22 @@ D2DICT = {
         "Appliances",
         "Arts, Crafts & Sewing",
         "Tools, Home Improvement",
-    },
-    "Wine":{
+        "Home Accesories",
+    ],
+    "Wine":[
         "Red Wine",
         "White Wine",
         "Sparkling",
         "Others",
-    },
-    "Beauty":{
+    ],
+    "Beauty":[
         "Makeup",
         "Skin Care",
         "Hair Care",
         "Fragrance",
         "Tools & Accessories",
-    },
-    "Clothing":{
+    ],
+    "Clothing":[
         "Tops & Tees",
         "Sweaters",
         "Hoodies & Sweatshirts",
@@ -52,8 +53,8 @@ D2DICT = {
         "Swim",
         "Accessories",
         "Maternity",
-    },
-    "Accessories":{
+    ],
+    "Accessories":[
         "Belts",
         "Ties",
         "Scarves",
@@ -63,8 +64,8 @@ D2DICT = {
         "Card Cases",
         "Sunglasses",
         "Others",
-    },
-    "Shoes": {
+    ],
+    "Shoes": [
         "Athletic & Outdoor",
         "Boots",
         "Sneakers",
@@ -76,8 +77,9 @@ D2DICT = {
         "Sandals",
         "Slippers",
         "Work & Safety",
-    },
-    "Handbags":{
+        "Others",
+    ],
+    "Handbags":[
         "Cluthes",
         "Crossbody Bags",
         "Evening Bags",
@@ -86,15 +88,15 @@ D2DICT = {
         "Shoulder Bags",
         "Tote Bags",
         "Others",
-    },
-    "Luggage":{
+    ],
+    "Luggage":[
         "Backpacks",
         "Briefcases",
         "Laptop Bags",
         "Messenger Bags",
         "Others",
-    },
-    "Jewelry":{
+    ],
+    "Jewelry":[
         "Rings",
         "Necklaces",
         "Earrings",
@@ -102,7 +104,7 @@ D2DICT = {
         "Charms",
         "Anklets",
         "Others",
-    },
+    ],
 }
 
 CATS = {
@@ -199,7 +201,7 @@ class RawDocument(Document):
     }
 
 def convert(d0, d1, d2):
-    """ convert d0,d1,d2 to a list of CATS """
+    """ convert d0,d1,d2 to a CAT(S) """
     results = []
     if d0 == "Baby":
         results.append(("Kids & Baby", "Baby"))

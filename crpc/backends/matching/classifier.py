@@ -25,7 +25,7 @@ import pattern
 import pattern.vector
 from pprint import pprint
 
-from models import Department, RawDocument
+from models import RawDocument
 
 class Classifier(object):
     def __init__(self, name):
@@ -46,6 +46,7 @@ class TrainSet(object):
         self.target_names = []
         self.target = []
         self.data = []
+
 
 class SklearnClassifier(Classifier):
     """ Wraps sklearn's API to pattern.vector's style
@@ -71,19 +72,10 @@ class SklearnClassifier(Classifier):
             'knn':sklearn.neighbors.KNeighborsClassifier(5, weights='uniform'),
         }.get(clf, sklearn.svm.LinearSVC())
         self.transformed = False
-        self.vectorizer = False
-        
+        self.vectorizer = None
+
     def load_files(self):
         self.trainset = sklearn.datasets.load_files(DATAPATH)
-        self.vectorizer = sklearn.feature_extraction.text.TfidfVectorizer()
-        self.transformed = False
-
-    def load_from_database(self):
-        for doc in RawDocument.objects.all():
-            if not doc.department:
-                doc.delete()
-                continue
-            self.train(doc.content, (doc.department.main, doc.department.sub))
         self.vectorizer = sklearn.feature_extraction.text.TfidfVectorizer()
         self.transformed = False
 
@@ -138,7 +130,10 @@ class SklearnClassifier(Classifier):
     def classify(self, text):
         """ provided some raw documentation, return the 'type' it belongs to """
         if not self.transformed:
-            self.transform()
+            try:
+                self.transform()
+            except ValueError:
+                return self.trainset.target_names[0]
         
         ret = []
         index = list(self.clf.predict(self.vectorizer.transform([text])))[0]
@@ -200,6 +195,44 @@ class PatternClassifier(Classifier):
 class NltkClassifier(Classifier):
     def __init__(self, clf=None):
         self.name = 'nltk'
+
+class FavbuyClassifier(object):
+    def __init__(self, clf_class=SklearnClassifier, clf_method='svm'):    
+        self.clf_class = clf_class
+        self.clf_method = clf_method
+        self.d0clf = clf_class(clf_method)
+        self.d1clf = clf_class(clf_method)
+        self.d2clf_dict = {}
+
+    def load_from_database(self):
+        for doc in RawDocument.objects():
+            self.d0clf.train(doc.content, doc.d0)
+            self.d1clf.train(doc.content, doc.d1)
+            if not doc.d1 in self.d2clf_dict:
+                self.d2clf_dict[doc.d1] = self.clf_class(self.clf_method)
+            self.d2clf_dict[doc.d1].train(doc.content, doc.d2)
+    
+    def train(self, content, type):
+        d0, d1, d2 = type
+        self.d0clf.train(content, d0)
+        self.d1clf.train(content, d1)
+        if not d1 in self.d2clf_dict:
+            self.d2clf_dict[d1] = self.clf_class(self.clf_method)
+        self.d2clf_dict[d1].train(content, d2)
+        return True
+
+    def classify(self, content):
+        d0 = self.d0clf.classify(content)
+        d1 = self.d1clf.classify(content)
+        if d1 in self.d2clf_dict:
+            d2 = self.d2clf_dict[d1].classify(content)
+        else:
+            d2 = ""
+        return d0, d1, d2
+
+class FavbuyScorer(object):
+    def classify(self, content):
+        pass
 
 def test_validation():
     """ testing different package's accurracy, coverage, ... """

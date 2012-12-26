@@ -13,13 +13,13 @@
       <ul class="nav nav-pills">
         <li><a href="/task">Tasks</a> </li>
         <li><a href="/control">Control</a></li>
-        <li class="active"><a href="#">Publish</a></li>
+        <li class="active"><a href="/publish">Publish</a></li>
       </ul>
 
       <div class='span1'>
         <ul class='nav nav-pills nav-stacked'>
-          <li class='active'><a href='/publish/chkpub'>check</a></li>
-          <li><a>stats</a></li>
+          <li><a href='/publish/chkpub'>check</a></li>
+          <li><a href='/publish/stats'>stats</a></li>
         </ul>
       </div>
     </div> <!-- /container -->

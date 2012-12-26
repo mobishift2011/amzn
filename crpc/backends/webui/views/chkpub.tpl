@@ -19,7 +19,7 @@
         <div class='span1'>
           <ul class='nav nav-pills nav-stacked'>
             <li class='active'><a href='/publish/chkpub'>check</a></li>
-            <li><a>stats</a></li>
+            <li><a href='/publish/stats'>stats</a></li>
           </ul>
         </div>
 

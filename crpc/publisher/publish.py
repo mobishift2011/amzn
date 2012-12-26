@@ -3,6 +3,7 @@ from gevent import monkey; monkey.patch_all()
 from crawlers.common.events import common_saved
 from crawlers.common.routine import get_site_module
 from powers.events import image_crawled, ready_for_publish
+from powers.models import Stat
 from mysettings import MINIMUM_PRODUCTS_READY, MASTIFF_ENDPOINT
 from helpers import log
 from mongoengine import Q
@@ -231,6 +232,7 @@ class Publisher:
         try:
             m = obj_to_module(ev)
             soldout = m.Product.objects(event_id=ev.event_id, soldout=False).count()==0
+            site = obj_to_site(ev)
             if upd:
                 ev_data = {}
                 for f in fields:
@@ -242,7 +244,7 @@ class Publisher:
                         ev_data["tags"] = ev.favbuy_tag
             else:
                 ev_data = { 
-                    "site_key": obj_to_site(ev)+'_'+ev.event_id,
+                    "site_key": site+'_'+ev.event_id,
                     "title": obj_getattr(ev, 'sale_title', ''),
                     "description": obj_getattr(ev, 'sale_description', ''),
                     "ends_at": obj_getattr(ev, 'events_end', datetime.utcnow()+timedelta(days=7)).isoformat(),
@@ -255,11 +257,16 @@ class Publisher:
             self.logger.debug("publish event data: %s", ev_data)
             if upd:
                 self.mapi.event(muri2mid(ev.muri)).patch(ev_data)
-                self.logger.debug("published event update %s:%s, fields=%s", obj_to_site(ev), ev.event_id, fields)
+                self.logger.debug("published event update %s:%s, fields=%s", site, ev.event_id, fields)
             else:
                 ev_resource = self.mapi.event.post(ev_data)
                 ev.muri = ev_resource['resource_uri']; 
-                self.logger.debug("published event %s:%s, resource_id=%s", obj_to_site(ev), ev.event_id, ev_resource['id'])
+                self.logger.debug("published event %s:%s, resource_id=%s", site, ev.event_id, ev_resource['id'])
+            
+                # For monitoring publish flow stat
+                interval = datetime.utcnow().replace(second=0, microsecond=0)
+                Stat.objects(site=site, doctype='event', interval=interval).update(inc__publish_num=1, upsert=True)
+
             ev.publish_time = datetime.utcnow(); ev.save()
         except Exception as e:
             self.logger.error(e)
@@ -273,6 +280,7 @@ class Publisher:
         :param upd: update only. (if False, then it'll be a full publish.)
         '''
         try:
+            site = obj_to_site(prod)
             if upd:
                 pdata = {}
                 if 'soldout' in fields: pdata['sold_out'] = prod.soldout
@@ -282,7 +290,7 @@ class Publisher:
                 if 'favbuy_tag' in fields: pdata["tags"] = obj_getattr(prod, 'favbuy_tag', [])                
             else:
                 pdata = { 
-                    "site_key": obj_to_site(prod)+'_'+prod.key,
+                    "site_key": site+'_'+prod.key,
                     "original_url": prod.combine_url,
                     "events": self.get_ev_uris(prod),
                     "our_price": float(obj_getattr(prod, 'favbuy_price',-1)),
@@ -304,11 +312,16 @@ class Publisher:
             self.logger.debug("publish product data: %s", pdata)
             if upd:
                 self.mapi.product(muri2mid(prod.muri)).patch(pdata)
-                self.logger.debug("published product update %s:%s", obj_to_site(prod), prod.key)
+                self.logger.debug("published product update %s:%s", site, prod.key)
             else:
                 r = self.mapi.product.post(pdata)
                 prod.muri = r['resource_uri']; 
-                self.logger.debug("published product %s:%s, resource_id=%s", obj_to_site(prod), prod.key, r['id'])
+                self.logger.debug("published product %s:%s, resource_id=%s", site, prod.key, r['id'])
+                
+                # For monitoring publish flow stat
+                interval = datetime.utcnow().replace(second=0, microsecond=0)
+                Stat.objects(site=site, doctype='product', interval=interval).update(inc__publish_num=1, upsert=True)
+            
             prod.publish_time = datetime.utcnow(); prod.save()
             
         except Exception as e:

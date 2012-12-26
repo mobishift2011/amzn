@@ -24,7 +24,7 @@
         </div>
 
         <div class='span12'>
-          %if stats:
+          %if stats or stats == []:
             <table class='table table-striped'>
                 <thead>
                   <tr>
@@ -47,8 +47,9 @@
               <div class='span3'>
                 <label>site</label>
                 <select name='site'>
-                  <option>venteprivee</option>
-                  <option>gilt</option>
+                    %for site in sites:
+                    <option>{{ site }}</option>
+                    %end
                 </select>             
               </div>
               <div class='span3'>

@@ -118,12 +118,12 @@ ZULILY = {
 def get_site_module(site):
     return __import__('crawlers.'+site+'.models', fromlist=['Category', 'Event', 'Product'])
 
-def lot18_mapping(site, key):
+def lot18_mapping(site, event):
     return ["Home"]
 
-def venteprivee_mapping(site, key):
+def venteprivee_mapping(site, event):
     m = get_site_module('venteprivee')
-    results = m.Product.objects(event_id=key).distinct('dept')
+    results = m.Product.objects(event_id=event.event_id).distinct('dept')
     convert = {
         "Writing Instruments": "Home",
         "Womens":"Women",
@@ -183,25 +183,18 @@ EVENT_MAPPING = {
     "zulily": ZULILY,
 }
 
-def classify_event_department(site, key):
+def classify_event_department(site, event):
     mapping = EVENT_MAPPING.get(site, DEFAULT)
     results = []
     if isinstance(mapping, dict):
-        m = get_site_module(site)
-        try:
-            if type == 'Event':
-                e = m.Event.objects.get(event_id=key) 
-            else:
-                e = m.Category.objects.get(key=key) 
-        except:
-            return []
-        for dept in getattr(e, mapping['column']):
+        e = event
+        for dept in getattr(e, 'dept'):
             results.extend(mapping['mapping'].get(dept,[]))
             for key in mapping['contains'].keys():
                 if key in dept:
                     results.extend(mapping['contains'][key])
     else:
-        results = mapping(site, key)
+        results = mapping(site, event)
     return list(set(results))
 
 if __name__ == '__main__':
@@ -210,20 +203,9 @@ if __name__ == '__main__':
     while True:
         site = random.choice(sites)
         m = get_site_module(site)
-        try:
-            type = EVENT_MAPPING[site]['dept_in'] 
-        except:
-            if site=='venteprivee':
-                type = 'Event'
-            else:
-                continue
         
-        if type == 'Category':
-            e = random.choice(list(m.Category.objects()))
-            print e.cats
-            print "==>", site, classify_event_department(site, e.key)
-        else:
+        if hasattr(m, 'Event'):
             e = random.choice(list(m.Event.objects()))
             print e.sale_title, e.dept, e.event_id
-            print "==>", site, classify_event_department(site, e.event_id)
+            print "==>", site, classify_event_department(site, e)
         raw_input()

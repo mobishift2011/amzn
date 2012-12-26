@@ -35,6 +35,7 @@ imglogger = getlogger('powertools', filename='/tmp/powerserver.log')
 CURRDIR = os.path.dirname(__file__)
 
 from imglib import scale, trim, crop
+from backends.matching.mechanic_classifier import classify_event_department
 
 policy = {
   "Version": "2008-10-17",
@@ -335,8 +336,8 @@ class Propagator(object):
         self.event.brand_complete = True
         
         self.event.favbuy_tag = list(tags)
-        self.event.favbuy_dept = [ k for k, v in depts.items() if v>=dept_threshold ]
-        print self.event.favbuy_dept
+        #self.event.favbuy_dept = [ k for k, v in depts.items() if v>=dept_threshold ]
+        self.event.favbuy_dept = classify_event_department(self.site, self.event)
         self.event.lowest_price = str(lowest_price)
         self.event.highest_price = str(highest_price)
         self.event.lowest_discount = str(1.0 - lowest_discount)

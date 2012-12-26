@@ -569,7 +569,8 @@ class Server(object):
             link = text.cssselect('h1.product-name > a')[0].get('href')
             link = link if link.startswith('http') else self.siteurl + link
             title = text.cssselect('h1.product-name > a')[0].text_content()
-            listprice = node.cssselect('div.product-price > div.original-price')[0].text_content()
+            listprice = node.cssselect('div.product-price > div.original-price')
+            listprice = listprice[0].text_content() if listprice else ''
             price = node.cssselect('div.product-price > div.gilt-price')[0].text_content().strip()
             status = node.cssselect('section.product-details > section.inventory-status')
             soldout = True if status and 'Sold Out' in status[0].text_content() else False
@@ -675,7 +676,7 @@ class Server(object):
 
 if __name__ == '__main__':
     server = Server()
-    server.crawl_listing('http://www.gilt.com/home/sale/art14')
+    server.crawl_listing('http://www.gilt.com/home/sale/the-italian-kitchen')
     exit()
     server.crawl_category()
     server.crawl_listing('http://www.gilt.com/sale/women/timeless-trend-the-ballet-flat-4633')

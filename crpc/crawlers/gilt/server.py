@@ -33,8 +33,9 @@ class giltLogin(object):
         """.. :py:method::
             use post method to login
         """
-        _now = int(time.time()) * 1000
-        auth_url = 'https://www.gilt.com/login/auth?callback=jQuery17203001268294174224_{0}&email={1}&password={2}&remember_me=on&_={3}'.format(_now - 21, self.data['email'], self.data['password'], _now)
+        _now = int(time.time())
+        _before = _now - 11
+        auth_url = 'https://www.gilt.com/login/auth?callback=jQuery17206991992753464729_{0}&email={1}&password={2}&remember_me=on&_={3}'.format(_before*1000 + 450, self.data['email'], self.data['password'], _now*1000 + 739)
         req.get(auth_url)
 
         req.post('https://www.gilt.com/login/redirect', data=self.data)
@@ -630,10 +631,8 @@ class Server(object):
             text = nav.cssselect('div.summary')[0]
             shipping = text.cssselect('div.details > dl.delivery > dd.delivery-window')
             shipping = shipping[0].text_content().strip() if shipping else ''
-            try:
-                returned = text.cssselect('div.details > dl.return-policy > dd')[0].text_content().strip()
-            except:
-                open('/tmp/gilt_ghost.html', 'w').write(lxml.etree.tostring(tree))
+            returned = text.cssselect('div.details > dl.return-policy > dd')
+            returned = returned[0].text_content().strip() if returned else ''
             list_info = []
             for desc in text.cssselect('div.structured-description > section.fragment'):
                 desc_title = desc.cssselect('header.structure-title > h1')[0].text_content()

@@ -15,10 +15,10 @@ class Event(BaseEvent):
 
     meta = { 'db_alias': DB, }
     def url(self):
-        return
+        return self.combine_url
 
 class Product(LuxuryProduct):
     meta = { 'db_alias': DB, }
     def url(self):
-        return
+        return self.combine_url
 

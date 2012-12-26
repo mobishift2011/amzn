@@ -74,16 +74,6 @@ NOMORERACK = {
     }
 }
 
-ONEKINGSLANE = {
-    "dept_in": "Category",
-    "column": "cats",
-    "contains": {},
-    "mapping": {
-        "home": ["Home"],
-    },
-}
-
-
 TOTSY = {
     "dept_in": "Event",
     "column": "dept",
@@ -128,42 +118,28 @@ def venteprivee_mapping(site, event):
         "Writing Instruments": "Home",
         "Womens":"Women",
         "Small Leather Goods":"Handbags",
-        "Mens":"Women",
+        "Mens":"Men",
         "Earrings":"Jewelry & Watches",
         "Necklaces":"Jewelry & Watches",
-        "Jackets, Sweaters & Cardigans":"Women",
         "Bracelets":"Jewelry & Watches",
-        "Dresses":"Women",
-        "Sweaters & Cardigans":"Women",
-        "Jackets":"Women",
-        "Tops":"Women",
-        "Accessories":"Women",
         "Infant":"Kids & Baby",
         "Men": "Men",
         "Women": "Women",
         "Girls": "Kids & Baby",
         "Boys": "Kids & Baby",
-        "Boots": "Women",
-        "Flats": "Women",
-        "Sandals": "Women",
         "Pumps": "Women",
         "Rings": "Jewelry & Watches",
         "Necklaces & Pendants": "Jewelry & Watches",
         "Men's": "Men",
         "CLUTCHES": "Handbags",
         "Dubai Ovenware Collection": "Home",
-        "Stockholm Collection": "Home",
-        "San Francisco Collection": "Home",
         "Women's Sunglasses": "Women",
         "Ties, Bowties, Tie Pins & Cufflinks": "Men",
-        "Shirts & Polos": "Women",
-        "Trousers": "Women",
-        "Scarves & Socks": "Women",
-        "Parrot": "Women"
     }
     new_results = []
     for r in results:
-        new_results.append(convert.get(r))
+        if convert.get(r):
+            new_results.append(convert.get(r))
     return new_results 
 
 EVENT_MAPPING = {
@@ -176,7 +152,7 @@ EVENT_MAPPING = {
     "modnique": MODNIQUE,
     "myhabit": DEFAULT,
     "nomorerack": NOMORERACK,
-    "onekingslane": ONEKINGSLANE,
+    "onekingslane": DEFAULT,
     "ruelala": DEFAULT,
     "totsy": TOTSY,
     "venteprivee": venteprivee_mapping,

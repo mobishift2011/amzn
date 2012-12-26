@@ -147,6 +147,7 @@ class Server(object):
                 event.short_desc = short_desc
                 event.urgent = True
                 event.combine_url = 'https://www.onekingslane.com/sales/{0}'.format(event_id)
+                event.dept = ['home']
             if image not in event.image_urls: event.image_urls.append(image)
             event.update_time = datetime.utcnow()
             event.save()
@@ -181,6 +182,7 @@ class Server(object):
                         event.sale_description = sale_description[0].text.strip()
                     event.urgent = True
                     event.combine_url = 'https://www.onekingslane.com/sales/{0}'.format(event_id)
+                    event.dept = ['home']
                 
                 event.events_begin = date_begin
                 event.update_time = datetime.utcnow()

@@ -5,7 +5,7 @@ import zerorpc
 
 from settings import TEXT_PORT, CRPC_ROOT
 from backends.matching.extractor import Extractor
-from backends.matching.classifier import SklearnClassifier
+from backends.matching.classifier import FavbuyClassifier
 
 from brandapi import Extracter
 from tools import Propagator
@@ -25,7 +25,7 @@ class TextServer(object):
     def __init__(self):
         self.__extracter = Extracter()  # brand extracter
         self.__extractor = Extractor()  # tag extractor
-        self.__classifier = SklearnClassifier()
+        self.__classifier = FavbuyClassifier()
         self.__classifier.load_from_database()
         self.__m = {}
         

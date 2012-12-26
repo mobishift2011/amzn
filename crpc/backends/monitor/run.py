@@ -23,7 +23,7 @@ def execute_cmd(sender, **kwargs):
     execute(site, method)
 
 gevent.spawn(Scheduler().run)
-gevent.spawn(avoid_cold_start)
+#gevent.spawn(avoid_cold_start)
 
 logger = getlogger("monitor")
 

@@ -80,7 +80,9 @@ class beyondtherackLogin(object):
             ret = req.get(url)
         if ret.ok and 'sku' in ret.url:
             return [ret.url, ret.content] 
-        elif ret.ok:
+        elif ret.ok and 'http://www.beyondtherack.com/event/calendar' in ret.url: # redirect to homepage
+            return -302
+        elif ret.ok
             return ret.content
 
         return ret.status_code

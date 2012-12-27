@@ -41,12 +41,8 @@ def get_ordinary_crawlers():
     """.. :py:method::
         get ordinary crawlers from directory of CRPC_ROOT/crawlers/
     """
-    crawlers = []
-    for crawler_name in os.listdir( os.path.join(CRPC_ROOT, 'crawlers') ):
-        path = os.path.join(CRPC_ROOT, 'crawlers', crawler_name)
-        if crawler_name not in exclude_crawlers and os.path.isdir(path):
-            crawlers.append(crawler_name)
-    return crawlers
+    return [crawler for crawler in os.listdir( os.path.join(CRPC_ROOT, 'crawlers') ) \
+        if crawler not in exclude_crawlers and os.path.isdir( os.path.join(CRPC_ROOT, 'crawlers', crawler) )]
 
 
 def progress(msg='.'):

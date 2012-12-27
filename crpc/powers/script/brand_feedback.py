@@ -19,10 +19,11 @@ def get_all_sites():
 def get_unextracted_brands(site):
 	unknown_set = set()
 	now = datetime.utcnow()
-	products = __module[site].Product.objects(Q(brand_complete=False) \
-				& (Q(products_begin__lte=now) | Q(products_begin__exists=False)) \
-					& (Q(products_end__gte=now) | Q(products_end__exists=False)) \
-						).values_list('brand', 'title', 'combine_url')
+	# products = __module[site].Product.objects(Q(brand_complete=False) \
+	# 			& (Q(products_begin__lte=now) | Q(products_begin__exists=False)) \
+	# 				& (Q(products_end__gte=now) | Q(products_end__exists=False)) \
+	# 					).values_list('brand', 'title', 'combine_url')
+	products = __module[site].Product.objects(brand_complete=False).values_list('brand', 'title', 'combine_url')
 	
 	c = Counter()
 	for brand, title, combine_url in products:
@@ -35,6 +36,7 @@ def get_unextracted_brands(site):
 	print 'unextracted products: ', products.count()
 	print 'unextracted brands: ', len(c.keys())
 	print 'no brand products: ', len(unknown_set)
+	print c
 	print
 	
 	return c, unknown_set

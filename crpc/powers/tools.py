@@ -170,6 +170,7 @@ class ImageTool:
         for size in IMAGE_SIZE[doctype.capitalize()]:
             width, height = size['width'], size['height']
             policy, color = size['thumbnail-policy'], size['background-color']
+
             skip = False
             for key in exist_keys:
                 if '_{0}x'.format(width) in key:
@@ -183,17 +184,14 @@ class ImageTool:
             if not im:
                 im = Image.open(StringIO(self.download(s3_url)))
 
-            if height == 0:
-                height = int(round(1. * im.size[1] * width/im.size[0]))
-                
-            resolutions.append((width, height))
-
             path, name = os.path.split(s3key)
             thumbnail_name = '{name}_{width}x{height}'.format(width=width, height=height, name=name)
             self.__key.key = os.path.join(path, thumbnail_name)
 
-            fileobj = self.create_thumbnail(im, (width, height), policy, color)
+            fileobj, realsize = self.create_thumbnail(im, (width, height), policy, color)
             self.upload2s3(fileobj, self.__key.key)
+
+            resolutions.append(realsize)
 
         return resolutions
 
@@ -205,16 +203,23 @@ class ImageTool:
     
         Returns a fileobj(an StringIO instance))
         """
+        width, height = size
+
         if policy == 'scale-trim':
-            im = scale(trim(im), size, bgcolor=color)
+            im = trim(im)
+            if height == 0:
+                height = int(round(1. * im.size[1] * width/im.size[0]))
+            im = scale(im, (width, height), bgcolor=color)
         elif policy == 'crop':
             im = crop(im, size)
         else:
             raise ValueError("unsupported thumbnail policy")
+
         fileobj = StringIO()
         im.save(fileobj, 'JPEG', quality=95)
         fileobj.seek(0)
-        return fileobj
+
+        return fileobj, (width, height)
          
 def parse_price(price):
     amount = 0

@@ -125,12 +125,10 @@ def publish_stats():
     str_begin = request.forms.get('begin_at')
     str_end = request.forms.get('end_at')
 
-    begin_at = datetime.strptime(str_begin, '%Y-%m-%d %H:%M:%S').replace(tzinfo=pytz.utc) \
+    begin_at = datetime.strptime(str_begin, '%Y-%m-%d %H:%M:%S') \
                 if str_begin else datetime.utcnow()
-    end_at = datetime.strptime(str_end, '%Y-%m-%d %H:%M:%S').replace(tzinfo=pytz.utc) \
+    end_at = datetime.strptime(str_end, '%Y-%m-%d %H:%M:%S') \
                 if str_end else datetime.utcnow()
-
-    print '~~~~~~~~~~~~~~', begin_at, end_at
 
     data = get_publish_stats(site, doctype, time_value, time_cell, begin_at, end_at)
     return template('pubstats.tpl', {'stats': data, 'sites': [site]})

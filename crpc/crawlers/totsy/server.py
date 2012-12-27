@@ -48,7 +48,10 @@ class totsyLogin(object):
             fetch page.
             check whether the account is login, if not, login and fetch again
         """
-        ret = req.get(url)
+        try:
+            ret = req.get(url)
+        except requests.exceptions.Timeout:
+            ret = req.get(url)
 
         if 'https://www.totsy.com/customer/account/login' in ret.url:
             self.login_account()

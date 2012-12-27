@@ -17,7 +17,7 @@ tag_path = join(dirname(abspath(__file__)), 'tags.list')
 
 class Extractor(object):
     def __init__(self, tags=None):
-        self.stopwords = ' \t\r\n,;.%0123456789\'"_-'
+        self.stopwords = ' \t\r\n,;.%0123456789\'"_-<>@!#$(){}[]/?:|\\+='
         self.i = None
         self.tags = tags or [ t for t in open(tag_path).read().split('\n') if t ]
         self._rebuild_index()
@@ -76,6 +76,6 @@ if __name__ == '__main__':
         p = m.Product.objects().skip(index).first()
         _, __, text = get_text(site+'_'+p.key)
         print text
-        print e.extract(text)
+        print e.extract(text.encode('utf-8'))
         raw_input()
        

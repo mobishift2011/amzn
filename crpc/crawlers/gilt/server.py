@@ -351,9 +351,11 @@ class Server(object):
             elif 'Ending Soon' == headline:
                 nodes = sale_small.cssselect('div.elements-container > article.element')
                 for node in nodes:
-                    event, is_new, is_updated = self.parse_one_home_node(node, dept, ctx)
-                    event.save()
-                    common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
+                    ret = self.parse_one_home_node(node, dept, ctx)
+                    if ret is not None:
+                        event, is_new, is_updated = ret
+                        event.save()
+                        common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
 
         # upcoming
         nodes = nav.cssselect('section.module-sidebar-mosaic > div.elements-container > article.element-cms-default > ul.nav > li.nav-item > div.nav-dropdown > section.nav-section > ul > li.nav-topic')

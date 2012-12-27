@@ -176,7 +176,9 @@ class Server(object):
         # starting later. When today's upcoming on sale, this column disappear for a while
         nodes = tree.cssselect('section#main > div.sales-container > section.sales-starting-later > article.sale')
         for node in nodes:
-            event, is_new, is_updated = self.parse_one_node(node, dept, ctx)
+            ret = self.parse_one_node(node, dept, ctx)
+            if ret is None: continue
+            event, is_new, is_updated = ret
 
             begins = node.cssselect('header > hgroup > h3 > span')[0].get('data-gilt-date')
             event.events_begin = datetime.strptime(begins[:begins.index('+')], '%m/%d/%Y %H:%M ')

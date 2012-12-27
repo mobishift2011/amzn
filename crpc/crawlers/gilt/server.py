@@ -67,6 +67,18 @@ class giltLogin(object):
         if ret.ok: return ret.content
         return ret.status_code
 
+
+    def fetch_product_page(self, url):
+        """.. :py:method::
+            fetch product page.
+            women will redirect to this product's brand page if it is off sale
+        """
+        ret = req.get(url)
+        if 'http://www.gilt.com/brand/' in ret.url:
+            return -302
+        if ret.ok: return ret.content
+        return ret.status_code
+
 class Server(object):
     def __init__(self):
         self.siteurl = 'http://www.gilt.com'
@@ -599,7 +611,7 @@ class Server(object):
         """
         key = url.rsplit('/', 1)[-1]
         self.net.check_signin()
-        tree = self.download_listing_page_get_correct_tree(url, url.rsplit('/', 1)[-1], 'download product page error', ctx)
+        tree = self.download_product_page_get_correct_tree(url, url.rsplit('/', 1)[-1], 'download product page error', ctx)
         if tree is None: return
 
         if '/home/sale' in url or '/sale/home' in url: # home
@@ -678,6 +690,23 @@ class Server(object):
         else: ready = False
         product.save()
         common_saved.send(sender=ctx, obj_type='Product', key=key, url=url, is_new=is_new, is_updated=is_updated, ready=ready)
+
+
+    def download_product_page_get_correct_tree(self, url, key, warning, ctx):
+        """.. :py:method::
+            product page will redirect to its brand page 'http://www.gilt.com/brand/xxx'
+            They both have two </html>, 200 is random by me
+
+        :param url: url of the page
+        :param key: key of the event
+        :param warning: if download error, warning raise
+        """
+        cont = self.net.fetch_product_page(url)
+        if cont is None or isinstance(cont, int):
+            common_failed.send(sender=ctx, key=key, url=url,
+                    reason='{0}: {1}'.format(warning, cont))
+            return
+        return self.get_correct_tree(cont)
 
 
 if __name__ == '__main__':

@@ -207,7 +207,7 @@ class ImageTool:
         width, height = size
 
         if policy == 'scale-trim':
-            im = trim(im)
+            # im = trim(im)
             if height == 0:
                 height = int(round(1. * im.size[1] * width/im.size[0]))
             im = scale(im, (width, height), bgcolor=color)

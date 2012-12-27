@@ -184,14 +184,15 @@ class ImageTool:
             if not im:
                 im = Image.open(StringIO(self.download(s3_url)))
 
+
+            fileobj, realsize = self.create_thumbnail(im, (width, height), policy, color)
+            width, height = realsize
+            resolutions.append(realsize)
+
             path, name = os.path.split(s3key)
             thumbnail_name = '{name}_{width}x{height}'.format(width=width, height=height, name=name)
             self.__key.key = os.path.join(path, thumbnail_name)
-
-            fileobj, realsize = self.create_thumbnail(im, (width, height), policy, color)
             self.upload2s3(fileobj, self.__key.key)
-
-            resolutions.append(realsize)
 
         return resolutions
 
@@ -206,7 +207,7 @@ class ImageTool:
         width, height = size
 
         if policy == 'scale-trim':
-            im = trim(im)
+            # im = trim(im)
             if height == 0:
                 height = int(round(1. * im.size[1] * width/im.size[0]))
             im = scale(im, (width, height), bgcolor=color)
@@ -367,12 +368,12 @@ def test_image():
     ]
 
     it = ImageTool(connection = conn)
-    it.crawl(urls[0:2], 'venteprivee', 'event', 'abc123457', thumb=True)
+    it.crawl(urls[0:2], 'venteprivee', 'event', 'abc123458', thumb=True)
     print 'image path ---> {0}'.format(it.image_path)
     print 'complete ---> {0}\n'.format(it.image_complete)
 
     it = ImageTool(connection = conn)
-    it.crawl(urls[2:], 'venteprivee', 'product', '123456790', thumb=True)
+    it.crawl(urls[2:], 'venteprivee', 'product', '123456791', thumb=True)
     print 'image path ---> {0}'.format(it.image_path)
     print 'complete ---> {0}\n'.format(it.image_complete)
 

@@ -65,7 +65,10 @@ class totsyLogin(object):
             fetch listing page.
             check whether the page is redirect to product(event is product)
         """
-        ret = req.get(url)
+        try:
+            ret = req.get(url)
+        except requests.exceptions.Timeout:
+            ret = req.get(url)
 
         if 'https://www.totsy.com/customer/account/login' in ret.url:
             self.login_account()

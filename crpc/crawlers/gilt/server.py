@@ -290,6 +290,7 @@ class Server(object):
         tree = self.download_page_get_correct_tree(link, event_id, 'download shops parent/child event list error', ctx)
         if tree is None:
             tree = self.download_page_get_correct_tree(link, event_id, 'download shops parent/child event list twice error', ctx)
+        if tree is None: return
         self.save_group_of_event(event_id, tree, dept, ctx)
 
 

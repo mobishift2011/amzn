@@ -74,6 +74,9 @@ class totsyLogin(object):
             self.login_account()
             ret = req.get(url)
 
+        if ret.url == 'https://www.totsy.com/customer/account/': # some listing page redirect to this
+            return -302
+
         if ret.ok:
             m = self.extract_product_id.match(ret.url)
             if m: # event is product

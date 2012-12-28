@@ -287,12 +287,16 @@ class Server(object):
         :param event_id: this parent event id
         :param link: this event list link
         """
-        tree = self.download_page_get_correct_tree(link, event_id, 'download parent event list error', ctx)
+        tree = self.download_page_get_correct_tree(link, event_id, 'download shops parent/child event list error', ctx)
+        if tree is None:
+            tree = self.download_page_get_correct_tree(link, event_id, 'download shops parent/child event list twice error', ctx)
+        if tree is None: return
         self.save_group_of_event(event_id, tree, dept, ctx)
 
 
     def save_group_of_event(self, event_id, tree, dept, ctx):
         """.. :py:method::
+            save the shops page of events
 
         :param event_id: parent event id, if no event_id passed,
         :param tree: xml tree of event groups
@@ -614,7 +618,8 @@ class Server(object):
         key = url.rsplit('/', 1)[-1]
         self.net.check_signin()
         tree = self.download_product_page_get_correct_tree(url, url.rsplit('/', 1)[-1], 'download product page error', ctx)
-        if tree is None: return
+        if tree is None:
+            tree = self.download_product_page_get_correct_tree(url, url.rsplit('/', 1)[-1], 'download product page twice error', ctx)
 
         if '/home/sale' in url or '/sale/home' in url: # home
             nav = tree.cssselect('div.page-container > div.content-container > section.content > div.layout-container > div.positions > div.position-2 > section.module > div.elements-container > article.element-product')[0]

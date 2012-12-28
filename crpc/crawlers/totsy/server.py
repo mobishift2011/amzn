@@ -74,6 +74,9 @@ class totsyLogin(object):
             self.login_account()
             ret = req.get(url)
 
+        if ret.url == 'https://www.totsy.com/customer/account/': # some listing page redirect to this
+            return -302
+
         if ret.ok:
             m = self.extract_product_id.match(ret.url)
             if m: # event is product
@@ -352,6 +355,7 @@ class Server(object):
 
 
 if __name__ == '__main__':
+    Server().crawl_listing('http://www.totsy.com/sales/girls-sets-under-6-blowout.html')
     Server().crawl_listing('http://www.totsy.com/sales/jewelry-blowout.html')
     Server().crawl_listing('http://www.totsy.com/sales/healthy-surprise-1.html')
     Server().crawl_listing('http://www.totsy.com/sales/whitening-lightning-dec.html')

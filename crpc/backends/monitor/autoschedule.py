@@ -16,6 +16,10 @@ from crawlers.common.stash import get_ordinary_crawlers
 from backends.monitor.organizetask import detect_upcoming_new_schedule, arrange_new_schedule, arrange_update_schedule, smethod_time
 from backends.monitor.setting import EXPIRE_MINUTES
 
+from helpers.log import getlogger
+from .setting import SCHEDULE_STATE
+autoscheduler_logger = getlogger('autoscheduler', '/tmp/autoscheduler.log')
+
 def execute(site, method):
     """ execute CrawlerServer function
 
@@ -51,7 +55,8 @@ def auto_schedule():
         then removed from the smethod_time. This can avoid too long set() in smethod_time.
     """
     _utcnow = datetime.utcnow()
-    # open('/tmp/sche.debug', 'a').write('[{0}]: {1} \n\n'.format(_utcnow, smethod_time))
+    autoscheduler_logger.debug(smethod_time)
+    autoscheduler_logger.debug(SCHEDULE_STATE)
 
     for k, v in smethod_time.iteritems():
         site, method = k.split('.')

@@ -320,7 +320,11 @@ class Server(object):
         images = nav.cssselect('div > div#product_gallery > div.line > div#product_imagelist > a')
         image_urls = []
         for img in images:
-            image_urls.append( img.get('href') )
+            img_url = img.get('href') 
+            # lots of page don't have super image, or only have several super, then get the medium
+            if img_url == 'http://llthumb.bids.com/mod$image.getSuperImgsSrc()':
+                img_url = img.cssselect('img')[0].get('src')
+            image_urls.append( img_url )
         shipping = nav.cssselect('div.lastUnit > div.line form div#item_content_wrapper > div#item_wrapper > div#product_delivery')[0].text_content().strip()
         info = nav.cssselect('div.lastUnit > div.line div#showcase > div.container')[0]
         list_info = []

@@ -130,7 +130,7 @@ class Task(Document):
 
     # meta
     meta        =   {
-        "indexes":  [("status", "site", "method"), "started_at", "updated_at"],
+        "indexes":  ["status", "site", "method", "started_at", "updated_at"],
         "db_alias": DB,
     }
 

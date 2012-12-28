@@ -143,6 +143,8 @@ class Server(object):
                 products_end = _utcnow + timedelta(hours=int(num)+1)
             elif 'minute' in period:
                 products_end = _utcnow + timedelta(minutes=int(num))
+            elif 'week' in period:
+                products_end = _utcnow + timedelta(weeks=int(num))
             else:
                 pass
             if products_end.minute > 55:

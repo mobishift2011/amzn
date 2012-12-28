@@ -352,6 +352,7 @@ class Server(object):
 
 
 if __name__ == '__main__':
+    Server().crawl_listing('http://www.totsy.com/sales/girls-sets-under-6-blowout.html')
     Server().crawl_listing('http://www.totsy.com/sales/jewelry-blowout.html')
     Server().crawl_listing('http://www.totsy.com/sales/healthy-surprise-1.html')
     Server().crawl_listing('http://www.totsy.com/sales/whitening-lightning-dec.html')

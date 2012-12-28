@@ -11,7 +11,7 @@ last_logged = time.time()
 @common_saved.bind
 def trigger_saved_event(sender, **kwargs):
     global last_logged
-    if time.time() - last_logged > 0.1:
+    if time.time() - last_logged > 3:
         log_event.set()
         log_event.clear() 
         last_logged = time.time()
@@ -19,7 +19,7 @@ def trigger_saved_event(sender, **kwargs):
 @common_failed.bind
 def trigger_failed_event(sender, **kwargs):
     global last_logged
-    if time.time() - last_logged > 0.1:
+    if time.time() - last_logged > 3:
         log_event.set()
         log_event.clear() 
         last_logged = time.time()

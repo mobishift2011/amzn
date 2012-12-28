@@ -82,7 +82,7 @@ class beyondtherackLogin(object):
             return [ret.url, ret.content] 
         elif ret.ok and 'http://www.beyondtherack.com/event/calendar' in ret.url: # redirect to homepage
             return -302
-        elif ret.ok
+        elif ret.ok:
             return ret.content
 
         return ret.status_code

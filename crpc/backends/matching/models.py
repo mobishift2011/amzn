@@ -83,7 +83,7 @@ D2DICT = {
         "Cluthes",
         "Crossbody Bags",
         "Evening Bags",
-        "Hobo Bags"
+        "Hobo Bags",
         "Satchels",
         "Shoulder Bags",
         "Tote Bags",
@@ -123,7 +123,7 @@ CATS = {
 	    'Suits & Coats',
 	    'Shirts & Sweaters',
 	    'Polos & Tees',
-	    'Pants',
+	    'Pants & Shorts',
 	    'Outerwear',
 	    'Socks, Underwear & Sleepwear',
     ],
@@ -236,7 +236,7 @@ def convert(d0, d1, d2):
     elif d1 == "Jewelry":
         results.append(("Jewelry & Watches", d2))
     else:
-        results.append((d1, d2))
+        results.append((d0, d2))
     return results[0]
 
 if __name__ == '__main__':

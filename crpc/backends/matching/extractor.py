@@ -101,5 +101,5 @@ def test2():
         open('tags.list', 'a').write('\n'+k.encode('utf-8'))
        
 if __name__ == '__main__':
-    test2()
+    test1()
 

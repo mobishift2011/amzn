@@ -321,6 +321,7 @@ class Server(object):
         image_urls = []
         for img in images:
             img_url = img.get('href') 
+            # lots of page don't have super image, or only have several super, then get the medium
             if img_url == 'http://llthumb.bids.com/mod$image.getSuperImgsSrc()':
                 img_url = img.cssselect('img')[0].get('src')
             image_urls.append( img_url )

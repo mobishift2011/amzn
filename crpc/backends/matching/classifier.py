@@ -25,7 +25,7 @@ import pattern
 import pattern.vector
 from pprint import pprint
 
-from models import RawDocument
+from models import RawDocument, convert
 
 class Classifier(object):
     def __init__(self, name):
@@ -228,7 +228,7 @@ class FavbuyClassifier(object):
             d2 = self.d2clf_dict[d1].classify(content)
         else:
             d2 = ""
-        return d0, d1, d2
+        return convert(d0, d1, d2)
 
 class FavbuyScorer(object):
     def classify(self, content):
@@ -252,10 +252,7 @@ def test_validation():
             print 'validating time', t3 - t2
 
 def main():
-    #test_validation()
-    #return
-    clf = SklearnClassifier()
-    #clf.load_files()
+    clf = FavbuyClassifier()
     clf.load_from_database()
     pprint(clf.classify('''Material: 67% Polyester 28% Rayon 5% Spandex, Lining: 100% PolyesterApprox. measurements (size 4): sleeve length 24", shoulder to hem 38"Care: Dry cleanOrigin: Imported Fit: This brand runs true to size. To ensure the best fit, we suggest consulting the size chart.
 Double-Breasted Long Belted Car Coat

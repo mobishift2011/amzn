@@ -67,7 +67,7 @@ class CrawlerServer(object):
             return getattr(service, method)(*args, **kwargs)
         else:
             raise ValueError("{crawler} does not seems to a valid crawler".format(**locals()))
-    
+
 if __name__ == '__main__':
     import os, sys
     port = CRAWLER_PORT if len(sys.argv) != 2 else int(sys.argv[1])

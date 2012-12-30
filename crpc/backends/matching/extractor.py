@@ -17,7 +17,7 @@ tag_path = join(dirname(abspath(__file__)), 'tags.list')
 
 class Extractor(object):
     def __init__(self, tags=None):
-        self.stopwords = ' \t\r\n,;.%0123456789\'"_-'
+        self.stopwords = ' \t\r\n,;.%0123456789\'"_-<>@!#$(){}[]/?:|\\+='
         self.i = None
         self.tags = tags or [ t for t in open(tag_path).read().split('\n') if t ]
         self._rebuild_index()
@@ -65,7 +65,7 @@ def extract(site):
     #print 'qps', c/time_consumed
 
 
-if __name__ == '__main__':
+def test1():
     from feature import sites, get_site_module, get_text
     import random
     e = Extractor()
@@ -76,6 +76,30 @@ if __name__ == '__main__':
         p = m.Product.objects().skip(index).first()
         _, __, text = get_text(site+'_'+p.key)
         print text
-        print e.extract(text)
+        print e.extract(text.encode('utf-8'))
         raw_input()
+
+def test2():
+    from feature import sites
+    from collections import Counter
+    import time
+    from pprint import pprint
+    c = Counter()
+    t1 = time.time()
+    for site in sites:
+        m = get_site_module(site)
+        for p in m.Product.objects().only('list_info'):
+            for text in p.list_info:
+                c[text] += 1
+            t2 = time.time()
+            if t2-t1>1:
+                t1 = t2
+                pprint(c.most_common(30))
+                print
+    for k,v in c.most_common(1000):
+        print k, v
+        open('tags.list', 'a').write('\n'+k.encode('utf-8'))
        
+if __name__ == '__main__':
+    test1()
+

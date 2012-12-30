@@ -65,11 +65,17 @@ class totsyLogin(object):
             fetch listing page.
             check whether the page is redirect to product(event is product)
         """
-        ret = req.get(url)
+        try:
+            ret = req.get(url)
+        except requests.exceptions.Timeout:
+            ret = req.get(url)
 
         if 'https://www.totsy.com/customer/account/login' in ret.url:
             self.login_account()
             ret = req.get(url)
+
+        if ret.url == 'https://www.totsy.com/customer/account/': # some listing page redirect to this
+            return -302
 
         if ret.ok:
             m = self.extract_product_id.match(ret.url)
@@ -89,6 +95,8 @@ class Server(object):
         self.extract_event_id = re.compile('http://www.totsy.com/sales/(.+).html')
         self.extract_events_end = re.compile("getTimerHtml\(.+('|\")(.+)('|\")\);")
         self.extract_product_id = re.compile('http://www.totsy.com/sales/.+/(.+).html')
+        self.extract_product_id2 = re.compile('http://www.totsy.com/(.+).html') # http://www.totsy.com/heart-charm-bracelet-w-watch.html
+        self.extract_product_id3 = re.compile('http://www.totsy.com/catalog/product/view/id/(.+?)/') # http://www.totsy.com/catalog/product/view/id/645684/s/metal-hammered-bangle-and-hoop-earring-set/category/5915/
 
 
     def crawl_category(self, ctx=''):
@@ -198,7 +206,7 @@ class Server(object):
             image = node.cssselect('div.thumbnail > a.product-image')[0]
             title = image.get('title')
             link = image.get('href')
-            key = self.extract_product_id.match(link).group(1)
+            key = self.from_url_get_product_key(link)
             pprice = node.cssselect('div.thumbnail > div.caption > div.price-wrap > div.price-box')[0]
             listprice = pprice.cssselect('p.old-price > span.price')[0].text_content().strip()
             price = pprice.cssselect('span.special-price')[0].text_content().strip()
@@ -267,11 +275,26 @@ class Server(object):
         product.save()
         common_saved.send(sender=ctx, obj_type='Product', key=key, url=url, is_new=is_new, is_updated=is_updated, ready=ready)
 
+    def from_url_get_product_key(self, url):
+        """.. :py:method::
+        :param url: product url from listing
+        :rtype: key -- product key
+        """
+        m = self.extract_product_id.match(url)
+        if not m:
+            m = self.extract_product_id2.match(url)
+        if not m:
+            m = self.extract_product_id3.match(url)
+        if m:
+            key = m.group(1)
+        else:
+            key = url
+        return key
 
     def crawl_product(self, url, ctx=''):
         """.. :py:method::
         """
-        key = self.extract_product_id.match(url).group(1)
+        key = self.from_url_get_product_key(url)
         content = self.net.fetch_page(url)
         if isinstance(content, int):
             common_failed.send(sender=ctx, key=key, url=url,
@@ -332,6 +355,7 @@ class Server(object):
 
 
 if __name__ == '__main__':
-    Server().crawl_listing('http://www.totsy.com/sales/fashion-boots-under-30.html')
+    Server().crawl_listing('http://www.totsy.com/sales/girls-sets-under-6-blowout.html')
+    Server().crawl_listing('http://www.totsy.com/sales/jewelry-blowout.html')
     Server().crawl_listing('http://www.totsy.com/sales/healthy-surprise-1.html')
     Server().crawl_listing('http://www.totsy.com/sales/whitening-lightning-dec.html')

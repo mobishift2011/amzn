@@ -373,7 +373,7 @@ def obj_to_site(obj):
     return obj.__module__.split('.')[1]  # 'crawlers.gilt.models'
     
 def obj_to_module(obj):
-    '''find the corresponding Python module associated with the objhect.
+    '''find the corresponding Python module associated with the object.
     '''
     return sys.modules[obj.__module__]
     

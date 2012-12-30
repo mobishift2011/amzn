@@ -299,9 +299,11 @@ class Server(object):
         slug, key = self.extract_product_slug_key.match(url).groups()
         content = fetch_page(url)
         if content is None or isinstance(content, int):
-            common_failed.send(sender=ctx, key=key, url=url,
-                    reason='download product page error or {0} return'.format(content))
-            return
+            content = fetch_page(url)
+            if content is None or isinstance(content, int):
+                common_failed.send(sender=ctx, key=key, url=url,
+                        reason='download product page error or {0} return'.format(content))
+                return
         tree = lxml.html.fromstring(content)
         detail = tree.cssselect('div#page-wrapper > div#main-container > section#main-product-detail')[0]
 

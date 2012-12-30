@@ -62,9 +62,11 @@ class Server(object):
         """
         content = fetch_page(self.siteurl + '/#events')
         if isinstance(content, int) or content is None:
-            common_failed.send(sender=ctx, key='', url=self.siteurl,
-                    reason='download homepage events error or {0} return'.format(content))
-            return
+            content = fetch_page(self.siteurl + '/#events')
+            if isinstance(content, int) or content is None:
+                common_failed.send(sender=ctx, key='', url=self.siteurl,
+                        reason='download homepage events error or {0} return'.format(content))
+                return
         tree = lxml.html.fromstring(content)
         nodes = tree.cssselect('div#wrapper > div#content > div#front > div#primary > div[style] > div.events > div.event')
         for node in nodes:

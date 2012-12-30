@@ -34,6 +34,17 @@ class TextServer(object):
             if name not in exclude_crawlers and isdir(path):
                 self.__m[name] = __import__("crawlers."+name+'.models', fromlist=['Event', 'Product'])
 
+    def __extract_price(self, product, flags):
+        if not product.favbuy_price:
+            price = parse_price(product.price)
+            product.favbuy_price = str(price)
+            flags['favbuy_price'] = True
+
+        if not product.favbuy_listprice:
+            listprice = parse_price(product.listprice) or product.favbuy_price
+            product.favbuy_listprice = str(listprice)
+            flags['favbuy_listprice'] = True
+
     def __extract_brand(self, brand_complete, product, flags, site):
         if brand_complete:
             return
@@ -121,6 +132,8 @@ class TextServer(object):
             'favbuy_brand': False,    # To indicate whether changes occur on brand extraction.
             'favbuy_tag': False,      # To indicate whether changes occur on tag extraction.
             'favbuy_dept': False,     # To indicate whether changes occur on dept classification.
+            'favbuy_price': False,
+            'favbuy_listprice': False,
         }  
 
         text_list = []
@@ -134,6 +147,7 @@ class TextServer(object):
             gevent.spawn(self.__extract_brand, brand_complete, product, flags, site),
             gevent.spawn(self.__extract_tag, tag_complete, text_list, product, flags, site),
             gevent.spawn(self.__extract_dept, dept_complete, text_list, product, flags, site),
+            gevent.spawn(self.__extract_price, product, flags)
         ]
         gevent.joinall(jobs)
 
@@ -162,6 +176,17 @@ class TextServer(object):
             Stat.objects(site=site, doctype='event', interval=interval).update(inc__prop_num=1, upsert=True)
         else:
             logger.error('{0}.event.{1} propagation failed'.format(site, event_id))
+
+def parse_price(price):
+    if not price:
+        return 0.
+
+    amount = 0.
+    pattern = re.compile(r'^[^\d]*(\d+(,\d{3})*(\.\d+)?)')
+    match = pattern.search(price)
+    if match:
+        amount = (match.groups()[0]).replace(',', '')
+    return float(amount)
 
 
 if __name__ == '__main__':

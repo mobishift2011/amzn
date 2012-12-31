@@ -181,10 +181,12 @@ class ImageTool:
             skip = False
             for key in exist_keys:
                 if '_{0}x'.format(width) in key:
-                    width, height = key.rsplit('_',1)[-1].split('x')
-                    resolutions.append((int(width), int(height)))
-                    skip = True
-                    break
+                    rwidth, rheight = key.rsplit('_',1)[-1].split('x')
+                    rwidth, rheight = int(rwidth), int(rheight)
+                    if height == 0 or height == rheight:
+                        resolutions.append((int(rwidth), int(rheight)))
+                        skip = True
+                        break
             if skip:
                 continue
 

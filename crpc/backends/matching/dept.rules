@@ -5,6 +5,7 @@
 #  [1] - if XXXX in a title; we can determine the main department of it
 #  [2] - if XXXX in a title; we can determine the sub department of it
 # The XXXX is tested in a brute-force; longest first way
+[0] Twin Techno -> Kids & Baby; Gear & Equipment
 [0] Bib -> Kids & Baby; Baby
 [0] DreamSwaddle -> Kids & Baby; Baby
 [0] Chime -> Home; Accessories
@@ -78,8 +79,6 @@
 [0] Dead Sea Minerals -> Beauty & Health; Skin Care
 [0] Dead Sea -> Beauty & Health; Skin Care
 [0] Jewelry Box -> Home; Accessories; Women
-[0] Sparkling -> Wine; Champagne
-[0] Champagne -> Wine; Champagne
 [0] Brunello -> Wine; Red Wines
 [0] Red Blend -> Wine; Red Wines
 [0] Blanc -> Wine; White Wines
@@ -1322,3 +1321,5 @@
 [2] Sign -> Accessories
 [2] Sachet -> Accessories
 [2] Cleat -> Shoes
+[2] Champagne -> Champagne
+[2] Sparkling -> Champagne

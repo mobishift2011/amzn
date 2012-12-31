@@ -100,7 +100,7 @@ class ImageTool:
             index = image_urls.index(image_url)
             image_name = '%s_%s' % (md5(filename).hexdigest(), index)
 
-            self.__key.key = os.path.join(site, doctype, key,image_name)
+            self.__key.key = os.path.join(site, doctype, key, image_name)
             image_content = None
 
             exist_keys = list(k.key for k in self.__bucket.list(prefix=self.__key.key))
@@ -233,14 +233,7 @@ class ImageTool:
         fileobj.seek(0)
 
         return fileobj, (width, height)
-         
-def parse_price(price):
-    amount = 0
-    pattern = re.compile(r'^[^\d]*(\d+(,\d{3})*(\.\d+)?)')
-    match = pattern.search(price)
-    if match:
-        amount = (match.groups()[0]).replace(',', '')
-    return float(amount)
+
 
 class Propagator(object):
     def __init__(self, site, event_id, extractor, classifier, module=None):

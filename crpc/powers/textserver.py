@@ -14,6 +14,7 @@ from models import Stat
 
 from crawlers.common.stash import exclude_crawlers
 from datetime import datetime
+import re
 from os import listdir
 from os.path import join, isdir
 

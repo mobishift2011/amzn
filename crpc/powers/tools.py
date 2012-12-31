@@ -236,13 +236,10 @@ class ImageTool:
 
 
 class Propagator(object):
-    def __init__(self, site, event_id, extractor, classifier, module=None):
+    def __init__(self, site, event_id, module=None):
         print 'init propogate %s event %s' % (site, event_id)
 
         self.site = site
-        self.extractor = extractor
-        self.classifier = classifier
-        
         self.__module = module if module else \
                         __import__('crawlers.{0}.models'.format(site), fromlist=['Event', 'Product', 'Category'])
         self.event = self.__module.Event.objects(event_id=event_id).first()
@@ -392,7 +389,7 @@ def test_propagate(site='venteprivee', event_id=None):
     start = time.time()
 
     if event_id:
-        p = Propagator(site, event_id, extractor, classifier, module=m)
+        p = Propagator(site, event_id, module=m)
         p.propagate()
     else:
         now = datetime.utcnow()

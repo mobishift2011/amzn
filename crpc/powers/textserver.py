@@ -146,7 +146,7 @@ class TextServer(object):
     def propagate(self, args=(), kwargs={}):
         site = kwargs.get('site')
         event_id = kwargs.get('event_id')
-        p = Propagator(site, event_id, self.__extractor, self.__classifier, module=self.__m[site])
+        p = Propagator(site, event_id, module=self.__m[site])
         if p.propagate():
             logger.info('{0}.event.{1} propagation OK'.format(site, event_id))
             interval = datetime.utcnow().replace(second=0, microsecond=0)

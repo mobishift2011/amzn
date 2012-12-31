@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from gevent import monkey; monkey.patch_all()
+import gevent
 import zerorpc
 
 from settings import TEXT_PORT, CRPC_ROOT

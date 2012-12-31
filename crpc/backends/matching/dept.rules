@@ -5,6 +5,22 @@
 #  [1] - if XXXX in a title; we can determine the main department of it
 #  [2] - if XXXX in a title; we can determine the sub department of it
 # The XXXX is tested in a brute-force; longest first way
+[0] Sparkling Duo -> Wine; Champagne
+[0] Sparkling Tri -> Wine; Champagne
+[0] Sparkling Half Case -> Wine; Champagne
+[0] Sparkling Quartet -> Wine; Champagne
+[0] Champagne Duo -> Wine; Champagne
+[0] Champagne Tri -> Wine; Champagne
+[0] Champagne Half Case -> Wine; Chamepagne
+[0] Champagne Bucket -> Wine; Wine Accessories
+[0] Champagne Opener -> Wine; Wine Accessories
+[0] Champagne Saucer -> Wine; Wine Accessories
+[0] Champagne Glass -> Wine; Wine Accessories
+[0] Champagne Glasses -> Wine; Wine Accessories
+[0] Champagne Flute -> Wine; Wine Accessories
+[0] Champagne Flutes -> Wine; Wine Accessories
+[0] Wine Glass -> Wine; Wine Accessories
+[0] Wine Glasses -> Wine; Wine Accessories
 [0] Twin Techno -> Kids & Baby; Gear & Equipment
 [0] Bib -> Kids & Baby; Baby
 [0] DreamSwaddle -> Kids & Baby; Baby
@@ -108,7 +124,6 @@
 [0] Bookends -> Home; Home Accessories
 [0] ArteHouse -> Home; Home Accessories
 [0] Furniture -> Home; Furniture & Lighting
-[0] Light -> Home; Furniture & Lighting
 [0] Lights -> Home; Furniture & Lighting
 [0] Lighting -> Home; Furniture & Lighting
 [0] One Shoulder Sac -> Handbags; Shoulder Bags
@@ -153,7 +168,6 @@
 [0] Chandelier -> Home; Furniture & Lighting
 [0] Brush -> Home; Home Accessories
 [0] Fountain -> Home; Home Accessories
-[0] Puffer -> Home; Furniture & Lighting
 [0] Fireplace -> Home; Furniture & Lighting
 [0] Fire Pit -> Home; Furniture & Lighting
 [0] Heater -> Home; Electronics; Home Accessories
@@ -183,6 +197,8 @@
 [0] Choppers -> Kids & Baby; Toys, Games & Books
 [0] Truck -> Kids & Baby; Toys, Games & Books
 [0] Trucks -> Kids & Baby; Toys, Games & Books
+[0] Train -> Kids & Baby; Toys, Games & Books
+[0] Trains -> Kids & Baby; Toys, Games & Books
 [0] Vehicle -> Kids & Baby; Toys, Games & Books
 [0] Vehicles -> Kids & Baby; Toys, Games & Books
 [0] Castle -> Kids & Baby; Toys, Games & Books
@@ -433,7 +449,6 @@
 [0] Food Set -> Home; Kitchen & Dining
 [0] Container Set -> Home; Kitchen & Dining
 [0] Pan -> Home; Kitchen & Dining
-[0] Ottoman -> Home; Furniture & Lighting
 [0] Folding Ottoman -> Home; Furniture & Lighting
 [0] Snowball Maker -> Home; Kitchen & Dining
 [0] Woven Tray -> Home; Kitchen & Dining
@@ -606,7 +621,6 @@
 [0] Ring -> Jewelry & Watches; Rings
 [0] Rings -> Jewelry & Watches; Rings
 [0] Compartment Bowl Set -> Home; Kitchen & Dining
-[0] Champagne Bucket -> Wine; Wine Accessories
 [0] Frame -> Home; Home Accessories
 [0] Frames -> Home; Home Accessories
 [0] Poster -> Home; Home Accessories
@@ -1323,3 +1337,4 @@
 [2] Cleat -> Shoes
 [2] Champagne -> Champagne
 [2] Sparkling -> Champagne
+[2] Puffer -> Outerwear

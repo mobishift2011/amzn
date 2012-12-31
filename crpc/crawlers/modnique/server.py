@@ -347,6 +347,11 @@ class Server(object):
         key = re.compile('.*itemid=([^&]+).*').match(content[1]).group(1)
 
         image_urls, shipping, list_info, brand, returned = self.parse_product(tree)
+        nav = tree.cssselect('div > div.ptl > div.page > div.line')[0] # bgDark or bgShops
+        pprice = nav.cssselect('div.lastUnit > div.line form > div.mod > div.hd > div.media > div.bd')[0]
+        price = pprice.cssselect('span.price')[0].text_content()
+        listprice = pprice.cssselect('span.bare')
+        listprice = listprice[0].text_content().replace('retail', '').strip() if listprice else ''
 
         is_new, is_updated = False, False
         product = Product.objects(key=key).first()
@@ -359,6 +364,8 @@ class Server(object):
         product.list_info = list_info
         product.brand = brand
         product.returned = returned
+        product.price = price
+        product.listprice = listprice
         product.event_type = False
         product.products_begin = datetime.now(tz=self.pt).replace(hour=0, minute=0, second=0, microsecond=0).astimezone(pytz.utc)
         product.products_end = product.products_begin + timedelta(days=1)

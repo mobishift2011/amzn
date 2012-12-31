@@ -24,7 +24,7 @@ import re
 import json
 import requests
 import urllib
-import Image, ImageChops
+from PIL import Image, ImageChops
 from cStringIO import StringIO
 from datetime import datetime
 
@@ -58,7 +58,7 @@ class ImageTool:
     * To use PIL in ubuntu, several steps as followed should be done:
     # sudo apt-get install libjpeg8-dev
     # sudo ln -s /usr/lib/x86_64-linux-gnu/libjpeg.so ~/.virtualenvs/crpc/lib/
-    # pip install PIL
+    # pip install Pillow
     """
     def __init__(self, connection=None, bucket_name=S3_IMAGE_BUCKET):
         self.__s3conn = connection
@@ -93,7 +93,7 @@ class ImageTool:
         if len(image_urls) == 0:
             self.__image_complete = True
             return
-
+        
         for image_url in image_urls:
             imglogger.debug("processing {0}".format(image_url))
             path, filename = os.path.split(image_url)
@@ -107,6 +107,9 @@ class ImageTool:
             if not exist_keys:
                 try:
                     image_content = self.download(image_url)
+                    if not image_content:
+                        imglogger.error('download image {0}.{1}.{2}.{3} not exist'.format(site, doctype, key, image_url))
+                        continue
                 except Exception, e:
                     imglogger.error('download image {0}.{1}.{2}.{3} exception: {4}'.format(site, doctype, key, image_url, str(e)))
                     continue
@@ -137,6 +140,10 @@ class ImageTool:
         """
         r = requests.get(image_url)
         r.raise_for_status()
+        # Sometimes the picture does not exist and \
+        # the site response a 200 html page to indicate the error.
+        if 'text/html' in r.headers.get('Content-Type', ''):
+            return None
         return r.content
 
     def upload2s3(self, image, key):
@@ -184,7 +191,6 @@ class ImageTool:
             if not im:
                 im = Image.open(StringIO(self.download(s3_url)))
 
-
             fileobj, realsize = self.create_thumbnail(im, (width, height), policy, color)
             width, height = realsize
             resolutions.append(realsize)
@@ -217,18 +223,17 @@ class ImageTool:
             raise ValueError("unsupported thumbnail policy")
 
         fileobj = StringIO()
-        im.save(fileobj, 'JPEG', quality=95)
+        try:
+            im.save(fileobj, 'JPEG', quality=95)
+        except IOError, e:
+            if im.mode != "RGB":
+                imglogger.debug('{0} mode require RGB mode to save as JPEG.'.format(im.mode))
+                im = im.convert("RGB")
+                im.save(fileobj, 'JPEG', quality=95)
         fileobj.seek(0)
 
         return fileobj, (width, height)
-         
-def parse_price(price):
-    amount = 0
-    pattern = re.compile(r'^\$?(\d+(,\d{3})*(\.\d+)?)')
-    match = pattern.search(price)
-    if match:
-        amount = (match.groups()[0]).replace(',', '')
-    return float(amount)
+
 
 class Propagator(object):
     def __init__(self, site, event_id, extractor, classifier, module=None):
@@ -305,18 +310,15 @@ class Propagator(object):
 
                 # (lowest, highest) discount, (lowest, highest) price propagation
                 try:
-                    price = parse_price(product.price)
+                    price = float(product.favbuy_price)
                 except Exception, e:
-                    txtlogger.error('{0}.product.{1} parse price -> {2} exception: {3}'.format(self.site, product.key, product.price, str(e)))
-                    price = 0
+                    txtlogger.error('{0}.product.{1} favbuy price -> {2} exception: {3}'.format(self.site, product.key, product.favbuy_price, str(e)))
+                    price = 0.
                 try:
-                    listprice = parse_price(product.listprice) or price
+                    listprice = float(product.favbuy_listprice)
                 except Exception, e:
-                    txtlogger.error('{0}.product.{1} parse listprice -> {2} exception: {3}'.format(self.site, product.key, product.listprice, str(e)))
+                    txtlogger.error('{0}.product.{1} favbuy listprice -> {2} exception: {3}'.format(self.site, product.key, product.favbuy_listprice, str(e)))
                     listprice = price
-
-                product.favbuy_price = str(price)
-                product.favbuy_listprice = str(listprice)
                 
                 highest_price = max(price, highest_price) if highest_price else price
                 lowest_price = (min(price, lowest_price) or lowest_price) if lowest_price else price

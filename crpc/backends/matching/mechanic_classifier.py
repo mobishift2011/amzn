@@ -230,6 +230,7 @@ def classify_product_department(site, product):
             kw = kw[:-1]
         kws2.add(kw)
     kws = kws2
+
     
     # check level-0 rules
     level12 = True

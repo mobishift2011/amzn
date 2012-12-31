@@ -185,7 +185,7 @@ def load_rules():
     from os.path import dirname, join
     from collections import defaultdict
     pattern = re.compile(r'^\[(\d)\] (.+) -> (.+)')
-    path = join(dirname(__file__), "rules.txt")
+    path = join(dirname(__file__), "dept.rules")
     rules_dict = defaultdict(list)
     with open(path) as f:
         for line in f:
@@ -195,21 +195,42 @@ def load_rules():
 
             m = pattern.search(line)
             priority, rule, department = m.group(1), m.group(2), m.group(3)
+            rule = rule.lower()
             
             rules_dict[priority].append( [set(rule.split(' ')), department.split('; ')] )
     
-    from pprint import pprint
     for k, v in rules_dict.iteritems():
         rules_dict[k] = sorted(v, key=lambda x: len(x[0]), reverse=True)
     return rules_dict
             
 words_split = re.compile('[A-Za-z0-9\-]+')
+rules_dict = load_rules()
 def classify_product_department(site, product):
     m = get_site_module(site)
-    rules_dict = load_rules()
     p = product
     result = []
-    kws = set(words_split.findall(p.title))
+    title = p.title
+    for eid in p.event_id:
+        e = m.Event.objects.get(event_id=eid)
+        title = e.sale_title + u" " + title
+
+    if site in ["bluefly", "ideeli", "nomorerack", "onekingslane"]:
+        title += u" " + u" ".join(p.cats)
+
+    if site in ["lot18"]:
+        if "white" in title.lower():
+            return [u"Wine", u"White Wines"]
+        elif "red" in title.lower():
+            return [u"Wine", u"Red Wines"]
+        
+    kws = set(words_split.findall(title.lower()))
+    kws2 = set()
+    for kw in kws:
+        if kw.endswith('-'):
+            kw = kw[:-1]
+        kws2.add(kw)
+    kws = kws2
+
     
     # check level-0 rules
     level12 = True
@@ -295,29 +316,55 @@ def test_event():
         raw_input()
 
 def test_product():
+    import time
     import random
     from web import sites
-    while True:
-        site = random.choice(sites)
+    for site in sites:
         site = 'beyondtherack'
         m = get_site_module(site)
         count = m.Product.objects().count()
         index = random.randint(0, count-1)
-        p = m.Product.objects().skip(index).first()
-        if p.cats:
-            print "CATS ==>", p.cats
-        if p.dept:
-            print "DEPTS ==>", p.dept,
-        if p.event_id:
-            for eid in p.event_id:
-                e = m.Event.objects.get(event_id=eid)
-                print e.dept,
-        print
-        print "TITLE ==>", p.title
-        print "==>", site, classify_product_department(site, p)
-        print
-        raw_input()
+        count = 0
+        total = 0
+        for p in m.Product.objects():
+            words = classify_product_department(site, p)
+            total += 1
+            if not (set(words) - set(CATS.keys())):
+                print "TITLE ==>", p.title
+                print "==>", site, words
+                count += 1
+                print 1. * count/total * 100, '%'
+
+def extract_pattern(site = 'bluefly'):
+    m = get_site_module(site)
+    from collections import Counter
+    from pprint import pprint
+    wc = Counter()
+    for p in m.Product.objects().only('title','cats','event_id'):
+        if p.title:
+            title = p.title.strip()
+            words = classify_product_department(site, p)
+            if not (set(words) - set(CATS.keys())):
+                words = title.split(' ')
+                len_words = len(words) 
+                for i in range(len_words):
+                    phrase = words[i]
+                    if 'in' not in phrase.lower() and 'of' not in phrase.lower() and '-' not in phrase and '&' not in phrase and 'and' not in phrase.lower():
+                        wc[phrase] += 1
+                for i in range(len_words-1):
+                    phrase = words[i]+' '+words[i+1]
+                    if 'in' not in phrase.lower() and 'of' not in phrase.lower() and '-' not in phrase and '&' not in phrase and 'and' not in phrase.lower():
+                        wc[phrase] += 1
+                for i in range(len_words-2):
+                    phrase = words[i]+' '+words[i+1]+' '+words[i+2]
+                    if 'in' not in phrase.lower() and 'of' not in phrase.lower() and '-' not in phrase and '&' not in phrase and 'and' not in phrase.lower():
+                        wc[phrase] += 1
+                #pprint(wc.most_common(1))
+                print title, p.cats, p.key
+    pprint(wc.most_common(1000))
+    print 1. * len(wc) / m.Product.objects.count() * 100, '%'
 
 if __name__ == '__main__':
-    test_product()
+    extract_pattern('beyondtherack')
+    #test_product()
     #load_rules() 

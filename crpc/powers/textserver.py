@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 from gevent import monkey; monkey.patch_all()
-import gevent
 import zerorpc
 
 from settings import TEXT_PORT, CRPC_ROOT
 from backends.matching.extractor import Extractor
-from backends.matching.classifier import FavbuyClassifier
+from backends.matching.mechanic_classifier import classify_product_department
 
 from brandapi import Extracter
 from tools import Propagator
@@ -25,8 +24,6 @@ class TextServer(object):
     def __init__(self):
         self.__extracter = Extracter()  # brand extracter
         self.__extractor = Extractor()  # tag extractor
-        self.__classifier = FavbuyClassifier()
-        self.__classifier.load_from_database()
         self.__m = {}
         
         for name in listdir(join(CRPC_ROOT, "crawlers")):
@@ -79,29 +76,7 @@ class TextServer(object):
         if dept_complete:
             return
 
-        p = product
-        depts = []
-        depts.extend(p.dept)
-        for eid in p.event_id:
-            e = self.__m[site].Event.objects.get(event_id=eid)
-            depts.extend( e.dept )
-            if hasattr(e, 'short_desc'):
-                depts.append( e.short_desc )
-
-        content = u'==site==: ' + site + u'\n'
-        if depts:
-            content += u'==depts==: ' + u'; '.join(depts) + u'\n'
-        if p.cats:
-            content += u'==cats==: ' +  u'; '.join(p.cats) + u'\n'
-        if p.brand:
-            content += u'==brand==: ' + p.brand + u'\n'
-        if p.tagline:
-            content += u'==tagline==: ' + u'; '.join(p.tagline) + u'\n'
-        content += u'==title==: ' +  p.title + u'\n'
-        content += u'==listinfo==: ' + u'\n'.join(p.list_info)
-        print content
-
-        favbuy_dept = list(self.__classifier.classify( content ))
+        favbuy_dept = classify_product_department(site, product)
         product.favbuy_dept = favbuy_dept
         product.dept_complete = bool(favbuy_dept)
 
@@ -142,7 +117,7 @@ class TextServer(object):
         text_list.append(product.summary or u'')
         text_list.append(product.short_desc or u'')
         text_list.extend(product.tagline or [])
-
+        
         jobs = [
             gevent.spawn(self.__extract_brand, brand_complete, product, flags, site),
             gevent.spawn(self.__extract_tag, tag_complete, text_list, product, flags, site),
@@ -191,7 +166,7 @@ def parse_price(price):
 
 if __name__ == '__main__':
     #ts = TextServer()
-    #print ts.extract_text(kwargs=dict(site='myhabit', key='B008UW2L7K'))
+    #print ts.extract_text(kwargs=dict(site='myhabit', key='B0012MIAX4'))
     #exit(0)
     import os, sys
     port = TEXT_PORT if len(sys.argv) != 2 else int(sys.argv[1])

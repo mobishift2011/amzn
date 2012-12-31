@@ -164,8 +164,8 @@ class Server(object):
             listprice = d[1]['offer_retail_price']
             price = str(d[1]['numeric_offer_price'])
             price = price[:-2] + '.' + price[-2:]
-            returned = d[1]['offer_return_policy']
-            shipping = d[1]['offer_shipping_window']
+            returned = d[1]['offer_return_policy'].replace('<br />', ' ')
+            shipping = lxml.html.fromstring(d[1]['offer_shipping_window']).text_content()
             sizes = d[1]['pretty_sizes']
             link = d[1]['offer_url']
             link = link if link.startswith('http') else self.siteurl + link

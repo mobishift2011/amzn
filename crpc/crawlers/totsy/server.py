@@ -208,7 +208,8 @@ class Server(object):
             link = image.get('href')
             key = self.from_url_get_product_key(link)
             pprice = node.cssselect('div.thumbnail > div.caption > div.price-wrap > div.price-box')[0]
-            listprice = pprice.cssselect('p.old-price > span.price')[0].text_content().strip()
+            listprice = pprice.cssselect('p.old-price > span.price')
+            listprice = listprice[0].text_content().strip() if listprice else ''
             price = pprice.cssselect('span.special-price')[0].text_content().strip()
             soldout = True if node.cssselect('img.out-of-stock') else False
 

@@ -24,7 +24,7 @@ BLUEFLY = {
         "women": ["Women"],
         "kids": ["Kids & Baby"],
         "shoes": ["Women"],
-        "handbags&accessories": ["Women", "Handbags"],
+        #"handbags&accessories": ["Women", "Handbags"],
         "jewelry": ["Women", "Jewelry & Watches"],
     },
     "contains": {
@@ -54,7 +54,7 @@ MODNIQUE = {
     "column": "dept",
     "contains": {},
     "mapping": {
-        "handbags-accessories" : ["Handbags", "Women"],
+        #"handbags-accessories" : ["Handbags", "Women"],
         "jewelry-watches": ["Jewelry & Watches", "Women"],
         "apparel": ["Women"],
         "men": ["Men"],

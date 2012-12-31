@@ -185,7 +185,7 @@ def load_rules():
     from os.path import dirname, join
     from collections import defaultdict
     pattern = re.compile(r'^\[(\d)\] (.+) -> (.+)')
-    path = join(dirname(__file__), "rules.txt")
+    path = join(dirname(__file__), "dept.rules")
     rules_dict = defaultdict(list)
     with open(path) as f:
         for line in f:

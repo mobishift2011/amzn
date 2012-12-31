@@ -405,7 +405,6 @@
 [0] Patent Skimmer -> Women; Shoes
 [0] Pestle -> Home; Kitchen & Dining
 [0] Pen -> Home; Home Accessories
-[0] Jumbo -> Handbags; Shoulder Bags
 [0] Can -> Home; Kitchen & Dining
 [0] Jewelry Set -> Jewelry & Watches; Necklaces; Bracelets; Earrings
 [0] Bowl-Set -> Home; Kitchen & Dining
@@ -933,9 +932,11 @@
 [2] Waistcoat -> Suits & Coats
 [2] Waistcoats -> Suits & Coats
 [2] Bomber -> Suits & Coats
-[2] Suit -> Suits & Coats
 [2] Coat -> Suits & Coats
+[2] Suit -> Suits & Coats
+[2] Suit with -> Suits & Coats
 [2] Suits -> Suits & Coats
+[2] Suits with -> Suits & Coats
 [2] Coats -> Suits & Coats
 [2] Trench -> Suits & Coats
 [2] Shawl -> Accessories

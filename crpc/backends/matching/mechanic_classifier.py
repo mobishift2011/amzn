@@ -24,7 +24,7 @@ BLUEFLY = {
         "women": ["Women"],
         "kids": ["Kids & Baby"],
         "shoes": ["Women"],
-        "handbags&accessories": ["Women", "Handbags"],
+        #"handbags&accessories": ["Women", "Handbags"],
         "jewelry": ["Women", "Jewelry & Watches"],
     },
     "contains": {
@@ -54,7 +54,7 @@ MODNIQUE = {
     "column": "dept",
     "contains": {},
     "mapping": {
-        "handbags-accessories" : ["Handbags", "Women"],
+        #"handbags-accessories" : ["Handbags", "Women"],
         "jewelry-watches": ["Jewelry & Watches", "Women"],
         "apparel": ["Women"],
         "men": ["Men"],
@@ -365,6 +365,9 @@ def extract_pattern(site = 'bluefly'):
     print 1. * len(wc) / m.Product.objects.count() * 100, '%'
 
 if __name__ == '__main__':
-    extract_pattern('beyondtherack')
+    from crawlers.ideeli.models import Product
+    p = Product.objects.get(pk='2820350')
+    print classify_product_department('ideeli', p)
+    #extract_pattern('beyondtherack')
     #test_product()
     #load_rules() 

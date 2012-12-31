@@ -236,13 +236,10 @@ class ImageTool:
 
 
 class Propagator(object):
-    def __init__(self, site, event_id, extractor, classifier, module=None):
+    def __init__(self, site, event_id, module=None):
         print 'init propogate %s event %s' % (site, event_id)
 
         self.site = site
-        self.extractor = extractor
-        self.classifier = classifier
-        
         self.__module = module if module else \
                         __import__('crawlers.{0}.models'.format(site), fromlist=['Event', 'Product', 'Category'])
         self.event = self.__module.Event.objects(event_id=event_id).first()
@@ -258,6 +255,8 @@ class Propagator(object):
         if not self.event:
             return
 
+        level1_depts = set([u"Women", u"Men", u"Beauty & Health", u"Jewelry & Watches", u"Handbags", u"Home", u"Wine", u"Kids & Baby"])
+
         event_brands = set()
         tags = set()
         depts = Counter()
@@ -271,7 +270,7 @@ class Propagator(object):
 
         products = self.__module.Product.objects(event_id=self.event.event_id)
         num_products = len(products)
-        dept_threshold = int(.23*num_products)
+        dept_threshold = int(.1*num_products)
         print 'start to propogate %s event %s' % (self.site, self.event.event_id)
 
         counter = 0
@@ -283,8 +282,11 @@ class Propagator(object):
                 # Tag, Dept extraction and propagation
                 if product.favbuy_tag:
                     tags = tags.union(product.favbuy_tag)
+
                 if product.favbuy_dept:
-                    depts[product.favbuy_dept[0]] += 1
+                    for thedept in product.favbuy_dept:
+                        if thedept in level1_depts:
+                            depts[thedept] += 1
 
                 # Event brand propagation
                 if hasattr(product, 'favbuy_brand') and product.favbuy_brand:
@@ -344,8 +346,8 @@ class Propagator(object):
         self.event.brand_complete = True
         
         self.event.favbuy_tag = list(tags)
-        #self.event.favbuy_dept = [ k for k, v in depts.items() if v>=dept_threshold ]
-        self.event.favbuy_dept = classify_event_department(self.site, self.event)
+        self.event.favbuy_dept = [ k for k, v in depts.items() if v>=dept_threshold ]
+        #self.event.favbuy_dept = classify_event_department(self.site, self.event)
         self.event.lowest_price = str(lowest_price)
         self.event.highest_price = str(highest_price)
         self.event.lowest_discount = str(1.0 - lowest_discount)
@@ -392,7 +394,7 @@ def test_propagate(site='venteprivee', event_id=None):
     start = time.time()
 
     if event_id:
-        p = Propagator(site, event_id, extractor, classifier, module=m)
+        p = Propagator(site, event_id, module=m)
         p.propagate()
     else:
         now = datetime.utcnow()

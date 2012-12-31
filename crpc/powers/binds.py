@@ -67,42 +67,6 @@ def stat_post_general_update(sender, **kwargs):
     pass
 
 
-import os
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djCatalog.djCatalog.settings")
-from djCatalog.catalogs.models import BrandTask
-
-@brand_extracted.bind
-def brand_stat_save(sender, **kwargs):
-    kwargs['brand_complete'] = True
-    brand_stat(sender, **kwargs)
-
-@brand_extracted_failed.bind
-def brand_stat_failed(sender, **kwargs):
-    kwargs['brand_complete'] = False
-    brand_stat(sender, **kwargs)
-
-def brand_stat(sender, **kwargs):
-    site = kwargs.get('site', '')
-    key = kwargs.get('key', '')
-    title = kwargs.get('title', '')
-    brand = kwargs.get('brand', '')
-    doctype = kwargs.get('doctype', '')
-    url = kwargs.get('combine_url', '')
-    brand_complete = kwargs.get('brand_complete', False)
-    favbuy_brand = kwargs.get('favbuy_brand', '')
-    
-    BrandTask.objects(site=site, key=key, doctype=doctype).update(
-        set__title = title,
-        set__brand = brand,
-        set__site = site,
-        set__doctype = doctype,
-        set__key = key,
-        set__favbuy_brand = favbuy_brand,
-        set__url=url,
-        set__brand_complete=brand_complete,
-        upsert = True
-    )
-
 if __name__ == '__main__':
     import sys
     if len(sys.argv) > 1:

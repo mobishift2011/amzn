@@ -185,7 +185,7 @@ class Server(object):
             if not event.sale_description:
                 ret = self.get_picture_description(event.combine_url, ctx)
                 if ret is not None: # starting later today, already on sale
-                    image, sale_description, events_begin = ret
+                    image, sale_title, sale_description, events_begin = ret
                     event.image_urls = image
                     event.sale_description = sale_description
 
@@ -197,8 +197,10 @@ class Server(object):
         for node in nodes:
             event, is_new, is_updated = self.parse_one_node(node, dept, ctx)
             if not event.sale_description:
-                image, sale_description, events_begin = self.get_picture_description(event.combine_url, ctx)
+                image, sale_title, sale_description, events_begin = self.get_picture_description(event.combine_url, ctx)
                 event.image_urls = image
+                # some sale_title is too long to be omit by ...
+                event.sale_title = sale_title
                 event.sale_description = sale_description
                 event.events_begin = events_begin
 
@@ -275,11 +277,12 @@ class Server(object):
         # kids event already on sale, but in men's starting later today
         if not nav: return
         image = nav[0].xpath('./img/@src')
+        sale_title = nav[0].cssselect('section.copy > header.header')[0].text_content().strip()
         sale_description = nav[0].cssselect('section.copy > p.bio')[0].text_content().strip()
 
         data_gilt_time = tree.cssselect('span#shopInCountdown')[0].get('data-gilt-time')
         events_begin = self.gilt_time(data_gilt_time)
-        return image, sale_description, events_begin
+        return image, sale_title, sale_description, events_begin
 
 
     def get_child_event(self, event_id, link, dept, ctx):

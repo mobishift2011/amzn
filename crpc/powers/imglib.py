@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import Image, ImageChops
+from PIL import Image, ImageChops
 
 def trim(im, padding=5):
     """
@@ -27,7 +27,12 @@ def scale(im, size, method=Image.ANTIALIAS, centering=(0.5,0.7), bgcolor='white'
         scaled = im.resize((int(round(size[1]*im_aspect)), size[1]), method)
 
     offset = (int((size[0] - scaled.size[0])*centering[0]), int((size[1] - scaled.size[1])*centering[1]))
-    back = Image.new(im.mode, size, bgcolor)
+    try:
+        back = Image.new(im.mode, size, bgcolor)
+    except TypeError:
+        if im.mode != "RGB":
+            im = im.convert("RGB")
+        back = Image.new(im.mode, size, bgcolor)
     back.paste(scaled, offset)
     return back
 

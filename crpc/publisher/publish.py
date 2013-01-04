@@ -41,7 +41,7 @@ class Publisher:
         if hasattr(m, 'Event'):
             for ev in m.Event.objects:
                 if self.should_publish_event_upd(ev):
-                    self.publish_event(ev, upd=True, fields=['soldout', 'favbuy_brand', 'favbuy_dept', 'favbuy_tag'])
+                    self.publish_event(ev, upd=True, fields=['favbuy_brand', 'favbuy_dept', 'favbuy_tag'])
                 else:   
                     self._try_publish_event(ev, skip_products=True)
 
@@ -102,7 +102,7 @@ class Publisher:
         else:
             self.logger.debug("event {}:{} not ready for publishing".format(obj_to_site(ev), evid))
             
-    def try_publish_product_update(self, site, prod_key, fields):
+    def try_publish_product_update(self, site, prod_key, fields, forced=False):
         '''try publishing a product update only (not first publish)
 
         :param site: site string
@@ -111,7 +111,7 @@ class Publisher:
         self.logger.debug("try_publish_product_update %s:%s, fields:%s", site, prod_key, fields)
         m = self.get_module(site)
         prod = m.Product.objects.get(key=prod_key)
-        if self.should_publish_product_upd(prod):
+        if forced or self.should_publish_product_upd(prod):
             self.publish_product(prod, upd=True, fields=fields)  # perhaps just publish portion of data? $$
         else:
             self.logger.debug("product %s:%s not ready for publishing", obj_to_site(prod),prod_key)
@@ -179,7 +179,7 @@ class Publisher:
         
         :param ev: event object
         '''
-        return ev.publish_time and ev.publish_time < ev.update_time
+        return ev.publish_time and ev.favbuy_text_update_time and ev.publish_time < ev.favbuy_text_update_time
         
     def should_publish_event_newly_onshelf(self, ev):
         '''all events that were future events and published before but recently became on-shelf and 
@@ -416,10 +416,8 @@ def process_common_saved(sender, **kwargs):
     site = sender_to_site(sender)
     obj_type = kwargs.get('obj_type')
     
-    if obj_type == 'Event':
-        p.try_publish_event_update(site, key, ['soldout'])
-    elif obj_type == 'Product':
-        p.try_publish_product_update(site, key, ['soldout'])
+    if obj_type == 'Product':
+        p.try_publish_product_update(site, key, ['soldout'], forced=True)
     
 @image_crawled.bind('globalsync')
 def process_image_crawled(sender, **kwargs):

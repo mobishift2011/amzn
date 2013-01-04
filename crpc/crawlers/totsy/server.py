@@ -210,7 +210,7 @@ class Server(object):
             pprice = node.cssselect('div.thumbnail > div.caption > div.price-wrap > div.price-box')[0]
             listprice = pprice.cssselect('p.old-price > span.price')
             listprice = listprice[0].text_content().strip() if listprice else ''
-            price = pprice.cssselect('span.special-price')[0].text_content().strip()
+            price = pprice.cssselect('span[id^="product-price"]')[0].text_content().strip()
             soldout = True if node.cssselect('img.out-of-stock') else False
 
             is_new, is_updated = False, False

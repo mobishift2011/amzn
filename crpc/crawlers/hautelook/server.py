@@ -212,7 +212,8 @@ class Server(object):
             else:
                 if product.scarcity != scarcity:
                     product.scarcity = scarcity
-                    is_updated = True
+                    if int(scarcity) < 1:
+                        is_updated = True
                 if event_id not in product.event_id: product.event_id.append(event_id)
             product.list_update_time = datetime.utcnow()
             product.save()

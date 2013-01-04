@@ -540,7 +540,7 @@ class Server(object):
         product_name = node.cssselect('header.overview > hgroup.look-name > h1.product-name > a')[0]
         link = product_name.get('href')
         link = link if link.startswith('http') else self.siteurl + link
-        title = product_name.text_content()
+        title = product_name.text_content().replace('\n', ' ')
         price = node.cssselect('header.overview > div.price > div.sale-price > span.nouveau-price')[0].text_content().strip()
         listprice = node.cssselect('header.overview > div.price > div.original-price > span')
         listprice = listprice[0].text_content().strip() if listprice else ''

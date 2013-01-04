@@ -224,7 +224,13 @@ class Server(object):
         list_info_tree = lxml.html.fromstring( res.get('description') )
         list_info = list_info_tree.xpath('.//div[@class="FTCopierColler_RDV"]/dl[@class="ftBloc"]/dt[contains(text(), "Description")]')
         list_info = list_info_tree.xpath('.//div[@class="FTCopierColler_RDV"]/dl[@class="ftBloc"]/dt[contains(text(), "Features")]')[0].getnext() if not list_info else list_info[0].getnext()
-        product.list_info = list_info.xpath('.//text()')
+        if not list_info: # After Description, it is </dl>
+            list_info = []
+            for ii in list_info_tree.xpath('.//div[@class="FTCopierColler_RDV"]/dl[@class="ftBloc"]'):
+                list_info.extend(ii.xpath('.//text()'))
+            product.list_info = list_info
+        else:
+            product.list_info = list_info.xpath('.//text()')
 #        product.sizes = []#res.get('sizes')    # TODO
 #        product.sizes_scarcity = [] # TODO
         temp_updated = product.updated

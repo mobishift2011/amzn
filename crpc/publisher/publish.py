@@ -111,7 +111,7 @@ class Publisher:
         self.logger.debug("try_publish_product_update %s:%s, fields:%s", site, prod_key, fields)
         m = self.get_module(site)
         prod = m.Product.objects.get(key=prod_key)
-        if self.should_publish_product_upd(prod, fields):
+        if self.should_publish_product_upd(prod):
             self.publish_product(prod, upd=True, fields=fields)  # perhaps just publish portion of data? $$
         else:
             self.logger.debug("product %s:%s not ready for publishing", obj_to_site(prod),prod_key)
@@ -229,9 +229,9 @@ class Publisher:
 
     def should_publish_product_upd(self, prod):
         '''condition for publishing product update (the product was published before).
-        :param prod: product object
+        :param prod: product object. Note: now only handle favbuy text update.
         '''
-        return prod.publish_time and prod.publish_time < prod.list_update_time
+        return prod.publish_time and prod.favbuy_text_update_time and prod.publish_time < prod.favbuy_text_update_time
         
     def publish_event(self, ev, upd=False, fields=[]):
         '''publish event data to the mastiff service.

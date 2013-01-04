@@ -45,9 +45,6 @@
 [0] Grater -> Home; Kitchen & Dining
 [0] Tabletop -> Home; Home Accessories
 [0] Entry Butler -> Home; Home Accessories
-[0] Gemstone -> Jewelry & Watches; Pendants
-[0] Gemstones -> Jewelry & Watches; Pendants
-[0] Sapphire -> Jewelry & Watches; Pendants
 [0] Electronics -> Home; Electronics
 [0] Half-Hoops -> Jewelry & Watches; Earrings
 [0] Diamond Stub -> Jewelry & Watches; Earrings
@@ -1339,3 +1336,6 @@
 [2] Shimmer -> Makeup
 [2] Tie Dress -> Dresses & Skirts
 [2] Neck Dress -> Dresses & Skirts
+[2] Gemstone -> Pendants
+[2] Gemstones -> Pendants
+[2] Sapphire -> Pendants

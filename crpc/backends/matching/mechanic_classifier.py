@@ -223,7 +223,7 @@ def classify_product_department(site, product, use_event_info=False):
             return [u"Wine", u"White Wines"]
         elif "red" in title.lower():
             return [u"Wine", u"Red Wines"]
-        
+
     # make it reversed
     kws = words_split.findall(title.lower())
     kws2 = []

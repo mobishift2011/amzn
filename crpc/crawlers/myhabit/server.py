@@ -7,6 +7,7 @@ import gevent.pool
 import requests
 import json
 import re
+import lxml.html
 from pprint import pprint
 from datetime import datetime, timedelta
 
@@ -53,7 +54,8 @@ class Server(object):
             event.urgent = True
             event.combine_url = 'http://www.myhabit.com/homepage#page=b&sale={0}'.format(event_id)
             event.sale_title = info['primary']['title']
-            event.sale_description = info['primary']['desc'].replace('<b>', '').replace('</b>', '') if 'desc' in info['primary'] else ''
+            if 'desc' in info['primary']:
+                event.sale_description = lxml.html.fromstring(info['primary']['desc']).text_content()
             event.image_urls = [ info['prefix']+val for key, val in info['primary']['imgs'].items() if key == 'hero']
             event.image_urls.extend( [ info['prefix']+val for key, val in info['primary']['imgs'].items() if key in ['desc', 'sale']] )
             if 'brandUrl' in info['primary']:

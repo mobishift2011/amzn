@@ -18,7 +18,7 @@ import pytz
 
 from datetime import datetime, timedelta
 
-from .models import *
+from models import *
 from crawlers.common.events import *
 from crawlers.common.stash import *
 
@@ -418,7 +418,7 @@ class Server(object):
         era = vintage.cssselect('dd:first-of-type')
         condition = vintage.cssselect('dd:nth-of-type(2)')
         seller = node.cssselect('div#productDescription > div#okl-vmf-vendor')
-        list_info = node.cssselect('div#productDetails > dl:first-of-type')[0].text_content()
+        list_info = node.cssselect('div#productDetails > dl:first-of-type')[0].xpath('.//text()')
 
         is_new, is_updated = False, False
         product = Product.objects(key=product_id).first()
@@ -445,9 +445,9 @@ class Server(object):
 
         product.summary = node.cssselect('div#productDescription > div#description')[0].text_content().strip()
         if seller: product.seller = seller[0].cssselect('div')[0].text_content()
-        product.list_info = list_info if isinstance(list_info, list) else [list_info]
+        product.list_info = [li for li in list_info if li.strip()] # omit '\n    '
         returned = node.cssselect('div#productDetails > dl:nth-of-type(2)')
-        product.returned = returned[0].text_content() if returned else ''
+        product.returned = returned[0].text_content().strip() if returned else ''
         end_date = node.cssselect('div#productDetails > p.endDate') # '11/10 at 11am EST'
         if end_date:
             end_date_str, time_zone = end_date[0].text.split('until')[-1].strip().rsplit(' ', 1)
@@ -480,7 +480,7 @@ class Server(object):
         # shippingDetails maybe under productDetails, maybe under first dl. endDate also have the same problem
         # shipping and endDate may not exist in: https://www.onekingslane.com/product/17014/405312
         shipping = node.cssselect('div#productDetails dl.shippingDetails')
-        if shipping: product.returned = shipping[0].text_content()
+        if shipping: product.returned = shipping[0].text_content().strip()
         endDate = node.cssselect('div#productDetails p.endDate')
         if endDate:
             _date, _time = endDate[0].text_content().strip().split('at')
@@ -497,7 +497,7 @@ class Server(object):
 
         seller = node.cssselect('div#productDescription > div.ds-vmf-vendor')
         if seller:
-            product.seller = seller[0].cssselect('div[class]')[0].text_content()
+            product.seller = seller[0].cssselect('div[class]')[0].text_content().strip()
         if product.updated == False:
             product.updated = True
             ready = True

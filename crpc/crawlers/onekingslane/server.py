@@ -475,7 +475,7 @@ class Server(object):
         if m:
             product.era = m.group(1).strip()
 
-        node = tree.cssselect('body.holiday > div#wrapper > div#okl-content')[0]
+        node = tree.cssselect('body > div#wrapper > div#okl-content')[0]
         product.list_info = node.cssselect('div#productDetails > dl:first-of-type')[0].text_content().split('\n')
         # shippingDetails maybe under productDetails, maybe under first dl. endDate also have the same problem
         # shipping and endDate may not exist in: https://www.onekingslane.com/product/17014/405312

@@ -5,6 +5,7 @@
 #  [1] - if XXXX in a title; we can determine the main department of it
 #  [2] - if XXXX in a title; we can determine the sub department of it
 # The XXXX is tested in a brute-force; longest first way
+[0] Britches Hipster -> Women; Intimates & Loungewear
 [0] Sparkling Duo -> Wine; Champagne
 [0] Sparkling Tri -> Wine; Champagne
 [0] Sparkling Half Case -> Wine; Champagne
@@ -119,8 +120,6 @@
 [0] Oven -> Home; Kitchen & Dining
 [0] Server -> Home; Kitchen & Dining
 [0] Tanning -> Beauty & Health; Skin Care
-[0] Tan -> Beauty & Health; Skin Care
-[0] Tans -> Beauty & Health; Skin Care
 [0] Bookends -> Home; Home Accessories
 [0] ArteHouse -> Home; Home Accessories
 [0] Furniture -> Home; Furniture & Lighting
@@ -240,6 +239,7 @@
 [0] Potholder -> Home; Kitchen & Dining
 [0] Machine -> Home; Electronics; Home Accesssories
 [0] Wine Set -> Wine; Wine Accessories
+[0] Teal Goblet -> Women; Dresses & Skirts
 [0] Goblet -> Home; Kitchen & Dining; Wine; Wine Accessories
 [0] Serving Set -> Home; Kitchen & Dining
 [0] Sculpture -> Home; Home Accessories
@@ -252,7 +252,6 @@
 [0] Monokini -> Women; Intimates & Loungewear
 [0] Shirtdress -> Women; Dresses & Skirts
 [0] Skirtdress -> Women; Dresses & Skirts
-[0] Body -> Beauty & Health; Skin Care
 [0] Maryjane -> Women; Shoes
 [0] Mary Jane -> Women; Shoes
 [0] Mary Janes -> Women; Shoes
@@ -351,7 +350,6 @@
 [0] Wine Box -> Wine; Wine Accessories
 [0] Dipping Set -> Home; Kitchen & Dining
 [0] Open Toe -> Women; Shoes
-[0] Shimmer -> Beauty & Health; Makeup
 [0] Comforter -> Home; Beds & Bath
 [0] Magnifier -> Home; Home Accessories
 [0] Pearl Set -> Jewelry & Watches; Bracelets; Necklaces; Earrings; Rings
@@ -610,6 +608,7 @@
 [0] XBox -> Kids & Baby; Toys, Games & Books; Home; Electronics
 [0] Boxset -> Home; Home Accessories
 [0] Cutlery Set -> Home; Kitchen & Dining
+[0] Glasses Set -> Home; Kicthen & Dining
 [0] Glasses -> Men; Women; Accessories
 [0] Piece Puzzle -> Home; Home Accessories
 [0] Calf Boot -> Women; Shoes
@@ -714,7 +713,6 @@
 [0] Biker Boot -> Women; Shoes
 [0] Storage Ottoman -> Home; Funiture & Lightning
 [0] Dress Shoe -> Men; Shoes
-[0] Blouse -> Women; Shirts & Sweaters
 [0] Ramekins Set -> Home; Kitchen & Dining
 [0] Powder Flare Jean -> Women; Pants
 [0] With Blade Guard -> Home; Kitchen & Dining
@@ -902,6 +900,7 @@
 [2] Peacoat -> Outerwear
 [2] Paint Splatter Denim -> Pants & Shorts
 [2] Shorts -> Pants & Shorts
+[2] Short -> Pants & Shorts
 [2] Leggin -> Pants & Shorts
 [2] Leggins -> Pants & Shorts
 [2] Legging -> Pants & Shorts
@@ -994,7 +993,6 @@
 [2] Eyeglass -> Accessories
 [2] Storage -> Accessories
 [2] Glass -> Accessories
-[2] Ceramic -> Accessories
 [2] BTB Buckle -> Accessories
 [2] Tuque -> Accessories
 [2] Bobcap -> Accessories
@@ -1029,8 +1027,8 @@
 [2] Swim Trunk -> Intimates & Loungewear
 [2] Swim Trunks -> Intimates & Loungewear
 [2] Swim Set -> Intimates & Loungewear
-[2] Trunk -> Accessories
-[2] Trunks -> Accessories
+[2] Trunk -> Intimates & Loungewear
+[2] Trunks -> Intimates & Loungewear
 [2] Knit -> Shirts & Sweaters
 [2] Cuff -> Accessories
 [2] Cuffs -> Accessories
@@ -1102,6 +1100,7 @@
 [2] Bag -> Shoulder Bags
 [2] Handbag -> Shoulder Bags
 [2] Case -> Backpacks & Laptop Bags
+[2] Leg Jean -> Pants & Shorts
 [2] Leg -> Pants & Shorts
 [2] Towel -> Beds & Bath; Accessories
 [2] Towels -> Beds & Bath; Accessories
@@ -1135,7 +1134,6 @@
 [2] Nail -> Beauty & Health; Makeup; Accessories
 [2] Lip -> Beauty & Helath; Makeup; Accessories
 [2] Piggy Bank -> Accessories
-[2] Short -> Intimates & Loungewear
 [2] Wrap -> Accessories
 [2] Rainslicker -> Outerwear
 [2] Rainslickers -> Outerwear
@@ -1207,7 +1205,6 @@
 [2] Pillowcase -> Beds & Bath
 [2] Pillowcases -> Beds & Bath
 [2] Bucket -> Accessories
-[2] Hello Kitty -> Accessories
 [2] Loungewear -> Intimates & Loungewear
 [2] Outerwear -> Outerwear
 [2] Eyewear -> Accessories
@@ -1338,3 +1335,7 @@
 [2] Champagne -> Champagne
 [2] Sparkling -> Champagne
 [2] Puffer -> Outerwear
+[2] Body -> Skin Care
+[2] Shimmer -> Makeup
+[2] Tie Dress -> Dresses & Skirts
+[2] Neck Dress -> Dresses & Skirts

@@ -159,9 +159,10 @@ class Server(object):
             content = self.net.fetch_page(link)
             tree = lxml.html.fromstring(content)
             nav = tree.cssselect('div#mainContent > section.event-landing > div.intro')[0]
-            img = nav.cssselect('div > div.category-image > img')[0].get('src')
+            img = nav.cssselect('div > div.category-image > img')
             sale_description = nav.cssselect('div.intro-content > p')[0].text_content()
-            event.image_urls = [img]
+            if img:
+                event.image_urls = [ img[0].get('src') ]
             event.sale_description = sale_description
         event.events_begin = utc_events_begin
         event.update_time = datetime.utcnow()
@@ -210,7 +211,7 @@ class Server(object):
             pprice = node.cssselect('div.thumbnail > div.caption > div.price-wrap > div.price-box')[0]
             listprice = pprice.cssselect('p.old-price > span.price')
             listprice = listprice[0].text_content().strip() if listprice else ''
-            price = pprice.cssselect('span.special-price')[0].text_content().strip()
+            price = pprice.cssselect('span[id^="product-price"]')[0].text_content().strip()
             soldout = True if node.cssselect('img.out-of-stock') else False
 
             is_new, is_updated = False, False
@@ -297,11 +298,12 @@ class Server(object):
         """
         key = self.from_url_get_product_key(url)
         content = self.net.fetch_page(url)
-        if isinstance(content, int):
-            common_failed.send(sender=ctx, key=key, url=url,
-                    reason='download product page failed: {0}'.format(content))
-            return
-        if content is None: content = self.net.fetch_page(url)
+        if content is None or isinstance(content, int):
+            content = self.net.fetch_page(url)
+            if content is None or isinstance(content, int):
+                common_failed.send(sender=ctx, key=key, url=url,
+                        reason='download product page failed: {0}'.format(content))
+                return
         tree = lxml.html.fromstring(content)
         is_new, is_updated, product = self.save_product_detail(key, *self.parse_product(tree))
 

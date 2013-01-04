@@ -224,19 +224,31 @@ def classify_product_department(site, product, use_event_info=False):
         elif "red" in title.lower():
             return [u"Wine", u"Red Wines"]
         
-    kws = set(words_split.findall(title.lower()))
-    kws2 = set()
-    for kw in kws:
+    # make it reversed
+    kws = words_split.findall(title.lower())
+    kws2 = []
+    for kw in reversed(kws):
         if kw.endswith('-'):
             kw = kw[:-1]
-        kws2.add(kw)
+        if kw not in kws2:
+            kws2.append(kw)
     kws = kws2
 
     
     # check level-0 rules
+    # first run: single words
     level12 = True
+    rules_dict_0 = dict([(list(x[0])[0], x[1]) for x in rules_dict['0'] if len(x[0])==1])
+    for kw in kws:
+        if kw in rules_dict_0:
+            result.extend(rules_dict_0[kw])
+            level12 = False
+            break
+
+    # second run: differences
+    kws_set = set(kws) 
     for rule in rules_dict['0']:
-        if not rule[0].difference(kws):
+        if not rule[0].difference(kws_set):
             result.extend(rule[1])
             level12 = False
             break
@@ -253,8 +265,14 @@ def classify_product_department(site, product, use_event_info=False):
 
         # do level1 and level2 classifying
         for priority in '12':
+            rules_dict_12 = dict([(list(x[0])[0], x[1]) for x in rules_dict[priority] if len(x[0])==1])
+            for kw in kws:
+                if kw in rules_dict_12:
+                    result.extend(rules_dict_12[kw])
+                    break
+                
             for rule in rules_dict[priority]:
-                if not rule[0].difference(kws):
+                if not rule[0].difference(kws_set):
                     result.extend(rule[1])
                     break
 
@@ -303,7 +321,7 @@ def classify_product_department(site, product, use_event_info=False):
             result = [key] + result
 
     # if we can't identify the product from it's title alone, try again with event info
-    if set(result) - set(keys):
+    if use_event_info == False and (set(result) - set(keys)):
         result = classify_product_department(site, product, use_event_info=True)
 
     return result
@@ -371,9 +389,9 @@ def extract_pattern(site = 'bluefly'):
     print 1. * len(wc) / m.Product.objects.count() * 100, '%'
 
 if __name__ == '__main__':
-    from crawlers.ideeli.models import Product
-    p = Product.objects.get(pk='2820350')
-    print classify_product_department('ideeli', p)
-    #extract_pattern('beyondtherack')
+    #from crawlers.ideeli.models import Product
+    #p = Product.objects.get(pk='2820350')
+    #print classify_product_department('ideeli', p)
+    extract_pattern('beyondtherack')
     #test_product()
     #load_rules() 

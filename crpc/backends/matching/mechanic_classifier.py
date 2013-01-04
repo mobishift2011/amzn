@@ -205,14 +205,15 @@ def load_rules():
             
 words_split = re.compile('[A-Za-z0-9\-]+')
 rules_dict = load_rules()
-def classify_product_department(site, product):
+def classify_product_department(site, product, use_event_info=False):
     m = get_site_module(site)
     p = product
     result = []
     title = p.title
-    for eid in p.event_id:
-        e = m.Event.objects.get(event_id=eid)
-        title = e.sale_title + u" " + title
+    if use_event_info:
+        for eid in p.event_id:
+            e = m.Event.objects.get(event_id=eid)
+            title = e.sale_title + u" " + title
 
     if site in ["bluefly", "ideeli", "nomorerack", "onekingslane"]:
         title += u" " + u" ".join(p.cats)
@@ -300,6 +301,11 @@ def classify_product_department(site, product):
         if key in result and key != result[0]:
             result.remove(key)
             result = [key] + result
+
+    # if we can't identify the product from it's title alone, try again with event info
+    if set(result) - set(keys):
+        result = classify_product_department(site, product, use_event_info=True)
+
     return result
 
 def test_event():

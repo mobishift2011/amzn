@@ -4,25 +4,38 @@ from crawlers.common.events import common_saved
 from crawlers.common.routine import get_site_module
 from powers.events import image_crawled, ready_for_publish
 from powers.models import Stat
+from settings import CRPC_ROOT
 from mysettings import MINIMUM_PRODUCTS_READY, MASTIFF_ENDPOINT
 from helpers import log
 from mongoengine import Q
 import slumber
 from datetime import datetime, timedelta
 import sys
+from os import listdir
+from os.path import join, isdir
+from crawlers.common.stash import exclude_crawlers
 
 class Publisher:
     def __init__(self):
         self.mapi = slumber.API(MASTIFF_ENDPOINT)
         self.logger = log.getlogger("publisher", "/tmp/publisher.log")
-
+        self.m = {}
+        
+        for name in listdir(join(CRPC_ROOT, "crawlers")):
+            path = join(CRPC_ROOT, "crawlers", name)
+            if name not in exclude_crawlers and isdir(path):
+                self.m[name] = get_site_module(name)
+                
+    def get_module(self, site):
+        return self.m[site]
+        
     def try_publish_all(self, site):
         '''publish all events and products in a site that meet publish condition.
         
         :param site: all objects under site will be examined for publishing.
         '''
         self.logger.debug("try_publish_all site:%s", site)
-        m = get_site_module(site)
+        m = self.get_module(site)
 
         # try look for both unpublished events and events published but requiring update
         if hasattr(m, 'Event'):
@@ -48,7 +61,7 @@ class Publisher:
         :param evid: event id
         '''
         self.logger.debug("try_publish_event %s:%s", site, evid)
-        m = get_site_module(site)        
+        m = self.get_module(site)        
         ev = m.Event.objects.get(event_id=evid)
         self._try_publish_event(ev)
         
@@ -59,7 +72,7 @@ class Publisher:
         :param prod_key: key of the product.
         '''
         self.logger.debug("try_publish_product %s:%s", site, prod_key)
-        m = get_site_module(site)
+        m = self.get_module(site)
         prod = m.Product.objects.get(key=prod_key)
         if self.should_publish_product(prod):
             # event may become eligible, too, as event publish is
@@ -82,7 +95,7 @@ class Publisher:
         :param fields: fields that need to be updated.
         '''
         self.logger.debug("try_publish_event_update %s:%s, fields:%s", site, evid, fields)
-        m = get_site_module(site)
+        m = self.get_module(site)
         ev = m.Event.objects.get(event_id=evid)
         if self.should_publish_event_upd(ev):
             self.publish_event(ev, upd=True, fields=fields)
@@ -96,7 +109,7 @@ class Publisher:
         :param prod_key: product key
         '''
         self.logger.debug("try_publish_product_update %s:%s, fields:%s", site, prod_key, fields)
-        m = get_site_module(site)
+        m = self.get_module(site)
         prod = m.Product.objects.get(key=prod_key)
         if self.should_publish_product_upd(prod, fields):
             self.publish_product(prod, upd=True, fields=fields)  # perhaps just publish portion of data? $$
@@ -331,7 +344,7 @@ class Publisher:
     def mget_event(self, site, evid):
         '''get event data back from mastiff service.
         '''
-        m = get_site_module(site)
+        m = self.get_module(site)
         try:
             ev = m.Event.objects.get(event_id=evid)
             if not ev.muri:
@@ -344,7 +357,7 @@ class Publisher:
     def mget_product(self, site, prod_key):
         '''get product data back from mastiff service.
         '''
-        m = get_site_module(site)
+        m = self.get_module(site)
         try:
             p = m.Product.objects.get(key=prod_key)
             if not p.muri:

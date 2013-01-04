@@ -224,12 +224,13 @@ def classify_product_department(site, product, use_event_info=False):
         elif "red" in title.lower():
             return [u"Wine", u"Red Wines"]
         
-    kws = set(words_split.findall(title.lower()))
-    kws2 = set()
-    for kw in kws:
+    kws = words_split.findall(title.lower())
+    kws2 = []
+    for kw in reversed(kws):
         if kw.endswith('-'):
             kw = kw[:-1]
-        kws2.add(kw)
+        if kw not in kws2:
+            kws2.append(kw)
     kws = kws2
 
     

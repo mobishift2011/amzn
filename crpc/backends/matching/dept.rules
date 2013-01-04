@@ -5,6 +5,7 @@
 #  [1] - if XXXX in a title; we can determine the main department of it
 #  [2] - if XXXX in a title; we can determine the sub department of it
 # The XXXX is tested in a brute-force; longest first way
+[0] Headband Set -> Women; Accessories
 [0] Sparkling Duo -> Wine; Champagne
 [0] Sparkling Tri -> Wine; Champagne
 [0] Sparkling Half Case -> Wine; Champagne
@@ -119,8 +120,6 @@
 [0] Oven -> Home; Kitchen & Dining
 [0] Server -> Home; Kitchen & Dining
 [0] Tanning -> Beauty & Health; Skin Care
-[0] Tan -> Beauty & Health; Skin Care
-[0] Tans -> Beauty & Health; Skin Care
 [0] Bookends -> Home; Home Accessories
 [0] ArteHouse -> Home; Home Accessories
 [0] Furniture -> Home; Furniture & Lighting
@@ -252,7 +251,6 @@
 [0] Monokini -> Women; Intimates & Loungewear
 [0] Shirtdress -> Women; Dresses & Skirts
 [0] Skirtdress -> Women; Dresses & Skirts
-[0] Body -> Beauty & Health; Skin Care
 [0] Maryjane -> Women; Shoes
 [0] Mary Jane -> Women; Shoes
 [0] Mary Janes -> Women; Shoes
@@ -351,7 +349,6 @@
 [0] Wine Box -> Wine; Wine Accessories
 [0] Dipping Set -> Home; Kitchen & Dining
 [0] Open Toe -> Women; Shoes
-[0] Shimmer -> Beauty & Health; Makeup
 [0] Comforter -> Home; Beds & Bath
 [0] Magnifier -> Home; Home Accessories
 [0] Pearl Set -> Jewelry & Watches; Bracelets; Necklaces; Earrings; Rings
@@ -610,6 +607,7 @@
 [0] XBox -> Kids & Baby; Toys, Games & Books; Home; Electronics
 [0] Boxset -> Home; Home Accessories
 [0] Cutlery Set -> Home; Kitchen & Dining
+[0] Glasses Set -> Home; Kicthen & Dining
 [0] Glasses -> Men; Women; Accessories
 [0] Piece Puzzle -> Home; Home Accessories
 [0] Calf Boot -> Women; Shoes
@@ -994,7 +992,6 @@
 [2] Eyeglass -> Accessories
 [2] Storage -> Accessories
 [2] Glass -> Accessories
-[2] Ceramic -> Accessories
 [2] BTB Buckle -> Accessories
 [2] Tuque -> Accessories
 [2] Bobcap -> Accessories
@@ -1207,7 +1204,6 @@
 [2] Pillowcase -> Beds & Bath
 [2] Pillowcases -> Beds & Bath
 [2] Bucket -> Accessories
-[2] Hello Kitty -> Accessories
 [2] Loungewear -> Intimates & Loungewear
 [2] Outerwear -> Outerwear
 [2] Eyewear -> Accessories
@@ -1338,3 +1334,7 @@
 [2] Champagne -> Champagne
 [2] Sparkling -> Champagne
 [2] Puffer -> Outerwear
+[2] Body -> Skin Care
+[2] Shimmer -> Makeup
+[2] Tie Dress -> Dresses & Skirts
+[2] Neck Dress -> Dresses & Skirts

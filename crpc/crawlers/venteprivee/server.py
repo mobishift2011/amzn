@@ -221,7 +221,9 @@ class Server(object):
             product.dept.append(breadCrumb)
         product.returned = res.get('returnPolicy')
         product.shipping = '; '.join( res.get('estimatedDeliveryDates') )
-        list_info = lxml.html.fromstring( res.get('description') ).xpath('.//div[@class="FTCopierColler_RDV"]/dl[@class="ftBloc"]/dt[contains(text(), "Description")]')[0].getnext()
+        list_info_tree = lxml.html.fromstring( res.get('description') )
+        list_info = list_info_tree.xpath('.//div[@class="FTCopierColler_RDV"]/dl[@class="ftBloc"]/dt[contains(text(), "Description")]')
+        list_info = list_info_tree.xpath('.//div[@class="FTCopierColler_RDV"]/dl[@class="ftBloc"]/dt[contains(text(), "Features")]')[0].getnext() if not list_info else list_info[0].getnext()
         product.list_info = list_info.xpath('.//text()')
 #        product.sizes = []#res.get('sizes')    # TODO
 #        product.sizes_scarcity = [] # TODO

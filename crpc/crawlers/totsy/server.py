@@ -297,11 +297,12 @@ class Server(object):
         """
         key = self.from_url_get_product_key(url)
         content = self.net.fetch_page(url)
-        if isinstance(content, int):
-            common_failed.send(sender=ctx, key=key, url=url,
-                    reason='download product page failed: {0}'.format(content))
-            return
-        if content is None: content = self.net.fetch_page(url)
+        if content is None or isinstance(content, int):
+            content = self.net.fetch_page(url)
+            if content is None or isinstance(content, int):
+                common_failed.send(sender=ctx, key=key, url=url,
+                        reason='download product page failed: {0}'.format(content))
+                return
         tree = lxml.html.fromstring(content)
         is_new, is_updated, product = self.save_product_detail(key, *self.parse_product(tree))
 

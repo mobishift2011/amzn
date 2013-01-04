@@ -59,7 +59,4 @@ class Product(LuxuryProduct):
             product/event_id/product_id
             vintage-market-finds/product/770075
         """
-        if self.short_desc: # or we can use sell_rank to differentiate.
-            return 'https://www.onekingslane.com/vintage-market-finds/product/{0}'.format(self.key)
-        else:
-            return 'https://www.onekingslane.com/product/{0}/{1}'.format(self.event_id[0], self.key)
+        return self.combine_url

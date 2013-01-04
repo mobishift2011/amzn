@@ -5,7 +5,7 @@
 #  [1] - if XXXX in a title; we can determine the main department of it
 #  [2] - if XXXX in a title; we can determine the sub department of it
 # The XXXX is tested in a brute-force; longest first way
-[0] Headband Set -> Women; Accessories
+[0] Britches Hipster -> Women; Intimates & Loungewear
 [0] Sparkling Duo -> Wine; Champagne
 [0] Sparkling Tri -> Wine; Champagne
 [0] Sparkling Half Case -> Wine; Champagne
@@ -712,7 +712,6 @@
 [0] Biker Boot -> Women; Shoes
 [0] Storage Ottoman -> Home; Funiture & Lightning
 [0] Dress Shoe -> Men; Shoes
-[0] Blouse -> Women; Shirts & Sweaters
 [0] Ramekins Set -> Home; Kitchen & Dining
 [0] Powder Flare Jean -> Women; Pants
 [0] With Blade Guard -> Home; Kitchen & Dining
@@ -900,6 +899,7 @@
 [2] Peacoat -> Outerwear
 [2] Paint Splatter Denim -> Pants & Shorts
 [2] Shorts -> Pants & Shorts
+[2] Short -> Pants & Shorts
 [2] Leggin -> Pants & Shorts
 [2] Leggins -> Pants & Shorts
 [2] Legging -> Pants & Shorts
@@ -1026,8 +1026,8 @@
 [2] Swim Trunk -> Intimates & Loungewear
 [2] Swim Trunks -> Intimates & Loungewear
 [2] Swim Set -> Intimates & Loungewear
-[2] Trunk -> Accessories
-[2] Trunks -> Accessories
+[2] Trunk -> Intimates & Loungewear
+[2] Trunks -> Intimates & Loungewear
 [2] Knit -> Shirts & Sweaters
 [2] Cuff -> Accessories
 [2] Cuffs -> Accessories
@@ -1099,6 +1099,7 @@
 [2] Bag -> Shoulder Bags
 [2] Handbag -> Shoulder Bags
 [2] Case -> Backpacks & Laptop Bags
+[2] Leg Jean -> Pants & Shorts
 [2] Leg -> Pants & Shorts
 [2] Towel -> Beds & Bath; Accessories
 [2] Towels -> Beds & Bath; Accessories
@@ -1132,7 +1133,6 @@
 [2] Nail -> Beauty & Health; Makeup; Accessories
 [2] Lip -> Beauty & Helath; Makeup; Accessories
 [2] Piggy Bank -> Accessories
-[2] Short -> Intimates & Loungewear
 [2] Wrap -> Accessories
 [2] Rainslicker -> Outerwear
 [2] Rainslickers -> Outerwear

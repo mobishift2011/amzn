@@ -132,7 +132,8 @@ class TextServer(object):
         res = {}
         fields = [key for key in flags if flags[key]]
         if fields:
-            product.list_update_time = datetime.utcnow()
+            if product.publish_time:
+                product.favbuy_text_update_time = datetime.utcnow()
             product.save()
 
             res['event_id'] = product.event_id or []

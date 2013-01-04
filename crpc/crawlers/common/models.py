@@ -83,6 +83,7 @@ class BaseEvent(Document, BaseDocumentSkeleton):
     propagation_complete=   BooleanField(default=False)
     propagation_time    =   DateTimeField()
     publish_time        =   DateTimeField()
+    favbuy_text_update_time = DateTimeField()
 
     favbuy_brand        =   ListField(StringField(), default=list)
     favbuy_tag          =   ListField(StringField(), default=list)
@@ -173,6 +174,7 @@ class BaseProduct(Document):
     tag_complete        =   BooleanField(default=False)
     dept_complete       =   BooleanField(default=False)
     publish_time        =   DateTimeField()
+    favbuy_text_update_time = DateTimeField()
 
     favbuy_brand        =   StringField(default='')
     favbuy_tag          =   ListField(StringField(), default=list)

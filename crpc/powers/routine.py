@@ -219,7 +219,7 @@ def update_propation(event_dict, site):
     for event_id in event_dict:
         event = event_dict[event_id]
         if event['propagation_updated']:
-            event['event'].update_time = datetime.utcnow()
+            event['event'].favbuy_text_update_time = datetime.utcnow()
             event['event'].save()
 
 

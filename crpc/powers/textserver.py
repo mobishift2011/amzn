@@ -139,6 +139,9 @@ class TextServer(object):
             res['event_id'] = product.event_id or []
             res['fields'] = {}
             for field in fields:
+                # Do this so that product's favbuy_dept won't affect event's.
+                if field == 'favbuy_dept':
+                    continue
                 res['fields'][field] = getattr(product, field)
         
         logger.debug('text server extract res -> {0}'.format(res))

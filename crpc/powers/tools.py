@@ -334,15 +334,10 @@ class Propagator(object):
                 
                 if price > 0:
                     price_set.add(price)
-
-                discount = 1.0 * price / listprice
+                
+                discount = 1.0 * price / listprice if listprice else 1.0
                 if discount < 1:
                     discount_set.add(discount)
-
-                print '~~~~~~~~~~~~~~price: ', price
-                print '~~~~~~~~~~~~~~listprice: ', listprice
-                print '~~~~~~~~~~~~~~discount', discount
-                print
 
                 # soldout
                 if soldout and ((hasattr(product, 'soldout') and not product.soldout) \
@@ -366,14 +361,14 @@ class Propagator(object):
         #self.event.favbuy_dept = [ k for k, v in depts.items() if v>=dept_threshold ]
         self.event.favbuy_dept = classify_event_department(self.site, self.event)
 
-        price_list = list(price_set).sort()
-        discount_list = list(discount_set).sort()
-        print 'price_list:', price_list
-        print 'discount_set', discount_list
-        self.event.lowest_price = str(price_list[0] if price_list else 0)
-        self.event.highest_price = str(price_list[-1] if price_list else 0)
-        self.event.lowest_discount = str((1.0 - discount_list[-1]) if discount_list else 1.0)
-        self.event.highest_discount = str((1.0 - discount_list[0]) if discount_list else 1.0)
+        price_set = list(price_set)
+        price_set.sort()
+        discount_set = list(discount_set)
+        discount_set.sort()
+        self.event.lowest_price = str(price_set[0] if price_set else 0)
+        self.event.highest_price = str(price_set[-1] if price_set else 0)
+        self.event.lowest_discount = str(discount_set[-1] if discount_set else 1.0)
+        self.event.highest_discount = str(discount_set[0] if discount_set else 1.0)
         self.event.events_begin = self.event.events_begin or events_begin
         self.event.events_end = self.event.events_end or events_end
         self.event.soldout = soldout

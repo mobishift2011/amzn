@@ -27,6 +27,7 @@ import urllib
 from PIL import Image, ImageChops
 from cStringIO import StringIO
 from datetime import datetime
+from titlecase import titlecase
 
 from helpers.log import getlogger
 txtlogger = getlogger('powertools', filename='/tmp/textserver.log')
@@ -262,10 +263,8 @@ class Propagator(object):
         event_brands = set()
         tags = set()
         depts = Counter()
-        lowest_price = 0
-        highest_price = 0
-        lowest_discount = 0
-        highest_discount = 0
+        price_set = set()
+        discount_set = set()
         events_begin = self.event.events_begin or None
         events_end = self.event.events_end or None
         soldout = True
@@ -280,6 +279,15 @@ class Propagator(object):
             if True:
             #try:
                 print 'start to propogate from  %s product %s' % (self.site, product.key)
+
+                # This filter changes all title words to Title Caps,
+                # and attempts to be clever about uncapitalizing SMALL words like a/an/the in the input.
+                if product.title:
+                    product.title = titlecase(product.title)
+
+                # Clean the html tag.
+                if product.shipping:
+                    product.shipping = re.sub(r'<[^>]*>', '', product.shipping)
 
                 # Tag, Dept extraction and propagation
                 if product.favbuy_tag:
@@ -324,12 +332,17 @@ class Propagator(object):
                     txtlogger.error('{0}.product.{1} favbuy listprice -> {2} exception: {3}'.format(self.site, product.key, product.favbuy_listprice, str(e)))
                     listprice = price
                 
-                highest_price = max(price, highest_price) if highest_price else price
-                lowest_price = (min(price, lowest_price) or lowest_price) if lowest_price else price
+                if price > 0:
+                    price_set.add(price)
 
-                discount = 1.0 * price / listprice if listprice else 0
-                lowest_discount = max(discount, highest_discount)
-                highest_discount = min(discount, lowest_discount) or discount
+                discount = 1.0 * price / listprice
+                if discount < 1:
+                    discount_set.add(discount)
+
+                print '~~~~~~~~~~~~~~price: ', price
+                print '~~~~~~~~~~~~~~listprice: ', listprice
+                print '~~~~~~~~~~~~~~discount', discount
+                print
 
                 # soldout
                 if soldout and ((hasattr(product, 'soldout') and not product.soldout) \
@@ -344,16 +357,23 @@ class Propagator(object):
         if not counter:
             return self.event.propagation_complete
 
+        if self.event.sale_title:
+            self.event.sale_title = titlecase(self.event.sale_title)
         self.event.favbuy_brand = list(event_brands)
         self.event.brand_complete = True
         
         self.event.favbuy_tag = list(tags)
         #self.event.favbuy_dept = [ k for k, v in depts.items() if v>=dept_threshold ]
         self.event.favbuy_dept = classify_event_department(self.site, self.event)
-        self.event.lowest_price = str(lowest_price)
-        self.event.highest_price = str(highest_price)
-        self.event.lowest_discount = str(1.0 - lowest_discount)
-        self.event.highest_discount = str(1.0 - highest_discount)
+
+        price_list = list(price_set).sort()
+        discount_list = list(discount_set).sort()
+        print 'price_list:', price_list
+        print 'discount_set', discount_list
+        self.event.lowest_price = str(price_list[0] if price_list else 0)
+        self.event.highest_price = str(price_list[-1] if price_list else 0)
+        self.event.lowest_discount = str((1.0 - discount_list[-1]) if discount_list else 1.0)
+        self.event.highest_discount = str((1.0 - discount_list[0]) if discount_list else 1.0)
         self.event.events_begin = self.event.events_begin or events_begin
         self.event.events_end = self.event.events_end or events_end
         self.event.soldout = soldout

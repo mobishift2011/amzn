@@ -22,7 +22,7 @@ class GHub(object):
     }
    
     @classmethod
-    def extend(cls, category='tasks', tasks):
+    def extend(cls, category='tasks', tasks=[]):
         self.greenlets[category].extend(tasks)
 
     @classmethod

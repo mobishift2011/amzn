@@ -6,6 +6,7 @@ import gevent
 from helpers.log import getlogger
 logger = getlogger("monitor")
 from datetime import datetime
+import collections
 
 from backends.monitor.executor import execute
 from backends.monitor.scheduler import Scheduler
@@ -13,6 +14,7 @@ from backends.monitor.autoschedule import avoid_cold_start, auto_schedule
 from backends.monitor.events import run_command # spawn listener to listen webui signal
 from backends.monitor.events import auto_scheduling # manual evoking schedules
 from backends.monitor.ghub import GHub
+
 
 # bind listeners
 from backends.monitor.logstat import *
@@ -35,6 +37,7 @@ def wait(seconds=60):
 @auto_scheduling.bind('sync')
 def toggle_auto_scheduling(sender, **kwargs):
     """ toggle whether we should do auto scheduling """
+    from backends.monitor.organizetask import smethod_time
     auto = kwargs.get('auto')
     if auto:
         if (not GHub().acs_exists()):
@@ -44,6 +47,8 @@ def toggle_auto_scheduling(sender, **kwargs):
     elif (not auto):
         # we should stop all the ``tasks`` and ``acs``
         logger.info("stopping auto schedules")
+        logger.info(repr(smethod_time))
+        smethod_time = collections.defaultdict(set)
         GHub().stop('tasks')
         GHub().stop('acs')
 

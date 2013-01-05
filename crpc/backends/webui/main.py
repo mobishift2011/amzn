@@ -107,8 +107,12 @@ def chkpub_template():
 def chkpub():
     site = request.forms.get('site')
     doctype = request.forms.get('doctype')
-    data = getattr(PubChecker(), 'check_{0}'.format(doctype))(site) or []
-    return template('chkpub.tpl', {'stats': data, 'sites': [site]})
+    sites = get_all_sites() if site == 'all' else [site]
+    stats = [ {'site': site, \
+            'data': getattr(PubChecker(), 'check_{0}'.format(doctype))(site) or [] } \
+                for site in sites]
+    # data = getattr(PubChecker(), 'check_{0}'.format(doctype))(site) or []
+    return template('chkpub.tpl', {'stats': stats})
 
 @get('/publish/stats')
 # @login_required

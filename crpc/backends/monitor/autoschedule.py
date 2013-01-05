@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # Author: bishop Liu <miracle (at) gmail.com>
-
 from gevent import monkey; monkey.patch_all()
 import gevent
 from functools import partial
@@ -20,13 +19,16 @@ from helpers.log import getlogger
 from .setting import SCHEDULE_STATE
 autoscheduler_logger = getlogger('autoscheduler', '/tmp/autoscheduler.log')
 
+from ghub import GHub
+
 def execute(site, method):
     """ execute CrawlerServer function
 
     """
     if can_task_run(site, method):
-        gevent.spawn(globals()[method], site, get_rpcs(CRAWLER_PEERS), concurrency=10) \
-                .rawlink(partial(task_completed, site=site, method=method))
+        job = gevent.spawn(globals()[method], site, get_rpcs(CRAWLER_PEERS), concurrency=10)
+        job.rawlink(partial(task_completed, site=site, method=method))
+        GHub.extend('tasks', [job])
 
 def avoid_cold_start():
     """.. :py:method::
@@ -34,17 +36,20 @@ def avoid_cold_start():
         2. If this process is broke, nothing in the memory kept, maybe the new upcoming all lost,
             we don't know whether the site have new events or products on sale.
         Need to crawl all the system first.
+    
+    Sets a list of Greenlet that it envokes    
     """
-    gevent.spawn(detect_upcoming_new_schedule)
-    gevent.spawn(arrange_new_schedule)
-    gevent.spawn(arrange_update_schedule)
+    j1 = gevent.spawn(detect_upcoming_new_schedule)
+    j2 = gevent.spawn(arrange_new_schedule)
+    j3 = gevent.spawn(arrange_update_schedule)
+
+    GHub.extend('acs', [j1, j2, j3])
     # gevent need a 'block' to run spawn.Or we can say gevent will execute spawn until meet a 'block'
     gevent.sleep(1)
 
     crawlers = get_ordinary_crawlers()
     for crawler_name in crawlers:
         execute(crawler_name, 'new_thrice')
-
 
 def auto_schedule():
     """.. :py:method::

@@ -8,12 +8,13 @@ from datetime import datetime
 from backends.monitor.scheduler import Scheduler
 from backends.monitor.autoschedule import execute, avoid_cold_start, auto_schedule
 from backends.monitor.events import run_command # spawn listener to listen webui signal
+from backends.monitor.events import auto_scheduling # manual evoking schedules
 
+from ghub import GHub
 
 # bind listeners
 from backends.monitor.logstat import *
 import powers.binds
-# end binding
 
 @run_command.bind
 def execute_cmd(sender, **kwargs):
@@ -22,11 +23,23 @@ def execute_cmd(sender, **kwargs):
     logger.warning('site.method: {0}.{1}'.format(site, method))
     execute(site, method)
 
+@auto_scheduling.bind
+def toggle_auto_scheduling(sender, **kwargs):
+    """ toggle whether we should do auto scheduling """
+    auto = kwargs.get('auto')
+    if auto and (not GHub.acs_exists()):
+        # we should spawn acs by invoking ``avoid_cold_start``
+        avoid_cold_start() 
+    elif (not auto):
+        # we should stop all the ``tasks`` and ``acs``
+        GHub.stop('tasks')
+        GHub.stop('acs')
+
+# end binding
+
 gevent.spawn(Scheduler().run)
-gevent.spawn(avoid_cold_start)
 
 logger = getlogger("monitor")
-
 
 while True:
     try:

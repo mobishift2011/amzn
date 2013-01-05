@@ -16,7 +16,16 @@ from backends.webui.views import update_schedule, get_all_schedules, delete_sche
 from backends.webui.views import get_all_sites, get_publish_stats
 
 from tests.publisher.chkpub import PubChecker
+from backends.monitor.events import auto_scheduling
 
+@route('/toggle-auto-scheduling/:onoff')
+def toggle_auto_scheduling(onoff):
+    if onoff == 'on':
+        onoff = True
+    else:
+        onoff = False
+    auto_scheduling.send('webui', onoff)
+    
 @route('/assets/<filepath:path>')
 def server_static(filepath):
     return static_file(filepath, root=join(dirname(__file__), 'assets'))

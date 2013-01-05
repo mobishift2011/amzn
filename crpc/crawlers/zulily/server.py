@@ -117,7 +117,7 @@ class Server(object):
         nodes = tree.xpath('//div[@class="container"]/div[@id="main"]/div[@id="home-page-content"]/div[@class="clearfix"]//div[starts-with(@id, "eid_")]')
         
         for node in nodes:
-            link = node.xpath('./a[@class="wrapped-link"]')[0].get('href')
+            link = node.cssselect('a.wrapped-link')[0].get('href')
             m = self.extract_event_id.match(link)
             # the error: it is an event, but also a product page
             if not m:
@@ -226,11 +226,12 @@ class Server(object):
 
         items = node.cssselect('div#products-grid li.item')
         end_date = node.cssselect('div#new-content-header>div.end-date')[0].text_content().strip()
-        end_date = end_date[end_date.find('in')+2:].strip() # '2 hours' or '1 day(s) 3 hours' or ''
-        days = int(end_date.split()[0]) if 'day' in end_date else 0
-        hours = int(end_date.split()[-2]) if 'hour' in end_date else 0
-        events_end = datetime.utcnow() + timedelta(days=days, hours=hours) + timedelta(minutes=29, seconds=59, microseconds=999999)
-        brand.events_end = datetime(events_end.year, events_end.month, events_end.day, events_end.hour)
+        if 'in' in end_date: # 'on zulily every day'
+            end_date = end_date[end_date.find('in')+2:].strip() # '2 hours' or '1 day(s) 3 hours' or ''
+            days = int(end_date.split()[0]) if 'day' in end_date else 0
+            hours = int(end_date.split()[-2]) if 'hour' in end_date else 0
+            events_end = datetime.utcnow() + timedelta(days=days, hours=hours) + timedelta(minutes=29, seconds=59, microseconds=999999)
+            brand.events_end = datetime(events_end.year, events_end.month, events_end.day, events_end.hour)
 #        brand.num = len(items)
         brand.update_time = datetime.utcnow()
         if brand.urgent == True:

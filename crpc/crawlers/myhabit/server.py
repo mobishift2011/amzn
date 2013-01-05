@@ -160,7 +160,7 @@ class Server(object):
 
         asin = data['detailJSON']['asin']
         summary = data['productDescription']['shortProdDesc']
-        list_info = data['productDescription']['bullets'][0]['bulletsList']
+        list_info = [i.replace('&quot;', '"').replace('&#39;', '\'') for i in data['productDescription']['bullets'][0]['bulletsList']]
         brand = data['detailJSON']['brand']
         international_shipping = str(data['detailJSON']['intlShippable']) # 1
         returned = data['detailJSON']['returnPolicy']

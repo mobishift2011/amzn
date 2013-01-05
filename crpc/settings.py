@@ -79,6 +79,26 @@ envs = {
         'MONGODB_HOST': '10.252.14.6',
         'REDIS_HOST': '10.252.14.6',
     },
+    'TEST2': {
+        'CRAWLER_PEERS': [
+            {'host_string':'root@ec2-50-112-44-109.us-west-2.compute.amazonaws.com', 'port':1234},
+            {'host_string':'root@ec2-50-112-20-4.us-west-2.compute.amazonaws.com', 'port':1235},
+            {'host_string':'root@ec2-50-112-223-116.us-west-2.compute.amazonaws.com', 'port':1236},
+            {'host_string':'root@ec2-54-245-3-58.us-west-2.compute.amazonaws.com', 'port':1237},
+        ],
+        'POWER_PEERS': [
+            {'host_string':'root@ec2-54-245-149-120.us-west-2.compute.amazonaws.com', 'port':1244},
+            {'host_string':'root@ec2-54-245-149-120.us-west-2.compute.amazonaws.com', 'port':1245},
+            {'host_string':'root@ec2-54-245-149-120.us-west-2.compute.amazonaws.com', 'port':1246},
+            {'host_string':'root@ec2-54-245-149-120.us-west-2.compute.amazonaws.com', 'port':1247},
+        ],
+        'TEXT_PEERS': [
+            {'host_string':'root@ec2-54-245-144-50.us-west-2.compute.amazonaws.com', 'port':1238},
+        ],
+        'USE_INDEX': '',
+        'MONGODB_HOST': '10.252.14.6',
+        'REDIS_HOST': '10.252.14.6',
+    },
 }
 
 env = os.environ.get("ENV")

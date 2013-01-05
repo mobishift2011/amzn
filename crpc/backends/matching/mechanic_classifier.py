@@ -388,10 +388,38 @@ def extract_pattern(site = 'bluefly'):
     pprint(wc.most_common(1000))
     print 1. * len(wc) / m.Product.objects.count() * 100, '%'
 
+def extract_pattern2():
+    from feature import sites
+    from collections import Counter
+    from pprint import pprint
+    import sys
+    wc = Counter()
+    for site in sites:
+        m = get_site_module(site)
+        for p in m.Product.objects().only('title'):
+            if not p.title:
+                p.delete()
+                continue
+            title = p.title.strip().lower()
+            if title:
+                words = title.split(u' ')
+                len_words = len(words) 
+                for i in range(len_words-1):
+                    if words[i] in [u'in', u'with']:
+                        phrase = u' '.join(words[i:])
+                        wc[phrase] += 1
+                sys.stdout.write('.')
+                sys.stdout.flush()   
+
+    with open('wc_most_common','w') as f:
+        for phrase, counts in wc.most_common():
+            f.write('{0} -> {1}\n'.format(phrase.encode('utf-8'), counts))
+
 if __name__ == '__main__':
     #from crawlers.ideeli.models import Product
     #p = Product.objects.get(pk='2820350')
     #print classify_product_department('ideeli', p)
-    extract_pattern('beyondtherack')
+    extract_pattern2()
+    #extract_pattern('beyondtherack')
     #test_product()
     #load_rules() 

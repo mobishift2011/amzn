@@ -118,6 +118,25 @@ function ScheduleCtrl($scope) {
   			}
   		});
   	}
+    
+    $scope.autoSchedule = function(run) {
+        console.log("auto-schedule", run); 
+        var url = '';
+        if (run == true){
+            url = '/toggle-auto-scheduling/true';
+        }else{
+            url = '/toggle-auto-scheduling/false';
+        }
+        $.ajax({
+            url:    url,
+            type:   'POST',
+  			contentType: "application/json; charset=utf-8",
+  			data: JSON.stringify({'site':site,'method':method}),
+            success: function(response) {
+                console.log(response);
+            }
+        });
+    }
 
   	$scope.addSchedule = function() {
   		console.log($scope.newSchedule);

@@ -1,34 +1,20 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Author: bishop Liu <miracle (at) gmail.com>
-from gevent import monkey; monkey.patch_all()
-import gevent
-from functools import partial
 from datetime import datetime, timedelta
-
-from helpers.rpc import get_rpcs
-from settings import CRAWLER_PEERS
-from crawlers.common.routine import new, new_thrice, update, new_category, new_listing, new_product, update_category, update_listing, update_product
-from backends.monitor.throttletask import can_task_run, task_completed, is_task_already_running
+import gevent
 
 from crawlers.common.stash import get_ordinary_crawlers
+
+from backends.monitor.throttletask import can_task_run, task_completed, is_task_already_running
 from backends.monitor.organizetask import detect_upcoming_new_schedule, arrange_new_schedule, arrange_update_schedule, smethod_time
-from backends.monitor.setting import EXPIRE_MINUTES
+from backends.monitor.setting import EXPIRE_MINUTES, SCHEDULE_STATE
+from backends.monitor.executor import execute
+from backends.monitor.ghub import GHub
 
 from helpers.log import getlogger
-from .setting import SCHEDULE_STATE
+
+
 autoscheduler_logger = getlogger('autoscheduler', '/tmp/autoscheduler.log')
-
-from ghub import GHub
-
-def execute(site, method):
-    """ execute CrawlerServer function
-
-    """
-    if can_task_run(site, method):
-        job = gevent.spawn(globals()[method], site, get_rpcs(CRAWLER_PEERS), concurrency=10)
-        job.rawlink(partial(task_completed, site=site, method=method))
-        GHub.extend('tasks', [job])
 
 def avoid_cold_start():
     """.. :py:method::
@@ -43,7 +29,7 @@ def avoid_cold_start():
     j2 = gevent.spawn(arrange_new_schedule)
     j3 = gevent.spawn(arrange_update_schedule)
 
-    GHub.extend('acs', [j1, j2, j3])
+    GHub().extend('acs', [j1, j2, j3])
     # gevent need a 'block' to run spawn.Or we can say gevent will execute spawn until meet a 'block'
     gevent.sleep(1)
 

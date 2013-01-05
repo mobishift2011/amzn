@@ -14,26 +14,35 @@ class GHub(object):
     category 3 can be ignored, and it's same to category 4, because we decided that signals should execute and finish very soon.
     the main greenlets we focus here will be ``tasks``, and ``schedulers``  
     """
+    _instance = None
+
     greenlets = {
         'tasks': [],
         'acs': [],
         'essentials': [],
         'signal_executors': [], 
     }
+
+    def __new__(cls, *args, **kwargs):
+        if not cls._instance:
+            cls._instance = super(GHub, cls).__new__(
+                                cls, *args, **kwargs)
+        return cls._instance
    
     @classmethod
     def extend(cls, category='tasks', tasks=[]):
-        self.greenlets[category].extend(tasks)
+        cls.greenlets[category].extend(tasks)
 
     @classmethod
     def stop(cls, category='tasks'):
-        if self.greenlets[category]:
-            gevent.killall(self.greenlets[category]) 
-     
+        if cls.greenlets[category]:
+            gevent.killall(cls.greenlets[category], block=True) 
+            cls.greenlets[category] = []
+
     @classmethod 
     def has_greenlets(cls, category='acs'):
-        return self.greenlets[category]
+        return cls.greenlets[category]
 
     @classmethod
     def acs_exists(cls):
-        return bool(GHub.has_greenlets('acs'))
+        return bool(cls.has_greenlets('acs'))

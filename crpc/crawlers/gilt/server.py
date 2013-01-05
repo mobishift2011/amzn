@@ -309,7 +309,9 @@ class Server(object):
             group_title = group.cssselect('h2.row_group_title')[0].text_content().strip()
             nodes = group.cssselect('ul.sales > li.brand_square')
             for node in nodes:
-                event, is_new, is_updated = self.parse_one_node(node, dept, ctx)
+                ret = self.parse_one_node(node, dept, ctx)
+                if ret is None: continue
+                event, is_new, is_updated = ret
                 if is_new:
                     if event_id: event.parent_id = event_id
                     if group_title: event.group_title = group_title

@@ -233,11 +233,6 @@ class Server(object):
             events_end = datetime.utcnow() + timedelta(days=days, hours=hours) + timedelta(minutes=29, seconds=59, microseconds=999999)
             brand.events_end = datetime(events_end.year, events_end.month, events_end.day, events_end.hour)
 #        brand.num = len(items)
-        brand.update_time = datetime.utcnow()
-        if brand.urgent == True:
-            brand.urgent = False
-            ready = True
-        else: ready = False
 
         for item in items: self.crawl_list_product(event_id, item, ctx)
         page_num = 1
@@ -245,6 +240,11 @@ class Server(object):
         if next_page_url:
             self.crawl_list_next(url, next_page_url, page_num + 1, event_id, ctx)
 
+        if brand.urgent == True:
+            brand.urgent = False
+            ready = True
+        else: ready = False
+        brand.update_time = datetime.utcnow()
         brand.save()
         common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=url, is_new=is_new, is_updated=False, ready=ready)
         debug_info.send(sender=DB + '.crawl_list.end')

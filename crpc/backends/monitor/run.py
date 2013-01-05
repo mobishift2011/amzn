@@ -4,6 +4,7 @@ from gevent import monkey; monkey.patch_all()
 import gevent
 
 from helpers.log import getlogger
+logger = getlogger("monitor")
 from datetime import datetime
 
 from backends.monitor.executor import execute
@@ -38,21 +39,17 @@ def toggle_auto_scheduling(sender, **kwargs):
     if auto:
         if (not GHub().acs_exists()):
             # we should spawn acs by invoking ``avoid_cold_start``
-            print 'avoiding'
+            logger.info("starting auto schedules")
             avoid_cold_start() 
-            #job = gevent.spawn(wait, 60)
-            #GHub().extend('tasks',[job])
     elif (not auto):
         # we should stop all the ``tasks`` and ``acs``
-        print 'stoping'
+        logger.info("stopping auto schedules")
         GHub().stop('tasks')
         GHub().stop('acs')
 
 # end binding
 
 gevent.spawn(Scheduler().run)
-
-logger = getlogger("monitor")
 
 while True:
     try:

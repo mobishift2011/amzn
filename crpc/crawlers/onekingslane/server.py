@@ -131,7 +131,7 @@ class Server(object):
         """
         cont = self.net.fetch_page(self.siteurl)
         tree = lxml.html.fromstring(cont)
-        nodes = tree.cssselect('body.holiday > div#wrapper > div#okl-content > div#previewWrapper div.eventsContainer > div[id^="salesEventId_"]')
+        nodes = tree.cssselect('body > div#wrapper > div#okl-content > div#previewWrapper div.eventsContainer > div[id^="salesEventId_"]')
         for node in nodes:
             title = node.cssselect('div.eventInfo > div > h3')[0].text
             short_desc = node.cssselect('div.eventInfo > div > p')[0].text
@@ -160,7 +160,7 @@ class Server(object):
         """
         cont = self.net.fetch_page(self.upcoming_url)
         tree = lxml.html.fromstring(cont)
-        nodes = tree.cssselect('body.holiday > div#wrapper > div#okl-content > div.calendar-r > div.day')
+        nodes = tree.cssselect('body > div#wrapper > div#okl-content > div.calendar-r > div.day')
         for node in nodes:
             date = ' '.join( [d for d in node.cssselect('span.date')[0].text_content().split('\n') if d] )
             all_times = node.cssselect('div.all-times > h3')[0].text_content().split('PT')[0].split()[-1]

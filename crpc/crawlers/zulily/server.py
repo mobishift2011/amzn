@@ -117,7 +117,7 @@ class Server(object):
         nodes = tree.xpath('//div[@class="container"]/div[@id="main"]/div[@id="home-page-content"]/div[@class="clearfix"]//div[starts-with(@id, "eid_")]')
         
         for node in nodes:
-            link = node.xpath('./a[@class="wrapped-link"]')[0].get('href')
+            link = node.cssselect('a.wrapped-link')[0].get('href')
             m = self.extract_event_id.match(link)
             # the error: it is an event, but also a product page
             if not m:

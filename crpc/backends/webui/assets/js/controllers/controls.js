@@ -123,15 +123,14 @@ function ScheduleCtrl($scope) {
         console.log("auto-schedule", run); 
         var url = '';
         if (run == true){
-            url = '/toggle-auto-scheduling/true';
+            url = '/toggle-auto-scheduling/on';
         }else{
-            url = '/toggle-auto-scheduling/false';
+            url = '/toggle-auto-scheduling/off';
         }
         $.ajax({
             url:    url,
-            type:   'POST',
+            type:   'GET',
   			contentType: "application/json; charset=utf-8",
-  			data: JSON.stringify({'site':site,'method':method}),
             success: function(response) {
                 console.log(response);
             }

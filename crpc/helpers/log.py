@@ -19,7 +19,7 @@ from ansistrm import ColorizingStreamHandler
 
 handler = ColorizingStreamHandler()
 handler.setFormatter(logging.Formatter("[%(asctime)s]<%(name)s>%(levelname)s:%(message)s", None))
-handler.setLevel(logging.INFO)
+handler.setLevel(logging.DEBUG)
 
 root = logging.getLogger()
 root.addHandler(handler)

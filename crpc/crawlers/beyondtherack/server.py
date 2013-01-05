@@ -418,10 +418,9 @@ class Server(object):
         else:
             shipping = nav.xpath('.//div[@style="text-align: left;"]/div[3]')[0].text_content()
         returned = ''
-        for r in nav.xpath('.//div[@style="text-align: left;"]//text()'):
-            if r.strip():
-                returned = r.strip()
-                break
+        for r in nav.xpath('.//div[@style="text-align: left;"]/div[@class="dark-gray-text"]'):
+            if r.text_content().strip():
+                returned += r.text_content().strip() + ' '
         image_urls = []
         for img in nav.cssselect('div[style] > div > a.cloud-zoom-gallery > img'):
             image_urls.append( img.get('src').replace('small', 'large') )

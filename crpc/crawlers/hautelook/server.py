@@ -247,7 +247,7 @@ class Server(object):
         title = data['title']
         list_info, brand = [], ''
         if 'copy' in data and data['copy']:
-            list_info = data['copy'].split('\n')
+            list_info = data['copy'].replace('<br />', '').split('\n')
 
         if data['event_display_brand_name']:
             if data['event_title'] != data['brand_name']:
@@ -297,8 +297,8 @@ class Server(object):
         product.title = title
         product.list_info = list_info
         product.brand = brand
-        product.returned = str(int(data['returnable'])) # bool
-        product.international_ship = str(int(data['international'])) # bool
+        product.returned = 'Returnable for refund or HauteLook credit.' if data['returnable'] else 'Final sale - This item is not returnable.' # bool
+        product.shipping = str(int(data['international'])) # bool
         product.delivery_date = ' to '.join((data['estimated_delivery']['start_date'], data['estimated_delivery']['end_date']))
         product.choke_hazard = str(int(data['choke_hazard'])) # bool
         product.price = price

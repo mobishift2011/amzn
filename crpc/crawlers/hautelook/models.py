@@ -34,7 +34,6 @@ class Product(LuxuryProduct):
     fiber = StringField()
     arrives = StringField()
 
-    international_ship = StringField()
     delivery_date = StringField()
     choke_hazard = StringField()
 

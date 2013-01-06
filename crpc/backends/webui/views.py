@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 import traceback
 from backends.monitor.models import Task, Schedule, fail
-from powers.models import Stat
+from powers.models import Brand, Stat
+from powers.events import brand_refresh
 
 from settings import CRPC_ROOT
 from crawlers.common.stash import exclude_crawlers
@@ -125,3 +126,23 @@ def get_publish_stats(site, doctype, time_value, time_cell, start_at, end_at):
         pass
 
     return data
+
+def import_brands(eb):
+    brand = Brand.objects(title=eb['title']).update(
+        set__title_edit = eb['title_edit'],
+        set__title_checked = eb['title_checked'],
+        set__alias = eb['alias'],
+        set__keywords = eb['keywords'],
+        set__url = eb['url'],
+        set__url_checked = eb['url_checked'],
+        set__blurb = eb['blurb'],
+        set__level = eb['level'],
+        set__dept = eb['dept'],
+        set__is_delete = eb['is_delete'],
+        set__done = eb['done'],
+        set__created_at = eb['created_at'],
+        upsert = True
+    )
+
+def refresh_brands():
+    brand_refresh.send(None)

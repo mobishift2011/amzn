@@ -7,6 +7,7 @@ from bottle import route, get, post, request, run, template, static_file, redire
 from os.path import join, dirname
 from datetime import datetime
 import pytz
+import json
 
 from auth import *
 from backends.webui.events import log_event
@@ -14,9 +15,19 @@ from backends.monitor.events import run_command
 from backends.webui.views import task_updates, task_all_tasks, mark_all_failed, get_all_fails
 from backends.webui.views import update_schedule, get_all_schedules, delete_schedule
 from backends.webui.views import get_all_sites, get_publish_stats
+from backends.webui.views import import_brands, refresh_brands
 
 from tests.publisher.chkpub import PubChecker
+from backends.monitor.events import auto_scheduling
 
+@route('/toggle-auto-scheduling/:onoff')
+def toggle_auto_scheduling(onoff):
+    if onoff == 'on':
+        onoff = True
+    else:
+        onoff = False
+    auto_scheduling.send('webui', auto=onoff)
+    
 @route('/assets/<filepath:path>')
 def server_static(filepath):
     return static_file(filepath, root=join(dirname(__file__), 'assets'))
@@ -136,6 +147,15 @@ def publish_stats():
 
     data = get_publish_stats(site, doctype, time_value, time_cell, begin_at, end_at)
     return template('pubstats.tpl', {'stats': data, 'sites': [site]})
+
+@post('/brands/import')
+def brands_import():
+    eb = json.loads(request.POST['brand'])
+    import_brands(eb)
+
+@post('/brands/refresh')
+def brands_refresh():
+    refresh_brands()
 
 
 #mark_all_failed():

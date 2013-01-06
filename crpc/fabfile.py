@@ -34,7 +34,7 @@ def setup():
     """
     run("apt-get update")
     run("apt-get -y upgrade")
-    run("apt-get -y install build-essential python-dev libevent-dev libxslt-dev uuid-dev python-setuptools dtach libzmq-dev redis-server chromium-browser xvfb unzip libjpeg8-dev gfortran libblas-dev liblapack-dev")
+    run("apt-get -y install build-essential python-dev libevent-dev libxslt-dev uuid-dev python-setuptools dtach libzmq-dev redis-server chromium-browser xvfb unzip libjpeg8-dev gfortran libblas-dev liblapack-dev ganglia-monitor")
     run("apt-get -y build-dep python-imaging")
     run("ln -sf /usr/lib/`uname -i`-linux-gnu/libfreetype.so /usr/lib/")
     run("ln -sf /usr/lib/`uname -i`-linux-gnu/libjpeg.so /usr/lib/")

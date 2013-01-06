@@ -12,6 +12,7 @@ class Brand(Document):
     title           =   StringField(unique = True)
     title_edit      =   StringField(default = '')
     title_checked   =   BooleanField(default = False)
+    alias           =   ListField(StringField(), default=list())
     keywords        =   StringField(default = '')
     url             =   StringField(default = '')
     url_checked     =   BooleanField(default = False)
@@ -20,11 +21,12 @@ class Brand(Document):
     dept            =   ListField(StringField(max_length = 30))
     is_delete       =   BooleanField(default = False)
     done            =   BooleanField(default = False)
+    created_at      =   DateTimeField(default=datetime.now())
  
     meta = {
         'db_name': DB,
         'db_alias': DB,
-        'indexes': ['title', 'title_checked', 'is_delete', 'done'],
+        'indexes': ['title', 'title_checked', 'is_delete', 'done', 'created_at'],
         'ordering': ['title']
     }
         

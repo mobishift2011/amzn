@@ -17,6 +17,7 @@ def get_all_sites():
 	return [name for name in names if os.path.isdir(os.path.join(CRPC_ROOT, 'crawlers', name))]
 
 def get_unextracted_brands(site):
+	known_set = set()
 	unknown_set = set()
 	now = datetime.utcnow()
 	# products = __module[site].Product.objects(Q(brand_complete=False) \
@@ -29,14 +30,17 @@ def get_unextracted_brands(site):
 	for brand, title, combine_url in products:
 		if brand:
 			c[brand] += 1
+			known_set.add((title, combine_url))
 		else:
 			unknown_set.add((title, combine_url))
 
 	print site
 	print 'unextracted products: ', products.count()
+	print 'products with brand', len(known_set)
+	print 'products without brand', len(unknown_set)
 	print 'unextracted brands: ', len(c.keys())
-	print 'no brand products: ', len(unknown_set)
-	print c
+	for k, v in c.items():
+		print k, ':', v
 	print
 	
 	return c, unknown_set

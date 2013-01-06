@@ -12,6 +12,7 @@ from tools import Propagator
 from powers.events import *
 from models import Stat
 
+from powers.events import brand_refresh
 from crawlers.common.stash import exclude_crawlers
 from datetime import datetime
 import re
@@ -21,10 +22,11 @@ from os.path import join, isdir
 from helpers.log import getlogger
 logger = getlogger('textserver', filename='/tmp/textserver.log')
 
+_extracter =  Extracter()
 
 class TextServer(object):
     def __init__(self):
-        self.__extracter = Extracter()  # brand extracter
+        self.__extracter = _extracter  # brand extracter
         self.__extractor = Extractor()  # tag extractor
         self.__m = {}
         
@@ -169,6 +171,9 @@ def parse_price(price):
         amount = (match.groups()[0]).replace(',', '')
     return float(amount)
 
+@brand_refresh.bind
+def rebulid_brand_index(sender, **kwargs):
+    _extracter.rebuild_index()
 
 if __name__ == '__main__':
     #ts = TextServer()

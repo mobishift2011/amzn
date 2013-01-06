@@ -118,6 +118,25 @@ function ScheduleCtrl($scope) {
   			}
   		});
   	}
+    
+    $scope.autoSchedule = function(run) {
+        console.log("auto-schedule", run); 
+        var url = '';
+        if (run == true){
+            url = '/toggle-auto-scheduling/on';
+        }else{
+            url = '/toggle-auto-scheduling/off';
+            alert("Because of the Asynchronous Characterstics of Execution, This Command Cannot Stop all the Tasks Immediately, You can expect, however, after around 1-2 minutes, all the tasks should be stopped")
+        }
+        $.ajax({
+            url:    url,
+            type:   'GET',
+  			contentType: "application/json; charset=utf-8",
+            success: function(response) {
+                console.log(response);
+            }
+        });
+    }
 
   	$scope.addSchedule = function() {
   		console.log($scope.newSchedule);

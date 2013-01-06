@@ -24,7 +24,7 @@ def toggle_auto_scheduling(onoff):
         onoff = True
     else:
         onoff = False
-    auto_scheduling.send('webui', onoff)
+    auto_scheduling.send('webui', auto=onoff)
     
 @route('/assets/<filepath:path>')
 def server_static(filepath):

@@ -276,8 +276,7 @@ class Propagator(object):
 
         counter = 0
         for product in products:
-            if True:
-            #try:
+            try:
                 print 'start to propogate from  %s product %s' % (self.site, product.key)
 
                 # This filter changes all title words to Title Caps,
@@ -286,8 +285,18 @@ class Propagator(object):
                     product.title = titlecase(product.title)
 
                 # Clean the html tag.
+                pattern = r'<[^>]*>'
+
+                if product.list_info:
+                    str_info = '\n\n\n'.join(product.list_info)
+                    product.list_info = re.sub(pattern, ' ', str_info).split('\n\n\n')
+
                 if product.shipping:
-                    product.shipping = re.sub(r'<[^>]*>', '', product.shipping)
+                    product.shipping = re.sub(pattern, ' ', product.shipping)
+
+                if product.returned:
+                    product.returned = re.sub(pattern, ' ', product.returned)
+                    product.returned = product.returned.replace('\r\n', ' ')
 
                 # Tag, Dept extraction and propagation
                 if product.favbuy_tag:
@@ -346,8 +355,8 @@ class Propagator(object):
 
                 product.save()
                 counter += 1
-            #except Exception, e:
-            #    txtlogger.error('{0}.{1} product propagation exception'.format(self.site, product.key))
+            except Exception, e:
+                txtlogger.error('{0}.{1} product propagation exception'.format(self.site, product.key))
 
         if not counter:
             return self.event.propagation_complete

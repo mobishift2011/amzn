@@ -164,8 +164,8 @@ class Server(object):
             listprice = d[1]['offer_retail_price']
             price = str(d[1]['numeric_offer_price'])
             price = price[:-2] + '.' + price[-2:]
-            returned = d[1]['offer_return_policy'].replace('<br />', ' ')
-            shipping = lxml.html.fromstring(d[1]['offer_shipping_window']).text_content()
+            returned = lxml.html.fromstring(d[1]['offer_return_policy']).text_content()
+            shipping = d[1]['offer_shipping_window'].replace('<br />', ' ')
             sizes = d[1]['pretty_sizes']
             link = d[1]['offer_url']
             link = link if link.startswith('http') else self.siteurl + link
@@ -224,6 +224,15 @@ class Server(object):
         summary, list_info = '; '.join(list_info), []
         list_info = info.cssselect('p') # some products have mixed all list_info into summary
         list_info = list_info[0].xpath('.//text()') if list_info else []
+        list_info_revise = []
+        idx = 0
+        while idx < len(list_info):
+            if list_info[idx].strip()[-1] == ':' and idx+1 != len(list_info):
+                list_info_revise.append( ''.join((list_info[idx], list_info[idx+1])) )
+                idx += 2
+            else:
+                list_info_revise.append(list_info[idx])
+                idx += 1
         images = nav.cssselect('div#offer_photo_and_desc > div#images_container_{0} > div.image_container > a.MagicZoom'.format(key))
         image_urls = []
         for image in images:
@@ -235,7 +244,7 @@ class Server(object):
             is_new = True
             product = Product(key=key)
         product.summary = summary
-        product.list_info = list_info
+        product.list_info = list_info_revise
         [product.image_urls.append(img) for img in image_urls if img not in product.image_urls]
         product.full_update_time = datetime.utcnow()
         if product.updated == False:

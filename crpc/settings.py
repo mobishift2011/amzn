@@ -61,10 +61,9 @@ envs = {
     },
     'TEST': {
         'CRAWLER_PEERS': [
-            {'host_string':'root@ec2-54-245-151-84.us-west-2.compute.amazonaws.com', 'port':1234},
-            {'host_string':'root@ec2-54-245-151-84.us-west-2.compute.amazonaws.com', 'port':1235},
-            {'host_string':'root@ec2-54-245-151-84.us-west-2.compute.amazonaws.com', 'port':1236},
-            {'host_string':'root@ec2-54-245-151-84.us-west-2.compute.amazonaws.com', 'port':1237},
+            {'host_string':'root@ec2-50-112-200-82.us-west-2.compute.amazonaws.com', 'port':1234},
+            {'host_string':'root@ec2-50-112-200-82.us-west-2.compute.amazonaws.com', 'port':1235},
+            {'host_string':'root@ec2-50-112-200-82.us-west-2.compute.amazonaws.com', 'port':1236},
         ],
         'POWER_PEERS': [
             {'host_string':'root@ec2-54-245-149-120.us-west-2.compute.amazonaws.com', 'port':1244},
@@ -73,7 +72,7 @@ envs = {
             {'host_string':'root@ec2-54-245-149-120.us-west-2.compute.amazonaws.com', 'port':1247},
         ],
         'TEXT_PEERS': [
-            {'host_string':'root@ec2-54-245-151-84.us-west-2.compute.amazonaws.com', 'port':1238},
+            {'host_string':'root@ec2-50-112-200-82.us-west-2.compute.amazonaws.com', 'port':1238},
         ],
         'USE_INDEX': '',
         'MONGODB_HOST': '10.252.14.6',

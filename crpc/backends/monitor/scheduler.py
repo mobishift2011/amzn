@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 
 from backends.monitor.models import Schedule, Task
 from backends.monitor.throttletask import task_broke_completed
-from backends.monitor.autoschedule import execute
+from backends.monitor.executor import execute
 from backends.monitor.setting import EXPIRE_MINUTES
 
 

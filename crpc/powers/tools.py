@@ -367,8 +367,8 @@ class Propagator(object):
         self.event.brand_complete = True
         
         self.event.favbuy_tag = list(tags)
-        #self.event.favbuy_dept = [ k for k, v in depts.items() if v>=dept_threshold ]
-        self.event.favbuy_dept = classify_event_department(self.site, self.event)
+        self.event.favbuy_dept = [ k for k, v in depts.items() if v>=dept_threshold ]
+        #self.event.favbuy_dept = classify_event_department(self.site, self.event)
 
         price_set = list(price_set)
         price_set.sort()

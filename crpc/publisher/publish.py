@@ -170,8 +170,9 @@ class Publisher:
         :param ev: event object        
         '''
         now = datetime.utcnow()
+        # for future events, don't publish non-leaf ones
         return not ev.publish_time and ev.image_complete and \
-                (ev.events_begin and ev.events_begin>now or ev.propagation_complete \
+                (ev.events_begin and ev.events_begin>now and ev.is_leaf != False or ev.propagation_complete \
                  and self.sufficient_products_ready_publish(ev, MINIMUM_PRODUCTS_READY))
     
     def should_publish_event_upd(self, ev):

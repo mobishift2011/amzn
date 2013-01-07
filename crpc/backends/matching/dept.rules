@@ -5,6 +5,14 @@
 #  [1] - if XXXX in a title; we can determine the main department of it
 #  [2] - if XXXX in a title; we can determine the sub department of it
 # The XXXX is tested in a brute-force; longest first way
+[0] Pearl Collar -> Jewelry & Watches; Necklaces
+[0] Diamond Collar -> Jewelry & Watches; Necklaces
+[0] Cassorole -> Home; Kitchen & Dining
+[0] Peeler -> Home; Kitchen & Dining
+[0] Peelers -> Home; Kitchen & Dining
+[0] Beverage -> Home; Kitchen & Dining
+[0] Collapsible Cube -> Home; Home Accessories
+[0] Mini Sling -> Handbags; Shoulder Bags
 [0] Britches Hipster -> Women; Intimates & Loungewear
 [0] Sparkling Duo -> Wine; Champagne
 [0] Sparkling Tri -> Wine; Champagne
@@ -109,7 +117,7 @@
 [0] Chrismas -> Home; Home Accessories
 [0] Backpack -> Handbags; Backpacks & Laptop Bags
 [0] Backpacks -> Handbags; Backpacks & Laptop Bags
-[0] Girls Shoes -> Kids & Baby; Girls' Shoes; Women
+[0] Girls Shoes -> Kids & Baby; Girls' Shoes
 [0] Women Loungewear -> Women; Intimates & Loungewear
 [0] Women Intimates -> Women; Intimates & Loungewear
 [0] Roaster -> Home; Kitchen & Dining
@@ -312,7 +320,9 @@
 [0] Nightgown -> Women; Intimates & Loungewear
 [0] Babydoll -> Women; Intimates & Loungewear
 [0] Dish -> Home; Kitchen & Dining
-[0] Dishs -> Home; Kitchen & Dining
+[0] Dishes -> Home; Kitchen & Dining
+[0] Teaspoon -> Home; Kitchen & Dining
+[0] Teaspoons -> Home; Kitchen & Dining
 [0] NDS -> Home; Electronics; Kids & Baby; Toys, Games & Books
 [0] Trinket -> Home; Home Accessories
 [0] Barstool -> Home; Kitchen & Dining
@@ -528,6 +538,7 @@
 [0] Garlic Press -> Home; Kitchen & Dining
 [0] Tumblers -> Home; Kitchen & Dining
 [0] Wine Rack -> Wine; Wine Accessories
+[0] Wine Stacker -> Wine; Wine Accessories
 [0] Wine Holder -> Wine; Wine Accessories
 [0] Centerpiece -> Home; Home Accessories
 [0] Magazine Holder -> Home; Home Accessories
@@ -739,7 +750,9 @@
 [0] Curved Wedge -> Women; Shoes
 [0] Sneaker Wedge -> Women; Shoes
 [0] Wedge Boot -> Women; Shoes
+[0] Wedge Boots -> Women; Shoes
 [0] Flat Boot -> Women; Shoes
+[0] Flat Boots -> Women; Shoes
 [0] Boot Jean -> Women; Pants & Shorts
 [0] Skinny Jeans -> Women; Pants & Shorts
 [0] Jeans -> Women; Pants & Shorts
@@ -792,7 +805,6 @@
 [0] Sheer Baby Doll -> Women; Intimates & Loungewear
 [0] Bandeau -> Women; Intimates & Loungewear
 [0] Appetizer Set -> Home; Kitchen & Dining
-[0] Solid Trunks -> Men; Socks, Underwear & Sleepwear
 [0] Slip -> Women; Intimates & Loungewear
 [0] Bra -> Women; Intimates & Loungewear
 [0] Bras -> Women; Intimates & Loungewear
@@ -838,8 +850,8 @@
 [1] Toddler -> Kids & Baby; Baby
 [1] Handbag -> Handbags
 [1] Ladies -> Women
-[1] Girls -> Kids & Baby; Women
-[2] Boys -> KIds & Baby; Men
+[1] Girls -> Kids & Baby
+[1] Boys -> KIds & Baby
 [1] Women -> Women
 [1] Men -> Men
 [1] Watch -> Jewelry & Watches
@@ -915,11 +927,11 @@
 [2] iPad -> Accessories
 [2] IPad -> Accessories
 [2] Runner -> Accessories
-[2] Tops -> Shirt & Sweaters
 [2] Capris -> Pants & Shorts
 [2] Capri -> Pants & Shorts
 [2] Denim -> Pants & Shorts
 [2] Denims -> Pants & Shorts
+[2] TShirt -> Tops & Tees
 [2] T-Shirt -> Tops & Tees
 [2] T-Shirts -> Tops & Tees
 [2] PJ Set -> Intimates & Loungewear
@@ -1024,7 +1036,7 @@
 [2] Swim Trunk -> Intimates & Loungewear
 [2] Swim Trunks -> Intimates & Loungewear
 [2] Swim Set -> Intimates & Loungewear
-[2] Trunk -> Intimates & Loungewear
+[2] Trunk -> Home; Accessories
 [2] Trunks -> Intimates & Loungewear
 [2] Knit -> Shirts & Sweaters
 [2] Cuff -> Accessories
@@ -1048,6 +1060,8 @@
 [2] Tight -> Pants & Shorts
 [2] Tights -> Pants & Shorts
 [2] Henley -> Shirts & Sweaters
+[2] Sunsuit -> Suits & Coats
+[2] Sunsuits -> Suits & Coats
 [2] Playsuit -> Suits & Coats
 [2] Playsuits -> Suits & Coats
 [2] Sweatsuit -> Suits & Coats
@@ -1171,6 +1185,7 @@
 [2] Lounge -> Furniture & Lighting
 [2] Sleeve -> Accessories
 [2] V-Neck -> Shirts & Sweaters
+[2] Vneck -> Shirts & Sweaters
 [2] Sink -> Furniture & Lighting
 [2] Shave -> Men; Accessories
 [2] Keyring -> Accessories
@@ -1339,3 +1354,15 @@
 [2] Gemstone -> Pendants
 [2] Gemstones -> Pendants
 [2] Sapphire -> Pendants
+[2] Bead -> Accessories
+[2] Faas -> Shoes
+[2] Sundress -> Dresses & Skirts
+[2] Sundresses -> Dresses & Skirts
+[2] Ballet -> Shoes
+[2] Cam -> Accessories
+[2] Jock -> Intimates & Loungewear
+[2] Ottoman -> Furniture & Lighting
+[2] Passcase -> Accessories
+[2] Headphone -> Accessories
+[2] Wok -> Kitchen & Dining
+[2] Braiser -> Kitchen & Dining

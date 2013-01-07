@@ -408,7 +408,7 @@ if __name__ == '__main__':
     #p = Product.objects.get(pk='2820350')
     #print classify_product_department('ideeli', p)
     #extract_pattern2()
-    extract_pattern('modnique')
+    extract_pattern('venteprivee')
     #test_product()
     #for rule in load_rules()['0']:
     #    print rule[0]

@@ -33,7 +33,7 @@ class CustomizeAdmin(MongoAdmin):
 
 class BrandAdmin(CustomizeAdmin):
     list_fields = ('title', 'title_edit', 'title_checked', 'alias', 'keywords', 'url',  'url_checked', 'level', 'blurb', 'done', 'is_delete')
-    search_fields = ('title', 'title_edit')
+    search_fields = ('title',)
 
 class DeptAdmin(CustomizeAdmin):
     list_fields = ('title',)

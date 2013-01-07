@@ -10,7 +10,7 @@ logger = getlogger('brandimport', filename='/tmp/brandimport.log')
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djCatalog.djCatalog.settings")
 from djCatalog.catalogs.models import Brand as EditBrand
 
-__host = 'http://localhost:1317'
+__host = 'http://mongodb.favbuy.org:1317'
 __urls = {
     'import': '{0}/brands/import'.format(__host),
     'refresh': '{0}/brands/refresh'.format(__host) 

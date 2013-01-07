@@ -209,6 +209,8 @@ def preprocess(title):
     title = re.sub(r'designed in .+ silver', '', title)
     title = re.sub(r'made in [a-z]+', '', title)
     # wipe out sentences `with`s and `in`s and `-`s
+    title = re.sub(r'all in one', 'all-in-one', title)
+    title = re.sub(r'in a', 'in-a', title)
     title = re.sub(r' in .+$', '', title)
     title = re.sub(r' with .+$', '', title)
     title = re.sub(r'(.*) - (.*)', r'\2 \1', title)
@@ -362,20 +364,23 @@ def extract_pattern(site = 'bluefly'):
     from collections import Counter
     from pprint import pprint
     wc = Counter()
+    wrongs = 0
     for p in m.Product.objects().only('title','cats','event_id'):
         if p.title:
             title = p.title.strip()
             depts = classify_product_department(site, p)
             if not (set(depts) - set(CATS.keys())):
+                wrongs += 1
                 title = preprocess(title)
                 words = words_split.findall(title)
+                title = ' '.join(words)
                 for i in range(len(words)):
                     phrase = u' '.join(words[i:])
                     wc[phrase] += 1
                 from termcolor import colored
                 print title, colored('=>','red'), depts, p.title
     pprint(wc.most_common(1000))
-    print 1. * len(wc) / m.Product.objects.count() * 100, '%'
+    print 1. * wrongs / m.Product.objects.count() * 100, '%'
 
 def extract_pattern2():
     from feature import sites
@@ -408,7 +413,9 @@ if __name__ == '__main__':
     #p = Product.objects.get(pk='2820350')
     #print classify_product_department('ideeli', p)
     #extract_pattern2()
-    extract_pattern('venteprivee')
+    from feature import sites
+    for site in sites:
+        extract_pattern(site)
     #test_product()
     #for rule in load_rules()['0']:
     #    print rule[0]

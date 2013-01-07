@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from datetime import datetime, timedelta
+from gevent import monkey; monkey.patch_all()
 import gevent
 
+from datetime import datetime, timedelta
 from crawlers.common.stash import get_ordinary_crawlers
 
 from backends.monitor.throttletask import can_task_run, task_completed, is_task_already_running

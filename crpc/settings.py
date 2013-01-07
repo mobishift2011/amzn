@@ -62,8 +62,11 @@ envs = {
     'TEST': {
         'CRAWLER_PEERS': [
             {'host_string':'root@ec2-54-245-23-75.us-west-2.compute.amazonaws.com', 'port':1234},
+            {'host_string':'root@ec2-54-245-23-75.us-west-2.compute.amazonaws.com', 'port':12344},
             {'host_string':'root@ec2-54-245-136-106.us-west-2.compute.amazonaws.com', 'port':1235},
+            {'host_string':'root@ec2-54-245-136-106.us-west-2.compute.amazonaws.com', 'port':12355},
             {'host_string':'root@ec2-54-245-27-53.us-west-2.compute.amazonaws.com', 'port':1236},
+            {'host_string':'root@ec2-54-245-27-53.us-west-2.compute.amazonaws.com', 'port':12366},
         ],
         'POWER_PEERS': [
             {'host_string':'root@ec2-50-112-39-7.us-west-2.compute.amazonaws.com', 'port':1230},

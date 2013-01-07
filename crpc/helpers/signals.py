@@ -78,7 +78,6 @@ class Processor(object):
             gevent.spawn(self._queued_executor),
             gevent.spawn_later(1, self._queue2pubsub_worker)
         ]
-        gevent.sleep(1)
 
     def add_listener(self, signal, callback, mode):
         """ add listener to hub

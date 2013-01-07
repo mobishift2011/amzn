@@ -5,6 +5,20 @@
 #  [1] - if XXXX in a title; we can determine the main department of it
 #  [2] - if XXXX in a title; we can determine the sub department of it
 # The XXXX is tested in a brute-force; longest first way
+[0] Light Set -> Home; Furniture & Lighting
+[0] Nightlight -> Home; Furniture & Lighting
+[0] Night Light -> Home; Furniture & Lighting
+[0] Air Purifier -> Home; Electronics
+[0] Chimenea -> Furniture & Lighting
+[0] Menorah -> Home; Furniture & Lighting
+[0] Fitted Sheet -> Home; Beds & Bath
+[0] Wreath -> Home; Home Accessories
+[0] Flooring -> Home; Rugs & Textiles
+[0] Boy Boxers -> Kids & Baby; Boys' Clothing
+[0] Boys Boxers -> Kids & Baby; Boys' Clothing
+[0] Smart Dock -> Home; Home Accessories
+[0] Zcase Roller -> Handbags; Luggage & Gear
+[0] Ear Pins -> Jewelry & Watches; Earrings
 [0] Pearl Collar -> Jewelry & Watches; Necklaces
 [0] Diamond Collar -> Jewelry & Watches; Necklaces
 [0] Cassorole -> Home; Kitchen & Dining
@@ -101,6 +115,7 @@
 [0] Dead Sea Minerals -> Beauty & Health; Skin Care
 [0] Dead Sea -> Beauty & Health; Skin Care
 [0] Jewelry Box -> Home; Accessories; Women
+[0] Jewelry Roll -> Home; Accessories; Women
 [0] Brunello -> Wine; Red Wines
 [0] Red Blend -> Wine; Red Wines
 [0] Blanc -> Wine; White Wines
@@ -262,9 +277,10 @@
 [0] Mary Janes -> Women; Shoes
 [0] Onesie -> Kids & Baby; Boys' Clothing; Girls Clothing
 [0] Scent -> Beauty & Health; Fragrance
-[0] Duffle -> Handbags; Luggage & Gears
-[0] Duffel -> Handbags; Luggage & Gears
-[0] Travel Bag -> Handbags; Luggage & Gears
+[0] Duffle -> Handbags; Luggage Luggage & Gears Gear
+[0] Duffel -> Handbags; Luggage Luggage & Gears Gear
+[0] Travel Bag -> Handbags; Luggage Luggage & Gears Gear
+[0] Hoop -> Jewelry & Watches; Earrings
 [0] Hoops -> Jewelry & Watches; Earrings
 [0] Day Bag -> Handbags; Shoulder Bags
 [0] Night Bag -> Handbags; Evening Bags
@@ -367,7 +383,7 @@
 [0] Figurine -> Home; Home Accessories
 [0] Figurines -> Home; Home Accessories
 [0] Figure -> Home; Home Accessories
-[0] Expandable Spinner -> Handbags; Luggage & Gears
+[0] Expandable Spinner -> Handbags; Luggage Luggage & Gears Gear
 [0] ZooWallogy -> Home; Home Accessories
 [0] Messenger Bag -> Handbags; Crossbody Bags
 [0] Kitchen Brush -> Home; Kitchen & Dining; Tools
@@ -420,8 +436,8 @@
 [0] Shootie -> Women; Shoes
 [0] Shooties -> Women; Shoes
 [0] Sham -> Home; Beds & Bath
-[0] Suitcases -> Handbags; Luggage & Gears
-[0] Suitcase -> Handbags; Luggage & Gears
+[0] Suitcases -> Handbags; Luggage Luggage & Gears Gear
+[0] Suitcase -> Handbags; Luggage Luggage & Gears Gear
 [0] Patent Skimmer -> Women; Shoes
 [0] Pestle -> Home; Kitchen & Dining
 [0] Pen -> Home; Home Accessories
@@ -484,7 +500,7 @@
 [0] Teakettle -> Home; Kitchen & Dining
 [0] Tea Kettle -> Home; Kitchen & Dining
 [0] Rolling Pin -> Home; Kitchen & Dining
-[0] Carry-On Spinner -> Handbags; Luggage & Gears
+[0] Carry-On Spinner -> Handbags; Luggage Luggage & Gears Gear
 [0] Measuring Cup -> Home; Kitchen & Dining
 [0] Clock -> Home; Home Accessories
 [0] Mirrors -> Home; Furniture & Lighting
@@ -495,7 +511,7 @@
 [0] Tablepad -> Home; Home Accessories
 [0] Ege Glass -> Home; Kitchen & Dining
 [0] Bedspread -> Home; Beds & Bath
-[0] Z-Case -> Handbags; Luggage & Gears
+[0] Z-Case -> Handbags; Luggage Luggage & Gears Gear
 [0] Fleurs-De-Lys -> Home; Home Accessories
 [0] Wedges -> Women; Shoes
 [0] LED Collar Cats -> Home; Home Accessories
@@ -529,7 +545,7 @@
 [0] Book Boxes -> Home; Home Accessories
 [0] Christmas -> Home; Home Accessories
 [0] Wedge -> Women; Shoes
-[0] Luggage Set -> Handbags; Luggage & Gears
+[0] Luggage Set -> Handbags; Luggage Luggage & Gears Gear
 [0] Bowl Set -> Home; Kitchen & Dining
 [0] Ivory Lane Quinn Zebra -> Handbags; Tote Bags
 [0] Chair -> Home; Furniture & Lighting
@@ -582,6 +598,7 @@
 [0] Ice Chiller -> Home; Kitchen & Dining
 [0] Maxi -> Women; Dresses & Skirts
 [0] Maxi-Dress -> Women; Dresses & Skirts
+[0] Maxidress -> Women; Dresses & Skirts
 [0] Rainboot -> Women; Shoes
 [0] Bamboo Handbag -> Handbags; Tote Bags
 [0] Print -> Home; Home Accessories
@@ -603,7 +620,7 @@
 [0] Pillowcase -> Home; Beds & Bath
 [0] Storage Rack -> Home; Furniture & Lighting
 [0] Cuckoo Rooster -> Home; Home Accessories
-[0] Hardcase -> Handbags; Luggage & Gears
+[0] Hardcase -> Handbags; Luggage Luggage & Gears Gear
 [0] WII -> Kids & Baby; Toys, Games & Books; Home; Electronics
 [0] PS3 -> Kids & Baby; Toys, Games & Books; Home; Electronics
 [0] PS1 -> Kids & Baby; Toys, Games & Books; Home; Electronics
@@ -676,9 +693,9 @@
 [0] Sandal Flat -> Women; Shoes
 [0] Riding Boot -> Women; Shoes
 [0] Mid-Boot -> Women; Shoes
-[0] Duffel Bag -> Handbags; Luggage & Gears
-[0] Bag Cart -> Handbags; Luggage & Gears
-[0] Luggages -> Handbags; Luggage & Gears
+[0] Duffel Bag -> Handbags; Luggage Luggage & Gears Gear
+[0] Bag Cart -> Handbags; Luggage Luggage & Gears Gear
+[0] Luggages -> Handbags; Luggage Luggage & Gears Gear
 [0] Satchel -> Handbags; Satchels
 [0] Crossbody Bag -> Handbags; Crossbody Bags
 [0] Party Kit -> Kids & Baby; Toys, Games & Books
@@ -840,7 +857,7 @@
 [0] Onesie Set -> Kids & Baby; Girls' Clothing; Boys' Clothing
 [0] DVD -> Home; Home Accessories
 [0] Birdhouses -> Home; Home Accessories
-[0] Briefcase -> Handbags; Luggage & Gears
+[0] Briefcase -> Handbags; Luggage Luggage & Gears Gear
 [0] Girl Shoes -> Kids & Baby; Girls' Shoes
 [0] Boy Shoes -> Kids & Baby; Boys' Shoes
 [1] Personal Care -> Beauty & Health; Skin Care
@@ -932,6 +949,7 @@
 [2] Denim -> Pants & Shorts
 [2] Denims -> Pants & Shorts
 [2] TShirt -> Tops & Tees
+[2] TShirts -> Tops & Tees
 [2] T-Shirt -> Tops & Tees
 [2] T-Shirts -> Tops & Tees
 [2] PJ Set -> Intimates & Loungewear
@@ -983,6 +1001,8 @@
 [2] Bottoms -> Intimates & Loungewear
 [2] Oxford -> Shoes
 [2] Oxfords -> Shoes
+[2] Slipon -> Shoes
+[2] Slip-On -> Shoes
 [2] Slip-Ons -> Shoes
 [2] Shrug -> Accessories
 [2] Tracksuit -> Suits & Coats
@@ -1117,8 +1137,8 @@
 [2] Towels -> Beds & Bath; Accessories
 [2] Blanket -> Accessories
 [2] Blankets -> Accessories
-[2] Cart -> Luggage & Gears; Tools
-[2] Carts -> Luggage & Gears; Tools
+[2] Cart -> Luggage Luggage & Gears Gear; Tools
+[2] Carts -> Luggage Luggage & Gears Gear; Tools
 [2] Art -> Accessories
 [2] Arts -> Accessories
 [2] Legwarmer -> Accessories
@@ -1366,3 +1386,11 @@
 [2] Headphone -> Accessories
 [2] Wok -> Kitchen & Dining
 [2] Braiser -> Kitchen & Dining
+[2] Leather Mule -> Shoes
+[2] Phone -> Accessories
+[2] Hanging Spider -> Accessories
+[2] Drop Crotch -> Pants & Shorts
+[2] Dropcrotch -> Pants & Shorts
+[2] Shaver -> Accessories
+[2] Flagpole -> Accessories
+[2] Buttonup -> Shirts & Sweaters

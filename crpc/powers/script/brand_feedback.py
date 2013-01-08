@@ -42,7 +42,7 @@ def get_unextracted_brands(site):
 	f = open('feedback.txt', 'w')
 	for k, v in c.items():
 		print k, ':', v
-		f.write(k+'\n')
+		f.write(k.encode('utf-8')+'\n'.encode('utf-8'))
 	print
 	
 	return c, unknown_set

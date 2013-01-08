@@ -5,6 +5,13 @@
 #  [1] - if XXXX in a title; we can determine the main department of it
 #  [2] - if XXXX in a title; we can determine the sub department of it
 # The XXXX is tested in a brute-force; longest first way
+[0] iPhone Case -> Women; Men; Accessories
+[0] iPhone Necklace -> Women; Men; Accessories
+[0] iPad Case -> Women; Men; Accessories
+[0] Tablet Case -> Women; Men; Accessories
+[0] iPod Touch -> Women; Men; Accessories
+[0] Toe Ring Sandal -> Women; Shoes
+[0] Swarovski Crystal -> Jewelry & Watches; Pendants
 [0] Light Set -> Home; Furniture & Lighting
 [0] Nightlight -> Home; Furniture & Lighting
 [0] Night Light -> Home; Furniture & Lighting
@@ -116,11 +123,11 @@
 [0] Dead Sea -> Beauty & Health; Skin Care
 [0] Jewelry Box -> Home; Accessories; Women
 [0] Jewelry Roll -> Home; Accessories; Women
-[0] Brunello -> Wine; Red Wines
-[0] Red Blend -> Wine; Red Wines
-[0] Blanc -> Wine; White Wines
-[0] Chardonnay -> Wine; White Wines
-[0] Cabernet Sauvignon -> Wine; Red Wines
+[0] Brunello -> Wine; Red Wine
+[0] Red Blend -> Wine; Red Wine
+[0] Blanc -> Wine; White Wine
+[0] Chardonnay -> Wine; White Wine
+[0] Cabernet Sauvignon -> Wine; Red Wine
 [0] Sewing Machine -> Home; Electronics
 [0] Sewing Machines -> Home; Electronics
 [0] Hobos -> Handbags; Hobos
@@ -157,9 +164,11 @@
 [0] Hairdo -> Beauty & Health; Hair Care
 [0] Hairdos -> Beauty & Health; Hair Care
 [0] Wine Bucket -> Wine; Wine Accessories
-[0] White Red Wine -> Wine; Red Wines; White Wines
-[0] Red Wine -> Wine; Red Wines
-[0] White Wine -> Wine; White Wines
+[0] Red Wine Cup -> Wine; Wine Accessories
+[0] White Wine Cup -> Wine; Wine Accessories
+[0] White Red Wine -> Wine; Red Wine; White Wine
+[0] Red Wine -> Wine; Red Wine
+[0] White Wine -> Wine; White Wine
 [0] T-Strap -> Women; Shoes
 [0] Rainshower Head -> Home; Home Accessories
 [0] Jackson Pollock -> Home; Home Accessories
@@ -352,7 +361,6 @@
 [0] Cup -> Home; Kitchen & Dining
 [0] Cups -> Home; Kitchen & Dining
 [0] Fuchsia -> Home; Home Accessories; Plants
-[0] Pouch -> Handbags; Wallets
 [0] Sporran -> Handbags; Wallets
 [0] Teabag -> Handbags; Wallets
 [0] Faux -> Home; Home Accessories
@@ -397,6 +405,7 @@
 [0] Map -> Home; Home Accessories
 [0] Cutters -> Home; Tools
 [0] Cheese Cutters -> Home; Kitchen & Dining
+[0] Cheese Set -> Home; Kitchen & Dining
 [0] Hamper -> Home; Home Accessories
 [0] Hampers -> Home; Home Accessories
 [0] Pourers -> Home; Home Accessories
@@ -458,7 +467,6 @@
 [0] Morning Glory -> Home; Home Accessories
 [0] Stopper Set -> Home; Home Accessories
 [0] Baskets -> Home; Home Accessories
-[0] Tutu -> Women; Dresses & Skirts
 [0] Scoop -> Home; Kitchen & Dining
 [0] Buddha Head -> Home; Home Accessories
 [0] Wine Cooler -> Wine; Wine Accessories; Home; Electronics
@@ -480,7 +488,7 @@
 [0] Quad Sorter -> Home; Home Accessories
 [0] Baby Doll -> Women; Intimates & Loungewear
 [0] Earring Tree -> Home; Home Accessories
-[0] Beige -> Handbags; Tote Bags
+[0] Beige Bag -> Handbags; Tote Bags
 [0] Room Divider -> Home; Home Accessories
 [0] Deco -> Home; Home Accessories
 [0] Decorative -> Home; Home Accessories
@@ -938,11 +946,7 @@
 [2] Slippers -> Shoes
 [2] Tank -> Shirts & Sweaters
 [2] Blackberry -> Accessories
-[2] IPhone -> Accessories
 [2] Mobiles -> Accessories
-[2] iPhone -> Accessories
-[2] iPad -> Accessories
-[2] IPad -> Accessories
 [2] Runner -> Accessories
 [2] Capris -> Pants & Shorts
 [2] Capri -> Pants & Shorts
@@ -1313,7 +1317,6 @@
 [2] Pencil -> Accessories
 [2] Pencils -> Accessories
 [2] Tuxedo -> Suits & Coats
-[2] Swarovski -> Jewelry & Watches; Pendants
 [2] Game -> Kids & Baby; Toys, Games & Books
 [2] Galaxy Spinner -> Kids & Baby; Toys, Games & Books
 [2] Magnet -> Accessories
@@ -1394,3 +1397,5 @@
 [2] Shaver -> Accessories
 [2] Flagpole -> Accessories
 [2] Buttonup -> Shirts & Sweaters
+[2] Tutu -> Dresses & Skirts
+[2] Pouch -> Handbags; Wallets; Accessories

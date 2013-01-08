@@ -129,12 +129,8 @@ class Processor(object):
         from gevent.queue import Empty
         while True:
             try:
-                cb, sender, kwargs = queue.get(timeout=600) 
+                cb, sender, kwargs = queue.get() 
                 cb(sender, **kwargs)
-            except Empty:
-                if queue != self.globalqueue:
-                    # we just terminate the queue since it can be recreated when necessory
-                    break 
             except Exception, e:
                 logger.exception(e.message)
 

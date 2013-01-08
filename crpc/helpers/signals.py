@@ -73,8 +73,8 @@ class Processor(object):
         self.queues = {} # dict of Queues
         self.globalqueue = Queue()
         self.jobs = [
-            gevent.spawn(self._channel_listener),
             gevent.spawn(self._channel_singleton),
+            gevent.spawn(self._channel_listener),
             gevent.spawn(self._queued_executor),
             gevent.spawn_later(1, self._queue2pubsub_worker)
         ]
@@ -110,6 +110,12 @@ class Processor(object):
                 data = unpack(m['data'])
                 self._execute_callbacks(data['sender'], data['signal'], **data['kwargs'])
 
+    def _queued_executor(self):
+        """ callback that runs in a 'sync' mode """
+        #for signal, queue in self.queues.iteritems():
+        #    gevent.spawn(self.__queued_executor, queue)
+        gevent.spawn(self.__queued_executor, self.globalqueue)
+
     def _queue2pubsub_worker(self):
         """ Pop Message from List and Push to publish """
         while True:
@@ -117,12 +123,6 @@ class Processor(object):
             if data:
                 channel, message = data
                 self.rc.publish(self.channel, message)
-
-    def _queued_executor(self):
-        """ callback that runs in a 'sync' mode """
-        #for signal, queue in self.queues.iteritems():
-        #    gevent.spawn(self.__queued_executor, queue)
-        gevent.spawn(self.__queued_executor, self.globalqueue)
 
     def __queued_executor(self, queue):
         """ callback that runs in a 'sync' mode """

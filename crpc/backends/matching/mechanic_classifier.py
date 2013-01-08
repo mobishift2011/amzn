@@ -82,14 +82,14 @@ TOTSY = {
     "column": "dept",
     "contains": {},
     "mapping": {
-        "Girls": ["Kids"],
-        "Boys": ["Kids"],
-        "Accessories": ["Kids"],
-        "Shoes": ["Kids"],
-        "Toys and Books": ["Kids"],
-        "Home": ["Kids"],
-        "Moms and Dads": ["Kids"],
-        "Gear": ["Kids"],
+        "Girls": ["Kids & Baby"],
+        "Boys": ["Kids & Baby"],
+        "Accessories": ["Kids & Baby"],
+        "Shoes": ["Kids & Baby"],
+        "Toys and Books": ["Kids & Baby"],
+        "Home": ["Kids & Baby"],
+        "Moms and Dads": ["Kids & Baby"],
+        "Gear": ["Kids & Baby"],
     }
 }
 
@@ -98,11 +98,11 @@ ZULILY = {
     "column": "dept",
     "contains": {},
     "mapping": {
-        "baby-maternity": ["Kids"], 
-        "boys": ["Kids"], 
-        "girls": ["Kids"],
+        "baby-maternity": ["Kids & Baby"], 
+        "boys": ["Kids & Baby"], 
+        "girls": ["Kids & Baby"],
         "home": ["Home"], 
-        "toys-playtime": ["Kids"], 
+        "toys-playtime": ["Kids & Baby"], 
         "women": ["Women"],
     }
 }

@@ -303,9 +303,7 @@ class Propagator(object):
                     tags = tags.union(product.favbuy_tag)
 
                 if product.favbuy_dept:
-                    for thedept in product.favbuy_dept:
-                        if thedept in level1_depts:
-                            depts[thedept] += 1
+                    depts[tuple(product.favbuy_dept)] += 1
 
                 # Event brand propagation
                 if hasattr(product, 'favbuy_brand') and product.favbuy_brand:
@@ -367,7 +365,10 @@ class Propagator(object):
         self.event.brand_complete = True
         
         self.event.favbuy_tag = list(tags)
-        self.event.favbuy_dept = [ k for k, v in depts.items() if v>=dept_threshold ]
+        self.event.favbuy_dept = []
+        for k, v in depts.items():
+             if v>=dept_threshold:
+                self.event.favbuy_dept.extend(list(k))
         #self.event.favbuy_dept = classify_event_department(self.site, self.event)
 
         price_set = list(price_set)
@@ -429,7 +430,7 @@ def test_propagate(site='venteprivee', event_id=None):
         counter = len(events)
         for event in events:
             print '\n', counter, ' left.'
-            p = Propagator(site, event.event_id, extractor, classifier, module=m)
+            p = Propagator(site, event.event_id, module=m)
             p.propagate()
 
             counter -= 1

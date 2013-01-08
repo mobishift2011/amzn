@@ -222,9 +222,9 @@ class Server(object):
         for li in info.cssselect('ul > li'):
             list_info.append( li.text_content().strip() )
         summary, list_info = '; '.join(list_info), []
-        list_p = info.cssselect('p') # some products have mixed all list_info into summary
-        if list_p:
-            for i in list_p:
+        list_info_revise = info.cssselect('p') # some products have mixed all list_info into summary
+        if list_info_revise:
+            for i in list_info_revise:
                 list_info.extend( i.xpath('.//text()') )
         list_info_revise = []
         idx = 0

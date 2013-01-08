@@ -231,15 +231,15 @@ class Server(object):
         while idx < len(list_info):
             if list_info[idx].strip() == '':
                 idx += 1
-            elif list_info[idx].strip()[-1] == ':' and idx+1 != len(list_info):
+            elif idx+1 != len(list_info) and (list_info[idx].strip()[-1] == ':' or list_info[idx+1].strip()[0] == ':'):
                 if list_info[idx+1].strip()[-1] == ':':
                     idx += 1
                 else:
                     list_info_revise.append( ''.join((list_info[idx], list_info[idx+1])) )
                     idx += 2
             else:
-                if list_info[idx].strip():
-                    list_info_revise.append(list_info[idx])
+                list_info_revise.append(list_info[idx])
+                idx += 1
         images = nav.cssselect('div#offer_photo_and_desc > div#images_container_{0} > div.image_container > a.MagicZoom'.format(key))
         image_urls = []
         for image in images:

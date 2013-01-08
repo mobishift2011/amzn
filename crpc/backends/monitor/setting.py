@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # Author: bishop Liu <miracle (at) gmail.com>
 
-EXPIRE_MINUTES = 5
+EXPIRE_MINUTES = 10
 SCHEDULE_STATE = set()
 
 UPCOMING_EVENTS_DETECT_INTERVAL = 30 # minutes

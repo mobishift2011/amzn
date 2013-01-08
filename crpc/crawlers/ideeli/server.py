@@ -121,7 +121,7 @@ class Server(object):
         img = img if img.startswith('http') else urllib.basejoin(self.event_img_prefix, img)
         brand = node.cssselect('div > span.event_grid_cta > b:first-of-type')[0].text_content()
         title = node.cssselect('div > span.event_grid_cta > span.title')[0].text_content().strip()
-        sale_title = brand + title if title else brand
+        sale_title = brand + ' ' + title if title else brand
         begin = node.cssselect('div > span.event_grid_cta > span.starts_in > span.starting_in_timer')[0].text_content()
         end = node.cssselect('div > span.event_grid_cta > span.ends_in > span.ending_soon_timer')[0].text_content()
         events_begin = datetime.utcfromtimestamp( float(begin) )

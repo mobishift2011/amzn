@@ -55,6 +55,8 @@ def toggle_auto_scheduling(sender, **kwargs):
 # end binding
 
 gevent.spawn(Scheduler().run)
+gevent.spawn(buffer_task_then_dump_loop) # for logstat
+
 
 while True:
     try:

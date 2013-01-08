@@ -5,6 +5,7 @@
 """
 from gevent import monkey; monkey.patch_all()
 import gevent
+import time
 import collections
 import traceback
 from datetime import datetime, timedelta
@@ -13,7 +14,7 @@ from gevent.coros import Semaphore
 from helpers.log import getlogger
 from crawlers.common.events import *
 from backends.monitor.models import Task, fail
-from backends.monitor.setting import EXPIRE_MINUTES
+from backends.monitor.setting import EXPIRE_MINUTES, DUMP_INTERVAL
 
 
 logger = getlogger("crawlerlog")
@@ -155,6 +156,12 @@ def dump_monitor_task_to_db():
         # delete finished task in monitor_task
         for key in pop_keys: monitor_task.pop(key)
         
+
+def buffer_task_then_dump_loop():
+    while True:
+        time.sleep(60 * DUMP_INTERVAL)
+        dump_monitor_task_to_db()
+
 
 if __name__ == '__main__':
     print 'logstat'

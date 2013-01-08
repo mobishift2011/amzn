@@ -82,14 +82,14 @@ TOTSY = {
     "column": "dept",
     "contains": {},
     "mapping": {
-        "Girls": ["Kids"],
-        "Boys": ["Kids"],
-        "Accessories": ["Kids"],
-        "Shoes": ["Kids"],
-        "Toys and Books": ["Kids"],
-        "Home": ["Kids"],
-        "Moms and Dads": ["Kids"],
-        "Gear": ["Kids"],
+        "Girls": ["Kids & Baby"],
+        "Boys": ["Kids & Baby"],
+        "Accessories": ["Kids & Baby"],
+        "Shoes": ["Kids & Baby"],
+        "Toys and Books": ["Kids & Baby"],
+        "Home": ["Kids & Baby"],
+        "Moms and Dads": ["Kids & Baby"],
+        "Gear": ["Kids & Baby"],
     }
 }
 
@@ -98,11 +98,11 @@ ZULILY = {
     "column": "dept",
     "contains": {},
     "mapping": {
-        "baby-maternity": ["Kids"], 
-        "boys": ["Kids"], 
-        "girls": ["Kids"],
+        "baby-maternity": ["Kids & Baby"], 
+        "boys": ["Kids & Baby"], 
+        "girls": ["Kids & Baby"],
         "home": ["Home"], 
-        "toys-playtime": ["Kids"], 
+        "toys-playtime": ["Kids & Baby"], 
         "women": ["Women"],
     }
 }
@@ -195,15 +195,35 @@ def load_rules():
 
             m = pattern.search(line)
             priority, rule, department = m.group(1), m.group(2), m.group(3)
-            rule = rule.lower()
+            rule = rule.lower().decode('utf-8')
             
-            rules_dict[priority].append( [set(rule.split(' ')), department.split('; ')] )
+            rules_dict[priority].append( [set(rule.split(u' ')), department.split(u'; ')] )
     
     for k, v in rules_dict.iteritems():
         rules_dict[k] = sorted(v, key=lambda x: len(x[0]), reverse=True)
     return rules_dict
+
+def preprocess(title):
+    title = title.lower()
+    title = re.sub(r'designed in .+ gold', '', title)
+    title = re.sub(r'designed in .+ silver', '', title)
+    title = re.sub(r'made in [a-z]+', '', title)
+    # wipe out sentences `with`s and `in`s and `-`s
+    title = re.sub(r'all in one', 'all-in-one', title)
+    title = re.sub(r'in a', 'in-a', title)
+    title = re.sub(r' in .+$', '', title)
+    title = re.sub(r' with .+$', '', title)
+    title = re.sub(r'(.*) - (.*)', r'\2 \1', title)
+    title = re.sub(r'([a-z]+)-', r'\1', title)
+    # then numbers & brackets
+    title = re.sub(r'\d+/\d+ condition', '', title)
+    title = re.sub(r'(.*)\(([^)]+)\)$', r'\2 \1', title)
+    title = re.sub(r' [ivxlc]+$', '', title)
+    title = re.sub(r'set of [0-9]+', '', title)
+    title = re.sub(r'[0-9]+ pcs$', '', title)
+    return title
             
-words_split = re.compile('[A-Za-z0-9\-]+')
+words_split = re.compile('''[A-Za-z0-9\-%.]+''')
 rules_dict = load_rules()
 def classify_product_department(site, product, use_event_info=False):
     m = get_site_module(site)
@@ -215,6 +235,8 @@ def classify_product_department(site, product, use_event_info=False):
             e = m.Event.objects.get(event_id=eid)
             title = e.sale_title + u" " + title
 
+    title = preprocess(title)
+
     if site in ["bluefly", "ideeli", "nomorerack", "onekingslane"]:
         title += u" " + u" ".join(p.cats)
 
@@ -224,29 +246,13 @@ def classify_product_department(site, product, use_event_info=False):
         elif "red" in title.lower():
             return [u"Wine", u"Red Wines"]
 
-    # make it reversed
     kws = words_split.findall(title.lower())
-    kws2 = []
-    for kw in reversed(kws):
-        if kw.endswith('-'):
-            kw = kw[:-1]
-        if kw not in kws2:
-            kws2.append(kw)
-    kws = kws2
-
     
     # check level-0 rules
     # first run: single words
     level12 = True
-    rules_dict_0 = dict([(list(x[0])[0], x[1]) for x in rules_dict['0'] if len(x[0])==1])
-    for kw in kws:
-        if kw in rules_dict_0:
-            result.extend(rules_dict_0[kw])
-            level12 = False
-            break
-
-    # second run: differences
     kws_set = set(kws) 
+
     for rule in rules_dict['0']:
         if not rule[0].difference(kws_set):
             result.extend(rule[1])
@@ -265,12 +271,6 @@ def classify_product_department(site, product, use_event_info=False):
 
         # do level1 and level2 classifying
         for priority in '12':
-            rules_dict_12 = dict([(list(x[0])[0], x[1]) for x in rules_dict[priority] if len(x[0])==1])
-            for kw in kws:
-                if kw in rules_dict_12:
-                    result.extend(rules_dict_12[kw])
-                    break
-                
             for rule in rules_dict[priority]:
                 if not rule[0].difference(kws_set):
                     result.extend(rule[1])
@@ -313,7 +313,7 @@ def classify_product_department(site, product, use_event_info=False):
         result.append("Home Accessories")
 
     # reorder
-    keys = CATS.keys()
+    keys = [k.decode('utf-8') for k in  CATS.keys()]
     result = list(set(result))
     for key in keys:
         if key in result and key != result[0]:
@@ -321,7 +321,7 @@ def classify_product_department(site, product, use_event_info=False):
             result = [key] + result
 
     # if we can't identify the product from it's title alone, try again with event info
-    if use_event_info == False and (set(result) - set(keys)):
+    if use_event_info == False and (not (set(result) - set(keys))):
         result = classify_product_department(site, product, use_event_info=True)
 
     return result
@@ -364,29 +364,23 @@ def extract_pattern(site = 'bluefly'):
     from collections import Counter
     from pprint import pprint
     wc = Counter()
+    wrongs = 0
     for p in m.Product.objects().only('title','cats','event_id'):
         if p.title:
             title = p.title.strip()
-            words = classify_product_department(site, p)
-            if not (set(words) - set(CATS.keys())):
-                words = title.split(' ')
-                len_words = len(words) 
-                for i in range(len_words):
-                    phrase = words[i]
-                    if 'in' not in phrase.lower() and 'of' not in phrase.lower() and '-' not in phrase and '&' not in phrase and 'and' not in phrase.lower():
-                        wc[phrase] += 1
-                for i in range(len_words-1):
-                    phrase = words[i]+' '+words[i+1]
-                    if 'in' not in phrase.lower() and 'of' not in phrase.lower() and '-' not in phrase and '&' not in phrase and 'and' not in phrase.lower():
-                        wc[phrase] += 1
-                for i in range(len_words-2):
-                    phrase = words[i]+' '+words[i+1]+' '+words[i+2]
-                    if 'in' not in phrase.lower() and 'of' not in phrase.lower() and '-' not in phrase and '&' not in phrase and 'and' not in phrase.lower():
-                        wc[phrase] += 1
-                #pprint(wc.most_common(1))
-                print title, p.cats, p.key
+            depts = classify_product_department(site, p)
+            if not (set(depts) - set(CATS.keys())):
+                wrongs += 1
+                title = preprocess(title)
+                words = words_split.findall(title)
+                title = ' '.join(words)
+                for i in range(len(words)):
+                    phrase = u' '.join(words[i:])
+                    wc[phrase] += 1
+                from termcolor import colored
+                print title, colored('=>','red'), depts, p.title
     pprint(wc.most_common(1000))
-    print 1. * len(wc) / m.Product.objects.count() * 100, '%'
+    print 1. * wrongs / m.Product.objects.count() * 100, '%'
 
 def extract_pattern2():
     from feature import sites
@@ -402,13 +396,12 @@ def extract_pattern2():
                 continue
             title = p.title.strip().lower()
             if title:
-                words = title.split(u' ')
-                len_words = len(words) 
-                for i in range(len_words-1):
-                    if words[i] in [u'in', u'with']:
-                        phrase = u' '.join(words[i:])
-                        wc[phrase] += 1
-                sys.stdout.write('.')
+                title = preprocess(title)
+                words = words_split.findall(title)
+                for i in range(len(words)):
+                    phrase = u' '.join(words[i:])
+                    wc[phrase] += 1
+                sys.stdout.write(title+'\n')
                 sys.stdout.flush()   
 
     with open('wc_most_common','w') as f:
@@ -419,7 +412,10 @@ if __name__ == '__main__':
     #from crawlers.ideeli.models import Product
     #p = Product.objects.get(pk='2820350')
     #print classify_product_department('ideeli', p)
-    extract_pattern2()
-    #extract_pattern('beyondtherack')
+    #extract_pattern2()
+    from feature import sites
+    for site in sites:
+        extract_pattern(site)
     #test_product()
-    #load_rules() 
+    #for rule in load_rules()['0']:
+    #    print rule[0]

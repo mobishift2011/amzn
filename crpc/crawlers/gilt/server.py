@@ -361,7 +361,10 @@ class Server(object):
             if 'Starting Later Today' == headline:
                 nodes = sale_small.cssselect('div.elements-container > article.element')
                 for node in nodes:
-                    event, is_new, is_updated = self.parse_one_home_node(node, dept, ctx)
+                    ret = self.parse_one_home_node(node, dept, ctx)
+                    if ret is not None:
+                        event, is_new, is_updated = ret
+                    else: continue
 
                     if not event.sale_description:
                         events_begin, events_end, image, sale_description = self.get_home_future_events_begin_end(event.combine_url, event.event_id, ctx)

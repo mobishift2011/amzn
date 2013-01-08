@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """ We register every Greenlet here so we can kill them later on
 """
+from gevent import monkey; monkey.patch_all()
 import gevent
 
 class GHub(object):

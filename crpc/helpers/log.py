@@ -29,7 +29,7 @@ import logging.handlers
 
 def getlogger(name, filename='/tmp/crpc.log', level=logging.DEBUG):
     logger = logging.getLogger(name)
-    handler = logging.handlers.RotatingFileHandler(filename, maxBytes=2**30, backupCount=10)
+    handler = logging.handlers.RotatingFileHandler(filename, maxBytes=2**28, backupCount=10) # 256M/file
     handler.setFormatter(logging.Formatter("[%(asctime)s]<%(name)s>%(levelname)s:%(message)s", None))
     logger.addHandler(handler)
     logger.setLevel(level)

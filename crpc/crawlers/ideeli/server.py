@@ -222,17 +222,24 @@ class Server(object):
         for li in info.cssselect('ul > li'):
             list_info.append( li.text_content().strip() )
         summary, list_info = '; '.join(list_info), []
-        list_info = info.cssselect('p') # some products have mixed all list_info into summary
-        list_info = list_info[0].xpath('.//text()') if list_info else []
+        list_p = info.cssselect('p') # some products have mixed all list_info into summary
+        if list_p:
+            for i in list_p:
+                list_info.extend( i.xpath('.//text()') )
         list_info_revise = []
         idx = 0
         while idx < len(list_info):
-            if list_info[idx].strip()[-1] == ':' and idx+1 != len(list_info):
-                list_info_revise.append( ''.join((list_info[idx], list_info[idx+1])) )
-                idx += 2
-            else:
-                list_info_revise.append(list_info[idx])
+            if list_info[idx].strip() == '':
                 idx += 1
+            elif list_info[idx].strip()[-1] == ':' and idx+1 != len(list_info):
+                if list_info[idx+1].strip()[-1] == ':':
+                    idx += 1
+                else:
+                    list_info_revise.append( ''.join((list_info[idx], list_info[idx+1])) )
+                    idx += 2
+            else:
+                if list_info[idx].strip():
+                    list_info_revise.append(list_info[idx])
         images = nav.cssselect('div#offer_photo_and_desc > div#images_container_{0} > div.image_container > a.MagicZoom'.format(key))
         image_urls = []
         for image in images:

@@ -10,7 +10,6 @@ import traceback
 
 from backends.monitor.models import Task, Fail, fail
 from datetime import datetime, timedelta
-from gevent.event import Event
 from powers.routine import *
 
 logger = getlogger("crawlerlog")
@@ -30,7 +29,7 @@ def get_or_create_task(ctx):
 #        t.update(set__status=Task.RUNNING, set__updated_at=datetime.utcnow())
     return t
 
-@pre_general_update.bind
+@pre_general_update.bind('sync')
 def stat_pre_general_update(sender, **kwargs):
     site, method, dummy = sender.split('.')
     try:
@@ -44,7 +43,7 @@ def stat_pre_general_update(sender, **kwargs):
         fail(site, method, kwargs.get('key',''), kwargs.get('url',''), traceback.format_exc())
         
 
-@post_general_update.bind
+@post_general_update.bind('sync')
 def stat_post_general_update(sender, **kwargs):
     complete = kwargs.get('complete', False)
     reason = repr(kwargs.get('reason', 'undefined'))
@@ -74,7 +73,7 @@ def stat_post_general_update(sender, **kwargs):
         fail(site, method, key, url, traceback.format_exc())
 
 
-@common_saved.bind
+@common_saved.bind('sync')
 def stat_save(sender, **kwargs):
     logger.debug('{0} -> {1}'.format(sender,kwargs.items()))
     key = kwargs.get('key','')
@@ -105,7 +104,7 @@ def stat_save(sender, **kwargs):
                                             upsert=True)
 
 
-@common_failed.bind
+@common_failed.bind('sync')
 def stat_failed(sender, **kwargs):
     logger.error('{0} -> {1}'.format(sender,kwargs.items()))
     key  = kwargs.get('key', '')

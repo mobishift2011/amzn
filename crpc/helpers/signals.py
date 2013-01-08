@@ -73,8 +73,8 @@ class Processor(object):
         self.queues = {} # dict of Queues
         self.globalqueue = Queue()
         self.jobs = [
-            gevent.spawn(self._channel_listener),
             gevent.spawn(self._channel_singleton),
+            gevent.spawn(self._channel_listener),
             gevent.spawn(self._queued_executor),
             gevent.spawn_later(1, self._queue2pubsub_worker)
         ]
@@ -86,8 +86,8 @@ class Processor(object):
         """
         cbname = callback.__name__
         self._listeners[signal].add((callback, mode))
-        if signal not in self.queues:
-            self.queues[signal] = Queue()
+        #if signal not in self.queues:
+        #    self.queues[signal] = Queue()
         logger.debug("{signal!r} binded by <{cbname}>".format(**locals()))
 
     @classmethod
@@ -110,6 +110,12 @@ class Processor(object):
                 data = unpack(m['data'])
                 self._execute_callbacks(data['sender'], data['signal'], **data['kwargs'])
 
+    def _queued_executor(self):
+        """ callback that runs in a 'sync' mode """
+        #for signal, queue in self.queues.iteritems():
+        #    gevent.spawn(self.__queued_executor, queue)
+        gevent.spawn(self.__queued_executor, self.globalqueue)
+
     def _queue2pubsub_worker(self):
         """ Pop Message from List and Push to publish """
         while True:
@@ -118,14 +124,9 @@ class Processor(object):
                 channel, message = data
                 self.rc.publish(self.channel, message)
 
-    def _queued_executor(self):
-        """ callback that runs in a 'sync' mode """
-        for signal, queue in self.queues.iteritems():
-            gevent.spawn(self.__queued_executor, queue)
-        gevent.spawn(self.__queued_executor, self.globalqueue)
-
     def __queued_executor(self, queue):
         """ callback that runs in a 'sync' mode """
+        from gevent.queue import Empty
         while True:
             try:
                 cb, sender, kwargs = queue.get() 
@@ -144,8 +145,12 @@ class Processor(object):
                     elif mode == 'globalsync':
                         self.globalqueue.put((cb, sender, kwargs))
                     else:
-                        # put synchronous code into a queue executor
-                        self.queues[signal].put((cb, sender, kwargs))
+                        # put synchronous code into a queue executor based on sender
+                        site = sender.split('.', 1)[0]
+                        if site not in self.queues:
+                            self.queues[site] = Queue()
+                            gevent.spawn(self.__queued_executor, self.queues[site])
+                        self.queues[site].put((cb, sender, kwargs))
             except Exception as e:
                 logger.exception("Exception happened when executing callback")
                 logger.error("sender: {sender}, signal: {signal!r}, kwargs: {kwargs!r}".format(**locals()))
@@ -166,7 +171,7 @@ class Signal(object):
     def send(self, sender, **kwargs):
         data = {'kwargs':kwargs}
         Processor.send_message(sender, self._name, **kwargs)
-        
+
     def connect(self, callback, mode):
         with self._lock:
             do_connect = False

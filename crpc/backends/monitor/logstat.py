@@ -10,7 +10,6 @@ import traceback
 
 from backends.monitor.models import Task, Fail, fail
 from datetime import datetime, timedelta
-from powers.routine import *
 
 logger = getlogger("crawlerlog")
 

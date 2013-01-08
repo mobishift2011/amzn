@@ -88,13 +88,6 @@ def stat_save(sender, **kwargs):
         monitor_task[sender].update({ 'site': site,
                                       'method': method,
                                       'updated_at': utcnow, })
-#        Task.objects(ctx=sender).update_one(set__site=site,
-#                                            set__method=method,
-#                                            inc__num_fails=1,
-#                                            push__fails=fail(site, method, key, url, traceback.format_exc()),
-#                                            set__updated_at=datetime.utcnow(),
-#                                            upsert=True)
-
 
 @common_failed.bind('sync')
 def stat_failed(sender, **kwargs):
@@ -157,10 +150,13 @@ def dump_monitor_task_to_db():
         for key in pop_keys: monitor_task.pop(key)
         
 
-def buffer_task_then_dump_loop():
+def buffer_task_then_dump_to_db_loop():
     while True:
         time.sleep(60 * DUMP_INTERVAL)
         dump_monitor_task_to_db()
+
+# from logstat import * can execute this co-routine
+gevent.spawn(buffer_task_then_dump_to_db_loop)
 
 
 if __name__ == '__main__':

@@ -128,4 +128,4 @@ def stat_failed(sender, **kwargs):
                                             upsert=True)
 
 if __name__ == '__main__':
-    print 'logstat'
+    print 'logstat_nobuffer'

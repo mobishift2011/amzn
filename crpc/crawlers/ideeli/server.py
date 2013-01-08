@@ -226,7 +226,7 @@ class Server(object):
         if list_info_revise:
             for i in list_info_revise:
                 list_info.extend( i.xpath('.//text()') )
-        list_info = [i for i in list_info if i.strip()] # get rid of ' ' and \n
+        list_info = [i.strip() for i in list_info if i.strip()] # get rid of ' ' and \n
         list_info_revise = []
         idx = 0
         while idx < len(list_info):

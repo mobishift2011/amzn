@@ -221,17 +221,16 @@ class Server(object):
         list_info = []
         for li in info.cssselect('ul > li'):
             list_info.append( li.text_content().strip() )
-        summary, list_info = '; '.join(list_info), []
-        list_info_revise = info.cssselect('p') # some products have mixed all list_info into summary
+        summary, list_info = '; '.join(list_info), [] # some products have mixed all list_info into summary
+        list_info_revise = info.cssselect('p') # maybe one p label or 2, type list
         if list_info_revise:
             for i in list_info_revise:
                 list_info.extend( i.xpath('.//text()') )
+        list_info = [i for i in list_info if i.strip()] # get rid of ' ' and \n
         list_info_revise = []
         idx = 0
         while idx < len(list_info):
-            if list_info[idx].strip() == '':
-                idx += 1
-            elif idx+1 != len(list_info) and (list_info[idx].strip()[-1] == ':' or list_info[idx+1].strip()[0] == ':'):
+            if idx+1 != len(list_info) and (list_info[idx].strip()[-1] == ':' or list_info[idx+1].strip()[0] == ':'):
                 if list_info[idx+1].strip()[-1] == ':':
                     idx += 1
                 else:

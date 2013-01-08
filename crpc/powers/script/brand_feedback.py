@@ -39,8 +39,10 @@ def get_unextracted_brands(site):
 	print 'products with brand', len(known_set)
 	print 'products without brand', len(unknown_set)
 	print 'unextracted brands: ', len(c.keys())
+	f = open('feedback.txt', 'w')
 	for k, v in c.items():
 		print k, ':', v
+		f.write(k+'\n')
 	print
 	
 	return c, unknown_set

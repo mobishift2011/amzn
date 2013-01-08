@@ -7,7 +7,7 @@ from powers.routine import get_site_module
 from mongoengine import Q
 from collections import Counter
 from datetime import datetime
-import os
+import os, sys
 
 __module = {} 
 
@@ -50,12 +50,13 @@ def get_unextracted_brands(site):
 def feed(brands, unknowns):
 	pass
 
-def main():
-	sites = get_all_sites()
+def main(argv):
+	sites = get_all_sites() if not argv else [argv]
 	for site in sites:
 		__module[site] = get_site_module(site)
 		brands, unknowns = get_unextracted_brands(site)
 		feed(brands, unknowns)
 
 if __name__ == '__main__':
-	main()
+	argv = sys.argv[1] if len(sys.argv) > 1 else None
+	main(argv)

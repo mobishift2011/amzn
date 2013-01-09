@@ -16,7 +16,7 @@ from crawlers.common.events import *
 from backends.monitor.models import Task, fail
 from backends.monitor.setting import EXPIRE_MINUTES, DUMP_INTERVAL
 
-logger = getlogger('monitor', '/tmp/monitor')
+logger = getlogger('monitor', '/tmp/monitor.log')
 monitor_task = collections.defaultdict(dict)
 task_lock = Semaphore(1)
 

@@ -120,37 +120,41 @@ def dump_monitor_task_to_db():
     pop_keys = []
 
     with task_lock:
-        for sender, task in monitor_task.iteritems():
+        try:
+            for sender, task in monitor_task.iteritems():
 
-            # add finished task that can be delete from monitor_task in Memory
-            if 'ended_at' in task: # if bind is not 'sync': and 'updated_at' in task and task['ended_at'] - task['updated_at'] > timedelta(minutes=5):
-                pop_keys.append(sender)
-            elif utcnow - task['updated_at'] >= timedelta(minutes=EXPIRE_MINUTES):
-                task.update({'ended_at': utcnow})
-                pop_keys.append(sender)
-            else:
-                pass
+                # add finished task that can be delete from monitor_task in Memory
+                if 'ended_at' in task: # if bind is not 'sync': and 'updated_at' in task and task['ended_at'] - task['updated_at'] > timedelta(minutes=5):
+                    pop_keys.append(sender)
+                elif 'updated_at' in task and utcnow - task['updated_at'] >= timedelta(minutes=EXPIRE_MINUTES):
+                    task.update({'ended_at': utcnow})
+                    pop_keys.append(sender)
+                else:
+                    pass
 
-            # dump Memory to mongodb
-            Task.objects(ctx=sender).update_one(set__site=site,
-                                                set__method=method,
-                                                set__status=task['status'] if 'status' in task else None,
-                                                set__started_at=task['started_at'] if 'started_at' in task else utcnow,
-                                                set__updated_at=task['updated_at'] if 'updated_at' in task else utcnow,
-                                                set__ended_at=task['ended_at'] if 'ended_at' in task else None,
-                                                set__num_finish=task['num_finish'] if 'num_finish' in task else 0,
-                                                set__num_update=task['num_update'] if 'num_update' in task else 0,
-                                                set__num_new=task['num_new'] if 'num_new' in task else 0,
-                                                set__num_fails=task['num_fails'] if 'num_fails' in task else 0,
-                                                set__fails=[fail(*i) for i in task['fails']] if 'fails' in task else [],
-                                                upsert=True)
+                # dump Memory to mongodb
+                Task.objects(ctx=sender).update_one(set__site=task['site'],
+                                                    set__method=task['method'],
+                                                    set__status=task['status'] if 'status' in task else None,
+                                                    set__started_at=task['started_at'] if 'started_at' in task else utcnow,
+                                                    set__updated_at=task['updated_at'] if 'updated_at' in task else utcnow,
+                                                    set__ended_at=task['ended_at'] if 'ended_at' in task else None,
+                                                    set__num_finish=task['num_finish'] if 'num_finish' in task else 0,
+                                                    set__num_update=task['num_update'] if 'num_update' in task else 0,
+                                                    set__num_new=task['num_new'] if 'num_new' in task else 0,
+                                                    set__num_fails=task['num_fails'] if 'num_fails' in task else 0,
+                                                    set__fails=[fail(*i) for i in task['fails']] if 'fails' in task else [],
+                                                    upsert=True)
 
-        # delete finished task in monitor_task
-        for key in pop_keys: monitor_task.pop(key)
+            # delete finished task in monitor_task
+            for key in pop_keys: monitor_task.pop(key)
+        except Exception as e:
+            logger.exception(e.message)
         
 
 def buffer_task_dump_to_db_loop():
     while True:
+        logger.info(monitor_task)
         time.sleep(60 * DUMP_INTERVAL)
         dump_monitor_task_to_db()
 

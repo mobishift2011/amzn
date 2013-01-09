@@ -96,7 +96,7 @@ class Server(object):
             events_begin = self.convert_time( info['start_date'] )
             events_end = self.convert_time( info['end_date'] )
             _utcnow = datetime.utcnow()
-            sale_description = requests.get(info['info']).text.strip().replace('&mdash;', '—') if events_begin < _utcnow else ''
+            sale_description = requests.get(info['info']).text.strip().replace('&mdash;', '—'.decode('utf-8')) if events_begin < _utcnow else ''
 
             is_leaf = True
             # "Daily Deal" only have product on webpage, but whole process in API

@@ -11,7 +11,7 @@ import traceback
 from backends.monitor.models import Task, Fail, fail
 from datetime import datetime, timedelta
 
-logger = getlogger("crawlerlog")
+logger = getlogger('monitor', '/tmp/monitor')
 
 def get_or_create_task(ctx):
     """

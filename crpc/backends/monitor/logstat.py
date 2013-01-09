@@ -150,13 +150,13 @@ def dump_monitor_task_to_db():
         for key in pop_keys: monitor_task.pop(key)
         
 
-def buffer_task_then_dump_to_db_loop():
+def buffer_task_dump_to_db_loop():
     while True:
         time.sleep(60 * DUMP_INTERVAL)
         dump_monitor_task_to_db()
 
 # from logstat import * can execute this co-routine
-gevent.spawn(buffer_task_then_dump_to_db_loop)
+gevent.spawn(buffer_task_dump_to_db_loop)
 
 
 if __name__ == '__main__':

@@ -38,3 +38,6 @@ Pillow
 boto
 slumber==0.5.1
 esmre==0.3.1
+django-compressor==1.2
+jinja2==2.7
+tornado==2.4.1

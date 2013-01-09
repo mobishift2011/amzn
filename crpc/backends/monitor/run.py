@@ -3,8 +3,6 @@
 from gevent import monkey; monkey.patch_all()
 import gevent
 
-from helpers.log import getlogger
-logger = getlogger("monitor")
 from datetime import datetime
 import collections
 
@@ -55,6 +53,7 @@ def toggle_auto_scheduling(sender, **kwargs):
 # end binding
 
 gevent.spawn(Scheduler().run)
+
 
 while True:
     try:

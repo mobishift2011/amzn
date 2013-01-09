@@ -24,6 +24,7 @@ def delete_expire_task(expire_minutes=EXPIRE_MINUTES):
     expire_datetime = datetime.utcnow() - timedelta(minutes=expire_minutes)
     for t in Task.objects(status=Task.RUNNING, updated_at__lt=expire_datetime):
         t.status = Task.FAILED
+        t.ended_at = datetime.utcnow()
         t.save()
         task_broke_completed(t.site, t.method)
 

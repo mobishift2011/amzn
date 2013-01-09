@@ -8,7 +8,7 @@ from crawlers.common.stash import get_ordinary_crawlers
 
 from backends.monitor.throttletask import can_task_run, task_completed, is_task_already_running
 from backends.monitor.organizetask import detect_upcoming_new_schedule, arrange_new_schedule, arrange_update_schedule, smethod_time
-from backends.monitor.setting import EXPIRE_MINUTES, SCHEDULE_STATE
+from backends.monitor.setting import SCHEDULE_STATE
 from backends.monitor.executor import execute
 from backends.monitor.ghub import GHub
 

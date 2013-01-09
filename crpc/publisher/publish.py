@@ -171,7 +171,7 @@ class Publisher:
         '''
         now = datetime.utcnow()
         # for future events, don't publish non-leaf ones
-        return not ev.publish_time and ev.image_complete and \
+        return not ev.publish_time and ev.image_complete and ev.image_path and \
                 (ev.events_begin and ev.events_begin>now and ev.is_leaf != False or ev.propagation_complete \
                  and self.sufficient_products_ready_publish(ev, MINIMUM_PRODUCTS_READY))
     
@@ -226,7 +226,7 @@ class Publisher:
                     break
             if not allow_publish:
                 return False
-        return not prod.publish_time and prod.image_complete and prod.dept_complete
+        return not prod.publish_time and prod.image_complete and prod.image_path and prod.dept_complete
 
     def should_publish_product_upd(self, prod):
         '''condition for publishing product update (the product was published before).

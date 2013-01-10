@@ -609,7 +609,7 @@ class Server(object):
             return
 
         tree = lxml.html.fromstring(cont)
-        nodes = tree.cssselect('article.element-product')
+        nodes = tree.cssselect('div.elements-container > article.product-on-sale')
         for node in nodes:
             look_id = node.get('data-home-look-id')
             text = node.cssselect('section.product-details > header > hgroup')[0]

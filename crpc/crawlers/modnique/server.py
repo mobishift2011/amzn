@@ -139,6 +139,7 @@ class Server(object):
             for e in event_id_db:
                 if e.event_id not in event_id_page:
                     e.events_end = datetime.utcnow()
+                    e.update_history.update({ 'events_end': datetime.utcnow() })
                     e.save()
                     common_saved.send(sender=ctx, obj_type='Event', key=e.event_id, url=e.combine_url, is_new=False, is_updated=True)
 

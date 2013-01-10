@@ -194,7 +194,7 @@ class Server(object):
             common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
 
         # starting tomorrow
-        nodes = tree.cssselect('section#main > div.bottom-calendar-sales-container > section.calendar-sales > div.calendar-sales-container > div.calendar-sales')
+        nodes = tree.cssselect('section#main > div.bottom-calendar-sales-container > section.calendar-sales > div.calendar-sales-container > div.calendar-sales > article.sale')
         for node in nodes:
             ret = self.parse_one_node(node, dept, ctx)
             if ret is None: continue

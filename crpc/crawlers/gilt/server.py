@@ -174,6 +174,7 @@ class Server(object):
             common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
 
         # starting later. When today's upcoming on sale, this column disappear for a while
+        # this label not exist anymore, instead of starting tomorrow
         nodes = tree.cssselect('section#main > div.sales-container > section.sales-starting-later > article.sale')
         for node in nodes:
             ret = self.parse_one_node(node, dept, ctx)
@@ -188,6 +189,22 @@ class Server(object):
                     image, sale_title, sale_description, events_begin = ret
                     event.image_urls = image
                     event.sale_description = sale_description
+
+            event.save()
+            common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
+
+        # starting tomorrow
+        nodes = tree.cssselect('section#main > div.bottom-calendar-sales-container > section.calendar-sales > div.calendar-sales-container > div.calendar-sales')
+        for node in nodes:
+            ret = self.parse_one_node(node, dept, ctx)
+            if ret is None: continue
+            event, is_new, is_updated = ret
+            if not event.sale_description:
+                image, sale_title, sale_description, events_begin = self.get_picture_description(event.combine_url, ctx)
+                event.image_urls = image
+                event.sale_title = sale_title # some sale_title is too long to be omit by ...
+                event.sale_description = sale_description
+                event.events_begin = events_begin
 
             event.save()
             common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)

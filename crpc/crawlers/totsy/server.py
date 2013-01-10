@@ -160,7 +160,7 @@ class Server(object):
             tree = lxml.html.fromstring(content)
             nav = tree.cssselect('div#mainContent > section.event-landing > div.intro')[0]
             img = nav.cssselect('div > div.category-image > img')
-            sale_description = nav.cssselect('div.intro-content > p')[0].text_content()
+            sale_description = nav.cssselect('div.intro-content > p')[0].text_content().strip()
             if img:
                 event.image_urls = [ img[0].get('src') ]
             event.sale_description = sale_description

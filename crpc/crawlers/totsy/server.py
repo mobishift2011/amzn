@@ -147,9 +147,9 @@ class Server(object):
         """.. :py:method::
             parse every upcoming event node
         """
-        link = node.cssselect('span.echoShare')[0].get('data-producturl')
+        link = node.cssselect('div.thumbnail > a.event-link')[0].get('href')
         event_id = self.extract_event_id.match(link).group(1)
-        sale_title = node.cssselect('span.echoShare')[0].get('data-productname')
+        sale_title = node.cssselect('div.thumbnail > hgroup a')[0].text_content()
         text = node.cssselect('div.thumbnail > script')[0].text_content()
         begin = self.extract_events_end.search(text).group(2) # 'December 23, 2012, 8:00:00' the timezone when you regist
         utc_events_begin = datetime.strptime(begin, '%B %d, %Y, %X') - timedelta(hours=8) # -8 hours, set beijing to utc

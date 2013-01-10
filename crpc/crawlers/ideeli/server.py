@@ -121,7 +121,7 @@ class Server(object):
         img = img if img.startswith('http') else urllib.basejoin(self.event_img_prefix, img)
         brand = node.cssselect('div > span.event_grid_cta > b:first-of-type')[0].text_content()
         title = node.cssselect('div > span.event_grid_cta > span.title')[0].text_content().strip()
-        sale_title = brand + title if title else brand
+        sale_title = brand + ' ' + title if title else brand
         begin = node.cssselect('div > span.event_grid_cta > span.starts_in > span.starting_in_timer')[0].text_content()
         end = node.cssselect('div > span.event_grid_cta > span.ends_in > span.ending_soon_timer')[0].text_content()
         events_begin = datetime.utcfromtimestamp( float(begin) )
@@ -221,25 +221,24 @@ class Server(object):
         list_info = []
         for li in info.cssselect('ul > li'):
             list_info.append( li.text_content().strip() )
-        summary, list_info = '; '.join(list_info), []
-        list_p = info.cssselect('p') # some products have mixed all list_info into summary
-        if list_p:
-            for i in list_p:
+        summary, list_info = '; '.join(list_info), [] # some products have mixed all list_info into summary
+        list_info_revise = info.cssselect('p') # maybe one p label or 2, type list
+        if list_info_revise:
+            for i in list_info_revise:
                 list_info.extend( i.xpath('.//text()') )
+        list_info = [i.strip() for i in list_info if i.strip()] # get rid of ' ' and \n
         list_info_revise = []
         idx = 0
         while idx < len(list_info):
-            if list_info[idx].strip() == '':
-                idx += 1
-            elif list_info[idx].strip()[-1] == ':' and idx+1 != len(list_info):
+            if idx+1 != len(list_info) and (list_info[idx].strip()[-1] == ':' or list_info[idx+1].strip()[0] == ':'):
                 if list_info[idx+1].strip()[-1] == ':':
                     idx += 1
                 else:
                     list_info_revise.append( ''.join((list_info[idx], list_info[idx+1])) )
                     idx += 2
             else:
-                if list_info[idx].strip():
-                    list_info_revise.append(list_info[idx])
+                list_info_revise.append(list_info[idx])
+                idx += 1
         images = nav.cssselect('div#offer_photo_and_desc > div#images_container_{0} > div.image_container > a.MagicZoom'.format(key))
         image_urls = []
         for image in images:

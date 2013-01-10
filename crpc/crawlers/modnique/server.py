@@ -331,7 +331,9 @@ class Server(object):
         nodes = info.cssselect('div.tab_container > div#tab1 p')
         for node in nodes:
             text = node.text_content().strip()
+            if text.isdigit(): continue
             if text: list_info.append(text)
+
         brand = info.cssselect('div#tab4')[0].text_content().strip()
         returned = info.cssselect('div#tab5')[0].text_content().strip()
         return image_urls, shipping, list_info, brand, returned

@@ -391,7 +391,7 @@ class Server(object):
         debug_info.send(sender=DB + ".crawl_listing", url=self.siteurl + '/sales/' + event_id)
 
 
-    def crawl_product(self, url, ctx):
+    def crawl_product(self, url, ctx=''):
         """.. :py:method::
             Got all the product information and save into the database
 
@@ -476,7 +476,19 @@ class Server(object):
             product.era = m.group(1).strip()
 
         node = tree.cssselect('body > div#wrapper > div#okl-content')[0]
-        product.list_info = node.cssselect('div#productDetails > dl:first-of-type')[0].text_content().split('\n')
+        list_info = [i.strip() for i in node.xpath('./div[@id="productDetails"]/dl[1]//text()') if i.strip()]
+        idx = 0
+        while idx < len(list_info):
+            if idx+1 != len(list_info) and (list_info[idx][-1] == ':' or list_info[idx+1][0] == ':'):
+                if list_info[idx+1][-1] == ':':
+                    idx += 1
+                else:
+                    product.list_info.append( ''.join((list_info[idx], list_info[idx+1])) )
+                    idx += 2
+            else:
+                product.list_info.append(list_info[idx])
+                idx += 1
+
         # shippingDetails maybe under productDetails, maybe under first dl. endDate also have the same problem
         # shipping and endDate may not exist in: https://www.onekingslane.com/product/17014/405312
         shipping = node.cssselect('div#productDetails dl.shippingDetails')

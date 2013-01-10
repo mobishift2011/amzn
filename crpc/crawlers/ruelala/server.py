@@ -273,7 +273,10 @@ class Server(object):
         else:
             is_new = False
 
-        if dept not in event.dept: event.dept.append(dept)
+        if ("women's" in sale_title.lower() and dept == 'men') or ("women's" not in sale_title.lower() and "men's" in sale_title.lower() and dept == 'women'): # parent event both in men and women, but child in separate depts
+            pass
+        else:
+            if dept not in event.dept: event.dept.append(dept)
         event.update_time = datetime.utcnow()
         event.save()
         common_saved.send(sender=ctx, obj_type='Event', key=event_id, is_new=is_new, is_updated=False)

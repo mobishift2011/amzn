@@ -21,7 +21,6 @@ pycrypto==2.6
 pymongo>=2.4.1
 pytz>=2012f
 pyzmq==2.2.0.1
-pyzmq-static==2.2
 redis==2.7.1
 redisco==0.1.4
 requests==0.14.1
@@ -38,3 +37,9 @@ Pillow
 boto
 slumber==0.5.1
 esmre==0.3.1
+jinja2==2.7
+tornado==2.4.1
+termcolor==1.1.0
+webassets==0.8
+jsmin==2.0.2
+cssmin==0.1.4

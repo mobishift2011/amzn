@@ -9,8 +9,8 @@ from datetime import datetime, timedelta
 DB = "monitor"
 connect(db=DB, alias=DB, host=MONGODB_HOST, max_pool_size=50)
 
-def fail(site, method, key='', url='', message="undefined"):
-    f = Fail(site=site, method=method, key=key, url=url, message=message)
+def fail(site, method, key='', url='', message="undefined", time=datetime.utcnow()):
+    f = Fail(site=site, method=method, key=key, url=url, message=message, time=time)
     f.save()
     return f
 
@@ -130,7 +130,7 @@ class Task(Document):
 
     # meta
     meta        =   {
-        "indexes":  ["status", "site", "method", "started_at", "updated_at"],
+        "indexes":  ["status", "site", "method", "started_at", "updated_at", "ended_at"],
         "db_alias": DB,
     }
 
@@ -143,6 +143,7 @@ class Task(Document):
             'status':       Task.inverse_status(self.status),
             'started_at':   self.started_at.isoformat() if self.started_at else 'undefined',
             'updated_at':   self.updated_at.isoformat() if self.updated_at else 'undefined',
+            'ended_at':     self.ended_at.isoformat() if self.ended_at else 'undefined',
             'fails':        self.num_fails,
             'dones':        self.num_finish,
             'updates':      self.num_update,

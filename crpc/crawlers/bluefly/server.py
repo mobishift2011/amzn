@@ -284,6 +284,7 @@ class Server(object):
             if soldout and product.soldout != soldout:
                 product.soldout = True
                 is_updated = True
+                product.update_history.update({ 'soldout': datetime.utcnow() })
         if listprice and not product.listprice: product.listprice = listprice
         if price and not product.price: product.price = price
         if category_key not in product.category_key: product.category_key.append(category_key)

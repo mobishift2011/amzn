@@ -410,12 +410,13 @@ def process_common_saved(sender, **kwargs):
     '''signa handler for common_saved. Currently common_saved
     signal is only useful in publisher to monitor soldout updates.
     '''
-    is_update = kwargs.get('is_update')
+    is_update = kwargs.get('is_updated')
     if not is_update:
         return # obj is not ready for publishing
     
     site = sender_to_site(sender)
     obj_type = kwargs.get('obj_type')
+    key = kwargs.get('key')
     
     if obj_type == 'Product':
         p.try_publish_product_update(site, key, ['soldout'], forced=True)

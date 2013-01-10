@@ -155,26 +155,27 @@ class Server(object):
         for prodNode in products:
             is_updated = False
             key = str(prodNode['productFamilyId'])
+            soldout =  prodNode.get('isSoldOut')
             product, is_new = Product.objects.get_or_create(key=key)
-            
-            if not is_new:
-                # is_updated = (product.price != prodNode.get('formattedPrice')) or is_updated
-                is_updated = (product.soldout != prodNode.get('isSoldOut')) or is_updated
-            
-            product.title =  prodNode.get('name')
-            product.price = prodNode.get('formattedPrice')
-            product.listprice = prodNode.get('formattedMsrp')
-            product.soldout =  prodNode.get('isSoldOut')
-            if event_id not in product.event_id:
-                product.event_id.append(event_id)
             if is_new:
+                product.title =  prodNode.get('name')
+                product.price = prodNode.get('formattedPrice')
+                product.listprice = prodNode.get('formattedMsrp')
+                product.soldout = soldout
                 product.combine_url = 'https://us.venteprivee.com/main/#/product/%s/%s' % (event_id, product.key)
                 product.updated = False
+            else:
+                # is_updated = (product.price != prodNode.get('formattedPrice')) or is_updated
+                if soldout and product.soldout != True:
+                    product.soldout = True
+                    is_updated = True
+                    product.update_history.update({ 'soldout': datetime.utcnow() })
+            if event_id not in product.event_id: product.event_id.append(event_id)
             product.list_update_time = datetime.datetime.utcnow()
             product.save()
             
             debug_info.send(sender=DB+'.listing.product.{0}.crawled'.format(product.key))
-            common_saved.send(sender=ctx, obj_type='Product', key=product.key, url=url, is_new=is_new, is_updated=(not is_new) and is_updated)
+            common_saved.send(sender=ctx, obj_type='Product', key=product.key, url=url, is_new=is_new, is_updated=is_updated)
         
         ready = False
         event = Event.objects.get(event_id=event_id)

@@ -324,7 +324,7 @@ class Server(object):
         for img in imgs:
             image_urls.append( img.cssselect('a')[0].get('href') )
         cont = nav.cssselect('div.product-main > div > div.product-content')[0]
-        summary = cont.cssselect('div.product_desc')[0].text.strip()
+        # summary = cont.cssselect('div.product_desc')[0].text.strip()
         list_info = []
         for s in cont.xpath('div[@class="product_desc"]/text()'):
             if s.strip(): list_info.append( s.strip() )
@@ -335,8 +335,8 @@ class Server(object):
 
         ship = cont.cssselect('div#shipping-returns')
         if not ship: ship = cont.cssselect('div#shipping')
-        shipping = ship[0].cssselect('p:first-of-type')[0].text_content()
-        returned = ship[0].cssselect('p:nth-of-type(2)')[0].text_content()
+        shipping = ship[0].cssselect('p:first-of-type')[0].text_content() if ship else ''
+        returned = ship[0].cssselect('p:nth-of-type(2)')[0].text_content() if ship else ''
         return image_urls, summary, list_info, shipping, returned
 
     def save_product_detail(self, key, image_urls, summary, list_info, shipping, returned):
@@ -358,7 +358,5 @@ class Server(object):
 
 
 if __name__ == '__main__':
+    Server().crawl_product('http://www.totsy.com/sales/last-chance-youth-footwear/girls-burlap-slip-on.html')
     Server().crawl_listing('http://www.totsy.com/sales/girls-sets-under-6-blowout.html')
-    Server().crawl_listing('http://www.totsy.com/sales/jewelry-blowout.html')
-    Server().crawl_listing('http://www.totsy.com/sales/healthy-surprise-1.html')
-    Server().crawl_listing('http://www.totsy.com/sales/whitening-lightning-dec.html')

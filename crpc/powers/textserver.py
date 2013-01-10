@@ -18,6 +18,7 @@ from datetime import datetime
 import re
 from os import listdir
 from os.path import join, isdir
+from titlecase import titlecase
 
 from helpers.log import getlogger
 logger = getlogger('textserver', filename='/tmp/textserver.log')
@@ -34,6 +35,30 @@ class TextServer(object):
             path = join(CRPC_ROOT, "crawlers", name)
             if name not in exclude_crawlers and isdir(path):
                 self.__m[name] = __import__("crawlers."+name+'.models', fromlist=['Event', 'Product'])
+
+    def __extract_text(self, product):
+        """
+        Do some text data cleaning and standardized processing on the product,
+        such as titlecase, html tag remove and so on.
+        """
+        # This filter changes all title words to Title Caps,
+        # and attempts to be clever about uncapitalizing SMALL words like a/an/the in the input.
+        if product.title:
+            product.title = titlecase(product.title)
+
+        # Clean the html tag.
+        pattern = r'<[^>]*>'
+
+        if product.list_info:
+            str_info = '\n\n\n'.join(product.list_info)
+            product.list_info = re.sub(pattern, ' ', str_info).split('\n\n\n')
+
+        if product.shipping:
+            product.shipping = re.sub(pattern, ' ', product.shipping)
+
+        if product.returned:
+            product.returned = re.sub(pattern, ' ', product.returned)
+            product.returned = product.returned.replace('\r\n', ' ')
 
     def __extract_price(self, product, flags):
         if not product.favbuy_price:
@@ -82,13 +107,17 @@ class TextServer(object):
 
         favbuy_dept = classify_product_department(site, product)
         product.favbuy_dept = favbuy_dept
-        product.dept_complete = bool(favbuy_dept)
+        product.dept_complete = True # bool(favbuy_dept)
 
         if product.dept_complete:
             flags['favbuy_dept'] = True
             logger.info('{0}.product.{1} extract dept OK -> {2}'.format(site, product.key, product.favbuy_dept))
         else:
             logger.error('{0}.product.{1} extract dept Failed'.format(site, product.key))
+
+        # I don't know where to add this statement, \
+        # just ensure that it'll be executed once when the product is crawled at the first time.
+        self.__extract_text(product)
 
     def extract_text(self, args=(), kwargs={}):
         """

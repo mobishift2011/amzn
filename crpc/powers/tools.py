@@ -279,25 +279,6 @@ class Propagator(object):
             try:
                 print 'start to propogate from  %s product %s' % (self.site, product.key)
 
-                # This filter changes all title words to Title Caps,
-                # and attempts to be clever about uncapitalizing SMALL words like a/an/the in the input.
-                if product.title:
-                    product.title = titlecase(product.title)
-
-                # Clean the html tag.
-                pattern = r'<[^>]*>'
-
-                if product.list_info:
-                    str_info = '\n\n\n'.join(product.list_info)
-                    product.list_info = re.sub(pattern, ' ', str_info).split('\n\n\n')
-
-                if product.shipping:
-                    product.shipping = re.sub(pattern, ' ', product.shipping)
-
-                if product.returned:
-                    product.returned = re.sub(pattern, ' ', product.returned)
-                    product.returned = product.returned.replace('\r\n', ' ')
-
                 # Tag, Dept extraction and propagation
                 if product.favbuy_tag:
                     tags = tags.union(product.favbuy_tag)

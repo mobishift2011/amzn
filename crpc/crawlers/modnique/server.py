@@ -139,6 +139,7 @@ class Server(object):
             for e in event_id_db:
                 if e.event_id not in event_id_page:
                     e.events_end = datetime.utcnow()
+                    e.update_history.update({ 'events_end': datetime.utcnow() })
                     e.save()
                     common_saved.send(sender=ctx, obj_type='Event', key=e.event_id, url=e.combine_url, is_new=False, is_updated=True)
 
@@ -269,6 +270,7 @@ class Server(object):
                 if soldout and product.soldout != True:
                     product.soldout = True
                     is_updated = True
+                    product.update_history.update({ 'soldout': datetime.utcnow() })
             if event_id not in product.event_id: product.event_id.append(event_id)
             product.list_update_time = datetime.utcnow()
             product.save()

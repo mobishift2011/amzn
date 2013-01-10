@@ -322,9 +322,11 @@ class Server(object):
             if product.price != special_price:
                 product.price = special_price
                 is_updated = True
+                product.update_history.update({ 'price': datetime.utcnow() })
             if soldout and product.soldout != True:
                 product.soldout = True
                 is_updated = True
+                product.update_history.update({ 'soldout': datetime.utcnow() })
         product.list_update_time = datetime.utcnow()
         product.save()
         common_saved.send(sender=ctx, obj_type='Product', key=slug, url=self.siteurl + '/e/' + event_id + '.html', is_new=is_new, is_updated=is_updated)

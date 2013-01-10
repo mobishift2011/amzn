@@ -186,7 +186,7 @@ class Server(object):
         
         debug_info.send(sender=DB+'.listing.{0}.end'.format(url))
 
-    def crawl_product(self, url, ctx):
+    def crawl_product(self, url, ctx=''):
         """.. :py:method::
             Got all the product information and save into the database
         :param url: product url, with product id
@@ -223,7 +223,11 @@ class Server(object):
         product.shipping = '; '.join( res.get('estimatedDeliveryDates') )
         list_info_tree = lxml.html.fromstring( res.get('description') )
         list_info = list_info_tree.xpath('.//div[@class="FTCopierColler_RDV"]/dl[@class="ftBloc"]/dt[contains(text(), "Description")]')
-        list_info = list_info_tree.xpath('.//div[@class="FTCopierColler_RDV"]/dl[@class="ftBloc"]/dt[contains(text(), "Features")]')[0].getnext() if not list_info else list_info[0].getnext()
+        if not list_info:
+            list_info = list_info_tree.xpath('.//div[@class="FTCopierColler_RDV"]/dl[@class="ftBloc"]/dt[contains(text(), "Features")]')
+            list_info = list_info[0].getnext() if list_info else []
+        else:
+            list_info = list_info[0].getnext()
         if not list_info: # After Description, it is </dl>
             list_info = []
             for ii in list_info_tree.xpath('.//div[@class="FTCopierColler_RDV"]/dl[@class="ftBloc"]'):
@@ -231,6 +235,7 @@ class Server(object):
             product.list_info = list_info
         else:
             product.list_info = list_info.xpath('.//text()')
+
 #        product.sizes = []#res.get('sizes')    # TODO
 #        product.sizes_scarcity = [] # TODO
         temp_updated = product.updated

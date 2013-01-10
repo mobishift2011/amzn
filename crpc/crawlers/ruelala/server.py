@@ -109,7 +109,7 @@ class Server(object):
         categorys = ['women', 'men', 'living', 'kids', 'gifts']
         for category in categorys:
             url = 'http://www.ruelala.com/category/{0}'.format(category)
-            if category == 'gifts':
+            if category == 'gifts': # gifts not exist anymore
                 self._get_gifts_event_list(category, url, ctx)
             else:
                 self._get_event_list(category, url, ctx)

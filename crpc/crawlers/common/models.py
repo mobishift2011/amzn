@@ -29,6 +29,9 @@ class BaseDocumentSkeleton(object):
     sale_title          =   StringField()
     sale_description    =   StringField()
 
+    # {soldout: datetime.datetime(2013, 1, 10, 9, 11, 57, 484147)}
+    update_history      =   DictField()
+
 
 class BaseCategory(Document, BaseDocumentSkeleton):
     """ :py:class:crawlers.common.models.BaseCategory
@@ -137,6 +140,7 @@ class BaseProduct(Document):
     updated             =   BooleanField(default=False) # after product is fully crawled, updated is True
     list_update_time    =   DateTimeField(default=datetime.utcnow)
     full_update_time    =   DateTimeField()
+    update_history      =   DictField()
 
     # dimension info
     category_key        =   ListField(StringField()) # like event_id, but in category

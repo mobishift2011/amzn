@@ -131,6 +131,7 @@ class Server(object):
             if prd['is_soldout'] and product.soldout != True:
                 product.soldout = True
                 is_updated = True
+                product.update_history.update({ 'soldout': datetime.utcnow() })
 
         if prd['type'] not in product.dept: product.dept.append(prd['type'])
         _utcnow = datetime.utcnow()

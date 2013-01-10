@@ -18,7 +18,7 @@ def upcoming_events(data=collections.defaultdict(dict)):
             col = connection[crawler].collection_names()
             if 'event' in col:
                 if crawler not in data['upcoming']: data['upcoming'][crawler] = {}
-                upcoming = connections[crawler].event.find({'events_begin': {'$gte': datetime.utcnow()}}, fields=['events_begin'])
+                upcoming = connection[crawler].event.find({'events_begin': {'$gte': datetime.utcnow()}}, fields=['events_begin'])
                 for e in upcoming:
                     if e['events_begin'] not in data['upcoming'][crawler]:
                         data['upcoming'][crawler][e['events_begin']] = 0
@@ -33,7 +33,7 @@ def ending_events(data=collections.defaultdict(dict)):
             col = connection[crawler].collection_names()
             if 'event' in col:
                 if crawler not in data['ending']: data['ending'][crawler] = {}
-                ending = connections[crawler].event.find({'events_end': {'$gte': datetime.utcnow()}}, fields=['events_end'])
+                ending = connection[crawler].event.find({'events_end': {'$gte': datetime.utcnow()}}, fields=['events_end'])
                 for e in ending:
                     if e['events_end'] not in data['ending'][crawler]:
                         data['ending'][crawler][e['events_end']] = 0

@@ -158,7 +158,7 @@ class Server(object):
             product, is_new = Product.objects.get_or_create(key=key)
             
             if not is_new:
-                is_updated = (product.price != prodNode.get('formattedPrice')) or is_updated
+                # is_updated = (product.price != prodNode.get('formattedPrice')) or is_updated
                 is_updated = (product.soldout != prodNode.get('isSoldOut')) or is_updated
             
             product.title =  prodNode.get('name')
@@ -200,15 +200,9 @@ class Server(object):
         key = str(res.get('productFamilyId'))
         
         product, is_new = Product.objects.get_or_create(key=key)
-#        if not is_new:
-#            is_updated = (product.price != res.get('formattedPrice')) or is_updated
-#            is_updated = (product.soldout != res.get('isSoldOut')) or is_updated
-        
+
         product.title = res.get('name')
         product.brand = res.get('operationName')
-#        if is_new:
-#            # TODO
-#            product.combine_url = 'https://us.venteprivee.com/main/#/product/%s/%s' % (event_id, product.key)
         product.listprice = res.get('formattedMsrp')
         product.price = res.get('formattedPrice')
         for det in res.get('media').get('det'):

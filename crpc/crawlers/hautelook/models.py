@@ -17,7 +17,6 @@ DB = 'hautelook'
 connect(db=DB, alias=DB, host=MONGODB_HOST)
 
 class Event(BaseEvent):
-    sort_order  = StringField()
     tagline     = ListField(StringField(), default=list)
 
     meta = {

@@ -121,13 +121,7 @@ class Server(object):
                 event.tagline = tagline
                 event.urgent = True
                 event.combine_url = 'http://www.hautelook.com/event/{0}'.format(event_id)
-
-                event.sort_order = info['sort_order']
-                if not is_leaf: event.is_leaf = False
-            else:
-                if info['sort_order'] != event.sort_order:
-                    event.sort_order = info['sort_order']
-                    is_updated = True
+                event.is_leaf = is_leaf
             if sale_description and not event.sale_description:
                 event.sale_description = sale_description
             if grid_img not in event.image_urls: event.image_urls.append(grid_img)
@@ -208,12 +202,15 @@ class Server(object):
                 product.event_id = [event_id]
                 product.updated = False
                 product.scarcity = scarcity
+                if scarcity == '0': product.soldout = True
                 product.combine_url = 'http://www.hautelook.com/product/{0}'.format(key)
             else:
                 if product.scarcity != scarcity:
                     product.scarcity = scarcity
                     if int(scarcity) < 1:
+                        product.soldout = True
                         is_updated = True
+                        product.update_history.update({ 'soldout': datetime.utcnow() })
                 if event_id not in product.event_id: product.event_id.append(event_id)
             product.list_update_time = datetime.utcnow()
             product.save()

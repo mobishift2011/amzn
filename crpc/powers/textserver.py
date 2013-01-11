@@ -81,6 +81,7 @@ class TextServer(object):
         if brand:
             product.favbuy_brand = brand
             product.brand_complete=True
+            product.update_history['favbuy_brand'] = datetime.utcnow()
             flags['favbuy_brand'] = True
             logger.info('{0}.product.{1} extract brand {2} -> {3} OK'.format(site, product.key, crawled_brand, brand))
         else:
@@ -97,6 +98,7 @@ class TextServer(object):
 
         if product.tag_complete:
             flags['favbuy_tag'] = True
+            product.update_history['favbuy_tag'] = datetime.utcnow()
             logger.info('{0}.product.{1} extract tag OK -> {2}'.format(site, product.key, product.favbuy_tag))
         else:
             logger.warning('{0}.product.{1} extract tag Failed'.format(site, product.key))
@@ -110,6 +112,7 @@ class TextServer(object):
         product.dept_complete = True # bool(favbuy_dept)
 
         if product.dept_complete:
+            product.update_history['favbuy_dept'] = datetime.utcnow()
             flags['favbuy_dept'] = True
             logger.info('{0}.product.{1} extract dept OK -> {2}'.format(site, product.key, product.favbuy_dept))
         else:
@@ -163,8 +166,6 @@ class TextServer(object):
         res = {}
         fields = [key for key in flags if flags[key]]
         if fields:
-            if product.publish_time:
-                product.favbuy_text_update_time = datetime.utcnow()
             product.save()
 
             res['event_id'] = product.event_id or []

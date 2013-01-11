@@ -44,4 +44,8 @@ if __name__ == '__main__':
     data = collections.defaultdict(dict)
     upcoming_events(data)
     ending_events(data)
-    print data
+    import pprint
+    print '\nUpcoming:'
+    pprint.pprint( data['upcoming'] )
+    print '\nEnding soon:'
+    pprint.pprint( data['ending'] )

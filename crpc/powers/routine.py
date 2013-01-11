@@ -211,15 +211,21 @@ def extract_and_propagate(rpc, method, event_dict, *args, **kwargs):
 
         for key in fields:
             value = fields[key]
-            values = set(value) if hasattr(value, '__iter__') else set([value])
-            setattr(instance, key, list(set(getattr(instance, key)) | values))
-        event['propagation_updated'] = True
+            values = value if hasattr(value, '__iter__') else [value]
+            attribute = getattr(instance, key)
+            new_attr = [attribute.append(v) for v in values if v not in attribute]
+
+            if len(attribute) == len(new_attr):
+                continue
+
+            setattr(instance, key, new_attr)
+            event.update_history.update({key: datetime.utcnow()})
+            event['propagation_updated'] = True       
 
 def update_propation(event_dict, site):
     for event_id in event_dict:
         event = event_dict[event_id]
         if event['propagation_updated']:
-            event['event'].favbuy_text_update_time = datetime.utcnow()
             event['event'].save()
 
 

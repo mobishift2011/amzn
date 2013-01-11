@@ -20,7 +20,7 @@ from boto.s3.connection import S3Connection
 
 from hashlib import md5
 import os
-import re
+import re, htmlentitydefs
 import json
 import requests
 import urllib
@@ -279,25 +279,6 @@ class Propagator(object):
             try:
                 print 'start to propogate from  %s product %s' % (self.site, product.key)
 
-                # This filter changes all title words to Title Caps,
-                # and attempts to be clever about uncapitalizing SMALL words like a/an/the in the input.
-                if product.title:
-                    product.title = titlecase(product.title)
-
-                # Clean the html tag.
-                pattern = r'<[^>]*>'
-
-                if product.list_info:
-                    str_info = '\n\n\n'.join(product.list_info)
-                    product.list_info = re.sub(pattern, ' ', str_info).split('\n\n\n')
-
-                if product.shipping:
-                    product.shipping = re.sub(pattern, ' ', product.shipping)
-
-                if product.returned:
-                    product.returned = re.sub(pattern, ' ', product.returned)
-                    product.returned = product.returned.replace('\r\n', ' ')
-
                 # Tag, Dept extraction and propagation
                 if product.favbuy_tag:
                     tags = tags.union(product.favbuy_tag)
@@ -360,6 +341,7 @@ class Propagator(object):
             return self.event.propagation_complete
 
         if self.event.sale_title:
+            self.event.sale_title = unescape(self.event.sale_title)
             self.event.sale_title = titlecase(self.event.sale_title)
         self.event.favbuy_brand = list(event_brands)
         self.event.brand_complete = True
@@ -388,6 +370,30 @@ class Propagator(object):
 
         return self.event.propagation_complete
 
+# Removes HTML or XML character references and entities from a text string.
+#
+# @param text The HTML (or XML) source text.
+# @return The plain text, as a Unicode string, if necessary.
+def unescape(text):
+    def fixup(m):
+        text = m.group(0)
+        if text[:2] == "&#":
+            # character reference
+            try:
+                if text[:3] == "&#x":
+                    return unichr(int(text[3:-1], 16))
+                else:
+                    return unichr(int(text[2:-1]))
+            except ValueError:
+                pass
+        else:
+            # named entity
+            try:
+                text = unichr(htmlentitydefs.name2codepoint[text[1:-1]])
+            except KeyError:
+                pass
+        return text # leave as is
+    return re.sub("&#?\w+;", fixup, text)
 
 def test_image():
     conn = S3Connection(AWS_ACCESS_KEY, AWS_SECRET_KEY)

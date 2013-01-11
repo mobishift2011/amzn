@@ -235,13 +235,13 @@ class Publisher:
         return prod.publish_time and update_time and prod.publish_time < update_time
         
     def ev_updflds_for_publish(self, ev):
-        return [flds for fld in ev.update_history.keys() if ev.update_history[fld]>ev.publish_time] if ev.update_history else []
+        return [fld for fld in ev.update_history.keys() if ev.update_history[fld]>ev.publish_time] if ev.update_history else []
         
     def prod_updflds_for_publish(self, prod):
-        return [flds for fld in prod.update_history.keys() if prod.update_history[fld]>prod.publish_time] if prod.update_history else []
+        return [fld for fld in prod.update_history.keys() if prod.update_history[fld]>prod.publish_time] if prod.update_history else []
         
     ALL_EVENT_PUBLISH_FIELDS = ["sale_title", "sale_description", "events_end", "events_begin",
-                                "image_path", "soldout", "favbuy_tag", "favbuy_brand", "favbuy_dept"]
+                                "image_path", "favbuy_tag", "favbuy_brand", "favbuy_dept"]
     def publish_event(self, ev, upd=False, fields=[]):
         '''publish event data to the mastiff service.
         
@@ -253,7 +253,6 @@ class Publisher:
         '''
         try:
             m = obj_to_module(ev)
-            soldout = m.Product.objects(event_id=ev.event_id, soldout=False).count()==0
             site = obj_to_site(ev)
             if not upd:
                 fields = self.ALL_EVENT_PUBLISH_FIELDS
@@ -267,7 +266,7 @@ class Publisher:
                 elif f=="events_end": ev_data['ends_at'] = obj_getattr(ev, 'events_end', datetime.utcnow()+timedelta(days=7)).isoformat()
                 elif f=="events_begin": ev_data['starts_at'] = obj_getattr(ev, 'events_begin', datetime.utcnow()).isoformat()
                 elif f=="image_path": ev_data['cover_image'] = ev['image_path'][0] if ev['image_path'] else {}
-                elif f=="soldout": ev_data['soldout'] = soldout
+                elif f=="soldout": ev_data['soldout'] = m.Product.objects(event_id=ev.event_id, soldout=False).count()==0
                 elif f=="favbuy_tag": ev_data['tags'] = ev.favbuy_tag
                 elif f=="favbuy_brand": ev_data['brands'] = ev.favbuy_brand
                 elif f=="favbuy_dept": ev_data['departments'] = ev.favbuy_dept
@@ -308,7 +307,7 @@ class Publisher:
             if not upd:
                 fields = self.ALL_PRODUCT_PUBLISH_FIELDS
             elif not fields:
-                fields = self.prod_updflds_for_publish(ev)
+                fields = self.prod_updflds_for_publish(prod)
 
             pdata = {}
             for f in fields:
@@ -463,7 +462,8 @@ if __name__ == '__main__':
     parser.add_option('-c', '--cmd', dest='cmd', help='command of the signal(update, initial, all)', default='')
     parser.add_option('--mput', dest='mput', action="store_true", help='publish to mastiff service', default=False)
     parser.add_option('--upd', dest='upd', action="store_true", help='update mode(mput only)', default=False)
-    parser.add_option('--mget', dest='mget', action="store_true", help='get published result back from mastiff service', default=False)    
+    parser.add_option('--mget', dest='mget', action="store_true", help='get published result back from mastiff service', default=False)
+    parser.add_option('--fixtime', dest='fixtime', action="store_true", help='fix publish time', default=False)   
     parser.add_option('-s', '--site', dest='site', help='site info', default='')
     parser.add_option('-e', '--ev', dest='ev', help='event id', default='')
     parser.add_option('-p', '--prod', dest='prod', help='product id', default='')        
@@ -511,7 +511,17 @@ if __name__ == '__main__':
             pprint(p.mget_event(options.site, options.ev))
         elif options.site and options.prod:
             pprint(p.mget_product(options.site, options.prod))
-
+    elif options.fixtime:
+        if options.site and options.ev:
+            m = get_site_module(options.site)        
+            ev = m.Event.objects.get(event_id=options.ev)
+            ev.publish_time = datetime.utcnow()
+            ev.save()
+        elif options.site and options.prod:
+            m = get_site_module(options.site)        
+            prod = m.Event.objects.get(key=options.prod)
+            prod.publish_time = datetime.utcnow()
+            prod.save()
     else:
         parser.print_help()
 

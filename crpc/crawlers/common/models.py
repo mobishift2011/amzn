@@ -86,7 +86,6 @@ class BaseEvent(Document, BaseDocumentSkeleton):
     propagation_complete=   BooleanField(default=False)
     propagation_time    =   DateTimeField()
     publish_time        =   DateTimeField()
-    favbuy_text_update_time = DateTimeField()
 
     favbuy_brand        =   ListField(StringField(), default=list)
     favbuy_tag          =   ListField(StringField(), default=list)
@@ -101,7 +100,7 @@ class BaseEvent(Document, BaseDocumentSkeleton):
     meta = {
         "allow_inheritance": True,
         "collection": "event",
-        "indexes": ["urgent", "events_begin", "events_end", "soldout", "event_id", "is_leaf", "favbuy_text_update_time"],
+        "indexes": ["urgent", "events_begin", "events_end", "soldout", "event_id", "is_leaf",],
     }
 
 
@@ -178,7 +177,6 @@ class BaseProduct(Document):
     tag_complete        =   BooleanField(default=False)
     dept_complete       =   BooleanField(default=False)
     publish_time        =   DateTimeField()
-    favbuy_text_update_time = DateTimeField()
 
     favbuy_brand        =   StringField(default='')
     favbuy_tag          =   ListField(StringField(), default=list)
@@ -190,7 +188,7 @@ class BaseProduct(Document):
     meta                =   {
         "allow_inheritance": True,
         "collection": "product",
-        "indexes":  ["key", "list_update_time", "full_update_time", "model", "brand", "updated", "favbuy_text_update_time"],
+        "indexes":  ["key", "list_update_time", "full_update_time", "model", "brand", "updated"],
     }
 
     def url(self):

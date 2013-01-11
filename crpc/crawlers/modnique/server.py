@@ -250,7 +250,7 @@ class Server(object):
 #            except AttributeError:
 #                pass
             title = node.cssselect('div.item_thumb2 > div.itemTitle > h6.neutral')[0].text_content().strip()
-            link = node.cssselect('div.item_thumb2 > div#itemThumb > a[href]')[0].get('href')
+            link = node.cssselect('div.item_thumb2 > div.hd > a.item_link')[0].get('href')
             link = link if link.startswith('http') else self.siteurl + link
             slug, key = self.extract_slug_product.match(link).groups()
 
@@ -389,6 +389,7 @@ class Server(object):
 
 
 if __name__ == '__main__':
+    Server().crawl_listing('http://www.modnique.com/saleevent/Put-More-Style-in-Your-Step/9534/seeac/gseeac')
     import zerorpc
     from settings import CRAWLER_PEERS
     server = zerorpc.Server(Server(), heartbeat=None)

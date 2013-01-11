@@ -15,11 +15,12 @@ from crawlers.common.crawllog import debug_info
 from crawlers.common.stash import *
 from models import *
 
-import datetime, time
+import time
 import pytz
 import random
 import lxml.html
 import zerorpc
+from datetime import datetime
 
 req = requests.Session(prefetch=True, timeout=30, config=config, headers=headers)
 
@@ -123,12 +124,12 @@ class Server(object):
                 if image_url not in event.image_urls:
                     event.image_urls.append(image_url)
             event.sale_description = sale.get('brandDescription')
-            event.events_begin = pytz.timezone('US/Eastern').localize(datetime.datetime.strptime(sale.get('startDate'), '%Y-%m-%dT%H:%M:%S')).astimezone(pytz.utc)
-            event.events_end = pytz.timezone('US/Eastern').localize(datetime.datetime.strptime(sale.get('endDate'), '%Y-%m-%dT%H:%M:%S')).astimezone(pytz.utc)
+            event.events_begin = pytz.timezone('US/Eastern').localize(datetime.strptime(sale.get('startDate'), '%Y-%m-%dT%H:%M:%S')).astimezone(pytz.utc)
+            event.events_end = pytz.timezone('US/Eastern').localize(datetime.strptime(sale.get('endDate'), '%Y-%m-%dT%H:%M:%S')).astimezone(pytz.utc)
             event.type = sale.get('type')
             event.dept = [] # TODO cannot get the info
             event.urgent = is_new or event.urgent
-            event.update_time = datetime.datetime.utcnow()
+            event.update_time = datetime.utcnow()
             event.save()
             
             debug_info.send(sender=DB+'.event.{0}.end'.format(sale.get('name').encode('utf-8')))
@@ -171,7 +172,7 @@ class Server(object):
                     is_updated = True
                     product.update_history.update({ 'soldout': datetime.utcnow() })
             if event_id not in product.event_id: product.event_id.append(event_id)
-            product.list_update_time = datetime.datetime.utcnow()
+            product.list_update_time = datetime.utcnow()
             product.save()
             
             debug_info.send(sender=DB+'.listing.product.{0}.crawled'.format(product.key))
@@ -236,7 +237,7 @@ class Server(object):
         temp_updated = product.updated
         product.updated = False if is_new else True
         if product.updated:
-            product.full_update_time = datetime.datetime.utcnow()
+            product.full_update_time = datetime.utcnow()
             if not temp_updated and product.updated:
                 ready = True
         product.save()

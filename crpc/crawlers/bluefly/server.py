@@ -220,6 +220,7 @@ class Server(object):
         :param url: url of this page
         """
         content = fetch_page(url)
+        if content is None: content = fetch_page(url)
         if content is None or isinstance(content, int):
             common_failed.send(sender=ctx, key=key, url=url,
                     reason='download error listing {0} or {1} return'.format(page_num, content))

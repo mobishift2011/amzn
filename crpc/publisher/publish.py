@@ -462,7 +462,8 @@ if __name__ == '__main__':
     parser.add_option('-c', '--cmd', dest='cmd', help='command of the signal(update, initial, all)', default='')
     parser.add_option('--mput', dest='mput', action="store_true", help='publish to mastiff service', default=False)
     parser.add_option('--upd', dest='upd', action="store_true", help='update mode(mput only)', default=False)
-    parser.add_option('--mget', dest='mget', action="store_true", help='get published result back from mastiff service', default=False)    
+    parser.add_option('--mget', dest='mget', action="store_true", help='get published result back from mastiff service', default=False)
+    parser.add_option('--fixtime', dest='fixtime', action="store_true", help='fix publish time', default=False)   
     parser.add_option('-s', '--site', dest='site', help='site info', default='')
     parser.add_option('-e', '--ev', dest='ev', help='event id', default='')
     parser.add_option('-p', '--prod', dest='prod', help='product id', default='')        
@@ -510,7 +511,17 @@ if __name__ == '__main__':
             pprint(p.mget_event(options.site, options.ev))
         elif options.site and options.prod:
             pprint(p.mget_product(options.site, options.prod))
-
+    elif options.fixtime:
+        if options.site and options.ev:
+            m = get_site_module(options.site)        
+            ev = m.Event.objects.get(event_id=options.ev)
+            ev.publish_time = datetime.utcnow()
+            ev.save()
+        elif options.site and options.prod:
+            m = get_site_module(options.site)        
+            prod = m.Event.objects.get(key=options.prod)
+            prod.publish_time = datetime.utcnow()
+            prod.save()
     else:
         parser.print_help()
 

@@ -295,7 +295,7 @@ class Server(object):
         product.list_info = list_info
         product.brand = brand
         product.returned = 'Returnable for refund or HauteLook credit.' if data['returnable'] else 'Final sale - This item is not returnable.' # bool
-        product.shipping = str(int(data['international'])) # bool
+        # product.shipping = str(int(data['international'])) bool, international always 0
         product.delivery_date = ' to '.join((data['estimated_delivery']['start_date'], data['estimated_delivery']['end_date']))
         product.choke_hazard = str(int(data['choke_hazard'])) # bool
         product.price = price

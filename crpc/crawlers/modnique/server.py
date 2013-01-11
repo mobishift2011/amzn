@@ -241,8 +241,13 @@ class Server(object):
         tree = lxml.html.fromstring(content)
         nodes = tree.cssselect('div.line > div.page > div#items > ul#products > li.product')
         for node in nodes:
-            abandon, color = node.get('id').rsplit('_', 1) # item_57185525_gunmetal
-            color = '' if color.isdigit() else color
+            js = json.loads(node.get('data-json'))
+            color = js['color'] if 'color' in js else ''
+#            try:
+#                abandon, color = node.get('id').rsplit('_', 1) # item_57185525_gunmetal
+#                if color.isdigit(): color = ''
+#            except AttributeError:
+#                pass
             title = node.cssselect('div.item_thumb2 > div.itemTitle > h6.neutral')[0].text_content().strip()
             link = node.cssselect('div.item_thumb2 > div#itemThumb > a[href]')[0].get('href')
             link = link if link.startswith('http') else self.siteurl + link

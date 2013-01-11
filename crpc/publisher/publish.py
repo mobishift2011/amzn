@@ -235,10 +235,10 @@ class Publisher:
         return prod.publish_time and update_time and prod.publish_time < update_time
         
     def ev_updflds_for_publish(self, ev):
-        return [flds for fld in ev.update_history.keys() if ev.update_history[fld]>ev.publish_time] if ev.update_history else []
+        return [fld for fld in ev.update_history.keys() if ev.update_history[fld]>ev.publish_time] if ev.update_history else []
         
     def prod_updflds_for_publish(self, prod):
-        return [flds for fld in prod.update_history.keys() if prod.update_history[fld]>prod.publish_time] if prod.update_history else []
+        return [fld for fld in prod.update_history.keys() if prod.update_history[fld]>prod.publish_time] if prod.update_history else []
         
     ALL_EVENT_PUBLISH_FIELDS = ["sale_title", "sale_description", "events_end", "events_begin",
                                 "image_path", "favbuy_tag", "favbuy_brand", "favbuy_dept"]

@@ -109,7 +109,7 @@ class Server(object):
         categorys = ['women', 'men', 'living', 'kids', 'gifts']
         for category in categorys:
             url = 'http://www.ruelala.com/category/{0}'.format(category)
-            if category == 'gifts':
+            if category == 'gifts': # gifts not exist anymore
                 self._get_gifts_event_list(category, url, ctx)
             else:
                 self._get_event_list(category, url, ctx)
@@ -400,9 +400,11 @@ class Server(object):
                     product.price = price
                     product.listprice = strike_price
                     is_updated = True
+                    product.update_history.update({ 'price': datetime.utcnow(), 'listprice': datetime.utcnow() })
                 if soldout and product.soldout != True:
                     product.soldout = True
                     is_updated = True
+                    product.update_history.update({ 'soldout': datetime.utcnow() })
                 if event_id not in product.event_id: product.event_id.append(event_id)
             product.list_update_time = datetime.utcnow()
             product.save()

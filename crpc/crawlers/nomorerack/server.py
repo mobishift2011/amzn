@@ -275,10 +275,10 @@ class Server(object):
         else:
             if scarcity and product.scarcity != scarcity:
                 product.scarcity = scarcity
-                is_updated = True
             if soldout and product.soldout != soldout:
                 product.soldout = True
                 is_updated = True
+                product.update_history.update({ 'soldout': datetime.utcnow() })
         product.list_update_time = datetime.utcnow()
         return product, is_new, is_updated
 

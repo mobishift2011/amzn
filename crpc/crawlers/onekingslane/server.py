@@ -308,6 +308,7 @@ class Server(object):
                 if item.cssselect('em.sold'):
                     product.soldout = True
                     is_updated = True
+                    product.update_history.update({ 'soldout': datetime.utcnow() })
         # products_begin already happen, so not need to update
         if products_begin: product.products_begin = products_begin
         product.list_update_time = datetime.utcnow()
@@ -385,6 +386,7 @@ class Server(object):
                 if item.cssselect('a.sold-out'):
                     product.soldout = True
                     is_updated = True
+                    product.update_history.update({ 'soldout': datetime.utcnow() })
         product.list_update_time = datetime.utcnow()
         product.save()
         common_saved.send(sender=ctx, obj_type='Product', key=product_id, url=self.siteurl + '/sales/' + event_id, is_new=is_new, is_updated=is_updated)

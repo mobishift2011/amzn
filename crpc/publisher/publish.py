@@ -266,7 +266,7 @@ class Publisher:
                 elif f=="events_end": ev_data['ends_at'] = obj_getattr(ev, 'events_end', datetime.utcnow()+timedelta(days=7)).isoformat()
                 elif f=="events_begin": ev_data['starts_at'] = obj_getattr(ev, 'events_begin', datetime.utcnow()).isoformat()
                 elif f=="image_path": ev_data['cover_image'] = ev['image_path'][0] if ev['image_path'] else {}
-                elif f=="soldout": ev_data['soldout'] = m.Product.objects(event_id=ev.event_id, soldout=False).count()==0
+                elif f=="soldout": ev_data['sold_out'] = m.Product.objects(event_id=ev.event_id, soldout=False).count()==0
                 elif f=="favbuy_tag": ev_data['tags'] = ev.favbuy_tag
                 elif f=="favbuy_brand": ev_data['brands'] = ev.favbuy_brand
                 elif f=="favbuy_dept": ev_data['departments'] = ev.favbuy_dept
@@ -315,7 +315,7 @@ class Publisher:
                 elif f=="events": pdata["events"] = self.get_ev_uris(prod)
                 elif f=="favbuy_price": pdata["our_price"] = float(obj_getattr(prod, 'favbuy_price', 0))
                 elif f=="favbuy_listprice": pdata["list_price"] = float(obj_getattr(prod, 'favbuy_listprice', 0))
-                elif f=="soldout": pdata["soldout"] = prod.soldout
+                elif f=="soldout": pdata["sold_out"] = prod.soldout
                 elif f=="color": pdata["colors"] = [prod['color']] if 'color' in prod and prod['color'] else []
                 elif f=="title": pdata["title"] = prod.title
                 elif f=="summary": pdata["info"] = prod.summary
@@ -463,10 +463,10 @@ if __name__ == '__main__':
     parser.add_option('--mput', dest='mput', action="store_true", help='publish to mastiff service', default=False)
     parser.add_option('--upd', dest='upd', action="store_true", help='update mode(mput only)', default=False)
     parser.add_option('--mget', dest='mget', action="store_true", help='get published result back from mastiff service', default=False)
-    parser.add_option('--fixtime', dest='fixtime', action="store_true", help='fix publish time', default=False)   
     parser.add_option('-s', '--site', dest='site', help='site info', default='')
     parser.add_option('-e', '--ev', dest='ev', help='event id', default='')
-    parser.add_option('-p', '--prod', dest='prod', help='product id', default='')        
+    parser.add_option('-p', '--prod', dest='prod', help='product id', default='')
+    parser.add_option('-f', '--flds', dest='flds', help='fields', default='')
     parser.add_option('-d', '--daemon', dest='daemon', action="store_true", help='daemon mode(no other parameters)', default=False)
     
     if len(sys.argv)==1:
@@ -500,28 +500,20 @@ if __name__ == '__main__':
             if not options.upd:
                 p.publish_event(ev)
             else:
-                p.publish_event(ev, upd=True)
+                p.publish_event(ev, upd=True, fields=options.flds.split(','))
         elif options.site and options.prod:
             m = get_site_module(options.site)        
             prod = m.Product.objects.get(key=options.prod)
-            p.publish_product(prod)
+            if not options.upd:
+                p.publish_product(prod)
+            else:
+                p.publish_product(prod, upd=True, fields=options.flds.split(','))
     elif options.mget:
         from pprint import pprint
         if options.site and options.ev:
             pprint(p.mget_event(options.site, options.ev))
         elif options.site and options.prod:
             pprint(p.mget_product(options.site, options.prod))
-    elif options.fixtime:
-        if options.site and options.ev:
-            m = get_site_module(options.site)        
-            ev = m.Event.objects.get(event_id=options.ev)
-            ev.publish_time = datetime.utcnow()
-            ev.save()
-        elif options.site and options.prod:
-            m = get_site_module(options.site)        
-            prod = m.Event.objects.get(key=options.prod)
-            prod.publish_time = datetime.utcnow()
-            prod.save()
     else:
         parser.print_help()
 

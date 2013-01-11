@@ -153,7 +153,7 @@ class Server(object):
             return
         tree = lxml.html.fromstring(content)
 
-        upcomings = tree.cssselect('div.pageframe > table.upcomingEvents > tbody > tr > td.data-row > div.item')
+        upcomings = tree.cssselect('div.pageframe table.upcomingEvents > tbody > tr > td.data-row > div.item')
         for up in upcomings:
             event_id = up.get('data-event')
             sale_title = up.text_content().strip()

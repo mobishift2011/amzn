@@ -11,6 +11,7 @@ need to investigate whether 'the-shops' in category, not event.
 """
 import lxml.html
 import pytz
+import json
 from datetime import datetime, timedelta
 
 from models import *

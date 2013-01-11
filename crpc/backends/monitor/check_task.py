@@ -13,7 +13,7 @@ task = conn['monitor']['task']
 
 def get_all_task(site):
     for obj in task.find({'site': site}, fields=['method', 'status', 'started_at', 'updated_at', 'ended_at', 'num_finish', 'num_update', 'num_new', 'num_fails']).sort('started_at', pymongo.DESCENDING):
-        print site, obj['method'], obj['status']
+        print '{0}.{1} {2} {3} {4} {5}'.format(site, obj['method'], obj['status'], obj['started_at'], obj['ended_at'], obj['num_finish'])
 
 if __name__ == '__main__':
     if sys.argv[1]:

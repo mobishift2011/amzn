@@ -51,6 +51,11 @@ def index():
 def task():
     return template('task')
 
+@route('/history')
+# @login_required
+def task():
+    return template('history')
+
 @route('/task/all')
 def task_all():
     offset = request.params.get('offset', '0') 

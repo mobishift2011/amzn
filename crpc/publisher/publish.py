@@ -271,11 +271,11 @@ class Publisher:
                 elif f=="favbuy_brand": ev_data['brands'] = ev.favbuy_brand
                 elif f=="favbuy_dept": ev_data['departments'] = ev.favbuy_dept
             if not upd:
-                ev_data['site_key'] = site+'_'+ev.event_id           
+                ev_data['site_key'] = site+'_'+ev.event_id
+            if upd and not ev_data: return         
             self.logger.debug("publish event data: %s", ev_data)
 
             if upd:
-                if not ev_data: return
                 self.mapi.event(muri2mid(ev.muri)).patch(ev_data)
                 self.logger.debug("published event update %s:%s, fields=%s", site, ev.event_id, fields)
             else:
@@ -330,10 +330,10 @@ class Publisher:
                 elif f=="shipping": pdata["shipping_policy"] = obj_getattr(prod, 'shipping', '')
             if not upd:
                 pdata["site_key"] = site+'_'+prod.key
+            if upd and not pdata: return
             self.logger.debug("publish product data: %s", pdata)
 
             if upd:
-                if not pdata: return
                 self.mapi.product(muri2mid(prod.muri)).patch(pdata)
                 self.logger.debug("published product update %s:%s", site, prod.key)
             else:

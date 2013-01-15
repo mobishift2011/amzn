@@ -5,6 +5,7 @@ import tornado.httpserver
 from webassets import Environment as AssetsEnvironment, loaders
 from webassets.ext.jinja2 import AssetsExtension
 import jinja2 
+from slumber import API
 
 class Jinja2Environment(jinja2.Environment): 
     def load(self, template_path): 
@@ -16,6 +17,8 @@ class Jinja2Environment(jinja2.Environment):
 ROOT = os.path.dirname(__file__)
 TEMPLATE_PATH = os.path.join(ROOT+"views")
 STATIC_PATH = os.path.join(ROOT+"assets")
+MASTIFF_URI = 'http://localhost:8001/api/v1'
+api = API(MASTIFF_URI)
 
 assets_env = AssetsEnvironment(STATIC_PATH, '/assets')
 bundles = loaders.YAMLLoader(os.path.join(ROOT, "bundle.yaml")).load_bundles()
@@ -75,6 +78,12 @@ class LogoutHandler(BaseHandler):
         next_url = self.get_argument('next', '/')
         self.redirect(next_url)
 
+class ViewDataHandler(BaseHandler):
+    @tornado.web.authenticated
+    def get(self, subpath):
+        if not subpath:
+            self.render('viewdata.html')
+
 settings = {
     "static_path": STATIC_PATH,
     "template_path": TEMPLATE_PATH,
@@ -88,6 +97,7 @@ application = tornado.web.Application([
     (r"/examples/(ui|form|chart|typography|gallery|table|calendar|grid|file-manager|tour|icon|error|login)/", ExampleHandler),
     (r"/login/", LoginHandler),
     (r"/logout/", LogoutHandler),
+    (r"/viewdata/(.*)", ViewDataHandler),
     (r"/", IndexHandler),
     (r"/assets/(.*)", tornado.web.StaticFileHandler, dict(path=settings['static_path'])),
 ], **settings)

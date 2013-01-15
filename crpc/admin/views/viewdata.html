@@ -11,84 +11,29 @@
     </li>
   </ul>
 
-  <ul id="view-tab" class="nav nav-tabs">
-    <li class="active"><a href="#view-data" data-toggle="tab">View Data</a></li>
-    <li><a href="#view-published" data-toggle="tab">View Published</a></li>
-    <li><a href="#view-missing" data-toggle="tab">View Unclassified</a></li>
-  </ul>
-
-  <div class="tab-content">
-    <div class="tab-pane active" id="view-data">
-      <div class="row-fluid">
-        <div class="box span6">
-          <div class="box-header well" data-original-title>
-            <h2><i class="icon-th"></i> Event Listing</h2>
-          </div>
-          <div class="box-content">
-            <div class="row-fluid">
-              <form class="form-horizontal">
-                <div class="control-group">
-                  <label class="control-label" for="select-site">Select Site</label>
-                  <div class="controls">
-                    <select id="select-site" data-rel="chosen">
-                      {% for site in sites %}
-                      <option value="{{site}}">{{site}}</option>
-                      {% endfor %}
-                    </select>
-                  </div>
-                </div>
-              </form>
-            </div>    
-            <table id="eventtable" class="table table-striped bootstrap-datatable datatable">
-              <thead>
-                <tr>
-                  <th width="35%">Event Image</th>
-                  <th width="15%">Created</th>
-                  <th width="45%">Event Info</th>
-                  <th width="5%">M</th>                                          
-                </tr>
-              </thead>   
-              <tbody>
-                <tr>
-                  <td colspan="5" class="dataTables_empty">Loading data from server</td>
+  <div>
+    <ul class="nav nav-tabs">
+      <li class="active"><a href="Javascript:void(0);">Latest</a></li>
+      <li><a href="#">Menu2</a></li>
+      <li><a href="#">Menu3</a></li>
+    </ul>
+  </div>
+  <div>
+    <table class="table table-striped"><!--bootstrap-datatable datatable">-->
+      <thead>
+        <tr>
+          <th width="35%">Event Image</th>
+          <th width="15%">Created</th>
+          <th width="45%">Event Info</th>
+          <th width="5%">M</th>                                          
+        </tr>
+      </thead>   
+      <tbody>
+        <tr>
+          <td colspan="5" class="dataTables_empty">Loading data from server</td>
 				</tr>                                
-              </tbody>  
-            </table>  
-          </div><!--box-content-->     
-        </div><!--/span Event Listing-->
-        
-        <div class="box span6">
-          <div class="box-header well" data-original-title>
-            <h2><i class="icon-th"></i> Products of Event</h2>
-            <div class="box-icon">
-              <a href="#" class="btn btn-round"><i class="icon-remove"></i></a>
-            </div>
-          </div>
-          <div class="box-content">
-            <table id="producttable" class="table table-striped bootstrap-datatable datatable">
-              <thead>
-                <tr>
-                  <th width="25%">Product Image</th>
-                  <th width="15%">Created</th>
-                  <th width="55%">Product Info</th>
-                  <th width="5%">M</th>                                          
-                </tr>
-              </thead>   
-              <tbody>
-                <tr>
-                  <td colspan="5" class="dataTables_empty">Please select event first</td>
-                </tr>                                
-              </tbody>  
-            </table> 
-        </div><!--/span-->
-      </div><!--/row-->
-    </div>
-    <div class="tab-pane" id="view-published">
-      Not Ready
-    </div>
-    <div class="tab-pane" id="view-missing">
-      Not Ready
-    </div>
+      </tbody>  
+    </table>
   </div>
 </div><!--main-content-->
   

@@ -19,7 +19,7 @@
         </li>
       </ul>
 
-      <a href="schedule/upcoming">Upcoming</a>
+      <a href="schedule/upcoming"><b>Upcoming</b></a>
       <a href="schedule/ending">Ending</a><br /><br />
       <a href="site/bluefly">Bluefly</a><br />
       <a href="site/beyondtherack">Beyondtherack</a><br />

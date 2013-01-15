@@ -169,9 +169,9 @@ def see_site(site):
 @route('/schedule/<action>')
 def schedule(action):
     if action == 'upcoming':
-        return upcoming_events()
+        return template('schedule.tpl', {'schedules': upcoming_events()})
     elif action == 'ending':
-        return ending_events()
+        return template('schedule.tpl', {'schedules': ending_events()})
 
 #mark_all_failed():
 

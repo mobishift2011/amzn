@@ -18,13 +18,13 @@ def upcoming_events(data=collections.defaultdict(dict)):
             col = connection[crawler].collection_names()
             if 'event' in col:
                 if crawler not in data['upcoming']: data['upcoming'][crawler] = {}
-                upcoming = connection[crawler].event.find({'events_begin': {'$gte': datetime.utcnow()}}, fields=['events_begin'])
+                upcoming = connection[crawler].event.find({'events_begin': {'$gte': datetime.utcnow()}}, fields=['events_begin']).sort('events_begin')
                 for e in upcoming:
                     if e['events_begin'] not in data['upcoming'][crawler]:
                         data['upcoming'][crawler][e['events_begin']] = 1
                     else:
                         data['upcoming'][crawler][e['events_begin']] += 1
-    return data['upcoming']
+    return to_json(data['upcoming'])
 
 def ending_events(data=collections.defaultdict(dict)):
     if 'ending' not in data: data['ending'] = {}
@@ -34,13 +34,25 @@ def ending_events(data=collections.defaultdict(dict)):
             col = connection[crawler].collection_names()
             if 'event' in col:
                 if crawler not in data['ending']: data['ending'][crawler] = {}
-                ending = connection[crawler].event.find({'events_end': {'$gte': datetime.utcnow()}}, fields=['events_end'])
+                ending = connection[crawler].event.find({'events_end': {'$gte': datetime.utcnow()}}, fields=['events_end']).sort('events_end', pymongo.DESCENDING)
                 for e in ending:
                     if e['events_end'] not in data['ending'][crawler]:
                         data['ending'][crawler][e['events_end']] = 1
                     else:
                         data['ending'][crawler][e['events_end']] += 1
-    return data['ending']
+    return to_json(data['ending'])
+
+
+def to_json(data):
+    ret = []
+    for site, schedule in data.iteritems():
+        if schedule:
+            time_count = {}
+            for time, count in schedule.iteritems():
+                time_count.update( {time.isoformat() : count} )
+            ret.append( {site: time_count} )
+    return ret
+
 
 if __name__ == '__main__':
     data = collections.defaultdict(dict)
@@ -48,6 +60,6 @@ if __name__ == '__main__':
     ed = ending_events(data)
     import pprint
     print '\nUpcoming:'
-    pprint.pprint( data['upcoming'] )
+    pprint.pprint( up )
     print '\nEnding soon:'
     pprint.pprint( data['ending'] )

@@ -284,8 +284,8 @@ class Publisher:
                 self.logger.debug("published event %s:%s, resource_id=%s", site, ev.event_id, ev_resource['id'])
             
                 # For monitoring publish flow stat
-                interval = datetime.utcnow().replace(second=0, microsecond=0)
-                Stat.objects(site=site, doctype='event', interval=interval).update(inc__publish_num=1, upsert=True)
+                # interval = datetime.utcnow().replace(second=0, microsecond=0)
+                # Stat.objects(site=site, doctype='event', interval=interval).update(inc__publish_num=1, upsert=True)
 
             ev.publish_time = datetime.utcnow(); ev.save()
         except Exception as e:
@@ -342,8 +342,8 @@ class Publisher:
                 self.logger.debug("published product %s:%s, resource_id=%s", site, prod.key, r['id'])
                 
                 # For monitoring publish flow stat
-                interval = datetime.utcnow().replace(second=0, microsecond=0)
-                Stat.objects(site=site, doctype='product', interval=interval).update(inc__publish_num=1, upsert=True)
+                # interval = datetime.utcnow().replace(second=0, microsecond=0)
+                # Stat.objects(site=site, doctype='product', interval=interval).update(inc__publish_num=1, upsert=True)
             
             prod.publish_time = datetime.utcnow(); prod.save()
             

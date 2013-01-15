@@ -76,6 +76,11 @@ def get_all_sites():
     return [name for name in listdir(join(CRPC_ROOT, 'crawlers')) \
             if name not in exclude_crawlers and isdir(join(CRPC_ROOT, 'crawlers', name))]
 
+def get_one_site_schedule(site):
+    tasks = Task.objects(site=site, updated_at__gt=datetime.utcnow()-timedelta(seconds=3600*24*3)).order_by('-started_at')
+    return {'tasks': [t.to_json() for t in tasks]}
+
+
 def get_publish_stats(site, doctype, time_value, time_cell, start_at, end_at):
     data = []
     kwargs = {}

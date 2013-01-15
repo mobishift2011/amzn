@@ -11,7 +11,7 @@ from crawlers.common.stash import picked_crawlers
 connection = pymongo.Connection(MONGODB_HOST)
 
 def upcoming_events(data=collections.defaultdict(dict)):
-    if 'upcoming' not in data: data['upcoming']
+    if 'upcoming' not in data: data['upcoming'] = {}
     dbs = connection.database_names()
     for crawler in picked_crawlers:
         if crawler in dbs:
@@ -24,9 +24,10 @@ def upcoming_events(data=collections.defaultdict(dict)):
                         data['upcoming'][crawler][e['events_begin']] = 1
                     else:
                         data['upcoming'][crawler][e['events_begin']] += 1
+    return data['upcoming']
 
 def ending_events(data=collections.defaultdict(dict)):
-    if 'ending' not in data: data['ending']
+    if 'ending' not in data: data['ending'] = {}
     dbs = connection.database_names()
     for crawler in picked_crawlers:
         if crawler in dbs:
@@ -39,11 +40,12 @@ def ending_events(data=collections.defaultdict(dict)):
                         data['ending'][crawler][e['events_end']] = 1
                     else:
                         data['ending'][crawler][e['events_end']] += 1
+    return data['ending']
 
 if __name__ == '__main__':
     data = collections.defaultdict(dict)
-    upcoming_events(data)
-    ending_events(data)
+    up = upcoming_events(data)
+    ed = ending_events(data)
     import pprint
     print '\nUpcoming:'
     pprint.pprint( data['upcoming'] )

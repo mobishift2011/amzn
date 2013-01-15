@@ -13,9 +13,10 @@ from auth import *
 from backends.webui.events import log_event
 from backends.monitor.events import run_command
 from backends.webui.views import task_updates, task_all_tasks, mark_all_failed, get_all_fails
-from backends.webui.views import update_schedule, get_all_schedules, delete_schedule
+from backends.webui.views import update_schedule, get_all_schedules, delete_schedule, get_one_site_schedule
 from backends.webui.views import get_all_sites, get_publish_stats
 from backends.webui.views import import_brands, refresh_brands
+from backends.monitor.upcoming_ending_events_count import upcoming_events, ending_events
 
 from tests.publisher.chkpub import PubChecker
 from backends.monitor.events import auto_scheduling
@@ -50,11 +51,6 @@ def index():
 # @login_required
 def task():
     return template('task')
-
-@route('/history')
-# @login_required
-def task():
-    return template('history')
 
 @route('/task/all')
 def task_all():
@@ -162,6 +158,20 @@ def brands_import():
 def brands_refresh():
     refresh_brands()
 
+@route('/history')
+def history():
+    return template('history')
+
+@route('/site/<site>')
+def see_site(site):
+    return template('site.tpl', get_one_site_schedule(site))
+
+@route('/schedule/<action>')
+def schedule(action):
+    if action == 'upcoming':
+        return upcoming_events()
+    elif action == 'ending':
+        return ending_events()
 
 #mark_all_failed():
 

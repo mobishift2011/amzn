@@ -12,7 +12,7 @@ class Jinja2Environment(jinja2.Environment):
         tmpl = self.get_template(template_path) 
         if tmpl: 
             setattr(tmpl, "generate", tmpl.render) 
-        return tmpl 
+        return tmpl
 
 ROOT = os.path.dirname(__file__)
 TEMPLATE_PATH = os.path.join(ROOT+"views")
@@ -27,6 +27,16 @@ for name, bundle in bundles.iteritems():
 JINJA2_ENV = Jinja2Environment(extensions=[AssetsExtension],
                                 loader=jinja2.FileSystemLoader(TEMPLATE_PATH))
 JINJA2_ENV.assets_environment = assets_env
+
+def imagesize(imageobj, wxh):
+    if imageobj:
+        w, h = wxh.split('x')
+        w, h = (int(w), int(h))
+        for size in imageobj['resolutions']:
+            if h == 0 and w == size[0]:
+                h = size[1]
+        return imageobj['url'] + '_{0}x{1}'.format(w, h)
+JINJA2_ENV.filters['imagesize'] = imagesize
 
 class BaseHandler(tornado.web.RequestHandler): 
     def __init__(self, *args, **kwargs): 
@@ -82,7 +92,12 @@ class ViewDataHandler(BaseHandler):
     @tornado.web.authenticated
     def get(self, subpath):
         if not subpath:
-            self.render('viewdata.html')
+            self.redirect('/viewdata/events')
+        if subpath == 'events':
+            result = api.event.get(offset=0, limit=20)
+            meta = result['meta']
+            events = result['objects']
+            self.render('viewdata/events.html', meta=meta, events=events)
 
 settings = {
     "static_path": STATIC_PATH,

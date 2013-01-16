@@ -185,8 +185,8 @@ class TextServer(object):
         p = Propagator(site, event_id, module=self.__m[site])
         if p.propagate():
             logger.info('{0}.event.{1} propagation OK'.format(site, event_id))
-            interval = datetime.utcnow().replace(second=0, microsecond=0)
-            Stat.objects(site=site, doctype='event', interval=interval).update(inc__prop_num=1, upsert=True)
+            # interval = datetime.utcnow().replace(second=0, microsecond=0)
+            # Stat.objects(site=site, doctype='event', interval=interval).update(inc__prop_num=1, upsert=True)
         else:
             logger.error('{0}.event.{1} propagation failed'.format(site, event_id))
 

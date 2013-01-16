@@ -35,11 +35,12 @@ jsfooter:
         - js/bootstrap-carousel.js
         - js/bootstrap-typeahead.js
         - js/bootstrap-tour.js
-        - js/jquery.cookie.js
+
         - js/fullcalendar.min.js
+        - js/excanvas.js
+        - js/jquery.cookie.js
         - js/jquery.dataTables.min.js
 
-        - js/excanvas.js
         - js/jquery.flot.min.js
         - js/jquery.flot.pie.min.js
         - js/jquery.flot.stack.js
@@ -56,7 +57,10 @@ jsfooter:
         - js/jquery.autogrow-textarea.js
         - js/jquery.uploadify-3.1.min.js
         - js/jquery.history.js
+
         - js/charisma.js
+
+        - js/jquery.deparam.js
 
 cssall:
     output: cache/all.bundled.css

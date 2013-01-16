@@ -62,7 +62,7 @@ class giltLogin(object):
             fetch listing page.
         """
         ret = req.get(url)
-        if ret.url == 'http://www.gilt.com/sale/women':
+        if ret.url == 'http://www.gilt.com/sale/women' or ret.url == 'http://www.gilt.com/sale/men' or 'http://www.gilt.com/brand/' in ret.url:
             return -302
         if ret.ok: return ret.content
         return ret.status_code
@@ -136,11 +136,13 @@ class Server(object):
         """.. :py:method::
         """
         # hero event
-        sale_title = tree.cssselect('div#sticky-nav > div.sticky-nav-container > ul.tabs > li.sales > div > div.bg_container > div.column > ul > li > a')[0].text_content().strip()
+        # sale_title = tree.cssselect('div#sticky-nav > div.sticky-nav-container > ul.tabs > li.sales > div > div.bg_container > div.column > ul > li > a')[0].text_content().strip()
         img = tree.cssselect('section#main > div.hero-container > section.hero')[0]
         image = self.extract_hero_image.search(img.get('style')).group(1)
         image = image if image.startswith('http:') else 'http:' + image
-        link = img.cssselect('a.sale-header-link')[0].get('href')
+        link = img.cssselect('a.sale-header-link')[0]
+        sale_title = link.text_content()
+        link = link.get('href')
         link = link if link.startswith('http') else self.siteurl + link
         if link.rsplit('/', 1)[-1] == 'ss':
             event_id = link.rsplit('/', 2)[-2]
@@ -199,12 +201,12 @@ class Server(object):
             ret = self.parse_one_node(node, dept, ctx)
             if ret is None: continue
             event, is_new, is_updated = ret
+            image, sale_title, sale_description, events_begin = self.get_picture_description(event.combine_url, ctx)
             if not event.sale_description:
-                image, sale_title, sale_description, events_begin = self.get_picture_description(event.combine_url, ctx)
                 event.image_urls = image
                 event.sale_title = sale_title # some sale_title is too long to be omit by ...
                 event.sale_description = sale_description
-                event.events_begin = events_begin
+            event.events_begin = events_begin
 
             event.save()
             common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
@@ -213,13 +215,13 @@ class Server(object):
         nodes = tree.cssselect('section#main > div.sales-container > div.sales-promos > section.calendar-sales > div.tab_content > div.scroll-container > article.sale')
         for node in nodes:
             event, is_new, is_updated = self.parse_one_node(node, dept, ctx)
+            image, sale_title, sale_description, events_begin = self.get_picture_description(event.combine_url, ctx)
             if not event.sale_description:
-                image, sale_title, sale_description, events_begin = self.get_picture_description(event.combine_url, ctx)
                 event.image_urls = image
                 # some sale_title is too long to be omit by ...
                 event.sale_title = sale_title
                 event.sale_description = sale_description
-                event.events_begin = events_begin
+            event.events_begin = events_begin
 
             event.save()
             common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
@@ -736,9 +738,11 @@ class Server(object):
         """
         cont = self.net.fetch_product_page(url)
         if cont is None or isinstance(cont, int):
-            common_failed.send(sender=ctx, key=key, url=url,
-                    reason='{0}: {1}'.format(warning, cont))
-            return
+            cont = self.net.fetch_product_page(url)
+            if cont is None or isinstance(cont, int):
+                common_failed.send(sender=ctx, key=key, url=url,
+                        reason='{0}: {1}'.format(warning, cont))
+                return
         return self.get_correct_tree(cont)
 
 

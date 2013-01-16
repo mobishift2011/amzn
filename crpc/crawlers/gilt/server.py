@@ -62,7 +62,7 @@ class giltLogin(object):
             fetch listing page.
         """
         ret = req.get(url)
-        if ret.url == 'http://www.gilt.com/sale/women':
+        if ret.url == 'http://www.gilt.com/sale/women' or ret.url == 'http://www.gilt.com/sale/men':
             return -302
         if ret.ok: return ret.content
         return ret.status_code

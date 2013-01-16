@@ -62,7 +62,7 @@ class giltLogin(object):
             fetch listing page.
         """
         ret = req.get(url)
-        if ret.url == 'http://www.gilt.com/sale/women' or ret.url == 'http://www.gilt.com/sale/men':
+        if ret.url == 'http://www.gilt.com/sale/women' or ret.url == 'http://www.gilt.com/sale/men' or 'http://www.gilt.com/brand/' in ret.url:
             return -302
         if ret.ok: return ret.content
         return ret.status_code
@@ -738,9 +738,11 @@ class Server(object):
         """
         cont = self.net.fetch_product_page(url)
         if cont is None or isinstance(cont, int):
-            common_failed.send(sender=ctx, key=key, url=url,
-                    reason='{0}: {1}'.format(warning, cont))
-            return
+            cont = self.net.fetch_product_page(url)
+            if cont is None or isinstance(cont, int):
+                common_failed.send(sender=ctx, key=key, url=url,
+                        reason='{0}: {1}'.format(warning, cont))
+                return
         return self.get_correct_tree(cont)
 
 

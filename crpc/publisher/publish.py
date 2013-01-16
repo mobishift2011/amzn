@@ -241,7 +241,7 @@ class Publisher:
         return [fld for fld in prod.update_history.keys() if prod.update_history[fld]>prod.publish_time] if prod.update_history else []
         
     ALL_EVENT_PUBLISH_FIELDS = ["sale_title", "sale_description", "events_end", "events_begin",
-                                "image_path", "favbuy_tag", "favbuy_brand", "favbuy_dept"]
+                                "image_path", "highest_discount", "favbuy_tag", "favbuy_brand", "favbuy_dept"]
     def publish_event(self, ev, upd=False, fields=[]):
         '''publish event data to the mastiff service.
         
@@ -266,6 +266,7 @@ class Publisher:
                 elif f=="events_end": ev_data['ends_at'] = obj_getattr(ev, 'events_end', datetime.utcnow()+timedelta(days=7)).isoformat()
                 elif f=="events_begin": ev_data['starts_at'] = obj_getattr(ev, 'events_begin', datetime.utcnow()).isoformat()
                 elif f=="image_path": ev_data['cover_image'] = ev['image_path'][0] if ev['image_path'] else {}
+                elif f=="highest_discount": ev_data['highest_discount'] = ev['highest_discount'][:ev['highest_discount'].find('.')+3]
                 elif f=="soldout": ev_data['sold_out'] = m.Product.objects(event_id=ev.event_id, soldout=False).count()==0
                 elif f=="favbuy_tag": ev_data['tags'] = ev.favbuy_tag
                 elif f=="favbuy_brand": ev_data['brands'] = ev.favbuy_brand

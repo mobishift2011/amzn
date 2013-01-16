@@ -136,11 +136,13 @@ class Server(object):
         """.. :py:method::
         """
         # hero event
-        sale_title = tree.cssselect('div#sticky-nav > div.sticky-nav-container > ul.tabs > li.sales > div > div.bg_container > div.column > ul > li > a')[0].text_content().strip()
+        # sale_title = tree.cssselect('div#sticky-nav > div.sticky-nav-container > ul.tabs > li.sales > div > div.bg_container > div.column > ul > li > a')[0].text_content().strip()
         img = tree.cssselect('section#main > div.hero-container > section.hero')[0]
         image = self.extract_hero_image.search(img.get('style')).group(1)
         image = image if image.startswith('http:') else 'http:' + image
-        link = img.cssselect('a.sale-header-link')[0].get('href')
+        link = img.cssselect('a.sale-header-link')[0]
+        sale_title = link.text_content()
+        link = link.get('href')
         link = link if link.startswith('http') else self.siteurl + link
         if link.rsplit('/', 1)[-1] == 'ss':
             event_id = link.rsplit('/', 2)[-2]

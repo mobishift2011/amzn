@@ -199,12 +199,12 @@ class Server(object):
             ret = self.parse_one_node(node, dept, ctx)
             if ret is None: continue
             event, is_new, is_updated = ret
+            image, sale_title, sale_description, events_begin = self.get_picture_description(event.combine_url, ctx)
             if not event.sale_description:
-                image, sale_title, sale_description, events_begin = self.get_picture_description(event.combine_url, ctx)
                 event.image_urls = image
                 event.sale_title = sale_title # some sale_title is too long to be omit by ...
                 event.sale_description = sale_description
-                event.events_begin = events_begin
+            event.events_begin = events_begin
 
             event.save()
             common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
@@ -213,13 +213,13 @@ class Server(object):
         nodes = tree.cssselect('section#main > div.sales-container > div.sales-promos > section.calendar-sales > div.tab_content > div.scroll-container > article.sale')
         for node in nodes:
             event, is_new, is_updated = self.parse_one_node(node, dept, ctx)
+            image, sale_title, sale_description, events_begin = self.get_picture_description(event.combine_url, ctx)
             if not event.sale_description:
-                image, sale_title, sale_description, events_begin = self.get_picture_description(event.combine_url, ctx)
                 event.image_urls = image
                 # some sale_title is too long to be omit by ...
                 event.sale_title = sale_title
                 event.sale_description = sale_description
-                event.events_begin = events_begin
+            event.events_begin = events_begin
 
             event.save()
             common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)

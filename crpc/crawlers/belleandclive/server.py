@@ -241,7 +241,7 @@ class Server(object):
         shipping_normal = tree.cssselect('h4#shipping-returns')#.replace('', '')
         shipping = shipping_normal[0].text_content() + ' ' + shipping if shipping_normal else shipping
         returned = tree.cssselect('div#retrun-policy-box > p')[0].text_content().strip()
-        desc = tree.cssselect('div#description-box')
+        desc = tree.cssselect('div#description-box')[0]
         summary = desc.xpath('./p')[0].text_content().strip()
         list_info = [li.text_content().strip() for li in desc.xpath('./ul > li')]
 

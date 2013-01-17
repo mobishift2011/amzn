@@ -30,7 +30,8 @@ SITES = (
     'venteprivee',
     'modnique',
     'lot18',
-    'totsy'
+    'totsy',
+    'belleandclive',
 )
 
 IMAGE_SIZE = {

@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from backends.matching.feature import sites
 from datetime import datetime
 from settings import MASTIFF_HOST

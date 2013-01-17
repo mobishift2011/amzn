@@ -60,7 +60,7 @@ class Jinja2Environment(jinja2.Environment):
 ROOT = os.path.dirname(__file__)
 TEMPLATE_PATH = os.path.join(ROOT+"views")
 STATIC_PATH = os.path.join(ROOT+"assets")
-MASTIFF_URI = 'http://localhost:8001/api/v1'
+MASTIFF_URI = 'http://integrate.favbuy.org:8001/api/v1'
 api = API(MASTIFF_URI)
 
 assets_env = AssetsEnvironment(STATIC_PATH, '/assets')

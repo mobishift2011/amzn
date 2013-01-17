@@ -154,41 +154,57 @@ class ViewDataHandler(BaseHandler):
         from backends.matching.feature import sites
         from itertools import chain
         current_site = self.get_argument('site', sites[0])
+        key = self.get_argument('key', None)
         offset = self.get_argument('offset', '0')
         limit = self.get_argument('limit', '80')
         offset, limit = int(offset), int(limit)
+        page = offset/80+1
 
         m = get_site_module(current_site)
-        events, categories = [], []
-        num_events = 0
-        num_categories = 0
-        if hasattr(m, 'Event'):
-            events = m.Event.objects()
-            num_events = len(events)
-            if num_events <= offset:
-                events = []
-                offset -= num_events
-            elif num_events >= offset+limit:
-                events = events[offset:offset+limit]
-                limit  = 0
-            else:
-                events = events[offset:]
-                offset = 0
-                limit -= (num_events - offset)
-        if hasattr(m, 'Category'):
-            categories = m.Category.objects()
-            num_categories = len(categories)
-            if limit == 0:
-                categories = []
-            else:
-                categories = categories[offset:offset+limit]
-        object_list = chain(events, categories)
 
-        total_count = num_events + num_categories
-        pagination = Pagination(offset/80+1, 80, total_count)
+        if key is None:
+            # events
+            type = 'event'
+            if hasattr(m, 'Event'):
+                ol1 = m.Event.objects()
+            else:
+                ol1 = []
+
+            if hasattr(m, 'Category'):
+                ol2 = m.Category.objects()
+            else:
+                ol2 = []
+        else:
+            # current_site, key, products
+            type = 'product'
+            ol1 = m.Product.objects(event_id=key)
+            ol2 = m.Product.objects(category_key=key)
+
+        num_ol1 = len(ol1)
+        if num_ol1 <= offset:
+            ol1 = []
+            offset -= num_ol1
+        elif num_ol1 >= offset+limit:
+            ol1 = ol1[offset:offset+limit]
+            limit  = 0
+        else:
+            ol1 = ol1[offset:]
+            offset = 0
+            limit -= (num_ol1 - offset)
+
+        num_ol2 = len(ol2)
+        if limit == 0 or num_ol2 == 0:
+            ol2 = []
+        else:
+            ol2 = ol2[offset:offset+limit]
+
+        object_list = chain(ol1, ol2)
+
+        total_count = num_ol1 + num_ol2
+        pagination = Pagination(page, 80, total_count)
 
         self.render('viewdata/classification.html', sites=sites, current_site=current_site,
-            object_list=object_list, pagination=pagination)
+            object_list=object_list, pagination=pagination, type=type, key=key)
 
     def render_products(self):
         from backends.matching.feature import sites
@@ -201,7 +217,13 @@ class ViewDataHandler(BaseHandler):
         kwargs['offset'] = int(offset)
         kwargs['limit'] = int(limit)
 
-        result = api.product.get(**kwargs)
+        try:
+            result = api.product.get(**kwargs)
+            message = ''
+        except:
+            message = 'CANNOT Connect to Mastiff!'
+            result = {'meta':{'total_count':0},'objects':[]}
+
         meta = result['meta']
         products = result['objects']
         sites = ['ALL'] + sites
@@ -214,7 +236,7 @@ class ViewDataHandler(BaseHandler):
         pagination = Pagination(int(offset)/20+1, 20, meta['total_count'])
 
         self.render('viewdata/products.html', meta=meta, products=products, sites=sites, 
-            times=times, pagination=pagination)
+            times=times, pagination=pagination, message=message)
 
     def render_events(self):
         from backends.matching.feature import sites
@@ -227,7 +249,45 @@ class ViewDataHandler(BaseHandler):
         kwargs['offset'] = int(offset)
         kwargs['limit'] = int(limit)
 
-        result = api.event.get(**kwargs)
+        try:
+            result = api.event.get(**kwargs)
+            message = ''
+        except:
+            message = 'CANNOT Connect to Mastiff!'
+            result = {'meta':{'total_count':0},'objects':[]}
+
+        meta = result['meta']
+        products = result['objects']
+        sites = ['ALL'] + sites
+        times = {
+           'onehourago': datetime.utcnow()-timedelta(hours=1),
+           'onedayago': datetime.utcnow()-timedelta(days=1),
+           'oneweekago': datetime.utcnow()-timedelta(days=7),
+        }
+
+        pagination = Pagination(int(offset)/20+1, 20, meta['total_count'])
+
+        self.render('viewdata/products.html', meta=meta, products=products, sites=sites, 
+            times=times, pagination=pagination, message=message)
+
+    def render_events(self):
+        from backends.matching.feature import sites
+        kwargs = {}
+        for k, v in self.request.arguments.iteritems():
+            kwargs[k] = v[0]
+
+        offset = kwargs.get('offset', '0')
+        limit = kwargs.get('limit', '20')
+        kwargs['offset'] = int(offset)
+        kwargs['limit'] = int(limit)
+
+        try:
+            result = api.event.get(**kwargs)
+            message = ''
+        except:
+            message = 'CANNOT Connect to Mastiff!'
+            result = {'meta':{'total_count':0},'objects':[]}
+
         meta = result['meta']
         events = result['objects']
         sites = ['ALL'] + sites
@@ -240,7 +300,15 @@ class ViewDataHandler(BaseHandler):
         pagination = Pagination(int(offset)/20+1, 20, meta['total_count'])
 
         self.render('viewdata/events.html', meta=meta, events=events, sites=sites, 
-            times=times, pagination=pagination)
+            times=times, pagination=pagination, message=message)
+
+class MonitorHandler(BaseHandler):
+    def get(self):
+        self.render('monitor.html')
+
+class CrawlerHandler(BaseHandler):
+    def get(self):
+        self.render('crawler.html')
 
 settings = {
     "debug": True,
@@ -257,6 +325,8 @@ application = tornado.web.Application([
     (r"/login/", LoginHandler),
     (r"/logout/", LogoutHandler),
     (r"/viewdata/(.*)", ViewDataHandler),
+    (r"/monitor/", MonitorHandler),
+    (r"/crawler/", CrawlerHandler),
     (r"/", IndexHandler),
     (r"/assets/(.*)", tornado.web.StaticFileHandler, dict(path=settings['static_path'])),
 ], **settings)

@@ -19,6 +19,9 @@
     </ul>
   </div>
   <div>
+  {% if message %}
+    {{ message }}
+  {% else %}
     <div class="row-fluid">
       <div class="span10">
         Site:
@@ -101,6 +104,7 @@
         {% endif %}
       </ul>
     </div>   
+  {% endif %}
   </div>
 </div><!--main-content-->
   

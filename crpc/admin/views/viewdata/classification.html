@@ -29,8 +29,14 @@
       {% endfor %}
     </div>
     <hr>
+    {% if type=='event' %}
+    <h3>List of {{type}} in {{current_site}}</h3>
+    {% else %} 
+    <h3>List of {{type}} in Event {{current_site}}_{{key}}</h3>
+    {% endif %}
     <div class="row-fluid">
       {% for o in object_list %}
+      {% if type=='event' %}
         <div class="well" style="width:224px; height:140px; float:left; margin:3px; overflow:hidden;">
           {% if o.sale_title %}
             <span> {{o.sale_title[:30]}} </span><br />
@@ -45,6 +51,18 @@
             <a href="?site={{current_site}}&key={{o.event_id}}{{o.key}}">NO IMAGE</a>
           {% endif %}
         </div>
+      {% else %}
+        <div class="well" style="width:160px; height:240px; float:left; margin:3px; overflow:hidden;">
+          <span>{{ o.title }}</span><br /> 
+          <span> === {{o.key}}  === </span><br />
+          <span> |- {{' &gt; '.join(o.favbuy_dept)}} &gt; </span><br />
+          {% if o.image_urls %}
+            <a href="#"><img src="{{o.image_urls[0]}}" /></a>
+          {% else %}
+            <a href="#">NO IMAGE</a>
+          {% endif %}
+        </div>
+      {% endif %}
       {% endfor %}
     </div>   
     <div class="pagination pagination-centered">

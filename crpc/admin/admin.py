@@ -149,6 +149,22 @@ class ViewDataHandler(BaseHandler):
             self.render_products()
         elif subpath == 'classification':
             self.render_classification()
+        elif subpath == 'classification_reason.ajax':
+            self.render_classification_reason()
+
+    def render_classification_reason(self):
+        from backends.matching.mechanic_classifier import classify_product_department
+        site = self.get_argument('site')
+        key = self.get_argument('key')
+        m = get_site_module(site)
+        p = m.Product.objects.get(key=key)
+        dept, reason = classify_product_department(site, p, return_judge=True)
+        html = ''
+        html += 'TITLE: ' + reason[0] + '<br />'
+        for rule in reason[1:]:
+            html += 'RULE: ' + str(rule) + '<br />'
+        html += 'RESULT: ' + str(dept) + '<br />'
+        self.write(html)
 
     def render_classification(self):
         from backends.matching.feature import sites
@@ -177,8 +193,8 @@ class ViewDataHandler(BaseHandler):
         else:
             # current_site, key, products
             type = 'product'
-            ol1 = m.Product.objects(event_id=key)
-            ol2 = m.Product.objects(category_key=key)
+            ol1 = m.Product.objects(event_id=key, updated=True)
+            ol2 = m.Product.objects(category_key=key, updated=True)
 
         num_ol1 = len(ol1)
         if num_ol1 <= offset:

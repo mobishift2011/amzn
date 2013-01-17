@@ -5,6 +5,18 @@
 #  [1] - if XXXX in a title; we can determine the main department of it
 #  [2] - if XXXX in a title; we can determine the sub department of it
 # The XXXX is tested in a brute-force; longest first way
+[0] Teddy -> Women; Intimates & Loungewear
+[0] Camiknicker -> Women; Intimates & Loungewear
+[0] Bodysuit -> Women; Intimates & Loungewear
+[0] Bodysuits -> Women; Intimates & Loungewear
+[0] Body Suit -> Women; Intimates & Loungewear
+[0] Body Suits -> Women; Intimates & Loungewear
+[0] Bra Set -> Women; Intimates & Loungewear
+[0] Skirt Bottom -> Women; Intimates & Loungewear
+[0] Halter Top -> Women; Intimates & Loungewear
+[0] Shape Halter -> Women; Intimates & Loungewear
+[0] Triangle Top -> Women; Intimates & Loungewear
+[0] 2-Ring Hipster -> Women; Intimates & Loungewear
 [0] iPhone Case -> Women; Men; Accessories
 [0] iPhone Necklace -> Women; Men; Accessories
 [0] iPad Case -> Women; Men; Accessories
@@ -319,7 +331,6 @@
 [0] Boston Bag -> Handbags; Tote Bags
 [0] Backpack -> Handbags; Backpacks & Laptop Bags
 [0] Ice Bucket -> Home; Kitchen & Dining
-[0] Piece Set -> Home; Kitchen & Dining
 [0] Box Set -> Home; Home Accessories
 [0] Messenger -> Handbags; Crossbody Bags
 [0] Shopping Bag -> Handbags; Shoulder Bags
@@ -459,7 +470,6 @@
 [0] Morning Glory -> Home; Home Accessories
 [0] Stopper Set -> Home; Home Accessories
 [0] Baskets -> Home; Home Accessories
-[0] Scoop -> Home; Kitchen & Dining
 [0] Buddha Head -> Home; Home Accessories
 [0] Wine Cooler -> Wine; Wine Accessories; Home; Electronics
 [0] Duffle Bag -> Handbags; Backpacks & Laptop Bags
@@ -565,7 +575,7 @@
 [0] Jars -> Home; Home Accessories
 [0] Storage Tub -> Home; Home Accessories
 [0] Yoshi Wedge -> Women; Shoes
-[0] Tunic -> Women; Dresses & Skirts
+[0] Tunic -> Women; Shirts & Sweaters
 [0] Panty -> Women; Intimates & Loungewear
 [0] Bodysuit -> Women; Intimates & Loungewear
 [0] Fx -> Women; Intimates & Loungewear
@@ -601,7 +611,6 @@
 [0] Maxidress -> Women; Dresses & Skirts
 [0] Rainboot -> Women; Shoes
 [0] Bamboo Handbag -> Handbags; Tote Bags
-[0] Print -> Home; Home Accessories
 [0] Decor -> Home; Home Accessories
 [0] Prints -> Home; Home Accessories
 [0] Decors -> Home; Home Accessories
@@ -885,7 +894,9 @@
 [2] Loafers -> Shoes
 [2] Flats -> Shoes
 [2] Tie -> Accessories
+[2] Ties -> Accessories
 [2] Bowtie -> Accessories
+[2] Bowties -> Accessories
 [2] Hat -> Accessories
 [2] Hats -> Accessories
 [2] Scarf -> Accessories
@@ -960,6 +971,7 @@
 [2] Sandal -> Shoes
 [2] Sandals -> Shoes
 [2] Swimsuit -> Intimates & Loungewear
+[2] Swimsuits -> Intimates & Loungewear
 [2] Cap -> Accessories
 [2] Snowsuit -> Suits & Coats
 [2] Snowsuits -> Suits & Coats
@@ -1395,3 +1407,5 @@
 [2] Button Up -> Shirts & Sweaters
 [2] Button-Down -> Shirts & Sweaters
 [2] Button-Up -> Shirts & Sweaters
+[2] Scoop -> Kitchen & Dining
+[2] Print -> Home Accessories

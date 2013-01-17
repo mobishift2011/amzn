@@ -43,8 +43,8 @@
           {% else %}
             <span> {{' &gt; '.join(o.cats)}} </span><br />
           {% endif %}
-          <span> === <a target="_blank" href="{{o.combine_url}}">{{o.event_id}}{{o.key}}</a>  === </span><br />
-          <span> |- {{' &gt; '.join(o.favbuy_dept)}} &gt; </span><br />
+          <span><a target="_blank" href="{{o.combine_url}}">{{o.event_id}}{{o.key}}</a></span><br />
+          <span>{{', '.join(o.favbuy_dept)}}</span><br />
           {% if o.image_urls %}
             <a href="?site={{current_site}}&key={{o.event_id}}{{o.key}}"><img src="{{o.image_urls[0]}}" /></a>
           {% else %}
@@ -54,8 +54,8 @@
       {% else %}
         <div class="well" style="width:160px; height:240px; float:left; margin:3px; overflow:hidden;">
           <span>{{ o.title }}</span><br /> 
-          <span> === <a target="_blank" href="{{o.combine_url}}">{{o.key}}</a>  === </span><br />
-          <span> |- {{' &gt; '.join(o.favbuy_dept)}} &gt; </span><br />
+          <span><a target="_blank" href="{{o.combine_url}}">{{o.key}}</a></span><br />
+          <span> {{', '.join(o.favbuy_dept)}} <a href="#" id="reason" site="{{current_site}}" key="{{o.key}}" class="btn btn-primary">classification reason?</a> </span><br />
           {% if o.image_urls %}
             <a href="#"><img src="{{o.image_urls[0]}}" /></a>
           {% else %}
@@ -103,6 +103,18 @@
     <a href="#" class="btn btn-primary">Save changes</a>
   </div>
 </div>
+
+<div class="modal hide fade" id="reason-modal">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal">×</button>
+    <h3>Classification Reason</h3>
+  </div>
+  <div class="modal-body" id="reason-body">
+  </div>
+  <div class="modal-footer">
+    <a href="#" class="btn" data-dismiss="modal">Close</a>
+  </div>
+</div>
 {% endblock %}
 
 {% block script %}
@@ -129,6 +141,17 @@
       var url = "/viewdata/classification?" + $.param(param);
       window.location.href = url;
     }
+  });
+
+  // reason
+  $('#reason').live('click', function(){
+    var site = $(this).attr('site');
+    var key = $(this).attr('key');
+    console.log(site, key);
+    $.get('/viewdata/classification_reason.ajax', $.param({site:site,key:key}), function(data){
+        $('#reason-body').html(data);
+        $('#reason-modal').modal();
+    });
   });
 
 </script>

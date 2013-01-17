@@ -112,7 +112,7 @@ def get_site_module(site):
     return __import__('crawlers.'+site+'.models', fromlist=['Category', 'Event', 'Product'])
 
 def lot18_mapping(site, event):
-    return ["Home"]
+    return ["Wine"]
 
 def venteprivee_mapping(site, event):
     m = get_site_module('venteprivee')
@@ -210,6 +210,7 @@ def preprocess(title):
     title = re.sub(r'made in [a-z]+', '', title)
     # wipe out sentences `with`s and `in`s and `-`s
     title = re.sub(r'all in one', 'all-in-one', title)
+    title = re.sub(r'with you', 'with-you', title)
     title = re.sub(r'in a', 'in-a', title)
     title = re.sub(r' in .+$', '', title)
     title = re.sub(r' with .+$', '', title)
@@ -241,10 +242,17 @@ def classify_product_department(site, product, use_event_info=False, return_judg
         title += u" " + u" ".join(p.cats)
 
     if site in ["lot18"]:
-        if "white" in title.lower():
-            return [u"Wine", u"White Wines"]
-        elif "red" in title.lower():
-            return [u"Wine", u"Red Wines"]
+        for tag in p.tagline:
+            if "white wine" in tag.lower():
+                if return_judge:
+                    return [u"Wine", u"White Wines"], [u"Wine", u"White Wines"]
+                else:
+                    return [u"Wine", u"White Wines"]
+            elif "red wine" in tag.lower():
+                if return_judge:
+                    return [u"Wine", u"Red Wines"], [u"Wine", u"Red Wines"]
+                else:
+                    return [u"Wine", u"Red Wines"]
 
     kws = words_split.findall(title.lower())
     
@@ -274,6 +282,19 @@ def classify_product_department(site, product, use_event_info=False, return_judg
 
         # do level1 and level2 classifying
         for priority in '12':
+            found = False
+            # last keyword is most important, do it first
+            for rule in rules_dict[priority]:
+                if kws and (not rule[0].difference(set([kws[-1]]))):
+                    result.extend(rule[1])
+                    judge.append(rule)
+                    found = True
+                    break
+
+            if found:
+                continue
+
+            # then general keywords
             for rule in rules_dict[priority]:
                 if not rule[0].difference(kws_set):
                     result.extend(rule[1])
@@ -281,40 +302,40 @@ def classify_product_department(site, product, use_event_info=False, return_judg
                     break
 
     # add necessory converters
-    if "Women" in result:
-        if "Tops & Tees" in result:
-            result.append("Shirts & Sweaters")
-        elif "Socks, Underwear & Sleepwear" in result:
-            result.append("Intimates & Loungewear")
-        elif "Suits & Coats" in result:
-            result.append("Outerwear")
-    elif "Men" in result:
-        if "Intimates & Loungewear" in result:
-            result.append("Socks, Underwear & Sleepwear")
-        elif "Dresses & Skirts" in result:
-            result.append("Shirts & Sweaters")
-        elif "Tops & Tees" in result:
-            result.append("Polos & Tees")
-    elif "Kids & Baby" in result:
-        for clothing_category in ["Tops & Tees", "Shirts & Sweaters", "Outerwear", "Pants & Shorts", "Dresses & Skirts"]:
+    if u"Women" in result:
+        if u"Tops & Tees" in result:
+            result.append(u"Shirts & Sweaters")
+        elif u"Socks, Underwear & Sleepwear" in result:
+            result.append(u"Intimates & Loungewear")
+        elif u"Suits & Coats" in result:
+            result.append(u"Outerwear")
+    if u"Men" in result:
+        if u"Intimates & Loungewear" in result:
+            result.append(u"Socks, Underwear & Sleepwear")
+        elif u"Dresses & Skirts" in result:
+            result.append(u"Shirts & Sweaters")
+        elif u"Tops & Tees" in result:
+            result.append(u"Polos & Tees")
+    if u"Kids & Baby" in result:
+        for clothing_category in [u"Tops & Tees", u"Shirts & Sweaters", u"Outerwear", u"Pants & Shorts", u"Dresses & Skirts", u"Intimates & Loungewear"]:
             if clothing_category in result:
-                if 'Girl' in p.title:
-                    result.append("Girls' Clothing")
-                elif 'Boy' in p.title:
-                    result.append("Boys' Clothing")
+                if u'girl' in p.title.lower():
+                    result.append(u"Girls' Clothing")
+                elif u'boy' in p.title.lower():
+                    result.append(u"Boys' Clothing")
                 else:
-                    result.append("Girls' Clothing")
-                    result.append("Boys' Clothing")
+                    result.append(u"Girls' Clothing")
+                    result.append(u"Boys' Clothing")
                 break
-        if "Shoes" in result:
-            result.append("Girls' Shoes")
-            result.append("Boys' Shoes")
-        elif "Beds & Bath" in result or "Furniture & Lighting" in result:
-            result.append("Bed, Bath & Furniture")
-        elif "Tools" in result:
-            result.append("Gear & Equipment")
-    elif "Home" in result and "Accessories" in result:
-        result.append("Home Accessories")
+        if u"Shoes" in result:
+            result.append(u"Girls' Shoes")
+            result.append(u"Boys' Shoes")
+        elif u"Beds & Bath" in result or u"Furniture & Lighting" in result:
+            result.append(u"Bed, Bath & Furniture")
+        elif u"Tools" in result:
+            result.append(u"Gear & Equipment")
+    if u"Home" in result and u"Accessories" in result:
+        result.append(u"Home Accessories")
 
     # reorder
     keys = [k.decode('utf-8') for k in  CATS.keys()]
@@ -326,12 +347,16 @@ def classify_product_department(site, product, use_event_info=False, return_judg
 
     # if we can't identify the product from it's title alone, try again with event info
     if use_event_info == False and (not (set(result) - set(keys))):
-        result = classify_product_department(site, product, use_event_info=True, return_judge=return_judge)
+        if return_judge:
+            result, judge = classify_product_department(site, product, use_event_info=True, return_judge=True)
+        else:
+            result = classify_product_department(site, product, use_event_info=True, return_judge=False)
 
     if return_judge:
         return result, judge
     else:
         return result
+        
 
 def test_event():
     import random

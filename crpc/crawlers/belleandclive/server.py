@@ -233,7 +233,7 @@ class Server(object):
         
     def crawl_product(self, url, ctx=''):
         key = url.rsplit('id', 1)[-1]
-        tree = self.download_page_ret_tree(key, url, 'download product page failed:'.format(dept), ctx)
+        tree = self.download_page_ret_tree(key, url, 'download product page failed:', ctx)
         color = tree.cssselect('div#colors span#color-label')
         color = color[0].text_content() if color else ''
         shipping = tree.cssselect('div#international-shipping-message > a#international-shipping-link')

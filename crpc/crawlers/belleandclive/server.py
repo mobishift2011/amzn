@@ -188,7 +188,7 @@ class Server(object):
         if tree is None: return
         nodes = tree.cssselect('div#page-wrapper > div#content > div#sales-wrapper > div#sales > div.sale')
         for node in nodes:
-            link = node.cssselect('div.sale-description > a[href]')[0].get('href')
+            link = node.cssselect('div.sale-description > a[href]')[-1].get('href')
             key = link.rsplit('id', 1)[-1]
             link = link if link.startswith('http') else self.siteurl + link
             brand = node.cssselect('div.sale-description > p.collection')[0].text_content().strip(':')

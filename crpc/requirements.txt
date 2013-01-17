@@ -37,7 +37,7 @@ Pillow
 boto
 slumber==0.5.1
 esmre==0.3.1
-jinja2==2.7
+jinja2
 tornado==2.4.1
 termcolor==1.1.0
 webassets==0.8

@@ -306,6 +306,7 @@ class Server(object):
                 product.soldout = True
                 is_updated = True
                 product.update_history.update({ 'soldout': datetime.utcnow() })
+            if not title: product.title = title
         if event_id not in product.event_id: product.event_id.append(event_id)
         product.list_update_time = datetime.utcnow()
         product.save()

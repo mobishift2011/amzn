@@ -8,6 +8,7 @@ crawlers.belleandclive.server
 
 This is the server part of zeroRPC module. Call by client automatically, run on many differen ec2 instances.
 """
+import re
 import lxml.html
 
 from models import *
@@ -86,6 +87,7 @@ class Server(object):
     def __init__(self):
         self.siteurl = 'http://www.belleandclive.com'
         self.net = belleandcliveLogin()
+        self.extract_large_image = re.compile("(.+&outputx=)(\d+)(&outputy=)(\d+)(.+)")
 
     def crawl_category(self, ctx=''):
         # self.net.check_signin()
@@ -100,7 +102,8 @@ class Server(object):
         :param dept: department
         :param url: department's url
         """
-        tree = self.download_dept_page(dept, url, ctx)
+        tree = self.download_page_ret_tree('', url, 'download department[{0}] failed:'.format(dept), ctx)
+        if tree is None: return
         nodes = tree.cssselect('div#page-wrapper > div#content > div.sales > div.sale > ul#sliding-content > li')
         for node in nodes:
             self.parse_one_event_node(dept, node, ctx)
@@ -110,13 +113,13 @@ class Server(object):
             link = link if link.startswith('http') else self.siteurl + link
             self.crawl_vintage_info('vintage', link, ctx)
 
-    def download_dept_page(self, dept, url, ctx):
+    def download_page_ret_tree(self, key, url, reason, ctx):
         """.. :py:method::
         """
         content = self.net.fetch_page( url )
         if content is None or isinstance(content, int):
-            common_failed.send(sender=ctx, key=dept, url=url,
-                    reason='download department[{0}] failed: {1}'.format(dept, content))
+            common_failed.send(sender=ctx, key=key, url=url,
+                    reason='{0} {1}'.format(reason, content))
             return
         tree = lxml.html.fromstring(content)
         return tree
@@ -146,7 +149,8 @@ class Server(object):
     def crawl_vintage_info(self, dept, url, ctx):
         """.. :py:method::
         """
-        tree = self.download_dept_page(dept, url, ctx)
+        tree = self.download_page_ret_tree('', url, 'download department[{0}] failed:'.format(dept), ctx)
+        if tree is None: return
         nav = tree.cssselect('div#page-wrapper > div#content > div#sales-wrapper > div.top-sale')[0]
         img = nav.cssselect('img.sale-image')[0].get('src')
         img = img if img.startswith('http') else self.siteurl + img
@@ -180,11 +184,21 @@ class Server(object):
 
     def crawl_listing(self, url, ctx=''):
         event_id = url.rsplit('cat', 1)[-1]
-        content = self.net.fetch_page( url )
-        if content is None or isinstance(content, int):
-            common_failed.send(sender=ctx, key='', url=url,
-                    reason='download listing page failed: {0}'.format(content))
-        for d in data:
+        tree = self.download_page_ret_tree(event_id, url, 'download listing page failed:', ctx)
+        if tree is None: return
+        nodes = tree.cssselect('div#page-wrapper > div#content > div#sales-wrapper > div#sales > div.sale')
+        for node in nodes:
+            link = node.cssselect('div.sale-description > a[href]')[0].get('href')
+            key = link.rsplit('id', 1)[-1]
+            link = link if link.startswith('http') else self.siteurl + link
+            brand = node.cssselect('div.sale-description > p.collection')[0].text_content().strip(':')
+            title = node.cssselect('div.sale-description > a[href] > p.title')[0].text_content().strip(':')
+            sizes = [size.text_content() for size in node.cssselect('div.sale-description > div.size-collection > b.indiv-size')]
+            listprice = node.cssselect('div.price-wrapper > p.price > span.linethrough')
+            listprice = listprice[0].text_content().strip() if listprice else ''
+            price = node.cssselect('div.price-wrapper > p.price')[0].text_content().replace('Retail:', '').replace(listprice, '').strip()
+            soldout = True if node.cssselect('div.soldout-wrapper') else False
+
             is_new, is_updated = False, False
             product = Product.objects(key=key).first()
             if not product:
@@ -192,17 +206,12 @@ class Server(object):
                 product = Product(key=key)
                 product.updated = False
                 product.combine_url = link
-                product.soldout = soldout
                 product.brand = brand
                 product.title = title
-                product.color = color
+                product.sizes = sizes
                 product.listprice = listprice
                 product.price = price
-                product.returned = returned
-                product.shipping = shipping
-                product.sizes = sizes
-                product.cats = categories
-                product.offer_id = offer_id
+                product.soldout = soldout
             else:
                 if soldout and product.soldout != True:
                     product.soldout = True
@@ -223,47 +232,34 @@ class Server(object):
 
         
     def crawl_product(self, url, ctx=''):
-        key = self.extract_product_id.match(url).group(1)
-        content = self.net.fetch_page( url )
-        if content is None or isinstance(content, int):
-            common_failed.send(sender=ctx, key='', url=url,
-                    reason='download product page failed: {0}'.format(content))
-        tree = lxml.html.fromstring(content)
-        nav = tree.cssselect('div#container > div#content > div#latest_container > div#latest > div.event > div.offer_container')[0]
-        info = nav.cssselect('div#offer_sizes_colors > div.details_tabs_content > div.spec_on_sku')[0]
-        list_info = []
-        for li in info.cssselect('ul > li'):
-            list_info.append( li.text_content().strip() )
-        summary, list_info = '; '.join(list_info), [] # some products have mixed all list_info into summary
-        list_info_revise = info.cssselect('p') # maybe one p label or 2, type list
-        if list_info_revise:
-            for i in list_info_revise:
-                list_info.extend( i.xpath('.//text()') )
-        list_info = [i.strip() for i in list_info if i.strip()] # get rid of ' ' and \n
-        list_info_revise = []
-        idx = 0
-        while idx < len(list_info):
-            if idx+1 != len(list_info) and (list_info[idx].strip()[-1] == ':' or list_info[idx+1].strip()[0] == ':'):
-                if list_info[idx+1].strip()[-1] == ':':
-                    idx += 1
-                else:
-                    list_info_revise.append( ''.join((list_info[idx], list_info[idx+1])) )
-                    idx += 2
-            else:
-                list_info_revise.append(list_info[idx])
-                idx += 1
-        images = nav.cssselect('div#offer_photo_and_desc > div#images_container_{0} > div.image_container > a.MagicZoom'.format(key))
+        key = url.rsplit('id', 1)[-1]
+        tree = self.download_page_ret_tree(key, url, 'download product page failed:'.format(dept), ctx)
+        color = tree.cssselect('div#colors span#color-label')
+        color = color[0].text_content() if color else ''
+        shipping = tree.cssselect('div#international-shipping-message > a#international-shipping-link')
+        shipping =  shipping[0].text_content() if shipping else ''
+        shipping_normal = tree.cssselect('h4#shipping-returns')#.replace('', '')
+        shipping = shipping_normal[0].text_content() + ' ' + shipping if shipping_normal else shipping
+        returned = tree.cssselect('div#retrun-policy-box > p')[0].text_content().strip()
+        desc = tree.cssselect('div#description-box')
+        summary = desc.xpath('./p')[0].text_content().strip()
+        list_info = [li.text_content().strip() for li in desc.xpath('./ul > li')]
+
         image_urls = []
-        for image in images:
-            image_urls.append( image.get('href') )
+        for image in tree.cssselect('div#thumbnails > img.thumbnail'):
+            aa, outx, bb, outy, cc = self.extract_large_image.search( image.get('relsmall') ).groups()
+            image_urls.append( '{0}{1}{2}{3}{4}'.format(aa, int(outx)*2, bb, int(outy)*2, cc) )
 
         is_new, is_updated = False, False
         product = Product.objects(key=key).first()
         if not product:
             is_new = True
             product = Product(key=key)
+        if color: product.color = color
+        product.shipping = shipping
+        product.returned = returned
         product.summary = summary
-        product.list_info = list_info_revise
+        product.list_info = list_info
         [product.image_urls.append(img) for img in image_urls if img not in product.image_urls]
         product.full_update_time = datetime.utcnow()
         if product.updated == False:
@@ -275,8 +271,6 @@ class Server(object):
 
 
 if __name__ == '__main__':
-    Server().crawl_category()
-    exit()
     import zerorpc
     from settings import CRAWLER_PORT
     server = zerorpc.Server(Server())

@@ -179,10 +179,6 @@
 [0] Fancy Nancy -> Kids & Baby; Toys, Games & Books
 [0] Applicator -> Home; Tools
 [0] Tailored Fabric -> Kids & Baby; Maternity; Gear & Equipment; Baby
-[0] Button Down -> Men; Shirts & Sweaters
-[0] Button Up -> Men; Shirts & Sweaters
-[0] Button-Down -> Men; Shirts & Sweaters
-[0] Button-Up -> Men; Shirts & Sweaters
 [0] Shift -> Women; Dresses & Skirts
 [0] Wash Cloth -> Home; Beds & Bath
 [0] Wash Cloths -> Home; Beds & Bath
@@ -1395,3 +1391,7 @@
 [2] Tutu -> Dresses & Skirts
 [2] Pouch -> Handbags; Wallets; Accessories
 [2] Ankle Boot -> Shoes
+[2] Button Down -> Shirts & Sweaters
+[2] Button Up -> Shirts & Sweaters
+[2] Button-Down -> Shirts & Sweaters
+[2] Button-Up -> Shirts & Sweaters

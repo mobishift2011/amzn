@@ -79,13 +79,13 @@ envs = {
         'USE_INDEX': '',
         'MONGODB_HOST': '10.252.14.6',
         'REDIS_HOST': '10.252.14.6',
+        'MASTIFF_HOST': "http://integrate.favbuy.org:8001/api/v1"
     },
 }
 
 env = os.environ.get("ENV")
 if not env:
     env = "DEV"
-
 
 for key, value in chain(envs['COMMON'].iteritems(), envs[env].iteritems()):
     globals()[key] = value

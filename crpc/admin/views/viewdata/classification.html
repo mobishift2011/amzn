@@ -43,7 +43,7 @@
           {% else %}
             <span> {{' &gt; '.join(o.cats)}} </span><br />
           {% endif %}
-          <span> === {{o.event_id}}{{o.key}}  === </span><br />
+          <span> === <a target="_blank" href="{{o.combine_url}}">{{o.event_id}}{{o.key}}</a>  === </span><br />
           <span> |- {{' &gt; '.join(o.favbuy_dept)}} &gt; </span><br />
           {% if o.image_urls %}
             <a href="?site={{current_site}}&key={{o.event_id}}{{o.key}}"><img src="{{o.image_urls[0]}}" /></a>
@@ -54,7 +54,7 @@
       {% else %}
         <div class="well" style="width:160px; height:240px; float:left; margin:3px; overflow:hidden;">
           <span>{{ o.title }}</span><br /> 
-          <span> === {{o.key}}  === </span><br />
+          <span> === <a target="_blank" href="{{o.combine_url}}">{{o.key}}</a>  === </span><br />
           <span> |- {{' &gt; '.join(o.favbuy_dept)}} &gt; </span><br />
           {% if o.image_urls %}
             <a href="#"><img src="{{o.image_urls[0]}}" /></a>

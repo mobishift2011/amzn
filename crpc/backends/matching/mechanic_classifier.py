@@ -225,7 +225,7 @@ def preprocess(title):
             
 words_split = re.compile('''[A-Za-z0-9\-%.]+''')
 rules_dict = load_rules()
-def classify_product_department(site, product, use_event_info=False):
+def classify_product_department(site, product, use_event_info=False, return_judge=False):
     m = get_site_module(site)
     p = product
     result = []
@@ -250,6 +250,7 @@ def classify_product_department(site, product, use_event_info=False):
     
     # check level-0 rules
     # first run: single words
+    judge = [' '.join(kws)]
     level12 = True
     kws_set = set(kws) 
 
@@ -257,6 +258,7 @@ def classify_product_department(site, product, use_event_info=False):
         if not rule[0].difference(kws_set):
             result.extend(rule[1])
             level12 = False
+            judge.append(rule)
             break
     
     if level12:
@@ -267,6 +269,7 @@ def classify_product_department(site, product, use_event_info=False):
                 e = m.Event.objects.get(event_id=eid)
                 d1.extend(classify_event_department(site, e))
             d1 = list(set(d1))
+            judge.append(d1)
             result.extend( d1 )
 
         # do level1 and level2 classifying
@@ -274,6 +277,7 @@ def classify_product_department(site, product, use_event_info=False):
             for rule in rules_dict[priority]:
                 if not rule[0].difference(kws_set):
                     result.extend(rule[1])
+                    judge.append(rule)
                     break
 
     # add necessory converters
@@ -322,9 +326,12 @@ def classify_product_department(site, product, use_event_info=False):
 
     # if we can't identify the product from it's title alone, try again with event info
     if use_event_info == False and (not (set(result) - set(keys))):
-        result = classify_product_department(site, product, use_event_info=True)
+        result = classify_product_department(site, product, use_event_info=True, return_judge=return_judge)
 
-    return result
+    if return_judge:
+        return result, judge
+    else:
+        return result
 
 def test_event():
     import random
@@ -409,13 +416,16 @@ def extract_pattern2():
             f.write('{0} -> {1}\n'.format(phrase.encode('utf-8'), counts))
 
 if __name__ == '__main__':
-    #from crawlers.ideeli.models import Product
-    #p = Product.objects.get(pk='2820350')
-    #print classify_product_department('ideeli', p)
+    m = get_site_module('beyondtherack')
+    p = m.Product.objects.get(pk='COCTP400510FTP')
+    print classify_product_department('beyondtherack', p, return_judge=True)
+    exit(0)
     #extract_pattern2()
+
     from feature import sites
     for site in sites:
         extract_pattern(site)
+
     #test_product()
     #for rule in load_rules()['0']:
     #    print rule[0]

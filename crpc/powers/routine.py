@@ -213,12 +213,11 @@ def extract_and_propagate(rpc, method, event_dict, *args, **kwargs):
             value = fields[key]
             values = value if hasattr(value, '__iter__') else [value]
             attribute = getattr(instance, key)
-            new_attr = [attribute.append(v) for v in values if v not in attribute]
+            new_attr = [attribute.append(v) or v for v in values if v not in attribute]
 
-            if len(attribute) == len(new_attr):
+            if not new_attr:
                 continue
 
-            setattr(instance, key, new_attr)
             event.update_history.update({key: datetime.utcnow()})
             event['propagation_updated'] = True       
 

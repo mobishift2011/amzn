@@ -5,6 +5,8 @@
 #  [1] - if XXXX in a title; we can determine the main department of it
 #  [2] - if XXXX in a title; we can determine the sub department of it
 # The XXXX is tested in a brute-force; longest first way
+[0] Laptop Bag -> Bags; Backpacks & Laptop Bags
+[0] Laptop Bags -> Bags; Backpacks & Laptop Bags
 [0] European Sham -> Home; Beds & Bath
 [0] Decorative Pillow -> Home; Beds & Bath
 [0] Decorative Pillows -> Home; Beds & Bath

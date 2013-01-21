@@ -33,26 +33,58 @@ def reclassify(site='beyondtherack'):
                 e.save()
 
 def reclassify_mastiff():
-    PAGESIZE = 100
+    # EVENTS
+    PAGESIZE = 20
+    offset = 0
+    total = 2**32
+    while offset < total:
+        data = api.event.get(offset=offset, limit=PAGESIZE)
+        for e in data['objects']:
+            site_key = e['site_key']
+            site, key = site_key.split('_',1)
+            m = get_site_module(site)
+            try:
+                e2 = m.Event.objects.get(event_id=key)
+            except:
+                print 'EVENT', site, key, 'NOT FOUND' 
+            else:
+                if e2.favbuy_dept != e['departments']:
+                    print 'PATCH EVENT', site, key, e['title'], e2.favbuy_dept
+                    api.event(e['id']).patch({'departments':e2.favbuy_dept})
+        total = data['meta']['total_count']
+        offset += PAGESIZE
+
+    # PRODUCTS
+    PAGESIZE = 20
     offset = 0
     total = 2**32
     while offset < total: 
         data = api.product.get(offset=offset, limit=PAGESIZE, order_by='updated_at')
-        total = data['meta']['total_count']
         for p in data['objects']:
-            print p
-            break
+            site_key = p['site_key']
+            site, key = site_key.split('_',1)
+            m = get_site_module(site)
+            try:
+                p2 = m.Product.objects.get(pk=key)
+            except:
+                print 'PRODUCT', site, key, 'NOT FOUND'
+            else: 
+                dept = classify_product_department(site, p2)
+                if p['department_path'] != dept:
+                    print 'PATCH PRODUCT', site, key, p['title'], dept
+                    api.product(p['id']).patch({'department_path':dept})
+        total = data['meta']['total_count']
         offset += PAGESIZE
+    
 
-reclassify_mastiff()
-exit(1)
 
 jobs = []
 for site in sites:
-    job = threading.Thread(target=outdate, args=(site,))
+    job = threading.Thread(target=reclassify, args=(site,))
     job.start()
     jobs.append(job)
 
 for j in jobs:
     j.join()
 
+reclassify_mastiff()

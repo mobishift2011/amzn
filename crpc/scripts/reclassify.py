@@ -76,8 +76,6 @@ def reclassify_mastiff():
         total = data['meta']['total_count']
         offset += PAGESIZE
     
-
-
 jobs = []
 for site in sites:
     job = threading.Thread(target=reclassify, args=(site,))

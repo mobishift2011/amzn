@@ -236,6 +236,8 @@ def classify_product_department(site, product, use_event_info=False, return_judg
             e = m.Event.objects.get(event_id=eid)
             title = e.sale_title + u" " + title
 
+    if not title:
+        title = u""
     title = preprocess(title)
 
     if site in ["bluefly", "ideeli", "nomorerack", "onekingslane"]:

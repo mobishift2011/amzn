@@ -16,7 +16,7 @@ from backends.monitor.ghub import GHub
 
 # bind listeners
 from backends.monitor.logstat import *
-#import powers.binds
+import powers.binds
 
 @run_command.bind
 def execute_cmd(sender, **kwargs):

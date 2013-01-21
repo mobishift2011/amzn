@@ -297,9 +297,11 @@ class Server(object):
         slug, key = self.extract_slug_product.match(url).groups()
         content = fetch_product(url)
         if content is None or isinstance(content[0], int):
-            common_failed.send(sender=ctx, key=key, url=url,
-                    reason='download product url error, {0}'.format(content))
-            return
+            content = fetch_product(url)
+            if content is None or isinstance(content[0], int):
+                common_failed.send(sender=ctx, key=key, url=url,
+                        reason='download product url error, {0}'.format(content))
+                return
         tree = lxml.html.fromstring(content[0])
 
         image_urls, shipping, list_info, brand, returned = self.parse_product(tree)
@@ -389,7 +391,6 @@ class Server(object):
 
 
 if __name__ == '__main__':
-    Server().crawl_listing('http://www.modnique.com/saleevent/Put-More-Style-in-Your-Step/9534/seeac/gseeac')
     import zerorpc
     from settings import CRAWLER_PEERS
     server = zerorpc.Server(Server(), heartbeat=None)

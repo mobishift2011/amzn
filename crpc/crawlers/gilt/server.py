@@ -114,9 +114,11 @@ class Server(object):
         """
         cont = self.net.fetch_page(url)
         if cont is None or isinstance(cont, int):
-            common_failed.send(sender=ctx, key=key, url=url,
-                    reason='{0}: {1}'.format(warning, cont))
-            return
+            cont = self.net.fetch_page(url)
+            if cont is None or isinstance(cont, int):
+                common_failed.send(sender=ctx, key=key, url=url,
+                        reason='{0}: {1}'.format(warning, cont))
+                return
         return self.get_correct_tree(cont)
 
     def get_correct_tree(self, cont):
@@ -179,7 +181,7 @@ class Server(object):
         # this label not exist anymore, instead of starting tomorrow
         nodes = tree.cssselect('section#main > div.sales-container > section.sales-starting-later > article.sale')
         for node in nodes:
-            ret = self.parse_one_node(node, dept, ctx)
+            ret = self.parse_one_node(node, dept, ctx, upcoming=True)
             if ret is None: continue
             event, is_new, is_updated = ret
 
@@ -198,7 +200,7 @@ class Server(object):
         # starting tomorrow
         nodes = tree.cssselect('section#main > div.bottom-calendar-sales-container > section.calendar-sales > div.calendar-sales-container > div.calendar-sales > article.sale')
         for node in nodes:
-            ret = self.parse_one_node(node, dept, ctx)
+            ret = self.parse_one_node(node, dept, ctx, upcoming=True)
             if ret is None: continue
             event, is_new, is_updated = ret
             image, sale_title, sale_description, events_begin = self.get_picture_description(event.combine_url, ctx)
@@ -214,7 +216,7 @@ class Server(object):
         # upcoming
         nodes = tree.cssselect('section#main > div.sales-container > div.sales-promos > section.calendar-sales > div.tab_content > div.scroll-container > article.sale')
         for node in nodes:
-            event, is_new, is_updated = self.parse_one_node(node, dept, ctx)
+            event, is_new, is_updated = self.parse_one_node(node, dept, ctx, upcoming=True)
             image, sale_title, sale_description, events_begin = self.get_picture_description(event.combine_url, ctx)
             if not event.sale_description:
                 event.image_urls = image
@@ -227,7 +229,7 @@ class Server(object):
             common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
 
 
-    def parse_one_node(self, node, dept, ctx):
+    def parse_one_node(self, node, dept, ctx, upcoming=False):
         """.. :py:method::
             parse one event node
         """
@@ -246,7 +248,7 @@ class Server(object):
             event_id = link.rsplit('/', 1)[-1]
             is_leaf = True
 
-        if is_leaf is False:
+        if is_leaf is False and upcoming is False:
             self.get_child_event(event_id, link, dept, ctx)
         event, is_new, is_updated = self.get_or_create_event(event_id, link, dept, sale_title, image, is_leaf)
         return event, is_new, is_updated
@@ -290,8 +292,6 @@ class Server(object):
         """.. :py:method::
         """
         tree = self.download_page_get_correct_tree(url, '', 'download upcoming page error', ctx)
-        if tree is None:
-            tree = self.download_page_get_correct_tree(url, '', 'download upcoming page twice error', ctx)
         nav = tree.cssselect('section#main > article.sale-brand-summary')
         # kids event already on sale, but in men's starting later today
         if not nav: return
@@ -310,8 +310,6 @@ class Server(object):
         :param link: this event list link
         """
         tree = self.download_page_get_correct_tree(link, event_id, 'download shops parent/child event list error', ctx)
-        if tree is None:
-            tree = self.download_page_get_correct_tree(link, event_id, 'download shops parent/child event list twice error', ctx)
         if tree is None: return
         self.save_group_of_event(event_id, tree, dept, ctx)
 

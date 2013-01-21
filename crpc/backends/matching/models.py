@@ -148,17 +148,13 @@ CATS = {
 	    'Tools',
 	    'Kitchen & Dining',
     ],
-    'Handbags': [
+    'Bags': [
 	    'Shoulder Bags',
-	    'Tote Bags',
-	    'Satchels',
-	    'Clutches',
-	    'Hobo Bags',
 	    'Crossbody Bags',
-	    'Evening Bags',
+	    'Handbags',
 	    'Backpacks & Laptop Bags',
         'Wallets',
-        'Luggage & Gear',
+        'Luggage Bags',
     ],
     'Jewelry & Watches': [
 	    'Women\'s Watches',

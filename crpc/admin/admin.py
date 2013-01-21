@@ -15,6 +15,7 @@ import json
 from math import ceil
 from slumber import API
 from datetime import datetime, timedelta
+from mongoengine import Q
 
 def get_site_module(site):
     return __import__('crawlers.'+site+'.models', fromlist=['Category', 'Event', 'Product'])
@@ -181,8 +182,9 @@ class ViewDataHandler(BaseHandler):
         if key is None:
             # events
             type = 'event'
+            utcnow = datetime.utcnow()
             if hasattr(m, 'Event'):
-                ol1 = m.Event.objects()
+                ol1 = m.Event.objects(Q(events_end__gt=utcnow) & (Q(events_begin__exists=False) | Q(events_begin__lt=utcnow)))
             else:
                 ol1 = []
 

@@ -5,6 +5,19 @@
 #  [1] - if XXXX in a title; we can determine the main department of it
 #  [2] - if XXXX in a title; we can determine the sub department of it
 # The XXXX is tested in a brute-force; longest first way
+[0] Sheets Case -> Home; Beds & Bath
+[0] Gold Enhancer -> Jewelry & Watches; Pendants
+[0] Gold Enhancers -> Jewelry & Watches; Pendants
+[0] Silver Enhancer -> Jewelry & Watches; Pendants
+[0] Silver Enhancers -> Jewelry & Watches; Pendants
+[0] Diamond Enhancer -> Jewelry & Watches; Pendants
+[0] Diamond Enhancers -> Jewelry & Watches; Pendants
+[0] Diamond Cuff -> Jewelry & Watches; Bracelets
+[0] Diamond Cuffs -> Jewelry & Watches; Bracelets
+[0] Gold Cuff -> Jewelry & Watches; Bracelets
+[0] Gold Cuffs -> Jewelry & Watches; Bracelets
+[0] Silver Cuff -> Jewelry & Watches; Bracelets
+[0] Silver Cuffs -> Jewelry & Watches; Bracelets
 [0] Briefcase -> Bags; Backpacks & Laptop Bags
 [0] Briefcases -> Bags; Backpacks & Laptop Bags
 [0] Laptop Bag -> Bags; Backpacks & Laptop Bags
@@ -31,6 +44,7 @@
 [0] iPod Touch -> Women; Men; Accessories
 [0] Toe Ring Sandal -> Women; Shoes
 [0] Swarovski Crystal -> Jewelry & Watches; Pendants
+[0] Key Enhancer -> Jewelry & Watches; Pendants
 [0] Light Set -> Home; Furniture & Lighting
 [0] Nightlight -> Home; Furniture & Lighting
 [0] Night Light -> Home; Furniture & Lighting
@@ -368,12 +382,10 @@
 [0] Coverlets -> Home; Beds & Bath
 [0] Coverlit -> Home; Beds & Bath
 [0] Coverlits -> Home; Beds & Bath
-[0] Cup -> Home; Kitchen & Dining
 [0] Cups -> Home; Kitchen & Dining
 [0] Fuchsia -> Home; Home Accessories; Plants
 [0] Sporran -> Bags; Wallets
 [0] Teabag -> Bags; Wallets
-[0] Faux -> Home; Home Accessories
 [0] Charger -> Home; Home Accessories
 [0] Coaster -> Home; Kitchen & Dining; Home Accessories
 [0] Coasters -> Home; Kitchen & Dining; Home Accessories
@@ -549,8 +561,7 @@
 [0] Candle Holders -> Home; Home Accessories
 [0] Mesh Cover Up -> Women; Dresses & Skirts
 [0] Canister Set -> Home; Home Accessories
-[0] Bed -> Home; Beds & Bath
-[0] Beds -> Home; Beds & Bath
+[0] Beds -> Beds & Bath
 [0] Sconce -> Home; Furniture & Lighting
 [0] Rosso Corsa Remix -> Men; Shoes
 [0] Armillary -> Home; Home Accessories
@@ -604,9 +615,6 @@
 [0] Fit Cords -> Men; Pants & Shorts
 [0] Flower Wrap -> Home; Home Accessories
 [0] Wristlet -> Bags; Wallets
-[0] Bake -> Home; Kitchen & Dining
-[0] Baker -> Home; Kitchen & Dining
-[0] Bakers -> Home; Kitchen & Dining
 [0] Pendant -> Jewelry & Watches; Pendants
 [0] Pendants -> Jewelry & Watches; Pendants
 [0] Necklace -> Jewelry & Watches; Necklaces
@@ -661,8 +669,6 @@
 [0] Ring -> Jewelry & Watches; Rings
 [0] Rings -> Jewelry & Watches; Rings
 [0] Compartment Bowl Set -> Home; Kitchen & Dining
-[0] Frame -> Home; Home Accessories
-[0] Frames -> Home; Home Accessories
 [0] Poster -> Home; Home Accessories
 [0] Waste Bin -> Home; Home Accessories
 [0] Glass Bottle -> Home; Kitchen & Dining
@@ -673,6 +679,7 @@
 [0] Tall Boot -> Women; Shoes
 [0] Lust Pendant -> Jewelry & Watches; Pendants
 [0] Unisex Watch -> Jewelry & Watches; Men's Watches; Women's Watches
+[0] Unisex Watches -> Jewelry & Watches; Men's Watches; Women's Watches
 [0] Doll Necklace -> Kids & Baby; Accessories
 [0] Pearl Necklace -> Jewelry & Watches; Necklaces
 [0] Pillow -> Home; Beds & Bath
@@ -685,8 +692,10 @@
 [0] Triple Sorter -> Home; Home Accessories
 [0] Skirt Suit -> Women; Dresses & Skirts
 [0] Heidi Dress -> Women; Dresses & Skirts
+[0] Unisex Sunglasses -> Women; Men; Accessories
 [0] Sunglasses Ladies -> Women; Accessories
 [0] Sunglasses Women -> Women; Accessories
+[0] Sunglasses Men -> Men; Accessories
 [0] Clutch -> Bags; Handbags
 [0] Reva Suede -> Women; Shoes
 [0] Walker Sandal -> Women; Shoes
@@ -748,10 +757,6 @@
 [0] Knee-High -> Women; Shoes
 [0] Knee High -> Women; Shoes
 [0] Crinkle Buckle Boot -> Women; Shoes
-[0] Booties -> Women; Shoes
-[0] Bootie -> Women; Shoes
-[0] Rain Boot -> Women; Shoes
-[0] Biker Boot -> Women; Shoes
 [0] Storage Ottoman -> Home; Funiture & Lightning
 [0] Dress Shoe -> Men; Shoes
 [0] Ramekins Set -> Home; Kitchen & Dining
@@ -788,7 +793,6 @@
 [0] Flat Boots -> Women; Shoes
 [0] Boot Jean -> Women; Pants & Shorts
 [0] Skinny Jeans -> Women; Pants & Shorts
-[0] Jeans -> Women; Pants & Shorts
 [0] Ravioli Attachment -> Home; Tools
 [0] Flatform -> Women; Shoes
 [0] Platform -> Women; Shoes
@@ -879,7 +883,7 @@
 [1] Handbag -> Handbags
 [1] Ladies -> Women
 [1] Girls -> Kids & Baby
-[1] Boys -> KIds & Baby
+[1] Boys -> Kids & Baby
 [1] Women -> Women
 [1] Men -> Men
 [1] Watch -> Jewelry & Watches
@@ -1409,3 +1413,15 @@
 [2] Button-Up -> Shirts & Sweaters
 [2] Scoop -> Kitchen & Dining
 [2] Print -> Home Accessories
+[2] Jeans -> Pants & Shorts
+[2] Bake -> Kitchen & Dining
+[2] Baker -> Kitchen & Dining
+[2] Bakers -> Kitchen & Dining
+[2] Rain Boot -> Shoes
+[2] Biker Boot -> Shoes
+[2] Bed -> Beds & Bath
+[2] Cup -> Kitchen & Dining
+[2] Booties -> Shoes
+[2] Bootie -> Shoes
+[2] Frame -> Accessories
+[2] Frames -> Accessories

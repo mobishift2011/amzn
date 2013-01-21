@@ -320,7 +320,7 @@ def classify_product_department(site, product, use_event_info=False, return_judg
         elif u"Tops & Tees" in result:
             result.append(u"Polos & Tees")
     if u"Kids & Baby" in result:
-        for clothing_category in [u"Tops & Tees", u"Shirts & Sweaters", u"Outerwear", u"Pants & Shorts", u"Dresses & Skirts", u"Intimates & Loungewear"]:
+        for clothing_category in [u"Tops & Tees", u"Shirts & Sweaters", u"Outerwear", u"Pants & Shorts", u"Dresses & Skirts", u"Intimates & Loungewear", "Suits & Coats", "Socks, Underwear & Sleepwear"]:
             if clothing_category in result:
                 if u'girl' in p.title.lower():
                     result.append(u"Girls' Clothing")

@@ -231,6 +231,9 @@ def classify_product_department(site, product, use_event_info=False, return_judg
     p = product
     result = []
     title = p.title
+    if not title:
+        title = u""
+
     if use_event_info:
         for eid in p.event_id:
             e = m.Event.objects.get(event_id=eid)

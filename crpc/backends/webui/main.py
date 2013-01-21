@@ -6,6 +6,7 @@ import gevent
 from bottle import route, get, post, request, run, template, static_file, redirect
 from os.path import join, dirname
 from datetime import datetime
+import time
 import pytz
 import json
 
@@ -20,6 +21,8 @@ from backends.monitor.upcoming_ending_events_count import upcoming_events, endin
 
 from tests.publisher.chkpub import PubChecker
 from backends.monitor.events import auto_scheduling
+
+from powers.models import Stat
 
 @route('/toggle-auto-scheduling/:onoff')
 def toggle_auto_scheduling(onoff):
@@ -173,6 +176,33 @@ def schedule(action):
     elif action == 'ending':
         return template('schedule.tpl', {'schedules': ending_events()})
 
+@route('/graph')
+def graph():
+    return template('graph.tpl', {})
+    
+@route('/graph/event/<site>')
+def graph_event_detail(site):
+    stats = Stat.objects(site=site, doctype='event').order_by('interval')
+    graphdata = []
+    graphdata.append({'name':'image', 'data':[(int(time.mktime(s.interval.timetuple())*1000), s.image_num) for s in stats]})
+    graphdata.append({'name':'propagated', 'data':[(int(time.mktime(s.interval.timetuple())*1000), s.prop_num) for s in stats]})
+    graphdata.append({'name':'published', 'data':[(int(time.mktime(s.interval.timetuple())*1000), s.publish_num) for s in stats]})            
+    return json.dumps(graphdata)
+    
+@route('/graph/product/<site>')
+def graph_prouct_detail(site):
+    stats = Stat.objects(site=site, doctype='product').order_by('interval')
+    graphdata = []
+    graphdata.append({'name':'image', 'data':[(int(time.mktime(s.interval.timetuple())*1000), s.image_num) for s in stats]})
+    graphdata.append({'name':'propagated', 'data':[(int(time.mktime(s.interval.timetuple())*1000), s.prop_num) for s in stats]})
+    graphdata.append({'name':'published', 'data':[(int(time.mktime(s.interval.timetuple())*1000), s.publish_num) for s in stats]})            
+    
+    #data= {'site': site}
+    #data['image'] = json.dumps([(int(time.mktime(s.interval.timetuple())*1000), s.image_num) for s in stats])
+    #data['propagated'] = json.dumps([(int(time.mktime(s.interval.timetuple())*1000), s.prop_num) for s in stats])
+    #data['published'] = json.dumps([(int(time.mktime(s.interval.timetuple())*1000), s.publish_num) for s in stats])    
+    return json.dumps(graphdata)
+    
 #mark_all_failed():
 
 run(server='gevent', host='0.0.0.0', port=1317, debug=True)

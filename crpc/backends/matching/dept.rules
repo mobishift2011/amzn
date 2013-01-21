@@ -5,6 +5,11 @@
 #  [1] - if XXXX in a title; we can determine the main department of it
 #  [2] - if XXXX in a title; we can determine the sub department of it
 # The XXXX is tested in a brute-force; longest first way
+[0] Laptop Bag -> Bags; Backpacks & Laptop Bags
+[0] Laptop Bags -> Bags; Backpacks & Laptop Bags
+[0] European Sham -> Home; Beds & Bath
+[0] Decorative Pillow -> Home; Beds & Bath
+[0] Decorative Pillows -> Home; Beds & Bath
 [0] Teddy -> Women; Intimates & Loungewear
 [0] Camiknicker -> Women; Intimates & Loungewear
 [0] Bodysuit -> Women; Intimates & Loungewear
@@ -36,7 +41,7 @@
 [0] Boy Boxers -> Kids & Baby; Boys' Clothing
 [0] Boys Boxers -> Kids & Baby; Boys' Clothing
 [0] Smart Dock -> Home; Home Accessories
-[0] Zcase Roller -> Handbags; Luggage & Gear
+[0] Zcase Roller -> Bags; Luggage Bags
 [0] Ear Pins -> Jewelry & Watches; Earrings
 [0] Pearl Collar -> Jewelry & Watches; Necklaces
 [0] Diamond Collar -> Jewelry & Watches; Necklaces
@@ -45,7 +50,7 @@
 [0] Peelers -> Home; Kitchen & Dining
 [0] Beverage -> Home; Kitchen & Dining
 [0] Collapsible Cube -> Home; Home Accessories
-[0] Mini Sling -> Handbags; Shoulder Bags
+[0] Mini Sling -> Bags; Shoulder Bags
 [0] Britches Hipster -> Women; Intimates & Loungewear
 [0] Sparkling Duo -> Wine; Champagne
 [0] Sparkling Tri -> Wine; Champagne
@@ -98,8 +103,8 @@
 [0] Actimoist -> Beauty & Health; Skin Care
 [0] Knicker -> Women; Intimates & Loungewear
 [0] Knickers -> Women; Intimates & Loungewear
-[0] Bilfold -> Men; Accessories; Handbags; Wallets
-[0] Billfold -> Men; Accessories; Handbags; Wallets
+[0] Bilfold -> Men; Accessories; Bags; Wallets
+[0] Billfold -> Men; Accessories; Bags; Wallets
 [0] Eyelid -> Beauty & Helath; Makeup
 [0] Album -> Home; Home Accessories
 [0] Regas -> Home; Home Accessories
@@ -114,7 +119,7 @@
 [0] Men Maxton -> Men; Shoes
 [0] Men Wingtip -> Men; Shoes
 [0] Colander -> Home; Kitchen & Dining
-[0] Women Bowler -> Handbags; Shoulder Bags
+[0] Women Bowler -> Bags; Shoulder Bags
 [0] Tub -> Home; Kitchen & Dining
 [0] Tubs -> Home; Kitchen & Dining
 [0] Plantoys -> Toys, Games & Books
@@ -138,15 +143,14 @@
 [0] Jewelry Roll -> Home; Accessories; Women
 [0] Sewing Machine -> Home; Electronics
 [0] Sewing Machines -> Home; Electronics
-[0] Hobos -> Handbags; Hobos
-[0] Hobos Shoulder Bags -> Handbags; Shoulder Bags; Hobos
-[0] Satchel -> Handbags; Satchels
-[0] Satchel- -> Handbags; Satchels
-[0] Satchels -> Handbags; Satchels
+[0] Hobo -> Bags; Handbags
+[0] Hobos -> Bags; Handbags
+[0] Satchel -> Bags; Handbags
+[0] Satchels -> Bags; Handbags
 [0] Women Cashmere -> Women; Shirts & Sweaters
 [0] Chrismas -> Home; Home Accessories
-[0] Backpack -> Handbags; Backpacks & Laptop Bags
-[0] Backpacks -> Handbags; Backpacks & Laptop Bags
+[0] Backpack -> Bags; Backpacks & Laptop Bags
+[0] Backpacks -> Bags; Backpacks & Laptop Bags
 [0] Girls Shoes -> Kids & Baby; Girls' Shoes
 [0] Women Loungewear -> Women; Intimates & Loungewear
 [0] Women Intimates -> Women; Intimates & Loungewear
@@ -160,7 +164,7 @@
 [0] Furniture -> Home; Furniture & Lighting
 [0] Lights -> Home; Furniture & Lighting
 [0] Lighting -> Home; Furniture & Lighting
-[0] One Shoulder Sac -> Handbags; Shoulder Bags
+[0] One Shoulder Sac -> Bags; Shoulder Bags
 [0] Statue -> Home; Home Accessories
 [0] Statues -> Home; Home Accessories
 [0] Stool -> Home; Furniture & Lighting; Accessories
@@ -290,24 +294,24 @@
 [0] Mary Janes -> Women; Shoes
 [0] Onesie -> Kids & Baby; Boys' Clothing; Girls Clothing
 [0] Scent -> Beauty & Health; Fragrance
-[0] Duffle -> Handbags; Luggage Luggage & Gears Gear
-[0] Duffel -> Handbags; Luggage Luggage & Gears Gear
-[0] Travel Bag -> Handbags; Luggage Luggage & Gears Gear
+[0] Duffle -> Bags; Handbags
+[0] Duffel -> Bags; Handbags
+[0] Travel Bag -> Bags; Luggage Bags
 [0] Hoop -> Jewelry & Watches; Earrings
 [0] Hoops -> Jewelry & Watches; Earrings
-[0] Day Bag -> Handbags; Shoulder Bags
-[0] Night Bag -> Handbags; Evening Bags
+[0] Day Bag -> Bags; Shoulder Bags
+[0] Night Bag -> Bags; Handbags
 [0] Bikini -> Women; Intimates & Loungewear
 [0] Bikinis -> Women; Intimates & Loungewear
 [0] Tankini -> Women; Intimates & Loungewear
 [0] Tankinis -> Women; Intimates & Loungewear
-[0] Convertible Bag -> Handbags; Shoulder Bags
+[0] Convertible Bag -> Bags; Shoulder Bags
 [0] Datejust -> Jewelry & Watches; Women's Watches
 [0] Swim Coverup -> Beauty & Health; Skin Care
 [0] Lotion -> Beauty & Health; Skin Care
 [0] Oyster Perpetual -> Jewerly & Watches; Men's Watches; Women's Watches
 [0] Aftershave -> Men; Accessories; Beauty & Health; Skin Care
-[0] Card Case -> Handbags; Wallets; Women; Men; Accessories
+[0] Card Case -> Bags; Wallets; Women; Men; Accessories
 [0] Deodorant -> Beauty & Health; Fragrance
 [0] EDP -> Beauty & Health; Fragrance
 [0] EDC -> Beauty & Health; Fragrance
@@ -318,23 +322,24 @@
 [0] Parfum -> Beauty & Health; Fragrance
 [0] Perfume -> Beauty & Health; Fragrance
 [0] Fragrance -> Beauty & Health; Fragrance
-[0] Camera Bag -> Handbags; Backpacks & Laptop Bags
+[0] Camera Bag -> Bags; Backpacks & Laptop Bags
 [0] Clad -> Home; Kitchen & Dining
 [0] Clads -> Home; Kitchen & Dining
-[0] Piccola Handbag -> Handbags; Shoulder Bags
-[0] Front Bag -> Handbags; Tote Bags
+[0] Piccola Handbag -> Bags; Shoulder Bags
+[0] Front Bag -> Bags; Handbags
 [0] Cedar -> Home; Home Accessories
 [0] Coffee -> Home; Kitchen & Dining
 [0] French Press -> Home; Kitchen & Dining
 [0] Cosmetic -> Beauty & Health; Makeup
 [0] Cosmetics -> Beauty & Health; Makeup
-[0] Boston Bag -> Handbags; Tote Bags
-[0] Backpack -> Handbags; Backpacks & Laptop Bags
+[0] Boston Bag -> Bags; Handbags
+[0] Backpack -> Bags; Backpacks & Laptop Bags
 [0] Ice Bucket -> Home; Kitchen & Dining
 [0] Box Set -> Home; Home Accessories
-[0] Messenger -> Handbags; Crossbody Bags
-[0] Shopping Bag -> Handbags; Shoulder Bags
-[0] Shopper -> Handbags; Shoulder Bags
+[0] Messenger -> Bags; Crossbody Bags
+[0] Medium Shopper -> Bags; Handbags
+[0] Shopping Bag -> Bags; Handbags
+[0] Shopper -> Bags; Handbags
 [0] Knife -> Home; Kitchen & Dining
 [0] Knives -> Home; Kitchen & Dining
 [0] Smock -> Women; Intimates & Loungewear
@@ -364,8 +369,8 @@
 [0] Cup -> Home; Kitchen & Dining
 [0] Cups -> Home; Kitchen & Dining
 [0] Fuchsia -> Home; Home Accessories; Plants
-[0] Sporran -> Handbags; Wallets
-[0] Teabag -> Handbags; Wallets
+[0] Sporran -> Bags; Wallets
+[0] Teabag -> Bags; Wallets
 [0] Faux -> Home; Home Accessories
 [0] Charger -> Home; Home Accessories
 [0] Coaster -> Home; Kitchen & Dining; Home Accessories
@@ -386,17 +391,18 @@
 [0] Open Toe -> Women; Shoes
 [0] Comforter -> Home; Beds & Bath
 [0] Magnifier -> Home; Home Accessories
+[0] Pearl Duvet Set -> Home; Beds & Bath
 [0] Pearl Set -> Jewelry & Watches; Bracelets; Necklaces; Earrings; Rings
 [0] Drink Opener -> Wine; Wine Accessories; Home; Home Accessories
 [0] Kitchen -> Home; Kitchen & Dining
 [0] Dining -> Home; Kitchen & Dining
-[0] Purse -> Handbags; Wallets
+[0] Purse -> Bags; Wallets
 [0] Figurine -> Home; Home Accessories
 [0] Figurines -> Home; Home Accessories
 [0] Figure -> Home; Home Accessories
-[0] Expandable Spinner -> Handbags; Luggage Luggage & Gears Gear
+[0] Expandable Spinner -> Bags; Luggage Bags
 [0] ZooWallogy -> Home; Home Accessories
-[0] Messenger Bag -> Handbags; Crossbody Bags
+[0] Messenger Bag -> Bags; Crossbody Bags
 [0] Kitchen Brush -> Home; Kitchen & Dining; Tools
 [0] Platter -> Home; Kitchen & Dining
 [0] Curtain -> Home; Beds & Bath
@@ -417,7 +423,7 @@
 [0] Vases -> Home; Home Accessories
 [0] Scale -> Home; Home Accessories
 [0] Bath Scale -> Home; Home Accessories
-[0] Barrel Bag -> Handbags; Backpacks & Laptop Bags
+[0] Barrel Bag -> Bags; Backpacks & Laptop Bags
 [0] Herb Saver -> Home; Kitchen & Dining
 [0] Ice Cream Maker -> Home; Kitchen & Dining
 [0] Overture -> Home; Kitchen & Dining
@@ -433,9 +439,9 @@
 [0] Love Letters -> Home; Home Accessories
 [0] Tower -> Home; Beds & Bath
 [0] Coffee Set -> Home; Kitchen & Dining
-[0] Cross Body -> Handbags; Crossbody Bags
-[0] Crossbody -> Handbags; Crossbody Bags
-[0] Cross-Body -> Handbags; Crossbody Bags
+[0] Cross Body -> Bags; Crossbody Bags
+[0] Crossbody -> Bags; Crossbody Bags
+[0] Cross-Body -> Bags; Crossbody Bags
 [0] Organizer -> Home; Home Accessories
 [0] Step Stool -> Home; Furniture & Lighting
 [0] Shower Liner -> Home; Beds & Bath
@@ -448,8 +454,8 @@
 [0] Shootie -> Women; Shoes
 [0] Shooties -> Women; Shoes
 [0] Sham -> Home; Beds & Bath
-[0] Suitcases -> Handbags; Luggage Luggage & Gears Gear
-[0] Suitcase -> Handbags; Luggage Luggage & Gears Gear
+[0] Suitcases -> Bags; Luggage Bags
+[0] Suitcase -> Bags; Luggage Bags
 [0] Patent Skimmer -> Women; Shoes
 [0] Pestle -> Home; Kitchen & Dining
 [0] Pen -> Home; Home Accessories
@@ -458,7 +464,7 @@
 [0] Bowl-Set -> Home; Kitchen & Dining
 [0] Bowl -> Home; Kitchen & Dining
 [0] Bowls -> Home; Kitchen & Dining
-[0] Lunch Bag -> Handbags; Tote Bags; Home; Home Accessories
+[0] Lunch Bag -> Bags; Handbags; Home; Home Accessories
 [0] Mirror -> Home; Furniture & Lighting
 [0] Mirrors -> Home; Furniture & Lighting
 [0] Griddle -> Home; Kitchen & Dining
@@ -472,7 +478,7 @@
 [0] Baskets -> Home; Home Accessories
 [0] Buddha Head -> Home; Home Accessories
 [0] Wine Cooler -> Wine; Wine Accessories; Home; Electronics
-[0] Duffle Bag -> Handbags; Backpacks & Laptop Bags
+[0] Duffle Bag -> Bags; Backpacks & Laptop Bags
 [0] Saucepot -> Home; Kitchen & Dining
 [0] Candleholder -> Home; Home Accessories
 [0] Candleholders -> Home; Home Accessories
@@ -490,11 +496,11 @@
 [0] Quad Sorter -> Home; Home Accessories
 [0] Baby Doll -> Women; Intimates & Loungewear
 [0] Earring Tree -> Home; Home Accessories
-[0] Beige Bag -> Handbags; Tote Bags
+[0] Beige Bag -> Bags; Handbags
 [0] Room Divider -> Home; Home Accessories
 [0] Deco -> Home; Home Accessories
 [0] Decorative -> Home; Home Accessories
-[0] Chameleon Bag -> Handbags; Tote Bags
+[0] Chameleon Bag -> Bags; Handbags
 [0] Panel -> Home; Home Accessories
 [0] Panels -> Home; Home Accessories
 [0] Placemat -> Home; Kitchen & Dining
@@ -510,7 +516,7 @@
 [0] Teakettle -> Home; Kitchen & Dining
 [0] Tea Kettle -> Home; Kitchen & Dining
 [0] Rolling Pin -> Home; Kitchen & Dining
-[0] Carry-On Spinner -> Handbags; Luggage Luggage & Gears Gear
+[0] Carry-On Spinner -> Bags; Luggage Bags
 [0] Measuring Cup -> Home; Kitchen & Dining
 [0] Clock -> Home; Home Accessories
 [0] Mirrors -> Home; Furniture & Lighting
@@ -521,7 +527,7 @@
 [0] Tablepad -> Home; Home Accessories
 [0] Ege Glass -> Home; Kitchen & Dining
 [0] Bedspread -> Home; Beds & Bath
-[0] Z-Case -> Handbags; Luggage Luggage & Gears Gear
+[0] Z-Case -> Bags; Luggage Bags
 [0] Fleurs-De-Lys -> Home; Home Accessories
 [0] Wedges -> Women; Shoes
 [0] LED Collar Cats -> Home; Home Accessories
@@ -555,9 +561,9 @@
 [0] Book Boxes -> Home; Home Accessories
 [0] Christmas -> Home; Home Accessories
 [0] Wedge -> Women; Shoes
-[0] Luggage Set -> Handbags; Luggage Luggage & Gears Gear
+[0] Luggage Set -> Bags; Luggage Bags
 [0] Bowl Set -> Home; Kitchen & Dining
-[0] Ivory Lane Quinn Zebra -> Handbags; Tote Bags
+[0] Ivory Lane Quinn Zebra -> Bags; Handbags
 [0] Chair -> Home; Furniture & Lighting
 [0] Chairs -> Home; Furniture & Lighting
 [0] Towel Set -> Home; Beds & Bath
@@ -581,8 +587,8 @@
 [0] Fx -> Women; Intimates & Loungewear
 [0] Frying Pan -> Home; Kitchen & Dining
 [0] Baking Pan -> Home; Kitchen & Dining
-[0] Garment Bag -> Handbags; Luggage & Gear
-[0] Wash Bag -> Handbags; Luggage & Gear
+[0] Garment Bag -> Bags; Luggage & Gear
+[0] Wash Bag -> Bags; Luggage & Gear
 [0] Fabric Boxes -> Home; Home Accessories
 [0] Pancake Pan -> Home; Kitchen & Dining
 [0] Book Box -> Home; Home Accessories
@@ -595,7 +601,7 @@
 [0] Deco Bed -> Home; Beds & Bath
 [0] Fit Cords -> Men; Pants & Shorts
 [0] Flower Wrap -> Home; Home Accessories
-[0] Wristlet -> Handbags; Wallets
+[0] Wristlet -> Bags; Wallets
 [0] Bake -> Home; Kitchen & Dining
 [0] Baker -> Home; Kitchen & Dining
 [0] Bakers -> Home; Kitchen & Dining
@@ -610,7 +616,7 @@
 [0] Maxi-Dress -> Women; Dresses & Skirts
 [0] Maxidress -> Women; Dresses & Skirts
 [0] Rainboot -> Women; Shoes
-[0] Bamboo Handbag -> Handbags; Tote Bags
+[0] Bamboo Handbag -> Bags; Handbags
 [0] Decor -> Home; Home Accessories
 [0] Prints -> Home; Home Accessories
 [0] Decors -> Home; Home Accessories
@@ -622,14 +628,14 @@
 [0] Earrings -> Jewelry & Watches; Earrings
 [0] Painting -> Home; Home Accessories
 [0] Shelf -> Home; Furniture & Lighting
-[0] Tote -> Handbags; Tote Bags
-[0] Totes -> Handbags; Tote Bags
+[0] Tote -> Bags; Handbags
+[0] Totes -> Bags; Handbags
 [0] Fire Patrol Rescue -> Kids & Baby; Toys, Games & Books
 [0] Romper -> Women; Dresses & Skirts
 [0] Pillowcase -> Home; Beds & Bath
 [0] Storage Rack -> Home; Furniture & Lighting
 [0] Cuckoo Rooster -> Home; Home Accessories
-[0] Hardcase -> Handbags; Luggage Luggage & Gears Gear
+[0] Hardcase -> Bags; Luggage Bags
 [0] WII -> Kids & Baby; Toys, Games & Books; Home; Electronics
 [0] PS3 -> Kids & Baby; Toys, Games & Books; Home; Electronics
 [0] PS1 -> Kids & Baby; Toys, Games & Books; Home; Electronics
@@ -650,7 +656,6 @@
 [0] Heels -> Women; Shoes
 [0] Heeled -> Women; Shoes
 [0] Kilim -> Home; Rugs & Textiles
-[0] Color Block -> Women; Dresses & Skirts
 [0] Ring -> Jewelry & Watches; Rings
 [0] Rings -> Jewelry & Watches; Rings
 [0] Compartment Bowl Set -> Home; Kitchen & Dining
@@ -680,13 +685,14 @@
 [0] Heidi Dress -> Women; Dresses & Skirts
 [0] Sunglasses Ladies -> Women; Accessories
 [0] Sunglasses Women -> Women; Accessories
-[0] Clutch -> Handbags; Cluthes
+[0] Clutch -> Bags; Handbags
 [0] Reva Suede -> Women; Shoes
 [0] Walker Sandal -> Women; Shoes
 [0] Pumps -> Women; Shoes
 [0] Pump -> Women; Shoes
 [0] Cracker Tray -> Kitchen & Dining
-[0] Shoulder Bag -> Handbags; Shoulder Bags
+[0] Shoulder Bag -> Bags; Shoulder Bags
+[0] Shoulder Bags -> Bags; Shoulder Bags
 [0] Placket -> Women; Dresses & Skirts
 [0] Mug -> Home; Kitchen & Dining
 [0] Mugs -> Home; Kitchen & Dining
@@ -701,11 +707,10 @@
 [0] Sandal Flat -> Women; Shoes
 [0] Riding Boot -> Women; Shoes
 [0] Mid-Boot -> Women; Shoes
-[0] Duffel Bag -> Handbags; Luggage Luggage & Gears Gear
-[0] Bag Cart -> Handbags; Luggage Luggage & Gears Gear
-[0] Luggages -> Handbags; Luggage Luggage & Gears Gear
-[0] Satchel -> Handbags; Satchels
-[0] Crossbody Bag -> Handbags; Crossbody Bags
+[0] Duffel Bag -> Bags; Luggage Bags
+[0] Bag Cart -> Bags; Luggage Bags
+[0] Luggages -> Bags; Luggage Bags
+[0] Crossbody Bag -> Bags; Crossbody Bags
 [0] Party Kit -> Kids & Baby; Toys, Games & Books
 [0] Spinner Set -> Home; Tools
 [0] Nightie -> Women; Intimates & Loungewear
@@ -726,6 +731,8 @@
 [0] Thong -> Women; Intimates & Loungewear
 [0] Blouse -> Women; Shirts & Sweaters
 [0] Garment Rack -> Home; Home Accessories
+[0] Pearl Sheet Set -> Home; Beds & Bath
+[0] Solid Sheet -> Home; Beds & Bath
 [0] Sheet Set -> Home; Beds & Bath
 [0] Shelving -> Home; Furniture & Lighting
 [0] Candy Tube Dress -> Women; Dresses & Skirts
@@ -794,8 +801,7 @@
 [0] Apron And Thong -> Women; Intimates & Loungewear
 [0] Wall Decor -> Home; Home Accessories
 [0] Thread Count Sheet -> Home; Beds & Bath
-[0] Pochette -> Handbags; Cluthes
-[0] Medium Shopper -> Handbags; Tote Bags
+[0] Pochette -> Bags; Handbags
 [0] Silicone Madeleine -> Home; Kitchen & Dining
 [0] Bath Sheet -> Home; Beds & Bath
 [0] Babies Puffer Jacket -> Kids & Baby; Boys' Clothing; Girls' Clothing
@@ -808,10 +814,10 @@
 [0] Art Pieces -> Home; Home Accessories
 [0] Glass Pinch Bowl -> Home; Kitchen & Dining
 [0] Slipcover -> Home; Furniture & Lighting
-[0] Sling Bag -> Handbags; Shoulder Bag
+[0] Sling Bag -> Bags; Shoulder Bag
 [0] Pitcher -> Home; Kitchen & Dining
 [0] Ladle -> Home; Kitchen & Dining
-[0] Picotin -> Handbags; Tote Bags
+[0] Picotin -> Bags; Handbags
 [0] Frother -> Home; Kitchen & Dining
 [0] Studded Flat -> Women; Shoes
 [0] Sling Back -> Women; Shoes
@@ -836,17 +842,16 @@
 [0] Pill Box -> Home; Home Accessories
 [0] Asymmetrical Hem Top -> Women; Shirts & Sweaters
 [0] Candy Dish -> Home; Kitchen & Dining
-[0] Canvas -> Home; Home Accessories
 [0] Boyfriend Chino -> Women; Pants & Shorts
 [0] Wii -> Kids & Baby; Toys, Games & Books
 [0] Cubby Bench -> Home; Furniture & Lighting
 [0] Cross Necklace -> Jewelry & Watches; Necklaces
-[0] Wallet -> Handbags; Wallets
+[0] Wallet -> Bags; Wallets
 [0] Ornament -> Home; Home Accessories
 [0] Ornaments -> Home; Home Accessories
-[0] Tote Bag -> Handbags; Tote Bags
-[0] Gym Tote -> Handbags; Tote Bags
-[0] Vertical Tote -> Handbags; Tote Bags
+[0] Tote Bag -> Bags; Handbags
+[0] Gym Tote -> Bags; Handbags
+[0] Vertical Tote -> Bags; Handbags
 [0] Shower Caddy -> Home; Home Accessories
 [0] Open Skillet -> Home; Kitchen & Dining
 [0] Bangle -> Jewelry & Watches; Bracelets
@@ -855,7 +860,6 @@
 [0] Bracelets -> Jewelry & Watches; Bracelets
 [0] Tomato Knife -> Home; Kitchen & Dining
 [0] De Lis -> Home; Home Accessories
-[0] Hobo -> Handbags; Hobo Bags
 [0] Wine Stopper -> Wine; Wine Accessories
 [0] Meat Set -> Home; Kitchen & Dining
 [0] Potato Set -> Home; Kitchen & Dining
@@ -863,7 +867,7 @@
 [0] Onesie Set -> Kids & Baby; Girls' Clothing; Boys' Clothing
 [0] DVD -> Home; Home Accessories
 [0] Birdhouses -> Home; Home Accessories
-[0] Briefcase -> Handbags; Luggage Luggage & Gears Gear
+[0] Briefcase -> Bags; Luggage Bags
 [0] Girl Shoes -> Kids & Baby; Girls' Shoes
 [0] Boy Shoes -> Kids & Baby; Boys' Shoes
 [1] Personal Care -> Beauty & Health; Skin Care
@@ -1142,8 +1146,8 @@
 [2] Towels -> Beds & Bath; Accessories
 [2] Blanket -> Accessories
 [2] Blankets -> Accessories
-[2] Cart -> Luggage Luggage & Gears Gear; Tools
-[2] Carts -> Luggage Luggage & Gears Gear; Tools
+[2] Cart -> Luggage Bags; Tools
+[2] Carts -> Luggage Bags; Tools
 [2] Art -> Accessories
 [2] Arts -> Accessories
 [2] Legwarmer -> Accessories
@@ -1332,7 +1336,7 @@
 [2] Money Bank -> Accessories
 [2] Fur Collar -> Accessories
 [2] Fur Beenie -> Accessories
-[2] Louis Vuitton -> Handbags; Shoulder Bags
+[2] Louis Vuitton -> Bags; Shoulder Bags
 [2] Bootcut -> Pants & Shorts
 [2] Straight -> Pants & Shorts
 [2] Espadrille -> Shoes
@@ -1348,7 +1352,7 @@
 [2] Decoration -> Accessories
 [2] Windshirt -> Shirts & Sweaters
 [2] Globe -> Home; Accessories
-[2] Bedskirt -> Intimates & Loungewear
+[2] Bedskirt -> Intimates & Loungewear; Beds & Bath
 [2] Guitar -> Home; Accessories
 [2] Container -> Home; Kitchen & Dining
 [2] Dress-Up -> Kids & Baby; Toys, Games & Books
@@ -1399,7 +1403,7 @@
 [2] Flagpole -> Accessories
 [2] Buttonup -> Shirts & Sweaters
 [2] Tutu -> Dresses & Skirts
-[2] Pouch -> Handbags; Wallets; Accessories
+[2] Pouch -> Bags; Wallets; Accessories
 [2] Ankle Boot -> Shoes
 [2] Button Down -> Shirts & Sweaters
 [2] Button Up -> Shirts & Sweaters

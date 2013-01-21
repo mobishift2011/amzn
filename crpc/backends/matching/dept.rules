@@ -5,6 +5,8 @@
 #  [1] - if XXXX in a title; we can determine the main department of it
 #  [2] - if XXXX in a title; we can determine the sub department of it
 # The XXXX is tested in a brute-force; longest first way
+[0] Briefcase -> Bags; Backpacks & Laptop Bags
+[0] Briefcases -> Bags; Backpacks & Laptop Bags
 [0] Laptop Bag -> Bags; Backpacks & Laptop Bags
 [0] Laptop Bags -> Bags; Backpacks & Laptop Bags
 [0] European Sham -> Home; Beds & Bath
@@ -867,7 +869,6 @@
 [0] Onesie Set -> Kids & Baby; Girls' Clothing; Boys' Clothing
 [0] DVD -> Home; Home Accessories
 [0] Birdhouses -> Home; Home Accessories
-[0] Briefcase -> Bags; Luggage Bags
 [0] Girl Shoes -> Kids & Baby; Girls' Shoes
 [0] Boy Shoes -> Kids & Baby; Boys' Shoes
 [1] Personal Care -> Beauty & Health; Skin Care
@@ -907,8 +908,6 @@
 [2] Headwraps -> Accessories
 [2] Sunglasses -> Accessories
 [2] Storage Boxes -> Home Accessories
-[2] Coat -> Outerwear
-[2] Coats -> Outerwear
 [2] Blazer -> Outerwear
 [2] Blazers -> Outerwear
 [2] Jacket -> Outerwear
@@ -980,11 +979,9 @@
 [2] Waistcoat -> Suits & Coats
 [2] Waistcoats -> Suits & Coats
 [2] Bomber -> Suits & Coats
-[2] Coat -> Suits & Coats
 [2] Suit -> Suits & Coats
-[2] Suit with -> Suits & Coats
 [2] Suits -> Suits & Coats
-[2] Suits with -> Suits & Coats
+[2] Coat -> Suits & Coats
 [2] Coats -> Suits & Coats
 [2] Trench -> Suits & Coats
 [2] Shawl -> Accessories
@@ -1222,7 +1219,8 @@
 [2] Bike -> Accessories
 [2] Underwear -> Intimates & Loungewear
 [2] Underwears -> Intimates & Loungewear
-[2] Boxer -> Accessories
+[2] Boxer -> Intimates & Loungewear
+[2] Boxers -> Intimates & Loungewear
 [2] Stocking -> Accessories
 [2] Stockings -> Accessories
 [2] Cleaner -> Accessories

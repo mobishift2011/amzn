@@ -5,6 +5,19 @@
 #  [1] - if XXXX in a title; we can determine the main department of it
 #  [2] - if XXXX in a title; we can determine the sub department of it
 # The XXXX is tested in a brute-force; longest first way
+[0] Storage Cubby -> Furniture & Lighting
+[0] Storage Unit -> Furniture & Lighting
+[0] Storage Cube -> Furniture & Lighting
+[0] Storage Bench -> Furniture & Lighting
+[0] Toy Chest -> Furniture & Lighting
+[0] Cosmetic Case -> Women; Accessories
+[0] Cosmetics Case -> Women; Accessories
+[0] Cheese Board -> Home; Kitchen & Dining
+[0] FENDI Baguette -> Bags; Handbags
+[0] Soup Set -> Home; Kitchen & Dining
+[0] Stew Set -> Home; Kitchen & Dining
+[0] Pouchette -> Bags; Handbags
+[0] Bathroom -> Home; Beds & Bath
 [0] Sheets Case -> Home; Beds & Bath
 [0] Gold Enhancer -> Jewelry & Watches; Pendants
 [0] Gold Enhancers -> Jewelry & Watches; Pendants
@@ -12,6 +25,8 @@
 [0] Silver Enhancers -> Jewelry & Watches; Pendants
 [0] Diamond Enhancer -> Jewelry & Watches; Pendants
 [0] Diamond Enhancers -> Jewelry & Watches; Pendants
+[0] Clad Cuff -> Jewelry & Watches; Bracelets
+[0] Clad Cuffs -> Jewelry & Watches; Bracelets
 [0] Diamond Cuff -> Jewelry & Watches; Bracelets
 [0] Diamond Cuffs -> Jewelry & Watches; Bracelets
 [0] Gold Cuff -> Jewelry & Watches; Bracelets
@@ -46,8 +61,15 @@
 [0] Swarovski Crystal -> Jewelry & Watches; Pendants
 [0] Key Enhancer -> Jewelry & Watches; Pendants
 [0] Light Set -> Home; Furniture & Lighting
+[0] Light Basket -> Home; Furniture & Lighting
+[0] 1-Light Pendant -> Home; Furniture & Lighting
+[0] 2-Light Pendant -> Home; Furniture & Lighting
+[0] 3-Light Pendant -> Home; Furniture & Lighting
+[0] 5-Light Pendant -> Home; Furniture & Lighting
+[0] 6-Light Pendant -> Home; Furniture & Lighting
 [0] Nightlight -> Home; Furniture & Lighting
 [0] Night Light -> Home; Furniture & Lighting
+[0] Sconce -> Home; Furniture & Lighting
 [0] Air Purifier -> Home; Electronics
 [0] Chimenea -> Furniture & Lighting
 [0] Menorah -> Home; Furniture & Lighting
@@ -75,16 +97,16 @@
 [0] Champagne Duo -> Wine; Champagne
 [0] Champagne Tri -> Wine; Champagne
 [0] Champagne Half Case -> Wine; Chamepagne
-[0] Champagne Bucket -> Wine; Wine Accessories
-[0] Champagne Opener -> Wine; Wine Accessories
-[0] Champagne Saucer -> Wine; Wine Accessories
-[0] Champagne Glass -> Wine; Wine Accessories
-[0] Champagne Glasses -> Wine; Wine Accessories
-[0] Champagne Flute -> Wine; Wine Accessories
-[0] Champagne Flutes -> Wine; Wine Accessories
-[0] Wine Tote -> Wine; Wine Accessories
-[0] Wine Glass -> Wine; Wine Accessories
-[0] Wine Glasses -> Wine; Wine Accessories
+[0] Champagne Bucket -> Home; Kitchen & Dining
+[0] Champagne Opener -> Home; Kitchen & Dining
+[0] Champagne Saucer -> Home; Kitchen & Dining
+[0] Champagne Glass -> Home; Kitchen & Dining
+[0] Champagne Glasses -> Home; Kitchen & Dining
+[0] Champagne Flute -> Home; Kitchen & Dining
+[0] Champagne Flutes -> Home; Kitchen & Dining
+[0] Wine Tote -> Home; Kitchen & Dining
+[0] Wine Glass -> Home; Kitchen & Dining
+[0] Wine Glasses -> Home; Kitchen & Dining
 [0] Twin Techno -> Kids & Baby; Gear & Equipment
 [0] Bib -> Kids & Baby; Baby
 [0] DreamSwaddle -> Kids & Baby; Baby
@@ -150,7 +172,6 @@
 [0] Foundations -> Beauty & Helath; Makeup
 [0] Lipliner -> Beauty & Helath; Makeup
 [0] Lipliners -> Beauty & Helath; Makeup
-[0] Lipstick -> Beauty & Helath; Makeup
 [0] Lipsticks -> Beauty & Helath; Makeup
 [0] Brooch -> Jewelry & Watches; Pendants
 [0] Dead Sea Minerals -> Beauty & Health; Skin Care
@@ -163,7 +184,6 @@
 [0] Hobos -> Bags; Handbags
 [0] Satchel -> Bags; Handbags
 [0] Satchels -> Bags; Handbags
-[0] Women Cashmere -> Women; Shirts & Sweaters
 [0] Chrismas -> Home; Home Accessories
 [0] Backpack -> Bags; Backpacks & Laptop Bags
 [0] Backpacks -> Bags; Backpacks & Laptop Bags
@@ -184,16 +204,15 @@
 [0] Statue -> Home; Home Accessories
 [0] Statues -> Home; Home Accessories
 [0] Stool -> Home; Furniture & Lighting; Accessories
-[0] Hair -> Beauty & Health; Hair Care
 [0] Shampoo -> Beauty & Health; Hair Care
 [0] Conditioner -> Beauty & Health; Hair Care
 [0] Clip-In -> Beauty & Health; Hair Care
 [0] Hairpiece -> Beauty & Health; Hair Care
 [0] Hairdo -> Beauty & Health; Hair Care
 [0] Hairdos -> Beauty & Health; Hair Care
-[0] Wine Bucket -> Wine; Wine Accessories
-[0] Red Wine Cup -> Wine; Wine Accessories
-[0] White Wine Cup -> Wine; Wine Accessories
+[0] Wine Bucket -> Home; Kitchen & Dining
+[0] Red Wine Cup -> Home; Kitchen & Dining
+[0] White Wine Cup -> Home; Kitchen & Dining
 [0] White Red Wine -> Wine; Red Wine; White Wine
 [0] Red Wine -> Wine; Red Wine
 [0] White Wine -> Wine; White Wine
@@ -218,7 +237,6 @@
 [0] Washcloths -> Home; Beds & Bath
 [0] Wastebasket -> Home; Home Accessories
 [0] Chandelier -> Home; Furniture & Lighting
-[0] Brush -> Home; Home Accessories
 [0] Fountain -> Home; Home Accessories
 [0] Fireplace -> Home; Furniture & Lighting
 [0] Fire Pit -> Home; Furniture & Lighting
@@ -231,7 +249,7 @@
 [0] Eyeshadows -> Beauty & Health; Makeup
 [0] Eye Shadow -> Beauty & Health; Makeup
 [0] Garden Set -> Home; Tools
-[0] Corkscrew -> Home; Tools
+[0] Corkscrew -> Home; Kitchen & Dining
 [0] Crib -> Kids & Baby; Maternity; Gear & Equipment; Baby
 [0] Mattress -> Home; Beds & Bath
 [0] Knightsbridge -> Kids & Baby; Toys, Games & Books
@@ -275,8 +293,9 @@
 [0] Spatula -> Home; Kitchen & Dining
 [0] Drawer -> Home; Furniture & Lighting
 [0] Door -> Home; Home Accessories; Furniture & Lighting
-[0] Doormat -> Home; Home Accessories; Furniture & Lighting
-[0] Decanter -> Home; Kitchen & Dining; Wine; Wine Accessories
+[0] Doormat -> Home; Rugs & Textiles
+[0] Studio by Karastan -> Home; Rugs & Textiles
+[0] Decanter -> Home; Kitchen & Dining
 [0] Polystone -> Home; Home Accessories
 [0] Bralette -> Women; Intimates & Loungewear
 [0] Bottle -> Home; Kitchen & Dining
@@ -291,9 +310,9 @@
 [0] Sumak -> Home; Rugs & Textiles
 [0] Potholder -> Home; Kitchen & Dining
 [0] Machine -> Home; Electronics; Home Accesssories
-[0] Wine Set -> Wine; Wine Accessories
+[0] Wine Set -> Home; Kitchen & Dining
 [0] Teal Goblet -> Women; Dresses & Skirts
-[0] Goblet -> Home; Kitchen & Dining; Wine; Wine Accessories
+[0] Goblet -> Home; Kitchen & Dining
 [0] Serving Set -> Home; Kitchen & Dining
 [0] Sculpture -> Home; Home Accessories
 [0] Toy -> Kids & Baby; Toys, Games & Books
@@ -310,9 +329,8 @@
 [0] Mary Janes -> Women; Shoes
 [0] Onesie -> Kids & Baby; Boys' Clothing; Girls Clothing
 [0] Scent -> Beauty & Health; Fragrance
-[0] Duffle -> Bags; Handbags
-[0] Duffel -> Bags; Handbags
 [0] Travel Bag -> Bags; Luggage Bags
+[0] Travel Case -> Bags; Luggage Bags
 [0] Hoop -> Jewelry & Watches; Earrings
 [0] Hoops -> Jewelry & Watches; Earrings
 [0] Day Bag -> Bags; Shoulder Bags
@@ -339,19 +357,15 @@
 [0] Perfume -> Beauty & Health; Fragrance
 [0] Fragrance -> Beauty & Health; Fragrance
 [0] Camera Bag -> Bags; Backpacks & Laptop Bags
-[0] Clad -> Home; Kitchen & Dining
-[0] Clads -> Home; Kitchen & Dining
 [0] Piccola Handbag -> Bags; Shoulder Bags
 [0] Front Bag -> Bags; Handbags
 [0] Cedar -> Home; Home Accessories
-[0] Coffee -> Home; Kitchen & Dining
 [0] French Press -> Home; Kitchen & Dining
 [0] Cosmetic -> Beauty & Health; Makeup
 [0] Cosmetics -> Beauty & Health; Makeup
 [0] Boston Bag -> Bags; Handbags
 [0] Backpack -> Bags; Backpacks & Laptop Bags
 [0] Ice Bucket -> Home; Kitchen & Dining
-[0] Box Set -> Home; Home Accessories
 [0] Messenger -> Bags; Crossbody Bags
 [0] Medium Shopper -> Bags; Handbags
 [0] Shopping Bag -> Bags; Handbags
@@ -360,7 +374,7 @@
 [0] Knives -> Home; Kitchen & Dining
 [0] Smock -> Women; Intimates & Loungewear
 [0] Chemise -> Women; Intimates & Loungewear
-[0] Mixer -> Home; Kitchen & Dining; Electronics
+[0] Mixer -> Home; Kitchen & Dining
 [0] Basque -> Women; Intimates & Loungewear
 [0] Midriff -> Women; Intimates & Loungewear
 [0] Bustiere -> Women; Intimates & Loungewear
@@ -383,7 +397,6 @@
 [0] Coverlit -> Home; Beds & Bath
 [0] Coverlits -> Home; Beds & Bath
 [0] Cups -> Home; Kitchen & Dining
-[0] Fuchsia -> Home; Home Accessories; Plants
 [0] Sporran -> Bags; Wallets
 [0] Teabag -> Bags; Wallets
 [0] Charger -> Home; Home Accessories
@@ -400,14 +413,14 @@
 [0] Oven Mitt -> Home; Home Accessories; Kitchen & Dining
 [0] Corset -> Women; Intimates & Loungewear
 [0] Bumper Set -> Kids & Baby; Gear & Equipment; Home; Home Accessories
-[0] Wine Box -> Wine; Wine Accessories
+[0] Wine Box -> Home; Kitchen & Dining
 [0] Dipping Set -> Home; Kitchen & Dining
 [0] Open Toe -> Women; Shoes
 [0] Comforter -> Home; Beds & Bath
 [0] Magnifier -> Home; Home Accessories
 [0] Pearl Duvet Set -> Home; Beds & Bath
 [0] Pearl Set -> Jewelry & Watches; Bracelets; Necklaces; Earrings; Rings
-[0] Drink Opener -> Wine; Wine Accessories; Home; Home Accessories
+[0] Drink Opener -> Home; Kitchen & Dining
 [0] Kitchen -> Home; Kitchen & Dining
 [0] Dining -> Home; Kitchen & Dining
 [0] Purse -> Bags; Wallets
@@ -440,11 +453,9 @@
 [0] Barrel Bag -> Bags; Backpacks & Laptop Bags
 [0] Herb Saver -> Home; Kitchen & Dining
 [0] Ice Cream Maker -> Home; Kitchen & Dining
-[0] Overture -> Home; Kitchen & Dining
 [0] Boy Leg -> Women; Intimates & Loungewear
 [0] Globe Spheres -> Home; Home Accessories
 [0] Slicer -> Home; Kitchen & Dining
-[0] Laundry -> Home; Home Accessories
 [0] Calendar -> Home; Home Accessories
 [0] Sitting Dog -> Home; Home Accessories
 [0] Carafe -> Home; Kitchen & Dining
@@ -489,9 +500,9 @@
 [0] Infuser -> Home; Kitchen & Dining
 [0] Morning Glory -> Home; Home Accessories
 [0] Stopper Set -> Home; Home Accessories
-[0] Baskets -> Home; Home Accessories
+[0] Baskets -> Home; Furniture & Lighting
 [0] Buddha Head -> Home; Home Accessories
-[0] Wine Cooler -> Wine; Wine Accessories; Home; Electronics
+[0] Wine Cooler -> Home; Electronics
 [0] Duffle Bag -> Bags; Backpacks & Laptop Bags
 [0] Saucepot -> Home; Kitchen & Dining
 [0] Candleholder -> Home; Home Accessories
@@ -525,7 +536,7 @@
 [0] Lantern -> Home; Furniture & Lighting
 [0] Meat Grinder -> Home; Kitchen & Dining
 [0] Pet Cot -> Home; Home Accessories
-[0] Vodka Glass Set -> Wine; Wine Accessories
+[0] Vodka Glass Set -> Home; Kitchen & Dining
 [0] Sheath -> Women; Dresses & Skirts
 [0] Teakettle -> Home; Kitchen & Dining
 [0] Tea Kettle -> Home; Kitchen & Dining
@@ -547,7 +558,7 @@
 [0] LED Collar Cats -> Home; Home Accessories
 [0] Candle Tray -> Home; Home Accessories
 [0] Spoon -> Home; Kitchen & Dining
-[0] Wine Chiller -> Wine; Wine Accessories
+[0] Wine Chiller -> Home; Kitchen & Dining
 [0] Cocktail Set -> Home; Kitchen & Dining
 [0] Dessert Set -> Home; Kitchen & Dining
 [0] Pie Press -> Home; Kitchen & Dining
@@ -582,9 +593,9 @@
 [0] Towel Set -> Home; Beds & Bath
 [0] Garlic Press -> Home; Kitchen & Dining
 [0] Tumblers -> Home; Kitchen & Dining
-[0] Wine Rack -> Wine; Wine Accessories
-[0] Wine Stacker -> Wine; Wine Accessories
-[0] Wine Holder -> Wine; Wine Accessories
+[0] Wine Rack -> Home; Kitchen & Dining
+[0] Wine Stacker -> Home; Kitchen & Dining
+[0] Wine Holder -> Home; Kitchen & Dining
 [0] Centerpiece -> Home; Home Accessories
 [0] Magazine Holder -> Home; Home Accessories
 [0] Coverall Blanket -> Kids & Baby; Girls' Clothing; Boys' Clothing
@@ -592,7 +603,7 @@
 [0] Lidded Jar -> Home; Home Accessories
 [0] Jar -> Home; Home Accessories
 [0] Jars -> Home; Home Accessories
-[0] Storage Tub -> Home; Home Accessories
+[0] Storage Tub -> Home; Furniture & Lighting
 [0] Yoshi Wedge -> Women; Shoes
 [0] Tunic -> Women; Shirts & Sweaters
 [0] Panty -> Women; Intimates & Loungewear
@@ -659,6 +670,7 @@
 [0] Boxset -> Home; Home Accessories
 [0] Cutlery Set -> Home; Kitchen & Dining
 [0] Glasses Set -> Home; Kicthen & Dining
+[0] Glass Set -> Home; Kicthen & Dining
 [0] Glasses -> Men; Women; Accessories
 [0] Piece Puzzle -> Home; Home Accessories
 [0] Calf Boot -> Women; Shoes
@@ -682,12 +694,11 @@
 [0] Unisex Watches -> Jewelry & Watches; Men's Watches; Women's Watches
 [0] Doll Necklace -> Kids & Baby; Accessories
 [0] Pearl Necklace -> Jewelry & Watches; Necklaces
-[0] Pillow -> Home; Beds & Bath
-[0] Pillows -> Home; Beds & Bath
 [0] Bathrobe -> Home; Beds & Bath
 [0] Dispenser -> Home; Kitchen & Dining
 [0] Kilim -> Home; Rugs & Textiles
 [0] Duvet -> Home; Beds & Bath
+[0] Duvet Set -> Home; Beds & Bath
 [0] Hangers -> Home; Home Accessories
 [0] Triple Sorter -> Home; Home Accessories
 [0] Skirt Suit -> Women; Dresses & Skirts
@@ -702,6 +713,7 @@
 [0] Pumps -> Women; Shoes
 [0] Pump -> Women; Shoes
 [0] Cracker Tray -> Kitchen & Dining
+[0] Flap Bag -> Bags; Shoulder Bags
 [0] Shoulder Bag -> Bags; Shoulder Bags
 [0] Shoulder Bags -> Bags; Shoulder Bags
 [0] Placket -> Women; Dresses & Skirts
@@ -774,7 +786,6 @@
 [0] Non-Stick Grill -> Home; Kitchen & Dining
 [0] Maxi Dress -> Women; Dresses & Skirts
 [0] Ruffle Dress -> Women; Dresses & Skirts
-[0] Ruffle -> Women; Dresses & Skirts
 [0] Peacock Dress -> Women; Dresses & Skirts
 [0] Short Dress -> Women; Dresses & Skirts
 [0] Maxi Cover Up -> Women; Dresses & Skirts
@@ -792,7 +803,6 @@
 [0] Flat Boot -> Women; Shoes
 [0] Flat Boots -> Women; Shoes
 [0] Boot Jean -> Women; Pants & Shorts
-[0] Skinny Jeans -> Women; Pants & Shorts
 [0] Ravioli Attachment -> Home; Tools
 [0] Flatform -> Women; Shoes
 [0] Platform -> Women; Shoes
@@ -866,7 +876,7 @@
 [0] Bracelets -> Jewelry & Watches; Bracelets
 [0] Tomato Knife -> Home; Kitchen & Dining
 [0] De Lis -> Home; Home Accessories
-[0] Wine Stopper -> Wine; Wine Accessories
+[0] Wine Stopper -> Home; Kitchen & Dining
 [0] Meat Set -> Home; Kitchen & Dining
 [0] Potato Set -> Home; Kitchen & Dining
 [0] Pan Set -> Home; Kitchen & Dining
@@ -887,8 +897,8 @@
 [1] Women -> Women
 [1] Men -> Men
 [1] Watch -> Jewelry & Watches
-[2] Tee -> Tops & Tees
-[2] Tees -> Tops & Tees
+[2] Tee -> Polos & Tees
+[2] Tees -> Polos & Tees
 [2] Top -> Shirts & Sweaters
 [2] Tops -> Shirts & Sweaters
 [2] Shirt -> Shirts & Sweaters
@@ -911,7 +921,7 @@
 [2] Headwrap -> Accessories
 [2] Headwraps -> Accessories
 [2] Sunglasses -> Accessories
-[2] Storage Boxes -> Home Accessories
+[2] Storage Boxes -> Furniture & Lighting
 [2] Blazer -> Outerwear
 [2] Blazers -> Outerwear
 [2] Jacket -> Outerwear
@@ -959,10 +969,10 @@
 [2] Capri -> Pants & Shorts
 [2] Denim -> Pants & Shorts
 [2] Denims -> Pants & Shorts
-[2] TShirt -> Tops & Tees
-[2] TShirts -> Tops & Tees
-[2] T-Shirt -> Tops & Tees
-[2] T-Shirts -> Tops & Tees
+[2] TShirt -> Polos & Tees
+[2] TShirts -> Polos & Tees
+[2] T-Shirt -> Polos & Tees
+[2] T-Shirts -> Polos & Tees
 [2] PJ Set -> Intimates & Loungewear
 [2] Slip-on -> Shoes
 [2] Slip-On -> Shoes
@@ -1001,7 +1011,7 @@
 [2] Robe -> Intimates & Loungewear
 [2] Flat -> Shoes
 [2] Sneakers -> Shoes
-[2] Polo -> Polo & Tees
+[2] Polo -> Polos & Tees
 [2] Glove -> Accessories
 [2] Gloves -> Accessories
 [2] Beret -> Accessories
@@ -1126,8 +1136,8 @@
 [2] Neckwarmers -> Accessories
 [2] Armwarmer -> Accessories
 [2] Armwarmers -> Accessories
-[2] Moccasin -> Accessories
-[2] Moccasins -> Accessories
+[2] Moccasin -> Shoes
+[2] Moccasins -> Shoes
 [2] Skinny -> Pants & Shorts
 [2] Goggle -> Accessories
 [2] Goggles -> Accessories
@@ -1143,10 +1153,10 @@
 [2] Case -> Backpacks & Laptop Bags
 [2] Leg Jean -> Pants & Shorts
 [2] Leg -> Pants & Shorts
-[2] Towel -> Beds & Bath; Accessories
-[2] Towels -> Beds & Bath; Accessories
-[2] Blanket -> Accessories
-[2] Blankets -> Accessories
+[2] Towel -> Beds & Bath
+[2] Towels -> Beds & Bath
+[2] Blanket -> Beds & Bath
+[2] Blankets -> Beds & Bath
 [2] Cart -> Luggage Bags; Tools
 [2] Carts -> Luggage Bags; Tools
 [2] Art -> Accessories
@@ -1157,7 +1167,7 @@
 [2] PJ -> Intimates & Loungewear
 [2] Cover -> Accessories
 [2] Shapewear -> Intimates & Loungewear
-[2] Basket -> Accesories
+[2] Basket -> Furniture & Lighting
 [2] Cake -> Home; Kitchen & Dining
 [2] Food -> Home; Kitchen & Dining
 [2] Cookie -> Home; Kitchen & Dining
@@ -1425,3 +1435,22 @@
 [2] Bootie -> Shoes
 [2] Frame -> Accessories
 [2] Frames -> Accessories
+[2] Ski Set -> Gear & Equipment
+[2] Ski Gear -> Gear & Equipment
+[2] Sled -> Gear & Equipment
+[2] Skinny Jeans -> Pants & Shorts
+[2] Hair -> Beauty & Health; Hair Care
+[2] Workshirt -> Shirts & Sweaters
+[2] Workshirts -> Shirts & Sweaters
+[2] Box Set -> Accessories
+[2] Boatneck -> Shirts & Sweaters
+[2] Ruffle -> Dresses & Skirts
+[2] Brush -> Accessories
+[2] Clad -> Kitchen & Dining
+[2] Clads -> Kitchen & Dining
+[2] Duffle -> Handbags
+[2] Duffel -> Handbags
+[2] Laundry -> Accessories
+[2] Pillow -> Beds & Bath
+[2] Pillows -> Beds & Bath
+[2] Lipstick -> Beauty & Helath; Makeup

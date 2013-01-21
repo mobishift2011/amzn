@@ -216,11 +216,12 @@ def preprocess(title):
     title = re.sub(r' with .+$', '', title)
     title = re.sub(r'(.*) - (.*)', r'\2 \1', title)
     title = re.sub(r'([a-z]+)-', r'\1', title)
+    title = re.sub(r'baby pink', '', title)
     # then numbers & brackets
     title = re.sub(r'\d+/\d+ condition', '', title)
     title = re.sub(r'(.*)\(([^)]+)\)$', r'\2 \1', title)
     title = re.sub(r' [ivxlc]+$', '', title)
-    title = re.sub(r'set of [0-9]+', '', title)
+    title = re.sub(r'set of [0-9]+', 'set', title)
     title = re.sub(r'[0-9]+ pcs$', '', title)
     return title
             
@@ -269,7 +270,7 @@ def classify_product_department(site, product, use_event_info=False, return_judg
         if not rule[0].difference(kws_set):
             result.extend(rule[1])
             level12 = False
-            judge.append(rule)
+            judge.append(['0']+rule)
             break
     
     if level12:
@@ -280,7 +281,7 @@ def classify_product_department(site, product, use_event_info=False, return_judg
                 e = m.Event.objects.get(event_id=eid)
                 d1.extend(classify_event_department(site, e))
             d1 = list(set(d1))
-            judge.append(d1)
+            judge.append(['B']+d1)
             result.extend( d1 )
 
         # do level1 and level2 classifying
@@ -290,7 +291,7 @@ def classify_product_department(site, product, use_event_info=False, return_judg
             for rule in rules_dict[priority]:
                 if kws and (not rule[0].difference(set([kws[-1]]))):
                     result.extend(rule[1])
-                    judge.append(rule)
+                    judge.append([priority]+rule)
                     found = True
                     break
 
@@ -306,19 +307,22 @@ def classify_product_department(site, product, use_event_info=False, return_judg
 
     # add necessory converters
     if u"Women" in result:
-        if u"Tops & Tees" in result:
+        if u"Polos & Tees" in result:
             result.append(u"Shirts & Sweaters")
+            result.remove(u"Polos & Tees")
         elif u"Socks, Underwear & Sleepwear" in result:
             result.append(u"Intimates & Loungewear")
+            result.remove(u"Socks, Underwear & Sleepwear")
         elif u"Suits & Coats" in result:
             result.append(u"Outerwear")
+            result.remove(u"Suits & Coats")
     if u"Men" in result:
         if u"Intimates & Loungewear" in result:
             result.append(u"Socks, Underwear & Sleepwear")
+            result.remove(u"Intimates & Loungewear")
         elif u"Dresses & Skirts" in result:
             result.append(u"Shirts & Sweaters")
-        elif u"Tops & Tees" in result:
-            result.append(u"Polos & Tees")
+            result.remove(u"Dresses & Skirts")
     if u"Kids & Baby" in result:
         for clothing_category in [u"Tops & Tees", u"Shirts & Sweaters", u"Outerwear", u"Pants & Shorts", u"Dresses & Skirts", u"Intimates & Loungewear", "Suits & Coats", "Socks, Underwear & Sleepwear"]:
             if clothing_category in result:
@@ -329,16 +333,24 @@ def classify_product_department(site, product, use_event_info=False, return_judg
                 else:
                     result.append(u"Girls' Clothing")
                     result.append(u"Boys' Clothing")
+                result.remove(clothing_category)
                 break
         if u"Shoes" in result:
             result.append(u"Girls' Shoes")
             result.append(u"Boys' Shoes")
-        elif u"Beds & Bath" in result or u"Furniture & Lighting" in result:
+            result.remove(u"Shoes")
+        elif u"Beds & Bath" in result:
             result.append(u"Bed, Bath & Furniture")
+            result.remove(u"Beds & Bath")
+        elif u"Furniture & Lighting" in result:
+            result.append(u"Bed, Bath & Furniture")
+            result.remove(u"Furniture & Lighting")
         elif u"Tools" in result:
             result.append(u"Gear & Equipment")
+            result.remove(u"Tools")
     if u"Home" in result and u"Accessories" in result:
         result.append(u"Home Accessories")
+        result.remove(u"Accessories")
 
     # reorder
     keys = [k.decode('utf-8') for k in  CATS.keys()]

@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+from gevent import monkey; monkey.patch_all()
+import gevent
+import gevent.pool
+
 from backends.matching.feature import sites
 from backends.matching.mechanic_classifier import classify_product_department, classify_event_department
 from settings import MASTIFF_HOST
@@ -41,57 +45,82 @@ def reclassify(site='beyondtherack'):
                 e.favbuy_dept = dept
                 e.save()
 
+def patch_mastiff_product(offset, pagesize):
+    try:
+        data = api.product.get(offset=offset, limit=pagesize)
+    except:
+        print 'OFFSET', offset
+        raise
+        
+    total = data['meta']['total_count']
+    offset += pagesize
+       
+    _patch_mastiff_product(data) 
+    return offset, total
+
+def _patch_mastiff_product(data):
+    for p in data['objects']:
+        site_key = p['site_key']
+        site, key = site_key.split('_',1)
+        m = get_site_module(site)
+        try:
+            p2 = m.Product.objects.get(pk=key)
+        except:
+            print 'PRODUCT', site, key, 'NOT FOUND'
+        else: 
+            dept = classify_product_department(site, p2)
+            if p['department_path'] != dept:
+                print 'PATCH PRODUCT', site, key, p['title'], dept
+                api.product(p['id']).patch({'department_path':dept})
+
+def patch_mastiff_event(data):
+    for e in data['objects']:
+        site_key = e['site_key']
+        site, key = site_key.split('_',1)
+        m = get_site_module(site)
+        try:
+            e2 = m.Event.objects.get(event_id=key)
+        except:
+            print 'EVENT', site, key, 'NOT FOUND' 
+        else:
+            if e2.favbuy_dept != e['departments']:
+                print 'PATCH EVENT', site, key, e['title'], e2.favbuy_dept
+                api.event(e['id']).patch({'departments':e2.favbuy_dept})
+
 def reclassify_mastiff():
+    pool = gevent.pool.Pool(30)
+
     # EVENTS
     PAGESIZE = 20
     offset = 0
     total = 2**32
     while offset < total:
+        print 'EVENT OFFSET', offset, 'OF', total
         data = api.event.get(offset=offset, limit=PAGESIZE)
-        for e in data['objects']:
-            site_key = e['site_key']
-            site, key = site_key.split('_',1)
-            m = get_site_module(site)
-            try:
-                e2 = m.Event.objects.get(event_id=key)
-            except:
-                print 'EVENT', site, key, 'NOT FOUND' 
-            else:
-                if e2.favbuy_dept != e['departments']:
-                    print 'PATCH EVENT', site, key, e['title'], e2.favbuy_dept
-                    api.event(e['id']).patch({'departments':e2.favbuy_dept})
         total = data['meta']['total_count']
         offset += PAGESIZE
+        pool.spawn(patch_mastiff_event, data)
 
     # PRODUCTS
     PAGESIZE = 20
     offset = 0
-    total = 2**32
+    total = api.product.get(offset=offset, limit=1)['meta']['total_count']
     while offset < total: 
-        data = api.product.get(offset=offset, limit=PAGESIZE, order_by='updated_at')
-        for p in data['objects']:
-            site_key = p['site_key']
-            site, key = site_key.split('_',1)
-            m = get_site_module(site)
-            try:
-                p2 = m.Product.objects.get(pk=key)
-            except:
-                print 'PRODUCT', site, key, 'NOT FOUND'
-            else: 
-                dept = classify_product_department(site, p2)
-                if p['department_path'] != dept:
-                    print 'PATCH PRODUCT', site, key, p['title'], dept
-                    api.product(p['id']).patch({'department_path':dept})
-        total = data['meta']['total_count']
+        print "PRODUCT OFFSET", offset, 'OF', total
+        pool.spawn(patch_mastiff_product, offset, PAGESIZE) 
         offset += PAGESIZE
+
+    pool.join()
     
-jobs = []
-for site in sites:
-    job = threading.Thread(target=reclassify, args=(site,))
-    job.start()
-    jobs.append(job)
+def reclassify_mongodb():
+    jobs = []
+    for site in sites:
+        job = threading.Thread(target=reclassify, args=(site,))
+        job.start()
+        jobs.append(job)
 
-for j in jobs:
-    j.join()
+    for j in jobs:
+        j.join()
 
+reclassify_mongodb()
 reclassify_mastiff()

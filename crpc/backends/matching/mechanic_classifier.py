@@ -225,7 +225,23 @@ def preprocess(title):
     title = re.sub(r'[0-9]+ pcs$', '', title)
     return title
 
-def postprocess(p, result):
+def postprocess(site, p, result):
+    # Special Sites
+    keys = [k.decode('utf-8') for k in  CATS.keys()]
+    for thesite, only in [(u'totsy',u'Kids & Baby'), (u'lot18', u'Wine')]:
+        if thesite == site: 
+            exclude = set(keys)
+            exclude.remove(only)
+            result = set(result)
+            result -= exclude
+            result.add(only)
+            result = list(result)
+            break
+
+    for exclusive, thesites in [(u'Wine',set([u'lot18']))]:
+        if site in thesites and exclusive in result:
+            result.remove(exclusive) 
+
     # add necessory converters
     if u"Women" in result:
         if u"Polos & Tees" in result:
@@ -245,7 +261,7 @@ def postprocess(p, result):
             result.append(u"Shirts & Sweaters")
             result.remove(u"Dresses & Skirts")
     if u"Kids & Baby" in result:
-        for clothing_category in [u"Tops & Tees", u"Shirts & Sweaters", u"Outerwear", u"Pants & Shorts", u"Dresses & Skirts", u"Intimates & Loungewear", "Suits & Coats", "Socks, Underwear & Sleepwear"]:
+        for clothing_category in [u"Polos & Tees", u"Shirts & Sweaters", u"Outerwear", u"Pants & Shorts", u"Dresses & Skirts", u"Intimates & Loungewear", "Suits & Coats", "Socks, Underwear & Sleepwear"]:
             if clothing_category in result:
                 if u'girl' in p.title.lower():
                     result.append(u"Girls' Clothing")
@@ -280,10 +296,10 @@ def postprocess(p, result):
         for sub in v:
             if k in result and sub in result:
                 newresult.extend([k, sub])
+    newresult.extend(list(set(result) & set(keys)))
     result = list(set(newresult))
 
     # reorder
-    keys = [k.decode('utf-8') for k in  CATS.keys()]
     for key in keys:
         if key in result and key != result[0]:
             result.remove(key)
@@ -381,7 +397,7 @@ def classify_product_department(site, product, use_event_info=False, return_judg
                     judge.append(rule)
                     break
 
-    result = postprocess(p, result)
+    result = postprocess(site, p, result)
 
     # if we can't identify the product from it's title alone, try again with event info
     keys = [k.decode('utf-8') for k in  CATS.keys()]

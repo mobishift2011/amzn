@@ -335,7 +335,7 @@
 [0] Swim Coverup -> Beauty & Health; Skin Care
 [0] Lotion -> Beauty & Health; Skin Care
 [0] Oyster Perpetual -> Jewerly & Watches; Men's Watches; Women's Watches
-[0] Aftershave -> Men; Accessories; Beauty & Health; Skin Care
+[0] Aftershave -> Beauty & Health; Skin Care
 [0] Card Case -> Bags; Wallets
 [0] Deodorant -> Beauty & Health; Fragrance
 [0] EDP -> Beauty & Health; Fragrance
@@ -731,7 +731,6 @@
 [0] Boyshort -> Women; Intimates & Loungewear
 [0] Boyshorts -> Women; Intimates & Loungewear
 [0] Capture Thong -> Men; Socks, Underwear & Sleepwear
-[0] Thong -> Women; Intimates & Loungewear
 [0] Blouse -> Women; Shirts & Sweaters
 [0] Garment Rack -> Home; Home Accessories
 [0] Pearl Sheet Set -> Home; Bed & Bath
@@ -861,6 +860,7 @@
 [0] Girl Shoes -> Kids & Baby; Girls' Shoes
 [0] Boy Shoes -> Kids & Baby; Boys' Shoes
 [1] Personal Care -> Beauty & Health; Skin Care
+[1] Beauty -> Beauty & Health
 [1] Baby -> Kids & Baby; Baby
 [1] Babies -> Kids & Baby; Baby
 [1] Infant -> Kids & Baby; Baby
@@ -1048,11 +1048,11 @@
 [2] Shower -> Bed & Bath; Accessories
 [2] TV -> Electronics; Accessories
 [2] Undershirt -> Intimates & Loungewear
-[2] Swim Trunk -> Intimates & Loungewear
-[2] Swim Trunks -> Intimates & Loungewear
 [2] Swim Set -> Intimates & Loungewear
 [2] Trunk -> Home; Accessories
-[2] Trunks -> Intimates & Loungewear
+[2] Trunks -> Men; Intimates & Loungewear
+[2] Swim Trunk -> Men; Intimates & Loungewear
+[2] Swim Trunks -> Men; Intimates & Loungewear
 [2] Knit -> Shirts & Sweaters
 [2] Cuff -> Accessories
 [2] Cuffs -> Accessories
@@ -1203,6 +1203,7 @@
 [2] Vneck -> Shirts & Sweaters
 [2] Sink -> Furniture & Lighting
 [2] Shave -> Men; Accessories
+[2] Shaving -> Men; Accessories
 [2] Keyring -> Accessories
 [2] Key Fob -> Accessories
 [2] Bike -> Accessories
@@ -1310,6 +1311,7 @@
 [2] Pencils -> Accessories
 [2] Tuxedo -> Suits & Coats
 [2] Game -> Kids & Baby; Toys, Games & Books
+[2] Games -> Kids & Baby; Toys, Games & Books
 [2] Galaxy Spinner -> Kids & Baby; Toys, Games & Books
 [2] Magnet -> Accessories
 [2] Magnets -> Accessories
@@ -1462,3 +1464,8 @@
 [2] Peacock Dress -> Dresses & Skirts
 [2] Short Dress -> Dresses & Skirts
 [2] Maxi Cover Up -> Dresses & Skirts
+[2] Serum -> Beauty & Health; Skin Care
+[2] Drops -> Beauty & Health; Body Care & Hair
+[2] Moisturizer -> Beauty & Health; Skin Care
+[2] SPF30 -> Beauty & Health; Skin Care
+[2] Thong -> Intimates & Loungewear

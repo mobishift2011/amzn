@@ -184,7 +184,8 @@ def graph():
 def graph_event_detail(site):
     stats = Stat.objects(site=site, doctype='event').order_by('interval')
     graphdata = []
-    graphdata.append({'name':'image', 'data':[(int(time.mktime(s.interval.timetuple())*1000), s.image_num) for s in stats]})
+    graphdata.append({'name':'crawled', 'data':[(int(time.mktime(s.interval.timetuple())*1000), s.crawl_num) for s in stats]})
+    graphdata.append({'name':'image', 'data':[(int(time.mktime(s.interval.timetuple())*1000), s.image_num) for s in stats]})    
     graphdata.append({'name':'propagated', 'data':[(int(time.mktime(s.interval.timetuple())*1000), s.prop_num) for s in stats]})
     graphdata.append({'name':'published', 'data':[(int(time.mktime(s.interval.timetuple())*1000), s.publish_num) for s in stats]})            
     return json.dumps(graphdata)
@@ -193,14 +194,9 @@ def graph_event_detail(site):
 def graph_prouct_detail(site):
     stats = Stat.objects(site=site, doctype='product').order_by('interval')
     graphdata = []
+    graphdata.append({'name':'crawled', 'data':[(int(time.mktime(s.interval.timetuple())*1000), s.crawl_num) for s in stats]})    
     graphdata.append({'name':'image', 'data':[(int(time.mktime(s.interval.timetuple())*1000), s.image_num) for s in stats]})
-    graphdata.append({'name':'propagated', 'data':[(int(time.mktime(s.interval.timetuple())*1000), s.prop_num) for s in stats]})
     graphdata.append({'name':'published', 'data':[(int(time.mktime(s.interval.timetuple())*1000), s.publish_num) for s in stats]})            
-    
-    #data= {'site': site}
-    #data['image'] = json.dumps([(int(time.mktime(s.interval.timetuple())*1000), s.image_num) for s in stats])
-    #data['propagated'] = json.dumps([(int(time.mktime(s.interval.timetuple())*1000), s.prop_num) for s in stats])
-    #data['published'] = json.dumps([(int(time.mktime(s.interval.timetuple())*1000), s.publish_num) for s in stats])    
     return json.dumps(graphdata)
     
 #mark_all_failed():

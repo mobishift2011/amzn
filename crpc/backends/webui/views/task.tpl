@@ -16,7 +16,7 @@
         </li>
         <li><a href="/control">Control</a></li>
         <li><a href="/publish">Publish</a></li>
-        <li><a href="/history">History</a></li>
+        <li><a href="/graph">Graph</a></li>
       </ul>
 
       <div class="container" style="margin-top: 10px" ng-controller="TaskCtrl"> 

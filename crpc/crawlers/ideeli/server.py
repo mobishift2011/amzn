@@ -80,7 +80,7 @@ class Server(object):
         self.extract_product_id = re.compile('http://www.ideeli.com/events/\w+/offers/\w+/latest_view/(\w+)')
 
     def crawl_category(self, ctx=''):
-        depts = ['women', 'men', 'home', 'holiday',]
+        depts = ['women', 'men', 'home', ]
         for dept in depts:
             self.crawl_one_dept(dept, ctx)
 

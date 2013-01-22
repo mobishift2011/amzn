@@ -47,6 +47,7 @@ class ruelalaLogin(object):
             'rememberMe': 1, 
         }       
 
+        self.event_is_product = re.compile('http://.*.ruelala.com/product/detail/eventId/\d{1,10}/styleNum/(\d{1,10})/viewAll/0')
         self._signin = False
 
     def login_account(self):
@@ -75,12 +76,14 @@ class ruelalaLogin(object):
         if ret.status_code == 401: # need to authentication
             self.login_account()
             ret = req.get(url)
+
+        if self.event_is_product.match(ret.url): return ret.url
         if ret.ok: return ret.content
 
         # if this event is a product, event will redirect to product page.
         # So it is the product page unauthorized, fetch_page the product url next time
-        if ret.status_code == 401:
-            return ret.url
+#        if ret.status_code == 401:
+#            return ret.url
 
     def fetch_image(self, url):
         ret = req.get(url)

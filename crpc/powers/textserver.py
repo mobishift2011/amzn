@@ -10,7 +10,7 @@ from backends.matching.mechanic_classifier import classify_product_department
 from brandapi import Extracter
 from tools import Propagator
 from powers.events import *
-from models import Stat
+from backends.monitor.models import Stat
 
 from powers.events import brand_refresh
 from crawlers.common.stash import exclude_crawlers

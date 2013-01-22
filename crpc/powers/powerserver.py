@@ -9,7 +9,7 @@ from configs import *
 from tools import ImageTool
 from powers.events import *
 from imglib import trim, scale
-from models import Stat
+from backends.monitor.models import Stat
 
 from crawlers.common.stash import exclude_crawlers
 from os import listdir

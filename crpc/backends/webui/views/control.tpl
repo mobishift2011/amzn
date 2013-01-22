@@ -14,7 +14,7 @@
           <li><a href="/task">Tasks</a></li>
           <li class="active"><a href="#">Control</a></li>
           <li><a href="/publish">Publish</a></li>
-          <li><a href="/history">History</a></li>
+          <li><a href="/graph">Graph</a></li>
         </ul>
         <div class="container" style="margin-top: 10px" ng-controller="ScheduleCtrl">
 

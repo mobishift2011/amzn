@@ -54,7 +54,7 @@ def batch_text_extract(sender, **kwargs):
             logger.error('{0} failed to batch image crawling: {1} {2}'.format(sender, site, doctype))
             return
         
-        text_extract(site, 10)
+        text_extract(site, 15)
 
 
 #@pre_image_crawl.bind

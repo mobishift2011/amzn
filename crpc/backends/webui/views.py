@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import traceback
-from backends.monitor.models import Task, Schedule, fail
-from powers.models import Brand, Stat
+from backends.monitor.models import Task, Schedule, fail, Stat
+from powers.models import Brand
 from powers.events import brand_refresh
 
 from settings import CRPC_ROOT

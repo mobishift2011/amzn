@@ -24,13 +24,12 @@ BLUEFLY = {
         "women": ["Women"],
         "kids": ["Kids & Baby"],
         "shoes": ["Women"],
-        #"handbags&accessories": ["Women", "Handbags"],
         "jewelry": ["Women", "Jewelry & Watches"],
     },
     "contains": {
         "Women": ["Women"],
         "Men": ["Men"],
-        "Handbags": ["Women", "Handbags"],
+        "Handbags": ["Women", "Bags"],
         "Beauty": ["Women", "Beauty & Health"],
         "Jewelry": ["Women", "Jewelry & Watches"],
     }
@@ -54,7 +53,6 @@ MODNIQUE = {
     "column": "dept",
     "contains": {},
     "mapping": {
-        #"handbags-accessories" : ["Handbags", "Women"],
         "jewelry-watches": ["Jewelry & Watches", "Women"],
         "apparel": ["Women"],
         "men": ["Men"],
@@ -114,13 +112,10 @@ def get_site_module(site):
 def lot18_mapping(site, event):
     return ["Wine"]
 
-def venteprivee_mapping(site, event):
-    m = get_site_module('venteprivee')
-    results = m.Product.objects(event_id=event.event_id).distinct('dept')
-    convert = {
+venteprivee_convert = {
         "Writing Instruments": "Home",
         "Womens":"Women",
-        "Small Leather Goods":"Handbags",
+        "Small Leather Goods":"Bags",
         "Mens":"Men",
         "Earrings":"Jewelry & Watches",
         "Necklaces":"Jewelry & Watches",
@@ -134,11 +129,15 @@ def venteprivee_mapping(site, event):
         "Rings": "Jewelry & Watches",
         "Necklaces & Pendants": "Jewelry & Watches",
         "Men's": "Men",
-        "CLUTCHES": "Handbags",
+        "CLUTCHES": "Bags",
         "Dubai Ovenware Collection": "Home",
         "Women's Sunglasses": "Women",
         "Ties, Bowties, Tie Pins & Cufflinks": "Men",
-    }
+}
+def venteprivee_mapping(site, event):
+    convert = venteprivee_convert
+    m = get_site_module('venteprivee')
+    results = m.Product.objects(event_id=event.event_id).distinct('dept')
     new_results = []
     for r in results:
         if convert.get(r):
@@ -213,6 +212,7 @@ def preprocess(title):
     title = re.sub(r'with you', 'with-you', title)
     title = re.sub(r'in a', 'in-a', title)
     title = re.sub(r' in .+$', '', title)
+    title = re.sub(r'[a-z]+/[a-z]+', '', title)
     title = re.sub(r' with .*? accents ', '', title)
     title = re.sub(r' with .+$', '', title)
     title = re.sub(r'(.*) - (.*)', r'\2 \1', title)
@@ -331,7 +331,7 @@ def classify_product_department(site, product, use_event_info=False, return_judg
     title = preprocess(title)
 
     if site in ["bluefly", "ideeli", "nomorerack", "onekingslane"]:
-        title += u" " + u" ".join(p.cats)
+        title = u" ".join(p.cats) + " " + title
 
     if site in ["lot18"]:
         for tag in p.tagline:
@@ -363,7 +363,7 @@ def classify_product_department(site, product, use_event_info=False, return_judg
     
     if level12:
         # merge events info
-        if p.event_id:
+        if p.event_id and site != 'venteprivee':
             d1 = []
             for eid in p.event_id:
                 e = m.Event.objects.get(event_id=eid)
@@ -379,7 +379,7 @@ def classify_product_department(site, product, use_event_info=False, return_judg
             for rule in rules_dict[priority]:
                 if kws and (not rule[0].difference(set(kws[-2:]))):
                     result.extend(rule[1])
-                    judge.append([priority]+rule)
+                    judge.append([priority+'a']+rule)
                     found = True
                     break
             if found:
@@ -389,7 +389,7 @@ def classify_product_department(site, product, use_event_info=False, return_judg
             for rule in rules_dict[priority]:
                 if kws and (not rule[0].difference(set([kws[-1]]))):
                     result.extend(rule[1])
-                    judge.append([priority]+rule)
+                    judge.append([priority+'b']+rule)
                     found = True
                     break
             if found:
@@ -399,7 +399,7 @@ def classify_product_department(site, product, use_event_info=False, return_judg
             for rule in rules_dict[priority]:
                 if not rule[0].difference(kws_set):
                     result.extend(rule[1])
-                    judge.append(rule)
+                    judge.append([priority+'c']+rule)
                     break
 
     result = postprocess(site, p, result)

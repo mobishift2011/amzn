@@ -5,6 +5,7 @@
 #  [1] - if XXXX in a title; we can determine the main department of it
 #  [2] - if XXXX in a title; we can determine the sub department of it
 # The XXXX is tested in a brute-force; longest first way
+[0] For Mon -> Kids & Baby; Maternity
 [0] Basting Mop -> Home; Kitchen & Dining
 [0] Basting Mops -> Home; Kitchen & Dining
 [0] Capsule Tower -> Home; Kitchen & Dining
@@ -1166,7 +1167,7 @@
 [2] Nail -> Beauty & Health; Makeup; Accessories
 [2] Lip -> Beauty & Helath; Makeup; Accessories
 [2] Piggy Bank -> Accessories
-[2] Wrap -> Outerwear
+[2] Wrap -> Accessories
 [2] Rainslicker -> Outerwear
 [2] Rainslickers -> Outerwear
 [2] Rain Slicker -> Outerwear
@@ -1484,3 +1485,8 @@
 [2] Sheet -> Bed & Bath
 [2] Flat Sheet -> Bed & Bath
 [2] Cinnamon -> Kitchen & Dining
+[2] Visor -> Accessories
+[2] Visors -> Accessories
+[2] Flat Iron -> Beauty & Health; Body Care & Hair
+[2] Dryer -> Beauty & Health; Body Care & Hair
+[2] Pressing Comb -> Beauty & Health; Body Care & Hair

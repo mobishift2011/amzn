@@ -175,7 +175,6 @@ CATS = {
 	    'Red Wine',
 	    'White Wine',
 	    'Champagne',
-	    'Wine Accessories',
     ],
 }
 

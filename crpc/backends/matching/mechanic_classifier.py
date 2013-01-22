@@ -213,6 +213,7 @@ def preprocess(title):
     title = re.sub(r'with you', 'with-you', title)
     title = re.sub(r'in a', 'in-a', title)
     title = re.sub(r' in .+$', '', title)
+    title = re.sub(r' with .*? accents ', '', title)
     title = re.sub(r' with .+$', '', title)
     title = re.sub(r'(.*) - (.*)', r'\2 \1', title)
     title = re.sub(r'([a-z]+)-', r'\1', title)
@@ -276,18 +277,22 @@ def postprocess(site, p, result):
             result.append(u"Girls' Shoes")
             result.append(u"Boys' Shoes")
             result.remove(u"Shoes")
-        elif u"Beds & Bath" in result:
+        elif u"Bed & Bath" in result:
             result.append(u"Bed, Bath & Furniture")
-            result.remove(u"Beds & Bath")
+            result.remove(u"Bed & Bath")
         elif u"Furniture & Lighting" in result:
             result.append(u"Bed, Bath & Furniture")
             result.remove(u"Furniture & Lighting")
         elif u"Tools" in result:
             result.append(u"Gear & Equipment")
             result.remove(u"Tools")
-    if u"Home" in result and u"Accessories" in result:
-        result.append(u"Home Accessories")
-        result.remove(u"Accessories")
+    if u"Home" in result:
+        if u"Accessories" in result:
+            result.append(u"Home Accessories")
+            result.remove(u"Accessories")
+        elif u"Intimates & Loungewear" in result:
+            result.append(u"Bed & Bath")
+            result.remove(u"Intimates & Loungewear")
 
     # Validation
     result = list(set(result))

@@ -5,6 +5,11 @@
 #  [1] - if XXXX in a title; we can determine the main department of it
 #  [2] - if XXXX in a title; we can determine the sub department of it
 # The XXXX is tested in a brute-force; longest first way
+[0] Eternity Band -> Jewelry & Watches; Rings
+[0] Eternity Bands -> Jewelry & Watches; Rings
+[0] Silver Studs -> Jewelry & Watches; Earrings
+[0] Gold Studs -> Jewelry & Watches; Earrings
+[0] Diamond Studs -> Jewelry & Watches; Earrings
 [0] 2-Book Bundle -> Kids & Baby; Toys, Books & Games
 [0] 2-Book Set -> Kids & Baby; Toys, Books & Games
 [0] 3-Book Bundle -> Kids & Baby; Toys, Books & Games
@@ -818,7 +823,6 @@
 [0] Saute Pan -> Home; Kitchen & Dining
 [0] Umbrella -> Home; Home Accessories
 [0] Dog Leash -> Home; Home Accessories
-[0] Poncho -> Women; Accessories
 [0] Dinnerware -> Home; Kitchen & Dining
 [0] Cushion -> Home; Bed & Bath
 [0] Baby Doll Thong -> Women; Intimates & Loungewear
@@ -916,8 +920,7 @@
 [2] Dresses -> Dresses & Skirts
 [2] Skirt -> Dresses & Skirts
 [2] Belt -> Accessories
-[2] Belt- -> Accessories
-[2] Vest -> Accessories
+[2] Vest -> Outerwear
 [2] Muffler -> Accessories
 [2] Mufflers -> Accessories
 [2] Corduroy -> Pants & Shorts
@@ -933,7 +936,7 @@
 [2] Leggings -> Pants & Shorts
 [2] Trousers -> Pants & Shorts
 [2] Trouser -> Pants & Shorts
-[2] Sweater Vest -> Accessories
+[2] Sweater Vest -> Outerwear
 [2] Slipper -> Shoes
 [2] Slippers -> Shoes
 [2] Tank -> Shirts & Sweaters
@@ -973,7 +976,7 @@
 [2] Coat -> Suits & Coats
 [2] Coats -> Suits & Coats
 [2] Trench -> Suits & Coats
-[2] Shawl -> Accessories
+[2] Shawl -> Outerwear
 [2] Coveralls -> Outerwear
 [2] Coverall -> Outerwear
 [2] Shorts -> Pants & Shorts
@@ -1023,8 +1026,8 @@
 [2] Beanie -> Accessories
 [2] Swimwear -> Intimates & Loungewear
 [2] Swimwears -> Intimates & Loungewear
-[2] Cape -> Accessories
-[2] Capes -> Accessories
+[2] Cape -> Outerwear
+[2] Capes -> Outerwears
 [2] Heel -> Shoes
 [2] Heels -> Shoes
 [2] Rooster -> Accessories
@@ -1160,7 +1163,7 @@
 [2] Nail -> Beauty & Health; Makeup; Accessories
 [2] Lip -> Beauty & Helath; Makeup; Accessories
 [2] Piggy Bank -> Accessories
-[2] Wrap -> Accessories
+[2] Wrap -> Outerwear
 [2] Rainslicker -> Outerwear
 [2] Rainslickers -> Outerwear
 [2] Rain Slicker -> Outerwear
@@ -1198,7 +1201,6 @@
 [2] Pin -> Accessories
 [2] Trend Set -> Accessories
 [2] Lounge -> Furniture & Lighting
-[2] Sleeve -> Accessories
 [2] V-Neck -> Shirts & Sweaters
 [2] Vneck -> Shirts & Sweaters
 [2] Sink -> Furniture & Lighting
@@ -1229,7 +1231,7 @@
 [2] Pouf -> Bed & Bath
 [2] Cream -> Beauty & Health; Skin Care
 [2] Bootbelt -> Accessories
-[2] Thermal -> Accessories
+[2] Thermal -> Shirts & Sweaters
 [2] Sleepshirt -> Intimates & Loungewear
 [2] Pillowcase -> Bed & Bath
 [2] Pillowcases -> Bed & Bath
@@ -1284,7 +1286,6 @@
 [2] Turtle Neck -> Shirts & Sweaters
 [2] Capelet -> Accessories
 [2] Lazy Susan -> Accessories
-[2] x -> Accessories
 [2] GPS -> Accessories
 [2] Lighter -> Accessories
 [2] Lighters -> Accessories
@@ -1469,3 +1470,13 @@
 [2] Moisturizer -> Beauty & Health; Skin Care
 [2] SPF30 -> Beauty & Health; Skin Care
 [2] Thong -> Intimates & Loungewear
+[2] Thongs -> Intimates & Loungewear
+[2] Poncho -> Outerwear
+[2] Ponchos -> Outerwear
+[2] Helmet -> Accessories
+[2] Helmets -> Accessories
+[2] Photo -> Accessories
+[2] Photograph -> Accessories
+[2] Poncho Top -> Dresses & Skirts
+[2] Sheet -> Bed & Bath
+[2] Flat Sheet -> Bed & Bath

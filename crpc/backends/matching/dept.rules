@@ -5,6 +5,10 @@
 #  [1] - if XXXX in a title; we can determine the main department of it
 #  [2] - if XXXX in a title; we can determine the sub department of it
 # The XXXX is tested in a brute-force; longest first way
+[0] 2-Book Bundle -> Kids & Baby; Toys, Books & Games
+[0] 2-Book Set -> Kids & Baby; Toys, Books & Games
+[0] 3-Book Bundle -> Kids & Baby; Toys, Books & Games
+[0] 3-Book Set -> Kids & Baby; Toys, Books & Games
 [0] Storage Cubby -> Furniture & Lighting
 [0] Storage Unit -> Furniture & Lighting
 [0] Storage Cube -> Furniture & Lighting
@@ -37,6 +41,8 @@
 [0] Briefcases -> Bags; Backpacks & Laptop Bags
 [0] Laptop Bag -> Bags; Backpacks & Laptop Bags
 [0] Laptop Bags -> Bags; Backpacks & Laptop Bags
+[0] Laptop Sleeve -> Bags; Backpacks & Laptop Bags
+[0] Laptop Sleeves -> Bags; Backpacks & Laptop Bags
 [0] European Sham -> Home; Beds & Bath
 [0] Decorative Pillow -> Home; Beds & Bath
 [0] Decorative Pillows -> Home; Beds & Bath
@@ -111,7 +117,6 @@
 [0] Bib -> Kids & Baby; Baby
 [0] DreamSwaddle -> Kids & Baby; Baby
 [0] Chime -> Home; Accessories
-[0] Cupcake -> Home; Kitchen & Dining
 [0] Tablecloth -> Home; Rugs & Textiles
 [0] Stroller -> Kids & Baby; Gear & Equipment
 [0] Modular Cube -> Home; Furniture & Lighitng
@@ -141,8 +146,8 @@
 [0] Actimoist -> Beauty & Health; Skin Care
 [0] Knicker -> Women; Intimates & Loungewear
 [0] Knickers -> Women; Intimates & Loungewear
-[0] Bilfold -> Men; Accessories; Bags; Wallets
-[0] Billfold -> Men; Accessories; Bags; Wallets
+[0] Bilfold -> Bags; Wallets
+[0] Billfold -> Bags; Wallets
 [0] Eyelid -> Beauty & Helath; Makeup
 [0] Album -> Home; Home Accessories
 [0] Regas -> Home; Home Accessories
@@ -152,7 +157,6 @@
 [0] Framed Abstract -> Home; Home Accessories
 [0] Men Check -> Men; Shirts & Sweaters
 [0] Unicorn Studio -> Home; Home Accessories
-[0] Bench -> Home; Furniture & Lighting
 [0] EcoSmart -> Home; Furniture & Lighting
 [0] Men Maxton -> Men; Shoes
 [0] Men Wingtip -> Men; Shoes
@@ -248,7 +252,6 @@
 [0] Eyeshadow -> Beauty & Health; Makeup
 [0] Eyeshadows -> Beauty & Health; Makeup
 [0] Eye Shadow -> Beauty & Health; Makeup
-[0] Garden Set -> Home; Tools
 [0] Corkscrew -> Home; Kitchen & Dining
 [0] Crib -> Kids & Baby; Maternity; Gear & Equipment; Baby
 [0] Mattress -> Home; Beds & Bath
@@ -261,17 +264,6 @@
 [0] Play Set -> Kids & Baby; Toys, Games & Books
 [0] Playset -> Kids & Baby; Toys, Games & Books
 [0] Playsets -> Kids & Baby; Toys, Games & Books
-[0] Car -> Kids & Baby; Toys, Games & Books
-[0] Cars -> Kids & Baby; Toys, Games & Books
-[0] Chopper -> Kids & Baby; Toys, Games & Books
-[0] Choppers -> Kids & Baby; Toys, Games & Books
-[0] Truck -> Kids & Baby; Toys, Games & Books
-[0] Trucks -> Kids & Baby; Toys, Games & Books
-[0] Train -> Kids & Baby; Toys, Games & Books
-[0] Trains -> Kids & Baby; Toys, Games & Books
-[0] Vehicle -> Kids & Baby; Toys, Games & Books
-[0] Vehicles -> Kids & Baby; Toys, Games & Books
-[0] Castle -> Kids & Baby; Toys, Games & Books
 [0] Counterstool -> Home; Home Accessories; Furniture & Lighting
 [0] Counterstools -> Home; Home Accessories; Furniture & Lighting
 [0] Rack -> Home; Home Accessories; Furniture & Lighting
@@ -345,7 +337,7 @@
 [0] Lotion -> Beauty & Health; Skin Care
 [0] Oyster Perpetual -> Jewerly & Watches; Men's Watches; Women's Watches
 [0] Aftershave -> Men; Accessories; Beauty & Health; Skin Care
-[0] Card Case -> Bags; Wallets; Women; Men; Accessories
+[0] Card Case -> Bags; Wallets
 [0] Deodorant -> Beauty & Health; Fragrance
 [0] EDP -> Beauty & Health; Fragrance
 [0] EDC -> Beauty & Health; Fragrance
@@ -369,7 +361,6 @@
 [0] Messenger -> Bags; Crossbody Bags
 [0] Medium Shopper -> Bags; Handbags
 [0] Shopping Bag -> Bags; Handbags
-[0] Shopper -> Bags; Handbags
 [0] Knife -> Home; Kitchen & Dining
 [0] Knives -> Home; Kitchen & Dining
 [0] Smock -> Women; Intimates & Loungewear
@@ -435,15 +426,14 @@
 [0] Curtain -> Home; Beds & Bath
 [0] Curtains -> Home; Beds & Bath
 [0] Bath -> Home; Beds & Bath
-[0] Gown -> Women; Dresses & Skirts
 [0] Tray -> Home; Kitchen & Dining
 [0] Trays -> Home; Kitchen & Dining
 [0] Map -> Home; Home Accessories
 [0] Cutters -> Home; Tools
 [0] Cheese Cutters -> Home; Kitchen & Dining
 [0] Cheese Set -> Home; Kitchen & Dining
-[0] Hamper -> Home; Home Accessories
-[0] Hampers -> Home; Home Accessories
+[0] Hamper -> Home; Furniture & Lighting
+[0] Hampers -> Home; Furniture & Lighting
 [0] Pourers -> Home; Home Accessories
 [0] Hooks -> Home; Home Accessories
 [0] Vase -> Home; Home Accessories
@@ -484,7 +474,6 @@
 [0] Patent Skimmer -> Women; Shoes
 [0] Pestle -> Home; Kitchen & Dining
 [0] Pen -> Home; Home Accessories
-[0] Can -> Home; Kitchen & Dining
 [0] Jewelry Set -> Jewelry & Watches; Necklaces; Bracelets; Earrings
 [0] Bowl-Set -> Home; Kitchen & Dining
 [0] Bowl -> Home; Kitchen & Dining
@@ -510,7 +499,6 @@
 [0] Oval Set -> Home; Kitchen & Dining
 [0] Food Set -> Home; Kitchen & Dining
 [0] Container Set -> Home; Kitchen & Dining
-[0] Pan -> Home; Kitchen & Dining
 [0] Folding Ottoman -> Home; Furniture & Lighting
 [0] Snowball Maker -> Home; Kitchen & Dining
 [0] Woven Tray -> Home; Kitchen & Dining
@@ -523,11 +511,7 @@
 [0] Earring Tree -> Home; Home Accessories
 [0] Beige Bag -> Bags; Handbags
 [0] Room Divider -> Home; Home Accessories
-[0] Deco -> Home; Home Accessories
-[0] Decorative -> Home; Home Accessories
 [0] Chameleon Bag -> Bags; Handbags
-[0] Panel -> Home; Home Accessories
-[0] Panels -> Home; Home Accessories
 [0] Placemat -> Home; Kitchen & Dining
 [0] Placemats -> Home; Kitchen & Dining
 [0] Sunshine Bottom -> Women; Intimates & Loungewear
@@ -588,7 +572,6 @@
 [0] Luggage Set -> Bags; Luggage Bags
 [0] Bowl Set -> Home; Kitchen & Dining
 [0] Ivory Lane Quinn Zebra -> Bags; Handbags
-[0] Chair -> Home; Furniture & Lighting
 [0] Chairs -> Home; Furniture & Lighting
 [0] Towel Set -> Home; Beds & Bath
 [0] Garlic Press -> Home; Kitchen & Dining
@@ -638,7 +621,6 @@
 [0] Maxidress -> Women; Dresses & Skirts
 [0] Rainboot -> Women; Shoes
 [0] Bamboo Handbag -> Bags; Handbags
-[0] Decor -> Home; Home Accessories
 [0] Prints -> Home; Home Accessories
 [0] Decors -> Home; Home Accessories
 [0] Cookware -> Home; Kitchen & Dining
@@ -745,7 +727,6 @@
 [0] G-Thong -> Women; Intimates & Loungewear
 [0] Camisole Bra -> Women; Intimates & Loungewear
 [0] Camisole -> Women; Intimates & Loungewear
-[0] Cami -> Women; Intimates & Loungewear
 [0] Striped Cami -> Women; Intimates & Loungewear
 [0] Cotton Cami -> Women; Intimates & Loungewear
 [0] Boyshort -> Women; Intimates & Loungewear
@@ -1454,3 +1435,31 @@
 [2] Pillow -> Beds & Bath
 [2] Pillows -> Beds & Bath
 [2] Lipstick -> Beauty & Helath; Makeup
+[2] Panel -> Accessories
+[2] Panels -> Accessories
+[2] Chair -> Furniture & Lighting
+[2] Gown -> Dresses & Skirts
+[2] Sleeping Bag -> Beds & Bath
+[2] Pacific Play -> Toys, Games & Books
+[2] Garden Set -> Tools
+[2] Sugar Raglan -> Shirts & Sweaters
+[2] Can -> Kitchen & Dining
+[2] Car -> Kids & Baby; Toys, Games & Books
+[2] Cars -> Kids & Baby; Toys, Games & Books
+[2] Chopper -> Kids & Baby; Toys, Games & Books
+[2] Choppers -> Kids & Baby; Toys, Games & Books
+[2] Truck -> Kids & Baby; Toys, Games & Books
+[2] Trucks -> Kids & Baby; Toys, Games & Books
+[2] Train -> Kids & Baby; Toys, Games & Books
+[2] Trains -> Kids & Baby; Toys, Games & Books
+[2] Vehicle -> Kids & Baby; Toys, Games & Books
+[2] Vehicles -> Kids & Baby; Toys, Games & Books
+[2] Castle -> Kids & Baby; Toys, Games & Books
+[2] Bench -> Furniture & Lighting
+[2] Cupcake -> Home; Kitchen & Dining
+[2] Shopper -> Bags; Handbags
+[2] Pan -> Home; Kitchen & Dining
+[2] Deco -> Accessories
+[2] Decor -> Accessories
+[2] Decorative -> Accessories
+[2] Cami -> Intimates & Loungewear

@@ -225,5 +225,5 @@ class LuxuryProduct(BaseProduct):
     favbuy_listprice    =   StringField()
     
     meta                = {
-        "indexes": ["soldout", "products_begin", "products_end"],
+        "indexes": ["soldout", "products_begin", "products_end", "event_id"],
     }

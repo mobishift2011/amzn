@@ -61,8 +61,8 @@ class Jinja2Environment(jinja2.Environment):
 ROOT = os.path.dirname(__file__)
 TEMPLATE_PATH = os.path.join(ROOT+"views")
 STATIC_PATH = os.path.join(ROOT+"assets")
-MASTIFF_URI = 'http://integrate.favbuy.org:8001/api/v1'
-api = API(MASTIFF_URI)
+from settings import MASTIFF_HOST
+api = API(MASTIFF_HOST)
 
 assets_env = AssetsEnvironment(STATIC_PATH, '/assets')
 bundles = loaders.YAMLLoader(os.path.join(ROOT, "bundle.yaml")).load_bundles()
@@ -184,12 +184,12 @@ class ViewDataHandler(BaseHandler):
             type = 'event'
             utcnow = datetime.utcnow()
             if hasattr(m, 'Event'):
-                ol1 = m.Event.objects(Q(events_end__gt=utcnow) & (Q(events_begin__exists=False) | Q(events_begin__lt=utcnow)))
+                ol1 = m.Event.objects(Q(events_end__gt=utcnow) & (Q(events_begin__exists=False) | Q(events_begin__lt=utcnow))).order_by('-create_time')
             else:
                 ol1 = []
 
             if hasattr(m, 'Category'):
-                ol2 = m.Category.objects()
+                ol2 = m.Category.objects().order_by('-create_time')
             else:
                 ol2 = []
         else:

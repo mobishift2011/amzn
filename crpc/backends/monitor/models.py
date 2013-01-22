@@ -158,5 +158,41 @@ class Task(Document):
 #
 #signals.pre_save.connect(Task.pre_save, sender=Task)
 
+class Stat(Document):
+    site        =   StringField(required = True)
+    doctype     =   StringField(required = True)
+    crawl_num   =   IntField(default = 0)
+    image_num   =   IntField(default = 0)
+    prop_num    =   IntField(default = 0)
+    publish_num =   IntField(default = 0)
+    interval    =   DateTimeField()
+    created_at  =   DateTimeField(default = datetime.utcnow)
+
+    meta = {
+        'db_name': DB,
+        'db_alias': DB,
+        'indexes': ['site', 'doctype', 'interval', ('site', 'doctype', 'interval')],
+        'ordering': ['-interval'],
+    }
+
+    def to_json(self):
+        return {
+            'site': self.site,
+            'doctype': self.doctype,
+            'crawl_num': self.crawl_num,
+            'image_num': self.image_num,
+            'prop_num': self.prop_num,
+            'publish_num': self.publish_num,
+            'interval': self.interval,
+            'created_at': str(self.created_at),
+        }
+
+#     @classmethod
+#     def pre_save(cls, sender, document, **kwargs):
+#         document.updated_at = datetime.utcnow()
+
+# signals.pre_save.connect(Stat.pre_save, sender=Stat)
+
+
 if __name__ == '__main__':
     Schedule().timematch()

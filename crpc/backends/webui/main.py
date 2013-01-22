@@ -22,7 +22,7 @@ from backends.monitor.upcoming_ending_events_count import upcoming_events, endin
 from tests.publisher.chkpub import PubChecker
 from backends.monitor.events import auto_scheduling
 
-from powers.models import Stat
+from backends.monitor.models import Stat
 
 @route('/toggle-auto-scheduling/:onoff')
 def toggle_auto_scheduling(onoff):

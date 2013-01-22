@@ -5,6 +5,9 @@
 #  [1] - if XXXX in a title; we can determine the main department of it
 #  [2] - if XXXX in a title; we can determine the sub department of it
 # The XXXX is tested in a brute-force; longest first way
+[0] Basting Mop -> Home; Kitchen & Dining
+[0] Basting Mops -> Home; Kitchen & Dining
+[0] Capsule Tower -> Home; Kitchen & Dining
 [0] Eternity Band -> Jewelry & Watches; Rings
 [0] Eternity Bands -> Jewelry & Watches; Rings
 [0] Silver Studs -> Jewelry & Watches; Earrings
@@ -119,7 +122,7 @@
 [0] Wine Glass -> Home; Kitchen & Dining
 [0] Wine Glasses -> Home; Kitchen & Dining
 [0] Twin Techno -> Kids & Baby; Gear & Equipment
-[0] DreamSwaddle -> Kids & Baby; Baby
+[0] DreamSwaddle -> Kids & Baby; Maternity
 [0] Chime -> Home; Accessories
 [0] Tablecloth -> Home; Rugs & Textiles
 [0] Stroller -> Kids & Baby; Gear & Equipment
@@ -865,10 +868,10 @@
 [0] Boy Shoes -> Kids & Baby; Boys' Shoes
 [1] Personal Care -> Beauty & Health; Skin Care
 [1] Beauty -> Beauty & Health
-[1] Baby -> Kids & Baby; Baby
-[1] Babies -> Kids & Baby; Baby
-[1] Infant -> Kids & Baby; Baby
-[1] Toddler -> Kids & Baby; Baby
+[1] Baby -> Kids & Baby; Maternity
+[1] Babies -> Kids & Baby; Maternity
+[1] Infant -> Kids & Baby; Maternity
+[1] Toddler -> Kids & Baby; Maternity
 [1] Handbag -> Handbags
 [1] Ladies -> Women
 [1] Girls -> Kids & Baby
@@ -1480,3 +1483,4 @@
 [2] Poncho Top -> Dresses & Skirts
 [2] Sheet -> Bed & Bath
 [2] Flat Sheet -> Bed & Bath
+[2] Cinnamon -> Kitchen & Dining

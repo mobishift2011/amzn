@@ -136,7 +136,6 @@ CATS = {
 	    'Gear & Equipment',
 	    'Bed, Bath & Furniture',
         'Maternity',
-        'Baby',
         'Accessories',
     ],
     'Home': [

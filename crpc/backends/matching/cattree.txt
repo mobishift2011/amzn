@@ -31,11 +31,9 @@ Home
 	Electronics
 	Tools
 	Kitchen & Dining
-Handbags
+Bags
 	Shoulder Bags
-	Tote Bags
-	Satchels
-	Clutches
+    Handbags
 	Hobo Bags
 	Crossbody Bags
 	Evening Bags
@@ -58,6 +56,4 @@ Wine
 	White Wine
 	Champagne
 	Wine Accessories
-
-	
 

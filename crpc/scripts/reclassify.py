@@ -23,11 +23,12 @@ def reclassify(site='beyondtherack'):
             print 'RECLASSIFY PRODUCT', site, p.key, p.favbuy_dept
     if hasattr(m, 'Event'):
         for e in m.Event.objects():
-            print 'RECLASSIFY EVENT', site, e.event_id
+            print 'RECLASSIFY EVENT', site, e.event_id, 
             dept = []
             for p in m.Product.objects(event_id=e.event_id, updated=True):
                 dept.extend(p.favbuy_dept)
             dept = list(set(dept))
+            print dept
             if e.favbuy_dept != dept:
                 e.favbuy_dept = dept
                 e.save()
@@ -76,8 +77,6 @@ def reclassify_mastiff():
         total = data['meta']['total_count']
         offset += PAGESIZE
     
-
-
 jobs = []
 for site in sites:
     job = threading.Thread(target=reclassify, args=(site,))

@@ -351,6 +351,7 @@ class Propagator(object):
         for k, v in depts.items():
              if v>=dept_threshold:
                 self.event.favbuy_dept.extend(list(k))
+        self.event.favbuy_dept = list(set(self.event.favbuy_dept))
         #self.event.favbuy_dept = classify_event_department(self.site, self.event)
 
         price_set = list(price_set)

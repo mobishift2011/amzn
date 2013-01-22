@@ -62,11 +62,11 @@ class PowerServer(object):
                     return
                 instance.image_path = it.image_path
                 instance.image_complete = True
-                instance.update_history({'image_path': datetime.utcnow()})
+                instance.update_history.update({'image_path': datetime.utcnow()})
                 instance.save()
                 image_crawled.send(sender=sender, model=model, key=key)
-                # interval = datetime.utcnow().replace(second=0, microsecond=0)
-                # Stat.objects(site=site, doctype=doctype.lower(), interval=interval).update(inc__image_num=1, upsert=True)
+                interval = datetime.utcnow().replace(second=0, microsecond=0)
+                Stat.objects(site=site, doctype=doctype.lower(), interval=interval).update(inc__image_num=1, upsert=True)
             else:
                 logger.error('crawling image of {0} failed'.format(sender))
 

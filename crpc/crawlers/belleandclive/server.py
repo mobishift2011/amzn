@@ -189,7 +189,7 @@ class Server(object):
         nodes = tree.cssselect('div#page-wrapper > div#content > div#sales-wrapper > div#sales > div.sale')
         for node in nodes:
             link = node.cssselect('div.sale-description > a[href]')[-1].get('href')
-            key = link.rsplit('id', 1)[-1]
+            key = link.rsplit('id=', 1)[-1]
             link = link if link.startswith('http') else self.siteurl + link
             brand = node.cssselect('div.sale-description > p.collection')[0].text_content().strip(':')
             title = node.cssselect('div.sale-description > a[href] > p.title')[0].text_content().strip(':')
@@ -232,7 +232,7 @@ class Server(object):
 
         
     def crawl_product(self, url, ctx=''):
-        key = url.rsplit('id', 1)[-1]
+        key = url.rsplit('id=', 1)[-1]
         tree = self.download_page_ret_tree(key, url, 'download product page failed:', ctx)
         color = tree.cssselect('div#colors span#color-label')
         color = color[0].text_content() if color else ''

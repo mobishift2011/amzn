@@ -1,0 +1,158 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<div id="main-content">
+  <ul class="breadcrumb">
+    <li>
+      <a href="/">Home</a> <span class="divider">/</span>
+    </li>
+    <li>
+      <a href="#">View Data</a>
+    </li>
+  </ul>
+
+  <div>
+    <ul class="nav nav-tabs">
+      <li name="viewdata"><a href="/viewdata/events">Events</a></li>
+      <li name="viewdata"><a href="/viewdata/products">Products</a></li>
+      <li name="viewdata"><a href="/viewdata/classification">Classification</a></li>
+    </ul>
+  </div>
+  <div>
+    <div class="row-fluid">
+      {% for site in sites %}
+        {% if current_site==site %}
+        <button name="site" value="{{site}}" class="btn btn-primary">{{site}}</button>
+        {% else %}
+        <button name="site" value="{{site}}" class="btn">{{site}}</button>
+        {% endif %}
+      {% endfor %}
+    </div>
+    <hr>
+    {% if type=='event' %}
+    <h3>List of {{type}} in {{current_site}}</h3>
+    {% else %} 
+    <h3>List of {{type}} in Event {{current_site}}_{{key}}</h3>
+    {% endif %}
+    <div class="row-fluid">
+      {% for o in object_list %}
+      {% if type=='event' %}
+        <div class="well" style="width:224px; height:140px; float:left; margin:3px; overflow:hidden;">
+          {% if o.sale_title %}
+            <span> {{o.sale_title[:30]}} </span><br />
+          {% else %}
+            <span> {{' &gt; '.join(o.cats)}} </span><br />
+          {% endif %}
+          <span><a target="_blank" href="{{o.combine_url}}">{{o.event_id}}{{o.key}}</a></span><br />
+          <span>{{', '.join(o.favbuy_dept)}}</span><br />
+          {% if o.image_urls %}
+            <a href="?site={{current_site}}&key={{o.event_id}}{{o.key}}"><img src="{{o.image_urls[0]}}" /></a>
+          {% else %}
+            <a href="?site={{current_site}}&key={{o.event_id}}{{o.key}}">NO IMAGE</a>
+          {% endif %}
+        </div>
+      {% else %}
+        <div class="well" style="width:160px; height:240px; float:left; margin:3px; overflow:hidden;">
+          <span>{{ o.title }}</span><br /> 
+          <span><a target="_blank" href="{{o.combine_url}}">{{o.key}}</a></span><br />
+          <span> {{', '.join(o.favbuy_dept)}} <a href="#" id="reason" site="{{current_site}}" key="{{o.key}}" class="btn btn-primary">classification reason?</a> </span><br />
+          {% if o.image_urls %}
+            <a href="#"><img src="{{o.image_urls[0]}}" /></a>
+          {% else %}
+            <a href="#">NO IMAGE</a>
+          {% endif %}
+        </div>
+      {% endif %}
+      {% endfor %}
+    </div>   
+    <div class="pagination pagination-centered">
+      <ul>
+        {% if pagination.has_prev %}
+        <li><a class="pagination" page="{{pagination.page-1}}" href="#">Prev</a></li>
+        {% endif %}
+        {% for page in pagination.iter_pages() %}
+        {% if page %}
+          {% if page == pagination.page %}
+            <li class="active"><a class="pagination" page="" href="#">{{page}}</a></li>
+          {% else %}
+            <li><a class="pagination" page="{{page}}" href="#">{{page}}</a></li>
+          {% endif %}
+        {% else %}
+          <li><a class="pagination" page="" href="#">...</a></li>
+        {% endif %}
+        {% endfor %}
+        {% if pagination.has_next %}
+        <li><a class="pagination" page="{{pagination.page+1}}" href="#">Next</a></li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+</div><!--main-content-->
+  
+      
+<div class="modal hide fade" id="myModal">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal">×</button>
+    <h3>Settings</h3>
+  </div>
+  <div class="modal-body">
+    <p>Here settings can be configured...</p>
+  </div>
+  <div class="modal-footer">
+    <a href="#" class="btn" data-dismiss="modal">Close</a>
+    <a href="#" class="btn btn-primary">Save changes</a>
+  </div>
+</div>
+
+<div class="modal hide fade" id="reason-modal">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal">×</button>
+    <h3>Classification Reason</h3>
+  </div>
+  <div class="modal-body" id="reason-body">
+  </div>
+  <div class="modal-footer">
+    <a href="#" class="btn" data-dismiss="modal">Close</a>
+  </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+  // make nav css correct
+  $('li[name=viewdata]').each(function(){
+    var link = $(this).find(">:first-child").attr('href');
+    if (window.location.href.indexOf(link) != -1){
+      $(this).addClass('active');
+    }
+  });
+
+  // make site link work
+  $('button[name=site]').live('click', function(){
+    var value = $(this).attr('value');
+    window.location.href = "?site="+value;
+  });
+
+  // pagination
+  $('a.pagination').live('click', function(){
+    if ($(this).attr('page')) {
+      var param = $.deparam(window.location.href.substr(window.location.href.indexOf('?')+1));
+      param['offset'] = ($(this).attr('page')-1)*80;
+      var url = "/viewdata/classification?" + $.param(param);
+      window.location.href = url;
+    }
+  });
+
+  // reason
+  $('#reason').live('click', function(){
+    var site = $(this).attr('site');
+    var key = $(this).attr('key');
+    console.log(site, key);
+    $.get('/viewdata/classification_reason.ajax', $.param({site:site,key:key}), function(data){
+        $('#reason-body').html(data);
+        $('#reason-modal').modal();
+    });
+  });
+
+</script>
+{% endblock %}

@@ -14,9 +14,14 @@
           <li><a href="/task">Tasks</a></li>
           <li class="active"><a href="#">Control</a></li>
           <li><a href="/publish">Publish</a></li>
+          <li><a href="/graph">Graph</a></li>
         </ul>
         <div class="container" style="margin-top: 10px" ng-controller="ScheduleCtrl">
 
+        <form>
+            <a href="#" class="btn btn-primary" ng-click="autoSchedule(true)">Start Auto-Schedule</a>
+            <a href="#" class="btn btn-primary" ng-click="autoSchedule(false)">Stop Auto-Schedule</a>
+        </form>
         
         <em>* Click Cell to Edit</em>
 <table cellpadding="0" cellspacing="0" border="0" class="table table-striped table-bordered" id="schedule">
@@ -56,6 +61,7 @@
             <input type="text" class="span2" placeholder="0 * * * *" ng-model="newSchedule.cron">
             <a href="#" class="btn btn-primary" ng-click="addSchedule()">ADD SCHEDULE</a>
         </form>
+        
 
         </div>  <!-- ControlTask -->
       </div> <!-- containers -->

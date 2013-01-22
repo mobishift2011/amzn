@@ -9,8 +9,8 @@ from datetime import datetime, timedelta
 DB = "monitor"
 connect(db=DB, alias=DB, host=MONGODB_HOST, max_pool_size=50)
 
-def fail(site, method, key='', url='', message="undefined"):
-    f = Fail(site=site, method=method, key=key, url=url, message=message)
+def fail(site, method, key='', url='', message="undefined", time=datetime.utcnow()):
+    f = Fail(site=site, method=method, key=key, url=url, message=message, time=time)
     f.save()
     return f
 
@@ -130,7 +130,7 @@ class Task(Document):
 
     # meta
     meta        =   {
-        "indexes":  ["status", "site", "method", "started_at", "updated_at"],
+        "indexes":  ["status", "site", "method", "started_at", "updated_at", "ended_at"],
         "db_alias": DB,
     }
 
@@ -143,6 +143,7 @@ class Task(Document):
             'status':       Task.inverse_status(self.status),
             'started_at':   self.started_at.isoformat() if self.started_at else 'undefined',
             'updated_at':   self.updated_at.isoformat() if self.updated_at else 'undefined',
+            'ended_at':     self.ended_at.isoformat() if self.ended_at else 'undefined',
             'fails':        self.num_fails,
             'dones':        self.num_finish,
             'updates':      self.num_update,
@@ -156,6 +157,42 @@ class Task(Document):
 #         document.updated_at = datetime.utcnow()
 #
 #signals.pre_save.connect(Task.pre_save, sender=Task)
+
+class Stat(Document):
+    site        =   StringField(required = True)
+    doctype     =   StringField(required = True)
+    crawl_num   =   IntField(default = 0)
+    image_num   =   IntField(default = 0)
+    prop_num    =   IntField(default = 0)
+    publish_num =   IntField(default = 0)
+    interval    =   DateTimeField()
+    created_at  =   DateTimeField(default = datetime.utcnow)
+
+    meta = {
+        'db_name': DB,
+        'db_alias': DB,
+        'indexes': ['site', 'doctype', 'interval', ('site', 'doctype', 'interval')],
+        'ordering': ['-interval'],
+    }
+
+    def to_json(self):
+        return {
+            'site': self.site,
+            'doctype': self.doctype,
+            'crawl_num': self.crawl_num,
+            'image_num': self.image_num,
+            'prop_num': self.prop_num,
+            'publish_num': self.publish_num,
+            'interval': self.interval,
+            'created_at': str(self.created_at),
+        }
+
+#     @classmethod
+#     def pre_save(cls, sender, document, **kwargs):
+#         document.updated_at = datetime.utcnow()
+
+# signals.pre_save.connect(Stat.pre_save, sender=Stat)
+
 
 if __name__ == '__main__':
     Schedule().timematch()

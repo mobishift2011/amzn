@@ -96,7 +96,7 @@ class Server(object):
             events_begin = self.convert_time( info['start_date'] )
             events_end = self.convert_time( info['end_date'] )
             _utcnow = datetime.utcnow()
-            sale_description = requests.get(info['info']).text.strip() if events_begin < _utcnow else ''
+            sale_description = requests.get(info['info']).text.strip().replace('&mdash;', '—'.decode('utf-8')) if events_begin < _utcnow else ''
 
             is_leaf = True
             # "Daily Deal" only have product on webpage, but whole process in API
@@ -109,8 +109,8 @@ class Server(object):
                         self.save_child_event(child['event_id'], events_begin, events_end, sale_title, sale_description, dept, tagline, ctx)
                         is_leaf = False
 
-            pop_img = 'http://www.hautelook.com/assets/{0}/pop-large.jpg'.format(event_code)
             grid_img = 'http://www.hautelook.com/assets/{0}/grid-large.jpg'.format(event_code)
+            pop_img = 'http://www.hautelook.com/assets/{0}/pop-large.jpg'.format(event_code)
             is_new, is_updated = False, False
             event = Event.objects(event_id=event_id).first()
             if not event:
@@ -121,17 +121,11 @@ class Server(object):
                 event.tagline = tagline
                 event.urgent = True
                 event.combine_url = 'http://www.hautelook.com/event/{0}'.format(event_id)
-
-                event.sort_order = info['sort_order']
-                if not is_leaf: event.is_leaf = False
-            else:
-                if info['sort_order'] != event.sort_order:
-                    event.sort_order = info['sort_order']
-                    is_updated = True
+                event.is_leaf = is_leaf
             if sale_description and not event.sale_description:
                 event.sale_description = sale_description
-            if pop_img not in event.image_urls: event.image_urls.append(pop_img)
             if grid_img not in event.image_urls: event.image_urls.append(grid_img)
+            if pop_img not in event.image_urls: event.image_urls.append(pop_img)
             event.events_begin = events_begin
             event.events_end = events_end
             event.update_time = _utcnow
@@ -208,11 +202,15 @@ class Server(object):
                 product.event_id = [event_id]
                 product.updated = False
                 product.scarcity = scarcity
+                if scarcity == '0': product.soldout = True
                 product.combine_url = 'http://www.hautelook.com/product/{0}'.format(key)
             else:
                 if product.scarcity != scarcity:
                     product.scarcity = scarcity
-                    is_updated = True
+                    if int(scarcity) < 1:
+                        product.soldout = True
+                        is_updated = True
+                        product.update_history.update({ 'soldout': datetime.utcnow() })
                 if event_id not in product.event_id: product.event_id.append(event_id)
             product.list_update_time = datetime.utcnow()
             product.save()
@@ -246,7 +244,7 @@ class Server(object):
         title = data['title']
         list_info, brand = [], ''
         if 'copy' in data and data['copy']:
-            list_info = data['copy'].split('\n')
+            list_info = data['copy'].replace('<br />', '').split('\n')
 
         if data['event_display_brand_name']:
             if data['event_title'] != data['brand_name']:
@@ -296,26 +294,33 @@ class Server(object):
         product.title = title
         product.list_info = list_info
         product.brand = brand
-        product.returned = str(int(data['returnable'])) # bool
-        product.international_ship = str(int(data['international'])) # bool
+        product.returned = 'Returnable for refund or HauteLook credit.' if data['returnable'] else 'Final sale - This item is not returnable.' # bool
+        # product.shipping = str(int(data['international'])) bool, international always 0
         product.delivery_date = ' to '.join((data['estimated_delivery']['start_date'], data['estimated_delivery']['end_date']))
         product.choke_hazard = str(int(data['choke_hazard'])) # bool
         product.price = price
         product.listprice = listprice
 
+        image_urls = []
         if color:
             # color: find the color, associate it to get the right images
             for color_info in data['collections']['color']:
                 if color_info['name'] == color:
-                    product.image_urls = data['collections']['images'][ color_info['image'] ]['large']
+                    image_urls = data['collections']['images'][ color_info['image'] ]['large']
         elif product.color:
             for color_info in data['collections']['color']:
                 if color_info['name'] == product.color:
-                    product.image_urls = data['collections']['images'][ color_info['image'] ]['large']
+                    image_urls = data['collections']['images'][ color_info['image'] ]['large']
         else:
             # if product_id not in color, don't crawl it later, set a default price, listprice.
             # image_urls may not get
             pass
+
+        for img in image_urls: # http://www1.hautelookcdn.com/images/app/modules/default/product/noavail_large.gif
+            if img.endswith('noavail_large.gif'):
+                image_urls = []
+                break
+        product.image_urls = image_urls
 
         if product.updated == False:
             product.updated = True

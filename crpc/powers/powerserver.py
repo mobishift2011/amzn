@@ -9,7 +9,7 @@ from configs import *
 from tools import ImageTool
 from powers.events import *
 from imglib import trim, scale
-from models import Stat
+from backends.monitor.models import Stat
 
 from crawlers.common.stash import exclude_crawlers
 from os import listdir
@@ -60,7 +60,10 @@ class PowerServer(object):
                 instance.reload()
                 if instance.image_complete:
                     return
-                instance.update(set__image_path=it.image_path, set__image_complete=True)
+                instance.image_path = it.image_path
+                instance.image_complete = True
+                instance.update_history.update({'image_path': datetime.utcnow()})
+                instance.save()
                 image_crawled.send(sender=sender, model=model, key=key)
                 interval = datetime.utcnow().replace(second=0, microsecond=0)
                 Stat.objects(site=site, doctype=doctype.lower(), interval=interval).update(inc__image_num=1, upsert=True)

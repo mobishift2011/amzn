@@ -7,6 +7,7 @@ import gevent.pool
 import requests
 import json
 import re
+import lxml.html
 from pprint import pprint
 from datetime import datetime, timedelta
 
@@ -53,7 +54,8 @@ class Server(object):
             event.urgent = True
             event.combine_url = 'http://www.myhabit.com/homepage#page=b&sale={0}'.format(event_id)
             event.sale_title = info['primary']['title']
-            event.sale_description = info['primary']['desc'].replace('<b>', '').replace('</b>', '') if 'desc' in info['primary'] else ''
+            if 'desc' in info['primary']:
+                event.sale_description = lxml.html.fromstring(info['primary']['desc']).text_content()
             event.image_urls = [ info['prefix']+val for key, val in info['primary']['imgs'].items() if key == 'hero']
             event.image_urls.extend( [ info['prefix']+val for key, val in info['primary']['imgs'].items() if key in ['desc', 'sale']] )
             if 'brandUrl' in info['primary']:
@@ -144,6 +146,7 @@ class Server(object):
             if soldout and product.soldout != soldout:
                 product.soldout = True
                 is_updated = True
+                product.update_history.update({ 'soldout': datetime.utcnow() })
         if event_id not in product.event_id: product.event_id.append(event_id)
         product.jslink = jslink
         product.list_update_time = datetime.utcnow()
@@ -158,7 +161,7 @@ class Server(object):
 
         asin = data['detailJSON']['asin']
         summary = data['productDescription']['shortProdDesc']
-        list_info = data['productDescription']['bullets'][0]['bulletsList']
+        list_info = [i.replace('&quot;', '"').replace('&#39;', '\'') for i in data['productDescription']['bullets'][0]['bulletsList']]
         brand = data['detailJSON']['brand']
         international_shipping = str(data['detailJSON']['intlShippable']) # 1
         returned = data['detailJSON']['returnPolicy']

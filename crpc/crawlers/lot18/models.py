@@ -10,6 +10,8 @@ connect(db=DB, alias=DB, host=MONGODB_HOST)
 from crawlers.common.models import BaseCategory, LuxuryProduct
 
 class Category(BaseCategory):
+    key   =     StringField(unique=True)
+
     meta = {
         'db_alias': DB,
     }

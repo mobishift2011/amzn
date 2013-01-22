@@ -29,6 +29,9 @@ class BaseDocumentSkeleton(object):
     sale_title          =   StringField()
     sale_description    =   StringField()
 
+    # {soldout: datetime.datetime(2013, 1, 10, 9, 11, 57, 484147)}
+    update_history      =   DictField()
+
 
 class BaseCategory(Document, BaseDocumentSkeleton):
     """ :py:class:crawlers.common.models.BaseCategory
@@ -97,7 +100,7 @@ class BaseEvent(Document, BaseDocumentSkeleton):
     meta = {
         "allow_inheritance": True,
         "collection": "event",
-        "indexes": ["urgent", "events_begin", "events_end", "soldout", "event_id", "is_leaf"],
+        "indexes": ["urgent", "events_begin", "events_end", "soldout", "event_id", "is_leaf", "image_complete", "brand_complete", "propagation_complete"],
     }
 
 
@@ -136,6 +139,7 @@ class BaseProduct(Document):
     updated             =   BooleanField(default=False) # after product is fully crawled, updated is True
     list_update_time    =   DateTimeField(default=datetime.utcnow)
     full_update_time    =   DateTimeField()
+    update_history      =   DictField()
 
     # dimension info
     category_key        =   ListField(StringField()) # like event_id, but in category
@@ -184,7 +188,7 @@ class BaseProduct(Document):
     meta                =   {
         "allow_inheritance": True,
         "collection": "product",
-        "indexes":  ["key", "list_update_time", "full_update_time", "model", "brand", "updated"],
+        "indexes":  ["key", "list_update_time", "full_update_time", "model", "brand", "updated", "image_complete", "brand_complete", "tag_complete", "dept_complete"],
     }
 
     def url(self):
@@ -221,5 +225,5 @@ class LuxuryProduct(BaseProduct):
     favbuy_listprice    =   StringField()
     
     meta                = {
-        "indexes": ["soldout"],
+        "indexes": ["soldout", "products_begin", "products_end", "event_id"],
     }

@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import traceback
-from backends.monitor.models import Task, Schedule, fail
-from powers.models import Stat
+from backends.monitor.models import Task, Schedule, fail, Stat
+from powers.models import Brand
+from powers.events import brand_refresh
 
 from settings import CRPC_ROOT
 from crawlers.common.stash import exclude_crawlers
@@ -75,6 +76,11 @@ def get_all_sites():
     return [name for name in listdir(join(CRPC_ROOT, 'crawlers')) \
             if name not in exclude_crawlers and isdir(join(CRPC_ROOT, 'crawlers', name))]
 
+def get_one_site_schedule(site):
+    tasks = Task.objects(site=site, updated_at__gt=datetime.utcnow()-timedelta(seconds=3600*24*3)).order_by('-started_at')
+    return {'tasks': [t.to_json() for t in tasks]}
+
+
 def get_publish_stats(site, doctype, time_value, time_cell, start_at, end_at):
     data = []
     kwargs = {}
@@ -125,3 +131,23 @@ def get_publish_stats(site, doctype, time_value, time_cell, start_at, end_at):
         pass
 
     return data
+
+def import_brands(eb):
+    brand = Brand.objects(title=eb['title']).update(
+        set__title_edit = eb['title_edit'],
+        set__title_checked = eb['title_checked'],
+        set__alias = eb['alias'],
+        set__keywords = eb['keywords'],
+        set__url = eb['url'],
+        set__url_checked = eb['url_checked'],
+        set__blurb = eb['blurb'],
+        set__level = eb['level'],
+        set__dept = eb['dept'],
+        set__is_delete = eb['is_delete'],
+        set__done = eb['done'],
+        set__created_at = eb['created_at'],
+        upsert = True
+    )
+
+def refresh_brands():
+    brand_refresh.send(None)

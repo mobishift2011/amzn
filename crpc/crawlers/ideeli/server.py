@@ -80,7 +80,7 @@ class Server(object):
         self.extract_product_id = re.compile('http://www.ideeli.com/events/\w+/offers/\w+/latest_view/(\w+)')
 
     def crawl_category(self, ctx=''):
-        depts = ['women', 'men', 'home', 'holiday',]
+        depts = ['women', 'men', 'home', ]
         for dept in depts:
             self.crawl_one_dept(dept, ctx)
 
@@ -121,7 +121,7 @@ class Server(object):
         img = img if img.startswith('http') else urllib.basejoin(self.event_img_prefix, img)
         brand = node.cssselect('div > span.event_grid_cta > b:first-of-type')[0].text_content()
         title = node.cssselect('div > span.event_grid_cta > span.title')[0].text_content().strip()
-        sale_title = brand + title if title else brand
+        sale_title = brand + ' ' + title if title else brand
         begin = node.cssselect('div > span.event_grid_cta > span.starts_in > span.starting_in_timer')[0].text_content()
         end = node.cssselect('div > span.event_grid_cta > span.ends_in > span.ending_soon_timer')[0].text_content()
         events_begin = datetime.utcfromtimestamp( float(begin) )
@@ -164,8 +164,8 @@ class Server(object):
             listprice = d[1]['offer_retail_price']
             price = str(d[1]['numeric_offer_price'])
             price = price[:-2] + '.' + price[-2:]
-            returned = d[1]['offer_return_policy'].replace('<br />', ' ')
-            shipping = lxml.html.fromstring(d[1]['offer_shipping_window']).text_content()
+            returned = lxml.html.fromstring(d[1]['offer_return_policy']).text_content()
+            shipping = d[1]['offer_shipping_window'].replace('<br />', ' ')
             sizes = d[1]['pretty_sizes']
             link = d[1]['offer_url']
             link = link if link.startswith('http') else self.siteurl + link
@@ -195,6 +195,7 @@ class Server(object):
                 if soldout and product.soldout != True:
                     product.soldout = True
                     is_updated = True
+                    product.update_history.update({ 'soldout': datetime.utcnow() })
             if event_id not in product.event_id: product.event_id.append(event_id)
             product.list_update_time = datetime.utcnow()
             product.save()
@@ -221,9 +222,24 @@ class Server(object):
         list_info = []
         for li in info.cssselect('ul > li'):
             list_info.append( li.text_content().strip() )
-        summary, list_info = '; '.join(list_info), []
-        list_info = info.cssselect('p') # some products have mixed all list_info into summary
-        list_info = list_info[0].xpath('.//text()') if list_info else []
+        summary, list_info = '; '.join(list_info), [] # some products have mixed all list_info into summary
+        list_info_revise = info.cssselect('p') # maybe one p label or 2, type list
+        if list_info_revise:
+            for i in list_info_revise:
+                list_info.extend( i.xpath('.//text()') )
+        list_info = [i.strip() for i in list_info if i.strip()] # get rid of ' ' and \n
+        list_info_revise = []
+        idx = 0
+        while idx < len(list_info):
+            if idx+1 != len(list_info) and (list_info[idx].strip()[-1] == ':' or list_info[idx+1].strip()[0] == ':'):
+                if list_info[idx+1].strip()[-1] == ':':
+                    idx += 1
+                else:
+                    list_info_revise.append( ''.join((list_info[idx], list_info[idx+1])) )
+                    idx += 2
+            else:
+                list_info_revise.append(list_info[idx])
+                idx += 1
         images = nav.cssselect('div#offer_photo_and_desc > div#images_container_{0} > div.image_container > a.MagicZoom'.format(key))
         image_urls = []
         for image in images:
@@ -235,7 +251,7 @@ class Server(object):
             is_new = True
             product = Product(key=key)
         product.summary = summary
-        product.list_info = list_info
+        product.list_info = list_info_revise
         [product.image_urls.append(img) for img in image_urls if img not in product.image_urls]
         product.full_update_time = datetime.utcnow()
         if product.updated == False:

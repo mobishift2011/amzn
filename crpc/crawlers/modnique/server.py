@@ -11,6 +11,7 @@ need to investigate whether 'the-shops' in category, not event.
 """
 import lxml.html
 import pytz
+import json
 from datetime import datetime, timedelta
 
 from models import *
@@ -139,6 +140,7 @@ class Server(object):
             for e in event_id_db:
                 if e.event_id not in event_id_page:
                     e.events_end = datetime.utcnow()
+                    e.update_history.update({ 'events_end': datetime.utcnow() })
                     e.save()
                     common_saved.send(sender=ctx, obj_type='Event', key=e.event_id, url=e.combine_url, is_new=False, is_updated=True)
 
@@ -240,10 +242,15 @@ class Server(object):
         tree = lxml.html.fromstring(content)
         nodes = tree.cssselect('div.line > div.page > div#items > ul#products > li.product')
         for node in nodes:
-            abandon, color = node.get('id').rsplit('_', 1) # item_57185525_gunmetal
-            color = '' if color.isdigit() else color
+            js = json.loads(node.get('data-json'))
+            color = js['color'] if 'color' in js else ''
+#            try:
+#                abandon, color = node.get('id').rsplit('_', 1) # item_57185525_gunmetal
+#                if color.isdigit(): color = ''
+#            except AttributeError:
+#                pass
             title = node.cssselect('div.item_thumb2 > div.itemTitle > h6.neutral')[0].text_content().strip()
-            link = node.cssselect('div.item_thumb2 > div#itemThumb > a[href]')[0].get('href')
+            link = node.cssselect('div.item_thumb2 > div.hd > a.item_link')[0].get('href').strip() # link have '\r\n'
             link = link if link.startswith('http') else self.siteurl + link
             slug, key = self.extract_slug_product.match(link).groups()
 
@@ -269,6 +276,7 @@ class Server(object):
                 if soldout and product.soldout != True:
                     product.soldout = True
                     is_updated = True
+                    product.update_history.update({ 'soldout': datetime.utcnow() })
             if event_id not in product.event_id: product.event_id.append(event_id)
             product.list_update_time = datetime.utcnow()
             product.save()
@@ -289,9 +297,11 @@ class Server(object):
         slug, key = self.extract_slug_product.match(url).groups()
         content = fetch_product(url)
         if content is None or isinstance(content[0], int):
-            common_failed.send(sender=ctx, key=key, url=url,
-                    reason='download product url error, {0}'.format(content))
-            return
+            content = fetch_product(url)
+            if content is None or isinstance(content[0], int):
+                common_failed.send(sender=ctx, key=key, url=url,
+                        reason='download product url error, {0}'.format(content))
+                return
         tree = lxml.html.fromstring(content[0])
 
         image_urls, shipping, list_info, brand, returned = self.parse_product(tree)
@@ -331,7 +341,9 @@ class Server(object):
         nodes = info.cssselect('div.tab_container > div#tab1 p')
         for node in nodes:
             text = node.text_content().strip()
+            if text.isdigit(): continue
             if text: list_info.append(text)
+
         brand = info.cssselect('div#tab4')[0].text_content().strip()
         returned = info.cssselect('div#tab5')[0].text_content().strip()
         return image_urls, shipping, list_info, brand, returned

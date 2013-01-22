@@ -15,11 +15,12 @@ from crawlers.common.crawllog import debug_info
 from crawlers.common.stash import *
 from models import *
 
-import datetime, time
+import time
 import pytz
 import random
 import lxml.html
 import zerorpc
+from datetime import datetime
 
 req = requests.Session(prefetch=True, timeout=30, config=config, headers=headers)
 
@@ -123,12 +124,12 @@ class Server(object):
                 if image_url not in event.image_urls:
                     event.image_urls.append(image_url)
             event.sale_description = sale.get('brandDescription')
-            event.events_begin = pytz.timezone('US/Eastern').localize(datetime.datetime.strptime(sale.get('startDate'), '%Y-%m-%dT%H:%M:%S')).astimezone(pytz.utc)
-            event.events_end = pytz.timezone('US/Eastern').localize(datetime.datetime.strptime(sale.get('endDate'), '%Y-%m-%dT%H:%M:%S')).astimezone(pytz.utc)
+            event.events_begin = pytz.timezone('US/Eastern').localize(datetime.strptime(sale.get('startDate'), '%Y-%m-%dT%H:%M:%S')).astimezone(pytz.utc)
+            event.events_end = pytz.timezone('US/Eastern').localize(datetime.strptime(sale.get('endDate'), '%Y-%m-%dT%H:%M:%S')).astimezone(pytz.utc)
             event.type = sale.get('type')
             event.dept = [] # TODO cannot get the info
             event.urgent = is_new or event.urgent
-            event.update_time = datetime.datetime.utcnow()
+            event.update_time = datetime.utcnow()
             event.save()
             
             debug_info.send(sender=DB+'.event.{0}.end'.format(sale.get('name').encode('utf-8')))
@@ -155,26 +156,27 @@ class Server(object):
         for prodNode in products:
             is_updated = False
             key = str(prodNode['productFamilyId'])
+            soldout =  prodNode.get('isSoldOut')
             product, is_new = Product.objects.get_or_create(key=key)
-            
-            if not is_new:
-                is_updated = (product.price != prodNode.get('formattedPrice')) or is_updated
-                is_updated = (product.soldout != prodNode.get('isSoldOut')) or is_updated
-            
-            product.title =  prodNode.get('name')
-            product.price = prodNode.get('formattedPrice')
-            product.listprice = prodNode.get('formattedMsrp')
-            product.soldout =  prodNode.get('isSoldOut')
-            if event_id not in product.event_id:
-                product.event_id.append(event_id)
             if is_new:
+                product.title =  prodNode.get('name')
+                product.price = prodNode.get('formattedPrice')
+                product.listprice = prodNode.get('formattedMsrp')
+                product.soldout = soldout
                 product.combine_url = 'https://us.venteprivee.com/main/#/product/%s/%s' % (event_id, product.key)
                 product.updated = False
-            product.list_update_time = datetime.datetime.utcnow()
+            else:
+                # is_updated = (product.price != prodNode.get('formattedPrice')) or is_updated
+                if soldout and product.soldout != True:
+                    product.soldout = True
+                    is_updated = True
+                    product.update_history.update({ 'soldout': datetime.utcnow() })
+            if event_id not in product.event_id: product.event_id.append(event_id)
+            product.list_update_time = datetime.utcnow()
             product.save()
             
             debug_info.send(sender=DB+'.listing.product.{0}.crawled'.format(product.key))
-            common_saved.send(sender=ctx, obj_type='Product', key=product.key, url=url, is_new=is_new, is_updated=(not is_new) and is_updated)
+            common_saved.send(sender=ctx, obj_type='Product', key=product.key, url=url, is_new=is_new, is_updated=is_updated)
         
         ready = False
         event = Event.objects.get(event_id=event_id)
@@ -186,7 +188,7 @@ class Server(object):
         
         debug_info.send(sender=DB+'.listing.{0}.end'.format(url))
 
-    def crawl_product(self, url, ctx):
+    def crawl_product(self, url, ctx=''):
         """.. :py:method::
             Got all the product information and save into the database
         :param url: product url, with product id
@@ -200,15 +202,9 @@ class Server(object):
         key = str(res.get('productFamilyId'))
         
         product, is_new = Product.objects.get_or_create(key=key)
-#        if not is_new:
-#            is_updated = (product.price != res.get('formattedPrice')) or is_updated
-#            is_updated = (product.soldout != res.get('isSoldOut')) or is_updated
-        
+
         product.title = res.get('name')
         product.brand = res.get('operationName')
-#        if is_new:
-#            # TODO
-#            product.combine_url = 'https://us.venteprivee.com/main/#/product/%s/%s' % (event_id, product.key)
         product.listprice = res.get('formattedMsrp')
         product.price = res.get('formattedPrice')
         for det in res.get('media').get('det'):
@@ -221,14 +217,27 @@ class Server(object):
             product.dept.append(breadCrumb)
         product.returned = res.get('returnPolicy')
         product.shipping = '; '.join( res.get('estimatedDeliveryDates') )
-        list_info = lxml.html.fromstring( res.get('description') ).xpath('.//div[@class="FTCopierColler_RDV"]/dl[@class="ftBloc"]/dt[contains(text(), "Description")]')[0].getnext()
-        product.list_info = list_info.xpath('.//text()')
+        list_info_tree = lxml.html.fromstring( res.get('description') )
+        list_info = list_info_tree.xpath('.//div[@class="FTCopierColler_RDV"]/dl[@class="ftBloc"]/dt[contains(text(), "Description")]')
+        if not list_info:
+            list_info = list_info_tree.xpath('.//div[@class="FTCopierColler_RDV"]/dl[@class="ftBloc"]/dt[contains(text(), "Features")]')
+            list_info = list_info[0].getnext() if list_info else []
+        else:
+            list_info = list_info[0].getnext()
+        if not list_info: # After Description, it is </dl>
+            list_info = []
+            for ii in list_info_tree.xpath('.//div[@class="FTCopierColler_RDV"]/dl[@class="ftBloc"]'):
+                list_info.extend(ii.xpath('.//text()'))
+            product.list_info = list_info
+        else:
+            product.list_info = list_info.xpath('.//text()')
+
 #        product.sizes = []#res.get('sizes')    # TODO
 #        product.sizes_scarcity = [] # TODO
         temp_updated = product.updated
         product.updated = False if is_new else True
         if product.updated:
-            product.full_update_time = datetime.datetime.utcnow()
+            product.full_update_time = datetime.utcnow()
             if not temp_updated and product.updated:
                 ready = True
         product.save()

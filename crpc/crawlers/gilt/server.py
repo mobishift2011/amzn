@@ -62,7 +62,7 @@ class giltLogin(object):
             fetch listing page.
         """
         ret = req.get(url)
-        if ret.url == 'http://www.gilt.com/sale/women':
+        if ret.url == 'http://www.gilt.com/sale/women' or ret.url == 'http://www.gilt.com/sale/men' or 'http://www.gilt.com/brand/' in ret.url:
             return -302
         if ret.ok: return ret.content
         return ret.status_code
@@ -114,9 +114,11 @@ class Server(object):
         """
         cont = self.net.fetch_page(url)
         if cont is None or isinstance(cont, int):
-            common_failed.send(sender=ctx, key=key, url=url,
-                    reason='{0}: {1}'.format(warning, cont))
-            return
+            cont = self.net.fetch_page(url)
+            if cont is None or isinstance(cont, int):
+                common_failed.send(sender=ctx, key=key, url=url,
+                        reason='{0}: {1}'.format(warning, cont))
+                return
         return self.get_correct_tree(cont)
 
     def get_correct_tree(self, cont):
@@ -136,11 +138,13 @@ class Server(object):
         """.. :py:method::
         """
         # hero event
-        sale_title = tree.cssselect('div#sticky-nav > div.sticky-nav-container > ul.tabs > li.sales > div > div.bg_container > div.column > ul > li > a')[0].text_content().strip()
+        # sale_title = tree.cssselect('div#sticky-nav > div.sticky-nav-container > ul.tabs > li.sales > div > div.bg_container > div.column > ul > li > a')[0].text_content().strip()
         img = tree.cssselect('section#main > div.hero-container > section.hero')[0]
         image = self.extract_hero_image.search(img.get('style')).group(1)
         image = image if image.startswith('http:') else 'http:' + image
-        link = img.cssselect('a.sale-header-link')[0].get('href')
+        link = img.cssselect('a.sale-header-link')[0]
+        sale_title = link.text_content()
+        link = link.get('href')
         link = link if link.startswith('http') else self.siteurl + link
         if link.rsplit('/', 1)[-1] == 'ss':
             event_id = link.rsplit('/', 2)[-2]
@@ -174,9 +178,10 @@ class Server(object):
             common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
 
         # starting later. When today's upcoming on sale, this column disappear for a while
+        # this label not exist anymore, instead of starting tomorrow
         nodes = tree.cssselect('section#main > div.sales-container > section.sales-starting-later > article.sale')
         for node in nodes:
-            ret = self.parse_one_node(node, dept, ctx)
+            ret = self.parse_one_node(node, dept, ctx, upcoming=True)
             if ret is None: continue
             event, is_new, is_updated = ret
 
@@ -192,23 +197,39 @@ class Server(object):
             event.save()
             common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
 
+        # starting tomorrow
+        nodes = tree.cssselect('section#main > div.bottom-calendar-sales-container > section.calendar-sales > div.calendar-sales-container > div.calendar-sales > article.sale')
+        for node in nodes:
+            ret = self.parse_one_node(node, dept, ctx, upcoming=True)
+            if ret is None: continue
+            event, is_new, is_updated = ret
+            image, sale_title, sale_description, events_begin = self.get_picture_description(event.combine_url, ctx)
+            if not event.sale_description:
+                event.image_urls = image
+                event.sale_title = sale_title # some sale_title is too long to be omit by ...
+                event.sale_description = sale_description
+            event.events_begin = events_begin
+
+            event.save()
+            common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
+
         # upcoming
         nodes = tree.cssselect('section#main > div.sales-container > div.sales-promos > section.calendar-sales > div.tab_content > div.scroll-container > article.sale')
         for node in nodes:
-            event, is_new, is_updated = self.parse_one_node(node, dept, ctx)
+            event, is_new, is_updated = self.parse_one_node(node, dept, ctx, upcoming=True)
+            image, sale_title, sale_description, events_begin = self.get_picture_description(event.combine_url, ctx)
             if not event.sale_description:
-                image, sale_title, sale_description, events_begin = self.get_picture_description(event.combine_url, ctx)
                 event.image_urls = image
                 # some sale_title is too long to be omit by ...
                 event.sale_title = sale_title
                 event.sale_description = sale_description
-                event.events_begin = events_begin
+            event.events_begin = events_begin
 
             event.save()
             common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
 
 
-    def parse_one_node(self, node, dept, ctx):
+    def parse_one_node(self, node, dept, ctx, upcoming=False):
         """.. :py:method::
             parse one event node
         """
@@ -227,7 +248,7 @@ class Server(object):
             event_id = link.rsplit('/', 1)[-1]
             is_leaf = True
 
-        if is_leaf is False:
+        if is_leaf is False and upcoming is False:
             self.get_child_event(event_id, link, dept, ctx)
         event, is_new, is_updated = self.get_or_create_event(event_id, link, dept, sale_title, image, is_leaf)
         return event, is_new, is_updated
@@ -271,8 +292,6 @@ class Server(object):
         """.. :py:method::
         """
         tree = self.download_page_get_correct_tree(url, '', 'download upcoming page error', ctx)
-        if tree is None:
-            tree = self.download_page_get_correct_tree(url, '', 'download upcoming page twice error', ctx)
         nav = tree.cssselect('section#main > article.sale-brand-summary')
         # kids event already on sale, but in men's starting later today
         if not nav: return
@@ -291,8 +310,6 @@ class Server(object):
         :param link: this event list link
         """
         tree = self.download_page_get_correct_tree(link, event_id, 'download shops parent/child event list error', ctx)
-        if tree is None:
-            tree = self.download_page_get_correct_tree(link, event_id, 'download shops parent/child event list twice error', ctx)
         if tree is None: return
         self.save_group_of_event(event_id, tree, dept, ctx)
 
@@ -309,7 +326,9 @@ class Server(object):
             group_title = group.cssselect('h2.row_group_title')[0].text_content().strip()
             nodes = group.cssselect('ul.sales > li.brand_square')
             for node in nodes:
-                event, is_new, is_updated = self.parse_one_node(node, dept, ctx)
+                ret = self.parse_one_node(node, dept, ctx)
+                if ret is None: continue
+                event, is_new, is_updated = ret
                 if is_new:
                     if event_id: event.parent_id = event_id
                     if group_title: event.group_title = group_title
@@ -359,7 +378,10 @@ class Server(object):
             if 'Starting Later Today' == headline:
                 nodes = sale_small.cssselect('div.elements-container > article.element')
                 for node in nodes:
-                    event, is_new, is_updated = self.parse_one_home_node(node, dept, ctx)
+                    ret = self.parse_one_home_node(node, dept, ctx)
+                    if ret is not None:
+                        event, is_new, is_updated = ret
+                    else: continue
 
                     if not event.sale_description:
                         events_begin, events_end, image, sale_description = self.get_home_future_events_begin_end(event.combine_url, event.event_id, ctx)
@@ -526,6 +548,7 @@ class Server(object):
             if soldout and product.soldout != True:
                 product.soldout = True
                 is_updated = True
+                product.update_history.update({ 'soldout': datetime.utcnow() })
         if event_id not in product.event_id: product.event_id.append(event_id)
         product.list_update_time = datetime.utcnow()
         product.save()
@@ -540,7 +563,7 @@ class Server(object):
         product_name = node.cssselect('header.overview > hgroup.look-name > h1.product-name > a')[0]
         link = product_name.get('href')
         link = link if link.startswith('http') else self.siteurl + link
-        title = product_name.text_content()
+        title = product_name.text_content().replace('\n', ' ')
         price = node.cssselect('header.overview > div.price > div.sale-price > span.nouveau-price')[0].text_content().strip()
         listprice = node.cssselect('header.overview > div.price > div.original-price > span')
         listprice = listprice[0].text_content().strip() if listprice else ''
@@ -587,7 +610,7 @@ class Server(object):
             return
 
         tree = lxml.html.fromstring(cont)
-        nodes = tree.cssselect('article.element-product')
+        nodes = tree.cssselect('article.product-on-sale')
         for node in nodes:
             look_id = node.get('data-home-look-id')
             text = node.cssselect('section.product-details > header > hgroup')[0]
@@ -713,9 +736,11 @@ class Server(object):
         """
         cont = self.net.fetch_product_page(url)
         if cont is None or isinstance(cont, int):
-            common_failed.send(sender=ctx, key=key, url=url,
-                    reason='{0}: {1}'.format(warning, cont))
-            return
+            cont = self.net.fetch_product_page(url)
+            if cont is None or isinstance(cont, int):
+                common_failed.send(sender=ctx, key=key, url=url,
+                        reason='{0}: {1}'.format(warning, cont))
+                return
         return self.get_correct_tree(cont)
 
 

@@ -22,10 +22,9 @@ def get_site_module(site):
     return __import__('crawlers.'+site+'.models', fromlist=['Category', 'Event', 'Product'])
 
 def call_rpc(rpc, method, *args, **kwargs):
-    if True:
-    # try:
+    try:
         return getattr(rpc, method)(args, kwargs)
-    # except Exception:
+    except Exception:
         print traceback.format_exc()
 
 def spout_images(site, doctype):
@@ -47,7 +46,6 @@ def spout_images(site, doctype):
     instances = getattr(m, docparam['name']).objects(**docparam['kwargs'])
 
     for instance in instances:
-        # imglogger.debug(instance.image_urls)
         yield {
             'site': site,
             'doctype': doctype,
@@ -74,13 +72,6 @@ def spout_extracted_products(site):
         yield {
             'site': site,
             'key': product.key,
-            # 'title': product.title,
-            # 'brand': product.brand,
-            # 'list_info': product.list_info,
-            # 'summary': product.summary,
-            # 'short_desc': product.short_desc,
-            # 'tagline': product.tagline,
-            # 'dept': product.dept
         }
 
 def spout_propagate_events(site, complete=False):
@@ -144,34 +135,15 @@ def propagate(site, concurrency=3):
         pool.spawn(call_rpc, rpc, 'propagate', **event)
     pool.join()
 
-def generate_event_dict(site, complete=True):
-    """
-    @return: To filter all the propagated events to generate a dictionary.
-    {
-        event_id: {
-            'event': object,
-            'propagation_updated': False
-        },
-        ......
-    }
-    """
-    m = __import__('crawlers.{0}.models'.format(site), fromlist=['Event'])
-    event_dict = {}
-    now = datetime.utcnow()
-
-    try:
-        events = m.Event.objects( Q(propagation_complete = complete) & \
-            (Q(events_begin__lte=now) | Q(events_begin__exists=False)) & \
-                (Q(events_end__gt=now) | Q(events_end__exists=False)) )
-    except AttributeError:
-        return event_dict
-
+def update_propation(site, concurrency=3):
+    rpcs = get_rpcs(TEXT_PEERS)
+    pool = Pool(len(rpcs)*concurrency)
+    events = spout_propagate_events(site, complete=True)
+    
     for event in events:
-        event_dict[event.event_id] = {}
-        event_dict[event.event_id]['event'] = event
-        event_dict[event.event_id]['propagation_updated'] = False
-
-    return event_dict
+        rpc = random.choice(rpcs)
+        pool.spawn(call_rpc, rpc, 'update_propation', **event)
+    pool.join()
 
 def text_extract(site, concurrency=3):
     """
@@ -180,47 +152,21 @@ def text_extract(site, concurrency=3):
     rpcs = get_rpcs(TEXT_PEERS)
     pool = Pool(len(rpcs)*concurrency)
     products = spout_extracted_products(site)
-    event_dict = generate_event_dict(site)
     
     for product in products:
         rpc = random.choice(rpcs)
-        pool.spawn(extract_and_propagate, rpc, 'extract_text', event_dict, **product)
+        pool.spawn(call_rpc, rpc, 'extract_text', **product)
     pool.join()
 
     # If site has event model, it should update and new the event propagation
-    jobs = [gevent.spawn(update_propation, event_dict, site), \
-                gevent.spawn(propagate, site, concurrency)]
-    gevent.joinall(jobs)
+    # jobs = [gevent.spawn(update_propation, event_dict, site), \
+    #             gevent.spawn(propagate, site, concurrency)]
+    # gevent.joinall(jobs)
+    propagate(site, concurrency)
+    # update_propation(site, concurrency)
 
     txtlogger.info('ready for publish site -> {0}'.format(site))
     ready_for_publish.send(None, **{'site': site})
-
-def extract_and_propagate(rpc, method, event_dict, *args, **kwargs):
-    res = call_rpc(rpc, method, *args, **kwargs) or {}
-    txtlogger.debug('extraction result -> {0}'.format(res))
-
-    if not event_dict:
-        return
-    
-    for event_id in (res.get('event_id') or []):
-        if event_id not in event_dict:
-            continue
-        event = event_dict[event_id]
-        instance = event['event']
-        fields = res.get('fields')
-
-        for key in fields:
-            value = fields[key]
-            values = set(value) if hasattr(value, '__iter__') else set([value])
-            setattr(instance, key, list(set(getattr(instance, key)) | values))
-        event['propagation_updated'] = True
-
-def update_propation(event_dict, site):
-    for event_id in event_dict:
-        event = event_dict[event_id]
-        if event['propagation_updated']:
-            event['event'].update_time = datetime.utcnow()
-            event['event'].save()
 
 
 if __name__ == '__main__':

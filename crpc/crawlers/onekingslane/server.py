@@ -18,7 +18,7 @@ import pytz
 
 from datetime import datetime, timedelta
 
-from .models import *
+from models import *
 from crawlers.common.events import *
 from crawlers.common.stash import *
 
@@ -131,7 +131,7 @@ class Server(object):
         """
         cont = self.net.fetch_page(self.siteurl)
         tree = lxml.html.fromstring(cont)
-        nodes = tree.cssselect('body.holiday > div#wrapper > div#okl-content > div#previewWrapper div.eventsContainer > div[id^="salesEventId_"]')
+        nodes = tree.cssselect('body > div#wrapper > div#okl-content > div#previewWrapper div.eventsContainer > div[id^="salesEventId_"]')
         for node in nodes:
             title = node.cssselect('div.eventInfo > div > h3')[0].text
             short_desc = node.cssselect('div.eventInfo > div > p')[0].text
@@ -160,7 +160,7 @@ class Server(object):
         """
         cont = self.net.fetch_page(self.upcoming_url)
         tree = lxml.html.fromstring(cont)
-        nodes = tree.cssselect('body.holiday > div#wrapper > div#okl-content > div.calendar-r > div.day')
+        nodes = tree.cssselect('body > div#wrapper > div#okl-content > div.calendar-r > div.day')
         for node in nodes:
             date = ' '.join( [d for d in node.cssselect('span.date')[0].text_content().split('\n') if d] )
             all_times = node.cssselect('div.all-times > h3')[0].text_content().split('PT')[0].split()[-1]
@@ -308,6 +308,7 @@ class Server(object):
                 if item.cssselect('em.sold'):
                     product.soldout = True
                     is_updated = True
+                    product.update_history.update({ 'soldout': datetime.utcnow() })
         # products_begin already happen, so not need to update
         if products_begin: product.products_begin = products_begin
         product.list_update_time = datetime.utcnow()
@@ -385,13 +386,14 @@ class Server(object):
                 if item.cssselect('a.sold-out'):
                     product.soldout = True
                     is_updated = True
+                    product.update_history.update({ 'soldout': datetime.utcnow() })
         product.list_update_time = datetime.utcnow()
         product.save()
         common_saved.send(sender=ctx, obj_type='Product', key=product_id, url=self.siteurl + '/sales/' + event_id, is_new=is_new, is_updated=is_updated)
         debug_info.send(sender=DB + ".crawl_listing", url=self.siteurl + '/sales/' + event_id)
 
 
-    def crawl_product(self, url, ctx):
+    def crawl_product(self, url, ctx=''):
         """.. :py:method::
             Got all the product information and save into the database
 
@@ -418,7 +420,7 @@ class Server(object):
         era = vintage.cssselect('dd:first-of-type')
         condition = vintage.cssselect('dd:nth-of-type(2)')
         seller = node.cssselect('div#productDescription > div#okl-vmf-vendor')
-        list_info = node.cssselect('div#productDetails > dl:first-of-type')[0].text_content()
+        list_info = node.cssselect('div#productDetails > dl:first-of-type')[0].xpath('.//text()')
 
         is_new, is_updated = False, False
         product = Product.objects(key=product_id).first()
@@ -445,9 +447,9 @@ class Server(object):
 
         product.summary = node.cssselect('div#productDescription > div#description')[0].text_content().strip()
         if seller: product.seller = seller[0].cssselect('div')[0].text_content()
-        product.list_info = list_info if isinstance(list_info, list) else [list_info]
+        product.list_info = [li for li in list_info if li.strip()] # omit '\n    '
         returned = node.cssselect('div#productDetails > dl:nth-of-type(2)')
-        product.returned = returned[0].text_content() if returned else ''
+        product.returned = returned[0].text_content().strip() if returned else ''
         end_date = node.cssselect('div#productDetails > p.endDate') # '11/10 at 11am EST'
         if end_date:
             end_date_str, time_zone = end_date[0].text.split('until')[-1].strip().rsplit(' ', 1)
@@ -475,12 +477,24 @@ class Server(object):
         if m:
             product.era = m.group(1).strip()
 
-        node = tree.cssselect('body.holiday > div#wrapper > div#okl-content')[0]
-        product.list_info = node.cssselect('div#productDetails > dl:first-of-type')[0].text_content().split('\n')
+        node = tree.cssselect('body > div#wrapper > div#okl-content')[0]
+        list_info = [i.strip() for i in node.xpath('./div[@id="productDetails"]/dl[1]//text()') if i.strip()]
+        idx = 0
+        while idx < len(list_info):
+            if idx+1 != len(list_info) and (list_info[idx][-1] == ':' or list_info[idx+1][0] == ':'):
+                if list_info[idx+1][-1] == ':':
+                    idx += 1
+                else:
+                    product.list_info.append( ''.join((list_info[idx], list_info[idx+1])) )
+                    idx += 2
+            else:
+                product.list_info.append(list_info[idx])
+                idx += 1
+
         # shippingDetails maybe under productDetails, maybe under first dl. endDate also have the same problem
         # shipping and endDate may not exist in: https://www.onekingslane.com/product/17014/405312
         shipping = node.cssselect('div#productDetails dl.shippingDetails')
-        if shipping: product.returned = shipping[0].text_content()
+        if shipping: product.returned = shipping[0].text_content().strip()
         endDate = node.cssselect('div#productDetails p.endDate')
         if endDate:
             _date, _time = endDate[0].text_content().strip().split('at')
@@ -497,7 +511,7 @@ class Server(object):
 
         seller = node.cssselect('div#productDescription > div.ds-vmf-vendor')
         if seller:
-            product.seller = seller[0].cssselect('div[class]')[0].text_content()
+            product.seller = seller[0].cssselect('div[class]')[0].text_content().strip()
         if product.updated == False:
             product.updated = True
             ready = True

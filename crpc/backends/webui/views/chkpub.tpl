@@ -25,30 +25,34 @@
 
         <div class='span12'>
           %if stats or stats == []:
+            % for stat in stats:
             <table class='table table-striped'>
                 <thead>
                   <tr>
-                    <th>stat index</th>
-                    <th>account</th>
+                    <th>site</th>
+                    <th>{{ stat['site'] }}</th>
                   </tr>
                 </thead>
                 <tbody>
-                  %for stat in stats:
+                  %for data in stat['data']:
                     <tr>
-                      <td>{{ stat[0] }}</td>
-                      <td>{{ stat[1] }}</td>
+                      <td>{{ data[0] }}</td>
+                      <td>{{ data[1] }}</td>
                     </tr>
                   %end
                 </tbody>
             </table>
+            <br />
+            %end
 
           %else:
             <form method='post' action='#'>
               <div class='span3'>
                 <label>site</label>
                 <select name='site'>
+                    <option>all</option>
                     %for site in sites:
-                    <option>{{ site }}</option>
+                    <option>{{site}}</option>
                     %end
                 </select>             
               </div>

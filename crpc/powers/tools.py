@@ -20,13 +20,14 @@ from boto.s3.connection import S3Connection
 
 from hashlib import md5
 import os
-import re
+import re, htmlentitydefs
 import json
 import requests
 import urllib
 from PIL import Image, ImageChops
 from cStringIO import StringIO
 from datetime import datetime
+from titlecase import titlecase
 
 from helpers.log import getlogger
 txtlogger = getlogger('powertools', filename='/tmp/textserver.log')
@@ -262,10 +263,8 @@ class Propagator(object):
         event_brands = set()
         tags = set()
         depts = Counter()
-        lowest_price = 0
-        highest_price = 0
-        lowest_discount = 0
-        highest_discount = 0
+        price_set = set()
+        discount_set = set()
         events_begin = self.event.events_begin or None
         events_end = self.event.events_end or None
         soldout = True
@@ -277,8 +276,7 @@ class Propagator(object):
 
         counter = 0
         for product in products:
-            if True:
-            #try:
+            try:
                 print 'start to propogate from  %s product %s' % (self.site, product.key)
 
                 # Tag, Dept extraction and propagation
@@ -286,9 +284,7 @@ class Propagator(object):
                     tags = tags.union(product.favbuy_tag)
 
                 if product.favbuy_dept:
-                    for thedept in product.favbuy_dept:
-                        if thedept in level1_depts:
-                            depts[thedept] += 1
+                    depts[tuple(product.favbuy_dept)] += 1
 
                 # Event brand propagation
                 if hasattr(product, 'favbuy_brand') and product.favbuy_brand:
@@ -324,12 +320,12 @@ class Propagator(object):
                     txtlogger.error('{0}.product.{1} favbuy listprice -> {2} exception: {3}'.format(self.site, product.key, product.favbuy_listprice, str(e)))
                     listprice = price
                 
-                highest_price = max(price, highest_price) if highest_price else price
-                lowest_price = (min(price, lowest_price) or lowest_price) if lowest_price else price
-
-                discount = 1.0 * price / listprice if listprice else 0
-                lowest_discount = max(discount, highest_discount)
-                highest_discount = min(discount, lowest_discount) or discount
+                if price > 0:
+                    price_set.add(price)
+                
+                discount = 1.0 * price / listprice if listprice else 1.0
+                if discount < 1:
+                    discount_set.add(discount)
 
                 # soldout
                 if soldout and ((hasattr(product, 'soldout') and not product.soldout) \
@@ -338,22 +334,34 @@ class Propagator(object):
 
                 product.save()
                 counter += 1
-            #except Exception, e:
-            #    txtlogger.error('{0}.{1} product propagation exception'.format(self.site, product.key))
+            except Exception, e:
+                txtlogger.error('{0}.{1} product propagation exception'.format(self.site, product.key))
 
         if not counter:
             return self.event.propagation_complete
 
+        if self.event.sale_title:
+            self.event.sale_title = unescape(self.event.sale_title)
+            self.event.sale_title = titlecase(self.event.sale_title)
         self.event.favbuy_brand = list(event_brands)
         self.event.brand_complete = True
         
         self.event.favbuy_tag = list(tags)
-        self.event.favbuy_dept = [ k for k, v in depts.items() if v>=dept_threshold ]
+        self.event.favbuy_dept = []
+        for k, v in depts.items():
+             if v>=dept_threshold:
+                self.event.favbuy_dept.extend(list(k))
+        self.event.favbuy_dept = list(set(self.event.favbuy_dept))
         #self.event.favbuy_dept = classify_event_department(self.site, self.event)
-        self.event.lowest_price = str(lowest_price)
-        self.event.highest_price = str(highest_price)
-        self.event.lowest_discount = str(1.0 - lowest_discount)
-        self.event.highest_discount = str(1.0 - highest_discount)
+
+        price_set = list(price_set)
+        price_set.sort()
+        discount_set = list(discount_set)
+        discount_set.sort()
+        self.event.lowest_price = str(price_set[0] if price_set else 0)
+        self.event.highest_price = str(price_set[-1] if price_set else 0)
+        self.event.lowest_discount = str(discount_set[-1] if discount_set else 1.0)
+        self.event.highest_discount = str(discount_set[0] if discount_set else 1.0)
         self.event.events_begin = self.event.events_begin or events_begin
         self.event.events_end = self.event.events_end or events_end
         self.event.soldout = soldout
@@ -363,6 +371,30 @@ class Propagator(object):
 
         return self.event.propagation_complete
 
+# Removes HTML or XML character references and entities from a text string.
+#
+# @param text The HTML (or XML) source text.
+# @return The plain text, as a Unicode string, if necessary.
+def unescape(text):
+    def fixup(m):
+        text = m.group(0)
+        if text[:2] == "&#":
+            # character reference
+            try:
+                if text[:3] == "&#x":
+                    return unichr(int(text[3:-1], 16))
+                else:
+                    return unichr(int(text[2:-1]))
+            except ValueError:
+                pass
+        else:
+            # named entity
+            try:
+                text = unichr(htmlentitydefs.name2codepoint[text[1:-1]])
+            except KeyError:
+                pass
+        return text # leave as is
+    return re.sub("&#?\w+;", fixup, text)
 
 def test_image():
     conn = S3Connection(AWS_ACCESS_KEY, AWS_SECRET_KEY)
@@ -405,7 +437,7 @@ def test_propagate(site='venteprivee', event_id=None):
         counter = len(events)
         for event in events:
             print '\n', counter, ' left.'
-            p = Propagator(site, event.event_id, extractor, classifier, module=m)
+            p = Propagator(site, event.event_id, module=m)
             p.propagate()
 
             counter -= 1

@@ -147,9 +147,9 @@ class Server(object):
         """.. :py:method::
             parse every upcoming event node
         """
-        link = node.cssselect('span.echoShare')[0].get('data-producturl')
+        link = node.cssselect('div.thumbnail > a.event-link')[0].get('href')
         event_id = self.extract_event_id.match(link).group(1)
-        sale_title = node.cssselect('span.echoShare')[0].get('data-productname')
+        sale_title = node.cssselect('div.thumbnail > hgroup a')[0].text_content()
         text = node.cssselect('div.thumbnail > script')[0].text_content()
         begin = self.extract_events_end.search(text).group(2) # 'December 23, 2012, 8:00:00' the timezone when you regist
         utc_events_begin = datetime.strptime(begin, '%B %d, %Y, %X') - timedelta(hours=8) # -8 hours, set beijing to utc
@@ -159,9 +159,10 @@ class Server(object):
             content = self.net.fetch_page(link)
             tree = lxml.html.fromstring(content)
             nav = tree.cssselect('div#mainContent > section.event-landing > div.intro')[0]
-            img = nav.cssselect('div > div.category-image > img')[0].get('src')
-            sale_description = nav.cssselect('div.intro-content > p')[0].text_content()
-            event.image_urls = [img]
+            img = nav.cssselect('div > div.category-image > img')
+            sale_description = nav.cssselect('div.intro-content > p')[0].text_content().strip()
+            if img:
+                event.image_urls = [ img[0].get('src') ]
             event.sale_description = sale_description
         event.events_begin = utc_events_begin
         event.update_time = datetime.utcnow()
@@ -210,7 +211,7 @@ class Server(object):
             pprice = node.cssselect('div.thumbnail > div.caption > div.price-wrap > div.price-box')[0]
             listprice = pprice.cssselect('p.old-price > span.price')
             listprice = listprice[0].text_content().strip() if listprice else ''
-            price = pprice.cssselect('span.special-price')[0].text_content().strip()
+            price = pprice.cssselect('span[id^="product-price"]')[0].text_content().strip()
             soldout = True if node.cssselect('img.out-of-stock') else False
 
             is_new, is_updated = False, False
@@ -228,6 +229,7 @@ class Server(object):
                 if soldout and product.soldout != True:
                     product.soldout = True
                     is_updated = True
+                    product.update_history.update({ 'soldout': datetime.utcnow() })
             if event_id not in product.event_id: product.event_id.append(event_id)
             product.list_update_time = datetime.utcnow()
             product.save()
@@ -271,6 +273,7 @@ class Server(object):
             if soldout and product.soldout != True:
                 product.soldout = True
                 is_updated = True
+                product.update_history.update({ 'soldout': datetime.utcnow() })
             ready = False
         if event_id not in product.event_id: product.event_id.append(event_id)
         product.save()
@@ -297,11 +300,12 @@ class Server(object):
         """
         key = self.from_url_get_product_key(url)
         content = self.net.fetch_page(url)
-        if isinstance(content, int):
-            common_failed.send(sender=ctx, key=key, url=url,
-                    reason='download product page failed: {0}'.format(content))
-            return
-        if content is None: content = self.net.fetch_page(url)
+        if content is None or isinstance(content, int):
+            content = self.net.fetch_page(url)
+            if content is None or isinstance(content, int):
+                common_failed.send(sender=ctx, key=key, url=url,
+                        reason='download product page failed: {0}'.format(content))
+                return
         tree = lxml.html.fromstring(content)
         is_new, is_updated, product = self.save_product_detail(key, *self.parse_product(tree))
 
@@ -322,7 +326,7 @@ class Server(object):
         for img in imgs:
             image_urls.append( img.cssselect('a')[0].get('href') )
         cont = nav.cssselect('div.product-main > div > div.product-content')[0]
-        summary = cont.cssselect('div.product_desc')[0].text.strip()
+        # summary = cont.cssselect('div.product_desc')[0].text.strip()
         list_info = []
         for s in cont.xpath('div[@class="product_desc"]/text()'):
             if s.strip(): list_info.append( s.strip() )
@@ -333,8 +337,8 @@ class Server(object):
 
         ship = cont.cssselect('div#shipping-returns')
         if not ship: ship = cont.cssselect('div#shipping')
-        shipping = ship[0].cssselect('p:first-of-type')[0].text_content()
-        returned = ship[0].cssselect('p:nth-of-type(2)')[0].text_content()
+        shipping = ship[0].cssselect('p:first-of-type')[0].text_content() if ship else ''
+        returned = ship[0].cssselect('p:nth-of-type(2)')[0].text_content() if ship else ''
         return image_urls, summary, list_info, shipping, returned
 
     def save_product_detail(self, key, image_urls, summary, list_info, shipping, returned):
@@ -356,7 +360,5 @@ class Server(object):
 
 
 if __name__ == '__main__':
+    Server().crawl_product('http://www.totsy.com/sales/last-chance-youth-footwear/girls-burlap-slip-on.html')
     Server().crawl_listing('http://www.totsy.com/sales/girls-sets-under-6-blowout.html')
-    Server().crawl_listing('http://www.totsy.com/sales/jewelry-blowout.html')
-    Server().crawl_listing('http://www.totsy.com/sales/healthy-surprise-1.html')
-    Server().crawl_listing('http://www.totsy.com/sales/whitening-lightning-dec.html')

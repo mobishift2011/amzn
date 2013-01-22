@@ -61,30 +61,31 @@ envs = {
     },
     'TEST': {
         'CRAWLER_PEERS': [
-            {'host_string':'root@ec2-54-245-151-84.us-west-2.compute.amazonaws.com', 'port':1234},
-            {'host_string':'root@ec2-54-245-151-84.us-west-2.compute.amazonaws.com', 'port':1235},
-            {'host_string':'root@ec2-54-245-151-84.us-west-2.compute.amazonaws.com', 'port':1236},
-            {'host_string':'root@ec2-54-245-151-84.us-west-2.compute.amazonaws.com', 'port':1237},
+            {'host_string':'root@ec2-54-245-154-123.us-west-2.compute.amazonaws.com', 'port':1234},
+            {'host_string':'root@ec2-54-245-154-123.us-west-2.compute.amazonaws.com', 'port':12344},
+            {'host_string':'root@ec2-50-112-65-243.us-west-2.compute.amazonaws.com', 'port':1235},
+            {'host_string':'root@ec2-50-112-65-243.us-west-2.compute.amazonaws.com', 'port':12355},
         ],
         'POWER_PEERS': [
-            {'host_string':'root@ec2-54-245-149-120.us-west-2.compute.amazonaws.com', 'port':1244},
-            {'host_string':'root@ec2-54-245-149-120.us-west-2.compute.amazonaws.com', 'port':1245},
-            {'host_string':'root@ec2-54-245-149-120.us-west-2.compute.amazonaws.com', 'port':1246},
-            {'host_string':'root@ec2-54-245-149-120.us-west-2.compute.amazonaws.com', 'port':1247},
+            {'host_string':'root@ec2-54-245-150-181.us-west-2.compute.amazonaws.com', 'port':1230},
+            {'host_string':'root@ec2-54-245-150-181.us-west-2.compute.amazonaws.com', 'port':1231},
+            {'host_string':'root@ec2-54-245-22-46.us-west-2.compute.amazonaws.com', 'port':1232},
+            {'host_string':'root@ec2-54-245-22-46.us-west-2.compute.amazonaws.com', 'port':1233},
         ],
         'TEXT_PEERS': [
-            {'host_string':'root@ec2-54-245-151-84.us-west-2.compute.amazonaws.com', 'port':1238},
+            {'host_string':'root@ec2-54-245-154-123.us-west-2.compute.amazonaws.com', 'port':1237},
+            {'host_string':'root@ec2-50-112-65-243.us-west-2.compute.amazonaws.com', 'port':1238},
         ],
         'USE_INDEX': '',
         'MONGODB_HOST': '10.252.14.6',
         'REDIS_HOST': '10.252.14.6',
+        'MASTIFF_HOST': "http://integrate.favbuy.org:8001/api/v1"
     },
 }
 
 env = os.environ.get("ENV")
 if not env:
     env = "DEV"
-
 
 for key, value in chain(envs['COMMON'].iteritems(), envs[env].iteritems()):
     globals()[key] = value

@@ -220,6 +220,7 @@ class Server(object):
         :param url: url of this page
         """
         content = fetch_page(url)
+        if content is None: content = fetch_page(url)
         if content is None or isinstance(content, int):
             common_failed.send(sender=ctx, key=key, url=url,
                     reason='download error listing {0} or {1} return'.format(page_num, content))
@@ -284,6 +285,7 @@ class Server(object):
             if soldout and product.soldout != soldout:
                 product.soldout = True
                 is_updated = True
+                product.update_history.update({ 'soldout': datetime.utcnow() })
         if listprice and not product.listprice: product.listprice = listprice
         if price and not product.price: product.price = price
         if category_key not in product.category_key: product.category_key.append(category_key)
@@ -312,7 +314,15 @@ class Server(object):
         for img in imgs:
             aa, outx, bb, outy, cc = self.extract_large_image.search(img.get('rel')).groups()
             image_urls.append( '{0}{1}{2}{3}{4}'.format(aa, int(outx)*2, bb, int(outy)*2, cc) )
-            
+        if image_urls == []:
+            img = detail.cssselect('div.product-image > a[href] > img.current-product-image')
+            if img:
+                aa, outx, bb, outy, cc = re.compile("(.+?outputx=)(\d+)(&outputy=)(\d+)(&.+)").match(img[0].get('src')).groups()
+                image_urls = [ '{0}{1}{2}{3}{4}'.format(aa, int(outx)*2, bb, int(outy)*2, cc) ]
+            else:
+                img = detail.cssselect('div.product-image > a[data-large-image]')
+                if img: image_urls = [ img[0].get('data-large-image') ]
+
         color = detail.cssselect('div.product-info > form#product > div.product-variations > div.pdp-label > em')
         color = color[0].text_content() if color else ''
         sizes = detail.cssselect('div.product-info > form#product > div.product-sizes > div.size-picker > ul.product-size > li')
@@ -372,8 +382,6 @@ class Server(object):
 
 
 if __name__ == '__main__':
-    Server().crawl_product('http://www.bluefly.com/slug/p/321206501/detail.fly')
-    exit()
     server = zerorpc.Server(Server())
     server.bind("tcp://0.0.0.0:{0}".format(CRAWLER_PORT))
     server.run()

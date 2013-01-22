@@ -153,7 +153,7 @@ class Server(object):
             return
         tree = lxml.html.fromstring(content)
 
-        upcomings = tree.cssselect('div.pageframe > table.upcomingEvents > tbody > tr > td.data-row > div.item')
+        upcomings = tree.cssselect('div.pageframe table.upcomingEvents > tbody > tr > td.data-row > div.item')
         for up in upcomings:
             event_id = up.get('data-event')
             sale_title = up.text_content().strip()
@@ -305,6 +305,8 @@ class Server(object):
             if soldout and product.soldout != soldout:
                 product.soldout = True
                 is_updated = True
+                product.update_history.update({ 'soldout': datetime.utcnow() })
+            if not title: product.title = title
         if event_id not in product.event_id: product.event_id.append(event_id)
         product.list_update_time = datetime.utcnow()
         product.save()
@@ -418,10 +420,9 @@ class Server(object):
         else:
             shipping = nav.xpath('.//div[@style="text-align: left;"]/div[3]')[0].text_content()
         returned = ''
-        for r in nav.xpath('.//div[@style="text-align: left;"]//text()'):
-            if r.strip():
-                returned = r.strip()
-                break
+        for r in nav.xpath('.//div[@style="text-align: left;"]/div[@class="dark-gray-text"]'):
+            if r.text_content().strip():
+                returned += r.text_content().strip() + ' '
         image_urls = []
         for img in nav.cssselect('div[style] > div > a.cloud-zoom-gallery > img'):
             image_urls.append( img.get('src').replace('small', 'large') )

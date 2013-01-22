@@ -47,6 +47,7 @@ class ruelalaLogin(object):
             'rememberMe': 1, 
         }       
 
+        self.event_is_product = re.compile('http://.*.ruelala.com/product/detail/eventId/\d{1,10}/styleNum/(\d{1,10})/viewAll/0')
         self._signin = False
 
     def login_account(self):
@@ -75,12 +76,14 @@ class ruelalaLogin(object):
         if ret.status_code == 401: # need to authentication
             self.login_account()
             ret = req.get(url)
+
+        if self.event_is_product.match(ret.url): return ret.url
         if ret.ok: return ret.content
 
         # if this event is a product, event will redirect to product page.
         # So it is the product page unauthorized, fetch_page the product url next time
-        if ret.status_code == 401:
-            return ret.url
+#        if ret.status_code == 401:
+#            return ret.url
 
     def fetch_image(self, url):
         ret = req.get(url)
@@ -109,7 +112,7 @@ class Server(object):
         categorys = ['women', 'men', 'living', 'kids', 'gifts']
         for category in categorys:
             url = 'http://www.ruelala.com/category/{0}'.format(category)
-            if category == 'gifts':
+            if category == 'gifts': # gifts not exist anymore
                 self._get_gifts_event_list(category, url, ctx)
             else:
                 self._get_event_list(category, url, ctx)
@@ -273,7 +276,10 @@ class Server(object):
         else:
             is_new = False
 
-        if dept not in event.dept: event.dept.append(dept)
+        if ("women's" in sale_title.lower() and dept == 'men') or ("women's" not in sale_title.lower() and "men's" in sale_title.lower() and dept == 'women'): # parent event both in men and women, but child in separate depts
+            pass
+        else:
+            if dept not in event.dept: event.dept.append(dept)
         event.update_time = datetime.utcnow()
         event.save()
         common_saved.send(sender=ctx, obj_type='Event', key=event_id, is_new=is_new, is_updated=False)
@@ -397,9 +403,11 @@ class Server(object):
                     product.price = price
                     product.listprice = strike_price
                     is_updated = True
+                    product.update_history.update({ 'price': datetime.utcnow(), 'listprice': datetime.utcnow() })
                 if soldout and product.soldout != True:
                     product.soldout = True
                     is_updated = True
+                    product.update_history.update({ 'soldout': datetime.utcnow() })
                 if event_id not in product.event_id: product.event_id.append(event_id)
             product.list_update_time = datetime.utcnow()
             product.save()

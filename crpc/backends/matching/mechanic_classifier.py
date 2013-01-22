@@ -82,14 +82,14 @@ TOTSY = {
     "column": "dept",
     "contains": {},
     "mapping": {
-        "Girls": ["Kids"],
-        "Boys": ["Kids"],
-        "Accessories": ["Kids"],
-        "Shoes": ["Kids"],
-        "Toys and Books": ["Kids"],
-        "Home": ["Kids"],
-        "Moms and Dads": ["Kids"],
-        "Gear": ["Kids"],
+        "Girls": ["Kids & Baby"],
+        "Boys": ["Kids & Baby"],
+        "Accessories": ["Kids & Baby"],
+        "Shoes": ["Kids & Baby"],
+        "Toys and Books": ["Kids & Baby"],
+        "Home": ["Kids & Baby"],
+        "Moms and Dads": ["Kids & Baby"],
+        "Gear": ["Kids & Baby"],
     }
 }
 
@@ -98,11 +98,11 @@ ZULILY = {
     "column": "dept",
     "contains": {},
     "mapping": {
-        "baby-maternity": ["Kids"], 
-        "boys": ["Kids"], 
-        "girls": ["Kids"],
+        "baby-maternity": ["Kids & Baby"], 
+        "boys": ["Kids & Baby"], 
+        "girls": ["Kids & Baby"],
         "home": ["Home"], 
-        "toys-playtime": ["Kids"], 
+        "toys-playtime": ["Kids & Baby"], 
         "women": ["Women"],
     }
 }
@@ -112,7 +112,7 @@ def get_site_module(site):
     return __import__('crawlers.'+site+'.models', fromlist=['Category', 'Event', 'Product'])
 
 def lot18_mapping(site, event):
-    return ["Home"]
+    return ["Wine"]
 
 def venteprivee_mapping(site, event):
     m = get_site_module('venteprivee')
@@ -195,49 +195,149 @@ def load_rules():
 
             m = pattern.search(line)
             priority, rule, department = m.group(1), m.group(2), m.group(3)
-            rule = rule.lower()
+            rule = rule.lower().decode('utf-8')
             
-            rules_dict[priority].append( [set(rule.split(' ')), department.split('; ')] )
+            rules_dict[priority].append( [set(rule.split(u' ')), department.split(u'; ')] )
     
     for k, v in rules_dict.iteritems():
         rules_dict[k] = sorted(v, key=lambda x: len(x[0]), reverse=True)
     return rules_dict
+
+def preprocess(title):
+    title = title.lower()
+    title = re.sub(r'designed in .+ gold', '', title)
+    title = re.sub(r'designed in .+ silver', '', title)
+    title = re.sub(r'made in [a-z]+', '', title)
+    # wipe out sentences `with`s and `in`s and `-`s
+    title = re.sub(r'all in one', 'all-in-one', title)
+    title = re.sub(r'with you', 'with-you', title)
+    title = re.sub(r'in a', 'in-a', title)
+    title = re.sub(r' in .+$', '', title)
+    title = re.sub(r' with .+$', '', title)
+    title = re.sub(r'(.*) - (.*)', r'\2 \1', title)
+    title = re.sub(r'([a-z]+)-', r'\1', title)
+    title = re.sub(r'baby pink', '', title)
+    # then numbers & brackets
+    title = re.sub(r'\d+/\d+ condition', '', title)
+    title = re.sub(r'(.*)\(([^)]+)\)$', r'\2 \1', title)
+    title = re.sub(r' [ivxlc]+$', '', title)
+    title = re.sub(r'set of [0-9]+', 'set', title)
+    title = re.sub(r'[0-9]+ pcs$', '', title)
+    return title
+
+def postprocess(p, result):
+    # add necessory converters
+    if u"Women" in result:
+        if u"Polos & Tees" in result:
+            result.append(u"Shirts & Sweaters")
+            result.remove(u"Polos & Tees")
+        elif u"Socks, Underwear & Sleepwear" in result:
+            result.append(u"Intimates & Loungewear")
+            result.remove(u"Socks, Underwear & Sleepwear")
+        elif u"Suits & Coats" in result:
+            result.append(u"Outerwear")
+            result.remove(u"Suits & Coats")
+    if u"Men" in result:
+        if u"Intimates & Loungewear" in result:
+            result.append(u"Socks, Underwear & Sleepwear")
+            result.remove(u"Intimates & Loungewear")
+        elif u"Dresses & Skirts" in result:
+            result.append(u"Shirts & Sweaters")
+            result.remove(u"Dresses & Skirts")
+    if u"Kids & Baby" in result:
+        for clothing_category in [u"Tops & Tees", u"Shirts & Sweaters", u"Outerwear", u"Pants & Shorts", u"Dresses & Skirts", u"Intimates & Loungewear", "Suits & Coats", "Socks, Underwear & Sleepwear"]:
+            if clothing_category in result:
+                if u'girl' in p.title.lower():
+                    result.append(u"Girls' Clothing")
+                elif u'boy' in p.title.lower():
+                    result.append(u"Boys' Clothing")
+                else:
+                    result.append(u"Girls' Clothing")
+                    result.append(u"Boys' Clothing")
+                result.remove(clothing_category)
+                break
+        if u"Shoes" in result:
+            result.append(u"Girls' Shoes")
+            result.append(u"Boys' Shoes")
+            result.remove(u"Shoes")
+        elif u"Beds & Bath" in result:
+            result.append(u"Bed, Bath & Furniture")
+            result.remove(u"Beds & Bath")
+        elif u"Furniture & Lighting" in result:
+            result.append(u"Bed, Bath & Furniture")
+            result.remove(u"Furniture & Lighting")
+        elif u"Tools" in result:
+            result.append(u"Gear & Equipment")
+            result.remove(u"Tools")
+    if u"Home" in result and u"Accessories" in result:
+        result.append(u"Home Accessories")
+        result.remove(u"Accessories")
+
+    # Validation
+    result = list(set(result))
+    newresult = []
+    for k, v in CATS.items():
+        for sub in v:
+            if k in result and sub in result:
+                newresult.extend([k, sub])
+    result = list(set(newresult))
+
+    # reorder
+    keys = [k.decode('utf-8') for k in  CATS.keys()]
+    for key in keys:
+        if key in result and key != result[0]:
+            result.remove(key)
+            result = [key] + result
+
+    return result
+
             
-words_split = re.compile('[A-Za-z0-9\-]+')
+words_split = re.compile('''[A-Za-z0-9\-%.]+''')
 rules_dict = load_rules()
-def classify_product_department(site, product):
+def classify_product_department(site, product, use_event_info=False, return_judge=False):
     m = get_site_module(site)
     p = product
     result = []
     title = p.title
-    for eid in p.event_id:
-        e = m.Event.objects.get(event_id=eid)
-        title = e.sale_title + u" " + title
+    if not title:
+        title = u""
+
+    if use_event_info:
+        for eid in p.event_id:
+            e = m.Event.objects.get(event_id=eid)
+            title = e.sale_title + u" " + title
+
+    title = preprocess(title)
 
     if site in ["bluefly", "ideeli", "nomorerack", "onekingslane"]:
         title += u" " + u" ".join(p.cats)
 
     if site in ["lot18"]:
-        if "white" in title.lower():
-            return [u"Wine", u"White Wines"]
-        elif "red" in title.lower():
-            return [u"Wine", u"Red Wines"]
-        
-    kws = set(words_split.findall(title.lower()))
-    kws2 = set()
-    for kw in kws:
-        if kw.endswith('-'):
-            kw = kw[:-1]
-        kws2.add(kw)
-    kws = kws2
+        for tag in p.tagline:
+            if "white wine" in tag.lower():
+                if return_judge:
+                    return [u"Wine", u"White Wines"], [u"Wine", u"White Wines"]
+                else:
+                    return [u"Wine", u"White Wines"]
+            elif "red wine" in tag.lower():
+                if return_judge:
+                    return [u"Wine", u"Red Wines"], [u"Wine", u"Red Wines"]
+                else:
+                    return [u"Wine", u"Red Wines"]
 
+    kws = words_split.findall(title.lower())
     
     # check level-0 rules
+    # first run: single words
+    judge = [' '.join(kws)]
     level12 = True
+    kws_set = set(kws) 
+
     for rule in rules_dict['0']:
-        if not rule[0].difference(kws):
+        if not rule[0].difference(kws_set):
             result.extend(rule[1])
             level12 = False
+            judge.append(['0']+rule)
             break
     
     if level12:
@@ -248,59 +348,54 @@ def classify_product_department(site, product):
                 e = m.Event.objects.get(event_id=eid)
                 d1.extend(classify_event_department(site, e))
             d1 = list(set(d1))
+            judge.append(['B']+d1)
             result.extend( d1 )
 
         # do level1 and level2 classifying
         for priority in '12':
+            found = False
+            # last keyword is most important, do it first
             for rule in rules_dict[priority]:
-                if not rule[0].difference(kws):
+                if kws and (not rule[0].difference(set(kws[-2:]))):
                     result.extend(rule[1])
+                    judge.append([priority]+rule)
+                    found = True
+                    break
+            if found:
+                continue
+
+            # last keyword is most important, do it first
+            for rule in rules_dict[priority]:
+                if kws and (not rule[0].difference(set([kws[-1]]))):
+                    result.extend(rule[1])
+                    judge.append([priority]+rule)
+                    found = True
+                    break
+            if found:
+                continue
+
+            # then general keywords
+            for rule in rules_dict[priority]:
+                if not rule[0].difference(kws_set):
+                    result.extend(rule[1])
+                    judge.append(rule)
                     break
 
-    # add necessory converters
-    if "Women" in result:
-        if "Tops & Tees" in result:
-            result.append("Shirts & Sweaters")
-        elif "Socks, Underwear & Sleepwear" in result:
-            result.append("Intimates & Loungewear")
-        elif "Suits & Coats" in result:
-            result.append("Outerwear")
-    elif "Men" in result:
-        if "Intimates & Loungewear" in result:
-            result.append("Socks, Underwear & Sleepwear")
-        elif "Dresses & Skirts" in result:
-            result.append("Shirts & Sweaters")
-        elif "Tops & Tees" in result:
-            result.append("Polos & Tees")
-    elif "Kids & Baby" in result:
-        for clothing_category in ["Tops & Tees", "Shirts & Sweaters", "Outerwear", "Pants & Shorts", "Dresses & Skirts"]:
-            if clothing_category in result:
-                if 'Girl' in p.title:
-                    result.append("Girls' Clothing")
-                elif 'Boy' in p.title:
-                    result.append("Boys' Clothing")
-                else:
-                    result.append("Girls' Clothing")
-                    result.append("Boys' Clothing")
-                break
-        if "Shoes" in result:
-            result.append("Girls' Shoes")
-            result.append("Boys' Shoes")
-        elif "Beds & Bath" in result or "Furniture & Lighting" in result:
-            result.append("Bed, Bath & Furniture")
-        elif "Tools" in result:
-            result.append("Gear & Equipment")
-    elif "Home" in result and "Accessories" in result:
-        result.append("Home Accessories")
+    result = postprocess(p, result)
 
-    # reorder
-    keys = CATS.keys()
-    result = list(set(result))
-    for key in keys:
-        if key in result and key != result[0]:
-            result.remove(key)
-            result = [key] + result
-    return result
+    # if we can't identify the product from it's title alone, try again with event info
+    keys = [k.decode('utf-8') for k in  CATS.keys()]
+    if use_event_info == False and (not (set(result) - set(keys))):
+        if return_judge:
+            result, judge = classify_product_department(site, product, use_event_info=True, return_judge=True)
+        else:
+            result = classify_product_department(site, product, use_event_info=True, return_judge=False)
+
+    if return_judge:
+        return result, judge
+    else:
+        return result
+        
 
 def test_event():
     import random
@@ -340,34 +435,61 @@ def extract_pattern(site = 'bluefly'):
     from collections import Counter
     from pprint import pprint
     wc = Counter()
+    wrongs = 0
     for p in m.Product.objects().only('title','cats','event_id'):
         if p.title:
             title = p.title.strip()
-            words = classify_product_department(site, p)
-            if not (set(words) - set(CATS.keys())):
-                words = title.split(' ')
-                len_words = len(words) 
-                for i in range(len_words):
-                    phrase = words[i]
-                    if 'in' not in phrase.lower() and 'of' not in phrase.lower() and '-' not in phrase and '&' not in phrase and 'and' not in phrase.lower():
-                        wc[phrase] += 1
-                for i in range(len_words-1):
-                    phrase = words[i]+' '+words[i+1]
-                    if 'in' not in phrase.lower() and 'of' not in phrase.lower() and '-' not in phrase and '&' not in phrase and 'and' not in phrase.lower():
-                        wc[phrase] += 1
-                for i in range(len_words-2):
-                    phrase = words[i]+' '+words[i+1]+' '+words[i+2]
-                    if 'in' not in phrase.lower() and 'of' not in phrase.lower() and '-' not in phrase and '&' not in phrase and 'and' not in phrase.lower():
-                        wc[phrase] += 1
-                #pprint(wc.most_common(1))
-                print title, p.cats, p.key
+            depts = classify_product_department(site, p)
+            if not (set(depts) - set(CATS.keys())):
+                wrongs += 1
+                title = preprocess(title)
+                words = words_split.findall(title)
+                title = ' '.join(words)
+                for i in range(len(words)):
+                    phrase = u' '.join(words[i:])
+                    wc[phrase] += 1
+                from termcolor import colored
+                print title, colored('=>','red'), depts, p.title
     pprint(wc.most_common(1000))
-    print 1. * len(wc) / m.Product.objects.count() * 100, '%'
+    print 1. * wrongs / m.Product.objects.count() * 100, '%'
+
+def extract_pattern2():
+    from feature import sites
+    from collections import Counter
+    from pprint import pprint
+    import sys
+    wc = Counter()
+    for site in sites:
+        m = get_site_module(site)
+        for p in m.Product.objects().only('title'):
+            if not p.title:
+                p.delete()
+                continue
+            title = p.title.strip().lower()
+            if title:
+                title = preprocess(title)
+                words = words_split.findall(title)
+                for i in range(len(words)):
+                    phrase = u' '.join(words[i:])
+                    wc[phrase] += 1
+                sys.stdout.write(title+'\n')
+                sys.stdout.flush()   
+
+    with open('wc_most_common','w') as f:
+        for phrase, counts in wc.most_common():
+            f.write('{0} -> {1}\n'.format(phrase.encode('utf-8'), counts))
 
 if __name__ == '__main__':
-    from crawlers.ideeli.models import Product
-    p = Product.objects.get(pk='2820350')
-    print classify_product_department('ideeli', p)
-    #extract_pattern('beyondtherack')
+    m = get_site_module('beyondtherack')
+    p = m.Product.objects.get(pk='COCTP400510FTP')
+    print classify_product_department('beyondtherack', p, return_judge=True)
+    exit(0)
+    #extract_pattern2()
+
+    from feature import sites
+    for site in sites:
+        extract_pattern(site)
+
     #test_product()
-    #load_rules() 
+    #for rule in load_rules()['0']:
+    #    print rule[0]

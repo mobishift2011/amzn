@@ -3,32 +3,45 @@ from gevent import monkey; monkey.patch_all()
 from crawlers.common.events import common_saved
 from crawlers.common.routine import get_site_module
 from powers.events import image_crawled, ready_for_publish
-from powers.models import Stat
+from backends.monitor.models import Stat
+from settings import CRPC_ROOT
 from mysettings import MINIMUM_PRODUCTS_READY, MASTIFF_ENDPOINT
 from helpers import log
 from mongoengine import Q
 import slumber
 from datetime import datetime, timedelta
 import sys
+from os import listdir
+from os.path import join, isdir
+from crawlers.common.stash import exclude_crawlers
 
 class Publisher:
     def __init__(self):
         self.mapi = slumber.API(MASTIFF_ENDPOINT)
         self.logger = log.getlogger("publisher", "/tmp/publisher.log")
-
+        self.m = {}
+        
+        for name in listdir(join(CRPC_ROOT, "crawlers")):
+            path = join(CRPC_ROOT, "crawlers", name)
+            if name not in exclude_crawlers and isdir(path):
+                self.m[name] = get_site_module(name)
+                
+    def get_module(self, site):
+        return self.m[site]
+        
     def try_publish_all(self, site):
         '''publish all events and products in a site that meet publish condition.
         
         :param site: all objects under site will be examined for publishing.
         '''
         self.logger.debug("try_publish_all site:%s", site)
-        m = get_site_module(site)
+        m = self.get_module(site)
 
         # try look for both unpublished events and events published but requiring update
         if hasattr(m, 'Event'):
             for ev in m.Event.objects:
                 if self.should_publish_event_upd(ev):
-                    self.publish_event(ev, upd=True, fields=['soldout', 'favbuy_brand', 'favbuy_dept', 'favbuy_tag'])
+                    self.publish_event(ev, upd=True)
                 else:   
                     self._try_publish_event(ev, skip_products=True)
 
@@ -37,7 +50,7 @@ class Publisher:
             if self.should_publish_product(prod, chk_ev=True):
                 self.publish_product(prod)
             elif self.should_publish_product_upd(prod):
-                self.publish_product(prod, upd=True, fields=['soldout', 'favbuy_brand', 'favbuy_dept', 'favbuy_tag'])
+                self.publish_product(prod, upd=True)
         self.logger.debug("try_publish_all completed site:%s", site)
         
     def try_publish_event(self, site, evid):
@@ -48,7 +61,7 @@ class Publisher:
         :param evid: event id
         '''
         self.logger.debug("try_publish_event %s:%s", site, evid)
-        m = get_site_module(site)        
+        m = self.get_module(site)        
         ev = m.Event.objects.get(event_id=evid)
         self._try_publish_event(ev)
         
@@ -59,7 +72,7 @@ class Publisher:
         :param prod_key: key of the product.
         '''
         self.logger.debug("try_publish_product %s:%s", site, prod_key)
-        m = get_site_module(site)
+        m = self.get_module(site)
         prod = m.Product.objects.get(key=prod_key)
         if self.should_publish_product(prod):
             # event may become eligible, too, as event publish is
@@ -74,32 +87,32 @@ class Publisher:
         else:
             self.logger.debug("product {}:{} not ready for publishing".format(obj_to_site(prod),prod_key))
                             
-    def try_publish_event_update(self, site, evid, fields):
+    def try_publish_event_update(self, site, evid):
         '''try publishing an event update only (not first publish)
         
         :param site: site of the event
         :param evid: event id
         :param fields: fields that need to be updated.
         '''
-        self.logger.debug("try_publish_event_update %s:%s, fields:%s", site, evid, fields)
-        m = get_site_module(site)
+        self.logger.debug("try_publish_event_update %s:%s", site, evid)
+        m = self.get_module(site)
         ev = m.Event.objects.get(event_id=evid)
         if self.should_publish_event_upd(ev):
-            self.publish_event(ev, upd=True, fields=fields)
+            self.publish_event(ev, upd=True)
         else:
             self.logger.debug("event {}:{} not ready for publishing".format(obj_to_site(ev), evid))
             
-    def try_publish_product_update(self, site, prod_key, fields):
+    def try_publish_product_update(self, site, prod_key):
         '''try publishing a product update only (not first publish)
 
         :param site: site string
         :param prod_key: product key
         '''
-        self.logger.debug("try_publish_product_update %s:%s, fields:%s", site, prod_key, fields)
-        m = get_site_module(site)
+        self.logger.debug("try_publish_product_update %s:%s", site, prod_key)
+        m = self.get_module(site)
         prod = m.Product.objects.get(key=prod_key)
-        if self.should_publish_product_upd(prod, fields):
-            self.publish_product(prod, upd=True, fields=fields)  # perhaps just publish portion of data? $$
+        if forced or self.should_publish_product_upd(prod):
+            self.publish_product(prod, upd=True)
         else:
             self.logger.debug("product %s:%s not ready for publishing", obj_to_site(prod),prod_key)
             
@@ -121,7 +134,7 @@ class Publisher:
             for prod in m.Product.objects(publish_time__exists=True, event_id=ev.event_id):
                 self.publish_product(prod, upd=True, fields=['events'])
         elif self.should_publish_event_newly_onshelf(ev):
-            self.publish_event(ev, upd=True, fields=['favbuy_brand', 'favbuy_dept', 'favbuy_tag'])
+            self.publish_event(ev, upd=True)
         elif ev.publish_time:
             self.logger.debug("event %s:%s already published", obj_to_site(ev), ev.event_id)
         else:
@@ -157,8 +170,9 @@ class Publisher:
         :param ev: event object        
         '''
         now = datetime.utcnow()
-        return not ev.publish_time and ev.image_complete and \
-                (ev.events_begin and ev.events_begin>now or ev.propagation_complete \
+        # for future events, don't publish non-leaf ones
+        return not ev.publish_time and ev.image_complete and ev.image_path and \
+                (ev.events_begin and ev.events_begin>now and ev.is_leaf != False or ev.propagation_complete \
                  and self.sufficient_products_ready_publish(ev, MINIMUM_PRODUCTS_READY))
     
     def should_publish_event_upd(self, ev):
@@ -166,7 +180,8 @@ class Publisher:
         
         :param ev: event object
         '''
-        return ev.publish_time and ev.publish_time < ev.update_time
+        update_time = max(ev.update_history.values()) if ev.update_history else None
+        return ev.publish_time and update_time and ev.publish_time < update_time
         
     def should_publish_event_newly_onshelf(self, ev):
         '''all events that were future events and published before but recently became on-shelf and 
@@ -199,9 +214,7 @@ class Publisher:
         '''
         is product ready for first-time publishing?
         
-        :param chk_ev: ###indicates if event-level checking is included in the condition or now.
-        Interestingly, seems all user case are setting chk_ev=False. Perhaps we don't
-        need this parameter??
+        :param chk_ev: indicates if event-level checking is included in the condition or now.
         '''
         if chk_ev and prod.event_id:
             allow_publish = False
@@ -212,14 +225,23 @@ class Publisher:
                     break
             if not allow_publish:
                 return False
-        return not prod.publish_time and prod.image_complete and prod.dept_complete
+        return not prod.publish_time and prod.image_complete and prod.image_path and prod.dept_complete
 
     def should_publish_product_upd(self, prod):
         '''condition for publishing product update (the product was published before).
-        :param prod: product object
+        :param prod: product object. Note: now only handle favbuy text update.
         '''
-        return prod.publish_time and prod.publish_time < prod.list_update_time
+        update_time = max(prod.update_history.values()) if prod.update_history else None
+        return prod.publish_time and update_time and prod.publish_time < update_time
         
+    def ev_updflds_for_publish(self, ev):
+        return [fld for fld in ev.update_history.keys() if ev.update_history[fld]>ev.publish_time] if ev.update_history else []
+        
+    def prod_updflds_for_publish(self, prod):
+        return [fld for fld in prod.update_history.keys() if prod.update_history[fld]>prod.publish_time] if prod.update_history else []
+        
+    ALL_EVENT_PUBLISH_FIELDS = ["sale_title", "sale_description", "events_end", "events_begin",
+                                "image_path", "highest_discount", "favbuy_tag", "favbuy_brand", "favbuy_dept"]
     def publish_event(self, ev, upd=False, fields=[]):
         '''publish event data to the mastiff service.
         
@@ -231,30 +253,29 @@ class Publisher:
         '''
         try:
             m = obj_to_module(ev)
-            soldout = m.Product.objects(event_id=ev.event_id, soldout=False).count()==0
             site = obj_to_site(ev)
-            if upd:
-                ev_data = {}
-                for f in fields:
-                    if f=="favbuy_dept":
-                        ev_data['departments'] = ev.favbuy_dept
-                    elif f=="favbuy_brand":
-                        ev_data['brands'] = ev.favbuy_brand
-                    elif f=="favbuy_tag":
-                        ev_data["tags"] = ev.favbuy_tag
-            else:
-                ev_data = { 
-                    "site_key": site+'_'+ev.event_id,
-                    "title": obj_getattr(ev, 'sale_title', ''),
-                    "description": obj_getattr(ev, 'sale_description', ''),
-                    "ends_at": obj_getattr(ev, 'events_end', datetime.utcnow()+timedelta(days=7)).isoformat(),
-                    "starts_at": obj_getattr(ev, 'events_begin', datetime.utcnow()).isoformat(),
-                    "cover_image": ev['image_path'][0] if ev['image_path'] else {},
-                    "soldout": soldout,
-                    "tags": ev.favbuy_tag,
-                    "brands": ev.favbuy_brand,
-                    "departments": ev.favbuy_dept }
+            if not upd:
+                fields = self.ALL_EVENT_PUBLISH_FIELDS
+            elif not fields:
+                fields = self.ev_updflds_for_publish(ev)
+
+            ev_data = {}
+            for f in fields:
+                if f=="sale_title": ev_data['title'] = obj_getattr(ev, 'sale_title', '')
+                elif f=="sale_description": ev_data['description'] = obj_getattr(ev, 'sale_description', '')
+                elif f=="events_end": ev_data['ends_at'] = obj_getattr(ev, 'events_end', datetime.utcnow()+timedelta(days=7)).isoformat()
+                elif f=="events_begin": ev_data['starts_at'] = obj_getattr(ev, 'events_begin', datetime.utcnow()).isoformat()
+                elif f=="image_path": ev_data['cover_image'] = ev['image_path'][0] if ev['image_path'] else {}
+                elif f=="highest_discount": ev_data['highest_discount'] = ev['highest_discount'][:ev['highest_discount'].find('.')+3]
+                elif f=="soldout": ev_data['sold_out'] = m.Product.objects(event_id=ev.event_id, soldout=False).count()==0
+                elif f=="favbuy_tag": ev_data['tags'] = ev.favbuy_tag
+                elif f=="favbuy_brand": ev_data['brands'] = ev.favbuy_brand
+                elif f=="favbuy_dept": ev_data['departments'] = ev.favbuy_dept
+            if not upd:
+                ev_data['site_key'] = site+'_'+ev.event_id
+            if upd and not ev_data: return         
             self.logger.debug("publish event data: %s", ev_data)
+
             if upd:
                 self.mapi.event(muri2mid(ev.muri)).patch(ev_data)
                 self.logger.debug("published event update %s:%s, fields=%s", site, ev.event_id, fields)
@@ -271,8 +292,11 @@ class Publisher:
         except Exception as e:
             self.logger.error(e)
             self.logger.error("publishing event %s:%s failed", obj_to_site(ev), ev.event_id)
-                    
-    def publish_product(self, prod, upd=False, fields=['soldout']):
+    
+    ALL_PRODUCT_PUBLISH_FIELDS = ["combine_url", "events", "favbuy_price", "favbuy_listprice", "soldout",
+                                "color", "title", "summary", "list_info", "image_path", "favbuy_tag", "favbuy_brand", "favbuy_dept",
+                                "returned", "shipping" ]
+    def publish_product(self, prod, upd=False, fields=[]):
         '''
         Publish product data to the mastiff service.
 
@@ -281,35 +305,35 @@ class Publisher:
         '''
         try:
             site = obj_to_site(prod)
-            if upd:
-                pdata = {}
-                if 'soldout' in fields: pdata['sold_out'] = prod.soldout
-                if 'events' in fields: pdata['events'] = self.get_ev_uris(prod)
-                if 'favbuy_dept' in fields: pdata["department_path"] = obj_getattr(prod, 'favbuy_dept', [])
-                if 'favbuy_brand' in fields: pdata["brand"] = obj_getattr(prod, 'favbuy_brand', '')
-                if 'favbuy_tag' in fields: pdata["tags"] = obj_getattr(prod, 'favbuy_tag', [])                
-            else:
-                pdata = { 
-                    "site_key": site+'_'+prod.key,
-                    "original_url": prod.combine_url,
-                    "events": self.get_ev_uris(prod),
-                    "our_price": float(obj_getattr(prod, 'favbuy_price', 0)),
-                    "list_price": float(obj_getattr(prod, 'favbuy_listprice', 0)),
-                    "soldout": prod.soldout,
-                    #"sizes": obj_getattr(prod, 'sizes', []),
-                    "colors": [prod['color']] if 'color' in prod and prod['color'] else [],
-                    "title": prod.title,
-                    "info": prod.summary,
-                    "details": obj_getattr(prod, 'list_info', []),
-                    "cover_image": prod.image_path[0] if prod.image_path else {},
-                    "images": obj_getattr(prod, 'image_path', []),
-                    "brand": obj_getattr(prod, 'favbuy_brand',''),
-                    "tags": obj_getattr(prod, 'favbuy_tag', []),
-                    "department_path": obj_getattr(prod, 'favbuy_dept', []),
-                    "return_policy": obj_getattr(prod, 'returned', ''),
-                    "shipping_policy": obj_getattr(prod, 'shipping', '')
-                }
+            if not upd:
+                fields = self.ALL_PRODUCT_PUBLISH_FIELDS
+            elif not fields:
+                fields = self.prod_updflds_for_publish(prod)
+
+            pdata = {}
+            for f in fields:
+                if f=="combine_url": pdata["original_url"] = prod.combine_url
+                elif f=="events": pdata["events"] = self.get_ev_uris(prod)
+                elif f=="favbuy_price": pdata["our_price"] = float(obj_getattr(prod, 'favbuy_price', 0))
+                elif f=="favbuy_listprice": pdata["list_price"] = float(obj_getattr(prod, 'favbuy_listprice', 0))
+                elif f=="soldout": pdata["sold_out"] = prod.soldout
+                elif f=="color": pdata["colors"] = [prod['color']] if 'color' in prod and prod['color'] else []
+                elif f=="title": pdata["title"] = prod.title
+                elif f=="summary": pdata["info"] = prod.summary
+                elif f=="list_info": pdata["details"] = obj_getattr(prod, 'list_info', [])
+                elif f=="image_path": 
+                    pdata["cover_image"] = prod.image_path[0] if prod.image_path else {}
+                    pdata["images"] = obj_getattr(prod, 'image_path', [])
+                elif f=="favbuy_brand": pdata["brand"] = obj_getattr(prod, 'favbuy_brand','')
+                elif f=='favbuy_tag': pdata["tags"] = obj_getattr(prod, 'favbuy_tag', [])
+                elif f=='favbuy_dept': pdata["department_path"] = obj_getattr(prod, 'favbuy_dept', [])
+                elif f=="returned": pdata["return_policy"] = obj_getattr(prod, 'returned', '')
+                elif f=="shipping": pdata["shipping_policy"] = obj_getattr(prod, 'shipping', '')
+            if not upd:
+                pdata["site_key"] = site+'_'+prod.key
+            if upd and not pdata: return
             self.logger.debug("publish product data: %s", pdata)
+
             if upd:
                 self.mapi.product(muri2mid(prod.muri)).patch(pdata)
                 self.logger.debug("published product update %s:%s", site, prod.key)
@@ -331,7 +355,7 @@ class Publisher:
     def mget_event(self, site, evid):
         '''get event data back from mastiff service.
         '''
-        m = get_site_module(site)
+        m = self.get_module(site)
         try:
             ev = m.Event.objects.get(event_id=evid)
             if not ev.muri:
@@ -344,7 +368,7 @@ class Publisher:
     def mget_product(self, site, prod_key):
         '''get product data back from mastiff service.
         '''
-        m = get_site_module(site)
+        m = self.get_module(site)
         try:
             p = m.Product.objects.get(key=prod_key)
             if not p.muri:
@@ -396,18 +420,19 @@ def process_common_saved(sender, **kwargs):
     '''signa handler for common_saved. Currently common_saved
     signal is only useful in publisher to monitor soldout updates.
     '''
-    is_update = kwargs.get('is_update')
+    is_update = kwargs.get('is_updated')
     if not is_update:
         return # obj is not ready for publishing
     
     site = sender_to_site(sender)
     obj_type = kwargs.get('obj_type')
+    key = kwargs.get('key')
     
-    if obj_type == 'Event':
-        p.try_publish_event_update(site, key, ['soldout'])
-    elif obj_type == 'Product':
-        p.try_publish_product_update(site, key, ['soldout'])
-    
+    if obj_type == 'Product':
+        p.try_publish_product_update(site, key)
+    elif obj_type == 'Event':
+        p.try_publish_event_update(site, key)
+        
 @image_crawled.bind('globalsync')
 def process_image_crawled(sender, **kwargs):
     '''signal handler for image_crawled.
@@ -438,10 +463,11 @@ if __name__ == '__main__':
     parser.add_option('-c', '--cmd', dest='cmd', help='command of the signal(update, initial, all)', default='')
     parser.add_option('--mput', dest='mput', action="store_true", help='publish to mastiff service', default=False)
     parser.add_option('--upd', dest='upd', action="store_true", help='update mode(mput only)', default=False)
-    parser.add_option('--mget', dest='mget', action="store_true", help='get published result back from mastiff service', default=False)    
+    parser.add_option('--mget', dest='mget', action="store_true", help='get published result back from mastiff service', default=False)
     parser.add_option('-s', '--site', dest='site', help='site info', default='')
     parser.add_option('-e', '--ev', dest='ev', help='event id', default='')
-    parser.add_option('-p', '--prod', dest='prod', help='product id', default='')        
+    parser.add_option('-p', '--prod', dest='prod', help='product id', default='')
+    parser.add_option('-f', '--flds', dest='flds', help='fields', default='')
     parser.add_option('-d', '--daemon', dest='daemon', action="store_true", help='daemon mode(no other parameters)', default=False)
     
     if len(sys.argv)==1:
@@ -457,9 +483,9 @@ if __name__ == '__main__':
 
     elif options.cmd == "update":
         if options.site and options.ev:
-            p.try_publish_event_update(options.site, options.ev, ['soldout'])
+            p.try_publish_event_update(options.site, options.ev)
         elif options.site and options.prod:
-            p.try_publish_product_update(options.site, options.prod, ['soldout'])
+            p.try_publish_product_update(options.site, options.prod)
     elif options.cmd == "initial":
         if options.site and options.ev:
             p.try_publish_event(options.site, options.ev)
@@ -475,18 +501,20 @@ if __name__ == '__main__':
             if not options.upd:
                 p.publish_event(ev)
             else:
-                p.publish_event(ev, upd=True, fields=['favbuy_brand', 'favbuy_dept', 'favbuy_tag'])
+                p.publish_event(ev, upd=True, fields=options.flds.split(','))
         elif options.site and options.prod:
             m = get_site_module(options.site)        
             prod = m.Product.objects.get(key=options.prod)
-            p.publish_product(prod)
+            if not options.upd:
+                p.publish_product(prod)
+            else:
+                p.publish_product(prod, upd=True, fields=options.flds.split(','))
     elif options.mget:
         from pprint import pprint
         if options.site and options.ev:
             pprint(p.mget_event(options.site, options.ev))
         elif options.site and options.prod:
             pprint(p.mget_product(options.site, options.prod))
-
     else:
         parser.print_help()
 

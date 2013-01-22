@@ -72,15 +72,15 @@ class Server(object):
 
     def crawl_category(self, ctx=''):
         is_new, is_updated = False, False
-        category = Category.objects(sale_title='lot18').first()
+        category = Category.objects(key='lot18').first()
         if not category:
             is_new = True
-            category = Category(sale_title='lot18')
+            category = Category(key='lot18')
             category.is_leaf = True
             category.cats = ['wine']
         category.update_time = datetime.utcnow()
         category.save()
-        common_saved.send(sender=ctx, obj_type='Category', key='', url='', is_new=is_new, is_updated=is_updated)
+        common_saved.send(sender=ctx, obj_type='Category', key='lot18', url='', is_new=is_new, is_updated=is_updated)
 
     def crawl_listing(self, url, ctx=''):
         """.. :py:method::
@@ -127,12 +127,14 @@ class Server(object):
             product.price = prd['prices']['price']
             product.short_desc = prd['headline']
             product.soldout = prd['is_soldout']
+            product.category_key = ['lot18']
         else:
             if prd['is_soldout'] and product.soldout != True:
                 product.soldout = True
                 is_updated = True
+                product.update_history.update({ 'soldout': datetime.utcnow() })
 
-        if prd['type'] not in product.dept: product.dept.append(prd['type'])
+        if prd['type'] not in product.cats: product.cats.append(prd['type'])
         _utcnow = datetime.utcnow()
         # False, in [1-9] days/day/hours
         if prd['expires']:

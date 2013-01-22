@@ -17,7 +17,6 @@ DB = 'hautelook'
 connect(db=DB, alias=DB, host=MONGODB_HOST)
 
 class Event(BaseEvent):
-    sort_order  = StringField()
     tagline     = ListField(StringField(), default=list)
 
     meta = {
@@ -34,7 +33,6 @@ class Product(LuxuryProduct):
     fiber = StringField()
     arrives = StringField()
 
-    international_ship = StringField()
     delivery_date = StringField()
     choke_hazard = StringField()
 

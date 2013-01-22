@@ -34,7 +34,7 @@ def setup():
     """
     run("apt-get update")
     run("apt-get -y upgrade")
-    run("apt-get -y install build-essential python-dev libevent-dev libxslt-dev uuid-dev python-setuptools dtach libzmq-dev redis-server chromium-browser xvfb unzip libjpeg8-dev gfortran libblas-dev liblapack-dev")
+    run("apt-get -y install build-essential python-dev libevent-dev libxslt-dev uuid-dev python-setuptools dtach libzmq-dev redis-server chromium-browser xvfb unzip libjpeg8-dev gfortran libblas-dev liblapack-dev ganglia-monitor")
     run("apt-get -y build-dep python-imaging")
     run("ln -sf /usr/lib/`uname -i`-linux-gnu/libfreetype.so /usr/lib/")
     run("ln -sf /usr/lib/`uname -i`-linux-gnu/libjpeg.so /usr/lib/")
@@ -62,9 +62,12 @@ def setup():
                 run("pip install numpy"+USE_INDEX)
                 run("pip install scipy"+USE_INDEX)
                 run("pip install scikit-learn pattern"+USE_INDEX)
+                # The ez_setup is required for titlecase.
+                run("pip install ez_setup"+USE_INDEX)
+
                 if 'gevent==1.0' not in run("pip freeze|grep gevent").stdout:
                     run("pip install https://github.com/SiteSupport/gevent/tarball/master")
-                run("pip install zerorpc lxml requests pymongo mongoengine redis redisco pytz Pillow mock selenium blinker cssselect boto python-dateutil virtualenvwrapper slumber esmre django"+USE_INDEX) 
+                run("pip install zerorpc lxml requests pymongo mongoengine redis redisco pytz Pillow titlecase mock selenium blinker cssselect boto python-dateutil virtualenvwrapper slumber esmre django"+USE_INDEX) 
 
 def deploy():
     """ deploy crawler&api server code to remotes """

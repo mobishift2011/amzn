@@ -13,7 +13,7 @@ from gevent.coros import Semaphore
 
 from helpers.log import getlogger
 from crawlers.common.events import *
-from backends.monitor.models import Task, fail
+from backends.monitor.models import Task, fail, Stat
 from backends.monitor.setting import EXPIRE_MINUTES, DUMP_INTERVAL
 
 logger = getlogger('monitor', '/tmp/monitor.log')
@@ -87,6 +87,12 @@ def stat_save(sender, **kwargs):
         monitor_task[sender].update({ 'site': site,
                                       'method': method,
                                       'updated_at': utcnow, })
+
+    if is_new:
+        doctype = kwargs.get('obj_type')
+        interval = utcnow.replace(second=0, microsecond=0)
+        Stat.objects(site=site, doctype=doctype.lower(), interval=interval).update(inc__crawl_num=1, upsert=True)
+
 
 @common_failed.bind('sync')
 def stat_failed(sender, **kwargs):

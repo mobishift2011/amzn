@@ -4,6 +4,7 @@ from backends.matching.mechanic_classifier import classify_product_department, c
 from settings import MASTIFF_HOST
 from datetime import datetime
 from slumber import API
+from collections import Counter
 import requests
 import threading
 import json
@@ -25,8 +26,15 @@ def reclassify(site='beyondtherack'):
         for e in m.Event.objects():
             print 'RECLASSIFY EVENT', site, e.event_id, 
             dept = []
+            counter = Counter()
+            total = 0
             for p in m.Product.objects(event_id=e.event_id, updated=True):
-                dept.extend(p.favbuy_dept)
+                counter[tuple(p.favbuy_dept)] += 1
+                total += 1
+            threshold = int(total*0.1)
+            for thedept, count in counter.items():
+                if count > threshold:
+                    dept.extend(list(thedept))
             dept = list(set(dept))
             print dept
             if e.favbuy_dept != dept:

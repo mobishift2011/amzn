@@ -240,7 +240,7 @@
 [0] This is -> Kids & Baby; Toys, Games & Books
 [0] Fancy Nancy -> Kids & Baby; Toys, Games & Books
 [0] Applicator -> Home; Tools
-[0] Tailored Fabric -> Kids & Baby; Maternity; Gear & Equipment; Baby
+[0] Tailored Fabric -> Kids & Baby; Gear & Equipment
 [0] Shift -> Women; Dresses & Skirts
 [0] Wash Cloth -> Home; Bed & Bath
 [0] Wash Cloths -> Home; Bed & Bath
@@ -255,12 +255,12 @@
 [0] Planter -> Home; Tools; Home Accessories
 [0] Diffuser -> Home; Tools; Home Accessories
 [0] Teddy Bear -> Kids & Baby; Toys, Games & Books
-[0] Footmuff -> Kids & Baby; Maternity; Gear & Equipment; Baby
+[0] Footmuff -> Kids & Baby; Gear & Equipment; Baby
 [0] Eyeshadow -> Beauty & Health; Makeup
 [0] Eyeshadows -> Beauty & Health; Makeup
 [0] Eye Shadow -> Beauty & Health; Makeup
 [0] Corkscrew -> Home; Kitchen & Dining
-[0] Crib -> Kids & Baby; Maternity; Gear & Equipment; Baby
+[0] Crib -> Kids & Baby; Gear & Equipment
 [0] Mattress -> Home; Bed & Bath
 [0] Knightsbridge -> Kids & Baby; Toys, Games & Books
 [0] Splitter -> Home; Home Accessories
@@ -868,10 +868,10 @@
 [0] Boy Shoes -> Kids & Baby; Boys' Shoes
 [1] Personal Care -> Beauty & Health; Skin Care
 [1] Beauty -> Beauty & Health
-[1] Baby -> Kids & Baby; Maternity
-[1] Babies -> Kids & Baby; Maternity
-[1] Infant -> Kids & Baby; Maternity
-[1] Toddler -> Kids & Baby; Maternity
+[1] Baby -> Kids & Baby
+[1] Babies -> Kids & Baby
+[1] Infant -> Kids & Baby
+[1] Toddler -> Kids & Baby
 [1] Handbag -> Handbags
 [1] Ladies -> Women
 [1] Girls -> Kids & Baby

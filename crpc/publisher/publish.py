@@ -266,7 +266,11 @@ class Publisher:
                 elif f=="events_end": ev_data['ends_at'] = obj_getattr(ev, 'events_end', datetime.utcnow()+timedelta(days=7)).isoformat()
                 elif f=="events_begin": ev_data['starts_at'] = obj_getattr(ev, 'events_begin', datetime.utcnow()).isoformat()
                 elif f=="image_path": ev_data['cover_image'] = ev['image_path'][0] if ev['image_path'] else {}
-                elif f=="highest_discount": ev_data['highest_discount'] = ev['highest_discount'][:ev['highest_discount'].find('.')+3]
+                elif f=="highest_discount": 
+                    try:
+                        ev_data['highest_discount'] = ev['highest_discount'][:ev['highest_discount'].find('.')+3]
+                    except:
+                        pass
                 elif f=="soldout": ev_data['sold_out'] = m.Product.objects(event_id=ev.event_id, soldout=False).count()==0
                 elif f=="favbuy_tag": ev_data['tags'] = ev.favbuy_tag
                 elif f=="favbuy_brand": ev_data['brands'] = ev.favbuy_brand

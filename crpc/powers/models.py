@@ -21,6 +21,8 @@ class Brand(Document):
     dept            =   ListField(StringField(max_length = 30))
     is_delete       =   BooleanField(default = False)
     done            =   BooleanField(default = False)
+    global_searchs  =   IntField(default=0)
+    local_searchs   =   IntField(default=0)
     created_at      =   DateTimeField(default=datetime.now())
  
     meta = {

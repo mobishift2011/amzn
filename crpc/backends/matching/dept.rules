@@ -5,6 +5,15 @@
 #  [1] - if XXXX in a title; we can determine the main department of it
 #  [2] - if XXXX in a title; we can determine the sub department of it
 # The XXXX is tested in a brute-force; longest first way
+[0] For Mon -> Kids & Baby; Maternity
+[0] Basting Mop -> Home; Kitchen & Dining
+[0] Basting Mops -> Home; Kitchen & Dining
+[0] Capsule Tower -> Home; Kitchen & Dining
+[0] Eternity Band -> Jewelry & Watches; Rings
+[0] Eternity Bands -> Jewelry & Watches; Rings
+[0] Silver Studs -> Jewelry & Watches; Earrings
+[0] Gold Studs -> Jewelry & Watches; Earrings
+[0] Diamond Studs -> Jewelry & Watches; Earrings
 [0] 2-Book Bundle -> Kids & Baby; Toys, Books & Games
 [0] 2-Book Set -> Kids & Baby; Toys, Books & Games
 [0] 3-Book Bundle -> Kids & Baby; Toys, Books & Games
@@ -21,8 +30,8 @@
 [0] Soup Set -> Home; Kitchen & Dining
 [0] Stew Set -> Home; Kitchen & Dining
 [0] Pouchette -> Bags; Handbags
-[0] Bathroom -> Home; Beds & Bath
-[0] Sheets Case -> Home; Beds & Bath
+[0] Bathroom -> Home; Bed & Bath
+[0] Sheets Case -> Home; Bed & Bath
 [0] Gold Enhancer -> Jewelry & Watches; Pendants
 [0] Gold Enhancers -> Jewelry & Watches; Pendants
 [0] Silver Enhancer -> Jewelry & Watches; Pendants
@@ -43,9 +52,9 @@
 [0] Laptop Bags -> Bags; Backpacks & Laptop Bags
 [0] Laptop Sleeve -> Bags; Backpacks & Laptop Bags
 [0] Laptop Sleeves -> Bags; Backpacks & Laptop Bags
-[0] European Sham -> Home; Beds & Bath
-[0] Decorative Pillow -> Home; Beds & Bath
-[0] Decorative Pillows -> Home; Beds & Bath
+[0] European Sham -> Home; Bed & Bath
+[0] Decorative Pillow -> Home; Bed & Bath
+[0] Decorative Pillows -> Home; Bed & Bath
 [0] Teddy -> Women; Intimates & Loungewear
 [0] Camiknicker -> Women; Intimates & Loungewear
 [0] Bodysuit -> Women; Intimates & Loungewear
@@ -66,8 +75,6 @@
 [0] Toe Ring Sandal -> Women; Shoes
 [0] Swarovski Crystal -> Jewelry & Watches; Pendants
 [0] Key Enhancer -> Jewelry & Watches; Pendants
-[0] Light Set -> Home; Furniture & Lighting
-[0] Light Basket -> Home; Furniture & Lighting
 [0] 1-Light Pendant -> Home; Furniture & Lighting
 [0] 2-Light Pendant -> Home; Furniture & Lighting
 [0] 3-Light Pendant -> Home; Furniture & Lighting
@@ -79,7 +86,7 @@
 [0] Air Purifier -> Home; Electronics
 [0] Chimenea -> Furniture & Lighting
 [0] Menorah -> Home; Furniture & Lighting
-[0] Fitted Sheet -> Home; Beds & Bath
+[0] Fitted Sheet -> Home; Bed & Bath
 [0] Wreath -> Home; Home Accessories
 [0] Flooring -> Home; Rugs & Textiles
 [0] Boy Boxers -> Kids & Baby; Boys' Clothing
@@ -114,11 +121,9 @@
 [0] Wine Glass -> Home; Kitchen & Dining
 [0] Wine Glasses -> Home; Kitchen & Dining
 [0] Twin Techno -> Kids & Baby; Gear & Equipment
-[0] Bib -> Kids & Baby; Baby
-[0] DreamSwaddle -> Kids & Baby; Baby
+[0] DreamSwaddle -> Kids & Baby; Maternity
 [0] Chime -> Home; Accessories
 [0] Tablecloth -> Home; Rugs & Textiles
-[0] Stroller -> Kids & Baby; Gear & Equipment
 [0] Modular Cube -> Home; Furniture & Lighitng
 [0] Bookcase -> Home; Furniture & Lighitng
 [0] Block Set -> Kids & Baby; Toys, Games & Books
@@ -130,7 +135,7 @@
 [0] Lenox -> Home; Kitchen & Dining
 [0] Plushie -> Kids & Baby; Toys, Games & Books
 [0] Armchair -> Home; Furniture & Lighting
-[0] Sheets Cases -> Home; Beds & Bath
+[0] Sheets Cases -> Home; Bed & Bath
 [0] Steamer -> Home; Kitchen & Dining
 [0] Grater -> Home; Kitchen & Dining
 [0] Tabletop -> Home; Home Accessories
@@ -151,7 +156,7 @@
 [0] Eyelid -> Beauty & Helath; Makeup
 [0] Album -> Home; Home Accessories
 [0] Regas -> Home; Home Accessories
-[0] eva nyc -> Beauty & Health; Hair Care; Women; Accessories
+[0] eva nyc -> Beauty & Health; Body Care & Hair; Women; Accessories
 [0] Locket -> Jewelry & Watches; Pendants
 [0] Lockets -> Jewelry & Watches; Pendants
 [0] Framed Abstract -> Home; Home Accessories
@@ -208,12 +213,12 @@
 [0] Statue -> Home; Home Accessories
 [0] Statues -> Home; Home Accessories
 [0] Stool -> Home; Furniture & Lighting; Accessories
-[0] Shampoo -> Beauty & Health; Hair Care
-[0] Conditioner -> Beauty & Health; Hair Care
-[0] Clip-In -> Beauty & Health; Hair Care
-[0] Hairpiece -> Beauty & Health; Hair Care
-[0] Hairdo -> Beauty & Health; Hair Care
-[0] Hairdos -> Beauty & Health; Hair Care
+[0] Shampoo -> Beauty & Health; Body Care & Hair
+[0] Conditioner -> Beauty & Health; Body Care & Hair
+[0] Clip-In -> Beauty & Health; Body Care & Hair
+[0] Hairpiece -> Beauty & Health; Body Care & Hair
+[0] Hairdo -> Beauty & Health; Body Care & Hair
+[0] Hairdos -> Beauty & Health; Body Care & Hair
 [0] Wine Bucket -> Home; Kitchen & Dining
 [0] Red Wine Cup -> Home; Kitchen & Dining
 [0] White Wine Cup -> Home; Kitchen & Dining
@@ -228,17 +233,16 @@
 [0] Hidden Moves -> Home; Home Accessories
 [0] Manuel Rebollo -> Home; Home Accessories
 [0] Lora Zombie -> Home; Home Accessories
-[0] Disney -> Kids & Baby; Toys, Games & Books
 [0] Discovery Set -> Kids & Baby; Toys, Games & Books
 [0] This is -> Kids & Baby; Toys, Games & Books
 [0] Fancy Nancy -> Kids & Baby; Toys, Games & Books
 [0] Applicator -> Home; Tools
-[0] Tailored Fabric -> Kids & Baby; Maternity; Gear & Equipment; Baby
+[0] Tailored Fabric -> Kids & Baby; Gear & Equipment
 [0] Shift -> Women; Dresses & Skirts
-[0] Wash Cloth -> Home; Beds & Bath
-[0] Wash Cloths -> Home; Beds & Bath
-[0] Washcloth -> Home; Beds & Bath
-[0] Washcloths -> Home; Beds & Bath
+[0] Wash Cloth -> Home; Bed & Bath
+[0] Wash Cloths -> Home; Bed & Bath
+[0] Washcloth -> Home; Bed & Bath
+[0] Washcloths -> Home; Bed & Bath
 [0] Wastebasket -> Home; Home Accessories
 [0] Chandelier -> Home; Furniture & Lighting
 [0] Fountain -> Home; Home Accessories
@@ -248,13 +252,12 @@
 [0] Planter -> Home; Tools; Home Accessories
 [0] Diffuser -> Home; Tools; Home Accessories
 [0] Teddy Bear -> Kids & Baby; Toys, Games & Books
-[0] Footmuff -> Kids & Baby; Maternity; Gear & Equipment; Baby
+[0] Footmuff -> Kids & Baby; Gear & Equipment; Baby
 [0] Eyeshadow -> Beauty & Health; Makeup
 [0] Eyeshadows -> Beauty & Health; Makeup
 [0] Eye Shadow -> Beauty & Health; Makeup
 [0] Corkscrew -> Home; Kitchen & Dining
-[0] Crib -> Kids & Baby; Maternity; Gear & Equipment; Baby
-[0] Mattress -> Home; Beds & Bath
+[0] Mattress -> Home; Bed & Bath
 [0] Knightsbridge -> Kids & Baby; Toys, Games & Books
 [0] Splitter -> Home; Home Accessories
 [0] Thermometer -> Home; Home Accessories
@@ -316,9 +319,6 @@
 [0] Monokini -> Women; Intimates & Loungewear
 [0] Shirtdress -> Women; Dresses & Skirts
 [0] Skirtdress -> Women; Dresses & Skirts
-[0] Maryjane -> Women; Shoes
-[0] Mary Jane -> Women; Shoes
-[0] Mary Janes -> Women; Shoes
 [0] Onesie -> Kids & Baby; Boys' Clothing; Girls Clothing
 [0] Scent -> Beauty & Health; Fragrance
 [0] Travel Bag -> Bags; Luggage Bags
@@ -336,7 +336,7 @@
 [0] Swim Coverup -> Beauty & Health; Skin Care
 [0] Lotion -> Beauty & Health; Skin Care
 [0] Oyster Perpetual -> Jewerly & Watches; Men's Watches; Women's Watches
-[0] Aftershave -> Men; Accessories; Beauty & Health; Skin Care
+[0] Aftershave -> Beauty & Health; Skin Care
 [0] Card Case -> Bags; Wallets
 [0] Deodorant -> Beauty & Health; Fragrance
 [0] EDP -> Beauty & Health; Fragrance
@@ -381,12 +381,10 @@
 [0] Trinket -> Home; Home Accessories
 [0] Barstool -> Home; Kitchen & Dining
 [0] Barstools -> Home; Kitchen & Dining
-[0] Quilt -> Home; Beds & Bath
-[0] Quilts -> Home; Beds & Bath
-[0] Coverlet -> Home; Beds & Bath
-[0] Coverlets -> Home; Beds & Bath
-[0] Coverlit -> Home; Beds & Bath
-[0] Coverlits -> Home; Beds & Bath
+[0] Coverlet -> Home; Bed & Bath
+[0] Coverlets -> Home; Bed & Bath
+[0] Coverlit -> Home; Bed & Bath
+[0] Coverlits -> Home; Bed & Bath
 [0] Cups -> Home; Kitchen & Dining
 [0] Sporran -> Bags; Wallets
 [0] Teabag -> Bags; Wallets
@@ -403,13 +401,12 @@
 [0] Wall -> Home; Home Accessories
 [0] Oven Mitt -> Home; Home Accessories; Kitchen & Dining
 [0] Corset -> Women; Intimates & Loungewear
-[0] Bumper Set -> Kids & Baby; Gear & Equipment; Home; Home Accessories
 [0] Wine Box -> Home; Kitchen & Dining
 [0] Dipping Set -> Home; Kitchen & Dining
 [0] Open Toe -> Women; Shoes
-[0] Comforter -> Home; Beds & Bath
+[0] Comforter -> Home; Bed & Bath
 [0] Magnifier -> Home; Home Accessories
-[0] Pearl Duvet Set -> Home; Beds & Bath
+[0] Pearl Duvet Set -> Home; Bed & Bath
 [0] Pearl Set -> Jewelry & Watches; Bracelets; Necklaces; Earrings; Rings
 [0] Drink Opener -> Home; Kitchen & Dining
 [0] Kitchen -> Home; Kitchen & Dining
@@ -423,9 +420,9 @@
 [0] Messenger Bag -> Bags; Crossbody Bags
 [0] Kitchen Brush -> Home; Kitchen & Dining; Tools
 [0] Platter -> Home; Kitchen & Dining
-[0] Curtain -> Home; Beds & Bath
-[0] Curtains -> Home; Beds & Bath
-[0] Bath -> Home; Beds & Bath
+[0] Curtain -> Home; Bed & Bath
+[0] Curtains -> Home; Bed & Bath
+[0] Bath -> Home; Bed & Bath
 [0] Tray -> Home; Kitchen & Dining
 [0] Trays -> Home; Kitchen & Dining
 [0] Map -> Home; Home Accessories
@@ -452,14 +449,14 @@
 [0] Canister -> Home; Kitchen & Dining
 [0] Apron -> Home; Kitchen & Dining
 [0] Love Letters -> Home; Home Accessories
-[0] Tower -> Home; Beds & Bath
+[0] Tower -> Home; Bed & Bath
 [0] Coffee Set -> Home; Kitchen & Dining
 [0] Cross Body -> Bags; Crossbody Bags
 [0] Crossbody -> Bags; Crossbody Bags
 [0] Cross-Body -> Bags; Crossbody Bags
 [0] Organizer -> Home; Home Accessories
 [0] Step Stool -> Home; Furniture & Lighting
-[0] Shower Liner -> Home; Beds & Bath
+[0] Shower Liner -> Home; Bed & Bath
 [0] Bolero -> Women; Dresses & Skirts
 [0] Plate -> Home; Kitchen & Dining
 [0] Plates -> Home; Kitchen & Dining
@@ -468,7 +465,7 @@
 [0] Lamps -> Home; Furniture & Lighting
 [0] Shootie -> Women; Shoes
 [0] Shooties -> Women; Shoes
-[0] Sham -> Home; Beds & Bath
+[0] Sham -> Home; Bed & Bath
 [0] Suitcases -> Bags; Luggage Bags
 [0] Suitcase -> Bags; Luggage Bags
 [0] Patent Skimmer -> Women; Shoes
@@ -515,7 +512,7 @@
 [0] Placemat -> Home; Kitchen & Dining
 [0] Placemats -> Home; Kitchen & Dining
 [0] Sunshine Bottom -> Women; Intimates & Loungewear
-[0] Cotton Set -> Home; Beds & Bath
+[0] Cotton Set -> Home; Bed & Bath
 [0] Touch Scale -> Home; Home Accessories
 [0] Lantern -> Home; Furniture & Lighting
 [0] Meat Grinder -> Home; Kitchen & Dining
@@ -535,7 +532,7 @@
 [0] Lace Top -> Women; Shirts & Sweaters
 [0] Tablepad -> Home; Home Accessories
 [0] Ege Glass -> Home; Kitchen & Dining
-[0] Bedspread -> Home; Beds & Bath
+[0] Bedspread -> Home; Bed & Bath
 [0] Z-Case -> Bags; Luggage Bags
 [0] Fleurs-De-Lys -> Home; Home Accessories
 [0] Wedges -> Women; Shoes
@@ -556,14 +553,14 @@
 [0] Candle Holders -> Home; Home Accessories
 [0] Mesh Cover Up -> Women; Dresses & Skirts
 [0] Canister Set -> Home; Home Accessories
-[0] Beds -> Beds & Bath
+[0] Beds -> Bed & Bath
 [0] Sconce -> Home; Furniture & Lighting
 [0] Rosso Corsa Remix -> Men; Shoes
 [0] Armillary -> Home; Home Accessories
 [0] Mixed Pearl Set -> Jewelry & Watches; Bracelets; Necklaces
 [0] Medallion -> Home; Home Accessories
-[0] Throw -> Home; Beds & Bath
-[0] Throws -> Home; Beds & Bath
+[0] Throw -> Home; Bed & Bath
+[0] Throws -> Home; Bed & Bath
 [0] Ramekins -> Home; Kitchen & Dining
 [0] Goblets -> Home; Kitchen & Dining
 [0] Book Boxes -> Home; Home Accessories
@@ -573,7 +570,7 @@
 [0] Bowl Set -> Home; Kitchen & Dining
 [0] Ivory Lane Quinn Zebra -> Bags; Handbags
 [0] Chairs -> Home; Furniture & Lighting
-[0] Towel Set -> Home; Beds & Bath
+[0] Towel Set -> Home; Bed & Bath
 [0] Garlic Press -> Home; Kitchen & Dining
 [0] Tumblers -> Home; Kitchen & Dining
 [0] Wine Rack -> Home; Kitchen & Dining
@@ -605,7 +602,7 @@
 [0] Board -> Home; Home Accessories
 [0] Apezord -> Kids & Baby; Toys, Games & Books
 [0] Martini Glass -> Home; Kitchen & Dining
-[0] Deco Bed -> Home; Beds & Bath
+[0] Deco Bed -> Home; Bed & Bath
 [0] Fit Cords -> Men; Pants & Shorts
 [0] Flower Wrap -> Home; Home Accessories
 [0] Wristlet -> Bags; Wallets
@@ -635,24 +632,14 @@
 [0] Totes -> Bags; Handbags
 [0] Fire Patrol Rescue -> Kids & Baby; Toys, Games & Books
 [0] Romper -> Women; Dresses & Skirts
-[0] Pillowcase -> Home; Beds & Bath
+[0] Pillowcase -> Home; Bed & Bath
 [0] Storage Rack -> Home; Furniture & Lighting
 [0] Cuckoo Rooster -> Home; Home Accessories
 [0] Hardcase -> Bags; Luggage Bags
-[0] WII -> Kids & Baby; Toys, Games & Books; Home; Electronics
-[0] PS3 -> Kids & Baby; Toys, Games & Books; Home; Electronics
-[0] PS1 -> Kids & Baby; Toys, Games & Books; Home; Electronics
-[0] PS2 -> Kids & Baby; Toys, Games & Books; Home; Electronics
-[0] Playstation3 -> Kids & Baby; Toys, Games & Books; Home; Electronics
-[0] XBox360 -> Kids & Baby; Toys, Games & Books; Home; Electronics
-[0] Xbox360 -> Kids & Baby; Toys, Games & Books; Home; Electronics
-[0] XB360 -> Kids & Baby; Toys, Games & Books; Home; Electronics
-[0] Xbox -> Kids & Baby; Toys, Games & Books; Home; Electronics
-[0] XBox -> Kids & Baby; Toys, Games & Books; Home; Electronics
 [0] Boxset -> Home; Home Accessories
 [0] Cutlery Set -> Home; Kitchen & Dining
-[0] Glasses Set -> Home; Kicthen & Dining
-[0] Glass Set -> Home; Kicthen & Dining
+[0] Glasses Set -> Home; Kitchen & Dining
+[0] Glass Set -> Home; Kitchen & Dining
 [0] Glasses -> Men; Women; Accessories
 [0] Piece Puzzle -> Home; Home Accessories
 [0] Calf Boot -> Women; Shoes
@@ -676,11 +663,11 @@
 [0] Unisex Watches -> Jewelry & Watches; Men's Watches; Women's Watches
 [0] Doll Necklace -> Kids & Baby; Accessories
 [0] Pearl Necklace -> Jewelry & Watches; Necklaces
-[0] Bathrobe -> Home; Beds & Bath
+[0] Bathrobe -> Home; Bed & Bath
 [0] Dispenser -> Home; Kitchen & Dining
 [0] Kilim -> Home; Rugs & Textiles
-[0] Duvet -> Home; Beds & Bath
-[0] Duvet Set -> Home; Beds & Bath
+[0] Duvet -> Home; Bed & Bath
+[0] Duvet Set -> Home; Bed & Bath
 [0] Hangers -> Home; Home Accessories
 [0] Triple Sorter -> Home; Home Accessories
 [0] Skirt Suit -> Women; Dresses & Skirts
@@ -732,12 +719,11 @@
 [0] Boyshort -> Women; Intimates & Loungewear
 [0] Boyshorts -> Women; Intimates & Loungewear
 [0] Capture Thong -> Men; Socks, Underwear & Sleepwear
-[0] Thong -> Women; Intimates & Loungewear
 [0] Blouse -> Women; Shirts & Sweaters
 [0] Garment Rack -> Home; Home Accessories
-[0] Pearl Sheet Set -> Home; Beds & Bath
-[0] Solid Sheet -> Home; Beds & Bath
-[0] Sheet Set -> Home; Beds & Bath
+[0] Pearl Sheet Set -> Home; Bed & Bath
+[0] Solid Sheet -> Home; Bed & Bath
+[0] Sheet Set -> Home; Bed & Bath
 [0] Shelving -> Home; Furniture & Lighting
 [0] Candy Tube Dress -> Women; Dresses & Skirts
 [0] Pearl Dress -> Women; Dresses & Skirts
@@ -745,7 +731,7 @@
 [0] Print Dress -> Women; Dresses & Skirts
 [0] Mini Dress -> Women; Dresses & Skirts
 [0] Fergie Dress -> Women; Dresses & Skirts
-[0] Comforter Set -> Home; Beds & Bath
+[0] Comforter Set -> Home; Bed & Bath
 [0] Knee High Boots -> Women; Shoes
 [0] Knee-High -> Women; Shoes
 [0] Knee High -> Women; Shoes
@@ -765,11 +751,6 @@
 [0] Basic Wrap -> Women; Accessories
 [0] Fierce Sneakers -> Men; Shoes
 [0] Non-Stick Grill -> Home; Kitchen & Dining
-[0] Maxi Dress -> Women; Dresses & Skirts
-[0] Ruffle Dress -> Women; Dresses & Skirts
-[0] Peacock Dress -> Women; Dresses & Skirts
-[0] Short Dress -> Women; Dresses & Skirts
-[0] Maxi Cover Up -> Women; Dresses & Skirts
 [0] Men Watch -> Jewelry & Watches; Men's Watches
 [0] Men Wristwatch -> Jewelry & Watches; Men's Watches
 [0] Women Watch -> Jewelry & Watches; Women's Watches
@@ -797,15 +778,15 @@
 [0] Coffeemaker -> Home; Kitchen & Dining
 [0] Apron And Thong -> Women; Intimates & Loungewear
 [0] Wall Decor -> Home; Home Accessories
-[0] Thread Count Sheet -> Home; Beds & Bath
+[0] Thread Count Sheet -> Home; Bed & Bath
 [0] Pochette -> Bags; Handbags
 [0] Silicone Madeleine -> Home; Kitchen & Dining
-[0] Bath Sheet -> Home; Beds & Bath
+[0] Bath Sheet -> Home; Bed & Bath
 [0] Babies Puffer Jacket -> Kids & Baby; Boys' Clothing; Girls' Clothing
 [0] Boys Puffer Jacket -> Kids & Baby; Boys' Clothing
 [0] Drying Rack -> Home; Home Accessories
-[0] Animal Print Throw -> Home; Beds & Bath
-[0] Sherpa Throw -> Home; Beds & Bath
+[0] Animal Print Throw -> Home; Bed & Bath
+[0] Sherpa Throw -> Home; Bed & Bath
 [0] Decorative Art -> Home; Home Accessories
 [0] Old World Art -> Home; Home Accessories
 [0] Art Pieces -> Home; Home Accessories
@@ -825,9 +806,8 @@
 [0] Saute Pan -> Home; Kitchen & Dining
 [0] Umbrella -> Home; Home Accessories
 [0] Dog Leash -> Home; Home Accessories
-[0] Poncho -> Women; Accessories
 [0] Dinnerware -> Home; Kitchen & Dining
-[0] Cushion -> Home; Beds & Bath
+[0] Cushion -> Home; Bed & Bath
 [0] Baby Doll Thong -> Women; Intimates & Loungewear
 [0] Sheer Baby Doll -> Women; Intimates & Loungewear
 [0] Bandeau -> Women; Intimates & Loungewear
@@ -867,10 +847,11 @@
 [0] Girl Shoes -> Kids & Baby; Girls' Shoes
 [0] Boy Shoes -> Kids & Baby; Boys' Shoes
 [1] Personal Care -> Beauty & Health; Skin Care
-[1] Baby -> Kids & Baby; Baby
-[1] Babies -> Kids & Baby; Baby
-[1] Infant -> Kids & Baby; Baby
-[1] Toddler -> Kids & Baby; Baby
+[1] Beauty -> Beauty & Health
+[1] Baby -> Kids & Baby
+[1] Babies -> Kids & Baby
+[1] Infant -> Kids & Baby
+[1] Toddler -> Kids & Baby
 [1] Handbag -> Handbags
 [1] Ladies -> Women
 [1] Girls -> Kids & Baby
@@ -922,8 +903,7 @@
 [2] Dresses -> Dresses & Skirts
 [2] Skirt -> Dresses & Skirts
 [2] Belt -> Accessories
-[2] Belt- -> Accessories
-[2] Vest -> Accessories
+[2] Vest -> Outerwear
 [2] Muffler -> Accessories
 [2] Mufflers -> Accessories
 [2] Corduroy -> Pants & Shorts
@@ -939,7 +919,7 @@
 [2] Leggings -> Pants & Shorts
 [2] Trousers -> Pants & Shorts
 [2] Trouser -> Pants & Shorts
-[2] Sweater Vest -> Accessories
+[2] Sweater Vest -> Outerwear
 [2] Slipper -> Shoes
 [2] Slippers -> Shoes
 [2] Tank -> Shirts & Sweaters
@@ -979,7 +959,7 @@
 [2] Coat -> Suits & Coats
 [2] Coats -> Suits & Coats
 [2] Trench -> Suits & Coats
-[2] Shawl -> Accessories
+[2] Shawl -> Outerwear
 [2] Coveralls -> Outerwear
 [2] Coverall -> Outerwear
 [2] Shorts -> Pants & Shorts
@@ -1029,8 +1009,8 @@
 [2] Beanie -> Accessories
 [2] Swimwear -> Intimates & Loungewear
 [2] Swimwears -> Intimates & Loungewear
-[2] Cape -> Accessories
-[2] Capes -> Accessories
+[2] Cape -> Outerwear
+[2] Capes -> Outerwears
 [2] Heel -> Shoes
 [2] Heels -> Shoes
 [2] Rooster -> Accessories
@@ -1042,23 +1022,23 @@
 [2] Jumpsuit -> Suits & Coats
 [2] Jumpsuits -> Suits & Coats
 [2] Necktie -> Accessories
-[2] Bathmat -> Beds & Bath; Accessories
-[2] Non-Slip -> Accessories; Beds & Bath
-[2] Anti-Slip -> Accessories; Beds & Bath
+[2] Bathmat -> Bed & Bath; Accessories
+[2] Non-Slip -> Accessories; Bed & Bath
+[2] Anti-Slip -> Accessories; Bed & Bath
 [2] Neck Roll -> Accessories
 [2] Neckroll -> Accessories
 [2] Neckrolls -> Accessories
 [2] Flap -> Accessories
 [2] Short Sleeve -> Shirts & Sweaters
 [2] Long Sleeve -> Shirts & Sweaters
-[2] Shower -> Beds & Bath; Accessories
+[2] Shower -> Bed & Bath; Accessories
 [2] TV -> Electronics; Accessories
 [2] Undershirt -> Intimates & Loungewear
-[2] Swim Trunk -> Intimates & Loungewear
-[2] Swim Trunks -> Intimates & Loungewear
 [2] Swim Set -> Intimates & Loungewear
 [2] Trunk -> Home; Accessories
-[2] Trunks -> Intimates & Loungewear
+[2] Trunks -> Men; Intimates & Loungewear
+[2] Swim Trunk -> Men; Intimates & Loungewear
+[2] Swim Trunks -> Men; Intimates & Loungewear
 [2] Knit -> Shirts & Sweaters
 [2] Cuff -> Accessories
 [2] Cuffs -> Accessories
@@ -1134,10 +1114,10 @@
 [2] Case -> Backpacks & Laptop Bags
 [2] Leg Jean -> Pants & Shorts
 [2] Leg -> Pants & Shorts
-[2] Towel -> Beds & Bath
-[2] Towels -> Beds & Bath
-[2] Blanket -> Beds & Bath
-[2] Blankets -> Beds & Bath
+[2] Towel -> Bed & Bath
+[2] Towels -> Bed & Bath
+[2] Blanket -> Bed & Bath
+[2] Blankets -> Bed & Bath
 [2] Cart -> Luggage Bags; Tools
 [2] Carts -> Luggage Bags; Tools
 [2] Art -> Accessories
@@ -1204,11 +1184,11 @@
 [2] Pin -> Accessories
 [2] Trend Set -> Accessories
 [2] Lounge -> Furniture & Lighting
-[2] Sleeve -> Accessories
 [2] V-Neck -> Shirts & Sweaters
 [2] Vneck -> Shirts & Sweaters
 [2] Sink -> Furniture & Lighting
 [2] Shave -> Men; Accessories
+[2] Shaving -> Men; Accessories
 [2] Keyring -> Accessories
 [2] Key Fob -> Accessories
 [2] Bike -> Accessories
@@ -1231,13 +1211,13 @@
 [2] Wristbands -> Accessories
 [2] Microphone -> Accessories
 [2] Camera -> Accessories
-[2] Pouf -> Beds & Bath
-[2] Cream -> Skin Care
+[2] Pouf -> Bed & Bath
+[2] Cream -> Beauty & Health; Skin Care
 [2] Bootbelt -> Accessories
-[2] Thermal -> Accessories
+[2] Thermal -> Shirts & Sweaters
 [2] Sleepshirt -> Intimates & Loungewear
-[2] Pillowcase -> Beds & Bath
-[2] Pillowcases -> Beds & Bath
+[2] Pillowcase -> Bed & Bath
+[2] Pillowcases -> Bed & Bath
 [2] Bucket -> Accessories
 [2] Loungewear -> Intimates & Loungewear
 [2] Outerwear -> Outerwear
@@ -1289,7 +1269,6 @@
 [2] Turtle Neck -> Shirts & Sweaters
 [2] Capelet -> Accessories
 [2] Lazy Susan -> Accessories
-[2] x -> Accessories
 [2] GPS -> Accessories
 [2] Lighter -> Accessories
 [2] Lighters -> Accessories
@@ -1316,6 +1295,7 @@
 [2] Pencils -> Accessories
 [2] Tuxedo -> Suits & Coats
 [2] Game -> Kids & Baby; Toys, Games & Books
+[2] Games -> Kids & Baby; Toys, Games & Books
 [2] Galaxy Spinner -> Kids & Baby; Toys, Games & Books
 [2] Magnet -> Accessories
 [2] Magnets -> Accessories
@@ -1345,7 +1325,7 @@
 [2] Decoration -> Accessories
 [2] Windshirt -> Shirts & Sweaters
 [2] Globe -> Home; Accessories
-[2] Bedskirt -> Intimates & Loungewear; Beds & Bath
+[2] Bedskirt -> Intimates & Loungewear; Bed & Bath
 [2] Guitar -> Home; Accessories
 [2] Container -> Home; Kitchen & Dining
 [2] Dress-Up -> Kids & Baby; Toys, Games & Books
@@ -1368,7 +1348,7 @@
 [2] Champagne -> Champagne
 [2] Sparkling -> Champagne
 [2] Puffer -> Outerwear
-[2] Body -> Skin Care
+[2] Body -> Beauty & Health; Skin Care
 [2] Shimmer -> Makeup
 [2] Tie Dress -> Dresses & Skirts
 [2] Neck Dress -> Dresses & Skirts
@@ -1410,7 +1390,7 @@
 [2] Bakers -> Kitchen & Dining
 [2] Rain Boot -> Shoes
 [2] Biker Boot -> Shoes
-[2] Bed -> Beds & Bath
+[2] Bed -> Bed & Bath
 [2] Cup -> Kitchen & Dining
 [2] Booties -> Shoes
 [2] Bootie -> Shoes
@@ -1420,7 +1400,7 @@
 [2] Ski Gear -> Gear & Equipment
 [2] Sled -> Gear & Equipment
 [2] Skinny Jeans -> Pants & Shorts
-[2] Hair -> Beauty & Health; Hair Care
+[2] Hair -> Beauty & Health; Body Care & Hair
 [2] Workshirt -> Shirts & Sweaters
 [2] Workshirts -> Shirts & Sweaters
 [2] Box Set -> Accessories
@@ -1432,14 +1412,14 @@
 [2] Duffle -> Handbags
 [2] Duffel -> Handbags
 [2] Laundry -> Accessories
-[2] Pillow -> Beds & Bath
-[2] Pillows -> Beds & Bath
+[2] Pillow -> Bed & Bath
+[2] Pillows -> Bed & Bath
 [2] Lipstick -> Beauty & Helath; Makeup
 [2] Panel -> Accessories
 [2] Panels -> Accessories
 [2] Chair -> Furniture & Lighting
 [2] Gown -> Dresses & Skirts
-[2] Sleeping Bag -> Beds & Bath
+[2] Sleeping Bag -> Bed & Bath
 [2] Pacific Play -> Toys, Games & Books
 [2] Garden Set -> Tools
 [2] Sugar Raglan -> Shirts & Sweaters
@@ -1463,3 +1443,54 @@
 [2] Decor -> Accessories
 [2] Decorative -> Accessories
 [2] Cami -> Intimates & Loungewear
+[2] Maxi Dress -> Dresses & Skirts
+[2] Ruffle Dress -> Dresses & Skirts
+[2] Peacock Dress -> Dresses & Skirts
+[2] Short Dress -> Dresses & Skirts
+[2] Maxi Cover Up -> Dresses & Skirts
+[2] Serum -> Beauty & Health; Skin Care
+[2] Drops -> Beauty & Health; Body Care & Hair
+[2] Moisturizer -> Beauty & Health; Skin Care
+[2] SPF30 -> Beauty & Health; Skin Care
+[2] Thong -> Intimates & Loungewear
+[2] Thongs -> Intimates & Loungewear
+[2] Poncho -> Outerwear
+[2] Ponchos -> Outerwear
+[2] Helmet -> Accessories
+[2] Helmets -> Accessories
+[2] Photo -> Accessories
+[2] Photograph -> Accessories
+[2] Poncho Top -> Dresses & Skirts
+[2] Sheet -> Bed & Bath
+[2] Flat Sheet -> Bed & Bath
+[2] Cinnamon -> Kitchen & Dining
+[2] Visor -> Accessories
+[2] Visors -> Accessories
+[2] Flat Iron -> Beauty & Health; Body Care & Hair
+[2] Dryer -> Beauty & Health; Body Care & Hair
+[2] Pressing Comb -> Beauty & Health; Body Care & Hair
+[2] WII -> Kids & Baby; Toys, Games & Books
+[2] PS3 -> Kids & Baby; Toys, Games & Books
+[2] PS1 -> Kids & Baby; Toys, Games & Books
+[2] PS2 -> Kids & Baby; Toys, Games & Books
+[2] Playstation3 -> Kids & Baby; Toys, Games & Books
+[2] XBox360 -> Kids & Baby; Toys, Games & Books
+[2] XB360 -> Kids & Baby; Toys, Games & Books
+[2] XBox -> Kids & Baby; Toys, Games & Books
+[2] See Kai Run -> Shoes
+[2] Disney -> Kids & Baby; Toys, Games & Books
+[2] Maryjane -> Shoes
+[2] Mary Jane -> Shoes
+[2] Mary Janes -> Shoes
+[2] Bedding Set -> Bed & Bath
+[2] Bumper -> Bed & Bath
+[2] Crib -> Bed & Bath
+[2] Mattress -> Bed & Bath
+[2] Stroller -> Gear & Equipment
+[2] Zip Stroller -> Outerwear
+[2] Light Set -> Home; Furniture & Lighting
+[2] Light Basket -> Home; Furniture & Lighting
+[2] Blanket Set -> Home; Bed & Bath
+[2] Cover Set -> Home; Bed & Bath
+[2] Quilt -> Home; Bed & Bath
+[2] Quilts -> Home; Bed & Bath

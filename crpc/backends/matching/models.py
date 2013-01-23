@@ -136,7 +136,6 @@ CATS = {
 	    'Gear & Equipment',
 	    'Bed, Bath & Furniture',
         'Maternity',
-        'Baby',
         'Accessories',
     ],
     'Home': [
@@ -175,7 +174,6 @@ CATS = {
 	    'Red Wine',
 	    'White Wine',
 	    'Champagne',
-	    'Wine Accessories',
     ],
 }
 

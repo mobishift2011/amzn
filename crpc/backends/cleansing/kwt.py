@@ -78,6 +78,7 @@ class AdwordsAutomater(object):
         try:
             search = re.compile(r'(\?[^#]*)#').search(self.ff.current_url).group(1)
             self.kwurl = 'https://adwords.google.com/o/Targeting/Explorer'+search+'&__o=cues&ideaRequestType=KEYWORD_IDEAS';
+            print self.kwurl
         except:
             print self.ff.current_url, email, passwd
 
@@ -96,7 +97,7 @@ class AdwordsAutomater(object):
         self.ff.get(self.kwurl)
 
         try:
-            kwinput = self.ff.find_element_by_class_name("sJBB")
+            kwinput = self.ff.find_element_by_class_name("sECB")
         except:
             return ret
         kwinput.send_keys('\n'.join(keywords))
@@ -106,7 +107,7 @@ class AdwordsAutomater(object):
         try:
             # wait for at least one elements ready, implicitly
             self.ff.find_elements_by_xpath('//tr//*[contains(text(),"{0}")]'.format(random.choice(keywords)))
-            text = self.ff.find_elements_by_xpath('//table[@class="sBPB"]')[0].text
+            text = self.ff.find_elements_by_xpath('//table[@class="sMPB"]')[0].text
         except Exception:
             # if we fail, fail gracefully
             print self.email, 'failed'

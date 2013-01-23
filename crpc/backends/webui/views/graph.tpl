@@ -11,11 +11,10 @@
       <h1>monitor, control</h1>
         
       <ul class="nav nav-pills">
-        <li>
-            <a href="#">Tasks</a>
-        </li>
+        <li><a href="/task">Tasks</a></li>
         <li><a href="/control">Control</a></li>
         <li><a href="/publish">Publish</a></li>
+        <li><a href="/history">History</a></li>
         <li class="active"><a href="/graph">Graph</a></li>
       </ul>
 

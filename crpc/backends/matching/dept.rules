@@ -75,8 +75,6 @@
 [0] Toe Ring Sandal -> Women; Shoes
 [0] Swarovski Crystal -> Jewelry & Watches; Pendants
 [0] Key Enhancer -> Jewelry & Watches; Pendants
-[0] Light Set -> Home; Furniture & Lighting
-[0] Light Basket -> Home; Furniture & Lighting
 [0] 1-Light Pendant -> Home; Furniture & Lighting
 [0] 2-Light Pendant -> Home; Furniture & Lighting
 [0] 3-Light Pendant -> Home; Furniture & Lighting
@@ -126,7 +124,6 @@
 [0] DreamSwaddle -> Kids & Baby; Maternity
 [0] Chime -> Home; Accessories
 [0] Tablecloth -> Home; Rugs & Textiles
-[0] Stroller -> Kids & Baby; Gear & Equipment
 [0] Modular Cube -> Home; Furniture & Lighitng
 [0] Bookcase -> Home; Furniture & Lighitng
 [0] Block Set -> Kids & Baby; Toys, Games & Books
@@ -236,7 +233,6 @@
 [0] Hidden Moves -> Home; Home Accessories
 [0] Manuel Rebollo -> Home; Home Accessories
 [0] Lora Zombie -> Home; Home Accessories
-[0] Disney -> Kids & Baby; Toys, Games & Books
 [0] Discovery Set -> Kids & Baby; Toys, Games & Books
 [0] This is -> Kids & Baby; Toys, Games & Books
 [0] Fancy Nancy -> Kids & Baby; Toys, Games & Books
@@ -261,7 +257,6 @@
 [0] Eyeshadows -> Beauty & Health; Makeup
 [0] Eye Shadow -> Beauty & Health; Makeup
 [0] Corkscrew -> Home; Kitchen & Dining
-[0] Crib -> Kids & Baby; Gear & Equipment
 [0] Mattress -> Home; Bed & Bath
 [0] Knightsbridge -> Kids & Baby; Toys, Games & Books
 [0] Splitter -> Home; Home Accessories
@@ -324,9 +319,6 @@
 [0] Monokini -> Women; Intimates & Loungewear
 [0] Shirtdress -> Women; Dresses & Skirts
 [0] Skirtdress -> Women; Dresses & Skirts
-[0] Maryjane -> Women; Shoes
-[0] Mary Jane -> Women; Shoes
-[0] Mary Janes -> Women; Shoes
 [0] Onesie -> Kids & Baby; Boys' Clothing; Girls Clothing
 [0] Scent -> Beauty & Health; Fragrance
 [0] Travel Bag -> Bags; Luggage Bags
@@ -389,8 +381,6 @@
 [0] Trinket -> Home; Home Accessories
 [0] Barstool -> Home; Kitchen & Dining
 [0] Barstools -> Home; Kitchen & Dining
-[0] Quilt -> Home; Bed & Bath
-[0] Quilts -> Home; Bed & Bath
 [0] Coverlet -> Home; Bed & Bath
 [0] Coverlets -> Home; Bed & Bath
 [0] Coverlit -> Home; Bed & Bath
@@ -411,7 +401,6 @@
 [0] Wall -> Home; Home Accessories
 [0] Oven Mitt -> Home; Home Accessories; Kitchen & Dining
 [0] Corset -> Women; Intimates & Loungewear
-[0] Bumper Set -> Kids & Baby; Gear & Equipment; Home; Home Accessories
 [0] Wine Box -> Home; Kitchen & Dining
 [0] Dipping Set -> Home; Kitchen & Dining
 [0] Open Toe -> Women; Shoes
@@ -1489,3 +1478,19 @@
 [2] XB360 -> Kids & Baby; Toys, Games & Books
 [2] XBox -> Kids & Baby; Toys, Games & Books
 [2] See Kai Run -> Shoes
+[2] Disney -> Kids & Baby; Toys, Games & Books
+[2] Maryjane -> Shoes
+[2] Mary Jane -> Shoes
+[2] Mary Janes -> Shoes
+[2] Bedding Set -> Bed & Bath
+[2] Bumper -> Bed & Bath
+[2] Crib -> Bed & Bath
+[2] Mattress -> Bed & Bath
+[2] Stroller -> Gear & Equipment
+[2] Zip Stroller -> Outerwear
+[2] Light Set -> Home; Furniture & Lighting
+[2] Light Basket -> Home; Furniture & Lighting
+[2] Blanket Set -> Home; Bed & Bath
+[2] Cover Set -> Home; Bed & Bath
+[2] Quilt -> Home; Bed & Bath
+[2] Quilts -> Home; Bed & Bath

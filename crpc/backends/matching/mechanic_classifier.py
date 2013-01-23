@@ -208,6 +208,7 @@ def preprocess(title):
     title = re.sub(r'designed in .+ silver', '', title)
     title = re.sub(r'made in [a-z]+', '', title)
     # wipe out sentences `with`s and `in`s and `-`s
+    title = re.sub(r'"[a-z ]+"', '', title)
     if "'s" not in title:
         title = re.sub(r"'\w+'", '', title)
     title = re.sub(r'all in one', 'all-in-one', title)
@@ -222,7 +223,7 @@ def preprocess(title):
     title = re.sub(r'baby pink', '', title)
     # then numbers & brackets
     title = re.sub(r'\d+/\d+ condition', '', title)
-    title = re.sub(r'(.*)\(([^)]+)\)$', r'\2 \1', title)
+    title = re.sub(r'(.*)\(([^)]+)\)$', r'\1', title)
     title = re.sub(r' [ivxlc]+$', '', title)
     title = re.sub(r'set of [0-9]+', 'set', title)
     title = re.sub(r'[0-9]+ pcs$', '', title)

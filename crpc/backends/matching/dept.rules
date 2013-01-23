@@ -647,16 +647,6 @@
 [0] Storage Rack -> Home; Furniture & Lighting
 [0] Cuckoo Rooster -> Home; Home Accessories
 [0] Hardcase -> Bags; Luggage Bags
-[0] WII -> Kids & Baby; Toys, Games & Books; Home; Electronics
-[0] PS3 -> Kids & Baby; Toys, Games & Books; Home; Electronics
-[0] PS1 -> Kids & Baby; Toys, Games & Books; Home; Electronics
-[0] PS2 -> Kids & Baby; Toys, Games & Books; Home; Electronics
-[0] Playstation3 -> Kids & Baby; Toys, Games & Books; Home; Electronics
-[0] XBox360 -> Kids & Baby; Toys, Games & Books; Home; Electronics
-[0] Xbox360 -> Kids & Baby; Toys, Games & Books; Home; Electronics
-[0] XB360 -> Kids & Baby; Toys, Games & Books; Home; Electronics
-[0] Xbox -> Kids & Baby; Toys, Games & Books; Home; Electronics
-[0] XBox -> Kids & Baby; Toys, Games & Books; Home; Electronics
 [0] Boxset -> Home; Home Accessories
 [0] Cutlery Set -> Home; Kitchen & Dining
 [0] Glasses Set -> Home; Kitchen & Dining
@@ -1490,3 +1480,11 @@
 [2] Flat Iron -> Beauty & Health; Body Care & Hair
 [2] Dryer -> Beauty & Health; Body Care & Hair
 [2] Pressing Comb -> Beauty & Health; Body Care & Hair
+[2] WII -> Kids & Baby; Toys, Games & Books
+[2] PS3 -> Kids & Baby; Toys, Games & Books
+[2] PS1 -> Kids & Baby; Toys, Games & Books
+[2] PS2 -> Kids & Baby; Toys, Games & Books
+[2] Playstation3 -> Kids & Baby; Toys, Games & Books
+[2] XBox360 -> Kids & Baby; Toys, Games & Books
+[2] XB360 -> Kids & Baby; Toys, Games & Books
+[2] XBox -> Kids & Baby; Toys, Games & Books

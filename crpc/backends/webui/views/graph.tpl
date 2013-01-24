@@ -24,10 +24,13 @@
 	  <button type="button" class="btn btn-primary" id="gilt">gilt</button>
 	  <button type="button" class="btn btn-primary" id="hautelook">hautelook</button>
 	  <button type="button" class="btn btn-primary" id="ideeli">ideeli</button>
+	  <button type="button" class="btn btn-primary" id="lot18">lot18</button>	
 	  <button type="button" class="btn btn-primary" id="myhabit">myhabit</button>
 	  <button type="button" class="btn btn-primary" id="nomorerack">nomorerack</button>
 	  <button type="button" class="btn btn-primary" id="onekingslane">onekingslane</button>	
 	  <button type="button" class="btn btn-primary" id="ruelala">ruelala</button>
+	  <button type="button" class="btn btn-primary" id="totsy">totsy</button>
+	  <button type="button" class="btn btn-primary" id="venteprivee">venteprivee</button>	
 	  <button type="button" class="btn btn-primary" id="zulily">zulily</button>
 	</div>
 	
@@ -116,10 +119,14 @@
 	$("#bluefly").on("click", function() { plot('bluefly'); });
 	$("#gilt").on("click", function() { plot('gilt'); });
 	$("#hautelook").on("click", function() { plot('hautelook'); });
-	$("#myhabit").on("click", function() { plot('myhabit'); });
+	$("#ideeli").on("click", function() { plot('ideeli'); });
+	$("#lot18").on("click", function() { plot('lot18'); });	
+	$("#myhabit").on("click", function() { plot('myhabit'); });		
 	$("#nomorerack").on("click", function() { plot('nomorerack'); });
 	$("#onekingslane").on("click", function() { plot('onekingslane'); });
 	$("#ruelala").on("click", function() { plot('ruelala'); });
+	$("#totsy").on("click", function() { plot('totsy'); });	
+	$("#venteprivee").on("click", function() { plot('venteprivee'); });
 	$("#zulily").on("click", function() { plot('zulily'); });
 	
 	});

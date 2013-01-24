@@ -2,7 +2,7 @@
 a utility script to restore publish_time in mongodb from the information in mastiff where due to mis-operation
 lost such information.
 '''
-
+from gevent import monkey; monkey.patch_all()
 from mysettings import MASTIFF_ENDPOINT
 from crawlers.common.routine import get_site_module
 import slumber
@@ -42,7 +42,7 @@ class DupeFixer:
                 print "exception:", e
                 print "site:{}, product:{} publish_time restore failed".format(site, key)
     
-    def fix_event(self, site, key):
+    def fix_event(self, site, key, dryrun=False):
         m = self.get_module(site)
         result = self.mapi.event.get(site_key=site+"_"+key)
         for ev in result['objects']:

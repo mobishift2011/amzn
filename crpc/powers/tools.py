@@ -274,6 +274,9 @@ class Propagator(object):
         dept_threshold = int(.1*num_products)
         print 'start to propogate %s event %s' % (self.site, self.event.event_id)
 
+        if num_products == 0:
+            return
+
         counter = 0
         for product in products:
             try:
@@ -370,6 +373,92 @@ class Propagator(object):
         self.event.save()
 
         return self.event.propagation_complete
+
+    def update_propation(self):
+        if not self.event:
+            return
+
+        update_complete = False
+        products = self.__module.Product.objects(event_id=self.event.event_id)
+        print 'start to update propogate %s event %s' % (self.site, self.event.event_id)
+
+        lowest_price = self.event.lowest_price
+        highest_price = self.event.highest_price
+        lowest_discount = self.event.lowest_discount,
+        highest_discount = self.event.highest_discount
+        event_brands = set()
+        event_tags = set()
+        if self.event.update_history:
+            update_propagation_time = self.event.update_history.get('update_propagation') \
+                                        or self.event.propagation_time
+        else:
+            update_propagation_time = self.event.propagation_time
+
+        for product in products:
+            update_history = product.update_history or {}
+
+            # To aggregate the product updated favbuy_brand
+            if update_history.get('favbuy_brand') \
+                and update_history['favbuy_brand'] > update_propagation_time:
+                event_brands.add(product.favbuy_brand)
+
+            # To aggregate the product updated favbuy_tag
+            if update_history.get('favbuy_tag') \
+                and update_history['favbuy_tag'] > update_propagation_time:
+                event_tags.update(product.favbuy_tag)
+
+            # To update price and discount
+            if update_history.get('favbuy_price') \
+                and update_history['favbuy_price'] > update_propagation_time:
+                try:
+                    price = float(product.favbuy_price)
+                    listprice = float(product.favbuy_listprice)
+                except:
+                    txtlogger.error('{0}.product.{1} favbuy price -> {2} exception: {3}'.format(self.site, product.key, product.favbuy_price, str(e)))
+                    continue
+
+                if price:
+                    lowest_price = min(lowest_price, price)
+                    highest_price = max(highest_price, price)
+
+                discount = 1. * price / listprice if listprice else 1.
+                if discount > 0 and discount < 1:
+                    lowest_discount = max(self.event.lowest_discount, discount)
+                    highest_discount = min(self.event.highest_discount, discount)
+
+        # Update the event
+        if event_brands.difference(self.event.favbuy_brand):
+            event_brands.update(self.event.favbuy_brand)
+            self.event.favbuy_brand = list(event_brands)
+            update_complete = True
+
+        if event_tags.difference(self.event.favbuy_tag):
+            event_tags.update(self.event.favbuy_tag)
+            self.event.favbuy_tag = list(event_tags)
+            update_complete = True
+
+        if self.event.lowest_price > lowest_price:
+            self.event.lowest_price = lowest_price
+            update_complete = True
+
+        if self.event.highest_price < highest_price:
+            self.event.highest_price = highest_price
+            update_complete = True
+
+        if self.event.lowest_discount < lowest_discount:
+            self.event.lowest_discount = lowest_discount
+            update_complete = True
+
+        if self.event.highest_discount > highest_discount:
+            self.event.highest_discount = highest_discount
+            update_complete = True
+
+        if update_complete:
+            self.event.update_history['update_propagation'] = datetime.utcnow()
+            self.event.save()
+
+        return update_complete
+
 
 # Removes HTML or XML character references and entities from a text string.
 #

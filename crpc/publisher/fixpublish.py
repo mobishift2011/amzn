@@ -75,15 +75,17 @@ class DupeFixer:
     
     def fix_events_in_db(self, site):
         print "fixing events in site:", site
-        m = self.get_modules(site)
+        m = self.get_module(site)
+        if not hasattr(m, 'Event'):
+            return
         for ev in m.Event.objects(publish_time__exists=False):
             self.fix_event(site, ev.event_id)
     
     def fix_products_in_db(self, site):
         print "fixing products in site:", site
-        m = self.get_modules(site)
+        m = self.get_module(site)
         for prod in m.Product.objects(publish_time__exists=False):
-            self.product(site, prod.key)
+            self.fix_product(site, prod.key)
         
     def fix_all_events_in_db(self):
         for site in self.m.keys():

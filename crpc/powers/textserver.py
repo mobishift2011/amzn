@@ -65,6 +65,7 @@ class TextServer(object):
             price = parse_price(product.price)
             product.favbuy_price = str(price)
             flags['favbuy_price'] = True
+            product.update_history['favbuy_price'] = datetime.utcnow()
 
         if not product.favbuy_listprice:
             listprice = parse_price(product.listprice) or product.favbuy_price
@@ -83,10 +84,10 @@ class TextServer(object):
             product.brand_complete=True
             product.update_history['favbuy_brand'] = datetime.utcnow()
             flags['favbuy_brand'] = True
-            logger.info('{0}.product.{1} extract brand {2} -> {3} OK'.format(site, product.key, crawled_brand, brand))
+            logger.info('{0}.product.{1} extract brand OK'.format(site, product.key))
         else:
             product.update(set__brand_complete=False)
-            logger.warning('{0}.product.{1} extract brand {2} Failed'.format(site, product.key, crawled_brand))
+            logger.warning('{0}.product.{1} extract brand {2} Failed'.format(site, product.key, crawled_brand.encode('utf-8')))
 
     def __extract_tag(self, tag_complete, text_list, product, flags, site):
         if tag_complete:
@@ -162,33 +163,32 @@ class TextServer(object):
         ]
         gevent.joinall(jobs)
 
-        # For updating event propagation, we should put some info back to the rpc caller.
-        res = {}
-        fields = [key for key in flags if flags[key]]
-        if fields:
-            product.save()
+        for key in flags:
+            if flags[key]:
+                product.save()
+                break
 
-            res['event_id'] = product.event_id or []
-            res['fields'] = {}
-            for field in fields:
-                # Do this so that product's favbuy_dept won't affect event's.
-                if field == 'favbuy_dept':
-                    continue
-                res['fields'][field] = getattr(product, field)
-        
-        logger.debug('text server extract res -> {0}'.format(res))
-        return res
+        logger.debug('text server extract res -> {0}'.format(product.update_history))
     
     def propagate(self, args=(), kwargs={}):
         site = kwargs.get('site')
         event_id = kwargs.get('event_id')
         p = Propagator(site, event_id, module=self.__m[site])
-        if p.propagate():
+        result = p.propagate()
+        if result:
             logger.info('{0}.event.{1} propagation OK'.format(site, event_id))
             interval = datetime.utcnow().replace(second=0, microsecond=0)
             Stat.objects(site=site, doctype='event', interval=interval).update(inc__prop_num=1, upsert=True)
         else:
-            logger.error('{0}.event.{1} propagation failed'.format(site, event_id))
+            if result is not None:
+                logger.error('{0}.event.{1} propagation failed'.format(site, event_id))
+
+    def update_propation(self, args=(), kwargs={}):
+        site = kwargs.get('site')
+        event_id = kwargs.get('event_id')
+        p = Propagator(site, event_id, module=self.__m[site])
+        if p.update_propation():
+            logger.info('{0}.event.{1} updated propagation'.format(site, event_id))
 
 def parse_price(price):
     if not price:

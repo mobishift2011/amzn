@@ -72,7 +72,27 @@ class DupeFixer:
                 m = pattern.search(line)
                 if m:
                     self.fix_event(m.group('site'), m.group('key'))
-
+    
+    def fix_events_in_db(self, site):
+        print "fixing events in site:", site
+        m = self.get_modules(site)
+        for ev in m.Event.objects(publish_time__exists=False):
+            self.fix_event(site, ev.event_id)
+    
+    def fix_products_in_db(self, site):
+        print "fixing products in site:", site
+        m = self.get_modules(site)
+        for prod in m.Product.objects(publish_time__exists=False):
+            self.product(site, prod.key)
+        
+    def fix_all_events_in_db(self):
+        for site in self.m.keys():
+            self.fix_events_in_db(site)
+            
+    def fix_all_products_in_db(self):
+        for site in self.m.keys():
+            self.fix_products_in_db(site)
+        
 if __name__ == '__main__':
     from optparse import OptionParser
     import sys
@@ -84,7 +104,8 @@ if __name__ == '__main__':
     parser.add_option('-e', '--ev', dest='ev', help='event id', default='')
     parser.add_option('-p', '--prod', dest='prod', help='product id', default='')
     parser.add_option('-d', '--dryrun', dest='dryrun', action="store_true", help='dryrun', default=False)
-
+    parser.add_option('--db', dest='db', action="store_true", help='scan the database', default=False)
+    
     if len(sys.argv)==1:
         parser.print_help()
         sys.exit()
@@ -98,3 +119,10 @@ if __name__ == '__main__':
         fixer.fix_product(options.site, options.prod, options.dryrun)
     elif options.site and options.ev:
         fixer.fix_event(options.site, options.ev, options.dryrun)
+    elif options.db:
+        if options.site:
+            fixer.fix_events_in_db(options.site)
+            fixer.fix_products_in_db(options.site)
+        else:
+            fixer.fix_all_events_in_db()
+            fixer.fix_all_products_in_db()

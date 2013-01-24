@@ -214,8 +214,11 @@ class Server(object):
         key = self.extract_product_id.match(url).group(1)
         content = self.net.fetch_page( url )
         if content is None or isinstance(content, int):
-            common_failed.send(sender=ctx, key='', url=url,
-                    reason='download product page failed: {0}'.format(content))
+            content = self.net.fetch_page( url )
+            if content is None or isinstance(content, int):
+                common_failed.send(sender=ctx, key='', url=url,
+                        reason='download product page failed: {0}'.format(content))
+                return
         tree = lxml.html.fromstring(content)
         nav = tree.cssselect('div#container > div#content > div#latest_container > div#latest > div.event > div.offer_container')[0]
         info = nav.cssselect('div#offer_sizes_colors > div.details_tabs_content > div.spec_on_sku')[0]

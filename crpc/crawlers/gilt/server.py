@@ -559,7 +559,7 @@ class Server(object):
         """.. :py:method::
         """
         garbage, look_id = node.get('id').split('-')
-        brand = node.cssselect('header.overview > hgroup.look-name > h2.brand-name > div.primary > div.favorite-tooltip-link > button.favorite-star-button')[0].get('data-gilt-brand-name')
+        brand = node.cssselect('header.overview > hgroup.look-name > h2.brand-name > div.primary > div.favorite-tooltip-link > button.favorite-star-button')[0].get('data-gilt-brand-name').encode('utf-8')
         product_name = node.cssselect('header.overview > hgroup.look-name > h1.product-name > a')[0]
         link = product_name.get('href')
         link = link if link.startswith('http') else self.siteurl + link
@@ -746,9 +746,7 @@ class Server(object):
 
 if __name__ == '__main__':
     server = Server()
-    server.crawl_category()
-    server.crawl_listing('http://www.gilt.com/sale/women/timeless-trend-the-ballet-flat-4633')
-    server.crawl_listing('http://www.gilt.com/sale/women/m-4018')
+    server.crawl_listing('http://www.gilt.com/sale/women/1-8889')
     server.crawl_listing('http://www.gilt.com/sale/men/spoil-yourself')
     server.crawl_listing('http://www.gilt.com/sale/children/winter-maternity-1821')
     server.crawl_listing('http://www.gilt.com/home/sale/candle-blowout-7052')

@@ -9,6 +9,9 @@ This is the server part of zeroRPC module. Call by client automatically, run on 
 
 """
 
+import re
+import json
+import pytz
 import lxml.html
 from datetime import datetime, timedelta
 
@@ -112,6 +115,7 @@ class Server(object):
         self.siteurl = 'http://www.beyondtherack.com'
         self.all_event_url = 'http://www.beyondtherack.com/event/calendar'
         self.net = beyondtherackLogin()
+        self.et = pytz.timezone('US/Eastern')
         self.dept_link = {
             'women':        'http://www.beyondtherack.com/event/calendar?category=1',
             'men':          'http://www.beyondtherack.com/event/calendar?category=2',
@@ -152,23 +156,29 @@ class Server(object):
                     reason='download error or {1} return'.format(content))
             return
         tree = lxml.html.fromstring(content)
+        upcoming_data = json.loads( re.compile('var event_data *= *({.*});').search(content).group(1) )
 
         upcomings = tree.cssselect('div.pageframe table.upcomingEvents > tbody > tr > td.data-row > div.item')
         for up in upcomings:
             event_id = up.get('data-event')
             sale_title = up.text_content().strip()
-            uptime = up.xpath('./following-sibling::span[@class="time"]/text()')[0] #'Fri. Dec 14'
-            events_begin = time_convert(uptime+' 9 ', '%a. %b %d %H %Y', 'ET')
-            _utcnow = datetime.now(pytz.utc)
-            if events_begin.day == _utcnow.day and events_begin < _utcnow:
-                if '5PM' in sale_title or '5pm' in sale_title:
-                    events_begin += timedelta(hours=8)
-                else:
-                    events_begin += timedelta(hours=1)
+#            uptime = up.xpath('./following-sibling::span[@class="time"]/text()')[0] #'Fri. Dec 14'
+#            events_begin = time_convert(uptime+' 9 ', '%a. %b %d %H %Y', 'ET')
+#            _utcnow = datetime.now(pytz.utc)
+#            if events_begin.day == _utcnow.day and events_begin < _utcnow:
+#                if '5PM' in sale_title or '5pm' in sale_title:
+#                    events_begin += timedelta(hours=8)
+#                else:
+#                    events_begin += timedelta(hours=1)
 
+            events_begin = self.et.localize( datetime.strptime(upcoming_data[event_id]['start_time'], '%Y-%m-%d %X') ).astimezone(pytz.utc)
+            events_end = self.et.localize( datetime.strptime(upcoming_data[event_id]['end_time'], '%Y-%m-%d %X') ).astimezone(pytz.utc)
+            image_urls = upcoming_data[event_id]['images'].values()
             event, is_new, is_updated = self.get_or_create_event(event_id)
             if not event.sale_title: event.sale_title = sale_title
             event.events_begin = events_begin
+            event.events_end = events_end
+            event.image_urls = image_urls
             event.update_time = datetime.utcnow()
             event.save()
             common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)

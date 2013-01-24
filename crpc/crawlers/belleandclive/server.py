@@ -109,9 +109,11 @@ class Server(object):
             self.parse_one_event_node(dept, node, ctx)
 
         if dept == 'men':
-            link = tree.cssselect('div#page-wrapper > div#header > div#header-content > div#nav > ul#main-nav > li > a#header-navigation-vintage')[0].get('href')
-            link = link if link.startswith('http') else self.siteurl + link
-            self.crawl_vintage_info('vintage', link, ctx)
+            link = tree.cssselect('div#page-wrapper > div#header > div#header-content > div#nav > ul#main-nav > li > a#header-navigation-vintage')
+            if link:
+                link = link[0].get('href')
+                link = link if link.startswith('http') else self.siteurl + link
+                self.crawl_vintage_info('vintage', link, ctx)
 
     def download_page_ret_tree(self, key, url, reason, ctx):
         """.. :py:method::

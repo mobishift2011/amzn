@@ -156,7 +156,7 @@ class Server(object):
                     reason='download error or {1} return'.format(content))
             return
         tree = lxml.html.fromstring(content)
-        upcoming_data = re.compile('var event_data *= *({.*});').search(content)
+        upcoming_data = re.compile('var event_data *= *({.*});').search(content).group(1)
 
         upcomings = tree.cssselect('div.pageframe table.upcomingEvents > tbody > tr > td.data-row > div.item')
         for up in upcomings:

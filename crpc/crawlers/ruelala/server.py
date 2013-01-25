@@ -66,7 +66,7 @@ class ruelalaLogin(object):
         if not self._signin:
             self.login_account()
 
-    def fetch_page(self, url):
+    def event_fetch_page(self, url):
         """.. :py:method::
             fetch page.
             check whether the account is login, if not, login and fetch again
@@ -77,7 +77,7 @@ class ruelalaLogin(object):
             self.login_account()
             ret = req.get(url)
 
-        if url != ret.url and self.event_is_product.match(ret.url): return ret.url
+        if self.event_is_product.match(ret.url): return ret.url
         if ret.ok: return ret.content
 
         return ret.status_code
@@ -85,6 +85,16 @@ class ruelalaLogin(object):
         # So it is the product page unauthorized, fetch_page the product url next time
 #        if ret.status_code == 401:
 #            return ret.url
+
+    def product_fetch_page(self, url):
+        ret = req.get(url)
+
+        if ret.status_code == 401: # need to authentication
+            self.login_account()
+            ret = req.get(url)
+        if ret.ok: return ret.content
+
+        return ret.status_code
 
     def fetch_image(self, url):
         ret = req.get(url)
@@ -122,7 +132,7 @@ class Server(object):
         """.. :py:method::
             '11/25 at 11AM ET'
         """
-        cont = self.net.fetch_page(self.upcoming_url)
+        cont = self.net.event_fetch_page(self.upcoming_url)
         tree = lxml.html.fromstring(cont)
         nodes = tree.cssselect('div#main div#signUpContainer form#signUpForm div#sendReminderOverflow table#tblSubscribe tr')
         for node in nodes:
@@ -158,7 +168,7 @@ class Server(object):
             
             Problem may exist: these events off sale, update_listing will get nothing.
         """
-        cont = self.net.fetch_page(url)
+        cont = self.net.event_fetch_page(url)
         tree = lxml.html.fromstring(cont)
         nodes = tree.cssselect('body > div.container > div#canvasContainer > section#gift-center > div#gc-wrapper a[href]')
         for node in nodes:
@@ -183,9 +193,9 @@ class Server(object):
         """.. :py:method::
             Get all the events from event list.
         """
-        cont = self.net.fetch_page(url)
+        cont = self.net.event_fetch_page(url)
         if cont is None or isinstance(cont, int):
-            cont = self.net.fetch_page(url)
+            cont = self.net.event_fetch_page(url)
         tree = lxml.html.fromstring(cont)
         nodes = tree.cssselect('body.wl-default > div.container > div#categoryMain > section#categoryDoors > article[id^="event-"]')
         for node in nodes:
@@ -226,7 +236,7 @@ class Server(object):
         :rtype: number -- 0(fail), >=1(success)
                 events_end: isoformat events_end
         """
-        cont = self.net.fetch_page(url)
+        cont = self.net.event_fetch_page(url)
         if cont.startswith('http://'): # event is a product.
             self.crawl_event_is_product(event_id, cont, ctx)
             return -1, 0
@@ -295,15 +305,14 @@ class Server(object):
             get product url. and parse
         """
         product_id = re.compile('http://.*.ruelala.com/product/detail/eventId/\d{1,10}/styleNum/(\d{1,10})/viewAll/0').search(url).group(1)
-        cont = self.net.fetch_page(url)
+        cont = self.net.product_fetch_page(url)
         if cont is None or isinstance(cont, int):
-            cont = self.net.fetch_page(url)
+            cont = self.net.product_fetch_page(url)
         tree = lxml.html.fromstring(cont)
-        try:
-            prd = tree.cssselect('div#main section#productAttributes')[0]
-        except IndexError:
-            open('ruelala.html', 'w').write(cont)
-            common_failed.send(sender=ctx, key='', url=url, reason='IndexError: event is product')
+        prd = tree.cssselect('div#main section#productAttributes')[0]
+#        except IndexError:
+#            open('ruelala.html', 'w').write(cont)
+#            common_failed.send(sender=ctx, key='', url=url, reason='IndexError: event is product')
 
         title = prd.cssselect('h2#productName')[0].text_content()
         summary = prd.cssselect('p#shortDesc')[0].text_content()
@@ -346,7 +355,7 @@ class Server(object):
     def la_perla(self, dept, url, events_end, ctx):
         """.. :py:method::
         """
-        cont = self.net.fetch_page(url)
+        cont = self.net.event_fetch_page(url)
         tree = lxml.html.fromstring(cont)
         nodes = tree.cssselect('div#main > div#canvasContainer div#doors a[href]')
         for node in nodes:
@@ -377,9 +386,9 @@ class Server(object):
     def crawl_listing(self, url, ctx=''):
         """.. :py:method::
         """
-        cont = self.net.fetch_page(url)
+        cont = self.net.event_fetch_page(url)
         if cont is None or isinstance(cont, int):
-            cont = self.net.fetch_page(url)
+            cont = self.net.event_fetch_page(url)
             if cont is None or isinstance(cont, int):
                 common_failed.send(sender=ctx, key=url.rsplit('/', 1)[-1], url=url,
                         reason="download listing page error: {0}".format(cont))
@@ -471,9 +480,9 @@ class Server(object):
         """.. :py:method::
             Got all the product basic information and save into the database
         """
-        cont = self.net.fetch_page(url)
+        cont = self.net.product_fetch_page(url)
         if cont is None or isinstance(cont, int):
-            cont = self.net.fetch_page(url)
+            cont = self.net.product_fetch_page(url)
             if cont is None or isinstance(cont, int):
                 common_failed.send(sender=ctx, key='', url=url,
                         reason="download product page error: {0}".format(cont))

@@ -48,7 +48,8 @@ def crawl_error_alarm():
     _utcnow = datetime.utcnow()
     fail_col = pymongo.Connection(MONGODB_HOST)['monitor']['fail']
     for info in fail_col.find({'time': {'$gte': _utcnow - timedelta(seconds=3600)}}, fields=['site', 'method', 'time', 'message']):
-        if '404' not in info['message'] and '-302' not in info['message'] and 'redirect to home' not in info['message']:
+        msg = info['message']
+        if '404' not in msg and '-302' not in msg and 'redirect to home' not in msg and 'greenlet.switch(self)\ntimeout: timed out' not in msg:
             alarm("{0}.{1}.[{2}]: {3}".format(info['site'], info['method'], info['time'], info['message']))
 
 def alarm(message):

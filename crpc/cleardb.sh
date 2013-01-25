@@ -1,4 +1,4 @@
-array=( beyondtherack bluefly gilt hautelook ideeli modnique myhabit nomorerack onekingslane ruelala venteprivee zulily lot18 totsy )
+array=( beyondtherack bluefly gilt hautelook ideeli modnique myhabit nomorerack onekingslane ruelala venteprivee zulily lot18 totsy belleandclive )
 for i in "${array[@]}"
 do
     mongo $i --eval "db.dropDatabase();"

@@ -93,6 +93,7 @@ class ventepriveeLogin(object):
             self.login_account()
             ret = req.get(url)
         if ret.ok: return ret
+        return ret.status_code
 
 
 
@@ -144,11 +145,13 @@ class Server(object):
         self.net.check_signin()
         
         response = self.net.fetch_page(url)
-        if response is None:
-            common_failed.send(sender=ctx, key=url.rsplit('/', 1)[-1],
-                    url='https://us.venteprivee.com/main/#/catalog/{0}'.format(url.rsplit('/', 1)[-1]),
-                    reason="%s: download error, status code: " % response.status_code)
-            return
+        if response is None or isinstance(response, int):
+            response = self.net.fetch_page(url)
+            if response is None or isinstance(response, int):
+                common_failed.send(sender=ctx, key=url.rsplit('/', 1)[-1],
+                        url='https://us.venteprivee.com/main/#/catalog/{0}'.format(url.rsplit('/', 1)[-1]),
+                        reason="download listing error: %s" % response)
+                return
         res = response.json
         
         event_id = str(res.get('operationId'))
@@ -198,7 +201,16 @@ class Server(object):
         
         is_updated = False
         ready = False
-        res = self.net.fetch_page(url).json
+        response = self.net.fetch_page(url)
+        if response is None or isinstance(response, int):
+            response = self.net.fetch_page(url)
+            if response is None or isinstance(response, int):
+                common_failed.send(sender=ctx, key=url.rsplit('/', 1)[-1],
+                                   url=url,
+                                   reason="download product error: %s" % response)
+                return
+
+        res = response.json
         key = str(res.get('productFamilyId'))
         
         product, is_new = Product.objects.get_or_create(key=key)

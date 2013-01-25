@@ -80,6 +80,7 @@ class ruelalaLogin(object):
         if self.event_is_product.match(ret.url): return ret.url
         if ret.ok: return ret.content
 
+        return ret.status_code
         # if this event is a product, event will redirect to product page.
         # So it is the product page unauthorized, fetch_page the product url next time
 #        if ret.status_code == 401:
@@ -183,6 +184,8 @@ class Server(object):
             Get all the events from event list.
         """
         cont = self.net.fetch_page(url)
+        if cont is None or isinstance(cont, int):
+            cont = self.net.fetch_page(url)
         tree = lxml.html.fromstring(cont)
         nodes = tree.cssselect('body.wl-default > div.container > div#categoryMain > section#categoryDoors > article[id^="event-"]')
         for node in nodes:
@@ -291,10 +294,15 @@ class Server(object):
             event is product, get event url, redirect to product url.
             get product url. and parse
         """
-        cont = self.net.fetch_page(url)
         product_id = re.compile('http://.*.ruelala.com/product/detail/eventId/\d{1,10}/styleNum/(\d{1,10})/viewAll/0').search(url).group(1)
+        cont = self.net.fetch_page(url)
+        if cont is None or isinstance(cont, int):
+            cont = self.net.fetch_page(url)
         tree = lxml.html.fromstring(cont)
-        prd = tree.cssselect('div#main section#productAttributes')[0]
+        try:
+            prd = tree.cssselect('div#main section#productAttributes')[0]
+        except IndexError:
+            common_failed.send(sender=ctx, key='', url=url, reason='IndexError: event is product')
 
         title = prd.cssselect('h2#productName')[0].text_content()
         summary = prd.cssselect('p#shortDesc')[0].text_content()
@@ -369,6 +377,12 @@ class Server(object):
         """.. :py:method::
         """
         cont = self.net.fetch_page(url)
+        if cont is None or isinstance(cont, int):
+            cont = self.net.fetch_page(url)
+            if cont is None or isinstance(cont, int):
+                common_failed.send(sender=ctx, key=url.rsplit('/', 1)[-1], url=url,
+                        reason="download listing page error: {0}".format(cont))
+                return
         tree = lxml.html.fromstring(cont)
         event_id = self.url2eventid.match(url).group(1)
         nodes = tree.cssselect('div#main > div#productContainerThreeUp > div#productGrid > article.product')
@@ -457,6 +471,12 @@ class Server(object):
             Got all the product basic information and save into the database
         """
         cont = self.net.fetch_page(url)
+        if cont is None or isinstance(cont, int):
+            cont = self.net.fetch_page(url)
+            if cont is None or isinstance(cont, int):
+                common_failed.send(sender=ctx, key='', url=url,
+                        reason="download product page error: {0}".format(cont))
+                return
         tree = lxml.html.fromstring(cont)
         product_id = self._url2product_id(url)
         node = tree.cssselect('div.container section#productContainer')[0]

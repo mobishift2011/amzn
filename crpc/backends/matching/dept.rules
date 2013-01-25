@@ -167,7 +167,6 @@
 [0] Men Wingtip -> Men; Shoes
 [0] Colander -> Home; Kitchen & Dining
 [0] Women Bowler -> Bags; Shoulder Bags
-[0] Tub -> Home; Kitchen & Dining
 [0] Tubs -> Home; Kitchen & Dining
 [0] Plantoys -> Toys, Games & Books
 [0] Color Modifier -> Beauty & Health; Makeup
@@ -1306,6 +1305,7 @@
 [2] Flori -> Accessories
 [2] Ora -> Accessories
 [2] Mat -> Rugs & Textiles
+[2] Tub -> Rugs & Textiles
 [2] Money Bank -> Accessories
 [2] Fur Collar -> Accessories
 [2] Fur Beenie -> Accessories

@@ -5,9 +5,11 @@
 #  [1] - if XXXX in a title; we can determine the main department of it
 #  [2] - if XXXX in a title; we can determine the sub department of it
 # The XXXX is tested in a brute-force; longest first way
+[0] Colorlock Iron -> Beauty & Health; Body Care & Hair
 [0] Straightening Iron -> Beauty & Health; Body Care & Hair
 [0] Curling Iron -> Beauty & Health; Body Care & Hair
 [0] Waver Iron -> Beauty & Health; Body Care & Hair
+[0] Styling Iron -> Beauty & Health; Body Care & Hair
 [0] Styling Comb -> Beauty & Health; Body Care & Hair
 [0] Hairstyle Tool -> Beauty & Health; Body Care & Hair
 [0] Hair Straightener -> Beauty & Health; Body Care & Hair
@@ -31,6 +33,8 @@
 [0] Toy Chest -> Furniture & Lighting
 [0] Cosmetic Case -> Women; Accessories
 [0] Cosmetics Case -> Women; Accessories
+[0] Cosmetic Bag -> Women; Accessories
+[0] Cosmetics Bag -> Women; Accessories
 [0] Cheese Board -> Home; Kitchen & Dining
 [0] FENDI Baguette -> Bags; Handbags
 [0] Soup Set -> Home; Kitchen & Dining
@@ -138,7 +142,6 @@
 [0] Hardcover -> Home; Accessories
 [0] Coddler -> Home; Kitchen & Dining
 [0] Nutcracker -> Home; Kitchen & Dining
-[0] Lenox -> Home; Kitchen & Dining
 [0] Plushie -> Kids & Baby; Toys, Games & Books
 [0] Armchair -> Home; Furniture & Lighting
 [0] Sheets Cases -> Home; Bed & Bath
@@ -228,8 +231,6 @@
 [0] Red Wine Cup -> Home; Kitchen & Dining
 [0] White Wine Cup -> Home; Kitchen & Dining
 [0] White Red Wine -> Wine; Red Wine; White Wine
-[0] Red Wine -> Wine; Red Wine
-[0] White Wine -> Wine; White Wine
 [0] T-Strap -> Women; Shoes
 [0] Rainshower Head -> Home; Home Accessories
 [0] Jackson Pollock -> Home; Home Accessories
@@ -326,10 +327,6 @@
 [0] Skirtdress -> Women; Dresses & Skirts
 [0] Onesie -> Kids & Baby; Boys' Clothing; Girls Clothing
 [0] Scent -> Beauty & Health; Fragrance
-[0] Travel Bag -> Bags; Luggage Bags
-[0] Travel Case -> Bags; Luggage Bags
-[0] Hoop -> Jewelry & Watches; Earrings
-[0] Hoops -> Jewelry & Watches; Earrings
 [0] Day Bag -> Bags; Shoulder Bags
 [0] Night Bag -> Bags; Handbags
 [0] Bikini -> Women; Intimates & Loungewear
@@ -358,17 +355,14 @@
 [0] Front Bag -> Bags; Handbags
 [0] Cedar -> Home; Home Accessories
 [0] French Press -> Home; Kitchen & Dining
-[0] Cosmetic -> Beauty & Health; Makeup
-[0] Cosmetics -> Beauty & Health; Makeup
 [0] Boston Bag -> Bags; Handbags
 [0] Backpack -> Bags; Backpacks & Laptop Bags
 [0] Ice Bucket -> Home; Kitchen & Dining
-[0] Messenger -> Bags; Crossbody Bags
 [0] Medium Shopper -> Bags; Handbags
+[0] Denim Shopper -> Bags; Handbags
 [0] Shopping Bag -> Bags; Handbags
 [0] Knife -> Home; Kitchen & Dining
 [0] Knives -> Home; Kitchen & Dining
-[0] Smock -> Women; Intimates & Loungewear
 [0] Chemise -> Women; Intimates & Loungewear
 [0] Mixer -> Home; Kitchen & Dining
 [0] Basque -> Women; Intimates & Loungewear
@@ -405,7 +399,6 @@
 [0] Teapots -> Home; Kitchen & Dining
 [0] Wall -> Home; Home Accessories
 [0] Oven Mitt -> Home; Home Accessories; Kitchen & Dining
-[0] Corset -> Women; Intimates & Loungewear
 [0] Wine Box -> Home; Kitchen & Dining
 [0] Dipping Set -> Home; Kitchen & Dining
 [0] Open Toe -> Women; Shoes
@@ -457,6 +450,7 @@
 [0] Tower -> Home; Bed & Bath
 [0] Coffee Set -> Home; Kitchen & Dining
 [0] Cross Body -> Bags; Crossbody Bags
+[0] Crossbody Bag -> Bags; Crossbody Bags
 [0] Crossbody -> Bags; Crossbody Bags
 [0] Cross-Body -> Bags; Crossbody Bags
 [0] Organizer -> Home; Home Accessories
@@ -514,8 +508,8 @@
 [0] Beige Bag -> Bags; Handbags
 [0] Room Divider -> Home; Home Accessories
 [0] Chameleon Bag -> Bags; Handbags
-[0] Placemat -> Home; Kitchen & Dining
-[0] Placemats -> Home; Kitchen & Dining
+[0] Placemat -> Home; Rugs & Textiles
+[0] Placemats -> Home; Rugs & Textiles
 [0] Sunshine Bottom -> Women; Intimates & Loungewear
 [0] Cotton Set -> Home; Bed & Bath
 [0] Touch Scale -> Home; Home Accessories
@@ -690,7 +684,6 @@
 [0] Flap Bag -> Bags; Shoulder Bags
 [0] Shoulder Bag -> Bags; Shoulder Bags
 [0] Shoulder Bags -> Bags; Shoulder Bags
-[0] Placket -> Women; Dresses & Skirts
 [0] Mug -> Home; Kitchen & Dining
 [0] Mugs -> Home; Kitchen & Dining
 [0] Wall Plaque -> Home; Home Accessories
@@ -863,7 +856,6 @@
 [1] Boys -> Kids & Baby
 [1] Women -> Women
 [1] Men -> Men
-[1] Watch -> Jewelry & Watches
 [2] Tee -> Polos & Tees
 [2] Tees -> Polos & Tees
 [2] Top -> Shirts & Sweaters
@@ -1044,7 +1036,7 @@
 [2] Trunks -> Men; Intimates & Loungewear
 [2] Swim Trunk -> Men; Intimates & Loungewear
 [2] Swim Trunks -> Men; Intimates & Loungewear
-[2] Knit -> Shirts & Sweaters
+[2] Knit -> Accessories
 [2] Cuff -> Accessories
 [2] Cuffs -> Accessories
 [2] Cufflink -> Accessories
@@ -1148,6 +1140,8 @@
 [2] Charm -> Accessories; Jewelry & Watches; Pendants
 [2] Wayfarer -> Accessories
 [2] Wayfarers -> Accessories
+[2] Headboard -> Bed & Bath
+[2] Headboards -> Bed & Bath
 [2] Nail -> Beauty & Health; Makeup; Accessories
 [2] Lip -> Beauty & Helath; Makeup; Accessories
 [2] Piggy Bank -> Accessories
@@ -1382,7 +1376,7 @@
 [2] Flagpole -> Accessories
 [2] Buttonup -> Shirts & Sweaters
 [2] Tutu -> Dresses & Skirts
-[2] Pouch -> Bags; Wallets; Accessories
+[2] Pouch -> Bags; Wallets
 [2] Ankle Boot -> Shoes
 [2] Button Down -> Shirts & Sweaters
 [2] Button Up -> Shirts & Sweaters
@@ -1500,3 +1494,20 @@
 [2] Cover Set -> Home; Bed & Bath
 [2] Quilt -> Home; Bed & Bath
 [2] Quilts -> Home; Bed & Bath
+[2] Short Hair -> Beauty & Health; Body Care & Hair
+[2] Placket -> Dresses & Skirts
+[2] Smock -> Intimates & Loungewear
+[2] Corset -> Intimates & Loungewear
+[2] High Tops -> Shoes
+[2] Wood Trunks -> Home; Home Accessories
+[2] Flag Trunks -> Home; Home Accessories
+[2] Messenger -> Bags; Crossbody Bags
+[2] Travel Bag -> Bags; Luggage Bags
+[2] Travel Case -> Bags; Luggage Bags
+[2] Watch Winder -> Home; Electronics
+[2] Hoop -> Jewelry & Watches; Earrings
+[2] Hoops -> Jewelry & Watches; Earrings
+[2] Cosmetic -> Beauty & Health; Makeup
+[2] Cosmetics -> Beauty & Health; Makeup
+[2] Red Wine -> Wine; Red Wine
+[2] White Wine -> Wine; White Wine

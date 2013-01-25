@@ -78,15 +78,13 @@ NOMORERACK = {
 TOTSY = {
     "dept_in": "Event",
     "column": "dept",
-    "contains": {},
-    "mapping": {
+    "mapping": {},
+    "contains": {
         "Girls": ["Kids & Baby"],
         "Boys": ["Kids & Baby"],
-        "Accessories": ["Kids & Baby"],
-        "Shoes": ["Kids & Baby"],
         "Toys and Books": ["Kids & Baby"],
-        "Home": ["Kids & Baby"],
-        "Moms and Dads": ["Kids & Baby"],
+        "Home": ["Home"],
+        "Moms and Dads": ["Women"],
         "Gear": ["Kids & Baby"],
     }
 }
@@ -211,7 +209,7 @@ def preprocess(title):
     title = re.sub(r'"[a-z ]+"', '', title)
     if "'s" not in title:
         title = re.sub(r"'\w+'", '', title)
-    title = re.sub(r', [a-z]+$', '', title)
+    title = re.sub(r", [0-9a-z' ]+$", '', title)
     title = re.sub(r'all in one', 'all-in-one', title)
     title = re.sub(r'with you', 'with-you', title)
     title = re.sub(r'in a', 'in-a', title)
@@ -233,7 +231,7 @@ def preprocess(title):
 def postprocess(site, p, result):
     # Special Sites
     keys = [k.decode('utf-8') for k in  CATS.keys()]
-    for thesite, only in [(u'totsy',u'Kids & Baby'), (u'lot18', u'Wine')]:
+    for thesite, only in [(u'lot18', u'Wine')]:
         if thesite == site: 
             exclude = set(keys)
             exclude.remove(only)
@@ -341,14 +339,14 @@ def classify_product_department(site, product, use_event_info=False, return_judg
         for tag in p.tagline:
             if "white wine" in tag.lower():
                 if return_judge:
-                    return [u"Wine", u"White Wines"], [u"Wine", u"White Wines"]
+                    return [u"Wine", u"White Wine"], [u"Wine", u"White Wine"]
                 else:
-                    return [u"Wine", u"White Wines"]
+                    return [u"Wine", u"White Wine"]
             elif "red wine" in tag.lower():
                 if return_judge:
-                    return [u"Wine", u"Red Wines"], [u"Wine", u"Red Wines"]
+                    return [u"Wine", u"Red Wine"], [u"Wine", u"Red Wine"]
                 else:
-                    return [u"Wine", u"Red Wines"]
+                    return [u"Wine", u"Red Wine"]
 
     kws = words_split.findall(title.lower())
     
@@ -379,9 +377,9 @@ def classify_product_department(site, product, use_event_info=False, return_judg
         # do level1 and level2 classifying
         for priority in '12':
             found = False
-            # last keyword is most important, do it first
+            # last two keyword is most important, do it first
             for rule in rules_dict[priority]:
-                if kws and (not rule[0].difference(set(kws[-2:]))):
+                if kws and len(rule[0])==2 and (not rule[0].difference(set(kws[-2:]))):
                     result.extend(rule[1])
                     judge.append([priority+'a']+rule)
                     found = True

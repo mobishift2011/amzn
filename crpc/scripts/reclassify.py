@@ -69,7 +69,7 @@ def _patch_mastiff_product(data):
             print 'PRODUCT', site, key, 'NOT FOUND'
         else: 
             dept = classify_product_department(site, p2)
-            if p['department_path'] != dept:
+            if p.get('department_path') != dept:
                 print 'PATCH PRODUCT', site, key, p['title'], dept
                 api.product(p['id']).patch({'department_path':dept})
 
@@ -83,12 +83,12 @@ def patch_mastiff_event(data):
         except:
             print 'EVENT', site, key, 'NOT FOUND' 
         else:
-            if e2.favbuy_dept != e['departments']:
+            if e2.favbuy_dept != e.get('departments'):
                 print 'PATCH EVENT', site, key, e['title'], e2.favbuy_dept
                 api.event(e['id']).patch({'departments':e2.favbuy_dept})
 
 def reclassify_mastiff():
-    pool = gevent.pool.Pool(30)
+    pool = gevent.pool.Pool(10)
 
     # EVENTS
     PAGESIZE = 20

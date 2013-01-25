@@ -238,6 +238,7 @@ class Server(object):
         """
         cont = self.net.event_fetch_page(url)
         if cont is None or isinstance(cont, int):
+            time.sleep(5)
             cont = self.net.event_fetch_page(url)
             if cont is None or isinstance(cont, int):
                 common_failed.send(sender=ctx, key='', url=url, reason='Event url has error: {0}'.format(cont))

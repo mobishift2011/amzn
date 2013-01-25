@@ -5,6 +5,12 @@
 #  [1] - if XXXX in a title; we can determine the main department of it
 #  [2] - if XXXX in a title; we can determine the sub department of it
 # The XXXX is tested in a brute-force; longest first way
+[0] Straightening Iron -> Beauty & Health; Body Care & Hair
+[0] Curling Iron -> Beauty & Health; Body Care & Hair
+[0] Waver Iron -> Beauty & Health; Body Care & Hair
+[0] Styling Comb -> Beauty & Health; Body Care & Hair
+[0] Hairstyle Tool -> Beauty & Health; Body Care & Hair
+[0] Hair Straightener -> Beauty & Health; Body Care & Hair
 [0] For Mon -> Kids & Baby; Maternity
 [0] Basting Mop -> Home; Kitchen & Dining
 [0] Basting Mops -> Home; Kitchen & Dining
@@ -167,7 +173,6 @@
 [0] Men Wingtip -> Men; Shoes
 [0] Colander -> Home; Kitchen & Dining
 [0] Women Bowler -> Bags; Shoulder Bags
-[0] Tub -> Home; Kitchen & Dining
 [0] Tubs -> Home; Kitchen & Dining
 [0] Plantoys -> Toys, Games & Books
 [0] Color Modifier -> Beauty & Health; Makeup
@@ -1306,6 +1311,7 @@
 [2] Flori -> Accessories
 [2] Ora -> Accessories
 [2] Mat -> Rugs & Textiles
+[2] Tub -> Rugs & Textiles
 [2] Money Bank -> Accessories
 [2] Fur Collar -> Accessories
 [2] Fur Beenie -> Accessories

@@ -211,6 +211,7 @@ def preprocess(title):
     title = re.sub(r'"[a-z ]+"', '', title)
     if "'s" not in title:
         title = re.sub(r"'\w+'", '', title)
+    title = re.sub(r', [a-z]+$', '', title)
     title = re.sub(r'all in one', 'all-in-one', title)
     title = re.sub(r'with you', 'with-you', title)
     title = re.sub(r'in a', 'in-a', title)

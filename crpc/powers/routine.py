@@ -162,8 +162,8 @@ def text_extract(site, concurrency=3):
     # jobs = [gevent.spawn(update_propation, event_dict, site), \
     #             gevent.spawn(propagate, site, concurrency)]
     # gevent.joinall(jobs)
+    update_propation(site, concurrency)
     propagate(site, concurrency)
-    # update_propation(site, concurrency)
 
     txtlogger.info('ready for publish site -> {0}'.format(site))
     ready_for_publish.send(None, **{'site': site})

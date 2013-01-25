@@ -122,5 +122,5 @@ def reclassify_mongodb():
     for j in jobs:
         j.join()
 
-#reclassify_mongodb()
+reclassify_mongodb()
 reclassify_mastiff()

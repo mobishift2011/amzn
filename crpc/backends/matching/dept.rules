@@ -231,8 +231,6 @@
 [0] Red Wine Cup -> Home; Kitchen & Dining
 [0] White Wine Cup -> Home; Kitchen & Dining
 [0] White Red Wine -> Wine; Red Wine; White Wine
-[0] Red Wine -> Wine; Red Wine
-[0] White Wine -> Wine; White Wine
 [0] T-Strap -> Women; Shoes
 [0] Rainshower Head -> Home; Home Accessories
 [0] Jackson Pollock -> Home; Home Accessories
@@ -1511,3 +1509,5 @@
 [2] Hoops -> Jewelry & Watches; Earrings
 [2] Cosmetic -> Beauty & Health; Makeup
 [2] Cosmetics -> Beauty & Health; Makeup
+[2] Red Wine -> Wine; Red Wine
+[2] White Wine -> Wine; White Wine

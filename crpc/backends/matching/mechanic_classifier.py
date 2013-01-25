@@ -339,14 +339,14 @@ def classify_product_department(site, product, use_event_info=False, return_judg
         for tag in p.tagline:
             if "white wine" in tag.lower():
                 if return_judge:
-                    return [u"Wine", u"White Wines"], [u"Wine", u"White Wines"]
+                    return [u"Wine", u"White Wine"], [u"Wine", u"White Wine"]
                 else:
-                    return [u"Wine", u"White Wines"]
+                    return [u"Wine", u"White Wine"]
             elif "red wine" in tag.lower():
                 if return_judge:
-                    return [u"Wine", u"Red Wines"], [u"Wine", u"Red Wines"]
+                    return [u"Wine", u"Red Wine"], [u"Wine", u"Red Wine"]
                 else:
-                    return [u"Wine", u"Red Wines"]
+                    return [u"Wine", u"Red Wine"]
 
     kws = words_split.findall(title.lower())
     

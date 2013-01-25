@@ -382,10 +382,10 @@ class Propagator(object):
         products = self.__module.Product.objects(event_id=self.event.event_id)
         print 'start to update propogate %s event %s' % (self.site, self.event.event_id)
 
-        lowest_price = self.event.lowest_price
-        highest_price = self.event.highest_price
-        lowest_discount = self.event.lowest_discount,
-        highest_discount = self.event.highest_discount
+        lowest_price = float(self.event.lowest_price)
+        highest_price = float(self.event.highest_price)
+        lowest_discount = float(self.event.lowest_discount)
+        highest_discount = float(self.event.highest_discount)
         event_brands = set()
         event_tags = set()
         if self.event.update_history:
@@ -423,8 +423,8 @@ class Propagator(object):
 
                 discount = 1. * price / listprice if listprice else 1.
                 if discount > 0 and discount < 1:
-                    lowest_discount = max(self.event.lowest_discount, discount)
-                    highest_discount = min(self.event.highest_discount, discount)
+                    lowest_discount = max(lowest_discount, discount)
+                    highest_discount = min(highest_discount, discount)
 
         # Update the event
         if event_brands.difference(self.event.favbuy_brand):
@@ -438,19 +438,19 @@ class Propagator(object):
             update_complete = True
 
         if self.event.lowest_price > lowest_price:
-            self.event.lowest_price = lowest_price
+            self.event.lowest_price = str(lowest_price)
             update_complete = True
 
         if self.event.highest_price < highest_price:
-            self.event.highest_price = highest_price
+            self.event.highest_price = str(highest_price)
             update_complete = True
 
         if self.event.lowest_discount < lowest_discount:
-            self.event.lowest_discount = lowest_discount
+            self.event.lowest_discount = str(lowest_discount)
             update_complete = True
 
         if self.event.highest_discount > highest_discount:
-            self.event.highest_discount = highest_discount
+            self.event.highest_discount = str(highest_discount)
             update_complete = True
 
         if update_complete:

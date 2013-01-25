@@ -5,6 +5,12 @@
 #  [1] - if XXXX in a title; we can determine the main department of it
 #  [2] - if XXXX in a title; we can determine the sub department of it
 # The XXXX is tested in a brute-force; longest first way
+[0] Straightening Iron -> Beauty & Health; Body Care & Hair
+[0] Curling Iron -> Beauty & Health; Body Care & Hair
+[0] Waver Iron -> Beauty & Health; Body Care & Hair
+[0] Styling Comb -> Beauty & Health; Body Care & Hair
+[0] Hairstyle Tool -> Beauty & Health; Body Care & Hair
+[0] Hair Straightener -> Beauty & Health; Body Care & Hair
 [0] For Mon -> Kids & Baby; Maternity
 [0] Basting Mop -> Home; Kitchen & Dining
 [0] Basting Mops -> Home; Kitchen & Dining

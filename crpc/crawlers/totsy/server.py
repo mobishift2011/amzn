@@ -283,12 +283,10 @@ class Server(object):
         if not event: event = Event(event_id=event_id)
         if event.urgent == True:
             event.urgent = False
-            ready = True
             event.image_urls = product.image_urls
-        else: ready = False
-        event.update_time = datetime.utcnow()
-        event.save()
-        common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=url, is_new=False, is_updated=False, ready=ready)
+            event.update_time = datetime.utcnow()
+            event.save()
+            common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=url, is_new=False, is_updated=False, ready=True)
 
 
     def from_url_get_product_key(self, url):

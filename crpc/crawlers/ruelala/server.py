@@ -237,6 +237,12 @@ class Server(object):
                 events_end: isoformat events_end
         """
         cont = self.net.event_fetch_page(url)
+        if cont is None or isinstance(cont, int):
+            cont = self.net.event_fetch_page(url)
+            if cont is None or isinstance(cont, int):
+                common_failed.send(sender=ctx, key='', url=url, reason='Event url has error: {0}'.format(cont))
+                return -2, None
+
         if cont.startswith('http://'): # event is a product.
             self.crawl_event_is_product(event_id, cont, ctx)
             return -1, 0
@@ -310,9 +316,6 @@ class Server(object):
             cont = self.net.product_fetch_page(url)
         tree = lxml.html.fromstring(cont)
         prd = tree.cssselect('div#main section#productAttributes')[0]
-#        except IndexError:
-#            open('ruelala.html', 'w').write(cont)
-#            common_failed.send(sender=ctx, key='', url=url, reason='IndexError: event is product')
 
         title = prd.cssselect('h2#productName')[0].text_content()
         summary = prd.cssselect('p#shortDesc')[0].text_content()
@@ -350,6 +353,14 @@ class Server(object):
         product.full_update_time = datetime.utcnow()
         product.save()
         common_saved.send(sender=ctx, obj_type='Product', key=product_id, is_new=is_new, is_updated=is_updated, ready=ready)
+
+        event = Event.objects(event_id=event_id).first()
+        if not event: event = Event(event_id=event_id)
+        if event.urgent == True:
+            event.urgent = False
+            event.update_time = datetime.utcnow()
+            event.save()
+            common_saved.send(sender=ctx, obj_type='Event', key=event_id, is_new=False, is_updated=False, ready=True)
 
 
     def la_perla(self, dept, url, events_end, ctx):

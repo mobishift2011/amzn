@@ -138,7 +138,7 @@ class Server(object):
             l = node.cssselect('a[href]')[0].get('href')
             link = l if l.startswith('http') else self.siteurl + l
             event_id = self.extract_eventid.match(link).group(1)
-            img = node.cssselect('div.eventStatus > a.trackEventPosition > img')[0].get('src')
+            img = node.cssselect('div.eventStatus > a > img[src]')[0].get('src')
             image = self.extract_large_img.match(img).group(1) + '$mp_hero_standard$'
 
             event, is_new = Event.objects.get_or_create(event_id=event_id)

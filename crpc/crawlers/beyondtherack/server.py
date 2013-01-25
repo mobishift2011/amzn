@@ -353,7 +353,12 @@ class Server(object):
         event.update_time = datetime.utcnow()
         if event.urgent == True:
             event.urgent = False
+            ready = True
+        else: ready = False
         event.save()
+        common_saved.send(sender=ctx, obj_type='Event', key=event_id,
+                url='http://www.beyondtherack.com/event/showcase/{0}'.format(event_id),
+                is_new=False, is_updated=False, ready=ready)
         
         listprice = tree.cssselect('div.pageframe > div.mainframe > div.clearfix div.clearfix span.product-price-prev')[0].text_content()
         price = tree.cssselect('div.pageframe > div.mainframe > div.clearfix div.clearfix span.product-price')[0].text_content()

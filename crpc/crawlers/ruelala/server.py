@@ -77,7 +77,7 @@ class ruelalaLogin(object):
             self.login_account()
             ret = req.get(url)
 
-        if self.event_is_product.match(ret.url): return ret.url
+        if url != ret.url and self.event_is_product.match(ret.url): return ret.url
         if ret.ok: return ret.content
 
         return ret.status_code
@@ -302,6 +302,7 @@ class Server(object):
         try:
             prd = tree.cssselect('div#main section#productAttributes')[0]
         except IndexError:
+            open('ruelala.html', 'w').write(cont)
             common_failed.send(sender=ctx, key='', url=url, reason='IndexError: event is product')
 
         title = prd.cssselect('h2#productName')[0].text_content()

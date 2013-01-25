@@ -279,6 +279,18 @@ class Server(object):
         product.save()
         common_saved.send(sender=ctx, obj_type='Product', key=key, url=url, is_new=is_new, is_updated=is_updated, ready=ready)
 
+        event = Event.objects(event_id=event_id).first()
+        if not event: event = Event(event_id=event_id)
+        if event.urgent == True:
+            event.urgent = False
+            ready = True
+            event.image_urls = product.image_urls
+        else: ready = False
+        event.update_time = datetime.utcnow()
+        event.save()
+        common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=url, is_new=False, is_updated=False, ready=ready)
+
+
     def from_url_get_product_key(self, url):
         """.. :py:method::
         :param url: product url from listing

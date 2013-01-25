@@ -33,6 +33,8 @@
 [0] Toy Chest -> Furniture & Lighting
 [0] Cosmetic Case -> Women; Accessories
 [0] Cosmetics Case -> Women; Accessories
+[0] Cosmetic Bag -> Women; Accessories
+[0] Cosmetics Bag -> Women; Accessories
 [0] Cheese Board -> Home; Kitchen & Dining
 [0] FENDI Baguette -> Bags; Handbags
 [0] Soup Set -> Home; Kitchen & Dining
@@ -355,8 +357,6 @@
 [0] Front Bag -> Bags; Handbags
 [0] Cedar -> Home; Home Accessories
 [0] French Press -> Home; Kitchen & Dining
-[0] Cosmetic -> Beauty & Health; Makeup
-[0] Cosmetics -> Beauty & Health; Makeup
 [0] Boston Bag -> Bags; Handbags
 [0] Backpack -> Bags; Backpacks & Laptop Bags
 [0] Ice Bucket -> Home; Kitchen & Dining
@@ -1509,3 +1509,5 @@
 [2] Watch Winder -> Home; Electronics
 [2] Hoop -> Jewelry & Watches; Earrings
 [2] Hoops -> Jewelry & Watches; Earrings
+[2] Cosmetic -> Beauty & Health; Makeup
+[2] Cosmetics -> Beauty & Health; Makeup

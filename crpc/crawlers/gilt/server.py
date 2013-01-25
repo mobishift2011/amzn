@@ -610,7 +610,9 @@ class Server(object):
             return
 
         tree = lxml.html.fromstring(cont)
-        nodes = tree.cssselect('article.product-on-sale')
+        # "product-on-sale" is the only difference between two right pattern.
+        # nodes = tree.cssselect('article.product-on-sale')
+        nodes = tree.cssselect('article.element-product')
         for node in nodes:
             look_id = node.get('data-home-look-id')
             text = node.cssselect('section.product-details > header > hgroup')[0]

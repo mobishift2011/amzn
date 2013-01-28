@@ -37,7 +37,7 @@ def main():
 		f.write('title        title_edit'+'\r\n')
 		for favbuy_brand in favbuy_brands:
 			brand = Brand.objects(Q(title_edit=favbuy_brand) | Q(title=favbuy_brand)).first()
-			f.write('%s        %s\r\n' % (brand.title.encode('utf-8'), brand.title.encode('utf-8')))
+			f.write('\r\n%s        %s\r\n' % (brand.title.encode('utf-8'), brand.title.encode('utf-8')))
 			for alias in brand.alias:
 				if alias and alias != 'undefined':
 					f.write(alias.encode('utf-8')+'\r\n')

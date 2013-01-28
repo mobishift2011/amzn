@@ -10,12 +10,14 @@ import zerorpc
 import subprocess
 
 class socketServer(object):
-    def _getsocket(self, name):
+
+    def get_socket(self, name):
         pid = subprocess.Popen('ps aux | grep {0} | grep -v grep | grep -v dtach'.format(name.split('_')[0]), shell=True, stdout=subprocess.PIPE).communicate()[0].split()[1]
         ret = os.listdir('/proc/{0}/fd'.format(pid))
         return len(ret)
 
+
 if __name__ == '__main__':
     ss = zerorpc.Server(socketServer(), heartbeat=None)
-    ss.bind('tcp://127.0.0.1:6357')
+    ss.bind('tcp://0.0.0.0:6357')
     ss.run()

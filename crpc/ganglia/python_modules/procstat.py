@@ -31,8 +31,9 @@ def _memory(name):
     return float(cont[3])
 
 def _socket(name):
-    c = zerorpc.Client('tcp://127.0.0.1:6357', timeout=None, heartbeat=None)
-    return c._getsocket(name)
+    c = zerorpc.Client()
+    c.connect('tcp://127.0.0.1:6357')
+    return c.get_socket(name)
 
 
 def metric_init(params):

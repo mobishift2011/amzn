@@ -459,6 +459,11 @@ def process_propagation_done(sender, **kwargs):
         return
     p.try_publish_all(site)
 
+def dump_obj_in_db(obj):
+    for attr in dir(obj):
+        if attr.startswith("_"): continue
+        print attr, "======>", getattr(obj, attr)
+
 if __name__ == '__main__':
     from optparse import OptionParser
 
@@ -468,6 +473,7 @@ if __name__ == '__main__':
     parser.add_option('--mput', dest='mput', action="store_true", help='publish to mastiff service', default=False)
     parser.add_option('--upd', dest='upd', action="store_true", help='update mode(mput only)', default=False)
     parser.add_option('--mget', dest='mget', action="store_true", help='get published result back from mastiff service', default=False)
+    parser.add_option('--dbget', dest='dbget', action="store_true", help='get data from db', default=False)    
     parser.add_option('-s', '--site', dest='site', help='site info', default='')
     parser.add_option('-e', '--ev', dest='ev', help='event id', default='')
     parser.add_option('-p', '--prod', dest='prod', help='product id', default='')
@@ -519,7 +525,15 @@ if __name__ == '__main__':
             pprint(p.mget_event(options.site, options.ev))
         elif options.site and options.prod:
             pprint(p.mget_product(options.site, options.prod))
+    elif options.dbget:
+        if options.site and options.ev:
+            m = get_site_module(options.site)
+            ev = m.Event.objects.get(event_id=options.ev)
+            dump_obj_in_db(ev)
+        elif options.site and options.prod:
+            m = get_site_module(options.site)        
+            prod = m.Product.objects.get(key=options.prod)
+            dump_obj_in_db(prod)
     else:
         parser.print_help()
-
 

@@ -34,10 +34,10 @@ def main():
 	file_path = CRPC_ROOT + '/powers/script/product_brands.txt'
 	with open(file_path, 'w') as f:
 		f.write('total: '+ str(total)+'\r\n\r\n\r\n')
-		f.write('title        title_edit'+'\r\n')
 		for favbuy_brand in favbuy_brands:
 			brand = Brand.objects(Q(title_edit=favbuy_brand) | Q(title=favbuy_brand)).first()
-			f.write('\r\n%s        %s\r\n' % (brand.title.encode('utf-8'), brand.title.encode('utf-8')))
+			title = brand.title_edit if brand.title_edit else brand.title
+			f.write('%s\r\n' % title.encode('utf-8'))
 			for alias in brand.alias:
 				if alias and alias != 'undefined':
 					f.write(alias.encode('utf-8')+'\r\n')

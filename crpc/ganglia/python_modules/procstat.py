@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # Author: bishop Liu <miracle (at) gmail.com>
 
-import os
+import zerorpc
 import time
 import subprocess
 
@@ -31,8 +31,8 @@ def _memory(name):
     return float(cont[3])
 
 def _socket(name):
-    c = zerorpc.Client('tcp://localhost:6357', timeout=None, heartbeat=None)
-    return c.call(_getsocket, name)
+    c = zerorpc.Client('tcp://127.0.0.1:6357', timeout=None, heartbeat=None)
+    return c._getsocket(name)
 
 
 def metric_init(params):

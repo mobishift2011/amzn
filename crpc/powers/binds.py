@@ -5,7 +5,7 @@ import gevent
 
 from crawlers.common.events import common_saved
 from powers.events import *
-from powers.routine import crawl_images, scan_images, text_extract
+from powers.routine import crawl_images, scan_images, text_extract, debug_logger
 from settings import POWER_PEERS, TEXT_PEERS
 
 from helpers.rpc import get_rpcs
@@ -27,7 +27,9 @@ def single_image_crawling(sender, **kwargs):
     site, method, dummy = sender.split('.')
 
     if site and key and doctype.capitalize() in ('Event', 'Product'):
+        debug_logger.info('Single image begin[{0}], fd number: {1}'.format(sender, run_fd()))
         process_image_pool.spawn(crawl_images, site, doctype, key)
+        debug_logger.info('Single image end[{0}], fd number: {1}'.format(sender, run_fd()))
     else:
         logger.error('{0} failed to single image crawling: {1} {2} {3}'.format(sender, site, doctype, key))
         # TODO send a process_message error signal.
@@ -39,7 +41,9 @@ def batch_image_crawling(sender, **kwargs):
     doctype = kwargs.get('doctype')
 
     if site and doctype:
+        debug_logger.info('Batch image begin[{0}], fd number: {1}'.format(sender, run_fd()))
         scan_images(site, doctype, 10)
+        debug_logger.info('Batch image end[{0}], fd number: {1}'.format(sender, run_fd()))
     else:
         logger.error('{0} failed to batch image crawling: {1} {2}'.format(sender, site, doctype))
         # TODO send a process_message error signal.

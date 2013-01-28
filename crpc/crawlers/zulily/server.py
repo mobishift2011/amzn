@@ -38,7 +38,7 @@ class zulilyLogin(object):
         """
         self.login_url = 'https://www.zulily.com/auth'
         self.data = {
-            'login[username]': login_email,
+            'login[username]': login_email[DB],
             'login[password]': login_passwd
         }
         self.reg_check = re.compile(r'https://www.zulily.com/auth/create.*')

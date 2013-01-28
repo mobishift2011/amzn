@@ -55,7 +55,7 @@ class Server:
         """.. :py:method:
             fill in login form when firefox driver is open
         """
-        self.browser.find_element_by_id('ap_email').send_keys(login_email)
+        self.browser.find_element_by_id('ap_email').send_keys(login_email[DB])
         self.browser.find_element_by_id('ap_password').send_keys(login_passwd)
         self.browser.find_element_by_id('signInSubmit').submit()
         self._signin = True

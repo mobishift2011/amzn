@@ -35,7 +35,7 @@ class belleandcliveLogin(object):
             '_dyncharset': 'ISO-8859-1',
             '_dynSessConf': '-5253286180443458341',
             'action': 'login',
-            'email': login_email,
+            'email': login_email[DB],
             '_D:email': '',
             'pwd': login_passwd,
             '_D:pwd': '',

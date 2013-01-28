@@ -22,7 +22,7 @@ class lot18Login(object):
         """
         self.login_url = 'http://www.lot18.com/login'
         self.data = {
-            'email': login_email,
+            'email': login_email[DB],
             'password': login_passwd,
         }
 

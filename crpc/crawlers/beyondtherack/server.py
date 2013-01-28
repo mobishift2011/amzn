@@ -36,7 +36,7 @@ class beyondtherackLogin(object):
         """
         self.login_url = 'https://www.beyondtherack.com/auth/login'
         self.data = {
-            'email': login_email,
+            'email': login_email[DB],
             'passwd': login_passwd,
             'keepalive': 1,
             '_submit': 1,

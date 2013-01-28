@@ -33,7 +33,7 @@ class ideeliLogin(object):
         """
         self.login_url = 'https://www.ideeli.com/login'
         self.data = { 
-            'login': login_email,
+            'login': login_email[DB],
             'password': login_passwd,
             'x': 64,
             'y': 20,

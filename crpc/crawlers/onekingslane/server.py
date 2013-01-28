@@ -59,7 +59,7 @@ class onekingslaneLogin(object):
         """
         self.login_url = 'https://www.onekingslane.com/login'
         self.data = { 
-            'email': login_email,
+            'email': login_email[DB],
             'password': login_passwd,
             'keepLogIn': 1,
             'sumbit.x': 54,

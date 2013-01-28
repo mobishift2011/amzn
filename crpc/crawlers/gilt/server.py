@@ -22,7 +22,7 @@ class giltLogin(object):
         """
         self.login_url = 'https://www.gilt.com/login'
         self.data = { 
-            'email': login_email,
+            'email': login_email[DB],
             'password': login_passwd,
             'remember_me': 'on',
         }    

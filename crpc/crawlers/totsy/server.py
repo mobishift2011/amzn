@@ -21,7 +21,7 @@ class totsyLogin(object):
         """
         self.login_url = 'https://www.totsy.com/customer/account/login/'
         self.data = { 
-            'login[username]': login_email,
+            'login[username]': login_email[DB],
             'login[password]': login_passwd,
         }    
 

@@ -49,7 +49,7 @@ class Server(object):
         self.login_url = 'https://www.hautelook.com/login'
         self.post_url = 'https://www.hautelook.com/v3/credential'
         self.data = { # If want to login, maybe need more header to masquerading like a browser
-            "email": login_email,
+            "email": login_email[DB],
             "password": login_passwd,
             "meta": {
                 "screen_resolution": {"height":768, "width":1366}

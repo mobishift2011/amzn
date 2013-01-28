@@ -84,7 +84,7 @@ class Server:
 
         a = login_node.find_element_by_css_selector('div.loginRow input#txtEmailLogin')
         a.click()
-        a.send_keys(login_email)
+        a.send_keys(login_email[DB])
 
         b = login_node.find_element_by_css_selector('div.loginRow input#txtPass')
         b.click()

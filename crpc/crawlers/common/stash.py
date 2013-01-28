@@ -37,7 +37,21 @@ picked_crawlers = ('ideeli',
  'hautelook')
 
 
-login_email = '2012luxurygoods@gmail.com'
+login_email = {'bluefly': '2012luxurygoods@gmail.com',
+               'ruelala': '2012luxurygoods@gmail.com',
+               'gilt': '2012luxurygoods@gmail.com',
+               'nomorerack': '2012luxurygoods@gmail.com',
+               'venteprivee': '2012luxurygoods@gmail.com',
+               'totsy': '2012luxurygoods@gmail.com',
+               'beyondtherack': '2012luxurygoods@gmail.com',
+               'lot18': '2012luxurygoods@gmail.com',
+               'myhabit': '2012luxurygoods@gmail.com',
+               'belleandclive': '2012luxurygoods@gmail.com',
+               'modnique': '2012luxurygoods@gmail.com',
+               'zulily': 'woodena16@gmail.com',
+               'onekingslane': '2012luxurygoods@gmail.com',
+               'hautelook': '2012luxurygoods@gmail.com',
+}
 login_passwd = 'abcd1234'
 
 headers = { 

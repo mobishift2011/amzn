@@ -41,7 +41,7 @@ class ruelalaLogin(object):
         """
         self.login_url = 'http://www.ruelala.com/access/gate'
         self.data = {
-            'email': login_email,
+            'email': login_email[DB],
             'password': login_passwd,
             'loginType': 'gate',
             'rememberMe': 1, 

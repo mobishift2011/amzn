@@ -31,8 +31,8 @@ def _memory(name):
     return float(cont[3])
 
 def _socket(name):
-    if not hasattr(_socket, rpc_client):
-        setattr(_socket, rpc_client, None)
+    if not hasattr(_socket, 'rpc_client'):
+        setattr(_socket, 'rpc_client', None)
 
     if not _socket.rpc_client:
         _socket.rpc_client = zerorpc.Client()

@@ -24,7 +24,9 @@ def stat():
 		favbuy_brands = m.Product.objects(brand_complete=True).values_list('favbuy_brand')
 		brand_set.update(set(favbuy_brands))
 
-	return list(brand_set)
+	brand_list = list(brand_set)
+	brand_list.sort()
+	return brand_list
 
 def main():
 	favbuy_brands = stat()

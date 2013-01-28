@@ -459,6 +459,11 @@ def process_propagation_done(sender, **kwargs):
         return
     p.try_publish_all(site)
 
+def dump_obj_in_db(obj):
+    for attr in dir(obj):
+        if attr.startswith("_"): continue
+        print attr, "======>", getattr(obj, attr)
+
 if __name__ == '__main__':
     from optparse import OptionParser
 
@@ -532,9 +537,3 @@ if __name__ == '__main__':
     else:
         parser.print_help()
 
-    def dump_obj_in_db(obj):
-        for attr in dir(obj):
-            if attr.startswith("_"): continue
-            print getattr(obj, attr)
-
-        

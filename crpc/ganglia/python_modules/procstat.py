@@ -31,9 +31,8 @@ def _memory(name):
     return float(cont[3])
 
 def _socket(name):
-    pid = subprocess.Popen('ps aux | grep {0} | grep -v grep | grep -v dtach'.format(name.split('_')[0]), shell=True, stdout=subprocess.PIPE).communicate()[0].split()[1]
-    ret = os.listdir('/proc/{0}/fd'.format(pid))
-    return len(ret)
+    c = zerorpc.Client('tcp://localhost:6357', timeout=None, heartbeat=None)
+    return c.call(_getsocket, name)
 
 
 def metric_init(params):

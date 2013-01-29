@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	{% include "header.html" %}
+</head>
+<body>
+	<div class="container-fluid">
+	    <div class="row-fluid">
+			<p>{{ brand['title'] }}</p>
+			<table class="table table-striped table-bordered bootstrap-datatable">
+				<thead>
+					<tr>
+						<th>Key</th>
+						<th>Value</th>
+					</tr>
+				</thead>   
+				<tbody>
+					<tr>
+						<td>Title</td>
+						<td>{{ brand['title'] }}</td>
+					</tr>
+					<tr>
+						<td>Title Edit</td>
+						<td>{{ brand['title_edit'] }}</td>
+					</tr>
+					<tr>
+						<td>Title Checked</td>
+						<td>{{ brand['title_checked'] }}</td>
+					</tr>
+					<tr>
+						<td>Alias</td>
+						<td>{{ brand['alias'] }}</td>
+					</tr>
+					<tr>
+						<td>Delete</td>
+						<td>{{ brand['is_delete'] }}</td>
+					</tr>
+					<tr>
+						<td>Keywords</td>
+						<td>{{ brand['keywords'] }}</td>
+					</tr>
+					<tr>
+						<td>Desc</td>
+						<td>{{ brand['blurb'] }}</td>
+					</tr>
+					<tr>
+						<td>Level</td>
+						<td>{{ brand['level'] }}</td>
+					</tr>
+					<tr>
+						<td>URL</td>
+						<td>{{ brand['url'] }}</td>
+					</tr>
+					<tr>
+						<td>URL Checked</td>
+						<td>{{ brand['url_checked'] }}</td>
+					</tr>
+					<tr>
+						<td>Dept</td>
+						<td>{{ brand['dept'] }}</td>
+					</tr>
+					<tr>
+						<td>All Checked</td>
+						<td>{{ brand['done'] }}</td>
+					</tr>
+					<tr>
+						<td>Created</td>
+						<td>{{ brand['created_at'] }}</td>
+					</tr>
+				</tbody>
+			</table>
+	    </div><!--/fluid-row-->
+	    
+	</div><!--/.fluid-container-->
+	<div id="script">
+	  {% block script %}{% endblock %}
+	</div>
+</body>
+</html>

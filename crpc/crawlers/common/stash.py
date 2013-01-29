@@ -20,24 +20,26 @@ __lock = Semaphore(1)
 
 exclude_crawlers = ['common', 'amazon', 'newegg', 'ecost', 'bhphotovideo', 'bestbuy', 'dickssport', 'overstock', 'cabelas', ]
 # for auto-scheduler. bluefly, beyondtherack, nomorerack, zulily should better not be schedule together
-picked_crawlers = ('ideeli',
- 'bluefly',
- 'ruelala',
- 'gilt',
- 'nomorerack',
- 'venteprivee',
- 'totsy',
- 'beyondtherack',
- 'lot18',
- 'myhabit',
- 'belleandclive',
- 'modnique',
- 'zulily',
- 'onekingslane',
- 'hautelook')
+picked_crawlers = (
+         'belleandclive',
+         'bluefly',
+         'ideeli',
+         'ruelala',
+         'gilt',
+         'nomorerack',
+         'venteprivee',
+         'totsy',
+         'beyondtherack',
+         'lot18',
+         'myhabit',
+         'modnique',
+         'zulily',
+         'onekingslane',
+         'hautelook', )
 
 
 login_email = {'bluefly': '2012luxurygoods@gmail.com',
+               'ideeli': '2012luxurygoods@gmail.com',
                'ruelala': '2012luxurygoods@gmail.com',
                'gilt': '2012luxurygoods@gmail.com',
                'nomorerack': '2012luxurygoods@gmail.com',

@@ -31,14 +31,27 @@ def fetch_page(url):
         ret = request.get(url)
     except:
         # page not exist or timeout
-        return
-
-    # nomorerack will redirect to homepage automatically when this product is not exists.
-    if ret.url == u'http://nomorerack.com/' and ret.url[:-1] != url:
-        return 0
+        ret = request.get(url)
 
     if ret.ok: return ret.content
     else: return ret.status_code
+
+def fetch_product_page(url):
+    try:
+        ret = request.get(url)
+    except:
+        # page not exist or timeout
+        ret = request.get(url)
+
+    # nomorerack will redirect to homepage automatically when this product is not exists.
+    if ret.url == u'http://nomorerack.com/' and ret.url[:-1] != url:
+        return -302
+    elif ret.url.startswith(u'http://nomorerack.com/events/view/'):
+        return -302
+
+    if ret.ok: return ret.content
+    else: return ret.status_code
+
 
 class Server(object):
     """.. :py:class:: Server
@@ -146,7 +159,7 @@ class Server(object):
         if content is None: content = fetch_page(url)
         if isinstance(content, int) or content is None:
             common_failed.send(sender=ctx, key=event_id, url=url,
-                    reason='download events listing error or {0} return'.format(content))
+                    reason='download events listing error: {0}'.format(content))
             return
         tree = lxml.html.fromstring(content)
         primary = tree.cssselect('div#wrapper > div#content > div#front > div#primary')[0]
@@ -324,14 +337,14 @@ class Server(object):
             Got all the product information and save into the database
         """
         product_id = url.rsplit('/', 1)[-1]
-        content = fetch_page(url)
-        if content is None:
+        content = fetch_product_page(url)
+        if content is None or isinstance(content, int):
             time.sleep(0.5)
-            content = fetch_page(url)
-        if isinstance(content, int) or content is None:
-            common_failed.send(sender=ctx, key=product_id, url=url,
-                    reason='download product detail page error or {0} return'.format(content))
-            return
+            content = fetch_product_page(url)
+            if isinstance(content, int) or content is None:
+                common_failed.send(sender=ctx, key=product_id, url=url,
+                        reason='download product detail page error: {0}'.format(content))
+                return
         tree = lxml.html.fromstring(content)
         node = tree.cssselect('div#wrapper > div#content > div#front > div#primary > div#products_view')[0]
         summary = node.cssselect('div.right > p.description')
@@ -362,7 +375,17 @@ class Server(object):
             time_format = '%B %d %I:%M%p%Y'
         elif len(time_str.split(' ')) == 4:
             time_format = '%B %d %I:%M %p%Y'
-        products_end = time_convert(time_str, time_format, time_zone)
+        try:
+            products_end = time_convert(time_str, time_format, time_zone)
+        except ValueError:
+            if len(time_str.split(' ')) == 3:
+                a, b, c = time_str.split(' ')
+                if c[:2] == '00' and c[5] == 'A':
+                    products_end = time_convert(time_str.replace('AM', ' '), '%B %d %H:%M %Y', time_zone)
+            elif len(time_str.split(' ')) == 4:
+                a, b, c, d = time_str.split(' ')
+                if c[:2] == '00' and d[0] == 'A':
+                    products_end = time_convert(time_str.replace('AM', ''), '%B %d %H:%M %Y', time_zone)
 
         is_new, is_updated = False, False
         product = Product.objects(key=product_id).first()

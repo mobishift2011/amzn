@@ -169,6 +169,9 @@ class Server(object):
             Problem may exist: these events off sale, update_listing will get nothing.
         """
         cont = self.net.event_fetch_page(url)
+        if isinstance(cont, int):
+            common_failed.send(sender=ctx, key=dept, url=url, reason='Gifts url has error: {0}'.format(cont))
+            return
         tree = lxml.html.fromstring(cont)
         nodes = tree.cssselect('body > div.container > div#canvasContainer > section#gift-center > div#gc-wrapper a[href]')
         for node in nodes:

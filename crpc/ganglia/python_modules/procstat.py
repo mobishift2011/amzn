@@ -35,7 +35,7 @@ def _socket(name):
         setattr(_socket, 'rpc_client', None)
 
     if not _socket.rpc_client:
-        _socket.rpc_client = zerorpc.Client()
+        _socket.rpc_client = zerorpc.Client(timeout=None, heartbeat=None)
         _socket.rpc_client.connect('tcp://127.0.0.1:6357')
     return _socket.rpc_client.get_socket(name)
 

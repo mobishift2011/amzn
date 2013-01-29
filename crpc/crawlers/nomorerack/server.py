@@ -362,7 +362,17 @@ class Server(object):
             time_format = '%B %d %I:%M%p%Y'
         elif len(time_str.split(' ')) == 4:
             time_format = '%B %d %I:%M %p%Y'
-        products_end = time_convert(time_str, time_format, time_zone)
+        try:
+            products_end = time_convert(time_str, time_format, time_zone)
+        except ValueError:
+            if len(time_str.split(' ')) == 3:
+                a, b, c = time_str.split(' ')
+                if c[:2] == '00' and c[5] == 'A':
+                    products_end = time_convert(time_str.replace('AM', ' '), '%B %d %H:%M %Y', time_zone)
+            elif len(time_str.split(' ')) == 4:
+                a, b, c, d = time_str.split(' ')
+                if c[:2] = '00' and d[0] = 'A':
+                    products_end = time_convert(time_str.replace('AM', ''), '%B %d %H:%M %Y', time_zone)
 
         is_new, is_updated = False, False
         product = Product.objects(key=product_id).first()

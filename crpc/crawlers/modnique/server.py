@@ -168,7 +168,8 @@ class Server(object):
             image_urls = [img.replace('B.jpg', 'A.jpg'), img]
             sale_title = node.cssselect('div.sDefault > div > a > span')[0].text_content().strip()
 
-            day, hour, minute = node.cssselect('div.sRollover > div > a > span.title_time_banner')[0].text_content().split('Ends')[-1].strip().split()
+            time_text = node.cssselect('div.sRollover > div > a > span.title_time_banner')[0].text_content()
+            day, hour, minute = time_text.split('Ends')[-1].strip().split()
             ends = timedelta(days=int(day[:-1]), hours=int(hour[:-1]), minutes=int(minute[:-1])) + _utcnow
             hour = ends.hour + 1 if ends.minute > 50 else ends.hour
             events_end = datetime(ends.year, ends.month, ends.day, hour)

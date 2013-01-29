@@ -1,0 +1,170 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<div class="row-fluid">
+	<div>
+		<ul class="breadcrumb">
+			<li>
+				<a href="/">Home</a> <span class="divider">/</span>
+			</li>
+			<li>
+				<a href="/brands/">Brand</a> <span class="divider">/</span>
+			</li>
+			<li>
+				<a href="/brand/{{ brand['title'] }}?t=p">{{ brand['title'] }}</a>
+			</li>
+		</ul>
+	</div>
+
+	<div class="row-fluid sortable ui-sortable">
+		<div class="box span12">
+			<div class="box-header well" data-original-title="">
+				<h2><i class="icon-edit"></i>Brand</h2>
+				<div class="box-icon">
+					<a href="#" id="toggle-fullscreen" class="btn btn-setting btn-round"><i class="icon-fullscreen"></i></a>
+					<a href="#" class="btn btn-minimize btn-round"><i class="icon-chevron-up"></i></a>
+					<a href="#" class="btn btn-close btn-round"><i class="icon-remove"></i></a>
+				</div>
+			</div>
+			<div class="box-content">
+				<form class="form-horizontal" action="/brand/{{ brand['title'] }}?t=p" method="post">
+					{{ xsrf_form_html() }}
+					<fieldset>
+						<legend>{{ brand['title'] }}</legend>
+						<div class="control-group">
+							<label class="control-label" for="typeahead">title</label>
+							<div class="controls">
+								<input type="text" class="span6 typeahead" name="title" data-provide="typeahead" data-items="4" data-source="[]" value="{{ brand['title'] }}">
+								<p class="help-block"></p>
+							</div>
+						</div>
+						<div class="control-group">
+							<label class="control-label" for="typeahead">title edit</label>
+							<div class="controls">
+								<input type="text" class="span6 typeahead" name="title_edit" data-provide="typeahead" data-items="4" data-source="[]" value="{{ brand['title_edit'] }}">
+								<p class="help-block"></p>
+							</div>
+						</div>
+						<div class="control-group">
+							<label class="control-label">title checked</label>
+							<div class="controls">
+								<label class="radio">
+									<div class="radio" id="uniform-optionsRadios1"><span class="checked"><input type="radio" name="title_checked" id="optionsRadios1" value="True" checked="" style="opacity: 0;"></span></div>
+									Yes
+								</label>
+								<div style="clear:both"></div>
+								<label class="radio">
+									<div class="radio" id="uniform-optionsRadios2"><span class=""><input type="radio" name="title_checked" id="optionsRadios2" value="False" style="opacity: 0;"></span></div>
+									No
+								</label>
+							</div>
+						</div>
+						<div class="control-group">
+							<label class="control-label" for="typeahead">alias</label>
+							<div class="controls">
+								{% for alias in brand['alias'] %}
+								<input type="text" class="span6 typeahead" name="alias" data-provide="typeahead" data-items="4" data-source="[]" value="{{ alias }}">
+								{% endfor %}
+								<input type="text" class="span6 typeahead" name="alias" data-provide="typeahead" data-items="4" data-source="[]" value="">
+								<p class="help-block"></p>
+							</div>
+						</div>
+						<div class="control-group">
+							<label class="control-label">delete</label>
+							<div class="controls">
+								<label class="radio">
+									<div class="radio"><span class="checked"><input type="radio" name="is_delete" value="True" checked="" style="opacity: 0;"></span></div>
+									Yes
+								</label>
+								<div style="clear:both"></div>
+								<label class="radio">
+									<div class="radio"><span class=""><input type="radio" name="title_checked" value="False" style="opacity: 0;"></span></div>
+									No
+								</label>
+							</div>
+						</div>
+						<div class="control-group">
+							<label class="control-label" for="typeahead">keywords</label>
+							<div class="controls">
+								<textarea class="autogrow" name="keywords">{{ brand['keywords'] }}</textarea>
+								<p class="help-block"></p>
+							</div>
+						</div>
+						<div class="control-group">
+							<label class="control-label" for="textarea2">description</label>
+							<div class="controls">
+								<div class="cleditorMain" style="width: 500px; height: 250px;"><div ><div class="cleditorGroup"><div class="cleditorButton" title="Bold"></div><div class="cleditorButton" title="Italic" style="background-color: transparent; background-position: -24px 50%;"></div><div class="cleditorButton" title="Underline" style="background-color: transparent; background-position: -48px 50%;"></div><div class="cleditorButton" title="Strikethrough" style="background-position: -72px 50%;"></div><div class="cleditorButton" title="Subscript" style="background-color: transparent; background-position: -96px 50%;"></div><div class="cleditorButton" title="Superscript" style="background-color: transparent; background-position: -120px 50%;"></div><div class="cleditorDivider"></div></div><div class="cleditorGroup"><div class="cleditorButton" title="Font" style="background-color: transparent; background-position: -144px 50%;"></div><div class="cleditorButton" title="Font Size" style="background-position: -168px 50%;"></div><div class="cleditorButton" title="Style" style="background-position: -192px 50%;"></div><div class="cleditorDivider"></div></div><div class="cleditorGroup"><div class="cleditorButton" title="Font Color" style="background-position: -216px 50%;"></div><div class="cleditorButton" title="Text Highlight Color" style="background-position: -240px 50%;"></div><div class="cleditorButton cleditorDisabled" title="Remove Formatting" style="background-position: -264px 50%;" disabled="disabled"></div><div class="cleditorDivider"></div></div><div class="cleditorGroup"><div class="cleditorButton" title="Bullets" style="background-position: -288px 50%;"></div><div class="cleditorButton" title="Numbering" style="background-position: -312px 50%;"></div><div class="cleditorDivider"></div></div><div class="cleditorGroup"><div class="cleditorButton" title="Outdent" style="background-position: -336px 50%;"></div><div class="cleditorButton" title="Indent" style="background-position: -360px 50%;"></div><div class="cleditorDivider"></div></div><div class="cleditorGroup"><div class="cleditorButton" title="Align Text Left" style="background-position: -384px 50%;"></div><div class="cleditorButton" title="Center" style="background-position: -408px 50%;"></div><div class="cleditorButton" title="Align Text Right" style="background-position: -432px 50%;"></div><div class="cleditorButton" title="Justify" style="background-position: -456px 50%;"></div><div class="cleditorDivider"></div></div><div class="cleditorGroup"><div class="cleditorButton cleditorDisabled" title="Undo" style="background-position: -480px 50%;" disabled="disabled"></div><div class="cleditorButton cleditorDisabled" title="Redo" style="background-position: -504px 50%;" disabled="disabled"></div><div class="cleditorDivider"></div></div><div class="cleditorGroup"><div class="cleditorButton" title="Insert Horizontal Rule" style="background-color: transparent; background-position: -528px 50%;"></div><div class="cleditorButton" title="Insert Image" style="background-color: transparent; background-position: -552px 50%;"></div><div class="cleditorButton" title="Insert Hyperlink" style="background-color: transparent; background-position: -576px 50%;"></div><div class="cleditorButton cleditorDisabled" title="Remove Hyperlink" style="background-color: transparent; background-position: -600px 50%;" disabled="disabled"></div><div class="cleditorDivider"></div></div><div class="cleditorGroup"><div class="cleditorButton cleditorDisabled" title="Cut" style="background-position: -624px 50%;" disabled="disabled"></div><div class="cleditorButton cleditorDisabled" title="Copy" style="background-position: -648px 50%;" disabled="disabled"></div><div class="cleditorButton cleditorDisabled" title="Paste" style="background-position: -672px 50%;" disabled="disabled"></div><div class="cleditorButton" title="Paste as Text" style="background-position: -696px 50%;"></div><div class="cleditorDivider"></div></div><div class="cleditorGroup"><div class="cleditorButton" title="Print" style="background-position: -720px 50%;"></div><div class="cleditorButton" title="Show Source" style="background-position: -744px 50%;"></div></div></div><textarea class="cleditor" name="blurb" rows="3" style="display: none; width: 500px; height: 197px;">{{ brand['blurb'] }}</textarea><iframe frameborder="0" src="javascript:true;" style="width: 500px; height: 197px;"></iframe></div>
+							</div>
+						</div>
+						<div class="control-group">
+							<label class="control-label" for="typeahead">level</label>
+							<div class="controls">
+								<input type="text" class="span6 typeahead" name="level" data-provide="typeahead" data-items="4" data-source="[]" value="{{ brand['level'] }}">
+								<p class="help-block"></p>
+							</div>
+						</div>
+						<div class="control-group">
+							<label class="control-label" for="typeahead">url</label>
+							<div class="controls">
+								<input type="text" class="span6 typeahead" name="url" data-provide="typeahead" data-items="4" data-source="[]" value="{{ brand['url'] }}">
+								<p class="help-block"></p>
+							</div>
+						</div>
+						<div class="control-group">
+							<label class="control-label">url checked</label>
+							<div class="controls">
+								<label class="radio">
+									<div class="radio"><span class="checked"><input type="radio" name="url_checked" value="True" checked="" style="opacity: 0;"></span></div>
+									Yes
+								</label>
+								<div style="clear:both"></div>
+								<label class="radio">
+									<div class="radio"><span class=""><input type="radio" name="url_checked" value="False" style="opacity: 0;"></span></div>
+									No
+								</label>
+							</div>
+						</div>
+						<div class="control-group">
+							<label class="control-label" for="typeahead">department</label>
+							<div class="controls">
+								{% for dept in brand['dept'] %}
+								<input type="text" class="span6 typeahead" name="dept" data-provide="typeahead" data-items="4" data-source="[]" value="{{ dept }}">
+								{% endfor %}
+								<input type="text" class="span6 typeahead" name="dept" data-provide="typeahead" data-items="4" data-source="[]" value="">
+								<p class="help-block"></p>
+							</div>
+						</div>
+						<div class="control-group">
+							<label class="control-label">all checked</label>
+							<div class="controls">
+								<label class="radio">
+									<div class="radio"><span class="checked"><input type="radio" name="done" value="True" checked="" style="opacity: 0;"></span></div>
+									Yes
+								</label>
+								<div style="clear:both"></div>
+								<label class="radio">
+									<div class="radio"><span class=""><input type="radio" name="done" value="False" style="opacity: 0;"></span></div>
+									No
+								</label>
+							</div>
+						</div>
+						<div class="control-group">
+							<label class="control-label" for="disabledInput">created</label>
+							<div class="controls">
+								<input class="input-xlarge disabled" name="created_at" type="text" placeholder="{{ brand['created_at'] }}" disabled="">
+							</div>
+						</div>
+						<div class="form-actions">
+							<button type="submit" class="btn btn-primary">Save changes</button>
+							<button type="reset" class="btn">Cancel</button>
+						</div>
+					</fieldset>
+				</form>   
+
+			</div>
+		</div><!--/span-->
+
+	</div>
+
+</div>
+{% endblock %}

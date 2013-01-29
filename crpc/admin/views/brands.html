@@ -8,7 +8,7 @@
 				<a href="/">Home</a> <span class="divider">/</span>
 			</li>
 			<li>
-				<a href="/brands">Brands</a>
+				<a href="/brands/">Brands</a>
 			</li>
 		</ul>
 	</div>
@@ -16,12 +16,9 @@
 	<div class="row-fluid sortable">		
 		<div class="box span12">
 			<div class="box-header well" data-original-title>
-				<h2><i class="icon-user"></i> Brands</h2>
-				<p class="center">
-					<button id="toggle-fullscreen" class="btn btn-small btn-primary visible-desktop" data-toggle="button">Fullscreen</button>
-				</p>
+				<h2><a data-rel="popover" data-content="add new brand"><i class="icon-plus"></i></a> Brands</h2>
 				<div class="box-icon">
-					<a href="#" class="btn btn-setting btn-round"><i class="icon-cog"></i></a>
+					<a href="#" id="toggle-fullscreen" class="btn btn-setting btn-round"><i class="icon-fullscreen"></i></a>
 					<a href="#" class="btn btn-minimize btn-round"><i class="icon-chevron-up"></i></a>
 					<a href="#" class="btn btn-close btn-round"><i class="icon-remove"></i></a>
 				</div>
@@ -88,7 +85,7 @@
 							<a class="btn btn-success btn_view" href="#">
 								<i class="icon-zoom-in icon-white"></i>
 							</a>
-							<a class="btn btn-info btn_edit" href="#">
+							<a class="btn btn-info" href="/brand/{{ brand['title'] }}?t=p">
 								<i class="icon-edit icon-white"></i>
 							</a>
 							<a class="btn btn-danger btn_delete" href="#">
@@ -183,7 +180,7 @@ $('.btn_delete').click(function(e){
 
 $('.btn_view').click(function(e){
         e.preventDefault();
-		$('#iframe_brand').attr('src', '../brand/'+$(this).parent().parent().attr('title'));
+		$('#iframe_brand').attr('src', '../brand/'+$(this).parent().parent().attr('title')+'?t=iframe');
         $('#brand_modal').modal('show');
 });
 </script>

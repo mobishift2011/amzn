@@ -17,7 +17,7 @@ from slumber import API
 from datetime import datetime, timedelta
 from mongoengine import Q
 
-from views import get_all_brands
+from views import get_all_brands, get_brand, delete_brand
 
 def get_site_module(site):
     return __import__('crawlers.'+site+'.models', fromlist=['Category', 'Event', 'Product'])
@@ -335,6 +335,16 @@ class BrandsHandler(BaseHandler):
         brands = get_all_brands()
         self.render('brands.html', brands=brands)
 
+class BrandHandler(BaseHandler):
+    @tornado.web.authenticated
+    def get(self, brand_title):
+        self.render('brand_iframe.html', brand=get_brand(brand_title))
+
+    @tornado.web.authenticated
+    def delete(self, brand_title):
+        self.write(str(delete_brand(brand_title)))
+
+
 settings = {
     "debug": True,
     "static_path": STATIC_PATH,
@@ -353,6 +363,7 @@ application = tornado.web.Application([
     (r"/monitor/", MonitorHandler),
     (r"/crawler/", CrawlerHandler),
     (r"/brands/", BrandsHandler),
+    (r"/brand/(.*)", BrandHandler),
     (r"/", IndexHandler),
     (r"/assets/(.*)", tornado.web.StaticFileHandler, dict(path=settings['static_path'])),
 ], **settings)

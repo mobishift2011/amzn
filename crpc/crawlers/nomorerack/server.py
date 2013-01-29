@@ -35,7 +35,7 @@ def fetch_page(url):
 
     # nomorerack will redirect to homepage automatically when this product is not exists.
     if ret.url == u'http://nomorerack.com/' and ret.url[:-1] != url:
-        return 0
+        return -302
 
     if ret.ok: return ret.content
     else: return ret.status_code
@@ -325,13 +325,13 @@ class Server(object):
         """
         product_id = url.rsplit('/', 1)[-1]
         content = fetch_page(url)
-        if content is None:
+        if content is None or isinstance(content, int):
             time.sleep(0.5)
             content = fetch_page(url)
-        if isinstance(content, int) or content is None:
-            common_failed.send(sender=ctx, key=product_id, url=url,
-                    reason='download product detail page error or {0} return'.format(content))
-            return
+            if isinstance(content, int) or content is None:
+                common_failed.send(sender=ctx, key=product_id, url=url,
+                        reason='download product detail page error: {0}'.format(content))
+                return
         tree = lxml.html.fromstring(content)
         node = tree.cssselect('div#wrapper > div#content > div#front > div#primary > div#products_view')[0]
         summary = node.cssselect('div.right > p.description')

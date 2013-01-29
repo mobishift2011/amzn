@@ -18,6 +18,13 @@ from helpers.log import getlogger
 txtlogger = getlogger('powerroutine', filename='/tmp/textserver.log')
 imglogger = getlogger('powerroutine', filename='/tmp/powerserver.log')
 
+debug_logger = getlogger('debug_power_text', '/tmp/debug_power_text.log')
+def run_fd():
+    import subprocess, os
+    pid = subprocess.Popen('ps aux | grep run.py | grep -v grep | grep -v dtach', shell=True, stdout=subprocess.PIPE).communicate()[0].split()[1]
+    ret = os.listdir('/proc/{0}/fd'.format(pid))
+    return len(ret)
+
 def get_site_module(site):
     return __import__('crawlers.'+site+'.models', fromlist=['Category', 'Event', 'Product'])
 
@@ -54,7 +61,6 @@ def spout_images(site, doctype):
         }
 
 def spout_extracted_products(site):
-    print 'enter spout {0}'.format(site)
     txtlogger.debug('enter spout {0}'.format(site))
     m = get_site_module(site)
     txtlogger.debug('get module {0}'.format(m))
@@ -93,6 +99,8 @@ def scan_images(site, doctype, concurrency=3):
     for kwargs in spout_images(site, doctype):
         rpc = random.choice(rpcs)
         pool.spawn(call_rpc, rpc, 'process_image', **kwargs)
+    pool.join()
+
 
 def crawl_images(site, doctype, key, *args, **kwargs):
     newargs = {}
@@ -151,19 +159,23 @@ def text_extract(site, concurrency=3):
     """
     rpcs = get_rpcs(TEXT_PEERS)
     pool = Pool(len(rpcs)*concurrency)
+    debug_logger.info('Extract text begin[{0}], fd number: {1}'.format(site, run_fd()))
     products = spout_extracted_products(site)
     
     for product in products:
         rpc = random.choice(rpcs)
         pool.spawn(call_rpc, rpc, 'extract_text', **product)
     pool.join()
+    debug_logger.info('Extract text end[{0}], fd number: {1}'.format(site, run_fd()))
 
     # If site has event model, it should update and new the event propagation
     # jobs = [gevent.spawn(update_propation, event_dict, site), \
     #             gevent.spawn(propagate, site, concurrency)]
     # gevent.joinall(jobs)
+    debug_logger.info('Propagation begin[{0}], fd number: {1}'.format(site, run_fd()))
     update_propation(site, concurrency)
     propagate(site, concurrency)
+    debug_logger.info('Propagation end[{0}], fd number: {1}'.format(site, run_fd()))
 
     txtlogger.info('ready for publish site -> {0}'.format(site))
     ready_for_publish.send(None, **{'site': site})

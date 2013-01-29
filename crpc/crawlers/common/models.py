@@ -176,19 +176,21 @@ class BaseProduct(Document):
     brand_complete      =   BooleanField(default=False)
     tag_complete        =   BooleanField(default=False)
     dept_complete       =   BooleanField(default=False)
+    url_complete        =   BooleanField(default=None)
     publish_time        =   DateTimeField()
 
     favbuy_brand        =   StringField(default='')
     favbuy_tag          =   ListField(StringField(), default=list)
     favbuy_dept         =   ListField(StringField(), default=list)
     favbuy_price        =   StringField()
+    favbuy_url          =   StringField()
 
     muri                =   StringField()   # resource URL in mastiff
     
     meta                =   {
         "allow_inheritance": True,
         "collection": "product",
-        "indexes":  ["key", "list_update_time", "full_update_time", "model", "brand", "updated", "image_complete", "brand_complete", "tag_complete", "dept_complete"],
+        "indexes":  ["key", "list_update_time", "full_update_time", "model", "brand", "updated", "image_complete", "brand_complete", "tag_complete", "dept_complete", "url_complete"],
     }
 
     def url(self):

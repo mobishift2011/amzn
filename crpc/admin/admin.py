@@ -4,6 +4,7 @@ import tornado.ioloop
 import tornado.web
 import tornado.httpserver
 import tornado.autoreload
+from tornado.escape import url_unescape
 
 import jinja2 
 
@@ -17,7 +18,7 @@ from slumber import API
 from datetime import datetime, timedelta
 from mongoengine import Q
 
-from views import get_all_brands, get_brand, delete_brand
+from views import get_all_brands, get_brand, update_brand, delete_brand
 
 def get_site_module(site):
     return __import__('crawlers.'+site+'.models', fromlist=['Category', 'Event', 'Product'])
@@ -338,7 +339,18 @@ class BrandsHandler(BaseHandler):
 class BrandHandler(BaseHandler):
     @tornado.web.authenticated
     def get(self, brand_title):
-        self.render('brand_iframe.html', brand=get_brand(brand_title))
+        brand = get_brand(url_unescape(brand_title))
+        t_page = 'brand_iframe.html' \
+                    if self.get_argument('t') == 'iframe' \
+                        else 'brand.html'
+
+        self.render(t_page, brand=brand)
+    
+    @tornado.web.authenticated
+    def post(self, brand_title):
+        arguments = self.request.arguments
+        brand = update_brand(brand_title, arguments)
+        self.render('brand.html', brand=brand)
 
     @tornado.web.authenticated
     def delete(self, brand_title):

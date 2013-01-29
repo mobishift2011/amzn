@@ -160,8 +160,8 @@ class EditDataHandler(BaseHandler):
     def get(self, type,id):
         if type == 'event':
             event = api.event(id).get()
-            event['brands'] = ','.join(event['brands'])
-            event['tags'] = ','.join(event['tags'])
+            event['brands'] = ','.join(event.get('brands',[]))
+            event['tags'] = ','.join(event.get('tags',[]))
             self.render('editdata/event.html',event=event)
         elif type == 'product':
             product = api.product(id).get()

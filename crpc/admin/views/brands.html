@@ -85,10 +85,10 @@
 				  			<p style="display: none;">{{ brand['done'] }}</p>
 				  		</td>
 						<td class="center">
-							<a class="btn btn-success" href="#">
+							<a class="btn btn-success btn_view" href="#">
 								<i class="icon-zoom-in icon-white"></i>
 							</a>
-							<a class="btn btn-info" href="#">
+							<a class="btn btn-info btn_edit" href="#">
 								<i class="icon-edit icon-white"></i>
 							</a>
 							<a class="btn btn-danger btn_delete" href="#">
@@ -118,23 +118,73 @@
 
 	</div><!--/row-->
 </div>
+
+<div class="modal hide fade" id="brand_modal" style="display: block;">
+	<div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal">×</button>
+		<h3>Brand</h3>
+	</div>
+	<div class="modal-body">
+		<iframe src="" width="100%" height="2500px" frameborder="0" id="iframe_brand"></iframe>
+	</div>
+	<div class="modal-footer">
+		<a href="#" class="btn" data-dismiss="modal">Close</a>
+	</div>
+</div>
 {% endblock %}
 
 {% block script %}
 <script>
-$('.btn_delete').click(function(){
-	var title = $(this).parent().parent().attr('title');
-	alert(title);
+function getCookie(name) {
+    var r = document.cookie.match("\\b" + name + "=([^;]*)\\b");
+    return r ? r[1] : undefined;
+}
+function notify(text, params){
+	var data_noty_options = {
+		'text': text,
+		'layout': 'topRight',
+		'type': 'success'
+	};
+	data_noty_options.text = text;
+
+	if(params){
+		data_noty_options['layout'] = params['layout'] ? params['layout'] : "topRight";
+		data_noty_options['type'] = params['type'] ? params['type']: "success";
+	}
+
+	noty(data_noty_options);
+}
+
+$('.btn_delete').click(function(e){
+	e.preventDefault();
+
+	var tag_a = $(this)
+	var tr = tag_a.parent().parent()
+	var title = tr.attr('title');
+
 	$.ajax({
-		url: 'script.php',
+		url: '/brand/'+title+'?_xsrf='+getCookie("_xsrf"),
 		type: 'DELETE',
+		data: {_xsrf: getCookie("_xsrf")}, 
 		success: function(response) {
-			alert('delete ok')
+			if(response=='True'){
+				notify(title+' deleted!');
+				tr.remove();
+			}
+			else{
+				notify(title+' delete failed!', {'type': 'error'});
+			}
 		}
 	});
 })
 .error(function(err){
-	alert(err);
+	notify('delete exception!', {'type': 'error'});
+});
+
+$('.btn_view').click(function(e){
+        e.preventDefault();
+		$('#iframe_brand').attr('src', '../brand/'+$(this).parent().parent().attr('title'));
+        $('#brand_modal').modal('show');
 });
 </script>
 {% endblock %}

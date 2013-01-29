@@ -41,7 +41,7 @@ class zulilyLogin(object):
             'login[username]': login_email[DB],
             'login[password]': login_passwd
         }
-        self.reg_check = re.compile(r'https://www.zulily.com/auth/create.*')
+        # self.reg_check = re.compile(r'https://www.zulily.com/auth/create.*') # need to authentication
         self._signin = False
 
     def login_account(self):
@@ -65,7 +65,7 @@ class zulilyLogin(object):
         """
         ret = req.get(url)
 
-        if self.reg_check.match(ret.url) is not None: # need to authentication
+        if ret.url == 'http://www.zulily.com/?tab=new-today':
             self.login_account()
             ret = req.get(url)
         if ret.ok: return ret.content
@@ -95,6 +95,7 @@ class Server(object):
         """.. :py:method::
             From top depts, get all the events
         """
+        self.net.check_signin()
         depts = ['girls', 'boys', 'women', 'baby-maternity', 'toys-playtime', 'home']
         debug_info.send(sender=DB + '.category.begin')
 
@@ -211,6 +212,7 @@ class Server(object):
 
         :param url: listing page url
         """
+        self.net.check_signin()
         debug_info.send(sender=DB + '.crawl_list.begin')
         cont = self.net.fetch_page(url)
         tree = lxml.html.fromstring(cont)
@@ -355,6 +357,7 @@ class Server(object):
 
         :param url: product url
         """
+        self.net.check_signin()
         cont = self.net.fetch_page(url)
         if isinstance(cont, int):
             common_failed.send(sender=ctx, url=url, reason=cont)
@@ -412,7 +415,7 @@ class Server(object):
 if __name__ == '__main__':
     from optparse import OptionParser
 
-    parser = OptionParser(usage='usage: %program [options]')
+    parser = OptionParser(usage='usage: %prog [options]')
     parser.add_option('-l', '--listing', dest='listing', help='test of list page', default=False)
     parser.add_option('-p', '--product', dest='product', help='test of product page', default=False)
     parser.add_option('-d', '--daemon', dest='daemon', help='run as a rpc server daemon', default=False)

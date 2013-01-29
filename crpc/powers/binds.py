@@ -5,7 +5,7 @@ import gevent
 
 from crawlers.common.events import common_saved
 from powers.events import *
-from powers.routine import crawl_images, scan_images, text_extract, debug_logger
+from powers.routine import crawl_images, scan_images, text_extract, debug_logger, run_fd
 from settings import POWER_PEERS, TEXT_PEERS
 
 from helpers.rpc import get_rpcs

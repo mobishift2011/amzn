@@ -384,7 +384,7 @@ class Server(object):
                     products_end = time_convert(time_str.replace('AM', ' '), '%B %d %H:%M %Y', time_zone)
             elif len(time_str.split(' ')) == 4:
                 a, b, c, d = time_str.split(' ')
-                if c[:2] = '00' and d[0] = 'A':
+                if c[:2] == '00' and d[0] == 'A':
                     products_end = time_convert(time_str.replace('AM', ''), '%B %d %H:%M %Y', time_zone)
 
         is_new, is_updated = False, False

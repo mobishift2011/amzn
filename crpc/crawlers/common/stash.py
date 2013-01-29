@@ -39,6 +39,7 @@ picked_crawlers = (
 
 
 login_email = {'bluefly': '2012luxurygoods@gmail.com',
+               'ideeli': '2012luxurygoods@gmail.com',
                'ruelala': '2012luxurygoods@gmail.com',
                'gilt': '2012luxurygoods@gmail.com',
                'nomorerack': '2012luxurygoods@gmail.com',

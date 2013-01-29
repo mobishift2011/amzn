@@ -31,14 +31,27 @@ def fetch_page(url):
         ret = request.get(url)
     except:
         # page not exist or timeout
-        return
+        ret = request.get(url)
+
+    if ret.ok: return ret.content
+    else: return ret.status_code
+
+def fetch_product_page(url):
+    try:
+        ret = request.get(url)
+    except:
+        # page not exist or timeout
+        ret = request.get(url)
 
     # nomorerack will redirect to homepage automatically when this product is not exists.
     if ret.url == u'http://nomorerack.com/' and ret.url[:-1] != url:
         return -302
+    elif ret.url.startswith(u'http://nomorerack.com/events/view/'):
+        return -302
 
     if ret.ok: return ret.content
     else: return ret.status_code
+
 
 class Server(object):
     """.. :py:class:: Server
@@ -324,10 +337,10 @@ class Server(object):
             Got all the product information and save into the database
         """
         product_id = url.rsplit('/', 1)[-1]
-        content = fetch_page(url)
+        content = fetch_product_page(url)
         if content is None or isinstance(content, int):
             time.sleep(0.5)
-            content = fetch_page(url)
+            content = fetch_product_page(url)
             if isinstance(content, int) or content is None:
                 common_failed.send(sender=ctx, key=product_id, url=url,
                         reason='download product detail page error: {0}'.format(content))

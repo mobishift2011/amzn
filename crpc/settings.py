@@ -77,8 +77,8 @@ envs = {
             {'host_string':'root@ec2-72-44-46-26.compute-1.amazonaws.com', 'port':12345},
         ],
         'USE_INDEX': '',
-        'MONGODB_HOST': 'ec2-54-242-121-160.compute-1.amazonaws.com',
-        'REDIS_HOST': 'ec2-54-242-121-160.compute-1.amazonaws.com',
+        'MONGODB_HOST': '10.149.2.90', # 'ec2-54-242-121-160.compute-1.amazonaws.com',
+        'REDIS_HOST': '10.149.2.90', #'ec2-54-242-121-160.compute-1.amazonaws.com',
         'MASTIFF_HOST': "http://ec2-50-17-65-248.compute-1.amazonaws.com:8001/api/v1"
     },
     'TEST': {

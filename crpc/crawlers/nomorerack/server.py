@@ -146,7 +146,7 @@ class Server(object):
         if content is None: content = fetch_page(url)
         if isinstance(content, int) or content is None:
             common_failed.send(sender=ctx, key=event_id, url=url,
-                    reason='download events listing error or {0} return'.format(content))
+                    reason='download events listing error: {0}'.format(content))
             return
         tree = lxml.html.fromstring(content)
         primary = tree.cssselect('div#wrapper > div#content > div#front > div#primary')[0]

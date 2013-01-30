@@ -29,7 +29,7 @@ def fetch_event(url):
         ret = req.get(url)
     except:
         # page not exist or timeout
-        return
+        ret = req.get(url)
 
     if ret.ok: return ret.content
     else: return ret.status_code
@@ -43,7 +43,7 @@ def fetch_product(url):
         ret = req.get(url)
     except:
         # page not exist or timeout
-        return
+        ret = req.get(url)
 
     if ret.ok:
         if 'bzJApp/SalesEventsHome' in ret.url or 'bzJApp/SalesEventDisplay' in ret.url:

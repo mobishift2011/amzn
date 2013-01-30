@@ -57,16 +57,17 @@ def batch_image_crawling(sender, **kwargs):
 
 @ready_for_batch.bind
 def batch_text_extract(sender, **kwargs):
+    site, method, dummy = sender.split('.')
+    if method.startswith('update'):
+        ready_for_publish.send(None, **{'site': site})
+        return
+
     logger.info('Text extract listens: {0} -> {1}'.format(sender, kwargs.items()))
     doctype = kwargs.get('doctype') or ''
     if doctype.capitalize() == 'Product':
-        site = kwargs.get('site') or ''
-        if not site:
-            logger.error('{0} failed to batch image crawling: {1} {2}'.format(sender, site, doctype))
-            return
-        
         try:
             text_extract(site, 15)
+            ready_for_publish.send(None, **{'site': site})
         except Exception as e:
             debug_logger.error('Error text: {0}. {1}'.format(e, traceback.format_exc()))
 

@@ -15,7 +15,6 @@ import traceback
 from datetime import datetime
 
 from helpers.log import getlogger
-txtlogger = getlogger('powerroutine', filename='/tmp/textserver.log')
 imglogger = getlogger('powerroutine', filename='/tmp/powerserver.log')
 
 debug_logger = getlogger('debug_power_text', '/tmp/debug_power_text.log')
@@ -195,9 +194,6 @@ def text_extract(site, concurrency=3):
     update_propation(site, concurrency)
     propagate(site, concurrency)
     debug_logger.info('Propagation end[{0}], fd number: {1}'.format(site, run_fd()))
-
-    txtlogger.info('ready for publish site -> {0}'.format(site))
-    ready_for_publish.send(None, **{'site': site})
 
 
 if __name__ == '__main__':

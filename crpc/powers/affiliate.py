@@ -43,7 +43,7 @@ def cj(self, combine_url):
 	pass
 
 
-def linkshare:
+def linkshare():
 	"""
 	Doc: http://cli.linksynergy.com/cli/publisher/links/webServices.php?serviceID=43
 	"""

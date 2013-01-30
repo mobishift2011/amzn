@@ -160,9 +160,12 @@ def dump_monitor_task_to_db():
 
 def buffer_task_dump_to_db_loop():
     while True:
-        logger.info(monitor_task)
-        time.sleep(60 * DUMP_INTERVAL)
-        dump_monitor_task_to_db()
+        try:
+            logger.info(monitor_task)
+            time.sleep(60 * DUMP_INTERVAL)
+            dump_monitor_task_to_db()
+        except Exception as e:
+            logger.exception(e.message)
 
 # from logstat import * can execute this co-routine
 gevent.spawn(buffer_task_dump_to_db_loop)

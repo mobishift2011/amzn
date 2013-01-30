@@ -65,6 +65,8 @@ class zulilyLogin(object):
         """
         ret = req.get(url)
 
+        if ret.url == u'http://www.zulily.com/oops-event':
+            return -404
         if ret.url == 'http://www.zulily.com/?tab=new-today':
             self.login_account()
             ret = req.get(url)
@@ -181,7 +183,7 @@ class Server(object):
             sale_description = node.cssselect('div.event-content-copy div#desc-with-expanded')[0].text_content().strip()
             m = re.compile(r'URL:http://www.zulily.com/(e|p)/(.+).html.*').search(ics_file)
             if m is None:
-                common_failed.send(sender=ctx, url=pair[1], reason='parse event_id in ics_file failed.')
+                common_failed.send(sender=ctx, key='upcoming event', url=pair[1], reason='parse event_id in ics_file failed.')
                 continue
             event_id = m.group(2)
 
@@ -213,11 +215,13 @@ class Server(object):
         :param url: listing page url
         """
         self.net.check_signin()
-        debug_info.send(sender=DB + '.crawl_list.begin')
+        event_id = self.extract_event_id.match(url).group(2)
         cont = self.net.fetch_page(url)
+        if isinstance(cont, int):
+            common_failed.send(sender=ctx, key=event_id, url=url, reason='crawl_listing url error: {0}'.format(cont))
+            return
         tree = lxml.html.fromstring(cont)
         node = tree.cssselect('div.container > div#main > div#category-view')[0]
-        event_id = self.extract_event_id.match(url).group(2)
         brand, is_new = Event.objects.get_or_create(event_id=event_id)
         if not brand.sale_description:
             sale_description = node.cssselect('div#category-description>div#desc-with-expanded')
@@ -249,7 +253,6 @@ class Server(object):
         brand.update_time = datetime.utcnow()
         brand.save()
         common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=url, is_new=is_new, is_updated=False, ready=ready)
-        debug_info.send(sender=DB + '.crawl_list.end')
 
     def detect_list_next(self, node, page_num):
         """.. :py:method::
@@ -360,7 +363,7 @@ class Server(object):
         self.net.check_signin()
         cont = self.net.fetch_page(url)
         if isinstance(cont, int):
-            common_failed.send(sender=ctx, url=url, reason=cont)
+            common_failed.send(sender=ctx, key='product', url=url, reason=cont)
             return
         tree = lxml.html.fromstring(cont)
         node = tree.cssselect('div.container>div#main>div#product-view')[0]

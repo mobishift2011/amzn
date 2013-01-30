@@ -60,7 +60,7 @@
         <tr>
           <td><img src="{{ e.cover_image|imagesize('224x0') }}" /></td>
           <td>
-            <b style="color:grey">@update</b> {{ e.updated_at.replace('T',' ')[:19] }}<br />
+            <b style="color:grey">@update</b> {% if e.updated_at %}{{ e.updated_at.replace('T',' ')[:19] }}{% endif %}<br />
             <b style="color:grey">@start</b> {{ e.starts_at.replace('T',' ')[:19] }} <br />
             <b style="color:grey">@end</b> {{ e.ends_at.replace('T',' ')[:19] }}<br />
             <b style="color:grey">@site_key</b> {{ e.site_key }}<br />
@@ -76,8 +76,8 @@
           </td>
           <td>
             <a href="Javascript:void(0)"><i class="icon icon-yellow icon-extlink"></i>Go to Event</a><br />
-            <a href="Javascript:void(0)"><i class="icon icon-edit icon-blue"></i>Edit Event</a><br />
-            <a href="Javascript:void(0)"><i class="icon icon-red icon-folder-open"></i>Products in Event</a>
+            <a href="/editdata/event/{{ e.id }}/"><i class="icon icon-edit icon-blue"></i>Edit Event</a><br />
+            <a href="Javascript:void(0)"><i class="icon icon-red icon-folder-open"></i>Products in Event</a><br />
           </td>
         </tr>                                
         {% endfor %}
@@ -177,5 +177,8 @@
       window.location.href = url;
     }
   });
+
+
+
 </script>
 {% endblock %}

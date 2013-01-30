@@ -142,6 +142,91 @@ class LogoutHandler(BaseHandler):
         next_url = self.get_argument('next', '/')
         self.redirect(next_url)
 
+class EditDataHandler(BaseHandler):
+
+    def validate_brands(self,brands):
+        for brand in brands:
+            res  = 0
+            try:
+                res = api.brand.get(name=brand)['meta']['total_count']
+            except Exception,e:
+                pass
+
+            if int(res) == 0:
+                return 0,brand
+        return 1,''
+
+    @tornado.web.authenticated
+    def get(self, type,id):
+        if type == 'event':
+            event = api.event(id).get()
+            event['brands'] = ','.join(event.get('brands',[]))
+            event['tags'] = ','.join(event.get('tags',[]))
+            self.render('editdata/event.html',event=event)
+        elif type == 'product':
+            product = api.product(id).get()
+            product['tags'] = ','.join(product['tags'])
+            product['details'] = '\n'.join(product['details'])
+            self.render('editdata/product.html',product=product)
+
+    @tornado.web.authenticated
+    def post(self,type,id):
+        if type == 'event':
+            self._edit_event(id)
+        elif type == 'product':
+            self._edit_product(id)
+
+    def _edit_event(self,id):
+        data = {}
+        data['title']       = self.get_argument('title')
+        data['description'] = self.get_argument('description')
+        data['tags']        = self.get_argument('tags').split(',')
+        brands              = self.get_argument('brands').split(',')
+
+        # validate
+        s,t = self.validate_brands(brands)
+        if not s:
+            message = 'Brand name`{0}` does not exist.'.format(t)
+            return self.render('editdata/event.html',message=message)
+        else:
+            data['brands'] = brands
+
+        
+        # save to mastiff
+        try:
+            api.event(id).patch(data)
+        except Exception,e:
+            message = e.message
+            return self.render('editdata/event.html',message=message)
+        
+        else:
+            self.redirect('/editdata/event/{0}/'.format(id))
+
+    def _edit_product(self,id):
+        # POST
+        data = {}
+        data['title']         = self.get_argument('title')
+        data['details']       = self.get_argument('details')
+        data['tags']          = self.get_argument('tags').split(',')
+        data['brand']         = self.get_argument('brand')
+        data['cover_image']   = eval(self.get_argument('cover_image'))
+        data['details']       = self.get_argument('details').split('\n')
+
+        # validate
+        s,t = self.validate_brands([data['brand']])
+        if not s:
+            message = 'Brand name`{0}` does not exist.'.format(t)
+            return self.render('editdata/product.html',message=message)
+        
+        # save to mastiff
+        try:
+            api.product(id).patch(data)
+        except Exception,e:
+            message = e.message
+            return self.render('editdata/product.html',message=message)
+        else:
+            self.redirect('/editdata/product/{0}/'.format(id))
+
 class ViewDataHandler(BaseHandler):
     @tornado.web.authenticated
     def get(self, subpath):
@@ -220,7 +305,6 @@ class ViewDataHandler(BaseHandler):
             ol2 = ol2[offset:offset+limit]
 
         object_list = chain(ol1, ol2)
-
         total_count = num_ol1 + num_ol2
         pagination = Pagination(page, 80, total_count)
 
@@ -234,9 +318,9 @@ class ViewDataHandler(BaseHandler):
             kwargs[k] = v[0]
 
         offset = kwargs.get('offset', '0')
-        limit = kwargs.get('limit', '20')
+        limit  = kwargs.get('limit', '20')
         kwargs['offset'] = int(offset)
-        kwargs['limit'] = int(limit)
+        kwargs['limit']  = int(limit)
 
         try:
             result = api.product.get(**kwargs)
@@ -255,7 +339,6 @@ class ViewDataHandler(BaseHandler):
         }
 
         pagination = Pagination(int(offset)/20+1, 20, meta['total_count'])
-
         self.render('viewdata/products.html', meta=meta, products=products, sites=sites, 
             times=times, pagination=pagination, message=message)
 
@@ -266,7 +349,7 @@ class ViewDataHandler(BaseHandler):
             kwargs[k] = v[0]
 
         offset = kwargs.get('offset', '0')
-        limit = kwargs.get('limit', '20')
+        limit  = kwargs.get('limit', '20')
         kwargs['offset'] = int(offset)
         kwargs['limit'] = int(limit)
 
@@ -287,7 +370,6 @@ class ViewDataHandler(BaseHandler):
         }
 
         pagination = Pagination(int(offset)/20+1, 20, meta['total_count'])
-
         self.render('viewdata/products.html', meta=meta, products=products, sites=sites, 
             times=times, pagination=pagination, message=message)
 
@@ -319,7 +401,6 @@ class ViewDataHandler(BaseHandler):
         }
 
         pagination = Pagination(int(offset)/20+1, 20, meta['total_count'])
-
         self.render('viewdata/events.html', meta=meta, events=events, sites=sites, 
             times=times, pagination=pagination, message=message)
 
@@ -372,6 +453,7 @@ application = tornado.web.Application([
     (r"/login/", LoginHandler),
     (r"/logout/", LogoutHandler),
     (r"/viewdata/(.*)", ViewDataHandler),
+    (r"/editdata/(.*)/(.*)/", EditDataHandler),
     (r"/monitor/", MonitorHandler),
     (r"/crawler/", CrawlerHandler),
     (r"/brands/", BrandsHandler),

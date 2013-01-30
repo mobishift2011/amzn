@@ -96,6 +96,12 @@ class BaseHandler(tornado.web.RequestHandler):
             self.json_args = json.loads(self.request.body)
         else:
             self.json_args = None
+
+    def get_argument(self,key,default=None):
+        try:
+            return super(BaseHandler,self).get_argument(key)
+        except:
+            return default
     
     def get_current_user(self):
         user = self.get_secure_cookie('user')
@@ -165,7 +171,7 @@ class EditDataHandler(BaseHandler):
             self.render('editdata/event.html',event=event)
         elif type == 'product':
             product = api.product(id).get()
-            product['tags'] = ','.join(product['tags'])
+            product['tags'] = ','.join(product.get('tags') or [])
             product['details'] = '\n'.join(product['details'])
             self.render('editdata/product.html',product=product)
 
@@ -177,37 +183,56 @@ class EditDataHandler(BaseHandler):
             self._edit_product(id)
 
     def _edit_event(self,id):
+        event               = api.event(id).get()
+        site,key            = event['site_key'].split('_',1)
+
         data = {}
         data['title']       = self.get_argument('title')
         data['description'] = self.get_argument('description')
         data['tags']        = self.get_argument('tags').split(',')
-        brands              = self.get_argument('brands').split(',')
+        brands              = self.get_argument('brands') and self.get_argument('brands').split(',') or None
 
-        # validate
-        s,t = self.validate_brands(brands)
-        if not s:
-            message = 'Brand name`{0}` does not exist.'.format(t)
-            return self.render('editdata/event.html',message=message)
+        # validate brands
+        if brands:
+            s,t = self.validate_brands(brands)
+            if not s:
+                message = 'Brand name `{0}` does not exist.'.format(t)
+                return self.render('editdata/event.html',message=message)
+            else:
+                data['brands'] = brands
         else:
-            data['brands'] = brands
-
+            data['brands'] = []
         
-        # save to mastiff
+        # save to crawler's db
+        try:
+            m = get_site_module(site)
+            e = m.Event.objects.get(event_id=key)
+            e.sale_title = data['title']
+            e.sale_description = data['description']
+            e.favbuy_tag = data['tags']
+            e.save()
+        except Exception,e:
+            message = e.message
+            return self.render('editdata/event.html',message=message)
+        
+        # save to mastiff's db
         try:
             api.event(id).patch(data)
         except Exception,e:
             message = e.message
             return self.render('editdata/event.html',message=message)
-        
         else:
             self.redirect('/editdata/event/{0}/'.format(id))
 
     def _edit_product(self,id):
         # POST
+        product               = api.product(id).get()
+        site,key              = product['site_key'].split('_',1)
+
         data = {}
         data['title']         = self.get_argument('title')
         data['details']       = self.get_argument('details')
-        data['tags']          = self.get_argument('tags').split(',')
+        data['tags']          = self.get_argument('tags') and self.get_argument('tags').split(',') or []
         data['brand']         = self.get_argument('brand')
         data['cover_image']   = eval(self.get_argument('cover_image'))
         data['details']       = self.get_argument('details').split('\n')
@@ -217,6 +242,19 @@ class EditDataHandler(BaseHandler):
         if not s:
             message = 'Brand name`{0}` does not exist.'.format(t)
             return self.render('editdata/product.html',message=message)
+
+        # save to crawler's db
+        try:
+            m = get_site_module(site)
+            p = m.Product.objects.get(key=key)
+            p.sale_title = data['title']
+            p.list_info = data['details']
+            p.brand = data['brand']
+            p.tagline = data['tags']
+            p.save()
+        except Exception,e:
+            message = e.message
+            return self.render('editdata/product.html',message=message)
         
         # save to mastiff
         try:
@@ -225,7 +263,7 @@ class EditDataHandler(BaseHandler):
             message = e.message
             return self.render('editdata/product.html',message=message)
         else:
-            self.redirect('/editdata/product/{0}/'.format(id))
+            return self.redirect('/editdata/product/{0}/'.format(id))
 
 class ViewDataHandler(BaseHandler):
     @tornado.web.authenticated

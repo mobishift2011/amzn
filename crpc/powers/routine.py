@@ -50,7 +50,10 @@ def spout_images(site, doctype):
     }
     
     docparam = docdict[doctype.lower()]
-    instances = getattr(m, docparam['name']).objects(**docparam['kwargs'])
+    try:
+        instances = getattr(m, docparam['name']).objects(**docparam['kwargs'])
+    except AttributeError:
+        instances = []
 
     for instance in instances:
         yield {
@@ -83,9 +86,12 @@ def spout_extracted_products(site):
 def spout_propagate_events(site, complete=False):
     m = __import__('crawlers.{0}.models'.format(site), fromlist=['Event'])
     now = datetime.utcnow()
-    events = m.Event.objects(Q(propagation_complete = complete) & \
-        (Q(events_begin__lte=now) | Q(events_begin__exists=False)) & \
-            (Q(events_end__gt=now) | Q(events_end__exists=False)) )
+    try:
+        events = m.Event.objects(Q(propagation_complete = complete) & \
+            (Q(events_begin__lte=now) | Q(events_begin__exists=False)) & \
+                (Q(events_end__gt=now) | Q(events_end__exists=False)) )
+    except AttributeError:
+        events = []
 
     for event in events:
         yield {

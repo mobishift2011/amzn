@@ -28,7 +28,10 @@ def single_image_crawling(sender, **kwargs):
 
     if site and key and doctype.capitalize() in ('Event', 'Product'):
         debug_logger.info('Single image begin[{0}], fd number: {1}'.format(sender, run_fd()))
-        process_image_pool.spawn(crawl_images, site, doctype, key)
+        try:
+            process_image_pool.spawn(crawl_images, site, doctype, key)
+        except Exception as e:
+            debug_logger.error('Error single image: {0}'.format(e))
         debug_logger.info('Single image end[{0}], fd number: {1}'.format(sender, run_fd()))
     else:
         logger.error('{0} failed to single image crawling: {1} {2} {3}'.format(sender, site, doctype, key))
@@ -42,7 +45,10 @@ def batch_image_crawling(sender, **kwargs):
 
     if site and doctype:
         debug_logger.info('Batch image begin[{0}], fd number: {1}'.format(sender, run_fd()))
-        scan_images(site, doctype, 10)
+        try:
+            scan_images(site, doctype, 10)
+        except Exception as e:
+            debug_logger.error('Error batch image: {0}'.format(e))
         debug_logger.info('Batch image end[{0}], fd number: {1}'.format(sender, run_fd()))
     else:
         logger.error('{0} failed to batch image crawling: {1} {2}'.format(sender, site, doctype))
@@ -58,7 +64,10 @@ def batch_text_extract(sender, **kwargs):
             logger.error('{0} failed to batch image crawling: {1} {2}'.format(sender, site, doctype))
             return
         
-        text_extract(site, 15)
+        try:
+            text_extract(site, 15)
+        except Exception as e:
+            debug_logger.error('Error text: {0}'.format(e))
 
 
 #@pre_image_crawl.bind

@@ -9,6 +9,7 @@ from backends.matching.mechanic_classifier import classify_product_department
 
 from brandapi import Extracter
 from tools import Propagator
+from affiliate import Affiliate
 from powers.events import *
 from backends.monitor.models import Stat
 
@@ -123,6 +124,21 @@ class TextServer(object):
         # just ensure that it'll be executed once when the product is crawled at the first time.
         self.__extract_text(product)
 
+    def __extract_url(self, product, flags, site):
+        if not product.combine_url \
+            or product.url_complete:
+                return
+
+        affiliate = Affiliate(site)
+        product.favbuy_url = affiliate.get_link(product.combine_url)
+        product.url_complete = bool(product.favbuy_url)
+
+        if product.url_complete:
+            product.update_history.update({'favbuy_url': datetime.utcnow()})
+            flags['favbuy_url'] = True
+        else:
+            logger.error('{0}.product.{1} extract url Failed'.format(site, product.key))
+
     def extract_text(self, args=(), kwargs={}):
         """
         To extract product brand, tag, dept.
@@ -146,6 +162,7 @@ class TextServer(object):
             'favbuy_dept': False,     # To indicate whether changes occur on dept classification.
             'favbuy_price': False,
             'favbuy_listprice': False,
+            'favbuy_url': False,
         }  
 
         text_list = []
@@ -155,16 +172,22 @@ class TextServer(object):
         text_list.append(product.short_desc or u'')
         text_list.extend(product.tagline or [])
         
+        # self.__extract_brand(brand_complete, product, flags, site)
+        # self.__extract_tag(tag_complete, text_list, product, flags, site)
+        # self.__extract_dept(dept_complete, text_list, product, flags, site)
+        # self.__extract_price(product, flags)
+        # self.__extract_url(product, flags, site)
         jobs = [
             gevent.spawn(self.__extract_brand, brand_complete, product, flags, site),
             gevent.spawn(self.__extract_tag, tag_complete, text_list, product, flags, site),
             gevent.spawn(self.__extract_dept, dept_complete, text_list, product, flags, site),
-            gevent.spawn(self.__extract_price, product, flags)
+            gevent.spawn(self.__extract_price, product, flags),
+            gevent.spawn(self.__extract_url, product, flags, site),
         ]
         gevent.joinall(jobs)
 
-        for key in flags:
-            if flags[key]:
+        for value in flags.values():
+            if value:
                 product.save()
                 break
 

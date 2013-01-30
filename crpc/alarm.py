@@ -4,6 +4,7 @@
 
 import collections
 import subprocess
+import urllib
 import pymongo
 from datetime import datetime, timedelta
 from settings import MONGODB_HOST
@@ -53,7 +54,12 @@ def crawl_error_alarm():
             alarm("{0}.{1}.[{2}]: {3}".format(info['site'], info['method'], info['time'], info['message']))
 
 def alarm(message):
-    print message
+    obj = urllib.urlopen(url='http://monitor.favbuy.org:5000/message/177728863580306d15402378e0a11225/',
+                   data=urllib.urlencode({'message': message,'shared_secret':'tempfavbuy'}))
+
+    if obj.read() != 'OK':
+        print 'error occur: %s' % message
+    obj.close()
 
 if __name__ == '__main__':
     import time

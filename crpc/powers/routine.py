@@ -50,7 +50,10 @@ def spout_images(site, doctype):
     }
     
     docparam = docdict[doctype.lower()]
-    instances = getattr(m, docparam['name']).objects(**docparam['kwargs'])
+    try:
+        instances = getattr(m, docparam['name']).objects(**docparam['kwargs'])
+    except AttributeError:
+        instances = []
 
     for instance in instances:
         yield {
@@ -61,14 +64,12 @@ def spout_images(site, doctype):
         }
 
 def spout_extracted_products(site):
-    txtlogger.debug('enter spout {0}'.format(site))
     m = get_site_module(site)
-    txtlogger.debug('get module {0}'.format(m))
     now = datetime.utcnow()
     products = m.Product.objects((Q(brand_complete = False) | \
                 Q(tag_complete = False) | Q(dept_complete = False)) & \
                     (Q(products_begin__lte=now) | Q(products_begin__exists=False)) & \
-                        (Q(products_end__gt=now) | Q(products_end__exists=False)))
+                        (Q(products_end__gt=now) | Q(products_end__exists=False))).timeout(False)
 
     # products = m.Product.objects(Q(dept_complete = False) & \
     #                 (Q(products_begin__lte=now) | Q(products_begin__exists=False)) & \
@@ -83,9 +84,12 @@ def spout_extracted_products(site):
 def spout_propagate_events(site, complete=False):
     m = __import__('crawlers.{0}.models'.format(site), fromlist=['Event'])
     now = datetime.utcnow()
-    events = m.Event.objects(Q(propagation_complete = complete) & \
-        (Q(events_begin__lte=now) | Q(events_begin__exists=False)) & \
-            (Q(events_end__gt=now) | Q(events_end__exists=False)) )
+    try:
+        events = m.Event.objects(Q(propagation_complete = complete) & \
+            (Q(events_begin__lte=now) | Q(events_begin__exists=False)) & \
+                (Q(events_end__gt=now) | Q(events_end__exists=False)) )
+    except AttributeError:
+        events = []
 
     for event in events:
         yield {

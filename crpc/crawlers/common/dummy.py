@@ -15,7 +15,7 @@ def send_signal():
         ready_for_batch.send(sender=ctx, site=site, doctype='event')    #listing
         ready_for_batch.send(sender=ctx, site=site, doctype='product')  #product
 
-@ready_for_publish.bind
+#@ready_for_publish.bind
 def send_one_site(sender, **kwargs):
     site = kwargs.get('site', '')
     if not site:
@@ -27,6 +27,6 @@ def send_one_site(sender, **kwargs):
 
 if __name__ == '__main__':
     import time
-    send_signal()
     while True:
-        time.sleep(60)
+        send_signal()
+        time.sleep(120)

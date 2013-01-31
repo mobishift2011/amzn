@@ -3,6 +3,7 @@ from settings import MASTIFF_HOST
 from admin.models import Brand
 from helpers.log import getlogger
 import slumber
+import traceback
 
 logger = getlogger('brandsync', filename='/tmp/brandsync.log')
 
@@ -15,7 +16,7 @@ def sync2mastiff(brand):
 		return
 
 	name = brand.title_edit or brand.title
-	api = slumber.API('http://192.168.2.108:8001/api/v1/')#(MASTIFF_HOST)
+	api = slumber.API(MASTIFF_HOST)
 	query = api.brand.get(name=name)
 	params = {
 		'name': name.encode('utf-8'),

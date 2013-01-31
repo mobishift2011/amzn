@@ -90,7 +90,8 @@ def stat_save(sender, **kwargs):
 
     if is_new:
         doctype = kwargs.get('obj_type')
-        interval = utcnow.replace(second=0, microsecond=0)
+        interval = datetime.utcfromtimestamp(kwargs['timestamp']) if kwargs.has_key('timestamp') else utcnow
+        interval = interval.replace(second=0, microsecond=0)
         Stat.objects(site=site, doctype=doctype.lower(), interval=interval).update(inc__crawl_num=1, upsert=True)
 
 

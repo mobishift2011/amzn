@@ -95,7 +95,7 @@ def report_event(site, _utcnow, module):
             event.unknown = unknown
 
         event.site = site
-        event.product_num = product_num
+        event.event_num = event_num
         event.published_num = published_num
         event.save()
 

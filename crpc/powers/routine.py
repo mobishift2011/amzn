@@ -105,7 +105,7 @@ def scan_images(site, doctype, concurrency=3):
     if site in scan_images.run_flag and scan_images.run_flag[site] == True:
         return
     elif site not in scan_images.run_flag or scan_images.run_flag[site] == False:
-        scan_images.run_flags[site] = True
+        scan_images.run_flag[site] = True
 
     try:
         rpcs = get_rpcs(POWER_PEERS)
@@ -117,7 +117,7 @@ def scan_images(site, doctype, concurrency=3):
     except Exception as e:
         imglogger.error('scan_images {0}.{1} error: {2}'.format(site, doctype, e.message))
     finally:
-        scan_images.run_flags[site] = False
+        scan_images.run_flag[site] = False
 
 
 def crawl_images(site, doctype, key, *args, **kwargs):

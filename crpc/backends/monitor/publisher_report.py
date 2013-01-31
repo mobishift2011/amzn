@@ -68,7 +68,7 @@ def report_event(site, _utcnow, module):
             onsale_propagation_not_complete = 0
             unknown = 0
             for ev in module.Event.objects(create_time__lt=today_date, create_time__gte=today_date-timedelta(days=1), publish_time__exists=False):
-                if is_leaf == False:
+                if ev.is_leaf == False:
                     not_leaf += 1
                 elif ev.events_begin >= today_date:
                     if not ev.image_urls:

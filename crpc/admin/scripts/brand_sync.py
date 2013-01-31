@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 from settings import MASTIFF_HOST
 from admin.models import Brand
+from helpers.log import getlogger
 import slumber
+
+logger = getlogger('brandsync', filename='/tmp/brandsync.log')
 
 def sync2extracter(brand):
 	pass
@@ -30,10 +33,18 @@ def sync2mastiff(brand):
 
 
 def sync():
-	brands = Brand.objects()
+	brands = Brand.objects(is_delete=False)
+	logger.debug('Total brands to sync: {0}'.format(len(brands)))
 	for brand in brands:
-		sync2extracter(brand)
-		sync2mastiff(brand)
+		try:
+			sync2extracter(brand)
+		except Exception, e:
+			logger.error('Sync for extracter error: {0}'.format(traceback.format_exc()))
+		try:
+			sync2mastiff(brand)
+		except Exception, e:
+			logger.error('Sync for mastiff error: {0}'.format(traceback.format_exc()))
+
 
 if __name__ == '__main__':
 	sync()

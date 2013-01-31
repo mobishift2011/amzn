@@ -33,8 +33,8 @@ def report_product(site, _utcnow, module):
                     no_image_path += 1
                 elif not prd.dept_complete:
                     no_dept += 1
-                elif prd.event_type and [ev for ev in [module.Event.objects(event_id=evi).first() for evi in prd.event_id] \
-                    if ev.image_complete and ev.propagation_complete]:
+                elif prd.event_type and \
+                    [ev for ev in [module.Event.objects(event_id=evi).first() for evi in prd.event_id] if ev.publish_time]:
                         event_not_ready += 1
                 else:
                     unknown += 1
@@ -68,7 +68,7 @@ def report_event(site, _utcnow, module):
             onsale_propagation_not_complete = 0
             unknown = 0
             for ev in module.Event.objects(create_time__lt=today_date, create_time__gte=today_date-timedelta(days=1), publish_time__exists=False):
-                if is_leaf == False:
+                if ev.is_leaf == False:
                     not_leaf += 1
                 elif ev.events_begin >= today_date:
                     if not ev.image_urls:

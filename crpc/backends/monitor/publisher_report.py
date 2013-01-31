@@ -34,7 +34,7 @@ def report_product(site, _utcnow, module):
                 elif not prd.dept_complete:
                     no_dept += 1
                 elif prd.event_type and [ev for ev in [module.Event.objects(event_id=evi).first() for evi in prd.event_id] \
-                    if ev.image_complete and ev.propagation_complete]:
+                    if ev.publish_time]:
                         event_not_ready += 1
                 else:
                     unknown += 1

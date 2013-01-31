@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime
 import re
+import requests
 import types
 
 AmznSID = 'favbuy-20'
@@ -29,7 +30,7 @@ def myhabit(self, combine_url):
 	http://www.myhabit.com/?tag=<INSERT_STORE_ID>
 	#page=d&dept=women&sale=A1OVF043559BDP&asin=B006L4PRN4&cAsin=B006L
 	"""
-	pattern = r'(https?://.*?)\??(#.*)'
+	pattern = r'(https?://[^\?]*)\??(#.*)'
 	match = re.search(pattern, combine_url)
 	if match:
 		url, params = match.groups()
@@ -43,14 +44,24 @@ def cj(self, combine_url):
 	pass
 
 
-def linkshare():
+def linkshare(self, combine_url):
 	"""
 	Doc: http://cli.linksynergy.com/cli/publisher/links/webServices.php?serviceID=43
 	"""
-	pass
+	TOKEN = 'dbc865547a1a0a42b1f0ddac8574a1f1d0262a9705b55636246b5d47ee13196e'
+	MID = ''
+
+	url = 'http://getdeeplink.linksynergy.com/createcustomlink.shtml?'
+	url += 'token={0}&mid={1}&murl={2}'.format(TOKEN, MID, combine_url)
+
+	print url
+
+	link_generator = requests.get(url)
+	print link_generator.content
+
 
 def test(site=None):
-	from crawlers.venteprivee.models import *
+	from crawlers.beyondtherack.models import *
 	from mongoengine import Q
 
 	products = Product.objects(Q(url_complete=None) | Q(url_complete=False))
@@ -60,7 +71,7 @@ def test(site=None):
 			or product.url_complete:
 				return
 
-		affiliate = Affiliate('venteprivee') # TO alternative the site
+		affiliate = Affiliate('beyondtherack') # TO alternative the site
 		product.favbuy_url = affiliate.get_link(product.combine_url)
 		print product.combine_url
 		print product.favbuy_url
@@ -70,7 +81,7 @@ def test(site=None):
 		if product.url_complete:
 			product.update_history.update({'favbuy_url': datetime.utcnow()})
 
-		product.save()
+		# product.save()
 
 Strategy = {
 	'myhabit': myhabit,

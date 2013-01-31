@@ -373,17 +373,10 @@ class Propagator(object):
 
         # For upcoming events, publisher should no the update_history time.
         self.event.update_history.update({
-            'sale_title': self.event.propagation_time,
-            'events_begin': self.event.propagation_time,
-            'events_end': self.event.propagation_time,
             'favbuy_tag': self.event.propagation_time,
             'favbuy_brand': self.event.propagation_time,
             'favbuy_dept':  self.event.propagation_time,
             'highest_discount': self.event.propagation_time,
-            'lowest_discount': self.event.propagation_time,
-            'highest_price': self.event.propagation_time,
-            'lowest_price': self.event.propagation_time,
-            'soldout': self.event.propagation_time,
         })
 
         self.event.save()

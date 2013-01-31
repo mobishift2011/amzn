@@ -29,7 +29,7 @@ def myhabit(self, combine_url):
 	http://www.myhabit.com/?tag=<INSERT_STORE_ID>
 	#page=d&dept=women&sale=A1OVF043559BDP&asin=B006L4PRN4&cAsin=B006L
 	"""
-	pattern = r'(http://.*?)\??(#.*)'
+	pattern = r'(https?://.*?)\??(#.*)'
 	match = re.search(pattern, combine_url)
 	if match:
 		url, params = match.groups()
@@ -49,21 +49,28 @@ def linkshare():
 	"""
 	pass
 
-def test():
-	products = Product.objects(url_complete=None)
+def test(site=None):
+	from crawlers.venteprivee.models import *
+	from mongoengine import Q
+
+	products = Product.objects(Q(url_complete=None) | Q(url_complete=False))
+	print len(products)
 	for product in products:
 		if not product.combine_url \
 			or product.url_complete:
 				return
 
-		affiliate = Affiliate('gilt') # TO alternative the site
+		affiliate = Affiliate('venteprivee') # TO alternative the site
 		product.favbuy_url = affiliate.get_link(product.combine_url)
+		print product.combine_url
+		print product.favbuy_url
+		print
 		product.url_complete = bool(product.favbuy_url)
 
 		if product.url_complete:
 			product.update_history.update({'favbuy_url': datetime.utcnow()})
 
-		# product.save()
+		product.save()
 
 Strategy = {
 	'myhabit': myhabit,
@@ -72,5 +79,4 @@ Strategy = {
 }
 
 if __name__ == '__main__':
-	from crawlers.myhabit.models import *
 	test()

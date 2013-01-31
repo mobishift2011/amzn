@@ -197,7 +197,7 @@ class Stat(Document):
 
 class ProductReport(Document):
     today_date          = DateTimeField(unique=True)
-    site                = StringField(require=True)
+    site                = StringField(required=True)
     product_num         = IntField(default=0)
     published_num       = IntField(default=0)
 
@@ -213,7 +213,7 @@ class ProductReport(Document):
 
 class EventReport(Document):
     today_date                      = DateTimeField(unique=True)
-    site                            = StringField(require=True)
+    site                            = StringField(required=True)
     event_num                       = IntField(default=0)
     published_num                   = IntField(default=0)
 
@@ -222,7 +222,8 @@ class EventReport(Document):
     upcoming_no_image_url_num       = IntField(default=0)
     upcoming_no_image_path_num      = IntField(default=0)
     onsale_no_product_num           = IntField(default=0)
-    onsale_image_not_ready_num      = IntField(default=0)
+    onsale_no_image_url_num         = IntField(default=0)
+    onsale_no_image_path_num        = IntField(default=0)
     onsale_propagation_not_complete = IntField(default=0)
     unknown                         = IntField(default=0)
     meta = {

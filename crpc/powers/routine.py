@@ -15,7 +15,6 @@ import traceback
 from datetime import datetime
 
 from helpers.log import getlogger
-txtlogger = getlogger('powerroutine', filename='/tmp/textserver.log')
 imglogger = getlogger('powerroutine', filename='/tmp/powerserver.log')
 
 debug_logger = getlogger('debug_power_text', '/tmp/debug_power_text.log')
@@ -51,7 +50,7 @@ def spout_images(site, doctype):
     
     docparam = docdict[doctype.lower()]
     try:
-        instances = getattr(m, docparam['name']).objects(**docparam['kwargs'])
+        instances = getattr(m, docparam['name']).objects(**docparam['kwargs']).timeout(False)
     except AttributeError:
         instances = []
 
@@ -98,12 +97,27 @@ def spout_propagate_events(site, complete=False):
         }
 
 def scan_images(site, doctype, concurrency=3):
-    rpcs = get_rpcs(POWER_PEERS)
-    pool = Pool(len(rpcs)*concurrency)
-    for kwargs in spout_images(site, doctype):
-        rpc = random.choice(rpcs)
-        pool.spawn(call_rpc, rpc, 'process_image', **kwargs)
-    pool.join()
+    """ If one site is already been scanning, not scan it this time
+    """
+    if not hasattr(scan_images, 'run_flag'):
+        setattr(scan_images, 'run_flag', {})
+
+    if site in scan_images.run_flag and scan_images.run_flag[site] == True:
+        return
+    elif site not in scan_images.run_flag or scan_images.run_flag[site] == False:
+        scan_images.run_flag[site] = True
+
+    try:
+        rpcs = get_rpcs(POWER_PEERS)
+        pool = Pool(len(rpcs)*concurrency)
+        for kwargs in spout_images(site, doctype):
+            rpc = random.choice(rpcs)
+            pool.spawn(call_rpc, rpc, 'process_image', **kwargs)
+        pool.join()
+    except Exception as e:
+        imglogger.error('scan_images {0}.{1} error: {2}'.format(site, doctype, e.message))
+    finally:
+        scan_images.run_flag[site] = False
 
 
 def crawl_images(site, doctype, key, *args, **kwargs):
@@ -180,9 +194,6 @@ def text_extract(site, concurrency=3):
     update_propation(site, concurrency)
     propagate(site, concurrency)
     debug_logger.info('Propagation end[{0}], fd number: {1}'.format(site, run_fd()))
-
-    txtlogger.info('ready for publish site -> {0}'.format(site))
-    ready_for_publish.send(None, **{'site': site})
 
 
 if __name__ == '__main__':

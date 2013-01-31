@@ -3,7 +3,7 @@
 # Author: bishop Liu <miracle (at) gmail.com>
 
 import uuid
-from powers.events import ready_for_batch
+from powers.events import ready_for_batch, ready_for_publish
 from crawlers.common.stash import picked_crawlers
 
 method_new = ['new_']
@@ -28,3 +28,5 @@ def send_one_site(sender, **kwargs):
 if __name__ == '__main__':
     import time
     send_signal()
+    while True:
+        time.sleep(60)

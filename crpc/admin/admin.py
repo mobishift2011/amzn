@@ -188,8 +188,9 @@ class EditDataHandler(BaseHandler):
 
         data = {}
         data['title']       = self.get_argument('title')
-        data['description'] = self.get_argument('description')
+        data['description'] = self.get_argument('description','')
         data['tags']        = self.get_argument('tags').split(',')
+        data['recommend_score'] = self.get_argument('score') or 99
         brands              = self.get_argument('brands') and self.get_argument('brands').split(',') or None
 
         # validate brands
@@ -220,9 +221,9 @@ class EditDataHandler(BaseHandler):
             api.event(id).patch(data)
         except Exception,e:
             message = e.message
-            return self.render('editdata/event.html',message=message)
         else:
-            self.redirect('/editdata/event/{0}/'.format(id))
+            message = 'Success'
+        return self.render('editdata/event.html',message=message)
 
     def _edit_product(self,id):
         # POST
@@ -235,7 +236,7 @@ class EditDataHandler(BaseHandler):
         data['tags']          = self.get_argument('tags') and self.get_argument('tags').split(',') or []
         data['brand']         = self.get_argument('brand')
         data['cover_image']   = eval(self.get_argument('cover_image'))
-        data['details']       = self.get_argument('details').split('\n')
+        data['details']       = self.get_argument('details') and self.get_argument('details').split('\n') or []
 
         # validate
         s,t = self.validate_brands([data['brand']])
@@ -261,9 +262,9 @@ class EditDataHandler(BaseHandler):
             api.product(id).patch(data)
         except Exception,e:
             message = e.message
-            return self.render('editdata/product.html',message=message)
         else:
-            return self.redirect('/editdata/product/{0}/'.format(id))
+            message = 'Success'
+        return self.render('editdata/product.html',message=message)
 
 class ViewDataHandler(BaseHandler):
     @tornado.web.authenticated

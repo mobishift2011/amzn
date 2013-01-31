@@ -1,6 +1,6 @@
 import random
 
-sites = ['beyondtherack', 'bluefly', 'gilt', 'hautelook', 'ideeli', 'lot18', 'modnique', 'myhabit', 'nomorerack', 'onekingslane', 'ruelala', 'venteprivee', 'totsy', 'belleandclive']
+sites = ['beyondtherack', 'bluefly', 'gilt', 'hautelook', 'ideeli', 'lot18', 'modnique', 'myhabit', 'nomorerack', 'onekingslane', 'ruelala', 'venteprivee', 'totsy', 'belleandclive', 'zulily']
 
 
 def get_site_module(site):

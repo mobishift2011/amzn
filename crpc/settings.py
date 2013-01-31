@@ -61,20 +61,20 @@ envs = {
     },
     'PRODUCTION': {
         'CRAWLER_PEERS': [
-            {'host_string':'root@crawler1.favbuy.org', 'port':12341}
-            {'host_string':'root@crawler1.favbuy.org', 'port':12342}
-            {'host_string':'root@crawler2.favbuy.org', 'port':12341}
-            {'host_string':'root@crawler2.favbuy.org', 'port':12342}
+            {'host_string':'root@crawler1.favbuy.org', 'port':12341},
+            {'host_string':'root@crawler1.favbuy.org', 'port':12342},
+            {'host_string':'root@crawler2.favbuy.org', 'port':12341},
+            {'host_string':'root@crawler2.favbuy.org', 'port':12342},
         ],
         'POWER_PEERS': [
-            {'host_string':'root@power1.favbuy.org', 'port':12343}
-            {'host_string':'root@power1.favbuy.org', 'port':12344}
-            {'host_string':'root@power2.favbuy.org', 'port':12343}
-            {'host_string':'root@power2.favbuy.org', 'port':12344}
+            {'host_string':'root@power1.favbuy.org', 'port':12343},
+            {'host_string':'root@power1.favbuy.org', 'port':12344},
+            {'host_string':'root@power2.favbuy.org', 'port':12343},
+            {'host_string':'root@power2.favbuy.org', 'port':12344},
         ],
         'TEXT_PEERS': [
-            {'host_string':'root@crawler1.favbuy.org', 'port':12345}
-            {'host_string':'root@crawler2.favbuy.org', 'port':12345}
+            {'host_string':'root@crawler1.favbuy.org', 'port':12345},
+            {'host_string':'root@crawler2.favbuy.org', 'port':12345},
         ],
         'USE_INDEX': '',
         'MONGODB_HOST': 'crpc.favbuy.org', 

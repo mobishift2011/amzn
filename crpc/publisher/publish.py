@@ -111,7 +111,7 @@ class Publisher:
         self.logger.debug("try_publish_product_update %s:%s", site, prod_key)
         m = self.get_module(site)
         prod = m.Product.objects.get(key=prod_key)
-        if forced or self.should_publish_product_upd(prod):
+        if self.should_publish_product_upd(prod):
             self.publish_product(prod, upd=True)
         else:
             self.logger.debug("product %s:%s not ready for publishing", obj_to_site(prod),prod_key)
@@ -124,6 +124,7 @@ class Publisher:
         We then publish all containing products under the events that are ready for publish.
 
         :param ev: event object
+        :param skip_products: if False, also publish all the products contained in the event
         '''
         m = obj_to_module(ev)
         if self.should_publish_event(ev):

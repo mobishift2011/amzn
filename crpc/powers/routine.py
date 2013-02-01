@@ -17,6 +17,7 @@ from datetime import datetime
 from helpers.log import getlogger
 imglogger = getlogger('powerroutine', filename='/tmp/powerserver.log')
 
+
 debug_logger = getlogger('debug_power_text', '/tmp/debug_power_text.log')
 def run_fd():
     import subprocess, os
@@ -24,8 +25,16 @@ def run_fd():
     ret = os.listdir('/proc/{0}/fd'.format(pid))
     return len(ret)
 
+
+from crawlers.common.stash import picked_crawlers
 def get_site_module(site):
-    return __import__('crawlers.'+site+'.models', fromlist=['Category', 'Event', 'Product'])
+    if not hasattr(get_site_module, 'mod'):
+        setattr(get_site_module, 'mod', {})
+
+    if not get_site_module.mod:
+        for crawler in picked_crawlers:
+            get_site_module.mod[crawler] = __import__('crawlers.'+ crawler +'.models', fromlist=['Category', 'Event', 'Product'])
+    return get_site_module.mod[site]
 
 def call_rpc(rpc, method, *args, **kwargs):
     try:

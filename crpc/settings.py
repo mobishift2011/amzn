@@ -53,7 +53,8 @@ envs = {
             {'host_string':'root@192.168.56.101', 'port':1235},
         ],
         'TEXT_PEERS': [
-            {'host_string':'root@192.168.56.102', 'port':1235}
+            {'host_string':'root@192.168.56.102', 'port':1235},
+            {'host_string':'root@192.168.56.103', 'port':1235},
         ],
         'USE_INDEX': '',
         'MONGODB_HOST': '192.168.56.101',

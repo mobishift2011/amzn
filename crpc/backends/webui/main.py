@@ -152,6 +152,10 @@ def publish_stats():
     data = get_publish_stats(site, doctype, time_value, time_cell, begin_at, end_at)
     return template('pubstats.tpl', {'stats': data, 'sites': [site]})
 
+@route('/publish/report')
+def publish_report():
+    return template()
+
 @post('/brands/import')
 def brands_import():
     eb = json.loads(request.POST['brand'])

@@ -180,6 +180,17 @@ def __start_text(host_string, port):
                         with prefix("source ./env.sh {0}".format(os.environ.get('ENV','TEST'))):
                             _runbg("python powers/textserver.py {0}".format(port), sockname="textserver.{0}".format(port))
 
+def ganglia():
+    import itertools
+    for peer in itertools.chain(POWER_PEERS, CRAWLER_PEERS):
+        print peer['host_string'], peer['host_string'].split('@')[1].split('.')[0]
+        multiprocessing.Process(target=__start_ganglia, args=(peer['host_string'], peer['host_string'].split('@')[1].split('.')[0])).start()
+
+def __start_ganglia(host_string, name):
+    with settings(host_string=host_string):
+        run("sed -i 's/name = \"unspecified\"/name = \"{0}\"/' /etc/ganglia/gmond.conf".format(name))
+        run("/etc/init.d/ganglia-monitor restart")
+
 def _start_monitor():
     os.system("ulimit -n 4096 && cd {0}/backends/monitor && dtach -n /tmp/crpcscheduler.sock python run.py".format(CRPC_ROOT))
     os.system("cd {0}/backends/webui && dtach -n /tmp/crpcwebui.sock python main.py".format(CRPC_ROOT))

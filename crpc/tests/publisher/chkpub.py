@@ -46,7 +46,7 @@ class PubChecker:
                 noprod += 1
             elif m.Product.objects(event_id=ev.event_id, image_complete=True, dept_complete=True).count()==0:
                 noreadyprod += 1
-            elif not ev.image_complete:
+            elif not ev.image_path:
                 noimage +=1 
             elif not ev.propagation_complete:
                 noprop += 1
@@ -81,7 +81,7 @@ class PubChecker:
     def check_product(self, site):
         m = get_site_module(site)
         total = m.Product.objects.count()
-        total_noimage = m.Product.objects(image_complete=False).count()
+        total_noimage = m.Product.objects(image_path__exists=False).count()
         total_nodept = m.Product.objects(dept_complete=False).count()
         total_nobrand = m.Product.objects(brand_complete=False).count()
         total_notag = m.Product.objects(tag_complete=False).count()        
@@ -100,7 +100,7 @@ class PubChecker:
         unknown = 0
         for p in m.Product.objects(publish_time__exists=False):
             unpub += 1
-            if not p.image_complete:
+            if not p.image_path:
                 noimage += 1
             elif not p.dept_complete:
                 nodept += 1

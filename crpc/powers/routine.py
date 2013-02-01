@@ -15,8 +15,14 @@ import traceback
 from datetime import datetime
 
 from helpers.log import getlogger
-txtlogger = getlogger('powerroutine', filename='/tmp/textserver.log')
 imglogger = getlogger('powerroutine', filename='/tmp/powerserver.log')
+
+debug_logger = getlogger('debug_power_text', '/tmp/debug_power_text.log')
+def run_fd():
+    import subprocess, os
+    pid = subprocess.Popen('ps aux | grep run.py | grep -v grep | grep -v dtach', shell=True, stdout=subprocess.PIPE).communicate()[0].split()[1]
+    ret = os.listdir('/proc/{0}/fd'.format(pid))
+    return len(ret)
 
 def get_site_module(site):
     return __import__('crawlers.'+site+'.models', fromlist=['Category', 'Event', 'Product'])
@@ -43,7 +49,10 @@ def spout_images(site, doctype):
     }
     
     docparam = docdict[doctype.lower()]
-    instances = getattr(m, docparam['name']).objects(**docparam['kwargs'])
+    try:
+        instances = getattr(m, docparam['name']).objects(**docparam['kwargs']).timeout(False)
+    except AttributeError:
+        instances = []
 
     for instance in instances:
         yield {
@@ -54,15 +63,12 @@ def spout_images(site, doctype):
         }
 
 def spout_extracted_products(site):
-    print 'enter spout {0}'.format(site)
-    txtlogger.debug('enter spout {0}'.format(site))
     m = get_site_module(site)
-    txtlogger.debug('get module {0}'.format(m))
     now = datetime.utcnow()
     products = m.Product.objects((Q(brand_complete = False) | \
                 Q(tag_complete = False) | Q(dept_complete = False)) & \
                     (Q(products_begin__lte=now) | Q(products_begin__exists=False)) & \
-                        (Q(products_end__gt=now) | Q(products_end__exists=False)))
+                        (Q(products_end__gt=now) | Q(products_end__exists=False))).timeout(False)
 
     # products = m.Product.objects(Q(dept_complete = False) & \
     #                 (Q(products_begin__lte=now) | Q(products_begin__exists=False)) & \
@@ -77,9 +83,12 @@ def spout_extracted_products(site):
 def spout_propagate_events(site, complete=False):
     m = __import__('crawlers.{0}.models'.format(site), fromlist=['Event'])
     now = datetime.utcnow()
-    events = m.Event.objects(Q(propagation_complete = complete) & \
-        (Q(events_begin__lte=now) | Q(events_begin__exists=False)) & \
-            (Q(events_end__gt=now) | Q(events_end__exists=False)) )
+    try:
+        events = m.Event.objects(Q(propagation_complete = complete) & \
+            (Q(events_begin__lte=now) | Q(events_begin__exists=False)) & \
+                (Q(events_end__gt=now) | Q(events_end__exists=False)) )
+    except AttributeError:
+        events = []
 
     for event in events:
         yield {
@@ -88,11 +97,28 @@ def spout_propagate_events(site, complete=False):
         }
 
 def scan_images(site, doctype, concurrency=3):
-    rpcs = get_rpcs(POWER_PEERS)
-    pool = Pool(len(rpcs)*concurrency)
-    for kwargs in spout_images(site, doctype):
-        rpc = random.choice(rpcs)
-        pool.spawn(call_rpc, rpc, 'process_image', **kwargs)
+    """ If one site is already been scanning, not scan it this time
+    """
+    if not hasattr(scan_images, 'run_flag'):
+        setattr(scan_images, 'run_flag', {})
+
+    if site in scan_images.run_flag and scan_images.run_flag[site] == True:
+        return
+    elif site not in scan_images.run_flag or scan_images.run_flag[site] == False:
+        scan_images.run_flag[site] = True
+
+    try:
+        rpcs = get_rpcs(POWER_PEERS)
+        pool = Pool(len(rpcs)*concurrency)
+        for kwargs in spout_images(site, doctype):
+            rpc = random.choice(rpcs)
+            pool.spawn(call_rpc, rpc, 'process_image', **kwargs)
+        pool.join()
+    except Exception as e:
+        imglogger.error('scan_images {0}.{1} error: {2}'.format(site, doctype, e.message))
+    finally:
+        scan_images.run_flag[site] = False
+
 
 def crawl_images(site, doctype, key, *args, **kwargs):
     newargs = {}
@@ -151,22 +177,23 @@ def text_extract(site, concurrency=3):
     """
     rpcs = get_rpcs(TEXT_PEERS)
     pool = Pool(len(rpcs)*concurrency)
+    debug_logger.info('Extract text begin[{0}], fd number: {1}'.format(site, run_fd()))
     products = spout_extracted_products(site)
     
     for product in products:
         rpc = random.choice(rpcs)
         pool.spawn(call_rpc, rpc, 'extract_text', **product)
     pool.join()
+    debug_logger.info('Extract text end[{0}], fd number: {1}'.format(site, run_fd()))
 
     # If site has event model, it should update and new the event propagation
     # jobs = [gevent.spawn(update_propation, event_dict, site), \
     #             gevent.spawn(propagate, site, concurrency)]
     # gevent.joinall(jobs)
+    debug_logger.info('Propagation begin[{0}], fd number: {1}'.format(site, run_fd()))
     update_propation(site, concurrency)
     propagate(site, concurrency)
-
-    txtlogger.info('ready for publish site -> {0}'.format(site))
-    ready_for_publish.send(None, **{'site': site})
+    debug_logger.info('Propagation end[{0}], fd number: {1}'.format(site, run_fd()))
 
 
 if __name__ == '__main__':

@@ -1,0 +1,136 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<div id="main-content">
+  <ul class="breadcrumb">
+    <li>
+      <a href="/">Home</a> <span class="divider">/</span>
+    </li>
+    <li>
+      <a href="#">Edit Data</a>
+    </li>
+  </ul>
+
+  <div>
+  {% if message %}
+    {{ message }}
+  {% else %}
+    <form class="form-horizontal" method="POST"> {{ xsrf_form_html()|safe }}
+      <fieldset>
+        <legend>Edit Event</legend>
+
+        <div class="control-group">
+          <label class="control-label" for="typeahead">Cover image</label>
+          <div class="controls">
+                <img src="{{ event.cover_image|imagesize('224x0') }}"/>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label" for="typeahead">Title</label>
+          <div class="controls">
+              <input type="text" class="span6 typeahead" name="title" value="{{ event.title }}">
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label" for="textarea2">Details</label>
+          <div class="controls">
+            <textarea name="description" rows="5",cols="50" style="width:400px;">{{ event.description }}</textarea>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label" for="typeahead">Brands</label>
+          <div class="controls">
+              <input type="text" class="span6 typeahead" name="brands" value="{{ event.brands }}">
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label" for="typeahead">Tags</label>
+          <div class="controls">
+              <input type="text" class="span6 typeahead" name="tags" value="{{ event.tags }}">
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label" for="typeahead">Rank</label>
+          <div class="controls">
+              <input type="text" class="span6 typeahead" name="score" value="{{ event.recommend_score }}">
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">Save & Publish</button>
+          <button type="reset" class="btn">Cancel</button>
+        </div>
+
+  {% endif %}
+  </div>
+</div><!--main-content-->
+  
+<div class="modal hide fade" id="myModal">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal">×</button>
+    <h3>Settings</h3>
+  </div>
+  <div class="modal-body">
+    <p>Here settings can be configured...</p>
+  </div>
+  <div class="modal-footer">
+    <a href="#" class="btn" data-dismiss="modal">Close</a>
+    <a href="#" class="btn btn-primary">Save changes</a>
+  </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+  // make nav css correct
+  $('li[name=viewdata]').each(function(){
+    var link = $(this).find(">:first-child").attr('href');
+    if (window.location.href.indexOf(link) != -1){
+      $(this).addClass('active');
+    }
+  })
+
+  // make selection consistent with url
+  var param = $.deparam(window.location.href.substr(window.location.href.indexOf('?')+1));
+  if (param['site_key__startswith']){
+    var value = 'site_key__startswith=' + param['site_key__startswith'];
+    $('#selectSite').val(value).trigger('liszt:updated');
+  }
+  if (param['updated_at__gt']){
+    var value = 'updated_at__gt=' + param['updated_at__gt'];
+    $('#selectTime').val(value).trigger('liszt:updated');
+  }
+
+  // helper functions
+  function get_param(){
+    var param = {};
+    var sitearg = $('#selectSite').val();
+    var timearg = $('#selectTime').val(); 
+    if (sitearg != 'ALL' && sitearg){
+      var list = sitearg.split('=');
+      param[list[0]] = list[1];
+    }
+    if (timearg != 'ALL' && timearg){
+      var list = timearg.split('=');
+      param[list[0]] = list[1];
+    }
+    return param
+  }
+
+  // pagination
+  $('a.pagination').live('click', function(){
+    if ($(this).attr('page')) {
+      var param = get_param();
+      param['offset'] = ($(this).attr('page')-1)*20;
+      var url = "/viewdata/events?" + $.param(param);
+      window.location.href = url;
+    }
+  });
+
+</script>
+{% endblock %}

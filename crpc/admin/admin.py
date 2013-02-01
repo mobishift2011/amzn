@@ -4,6 +4,7 @@ import tornado.ioloop
 import tornado.web
 import tornado.httpserver
 import tornado.autoreload
+from tornado.escape import url_unescape
 
 import jinja2 
 
@@ -17,7 +18,7 @@ from slumber import API
 from datetime import datetime, timedelta
 from mongoengine import Q
 
-from views import get_all_brands
+from views import get_all_brands, get_brand, update_brand, delete_brand
 
 def get_site_module(site):
     return __import__('crawlers.'+site+'.models', fromlist=['Category', 'Event', 'Product'])
@@ -95,6 +96,12 @@ class BaseHandler(tornado.web.RequestHandler):
             self.json_args = json.loads(self.request.body)
         else:
             self.json_args = None
+
+    def get_argument(self,key,default=None):
+        try:
+            return super(BaseHandler,self).get_argument(key)
+        except:
+            return default
     
     def get_current_user(self):
         user = self.get_secure_cookie('user')
@@ -140,6 +147,124 @@ class LogoutHandler(BaseHandler):
         self.clear_cookie('user')
         next_url = self.get_argument('next', '/')
         self.redirect(next_url)
+
+class EditDataHandler(BaseHandler):
+
+    def validate_brands(self,brands):
+        for brand in brands:
+            res  = 0
+            try:
+                res = api.brand.get(name=brand)['meta']['total_count']
+            except Exception,e:
+                pass
+
+            if int(res) == 0:
+                return 0,brand
+        return 1,''
+
+    @tornado.web.authenticated
+    def get(self, type,id):
+        if type == 'event':
+            event = api.event(id).get()
+            event['brands'] = ','.join(event.get('brands',[]))
+            event['tags'] = ','.join(event.get('tags',[]))
+            self.render('editdata/event.html',event=event)
+        elif type == 'product':
+            product = api.product(id).get()
+            product['tags'] = ','.join(product.get('tags') or [])
+            product['details'] = '\n'.join(product['details'])
+            self.render('editdata/product.html',product=product)
+
+    @tornado.web.authenticated
+    def post(self,type,id):
+        if type == 'event':
+            self._edit_event(id)
+        elif type == 'product':
+            self._edit_product(id)
+
+    def _edit_event(self,id):
+        event               = api.event(id).get()
+        site,key            = event['site_key'].split('_',1)
+
+        data = {}
+        data['title']       = self.get_argument('title')
+        data['description'] = self.get_argument('description','')
+        data['tags']        = self.get_argument('tags').split(',')
+        data['recommend_score'] = self.get_argument('score') or 99
+        brands              = self.get_argument('brands') and self.get_argument('brands').split(',') or None
+
+        # validate brands
+        if brands:
+            s,t = self.validate_brands(brands)
+            if not s:
+                message = 'Brand name `{0}` does not exist.'.format(t)
+                return self.render('editdata/event.html',message=message)
+            else:
+                data['brands'] = brands
+        else:
+            data['brands'] = []
+        
+        # save to crawler's db
+        try:
+            m = get_site_module(site)
+            e = m.Event.objects.get(event_id=key)
+            e.sale_title = data['title']
+            e.sale_description = data['description']
+            e.favbuy_tag = data['tags']
+            e.save()
+        except Exception,e:
+            message = e.message
+            return self.render('editdata/event.html',message=message)
+        
+        # save to mastiff's db
+        try:
+            api.event(id).patch(data)
+        except Exception,e:
+            message = e.message
+        else:
+            message = 'Success'
+        return self.render('editdata/event.html',message=message)
+
+    def _edit_product(self,id):
+        # POST
+        product               = api.product(id).get()
+        site,key              = product['site_key'].split('_',1)
+
+        data = {}
+        data['title']         = self.get_argument('title')
+        data['details']       = self.get_argument('details')
+        data['tags']          = self.get_argument('tags') and self.get_argument('tags').split(',') or []
+        data['brand']         = self.get_argument('brand')
+        data['cover_image']   = eval(self.get_argument('cover_image'))
+        data['details']       = self.get_argument('details') and self.get_argument('details').split('\n') or []
+
+        # validate
+        s,t = self.validate_brands([data['brand']])
+        if not s:
+            message = 'Brand name`{0}` does not exist.'.format(t)
+            return self.render('editdata/product.html',message=message)
+
+        # save to crawler's db
+        try:
+            m = get_site_module(site)
+            p = m.Product.objects.get(key=key)
+            p.sale_title = data['title']
+            p.list_info = data['details']
+            p.brand = data['brand']
+            p.tagline = data['tags']
+            p.save()
+        except Exception,e:
+            message = e.message
+            return self.render('editdata/product.html',message=message)
+        
+        # save to mastiff
+        try:
+            api.product(id).patch(data)
+        except Exception,e:
+            message = e.message
+        else:
+            message = 'Success'
+        return self.render('editdata/product.html',message=message)
 
 class ViewDataHandler(BaseHandler):
     @tornado.web.authenticated
@@ -219,7 +344,6 @@ class ViewDataHandler(BaseHandler):
             ol2 = ol2[offset:offset+limit]
 
         object_list = chain(ol1, ol2)
-
         total_count = num_ol1 + num_ol2
         pagination = Pagination(page, 80, total_count)
 
@@ -233,9 +357,9 @@ class ViewDataHandler(BaseHandler):
             kwargs[k] = v[0]
 
         offset = kwargs.get('offset', '0')
-        limit = kwargs.get('limit', '20')
+        limit  = kwargs.get('limit', '20')
         kwargs['offset'] = int(offset)
-        kwargs['limit'] = int(limit)
+        kwargs['limit']  = int(limit)
 
         try:
             result = api.product.get(**kwargs)
@@ -254,7 +378,6 @@ class ViewDataHandler(BaseHandler):
         }
 
         pagination = Pagination(int(offset)/20+1, 20, meta['total_count'])
-
         self.render('viewdata/products.html', meta=meta, products=products, sites=sites, 
             times=times, pagination=pagination, message=message)
 
@@ -265,7 +388,7 @@ class ViewDataHandler(BaseHandler):
             kwargs[k] = v[0]
 
         offset = kwargs.get('offset', '0')
-        limit = kwargs.get('limit', '20')
+        limit  = kwargs.get('limit', '20')
         kwargs['offset'] = int(offset)
         kwargs['limit'] = int(limit)
 
@@ -286,7 +409,6 @@ class ViewDataHandler(BaseHandler):
         }
 
         pagination = Pagination(int(offset)/20+1, 20, meta['total_count'])
-
         self.render('viewdata/products.html', meta=meta, products=products, sites=sites, 
             times=times, pagination=pagination, message=message)
 
@@ -318,7 +440,6 @@ class ViewDataHandler(BaseHandler):
         }
 
         pagination = Pagination(int(offset)/20+1, 20, meta['total_count'])
-
         self.render('viewdata/events.html', meta=meta, events=events, sites=sites, 
             times=times, pagination=pagination, message=message)
 
@@ -335,6 +456,27 @@ class BrandsHandler(BaseHandler):
         brands = get_all_brands()
         self.render('brands.html', brands=brands)
 
+class BrandHandler(BaseHandler):
+    @tornado.web.authenticated
+    def get(self, brand_title):
+        brand = get_brand(url_unescape(brand_title))
+        t_page = 'brand_iframe.html' \
+                    if self.get_argument('t') == 'iframe' \
+                        else 'brand.html'
+
+        self.render(t_page, brand=brand)
+    
+    @tornado.web.authenticated
+    def post(self, brand_title):
+        arguments = self.request.arguments
+        brand = update_brand(brand_title, arguments)
+        self.render('brand.html', brand=brand)
+
+    @tornado.web.authenticated
+    def delete(self, brand_title):
+        self.write(str(delete_brand(brand_title)))
+
+
 settings = {
     "debug": True,
     "static_path": STATIC_PATH,
@@ -350,9 +492,11 @@ application = tornado.web.Application([
     (r"/login/", LoginHandler),
     (r"/logout/", LogoutHandler),
     (r"/viewdata/(.*)", ViewDataHandler),
+    (r"/editdata/(.*)/(.*)/", EditDataHandler),
     (r"/monitor/", MonitorHandler),
     (r"/crawler/", CrawlerHandler),
     (r"/brands/", BrandsHandler),
+    (r"/brand/(.*)", BrandHandler),
     (r"/", IndexHandler),
     (r"/assets/(.*)", tornado.web.StaticFileHandler, dict(path=settings['static_path'])),
 ], **settings)

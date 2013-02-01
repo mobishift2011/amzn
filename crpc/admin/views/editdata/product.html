@@ -1,0 +1,152 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<div id="main-content">
+  <ul class="breadcrumb">
+    <li>
+      <a href="/">Home</a> <span class="divider">/</span>
+    </li>
+    <li>
+      <a href="#">Edit Data</a>
+    </li>
+  </ul>
+
+  <div>
+  {% if message %}
+    {{ message }}
+  {% else %}
+    {{ product }}
+
+    <form class="form-horizontal" method="POST"> {{ xsrf_form_html()|safe }}
+      <fieldset>
+        <legend>Edit Product</legend>
+
+        <div class="control-group">
+          <label class="control-label" for="typeahead">Cover image</label>
+          <div class="controls">
+                {% for i in product.images %}
+                    {% if i.url == product.cover_image.url %}
+                        <img class="product-cover-image" style="border:4px solid red; "src="{{ i|imagesize('84x0') }}" ovalue="{{ i }}"/>
+                    {% else %}
+                        <img class="product-cover-image" src="{{ i|imagesize('84x0') }}" ovalue="{{ i }}"/>
+                    {% endif %}
+                {% endfor %}
+                <input value="{{ product.cover_image }}" name="cover_image" id="cover_image" type="hidden">
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label" for="typeahead">Title</label>
+          <div class="controls">
+              <input type="text" class="span6 typeahead" name="title" value="{{ product.title }}">
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label" for="textarea2">Details</label>
+          <div class="controls">
+            <textarea name="details" rows="5",cols="50" style="width:400px;">{{ product.details }}</textarea>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label" for="typeahead">Brand</label>
+          <div class="controls">
+              <input type="text" class="span6 typeahead" name="brand" value="{{ product.brand }}">
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label" for="typeahead">Tags</label>
+          <div class="controls">
+              <input type="text" class="span6 typeahead" name="tags" value="{{ product.tags }}">
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">Save & Publish</button>
+          <button type="reset" class="btn">Cancel</button>
+        </div>
+      </fieldset>
+    </form>   
+
+  {% endif %}
+  </div>
+</div><!--main-content-->
+  
+<div class="modal hide fade" id="myModal">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal">×</button>
+    <h3>Settings</h3>
+  </div>
+  <div class="modal-body">
+    <p>Here settings can be configured...</p>
+  </div>
+  <div class="modal-footer">
+    <a href="#" class="btn" data-dismiss="modal">Close</a>
+    <a href="#" class="btn btn-primary">Save changes</a>
+  </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+  // make nav css correct
+  $('li[name=viewdata]').each(function(){
+    var link = $(this).find(">:first-child").attr('href');
+    if (window.location.href.indexOf(link) != -1){
+      $(this).addClass('active');
+    }
+  })
+
+  // make selection consistent with url
+  var param = $.deparam(window.location.href.substr(window.location.href.indexOf('?')+1));
+  if (param['site_key__startswith']){
+    var value = 'site_key__startswith=' + param['site_key__startswith'];
+    $('#selectSite').val(value).trigger('liszt:updated');
+  }
+  if (param['updated_at__gt']){
+    var value = 'updated_at__gt=' + param['updated_at__gt'];
+    $('#selectTime').val(value).trigger('liszt:updated');
+  }
+
+  // helper functions
+  function get_param(){
+    var param = {};
+    var sitearg = $('#selectSite').val();
+    var timearg = $('#selectTime').val(); 
+    if (sitearg != 'ALL' && sitearg){
+      var list = sitearg.split('=');
+      param[list[0]] = list[1];
+    }
+    if (timearg != 'ALL' && timearg){
+      var list = timearg.split('=');
+      param[list[0]] = list[1];
+    }
+    return param
+  }
+
+
+  // pagination
+  $('a.pagination').live('click', function(){
+    if ($(this).attr('page')) {
+      var param = get_param();
+      param['offset'] = ($(this).attr('page')-1)*20;
+      var url = "/viewdata/events?" + $.param(param);
+      window.location.href = url;
+    }
+  });
+
+  // select product cover image
+  $('img.product-cover-image').live('click',function(){
+    var ovalue = $(this).attr('ovalue') ;
+    $('input#cover_image').val(ovalue);
+    $('img.product-cover-image').attr('style','');
+    $(this).attr('style','border:4px solid red;')
+  
+  });
+
+
+
+</script>
+{% endblock %}

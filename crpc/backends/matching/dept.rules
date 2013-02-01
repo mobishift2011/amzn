@@ -5,6 +5,7 @@
 #  [1] - if XXXX in a title; we can determine the main department of it
 #  [2] - if XXXX in a title; we can determine the sub department of it
 # The XXXX is tested in a brute-force; longest first way
+[0] iPhone Case -> Women; Men; Accessories
 [0] Colorlock Iron -> Beauty & Health; Body Care & Hair
 [0] Straightening Iron -> Beauty & Health; Body Care & Hair
 [0] Curling Iron -> Beauty & Health; Body Care & Hair
@@ -65,19 +66,6 @@
 [0] European Sham -> Home; Bed & Bath
 [0] Decorative Pillow -> Home; Bed & Bath
 [0] Decorative Pillows -> Home; Bed & Bath
-[0] Teddy -> Women; Intimates & Loungewear
-[0] Camiknicker -> Women; Intimates & Loungewear
-[0] Bodysuit -> Women; Intimates & Loungewear
-[0] Bodysuits -> Women; Intimates & Loungewear
-[0] Body Suit -> Women; Intimates & Loungewear
-[0] Body Suits -> Women; Intimates & Loungewear
-[0] Bra Set -> Women; Intimates & Loungewear
-[0] Skirt Bottom -> Women; Intimates & Loungewear
-[0] Halter Top -> Women; Intimates & Loungewear
-[0] Shape Halter -> Women; Intimates & Loungewear
-[0] Triangle Top -> Women; Intimates & Loungewear
-[0] 2-Ring Hipster -> Women; Intimates & Loungewear
-[0] iPhone Case -> Women; Men; Accessories
 [0] iPhone Necklace -> Women; Men; Accessories
 [0] iPad Case -> Women; Men; Accessories
 [0] Tablet Case -> Women; Men; Accessories
@@ -112,7 +100,6 @@
 [0] Beverage -> Home; Kitchen & Dining
 [0] Collapsible Cube -> Home; Home Accessories
 [0] Mini Sling -> Bags; Shoulder Bags
-[0] Britches Hipster -> Women; Intimates & Loungewear
 [0] Sparkling Duo -> Wine; Champagne
 [0] Sparkling Tri -> Wine; Champagne
 [0] Sparkling Half Case -> Wine; Champagne
@@ -158,8 +145,6 @@
 [0] Urban Trends Collection -> Home; Home Accessories
 [0] Melissa Doug -> Kids & Baby; Toys, Games & Books
 [0] Actimoist -> Beauty & Health; Skin Care
-[0] Knicker -> Women; Intimates & Loungewear
-[0] Knickers -> Women; Intimates & Loungewear
 [0] Bilfold -> Bags; Wallets
 [0] Billfold -> Bags; Wallets
 [0] Eyelid -> Beauty & Helath; Makeup
@@ -205,8 +190,8 @@
 [0] Backpack -> Bags; Backpacks & Laptop Bags
 [0] Backpacks -> Bags; Backpacks & Laptop Bags
 [0] Girls Shoes -> Kids & Baby; Girls' Shoes
-[0] Women Loungewear -> Women; Intimates & Loungewear
-[0] Women Intimates -> Women; Intimates & Loungewear
+[0] Women Loungewear -> Intimates & Loungewear
+[0] Women Intimates -> Intimates & Loungewear
 [0] Roaster -> Home; Kitchen & Dining
 [0] Ramekin -> Home; Kitchen & Dining
 [0] Oven -> Home; Kitchen & Dining
@@ -244,7 +229,6 @@
 [0] Fancy Nancy -> Kids & Baby; Toys, Games & Books
 [0] Applicator -> Home; Tools
 [0] Tailored Fabric -> Kids & Baby; Gear & Equipment
-[0] Shift -> Women; Dresses & Skirts
 [0] Wash Cloth -> Home; Bed & Bath
 [0] Wash Cloths -> Home; Bed & Bath
 [0] Washcloth -> Home; Bed & Bath
@@ -298,21 +282,17 @@
 [0] Studio by Karastan -> Home; Rugs & Textiles
 [0] Decanter -> Home; Kitchen & Dining
 [0] Polystone -> Home; Home Accessories
-[0] Bralette -> Women; Intimates & Loungewear
 [0] Bottle -> Home; Kitchen & Dining
 [0] Cookie Sheet -> Home; Kitchen & Dining
 [0] Stock Pot -> Home; Kitchen & Dining
 [0] Stockpot -> Home; Kitchen & Dining
 [0] Stockpots -> Home; Kitchen & Dining
-[0] Boy Short -> Women; Intimates & Loungewear
 [0] Tier Stand -> Home; Furniture & Lighting; Home Accessories
 [0] Kettle -> Home; Kitchen & Dining
 [0] Kettles -> Home; Kitchen & Dining
 [0] Sumak -> Home; Rugs & Textiles
 [0] Potholder -> Home; Kitchen & Dining
-[0] Machine -> Home; Electronics; Home Accesssories
 [0] Wine Set -> Home; Kitchen & Dining
-[0] Teal Goblet -> Women; Dresses & Skirts
 [0] Goblet -> Home; Kitchen & Dining
 [0] Serving Set -> Home; Kitchen & Dining
 [0] Sculpture -> Home; Home Accessories
@@ -322,17 +302,10 @@
 [0] Screen Cleaner -> Home; Home Accessories
 [0] Receiver -> Home; Home Accessories
 [0] Speaker -> Home; Home Accessories
-[0] Monokini -> Women; Intimates & Loungewear
-[0] Shirtdress -> Women; Dresses & Skirts
-[0] Skirtdress -> Women; Dresses & Skirts
 [0] Onesie -> Kids & Baby; Boys' Clothing; Girls Clothing
 [0] Scent -> Beauty & Health; Fragrance
 [0] Day Bag -> Bags; Shoulder Bags
 [0] Night Bag -> Bags; Handbags
-[0] Bikini -> Women; Intimates & Loungewear
-[0] Bikinis -> Women; Intimates & Loungewear
-[0] Tankini -> Women; Intimates & Loungewear
-[0] Tankinis -> Women; Intimates & Loungewear
 [0] Convertible Bag -> Bags; Shoulder Bags
 [0] Datejust -> Jewelry & Watches; Women's Watches
 [0] Swim Coverup -> Beauty & Health; Skin Care
@@ -363,15 +336,7 @@
 [0] Shopping Bag -> Bags; Handbags
 [0] Knife -> Home; Kitchen & Dining
 [0] Knives -> Home; Kitchen & Dining
-[0] Chemise -> Women; Intimates & Loungewear
 [0] Mixer -> Home; Kitchen & Dining
-[0] Basque -> Women; Intimates & Loungewear
-[0] Midriff -> Women; Intimates & Loungewear
-[0] Bustiere -> Women; Intimates & Loungewear
-[0] Bustier -> Women; Intimates & Loungewear
-[0] Negligee -> Women; Intimates & Loungewear
-[0] Nightgown -> Women; Intimates & Loungewear
-[0] Babydoll -> Women; Intimates & Loungewear
 [0] Dish -> Home; Kitchen & Dining
 [0] Dishes -> Home; Kitchen & Dining
 [0] Teaspoon -> Home; Kitchen & Dining
@@ -438,7 +403,6 @@
 [0] Barrel Bag -> Bags; Backpacks & Laptop Bags
 [0] Herb Saver -> Home; Kitchen & Dining
 [0] Ice Cream Maker -> Home; Kitchen & Dining
-[0] Boy Leg -> Women; Intimates & Loungewear
 [0] Globe Spheres -> Home; Home Accessories
 [0] Slicer -> Home; Kitchen & Dining
 [0] Calendar -> Home; Home Accessories
@@ -456,7 +420,6 @@
 [0] Organizer -> Home; Home Accessories
 [0] Step Stool -> Home; Furniture & Lighting
 [0] Shower Liner -> Home; Bed & Bath
-[0] Bolero -> Women; Dresses & Skirts
 [0] Plate -> Home; Kitchen & Dining
 [0] Plates -> Home; Kitchen & Dining
 [0] Cooker -> Home; Kitchen & Dining
@@ -503,21 +466,18 @@
 [0] Dinner -> Home; Kitchen & Dining
 [0] Plate Set -> Home; Kitchen & Dining
 [0] Quad Sorter -> Home; Home Accessories
-[0] Baby Doll -> Women; Intimates & Loungewear
 [0] Earring Tree -> Home; Home Accessories
 [0] Beige Bag -> Bags; Handbags
 [0] Room Divider -> Home; Home Accessories
 [0] Chameleon Bag -> Bags; Handbags
 [0] Placemat -> Home; Rugs & Textiles
 [0] Placemats -> Home; Rugs & Textiles
-[0] Sunshine Bottom -> Women; Intimates & Loungewear
 [0] Cotton Set -> Home; Bed & Bath
 [0] Touch Scale -> Home; Home Accessories
 [0] Lantern -> Home; Furniture & Lighting
 [0] Meat Grinder -> Home; Kitchen & Dining
 [0] Pet Cot -> Home; Home Accessories
 [0] Vodka Glass Set -> Home; Kitchen & Dining
-[0] Sheath -> Women; Dresses & Skirts
 [0] Teakettle -> Home; Kitchen & Dining
 [0] Tea Kettle -> Home; Kitchen & Dining
 [0] Rolling Pin -> Home; Kitchen & Dining
@@ -528,7 +488,6 @@
 [0] Cabinet -> Home; Furniture & Lighting
 [0] Table -> Home; Furniture & Lighting
 [0] Tables -> Home; Furniture & Lighting
-[0] Lace Top -> Women; Shirts & Sweaters
 [0] Tablepad -> Home; Home Accessories
 [0] Ege Glass -> Home; Kitchen & Dining
 [0] Bedspread -> Home; Bed & Bath
@@ -542,7 +501,6 @@
 [0] Cocktail Set -> Home; Kitchen & Dining
 [0] Dessert Set -> Home; Kitchen & Dining
 [0] Pie Press -> Home; Kitchen & Dining
-[0] Skort -> Women; Dresses & Skirts
 [0] Torch -> Home; Home Accessories
 [0] Holder -> Home; Home Accessories
 [0] Holders -> Home; Home Accessories
@@ -550,7 +508,6 @@
 [0] Candle -> Home; Home Accessories
 [0] Candles -> Home; Home Accessories
 [0] Candle Holders -> Home; Home Accessories
-[0] Mesh Cover Up -> Women; Dresses & Skirts
 [0] Canister Set -> Home; Home Accessories
 [0] Beds -> Bed & Bath
 [0] Sconce -> Home; Furniture & Lighting
@@ -584,10 +541,6 @@
 [0] Jars -> Home; Home Accessories
 [0] Storage Tub -> Home; Furniture & Lighting
 [0] Yoshi Wedge -> Women; Shoes
-[0] Tunic -> Women; Shirts & Sweaters
-[0] Panty -> Women; Intimates & Loungewear
-[0] Bodysuit -> Women; Intimates & Loungewear
-[0] Fx -> Women; Intimates & Loungewear
 [0] Frying Pan -> Home; Kitchen & Dining
 [0] Baking Pan -> Home; Kitchen & Dining
 [0] Garment Bag -> Bags; Luggage & Gear
@@ -612,9 +565,6 @@
 [0] Pendant Necklace -> Jewelry & Watches; Necklaces
 [0] Family In -> Home; Home Accessories
 [0] Ice Chiller -> Home; Kitchen & Dining
-[0] Maxi -> Women; Dresses & Skirts
-[0] Maxi-Dress -> Women; Dresses & Skirts
-[0] Maxidress -> Women; Dresses & Skirts
 [0] Rainboot -> Women; Shoes
 [0] Bamboo Handbag -> Bags; Handbags
 [0] Prints -> Home; Home Accessories
@@ -630,7 +580,6 @@
 [0] Tote -> Bags; Handbags
 [0] Totes -> Bags; Handbags
 [0] Fire Patrol Rescue -> Kids & Baby; Toys, Games & Books
-[0] Romper -> Women; Dresses & Skirts
 [0] Pillowcase -> Home; Bed & Bath
 [0] Storage Rack -> Home; Furniture & Lighting
 [0] Cuckoo Rooster -> Home; Home Accessories
@@ -669,8 +618,6 @@
 [0] Duvet Set -> Home; Bed & Bath
 [0] Hangers -> Home; Home Accessories
 [0] Triple Sorter -> Home; Home Accessories
-[0] Skirt Suit -> Women; Dresses & Skirts
-[0] Heidi Dress -> Women; Dresses & Skirts
 [0] Unisex Sunglasses -> Women; Men; Accessories
 [0] Sunglasses Ladies -> Women; Accessories
 [0] Sunglasses Women -> Women; Accessories
@@ -703,32 +650,12 @@
 [0] Crossbody Bag -> Bags; Crossbody Bags
 [0] Party Kit -> Kids & Baby; Toys, Games & Books
 [0] Spinner Set -> Home; Tools
-[0] Nightie -> Women; Intimates & Loungewear
-[0] G-String -> Women; Intimates & Loungewear
-[0] G-Strings -> Women; Intimates & Loungewear
-[0] G-Thong -> Women; Intimates & Loungewear
-[0] G-Thongs -> Women; Intimates & Loungewear
-[0] Tanga Thong -> Women; Intimates & Loungewear
-[0] G-Thong -> Women; Intimates & Loungewear
-[0] Camisole Bra -> Women; Intimates & Loungewear
-[0] Camisole -> Women; Intimates & Loungewear
-[0] Striped Cami -> Women; Intimates & Loungewear
-[0] Cotton Cami -> Women; Intimates & Loungewear
-[0] Boyshort -> Women; Intimates & Loungewear
-[0] Boyshorts -> Women; Intimates & Loungewear
 [0] Capture Thong -> Men; Socks, Underwear & Sleepwear
-[0] Blouse -> Women; Shirts & Sweaters
 [0] Garment Rack -> Home; Home Accessories
 [0] Pearl Sheet Set -> Home; Bed & Bath
 [0] Solid Sheet -> Home; Bed & Bath
 [0] Sheet Set -> Home; Bed & Bath
 [0] Shelving -> Home; Furniture & Lighting
-[0] Candy Tube Dress -> Women; Dresses & Skirts
-[0] Pearl Dress -> Women; Dresses & Skirts
-[0] Shift Dress -> Women; Dresses & Skirts
-[0] Print Dress -> Women; Dresses & Skirts
-[0] Mini Dress -> Women; Dresses & Skirts
-[0] Fergie Dress -> Women; Dresses & Skirts
 [0] Comforter Set -> Home; Bed & Bath
 [0] Knee High Boots -> Women; Shoes
 [0] Knee-High -> Women; Shoes
@@ -753,9 +680,6 @@
 [0] Men Wristwatch -> Jewelry & Watches; Men's Watches
 [0] Women Watch -> Jewelry & Watches; Women's Watches
 [0] Ladies Watch -> Jewelry & Watches; Women's Watches
-[0] Sequin Bow Dress -> Women; Dresses & Skirts
-[0] Lace Dress -> Women; Dresses & Skirts
-[0] Woven Dress -> Women; Dresses & Skirts
 [0] Curved Wedge -> Women; Shoes
 [0] Sneaker Wedge -> Women; Shoes
 [0] Wedge Boot -> Women; Shoes
@@ -769,12 +693,9 @@
 [0] Platforms -> Women; Shoes
 [0] Flatforms -> Women; Shoes
 [0] Pug Boot -> Women; Shoes
-[0] Skirt -> Women; Dresses & Skirts
 [0] Small Aviators -> Men; Women; Accessories
-[0] Halter Dress -> Women; Dresses & Skirts
 [0] Tilt Head Mixer -> Home; Kitchen & Dining
 [0] Coffeemaker -> Home; Kitchen & Dining
-[0] Apron And Thong -> Women; Intimates & Loungewear
 [0] Wall Decor -> Home; Home Accessories
 [0] Thread Count Sheet -> Home; Bed & Bath
 [0] Pochette -> Bags; Handbags
@@ -806,16 +727,8 @@
 [0] Dog Leash -> Home; Home Accessories
 [0] Dinnerware -> Home; Kitchen & Dining
 [0] Cushion -> Home; Bed & Bath
-[0] Baby Doll Thong -> Women; Intimates & Loungewear
-[0] Sheer Baby Doll -> Women; Intimates & Loungewear
-[0] Bandeau -> Women; Intimates & Loungewear
 [0] Appetizer Set -> Home; Kitchen & Dining
-[0] Bra -> Women; Intimates & Loungewear
-[0] Bras -> Women; Intimates & Loungewear
-[0] Toddler Dress -> Women; Dresses & Skirts
-[0] Nikita Dress -> Women; Dresses & Skirts
 [0] Pill Box -> Home; Home Accessories
-[0] Asymmetrical Hem Top -> Women; Shirts & Sweaters
 [0] Candy Dish -> Home; Kitchen & Dining
 [0] Boyfriend Chino -> Women; Pants & Shorts
 [0] Wii -> Kids & Baby; Toys, Games & Books
@@ -1226,6 +1139,7 @@
 [2] Storage -> Accessories
 [2] Sleepwear -> Intimates & Loungewear
 [2] Apparel -> Shirts & Sweaters
+[2] Skateboard -> Toys, Games & Books
 [2] Skate -> Shoes
 [2] Skates -> Shoes
 [2] Seasonal -> Accessories
@@ -1511,3 +1425,92 @@
 [2] Cosmetics -> Beauty & Health; Makeup
 [2] Red Wine -> Wine; Red Wine
 [2] White Wine -> Wine; White Wine
+[2] Toddler Dress -> Dresses & Skirts
+[2] Nikita Dress -> Dresses & Skirts
+[2] Shift -> Dresses & Skirts
+[2] Teal Goblet -> Dresses & Skirts
+[2] Shirtdress -> Dresses & Skirts
+[2] Skirtdress -> Dresses & Skirts
+[2] Bolero -> Dresses & Skirts
+[2] Sheath -> Dresses & Skirts
+[2] Skort -> Dresses & Skirts
+[2] Mesh Cover Up -> Dresses & Skirts
+[2] Maxi -> Dresses & Skirts
+[2] Maxi-Dress -> Dresses & Skirts
+[2] Maxidress -> Dresses & Skirts
+[2] Romper -> Dresses & Skirts
+[2] Skirt Suit -> Dresses & Skirts
+[2] Heidi Dress -> Dresses & Skirts
+[2] Candy Tube Dress -> Dresses & Skirts
+[2] Pearl Dress -> Dresses & Skirts
+[2] Shift Dress -> Dresses & Skirts
+[2] Print Dress -> Dresses & Skirts
+[2] Mini Dress -> Dresses & Skirts
+[2] Fergie Dress -> Dresses & Skirts
+[2] Sequin Bow Dress -> Dresses & Skirts
+[2] Lace Dress -> Dresses & Skirts
+[2] Woven Dress -> Dresses & Skirts
+[2] Skirt -> Dresses & Skirts
+[2] Halter Dress -> Dresses & Skirts
+[2] Teddy -> Intimates & Loungewear
+[2] Camiknicker -> Intimates & Loungewear
+[2] Bodysuit -> Intimates & Loungewear
+[2] Bodysuits -> Intimates & Loungewear
+[2] Body Suit -> Intimates & Loungewear
+[2] Body Suits -> Intimates & Loungewear
+[2] Bra Set -> Intimates & Loungewear
+[2] Skirt Bottom -> Intimates & Loungewear
+[2] Halter Top -> Intimates & Loungewear
+[2] Shape Halter -> Intimates & Loungewear
+[2] Triangle Top -> Intimates & Loungewear
+[2] 2-Ring Hipster -> Intimates & Loungewear
+[2] Basque -> Intimates & Loungewear
+[2] Midriff -> Intimates & Loungewear
+[2] Bustiere -> Intimates & Loungewear
+[2] Bustier -> Intimates & Loungewear
+[2] Negligee -> Intimates & Loungewear
+[2] Nightgown -> Intimates & Loungewear
+[2] Babydoll -> Intimates & Loungewear
+[2] Britches Hipster -> Intimates & Loungewear
+[2] Knicker -> Intimates & Loungewear
+[2] Knickers -> Intimates & Loungewear
+[2] Baby Doll Thong -> Intimates & Loungewear
+[2] Apron And Thong -> Intimates & Loungewear
+[2] Sunshine Bottom -> Intimates & Loungewear
+[2] Baby Doll -> Intimates & Loungewear
+[2] Boy Leg -> Intimates & Loungewear
+[2] Chemise -> Intimates & Loungewear
+[2] Bikini -> Intimates & Loungewear
+[2] Monokini -> Intimates & Loungewear
+[2] Bralette -> Intimates & Loungewear
+[2] Boy Short -> Intimates & Loungewear
+[2] Bikinis -> Intimates & Loungewear
+[2] Tankini -> Intimates & Loungewear
+[2] Tankinis -> Intimates & Loungewear
+[2] Panty -> Intimates & Loungewear
+[2] Bodysuit -> Intimates & Loungewear
+[2] Fx -> Intimates & Loungewear
+[2] Nightie -> Intimates & Loungewear
+[2] G-String -> Intimates & Loungewear
+[2] G-Strings -> Intimates & Loungewear
+[2] G-Thong -> Intimates & Loungewear
+[2] G-Thongs -> Intimates & Loungewear
+[2] Tanga Thong -> Intimates & Loungewear
+[2] G-Thong -> Intimates & Loungewear
+[2] Camisole Bra -> Intimates & Loungewear
+[2] Camisole -> Intimates & Loungewear
+[2] Striped Cami -> Intimates & Loungewear
+[2] Cotton Cami -> Intimates & Loungewear
+[2] Boyshort -> Intimates & Loungewear
+[2] Boyshorts -> Intimates & Loungewear
+[2] Sheer Baby Doll -> Intimates & Loungewear
+[2] Bandeau -> Intimates & Loungewear
+[2] Bra -> Intimates & Loungewear
+[2] Bras -> Intimates & Loungewear
+[2] Shortall -> Shirts & Sweaters
+[2] Shortalls -> Shirts & Sweaters
+[2] Machine -> Home; Electronics; Home Accesssories
+[2] Asymmetrical Hem Top -> Shirts & Sweaters
+[2] Blouse -> Shirts & Sweaters
+[2] Tunic -> Shirts & Sweaters
+[2] Lace Top -> Shirts & Sweaters

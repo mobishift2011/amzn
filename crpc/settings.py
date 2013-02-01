@@ -60,27 +60,27 @@ envs = {
         'REDIS_HOST': '192.168.56.101',
     },
     'PRODUCTION': {
-        'CRAWLER_PEERS': {
-            {'host_string':'root@ec2-54-242-219-233.compute-1.amazonaws.com', 'port':12341},
-            {'host_string':'root@ec2-54-242-219-233.compute-1.amazonaws.com', 'port':12342},
-            {'host_string':'root@ec2-72-44-46-26.compute-1.amazonaws.com', 'port':12341},
-            {'host_string':'root@ec2-72-44-46-26.compute-1.amazonaws.com', 'port':12342},
+        'CRAWLER_PEERS': [
+            {'host_string':'root@crawler1.favbuy.org', 'port':12341},
+            {'host_string':'root@crawler1.favbuy.org', 'port':12342},
+            {'host_string':'root@crawler2.favbuy.org', 'port':12341},
+            {'host_string':'root@crawler2.favbuy.org', 'port':12342},
         ],
-        'POWER_PEERS': {
-            {'host_string':'root@ec2-23-22-134-252.compute-1.amazonaws.com', 'port':12343}
-            {'host_string':'root@ec2-23-22-134-252.compute-1.amazonaws.com', 'port':12344}
-            {'host_string':'root@ec2-50-19-58-5.compute-1.amazonaws.com', 'port':12343}
-            {'host_string':'root@ec2-50-19-58-5.compute-1.amazonaws.com', 'port':12344}
-        },
+        'POWER_PEERS': [
+            {'host_string':'root@power1.favbuy.org', 'port':12343},
+            {'host_string':'root@power1.favbuy.org', 'port':12344},
+            {'host_string':'root@power2.favbuy.org', 'port':12343},
+            {'host_string':'root@power2.favbuy.org', 'port':12344},
+        ],
         'TEXT_PEERS': [
-            {'host_string':'root@ec2-54-242-219-233.compute-1.amazonaws.com', 'port':12345},
-            {'host_string':'root@ec2-72-44-46-26.compute-1.amazonaws.com', 'port':12345},
+            {'host_string':'root@crawler1.favbuy.org', 'port':12345},
+            {'host_string':'root@crawler2.favbuy.org', 'port':12345},
         ],
         'USE_INDEX': '',
-        'MONGODB_HOST': 'ec2-54-242-121-160.compute-1.amazonaws.com',
-        'REDIS_HOST': 'ec2-54-242-121-160.compute-1.amazonaws.com',
+        'MONGODB_HOST': 'crpc.favbuy.org', 
+        'REDIS_HOST': 'crpc.favbuy.org',
         'MASTIFF_HOST': "http://ec2-50-17-65-248.compute-1.amazonaws.com:8001/api/v1"
-    }
+    },
     'TEST': {
         'CRAWLER_PEERS': [
             {'host_string':'root@ec2-54-245-154-123.us-west-2.compute.amazonaws.com', 'port':1234},

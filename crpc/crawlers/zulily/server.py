@@ -41,7 +41,7 @@ class zulilyLogin(object):
             'login[username]': login_email[DB],
             'login[password]': login_passwd
         }
-        self.reg_check = re.compile(r'https://www.zulily.com/auth/create.*')
+        # self.reg_check = re.compile(r'https://www.zulily.com/auth/create.*') # need to authentication
         self._signin = False
 
     def login_account(self):
@@ -65,7 +65,9 @@ class zulilyLogin(object):
         """
         ret = req.get(url)
 
-        if self.reg_check.match(ret.url) is not None: # need to authentication
+        if ret.url == u'http://www.zulily.com/oops-event':
+            return -404
+        if ret.url == 'http://www.zulily.com/?tab=new-today':
             self.login_account()
             ret = req.get(url)
         if ret.ok: return ret.content
@@ -95,6 +97,7 @@ class Server(object):
         """.. :py:method::
             From top depts, get all the events
         """
+        self.net.check_signin()
         depts = ['girls', 'boys', 'women', 'baby-maternity', 'toys-playtime', 'home']
         debug_info.send(sender=DB + '.category.begin')
 
@@ -180,7 +183,7 @@ class Server(object):
             sale_description = node.cssselect('div.event-content-copy div#desc-with-expanded')[0].text_content().strip()
             m = re.compile(r'URL:http://www.zulily.com/(e|p)/(.+).html.*').search(ics_file)
             if m is None:
-                common_failed.send(sender=ctx, url=pair[1], reason='parse event_id in ics_file failed.')
+                common_failed.send(sender=ctx, key='upcoming event', url=pair[1], reason='parse event_id in ics_file failed.')
                 continue
             event_id = m.group(2)
 
@@ -211,11 +214,14 @@ class Server(object):
 
         :param url: listing page url
         """
-        debug_info.send(sender=DB + '.crawl_list.begin')
+        self.net.check_signin()
+        event_id = self.extract_event_id.match(url).group(2)
         cont = self.net.fetch_page(url)
+        if isinstance(cont, int):
+            common_failed.send(sender=ctx, key=event_id, url=url, reason='crawl_listing url error: {0}'.format(cont))
+            return
         tree = lxml.html.fromstring(cont)
         node = tree.cssselect('div.container > div#main > div#category-view')[0]
-        event_id = self.extract_event_id.match(url).group(2)
         brand, is_new = Event.objects.get_or_create(event_id=event_id)
         if not brand.sale_description:
             sale_description = node.cssselect('div#category-description>div#desc-with-expanded')
@@ -247,7 +253,6 @@ class Server(object):
         brand.update_time = datetime.utcnow()
         brand.save()
         common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=url, is_new=is_new, is_updated=False, ready=ready)
-        debug_info.send(sender=DB + '.crawl_list.end')
 
     def detect_list_next(self, node, page_num):
         """.. :py:method::
@@ -355,9 +360,10 @@ class Server(object):
 
         :param url: product url
         """
+        self.net.check_signin()
         cont = self.net.fetch_page(url)
         if isinstance(cont, int):
-            common_failed.send(sender=ctx, url=url, reason=cont)
+            common_failed.send(sender=ctx, key='product', url=url, reason=cont)
             return
         tree = lxml.html.fromstring(cont)
         node = tree.cssselect('div.container>div#main>div#product-view')[0]
@@ -412,7 +418,7 @@ class Server(object):
 if __name__ == '__main__':
     from optparse import OptionParser
 
-    parser = OptionParser(usage='usage: %program [options]')
+    parser = OptionParser(usage='usage: %prog [options]')
     parser.add_option('-l', '--listing', dest='listing', help='test of list page', default=False)
     parser.add_option('-p', '--product', dest='product', help='test of product page', default=False)
     parser.add_option('-d', '--daemon', dest='daemon', help='run as a rpc server daemon', default=False)

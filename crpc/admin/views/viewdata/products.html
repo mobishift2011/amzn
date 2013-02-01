@@ -75,8 +75,8 @@
             <b style="color:grey">@prices </b> {{ p.our_price }} / {{ p.list_price }} <br />
           </td>
           <td>
-            <a href="Javascript:void(0)"><i class="icon icon-yellow icon-extlink"></i>Go to Event</a><br />
-            <a href="Javascript:void(0)"><i class="icon icon-edit icon-blue"></i>Edit Product</a><br />
+            <a target="_blank"  href="http://favbuy.com/product/{{ p.id }}/"><i class="icon icon-yellow icon-extlink"></i>Go to Product</a><br />
+            <a href="/editdata/product/{{ p.id }}/"><i class="icon icon-edit icon-blue"></i>Edit Product</a><br />
           </td>
         </tr>                                
         {% endfor %}

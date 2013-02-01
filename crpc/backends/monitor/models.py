@@ -194,5 +194,43 @@ class Stat(Document):
 # signals.pre_save.connect(Stat.pre_save, sender=Stat)
 
 
+
+class ProductReport(Document):
+    today_date          = DateTimeField(unique=True)
+    site                = StringField(required=True)
+    product_num         = IntField(default=0)
+    published_num       = IntField(default=0)
+
+    # unpublished field
+    no_image_url_num    = IntField(default=0)
+    no_image_path_num   = IntField(default=0)
+    no_dept_num         = IntField(default=0)
+    event_not_ready     = IntField(default=0)
+    unknown             = IntField(default=0)
+    meta = {
+        'db_alias': DB,
+    }
+
+class EventReport(Document):
+    today_date                      = DateTimeField(unique=True)
+    site                            = StringField(required=True)
+    event_num                       = IntField(default=0)
+    published_num                   = IntField(default=0)
+
+    # unpublished field
+    not_leaf_num                    = IntField(default=0)
+    upcoming_no_image_url_num       = IntField(default=0)
+    upcoming_no_image_path_num      = IntField(default=0)
+    onsale_no_product_num           = IntField(default=0)
+    onsale_no_image_url_num         = IntField(default=0)
+    onsale_no_image_path_num        = IntField(default=0)
+    onsale_propagation_not_complete = IntField(default=0)
+    unknown                         = IntField(default=0)
+    meta = {
+        'db_alias': DB,
+    }
+
+
+
 if __name__ == '__main__':
     Schedule().timematch()

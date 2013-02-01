@@ -612,7 +612,7 @@ class Server(object):
         tree = lxml.html.fromstring(cont)
         # "product-on-sale" is the only difference between two right pattern.
         # nodes = tree.cssselect('article.product-on-sale')
-        nodes = tree.cssselect('article.element-product')
+        nodes = tree.cssselect('article.in-flash-sale') # 'element-product' can have giltcity
         for node in nodes:
             look_id = node.get('data-home-look-id')
             text = node.cssselect('section.product-details > header > hgroup')[0]
@@ -748,7 +748,5 @@ class Server(object):
 
 if __name__ == '__main__':
     server = Server()
-    server.crawl_listing('http://www.gilt.com/sale/women/1-8889')
-    server.crawl_listing('http://www.gilt.com/sale/men/spoil-yourself')
-    server.crawl_listing('http://www.gilt.com/sale/children/winter-maternity-1821')
+    server.crawl_listing('http://www.gilt.com/home/sale/the-americans'); exit()
     server.crawl_listing('http://www.gilt.com/home/sale/candle-blowout-7052')

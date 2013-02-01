@@ -370,6 +370,15 @@ class Propagator(object):
         self.event.soldout = soldout
         self.event.propagation_complete = True
         self.event.propagation_time = datetime.utcnow()
+
+        # For upcoming events, publisher should no the update_history time.
+        self.event.update_history.update({
+            'favbuy_tag': self.event.propagation_time,
+            'favbuy_brand': self.event.propagation_time,
+            'favbuy_dept':  self.event.propagation_time,
+            'highest_discount': self.event.propagation_time,
+        })
+
         self.event.save()
 
         return self.event.propagation_complete
@@ -427,34 +436,55 @@ class Propagator(object):
                     highest_discount = min(highest_discount, discount)
 
         # Update the event
+        update_time = datetime.utcnow()
+
         if event_brands.difference(self.event.favbuy_brand):
             event_brands.update(self.event.favbuy_brand)
             self.event.favbuy_brand = list(event_brands)
             update_complete = True
+            self.event.update_history.update({
+                'favbuy_brand': update_time
+            })
+
 
         if event_tags.difference(self.event.favbuy_tag):
             event_tags.update(self.event.favbuy_tag)
             self.event.favbuy_tag = list(event_tags)
             update_complete = True
+            self.event.update_history.update({
+                'favbuy_tag': update_time
+            })
 
         if self.event.lowest_price > lowest_price:
             self.event.lowest_price = str(lowest_price)
             update_complete = True
+            self.event.update_history.update({
+                'lowest_price': update_time
+            })
 
         if self.event.highest_price < highest_price:
             self.event.highest_price = str(highest_price)
             update_complete = True
+            self.event.update_history.update({
+                'highest_price': update_time
+            })
 
         if self.event.lowest_discount < lowest_discount:
             self.event.lowest_discount = str(lowest_discount)
             update_complete = True
+            self.event.update_history.update({
+                'lowest_discount': update_time
+            })
 
         if self.event.highest_discount > highest_discount:
             self.event.highest_discount = str(highest_discount)
             update_complete = True
+            self.event.update_history.update({
+                'highest_discount': update_time
+            })
 
         if update_complete:
-            self.event.update_history['update_propagation'] = datetime.utcnow()
+            self.event.update_history['update_propagation'] = update_time
             self.event.save()
 
         return update_complete

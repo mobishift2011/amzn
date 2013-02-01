@@ -57,20 +57,30 @@ def batch_image_crawling(sender, **kwargs):
 
 @ready_for_batch.bind
 def batch_text_extract(sender, **kwargs):
-    logger.info('Text extract listens: {0} -> {1}'.format(sender, kwargs.items()))
-
     site, method, dummy = sender.split('.')
     if method.startswith('update'):
         ready_for_publish.send(None, **{'site': site})
         return
 
     doctype = kwargs.get('doctype') or ''
-    if doctype.capitalize() == 'Product':
-        try:
-            text_extract(site, 15)
-            ready_for_publish.send(None, **{'site': site})
-        except Exception as e:
-            debug_logger.error('Error text: {0}. {1}'.format(e, traceback.format_exc()))
+    if doctype.capitalize() != 'Product':
+        return
+
+    if not hasattr(batch_text_extract, 'run_flag'):
+        setattr(batch_text_extract, 'run_flag', {})
+
+    try:
+        if site in batch_text_extract.run_flag and batch_text_extract.run_flag[site] == True:
+            return
+        elif site not in batch_text_extract.run_flag or batch_text_extract.run_flag[site] == False:
+            batch_text_extract.run_flag[site] = True
+
+        text_extract(site, 15)
+        ready_for_publish.send(None, **{'site': site})
+    except Exception as e:
+        debug_logger.error('Error text: {0}. {1}'.format(e, traceback.format_exc()))
+    finally:
+        batch_text_extract.run_flag[site] = False
 
 
 #@pre_image_crawl.bind

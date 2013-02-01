@@ -156,7 +156,7 @@ def publish_stats():
 def publish_report():
     return template()
 
-@post('/brands/import')
+@post('/brand/')
 def brands_import():
     eb = json.loads(request.POST['brand'])
     import_brands(eb)

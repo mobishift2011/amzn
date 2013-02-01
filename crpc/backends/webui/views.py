@@ -141,6 +141,7 @@ def import_brands(eb):
         set__url = eb['url'],
         set__url_checked = eb['url_checked'],
         set__blurb = eb['blurb'],
+        set__images = eb['images'],
         set__level = eb['level'],
         set__dept = eb['dept'],
         set__is_delete = eb['is_delete'],

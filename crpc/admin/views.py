@@ -2,7 +2,7 @@
 from models import Brand
 
 def get_all_brands():
-	brands = [brand.to_json() for brand in Brand.objects()[0:101]]
+	brands = [brand.to_json() for brand in Brand.objects()]
 	return brands
 
 def get_brand(title):
@@ -10,7 +10,6 @@ def get_brand(title):
 	return brand.to_json()
 
 def update_brand(title, arguments):
-	print '~~~~~~~~~~~~', title
 	brand = Brand.objects.get(title=title)
 
 	for k, v in arguments.iteritems():

@@ -77,8 +77,8 @@ envs = {
             {'host_string':'root@crawler2.favbuy.org', 'port':12345},
         ],
         'USE_INDEX': '',
-        'MONGODB_HOST': 'crpc.favbuy.org', 
-        'REDIS_HOST': 'crpc.favbuy.org',
+        'MONGODB_HOST': '10.145.188.43', 
+        'REDIS_HOST': '10.145.188.43',
         'MASTIFF_HOST': "http://ec2-50-17-65-248.compute-1.amazonaws.com:8001/api/v1"
     },
     'TEST': {

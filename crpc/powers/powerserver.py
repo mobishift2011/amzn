@@ -61,7 +61,12 @@ class PowerServer(object):
                 if instance.image_complete:
                     return
                 instance.image_path = it.image_path
-                instance.image_complete = True
+                instance.image_complete = bool(instance.image_path)
+
+                if not instance.image_complete:
+                    logger.error('image path of {0} blank'.format(sender))
+                    return
+
                 instance.update_history.update({'image_path': datetime.utcnow()})
                 instance.save()
                 image_crawled.send(sender=sender, model=model, key=key)

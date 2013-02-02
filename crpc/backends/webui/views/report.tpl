@@ -1,3 +1,5 @@
+%include header title="Publish Report", description="", author="", scripts=["/assets/js/controllers/DT_bootstrap.js"], csses=["/assets/css/DT_bootstrap.css"]
+
 <html>
   <head>
   </head>

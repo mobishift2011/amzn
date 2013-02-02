@@ -10,7 +10,7 @@
     </form>
     <div>
 
-      <table class='table table-striped'>
+      <table cellspacing='0' border='0' class='table table-striped table-bordered'>
         <thead>
           <tr>
             <th>Site</th>

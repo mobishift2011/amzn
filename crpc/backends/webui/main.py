@@ -15,7 +15,7 @@ from backends.webui.events import log_event
 from backends.monitor.events import run_command
 from backends.webui.views import task_updates, task_all_tasks, mark_all_failed, get_all_fails
 from backends.webui.views import update_schedule, get_all_schedules, delete_schedule, get_one_site_schedule
-from backends.webui.views import get_all_sites, get_publish_stats
+from backends.webui.views import get_all_sites, get_publish_stats, get_publish_report
 from backends.webui.views import import_brands, refresh_brands
 from backends.monitor.upcoming_ending_events_count import upcoming_events, ending_events
 from backends.monitor.publisher_report import wink
@@ -153,15 +153,26 @@ def publish_stats():
     data = get_publish_stats(site, doctype, time_value, time_cell, begin_at, end_at)
     return template('pubstats.tpl', {'stats': data, 'sites': [site]})
 
-@route('/publish/report')
-def today_publish_report():
-    _utcnow = datetime.utcnow()
-    wink(_utcnow)
-    return template('report.tpl')
 
-@route('/publish/report?date=<date>')
-def publish_report(date):
-    return template('report.tpl')
+@route('/publish/report', method='GET')
+@route('/publish/report', method='POST')
+def today_publish_report():
+    method = request.method
+    if method == 'GET':
+        _utcnow = datetime.utcnow()
+        if wink(_utcnow):
+            return template('report.tpl', get_publish_report(_utcnow.replace(microsecond=0, second=0, minute=0, hour=9)))
+        else:
+            return template('report.tpl', {'event': [], 'product': []})
+    elif method == 'POST':
+        dat = request.POST['date']
+        year, month, day = dat.split('-')
+        _thedate = datetime(int(year), int(month), int(day))
+        if wink(_thedate):
+            return template('report.tpl', get_publish_report(_thedate.replace(hour=9)))
+        else:
+            return template('report.tpl', {'event': [], 'product': []})
+
 
 @post('/brand/')
 def brands_import():

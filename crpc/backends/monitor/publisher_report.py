@@ -109,7 +109,7 @@ def wink(_thedate=datetime.utcnow()):
     _utcnow = datetime.utcnow()
     if _utcnow.date() < _thedate.date():
         return
-    if _utcnow.date() == _thedate.date() and _thedate.hour < 9: # today
+    if _utcnow.date() == _thedate.date() and _utcnow.hour < 9: # today
         return
 
     the_date = _thedate.replace(microsecond=0, second=0, minute=0, hour=9)
@@ -120,6 +120,8 @@ def wink(_thedate=datetime.utcnow()):
             report_product(site, the_date, module)
             if hasattr(module, 'Event'):
                 report_event(site, the_date, module)
+    return True
+
 
 if __name__ == '__main__':
     wink()

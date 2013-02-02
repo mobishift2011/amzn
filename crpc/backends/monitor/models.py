@@ -196,8 +196,9 @@ class Stat(Document):
 
 
 class ProductReport(Document):
-    today_date          = DateTimeField(unique=True)
-    site                = StringField(required=True)
+    today_date          = DateTimeField()
+    site                = StringField()
+
     product_num         = IntField(default=0)
     published_num       = IntField(default=0)
 
@@ -209,11 +210,15 @@ class ProductReport(Document):
     unknown             = IntField(default=0)
     meta = {
         'db_alias': DB,
+        'indexes': [
+            {'fields': ['today_date', 'site'], 'unique': True},
+        ],
     }
 
 class EventReport(Document):
     today_date                      = DateTimeField(unique=True)
-    site                            = StringField(required=True)
+    site                            = StringField(unique_with='today_date')
+
     event_num                       = IntField(default=0)
     published_num                   = IntField(default=0)
 

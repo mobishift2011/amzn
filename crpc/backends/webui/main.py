@@ -18,6 +18,7 @@ from backends.webui.views import update_schedule, get_all_schedules, delete_sche
 from backends.webui.views import get_all_sites, get_publish_stats
 from backends.webui.views import import_brands, refresh_brands
 from backends.monitor.upcoming_ending_events_count import upcoming_events, ending_events
+from backends.monitor.publisher_report import wink
 
 from tests.publisher.chkpub import PubChecker
 from backends.monitor.events import auto_scheduling
@@ -153,7 +154,13 @@ def publish_stats():
     return template('pubstats.tpl', {'stats': data, 'sites': [site]})
 
 @route('/publish/report')
-def publish_report():
+def today_publish_report():
+    _utcnow = datetime.utcnow()
+    wine(_utcnow)
+    return template('report.tpl')
+
+@route('/publish/report?date=<date>')
+def publish_report(date):
     return template('report.tpl')
 
 @post('/brand/')

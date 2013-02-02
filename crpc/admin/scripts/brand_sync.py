@@ -46,6 +46,9 @@ def sync2mastiff(host=MASTIFF_HOST):
 				'local_searchs': brand.local_searchs,
 			}
 
+			print query
+			return
+
 			if query['meta']['total_count']:
 				brand_id = query['objects'][0]['id']
 				api.brand(brand_id).patch(params)
@@ -57,4 +60,4 @@ def sync2mastiff(host=MASTIFF_HOST):
 
 
 if __name__ == '__main__':
-	sync2power()
+	sync2mastiff()

@@ -8,7 +8,7 @@
     </form>
     <div>
 
-      <table>
+      <table class='table table-striped'>
         <thead>
           <tr>
             <th>Site</th>
@@ -38,7 +38,7 @@
         </tbody>
       </table>
 
-      <table>
+      <table class='table table-striped'>
         <thead>
           <tr>
             <th>Site</th>

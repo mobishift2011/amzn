@@ -154,7 +154,7 @@ def publish_stats():
 
 @route('/publish/report')
 def publish_report():
-    return template()
+    return template('report.tpl')
 
 @post('/brand/')
 def brands_import():

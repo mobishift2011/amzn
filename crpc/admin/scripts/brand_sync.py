@@ -44,7 +44,7 @@ def sync2mastiff(host=MASTIFF_HOST):
 				'blurb': brand.blurb.encode('utf-8') if brand.blurb else '',
 				'level': brand.level,
 				# 'aliases': brand.alias,
-				'local_searchs': brand.local_searchs,
+				'global_searchs': brand.global_searchs,
 			}
 
 			if query['meta']['total_count']:

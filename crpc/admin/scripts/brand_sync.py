@@ -46,9 +46,9 @@ def sync2mastiff(host=MASTIFF_HOST):
 				'local_searchs': brand.local_searchs,
 			}
 
-			if query['objects'] == 0:
+			if not query['objects']:
 				print query
-			return
+			continue
 
 			if query['meta']['total_count']:
 				brand_id = query['objects'][0]['id']

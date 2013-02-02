@@ -3,7 +3,7 @@
   </head>
   <body>
     <form>
-      <input type="color" name="color">
+      <input type="date" name="date">
       <input type="submit" value="GO">
     </form>
   </body>

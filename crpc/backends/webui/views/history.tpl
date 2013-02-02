@@ -8,15 +8,16 @@
 
     <div class="container">
 
-      <h1>monitor, control</h1>
+      <h1>Crawl history and report</h1>
         
       <ul class="nav nav-pills">
         <li> <a href="/task">Tasks</a></li>
         <li><a href="/control">Control</a></li>
         <li><a href="/publish">Publish</a></li>
         <li class="active">
-            <a href="#">History</a>
+            <a href="/history">History</a>
         </li>
+        <li><a href="/graph">Graph</a></li>
       </ul>
 
       <a href="schedule/upcoming"><b>Upcoming</b></a>

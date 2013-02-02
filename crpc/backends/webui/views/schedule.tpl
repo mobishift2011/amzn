@@ -2,6 +2,7 @@
     <head>
     </head>
     <body>
+      <div class=span12>
         % for site in schedules:
             <h4>{{site.keys()[0]}}</h4>
             <ul>
@@ -10,5 +11,6 @@
                 % end
             </ul>
         % end
+      </div>
     </body>
 </html>

@@ -53,13 +53,16 @@ def batch_image_crawling(sender, **kwargs):
 
 @ready_for_batch.bind
 def batch_text_extract(sender, **kwargs):
+    logger.info('batch text extract listens: {0} -> {1}'.format(sender, kwargs.items()))
+
     site, method, dummy = sender.split('.')
-    if method.startswith('update'):
-        ready_for_publish.send(None, **{'site': site})
-        return
 
     doctype = kwargs.get('doctype') or ''
     if doctype.capitalize() != 'Product':
+        return
+    
+    if method.startswith('update'):
+        ready_for_publish.send(None, **{'site': site})
         return
 
     if not hasattr(batch_text_extract, 'run_flag'):

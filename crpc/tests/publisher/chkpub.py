@@ -25,8 +25,21 @@ class PubChecker:
         total_new = m.Event.objects(events_begin__gt=now).count()
         print "upcoming events:", total_new
         published = m.Event.objects(publish_time__exists=True).count()
-        unpublished_new = m.Event.objects(publish_time__exists=False, events_begin__gt=now).count()
-        print "upcoming events unpublished:", unpublished_new
+        unpublished_new = m.Event.objects(publish_time__exists=False, events_begin__gt=now)
+        noimage_up = 0; nonleaf = 0; unknown_up = 0; unknown_evid = []
+        for ev in unpublished_new:
+            if not ev.image_path:
+                noimage_up += 1
+            elif ev.is_leaf==False:
+                nonleaf += 1
+            else:
+                unknown_up += 1;
+                if len(unknown_evid)<5: unknown_evid.append(ev.event_id)
+
+        print "upcoming events unpublished:", unpublished_new.count()
+        print "uncoming events unpublished, no image:", noimage_up
+        print "uncoming events unpublished remaining, nonleaf:", nonleaf
+        print "unknown:", unknown_up, "({})".format(",".join(unknown_evid))
         print
 
         # analyze on-shelf event
@@ -46,7 +59,7 @@ class PubChecker:
                 noprod += 1
             elif m.Product.objects(event_id=ev.event_id, image_complete=True, dept_complete=True).count()==0:
                 noreadyprod += 1
-            elif not ev.image_complete:
+            elif not ev.image_path:
                 noimage +=1 
             elif not ev.propagation_complete:
                 noprop += 1
@@ -68,6 +81,9 @@ class PubChecker:
 
             ('upcoming events', total_new),
             ('upcoming events unpublished', unpublished_new),
+            ('upcoming events unpublished, no image', noimage_up),
+            ('upcoming events unpublished remaining, nonleaf', nonleaf),
+            ('upcoming events unpublished, unknown', unknown_up),
 
             ('on-shelf events', onshelf),
             ('on-shelf and published events', published),
@@ -81,7 +97,7 @@ class PubChecker:
     def check_product(self, site):
         m = get_site_module(site)
         total = m.Product.objects.count()
-        total_noimage = m.Product.objects(image_complete=False).count()
+        total_noimage = m.Product.objects(image_path__exists=False).count()
         total_nodept = m.Product.objects(dept_complete=False).count()
         total_nobrand = m.Product.objects(brand_complete=False).count()
         total_notag = m.Product.objects(tag_complete=False).count()        
@@ -97,10 +113,10 @@ class PubChecker:
         noimage = 0
         nodept = 0
         eventnotready = 0
-        unknown = 0
+        unknown = 0; unknown_keys = []
         for p in m.Product.objects(publish_time__exists=False):
             unpub += 1
-            if not p.image_complete:
+            if not p.image_path:
                 noimage += 1
             elif not p.dept_complete:
                 nodept += 1
@@ -108,11 +124,13 @@ class PubChecker:
                 eventnotready += 1
             else:
                 unknown += 1
+                if len(unknown_keys)<5: unknown_keys.append(p.key)
+
         print "unpublished:", unpub
         print "unpublished and image incomplete:", noimage
         print "unpublished remaining and no department:", nodept
         print "unpublished remaining and event not ready:", eventnotready
-        print "unpublished remaining and unknown:", unknown
+        print "unpublished remaining and unknown:", unknown, "({})".format(",".join(unknown_keys))
         print
 
         # analyze published

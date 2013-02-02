@@ -53,7 +53,8 @@ envs = {
             {'host_string':'root@192.168.56.101', 'port':1235},
         ],
         'TEXT_PEERS': [
-            {'host_string':'root@192.168.56.102', 'port':1235}
+            {'host_string':'root@192.168.56.102', 'port':1235},
+            {'host_string':'root@192.168.56.103', 'port':1235},
         ],
         'USE_INDEX': '',
         'MONGODB_HOST': '192.168.56.101',
@@ -77,8 +78,8 @@ envs = {
             {'host_string':'root@crawler2.favbuy.org', 'port':12345},
         ],
         'USE_INDEX': '',
-        'MONGODB_HOST': 'crpc.favbuy.org', 
-        'REDIS_HOST': 'crpc.favbuy.org',
+        'MONGODB_HOST': '10.145.188.43', 
+        'REDIS_HOST': '10.145.188.43',
         'MASTIFF_HOST': "http://ec2-50-17-65-248.compute-1.amazonaws.com:8001/api/v1"
     },
     'TEST': {

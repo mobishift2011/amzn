@@ -156,7 +156,7 @@ def publish_stats():
 @route('/publish/report')
 def today_publish_report():
     _utcnow = datetime.utcnow()
-    wine(_utcnow)
+    wink(_utcnow)
     return template('report.tpl')
 
 @route('/publish/report?date=<date>')

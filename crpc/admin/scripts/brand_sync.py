@@ -57,4 +57,4 @@ def sync2mastiff(host=MASTIFF_HOST):
 
 
 if __name__ == '__main__':
-	sync2power()
+	sync2mastiff()

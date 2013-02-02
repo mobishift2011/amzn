@@ -33,7 +33,7 @@ def sync2mastiff(host=MASTIFF_HOST):
 	brands = PowerBrand.objects(is_delete=False)
 	logger.debug('Total power brands to sync: {0}'.format(len(brands)))
 
-	error_count
+	error_count = 0
 	for brand in brands:
 		try:
 			name = brand.title_edit or brand.title
@@ -56,7 +56,7 @@ def sync2mastiff(host=MASTIFF_HOST):
 		except Exception, e:
 			logger.error('Sync to mastiff error: {0}'.format(traceback.format_exc()))
 			error_count += 1
-	print error
+	print error_count
 
 if __name__ == '__main__':
 	sync2mastiff()

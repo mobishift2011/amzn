@@ -51,6 +51,7 @@ def sync2mastiff(host=MASTIFF_HOST):
 				brand_id = query['objects'][0]['id']
 				api.brand(brand_id).patch(params)
 			else:
+				print 'post new brand', params.get('name')
 				api.brand.post(params)
 
 		except Exception, e:

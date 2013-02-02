@@ -47,7 +47,7 @@ def sync2mastiff(host=MASTIFF_HOST):
 				'global_searchs': brand.global_searchs,
 			}
 
-			if query['meta']['total_count']:
+			if False #query['meta']['total_count']:
 				brand_id = query['objects'][0]['id']
 				api.brand(brand_id).patch(params)
 			else:

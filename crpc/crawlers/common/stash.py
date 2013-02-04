@@ -57,8 +57,8 @@ login_email = {'bluefly': '2012luxurygoods@gmail.com',
                'hautelook': '2012luxurygoods@gmail.com',
 }
 
-configFile = ConfigParser.ConfigParser()
 def get_login_email(site):
+    configFile = ConfigParser.ConfigParser()
     configFile.read('username.ini')
     email = random.choice( [i.strip() for i in configFile.get('username', site).split(',')] )
     return email

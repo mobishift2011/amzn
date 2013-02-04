@@ -3,14 +3,21 @@ from models import Brand
 from powers.models import Brand as PowerBrand
 
 def get_all_brands(db='catalogIndex'):
-	if db.lower() == "catalogIndex":
+	if db.lower() == "catalogindex":
 		brands = [brand.to_json() for brand in Brand.objects()]
 	elif db.lower() == "power":
-		brands = [brand.to_json() for brand in PowerBrand.objects()]
+		brands = [{
+			'title': brand.title,
+			'title_edit': brand.title_edit,
+			'global_searchs': brand.global_searchs,
+		} for brand in PowerBrand.objects()]
 	return brands
 
-def get_brand(title):
-	brand = Brand.objects.get(title=title)
+def get_brand(title, db):
+	if db == 'e':
+		brand = Brand.objects.get(title=title)
+	elif db == 'p':
+		brand = PowerBrand.objects.get(title=title)
 	return brand.to_json()
 
 def update_brand(title, arguments):

@@ -296,20 +296,15 @@ class Propagator(object):
                 # Event & Product begin_date, end_date
                 if not hasattr(product, 'products_begin') \
                     or not product.products_begin:
-                        product.products_begin = events_begin
+                        product.products_begin = self.event.events_begin
                 if not hasattr(product, 'products_end') \
                     or not product.products_end:
-                        product.products_end = events_end
-
-                if not events_begin and product.products_begin:
-                    events_begin = product.products_begin
-                if not events_end and product.products_end:
-                    events_end = product.products_end
+                        product.products_end = self.event.events_end
 
                 if events_begin and product.products_begin:
-                    events_begin = min(events_begin, product.products_begin)
+                    product.products_begin = min(events_begin, product.products_begin)
                 if events_end and product.products_end:
-                    events_end = max(events_end, product.products_end)
+                    product.products_end = max(events_end, product.products_end)
 
                 # (lowest, highest) discount, (lowest, highest) price propagation
                 try:

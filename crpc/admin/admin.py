@@ -452,9 +452,15 @@ class CrawlerHandler(BaseHandler):
         self.render('crawler.html')
 
 class BrandsHandler(BaseHandler):
-    def get(self):
-        brands = get_all_brands()
-        self.render('brands.html', brands=brands)
+    def get(self, db):
+        brands = get_all_brands(db) if db else get_all_brands()
+        data = {}
+        if db:
+            data[db+'_brands'] = brands
+        else:
+            data['brands'] = brands
+        print data.keys()
+        self.render('brands.html', **data)
 
 class BrandHandler(BaseHandler):
     @tornado.web.authenticated
@@ -462,7 +468,7 @@ class BrandHandler(BaseHandler):
         if not brand_title:
             self.render('brand.html')
 
-        brand = get_brand(url_unescape(brand_title))
+        brand = get_brand(url_unescape(brand_title), self.get_argument('d'))
         t_page = 'brand_iframe.html' \
                     if self.get_argument('t') == 'iframe' \
                         else 'brand.html'
@@ -498,7 +504,7 @@ application = tornado.web.Application([
     (r"/editdata/(.*)/(.*)/", EditDataHandler),
     (r"/monitor/", MonitorHandler),
     (r"/crawler/", CrawlerHandler),
-    (r"/brands/", BrandsHandler),
+    (r"/brands/(.*)", BrandsHandler),
     (r"/brand/(.*)", BrandHandler),
     (r"/", IndexHandler),
     (r"/assets/(.*)", tornado.web.StaticFileHandler, dict(path=settings['static_path'])),

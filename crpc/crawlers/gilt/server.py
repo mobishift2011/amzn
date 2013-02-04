@@ -85,7 +85,7 @@ class Server(object):
         self.net = giltLogin()
         self.extract_hero_image = re.compile('background:url\((.*)\)')
 
-    def crawl_category(self, ctx=''):
+    def crawl_category(self, ctx='', **kwargs):
         """.. :py:method::
         """
         self.net.check_signin()
@@ -462,7 +462,7 @@ class Server(object):
 
 #####################################################
 
-    def crawl_listing(self, url, ctx=''):
+    def crawl_listing(self, url, ctx='', **kwargs):
         """.. :py:method::
             crawl women, men, children listing page
             crawl home listing page
@@ -640,7 +640,7 @@ class Server(object):
 
 #####################################################
 
-    def crawl_product(self, url, ctx=''):
+    def crawl_product(self, url, ctx='', **kwargs):
         """.. :py:method::
         """
         key = url.rsplit('/', 1)[-1]

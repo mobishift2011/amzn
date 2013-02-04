@@ -108,7 +108,7 @@ class Server(object):
         self.net = ventepriveeLogin()
 
 
-    def crawl_category(self, ctx):
+    def crawl_category(self, ctx='', **kwargs):
         """.. :py:method::
             from self.event_url get all the events
         """
@@ -136,7 +136,7 @@ class Server(object):
             debug_info.send(sender=DB+'.event.{0}.end'.format(sale.get('name').encode('utf-8')))
             common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
 
-    def crawl_listing(self, url, ctx):
+    def crawl_listing(self, url, ctx='', **kwargs):
         """.. :py:method::
             not useful
         :param url: event url with event_id 
@@ -191,7 +191,7 @@ class Server(object):
         
         debug_info.send(sender=DB+'.listing.{0}.end'.format(url))
 
-    def crawl_product(self, url, ctx=''):
+    def crawl_product(self, url, ctx='', **kwargs):
         """.. :py:method::
             Got all the product information and save into the database
         :param url: product url, with product id

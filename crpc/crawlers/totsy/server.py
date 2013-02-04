@@ -99,7 +99,7 @@ class Server(object):
         self.extract_product_id3 = re.compile('http://www.totsy.com/catalog/product/view/id/(.+?)/') # http://www.totsy.com/catalog/product/view/id/645684/s/metal-hammered-bangle-and-hoop-earring-set/category/5915/
 
 
-    def crawl_category(self, ctx=''):
+    def crawl_category(self, ctx='', **kwargs):
         """.. :py:method::
         """
         content = self.net.fetch_page(self.eventurl)
@@ -186,7 +186,7 @@ class Server(object):
         return event, is_new, is_updated
 
 
-    def crawl_listing(self, url, ctx=''):
+    def crawl_listing(self, url, ctx='', **kwargs):
         """.. :py:method::
         """
         event_id = self.extract_event_id.match(url).group(1)
@@ -305,7 +305,7 @@ class Server(object):
             key = url
         return key
 
-    def crawl_product(self, url, ctx=''):
+    def crawl_product(self, url, ctx='', **kwargs):
         """.. :py:method::
         """
         key = self.from_url_get_product_key(url)

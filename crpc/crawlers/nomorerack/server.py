@@ -61,7 +61,7 @@ class Server(object):
         self.siteurl = 'http://nomorerack.com'
         self.east_tz = pytz.timezone('US/Eastern')
 
-    def crawl_category(self, ctx=''):
+    def crawl_category(self, ctx='', **kwargs):
         """.. :py:method::
             1. Get exclusive event
             2. From top depts, get all the category
@@ -140,7 +140,7 @@ class Server(object):
             common_saved.send(sender=ctx, obj_type='Category', key=category_key, url=category.combine_url, is_new=is_new, is_updated=is_updated)
     
 
-    def crawl_listing(self, url, ctx=''):
+    def crawl_listing(self, url, ctx='', **kwargs):
         """.. :py:method::
             1. Get events listing page's products
             2. Get deals from different categories
@@ -332,7 +332,7 @@ class Server(object):
                 common_saved.send(sender=ctx, obj_type='Product', key=product.key, url=product.combine_url, is_new=is_new, is_updated=is_updated)
 
 
-    def crawl_product(self, url, ctx=''):
+    def crawl_product(self, url, ctx='', **kwargs):
         """.. :py:method::
             Got all the product information and save into the database
         """
@@ -375,6 +375,7 @@ class Server(object):
             time_format = '%B %d %I:%M%p%Y'
         elif len(time_str.split(' ')) == 4:
             time_format = '%B %d %I:%M %p%Y'
+
         try:
             products_end = time_convert(time_str, time_format, time_zone)
         except ValueError:
@@ -382,10 +383,14 @@ class Server(object):
                 a, b, c = time_str.split(' ')
                 if c[:2] == '00' and c[5] == 'A':
                     products_end = time_convert(time_str.replace('AM', ' '), '%B %d %H:%M %Y', time_zone)
+                elif int(c[:2]) >=13 and c[5] == 'P':
+                    products_end = time_convert(time_str.replace('PM', ' '), '%B %d %H:%M %Y', time_zone)
             elif len(time_str.split(' ')) == 4:
                 a, b, c, d = time_str.split(' ')
                 if c[:2] == '00' and d[0] == 'A':
                     products_end = time_convert(time_str.replace('AM', ''), '%B %d %H:%M %Y', time_zone)
+                elif int(c[:2]) >=13 and d[0] == 'P':
+                    products_end = time_convert(time_str.replace('PM', ''), '%B %d %H:%M %Y', time_zone)
 
         is_new, is_updated = False, False
         product = Product.objects(key=product_id).first()

@@ -1,4 +1,0 @@
-django
-django-mongonaut==0.2.16
-lxml==3.0.1
-requests-0.14.2

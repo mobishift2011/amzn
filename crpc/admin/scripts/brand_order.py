@@ -9,8 +9,9 @@ with open(CRPC_ROOT+'/admin/scripts/brand_ranking4.csv', 'r') as f:
 
 		if not r:
 			break
-
-		name, global_searchs = r.split('\t')
+		
+		name, global_searchs = r.split(',')
+		print name, global_searchs
 		brand = Brand.objects(title_edit=name).first()
 		if not brand:
 			brand = Brand.objects(title=name).first()

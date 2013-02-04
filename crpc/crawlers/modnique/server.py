@@ -61,7 +61,7 @@ class Server(object):
         self.extract_slug_product = re.compile('.*/product/.+/\w+/(.+)/(\w+)/color/.*size/seeac/gseeac')
         self.pt = pytz.timezone('US/Pacific')
 
-    def crawl_category(self, ctx='modnique.crawl_category.xxxxx'):
+    def crawl_category(self, ctx='modnique.crawl_category.xxxxx', **kwargs):
         """.. :py:method::
             categories should be ['apparel', 'jewelry-watches', 'handbags-accessories', 'shoes', 'beauty', 'men']
         """
@@ -229,7 +229,7 @@ class Server(object):
         return event, is_new, is_updated
 
 
-    def crawl_listing(self, url, ctx='modnique.crawl_listing.xxxxx'):
+    def crawl_listing(self, url, ctx='modnique.crawl_listing.xxxxx', **kwargs):
         """.. :py:method::
         """
         slug, event_id = self.extract_slug_id.match(url).groups()
@@ -292,7 +292,7 @@ class Server(object):
             common_saved.send(sender=ctx, obj_type='Event', key=event_id, is_new=False, is_updated=False, ready=True)
 
 
-    def crawl_product(self, url, ctx=''):
+    def crawl_product(self, url, ctx='', **kwargs):
         """.. :py:method::
         """
         slug, key = self.extract_slug_product.match(url).groups()

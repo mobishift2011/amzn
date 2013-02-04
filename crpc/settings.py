@@ -80,7 +80,7 @@ envs = {
         'USE_INDEX': '',
         'MONGODB_HOST': '10.145.188.43', 
         'REDIS_HOST': '10.145.188.43',
-        'MASTIFF_HOST': "http://ec2-50-17-65-248.compute-1.amazonaws.com:8001/api/v1"
+        'MASTIFF_HOST': "http://mastiff.favbuy.org:8001/api/v1"
     },
     'TEST': {
         'CRAWLER_PEERS': [

@@ -41,21 +41,26 @@ class zulilyLogin(object):
             'login[username]': login_email[DB],
             'login[password]': login_passwd
         }
+        self.current_email = login_email[DB]
         # self.reg_check = re.compile(r'https://www.zulily.com/auth/create.*') # need to authentication
-        self._signin = False
+        self._signin = {}
 
     def login_account(self):
         """.. :py:method::
             use post method to login
         """
+        self.data['login[username]'] = self.current_email
         req.post(self.login_url, data=self.data)
-        self._signin = True
+        self._signin[username] = True
 
-    def check_signin(self):
+    def check_signin(self, username=''):
         """.. :py:method::
             check whether the account is login
         """
-        if not self._signin:
+        if username == '':
+            self.login_account()
+        elif username not in self._signin:
+            self.current_email = username
             self.login_account()
 
     def fetch_page(self, url):
@@ -93,11 +98,13 @@ class Server(object):
         self.returned_re = re.compile(r'<strong>Return Policy:</strong>(.*)<')
         self.shipping_re = re.compile(r'<strong>Shipping:</strong>(.*)<')
 
-    def crawl_category(self, ctx):
+    def crawl_category(self, ctx='', **kwargs):
         """.. :py:method::
             From top depts, get all the events
         """
-        self.net.check_signin()
+        if kwargs.get('login_email'): self.net.check_signin( kwargs.get('login_email') )
+        else: self.net.check_signin()
+
         depts = ['girls', 'boys', 'women', 'baby-maternity', 'toys-playtime', 'home']
         debug_info.send(sender=DB + '.category.begin')
 
@@ -201,7 +208,7 @@ class Server(object):
             common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=pair[1], is_new=is_new, is_updated=False)
             
 
-    def crawl_listing(self, url, ctx=''):
+    def crawl_listing(self, url, ctx='', **kwargs):
         """.. :py:method::
             from url get listing page.
             from listing page get Eventi's description, endtime, number of products.
@@ -214,7 +221,9 @@ class Server(object):
 
         :param url: listing page url
         """
-        self.net.check_signin()
+        if kwargs.get('login_email'): self.net.check_signin( kwargs.get('login_email') )
+        else: self.net.check_signin()
+
         event_id = self.extract_event_id.match(url).group(2)
         cont = self.net.fetch_page(url)
         if isinstance(cont, int):
@@ -354,13 +363,15 @@ class Server(object):
 #                print 'NO', self.siteurl + '/e/' + event_id + '.html', self.siteurl + '/p/' + slug + '.html'
 
 
-    def crawl_product(self, url, ctx=''):
+    def crawl_product(self, url, ctx='', login_email=login_email):
         """.. :py:method::
             Got all the product information and save into the database
 
         :param url: product url
         """
-        self.net.check_signin()
+        if kwargs.get('login_email'): self.net.check_signin( kwargs.get('login_email') )
+        else: self.net.check_signin()
+
         cont = self.net.fetch_page(url)
         if isinstance(cont, int):
             common_failed.send(sender=ctx, key='product', url=url, reason=cont)

@@ -4,7 +4,7 @@
   <head>
   </head>
   <body>
-    <form method="POST">
+    <form action="/publish/report" method="POST">
       <input type="date" name="date">
       <input type="submit" value="GO">
     </form>

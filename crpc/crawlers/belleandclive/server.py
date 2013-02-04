@@ -89,7 +89,7 @@ class Server(object):
         self.net = belleandcliveLogin()
         self.extract_large_image = re.compile("(.+&outputx=)(\d+)(&outputy=)(\d+)(.+)")
 
-    def crawl_category(self, ctx=''):
+    def crawl_category(self, ctx='', **kwargs):
         # self.net.check_signin()
         depts = ['women', 'men']
         for dept in depts:
@@ -184,7 +184,7 @@ class Server(object):
         common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=link, is_new=is_new, is_updated=is_updated)
 
 
-    def crawl_listing(self, url, ctx=''):
+    def crawl_listing(self, url, ctx='', **kwargs):
         event_id = url.rsplit('cat', 1)[-1]
         tree = self.download_page_ret_tree(event_id, url, 'download listing page failed:', ctx)
         if tree is None: return
@@ -233,7 +233,7 @@ class Server(object):
             common_saved.send(sender=ctx, obj_type='Event', key=event_id, is_new=False, is_updated=False, ready=True)
 
         
-    def crawl_product(self, url, ctx=''):
+    def crawl_product(self, url, ctx='', **kwargs):
         key = url.rsplit('id=', 1)[-1]
         tree = self.download_page_ret_tree(key, url, 'download product page failed:', ctx)
         color = tree.cssselect('div#colors span#color-label')

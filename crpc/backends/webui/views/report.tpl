@@ -96,7 +96,7 @@
           var total = 0;
           var products = $(node);
           for(var j in products){
-            var value = parseInt(products[j]).innerText);
+            var value = parseInt(products[j].innerText);
             if(value){
               total += value
             }

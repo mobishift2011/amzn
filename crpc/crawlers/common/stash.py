@@ -12,6 +12,8 @@ import re
 import os
 import pytz
 import requests
+import ConfigParser
+import random
 from datetime import datetime
 from gevent.coros import Semaphore
 from settings import CRPC_ROOT
@@ -54,6 +56,13 @@ login_email = {'bluefly': '2012luxurygoods@gmail.com',
                'onekingslane': '2012luxurygoods@gmail.com',
                'hautelook': '2012luxurygoods@gmail.com',
 }
+
+configFile = ConfigParser.ConfigParser()
+def get_email(site):
+    configFile.read('username.ini')
+    email = random.choice( [i.strip() for i in configFile.get('username', site).split(',')] )
+    return email
+
 login_passwd = 'abcd1234'
 
 headers = { 

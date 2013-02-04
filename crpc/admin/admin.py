@@ -279,6 +279,8 @@ class ViewDataHandler(BaseHandler):
             self.render_classification()
         elif subpath == 'classification_reason.ajax':
             self.render_classification_reason()
+        elif subpath == 'recommend':
+            self.render_recommend()
 
     def render_classification_reason(self):
         from backends.matching.mechanic_classifier import classify_product_department
@@ -388,37 +390,6 @@ class ViewDataHandler(BaseHandler):
             kwargs[k] = v[0]
 
         offset = kwargs.get('offset', '0')
-        limit  = kwargs.get('limit', '20')
-        kwargs['offset'] = int(offset)
-        kwargs['limit'] = int(limit)
-
-        try:
-            result = api.event.get(**kwargs)
-            message = ''
-        except:
-            message = 'CANNOT Connect to Mastiff!'
-            result = {'meta':{'total_count':0},'objects':[]}
-
-        meta = result['meta']
-        products = result['objects']
-        sites = ['ALL'] + sites
-        times = {
-           'onehourago': datetime.utcnow()-timedelta(hours=1),
-           'onedayago': datetime.utcnow()-timedelta(days=1),
-           'oneweekago': datetime.utcnow()-timedelta(days=7),
-        }
-
-        pagination = Pagination(int(offset)/20+1, 20, meta['total_count'])
-        self.render('viewdata/products.html', meta=meta, products=products, sites=sites, 
-            times=times, pagination=pagination, message=message)
-
-    def render_events(self):
-        from backends.matching.feature import sites
-        kwargs = {}
-        for k, v in self.request.arguments.iteritems():
-            kwargs[k] = v[0]
-
-        offset = kwargs.get('offset', '0')
         limit = kwargs.get('limit', '20')
         kwargs['offset'] = int(offset)
         kwargs['limit'] = int(limit)
@@ -442,6 +413,39 @@ class ViewDataHandler(BaseHandler):
         pagination = Pagination(int(offset)/20+1, 20, meta['total_count'])
         self.render('viewdata/events.html', meta=meta, events=events, sites=sites, 
             times=times, pagination=pagination, message=message)
+    
+    def render_recommend(self):
+        from backends.matching.feature import sites
+        kwargs = {}
+        for k, v in self.request.arguments.iteritems():
+            kwargs[k] = v[0]
+
+        offset = kwargs.get('offset', '0')
+        limit = kwargs.get('limit', '80')
+        kwargs['offset'] = int(offset)
+        kwargs['limit'] = int(limit)
+
+        try:
+            now = datetime.utcnow()
+            result= api.event.get(starts_at__lt=now, ends_at__gt=now, order_by='-recommend_score,-score',cover_image__ne="", limit=44,have_products='true')
+            message = ''
+        except:
+            message = 'CANNOT Connect to Mastiff!'
+            result = {'meta':{'total_count':0},'objects':[]}
+
+        meta = result['meta']
+        events = result['objects']
+        sites = ['ALL'] + sites
+        times = {
+           'onehourago': datetime.utcnow()-timedelta(hours=1),
+           'onedayago': datetime.utcnow()-timedelta(days=1),
+           'oneweekago': datetime.utcnow()-timedelta(days=7),
+        }
+
+        pagination = Pagination(int(offset)/80+1, 80, meta['total_count'])
+        self.render('viewdata/recommend.html', meta=meta, events=events, sites=sites, 
+            times=times, pagination=pagination, message=message)
+
 
 class MonitorHandler(BaseHandler):
     def get(self):

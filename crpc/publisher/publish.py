@@ -334,8 +334,12 @@ class Publisher:
                 elif f=='favbuy_dept': pdata["department_path"] = obj_getattr(prod, 'favbuy_dept', [])
                 elif f=="returned": pdata["return_policy"] = obj_getattr(prod, 'returned', '')
                 elif f=="shipping": pdata["shipping_policy"] = obj_getattr(prod, 'shipping', '')
-                elif f=="products_begin": pdata["starts_at"] = obj_getattr(prod, 'products_begin', datetime.utcnow()).isoformat()
-                elif f=="products_end": pdata["shipping_policy"] = obj_getattr(prod, 'products_end', datetime.utcnow()+timedelta(days=7)).isoformat()                               
+                elif f=="products_begin": 
+                    pb = obj_getattr(prod, 'products_begin', None)
+                    if pb: pdata["starts_at"] = pb.isoformat()
+                elif f=="products_end": 
+                    pe = obj_getattr(prod, 'products_end', None)
+                    if pe: pdata["ends_at"] = pe.isoformat()                               
             if not upd:
                 pdata["site_key"] = site+'_'+prod.key
             if upd and not pdata: return
@@ -516,12 +520,20 @@ if __name__ == '__main__':
             else:
                 p.publish_event(ev, upd=True, fields=options.flds.split(','))
         elif options.site and options.prod:
-            m = get_site_module(options.site)        
-            prod = m.Product.objects.get(key=options.prod)
-            if not options.upd:
-                p.publish_product(prod)
+            m = get_site_module(options.site)
+            if options.prod == 'all':
+                if not options.upd:
+                    print "operation not supported"
+                    return
+                prods = m.Product.objects.get(publish_time__exists=True)
             else:
-                p.publish_product(prod, upd=True, fields=options.flds.split(','))
+                prods = [m.Product.objects.get(key=options.prod)]
+            if not options.upd:
+                for prod in prods:
+                    p.publish_product(prod)
+            else:
+                for prod in prods:
+                    p.publish_product(prod, upd=True, fields=options.flds.split(','))
     elif options.mget:
         from pprint import pprint
         if options.site and options.ev:

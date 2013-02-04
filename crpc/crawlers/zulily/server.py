@@ -51,7 +51,7 @@ class zulilyLogin(object):
         """
         self.data['login[username]'] = self.current_email
         req.post(self.login_url, data=self.data)
-        self._signin[username] = True
+        self._signin[self.current_email] = True
 
     def check_signin(self, username=''):
         """.. :py:method::

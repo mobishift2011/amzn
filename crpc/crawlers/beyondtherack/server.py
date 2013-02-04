@@ -386,7 +386,7 @@ class Server(object):
         common_saved.send(sender=ctx, obj_type='Product', key=key, url=product_url, is_new=is_new, is_updated=is_updated, ready=ready)
 
 
-    def crawl_product(self, url, ctx='', , **kwargs):
+    def crawl_product(self, url, ctx='', **kwargs):
         key = url.rsplit('/', 1)[-1]
         content = self.net.fetch_product_page(url)
         if content == -1:

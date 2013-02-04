@@ -182,7 +182,7 @@ def __start_text(host_string, port):
                         with prefix("source ./env.sh {0}".format(os.environ.get('ENV','TEST'))):
                             _runbg("python powers/textserver.py {0}".format(port), sockname="textserver.{0}".format(port))
 
-def ganglia():
+def ganglia_client_configuration():
     import itertools
     for peer in itertools.chain(POWER_PEERS, CRAWLER_PEERS):
         print peer['host_string'], peer['host_string'].split('@')[1].split('.')[0]

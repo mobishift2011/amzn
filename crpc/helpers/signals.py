@@ -49,7 +49,8 @@ from gevent.queue import Queue
 import log
 import gevent
 import redisco
-        
+import time
+  
 logger = log.getlogger("helper.signals")
 
 class Processor(object):
@@ -169,7 +170,8 @@ class Signal(object):
         self._lock = Semaphore(1)
 
     def send(self, sender, **kwargs):
-        data = {'kwargs':kwargs}
+        if not kwargs.has_key('timestamp'):
+            kwargs['timestamp'] = int(time.time())
         Processor.send_message(sender, self._name, **kwargs)
 
     def connect(self, callback, mode):

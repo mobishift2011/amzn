@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
 from models import Brand
+from powers.models import Brand as PowerBrand
 
-def get_all_brands():
-	brands = [brand.to_json() for brand in Brand.objects()[0:101]]
+def get_all_brands(db='catalogIndex'):
+	if db.lower() == "catalogIndex":
+		brands = [brand.to_json() for brand in Brand.objects()]
+	elif db.lower() == "power":
+		brands = [brand.to_json() for brand in PowerBrand.objects()]
 	return brands
 
 def get_brand(title):
@@ -10,7 +14,6 @@ def get_brand(title):
 	return brand.to_json()
 
 def update_brand(title, arguments):
-	print '~~~~~~~~~~~~', title
 	brand = Brand.objects.get(title=title)
 
 	for k, v in arguments.iteritems():

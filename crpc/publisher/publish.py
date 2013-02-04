@@ -111,7 +111,7 @@ class Publisher:
         self.logger.debug("try_publish_product_update %s:%s", site, prod_key)
         m = self.get_module(site)
         prod = m.Product.objects.get(key=prod_key)
-        if forced or self.should_publish_product_upd(prod):
+        if self.should_publish_product_upd(prod):
             self.publish_product(prod, upd=True)
         else:
             self.logger.debug("product %s:%s not ready for publishing", obj_to_site(prod),prod_key)
@@ -124,6 +124,7 @@ class Publisher:
         We then publish all containing products under the events that are ready for publish.
 
         :param ev: event object
+        :param skip_products: if False, also publish all the products contained in the event
         '''
         m = obj_to_module(ev)
         if self.should_publish_event(ev):
@@ -299,7 +300,7 @@ class Publisher:
     
     ALL_PRODUCT_PUBLISH_FIELDS = ["favbuy_url", "events", "favbuy_price", "favbuy_listprice", "soldout",
                                 "color", "title", "summary", "list_info", "image_path", "favbuy_tag", "favbuy_brand", "favbuy_dept",
-                                "returned", "shipping" ]
+                                "returned", "shipping", "products_begin", "products_end" ]
     def publish_product(self, prod, upd=False, fields=[]):
         '''
         Publish product data to the mastiff service.
@@ -333,6 +334,8 @@ class Publisher:
                 elif f=='favbuy_dept': pdata["department_path"] = obj_getattr(prod, 'favbuy_dept', [])
                 elif f=="returned": pdata["return_policy"] = obj_getattr(prod, 'returned', '')
                 elif f=="shipping": pdata["shipping_policy"] = obj_getattr(prod, 'shipping', '')
+                elif f=="products_begin": pdata["starts_at"] = obj_getattr(prod, 'products_begin', datetime.utcnow()).isoformat()
+                elif f=="products_end": pdata["shipping_policy"] = obj_getattr(prod, 'products_end', datetime.utcnow()+timedelta(days=7)).isoformat()                               
             if not upd:
                 pdata["site_key"] = site+'_'+prod.key
             if upd and not pdata: return

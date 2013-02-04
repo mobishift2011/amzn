@@ -185,7 +185,7 @@ class Server(object):
             jsd = json.loads(resp.content)
             image_url = jsd['event']['image_url'].replace('event-small', 'pop-large')
             event.sale_title = jsd['event']['title']
-            event.image_urls = [image_url]
+            event.image_urls = [image_url, jsd['event']['image_url']]
             event.update_time = datetime.utcnow()
             event.save()
 

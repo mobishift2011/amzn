@@ -6,13 +6,14 @@ connect(db='catalogIndex', host=MONGODB_HOST)
 
 class Brand(Document):
     title           =   StringField(unique=True)
-    title_edit      =   StringField(default='')
+    title_edit      =   StringField()
     title_checked   =   BooleanField(default=False)
     alias           =   ListField(StringField(), default=list())
     keywords        =   StringField(default='')
     url             =   StringField(default='')
     url_checked     =   BooleanField(default=False)
     blurb           =   StringField(default='')
+    images          =   ListField(StringField())   
     level           =   IntField(default=0) # luxrious or not 
     dept            =   ListField(StringField(max_length=30))
     is_delete       =   BooleanField(default=False)
@@ -36,6 +37,7 @@ class Brand(Document):
             'url'             :   self.url,
             'url_checked'     :   self.url_checked,
             'blurb'           :   self.blurb,
+            'images'          :   self.images,
             'level'           :   self.level,
             'dept'            :   self.dept,
             'is_delete'       :   self.is_delete,

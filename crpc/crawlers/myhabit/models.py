@@ -44,7 +44,6 @@ class Product(LuxuryProduct):
     jslink = StringField() # indicates the url where we can make an "API call" to
 
     video = StringField()
-    international_shipping = StringField()
 
     meta = {
         "db_alias": DB,

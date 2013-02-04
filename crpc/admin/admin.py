@@ -463,6 +463,9 @@ class BrandsHandler(BaseHandler):
 class BrandHandler(BaseHandler):
     @tornado.web.authenticated
     def get(self, brand_title):
+        if not brand_title:
+            self.render('brand.html')
+
         brand = get_brand(url_unescape(brand_title))
         t_page = 'brand_iframe.html' \
                     if self.get_argument('t') == 'iframe' \

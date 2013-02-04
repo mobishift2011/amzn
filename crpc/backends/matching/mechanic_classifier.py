@@ -54,7 +54,6 @@ MODNIQUE = {
     "contains": {},
     "mapping": {
         "jewelry-watches": ["Jewelry & Watches", "Women"],
-        "apparel": ["Women"],
         "men": ["Men"],
         "beauty": ["Beauty & Health"],
         "shoes": ["Women"],

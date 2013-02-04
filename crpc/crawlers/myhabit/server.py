@@ -164,14 +164,14 @@ class Server(object):
         list_info = [i.replace('&quot;', '"').replace('&#39;', '\'') for i in data['productDescription']['bullets'][0]['bulletsList']]
         brand = data['detailJSON']['brand']
         returned = data['detailJSON']['returnPolicy']
-        if 'intlShippable' in data['detailJSON']:
-            shipping = 'international shipping' if data['detailJSON']['intlShippable'] == 1 else 'no international shipping'
-        elif 'choices' in data['detailJSON']:
-            for i in data['detailJSON']['choices']:
-                if i['asin'] == casin:
-                    shipping = 'international shipping' if i['intlShippable'] == 1 else 'no international shipping'
-                    break
-        shipping = shipping if shipping else ''
+#        if 'intlShippable' in data['detailJSON']:
+#            shipping = 'international shipping' if data['detailJSON']['intlShippable'] == 1 else 'no international shipping'
+#        elif 'choices' in data['detailJSON']:
+#            for i in data['detailJSON']['choices']:
+#                if i['asin'] == casin:
+#                    shipping = 'international shipping' if i['intlShippable'] == 1 else 'no international shipping'
+#                    break
+#        shipping = shipping if shipping else ''
 
         video = ''
         for p in data['detailJSON']['asins']:
@@ -187,7 +187,7 @@ class Server(object):
         product.summary = summary
         product.list_info = list_info
         product.brand = brand
-        product.shipping = shipping
+        product.shipping = 'FAST, FREE SHIPPING, FREE RETURN SHIPPING in the U.S.'
         product.returned = returned
         product.video = video
         product.full_update_time = datetime.utcnow()

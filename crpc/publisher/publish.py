@@ -513,12 +513,19 @@ if __name__ == '__main__':
         
     elif options.mput:
         if options.site and options.ev:
-            m = get_site_module(options.site)        
-            ev = m.Event.objects.get(event_id=options.ev)
-            if not options.upd:
-                p.publish_event(ev)
+            m = get_site_module(options.site)
+            if options.ev == 'all':
+                if not options.upd:
+                    print "operation not supported"
+                    sys.exit()
+                evs = m.Event.objects(publish_time__exists=True)
             else:
-                p.publish_event(ev, upd=True, fields=options.flds.split(','))
+                evs = [m.Event.objects.get(event_id=options.ev)]
+            for ev in evs:
+                if not options.upd:
+                    p.publish_event(ev)
+                else:
+                    p.publish_event(ev, upd=True, fields=options.flds.split(','))
         elif options.site and options.prod:
             m = get_site_module(options.site)
             if options.prod == 'all':
@@ -528,12 +535,12 @@ if __name__ == '__main__':
                 prods = m.Product.objects(publish_time__exists=True)
             else:
                 prods = [m.Product.objects.get(key=options.prod)]
-            if not options.upd:
-                for prod in prods:
+            for prod in prods:
+                if not options.upd:
                     p.publish_product(prod)
-            else:
-                for prod in prods:
+                else:
                     p.publish_product(prod, upd=True, fields=options.flds.split(','))
+
     elif options.mget:
         from pprint import pprint
         if options.site and options.ev:

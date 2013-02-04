@@ -182,7 +182,18 @@ def __start_text(host_string, port):
                         with prefix("source ./env.sh {0}".format(os.environ.get('ENV','TEST'))):
                             _runbg("python powers/textserver.py {0}".format(port), sockname="textserver.{0}".format(port))
 
-def ganglia():
+def crawler_login_file():
+    """ change crawlers' login email, redeploy """
+    for peer in CRAWLER_PEERS:
+        multiprocessing.Process(target=__crawler_login_file, args=(peer['host_string'], peer['port'])).start()
+
+def __crawler_login_file(host_string, port):
+    with settings(host_string=host_string):
+        put(CRPC_ROOT + '/crawlers/common/username.ini', '/opt/crpc/crawlers/common/')
+
+
+def ganglia_client():
+    """ change ganglia client's configration file """
     import itertools
     for peer in itertools.chain(POWER_PEERS, CRAWLER_PEERS):
         print peer['host_string'], peer['host_string'].split('@')[1].split('.')[0]

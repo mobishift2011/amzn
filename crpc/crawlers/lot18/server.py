@@ -70,7 +70,7 @@ class Server(object):
         self.net = lot18Login()
         self.post_url = 'http://www.lot18.com/collection.json'
 
-    def crawl_category(self, ctx=''):
+    def crawl_category(self, ctx='', **kwargs):
         is_new, is_updated = False, False
         category = Category.objects(key='lot18').first()
         if not category:
@@ -82,7 +82,7 @@ class Server(object):
         category.save()
         common_saved.send(sender=ctx, obj_type='Category', key='lot18', url='', is_new=is_new, is_updated=is_updated)
 
-    def crawl_listing(self, url, ctx=''):
+    def crawl_listing(self, url, ctx='', **kwargs):
         """.. :py:method::
             url is useless in here
         :param str url: None
@@ -159,7 +159,7 @@ class Server(object):
         common_saved.send(sender=ctx, obj_type='Product', key=prd['id'], url=product.combine_url, is_new=is_new, is_updated=is_updated)
 
 
-    def crawl_product(self, url, ctx=''):
+    def crawl_product(self, url, ctx='', **kwargs):
         """.. :py:method::
         """
         content = self.net.fetch_page(url)

@@ -25,12 +25,13 @@ import time
 import random
 import traceback
 
+from datetime import datetime, timedelta
 from itertools import chain
 from functools import partial
 from mongoengine import Q
 
 from crawlers.common.events import pre_general_update, post_general_update, common_failed
-from datetime import datetime, timedelta
+from crawlers.common.stash import get_login_email
 
 from powers.events import ready_for_batch
 
@@ -139,10 +140,10 @@ def callrpc(rpc, site, method, *args, **kwargs):
         rpc.call(site, method, args, kwargs)
     except Exception as e:
         common_failed.send(sender=kwargs['ctx'],
-                            site = site,
-                            key = kwargs.get('key'),
-                            url = kwargs.get('url'),
-                            reason = traceback.format_exc())
+                           site = site,
+                           key = kwargs.get('key'),
+                           url = kwargs.get('url'),
+                           reason = traceback.format_exc())
 
 def gevent_exception_handler():
     pass
@@ -151,13 +152,14 @@ def gevent_exception_handler():
 #
 # new or update parent task with sevral sequential children tasks
 #
-def update_category(site, rpc, method='update_category', concurrency=5):
+def update_category(site, rpc, method='update_category', concurrency=5, **wargs):
     with UpdateContext(site=site, method=method) as ctx:
         rpcs = [rpc] if not isinstance(rpc, list) else rpc
         rpc = random.choice(rpcs)
-        callrpc(rpc, site, 'crawl_category', ctx=ctx)
+        callrpc(rpc, site, 'crawl_category', ctx=ctx, login_email=wargs.get('login_email', ''))
 
-def update_listing(site, rpc, method='update_listing', concurrency=5):
+
+def update_listing(site, rpc, method='update_listing', concurrency=5, **wargs):
     keep_ctx = None
     with UpdateContext(site=site, method=method) as ctx:
         keep_ctx = ctx
@@ -166,13 +168,14 @@ def update_listing(site, rpc, method='update_listing', concurrency=5):
         for category in spout_listing_update(site):
             for kwargs in spout_category(site, category):
                 kwargs['ctx'] = ctx
+                kwargs['login_email'] = wargs.get('login_email', '')
                 rpc = random.choice(rpcs)
                 pool.spawn(callrpc, rpc, site, 'crawl_listing', **kwargs)
         pool.join()
 
     ready_for_batch.send(sender=keep_ctx, site=site, doctype='event')
 
-def update_product(site, rpc, method='update_product', concurrency=5):
+def update_product(site, rpc, method='update_product', concurrency=5, **wargs):
     keep_ctx = None
     with UpdateContext(site=site, method=method) as ctx:
         keep_ctx = ctx
@@ -180,21 +183,23 @@ def update_product(site, rpc, method='update_product', concurrency=5):
         pool = Pool(len(rpcs)*concurrency)
         for kwargs in spout_product(site):
             kwargs['ctx'] = ctx
+            kwargs['login_email'] = wargs.get('login_email', '')
             rpc = random.choice(rpcs)
             pool.spawn(callrpc, rpc, site, 'crawl_product', **kwargs)
         pool.join()
 
     ready_for_batch.send(sender=keep_ctx, site=site, doctype='product')
 
-def new_listing(site, rpc, method='new_listing', concurrency=5):
+def new_listing(site, rpc, method='new_listing', concurrency=5, **wargs):
     keep_ctx = None
     with UpdateContext(site=site, method=method) as ctx:
         keep_ctx = ctx
         rpcs = [rpc] if not isinstance(rpc, list) else rpc
         pool = Pool(len(rpcs)*concurrency)
-        for category in spout_listing(site):
+        for category in spout_listing(site): # different spout
             for kwargs in spout_category(site, category):
                 kwargs['ctx'] = ctx
+                kwargs['login_email'] = wargs.get('login_email', '')
                 rpc = random.choice(rpcs)
                 pool.spawn(callrpc, rpc, site, 'crawl_listing', **kwargs)
         pool.join()
@@ -208,20 +213,23 @@ new_product = partial(update_product, method='new_product')
 
 # parent task of update
 def update(site, rpc, method='update', concurrency=5):
-    update_category(site, rpc, '{0}_category'.format(method), concurrency)
-    update_listing(site, rpc, '{0}_listing'.format(method), concurrency)
-    update_product(site, rpc, '{0}_product'.format(method), concurrency)
+    login_email = get_login_email(site)
+    update_category(site, rpc, '{0}_category'.format(method), concurrency, login_email=login_email)
+    update_listing(site, rpc, '{0}_listing'.format(method), concurrency, login_email=login_email)
+    update_product(site, rpc, '{0}_product'.format(method), concurrency, login_email=login_email)
 
 # parent task of new
 def new(site, rpc, method='new', concurrency=5):
-    new_category(site, rpc, concurrency=concurrency)
-    new_listing(site, rpc, concurrency=concurrency)
-    new_product(site, rpc, concurrency=concurrency)
+    login_email = get_login_email(site)
+    new_category(site, rpc, concurrency=concurrency, login_email=login_email)
+    new_listing(site, rpc, concurrency=concurrency, login_email=login_email)
+    new_product(site, rpc, concurrency=concurrency, login_email=login_email)
 
 def new_thrice(site, rpc, method='new', concurrency=5):
-    new(site, rpc, 'new', concurrency)
-    new(site, rpc, 'new', concurrency)
-    new(site, rpc, 'new', concurrency)
+    login_email = get_login_email(site)
+    new(site, rpc, 'new', concurrency, login_email=login_email)
+    new(site, rpc, 'new', concurrency, login_email=login_email)
+    new(site, rpc, 'new', concurrency, login_email=login_email)
 
 
 if __name__ == '__main__':

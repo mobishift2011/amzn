@@ -79,7 +79,7 @@ class Server(object):
         self.extract_event_id = re.compile('.*/events/(\w+)/latest_view')
         self.extract_product_id = re.compile('http://www.ideeli.com/events/\w+/offers/\w+/latest_view/(\w+)')
 
-    def crawl_category(self, ctx=''):
+    def crawl_category(self, ctx='', **kwargs):
         depts = ['women', 'men', 'home', ]
         for dept in depts:
             self.crawl_one_dept(dept, ctx)
@@ -143,7 +143,7 @@ class Server(object):
         event.save()
         common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=link, is_new=is_new, is_updated=is_updated)
 
-    def crawl_listing(self, url, ctx=''):
+    def crawl_listing(self, url, ctx='', **kwargs):
         event_id = self.extract_event_id.match(url).group(1)
         content = self.net.fetch_page( url )
         try:
@@ -211,7 +211,7 @@ class Server(object):
             common_saved.send(sender=ctx, obj_type='Event', key=event_id, is_new=False, is_updated=False, ready=True)
 
         
-    def crawl_product(self, url, ctx=''):
+    def crawl_product(self, url, ctx='', **kwargs):
         key = self.extract_product_id.match(url).group(1)
         content = self.net.fetch_page( url )
         if content is None or isinstance(content, int):

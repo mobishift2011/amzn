@@ -115,7 +115,7 @@ class Server(object):
         self.countdown_num = re.compile("countdownFactory.create\(('|\")(\\d+)('|\"), ('|\")(\\d+)('|\"), ('|\")('|\")\);")
         self.url2eventid = re.compile('http://www.ruelala.com/event/(\d+)')
 
-    def crawl_category(self, ctx=''):
+    def crawl_category(self, ctx='', **kwargs):
         """.. :py:method::
             From top depts, get all the events
         """
@@ -398,7 +398,7 @@ class Server(object):
             common_saved.send(sender=ctx, obj_type='Event', key=event_id, is_new=is_new, is_updated=is_updated)
 
 
-    def crawl_listing(self, url, ctx=''):
+    def crawl_listing(self, url, ctx='', **kwargs):
         """.. :py:method::
         """
         cont = self.net.event_fetch_page(url)
@@ -491,7 +491,7 @@ class Server(object):
             urls.append(url)
         return urls
 
-    def crawl_product(self, url, ctx=''):
+    def crawl_product(self, url, ctx='', **kwargs):
         """.. :py:method::
             Got all the product basic information and save into the database
         """

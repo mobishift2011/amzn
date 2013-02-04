@@ -17,15 +17,6 @@ from datetime import datetime
 from helpers.log import getlogger
 imglogger = getlogger('powerroutine', filename='/tmp/powerserver.log')
 
-
-debug_logger = getlogger('debug_power_text', '/tmp/debug_power_text.log')
-def run_fd():
-    import subprocess, os
-    pid = subprocess.Popen('ps aux | grep run.py | grep -v grep | grep -v dtach', shell=True, stdout=subprocess.PIPE).communicate()[0].split()[1]
-    ret = os.listdir('/proc/{0}/fd'.format(pid))
-    return len(ret)
-
-
 from crawlers.common.stash import picked_crawlers
 def get_site_module(site):
     if not hasattr(get_site_module, 'mod'):
@@ -186,23 +177,19 @@ def text_extract(site, concurrency=3):
     """
     rpcs = get_rpcs(TEXT_PEERS)
     pool = Pool(len(rpcs)*concurrency)
-    debug_logger.info('Extract text begin[{0}], fd number: {1}'.format(site, run_fd()))
     products = spout_extracted_products(site)
     
     for product in products:
         rpc = random.choice(rpcs)
         pool.spawn(call_rpc, rpc, 'extract_text', **product)
     pool.join()
-    debug_logger.info('Extract text end[{0}], fd number: {1}'.format(site, run_fd()))
 
     # If site has event model, it should update and new the event propagation
     # jobs = [gevent.spawn(update_propation, event_dict, site), \
     #             gevent.spawn(propagate, site, concurrency)]
     # gevent.joinall(jobs)
-    debug_logger.info('Propagation begin[{0}], fd number: {1}'.format(site, run_fd()))
     update_propation(site, concurrency)
     propagate(site, concurrency)
-    debug_logger.info('Propagation end[{0}], fd number: {1}'.format(site, run_fd()))
 
 
 if __name__ == '__main__':

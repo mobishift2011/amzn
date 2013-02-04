@@ -91,7 +91,7 @@ function TaskCtrl($scope) {
                                 "<tbody>"+tabletrs+"</tbody>"+
                             "</table>"+
                         "</div>"+
-                        "<div class='modal-footer'><p id="+t.ctx+" onclick='showFails(this)'><button class='btn' data-dismiss='modal' onclick='toggleCanUpdate()'>Close</button></p></div>"+
+                        "<div class='modal-footer'><p id="+t.ctx+" onmouseover='showFails(this)'><button class='btn' data-dismiss='modal' onclick='toggleCanUpdate()'>Close</button></p></div>"+
                     "</div>"
                     + "<div><a href='#"+taskid+"' data-toggle='modal' onclick='toggleCanUpdate()'>"+t.fails+"</div>";
             return [t.name, t.status, t.started_at, t.updated_at, t.ended_at, t.dones, t.updates, t.news, failsdiv, t.ctx];

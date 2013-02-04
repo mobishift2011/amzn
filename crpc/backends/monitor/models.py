@@ -196,8 +196,9 @@ class Stat(Document):
 
 
 class ProductReport(Document):
-    today_date          = DateTimeField(unique=True)
-    site                = StringField(required=True)
+    today_date          = DateTimeField()
+    site                = StringField()
+
     product_num         = IntField(default=0)
     published_num       = IntField(default=0)
 
@@ -209,11 +210,27 @@ class ProductReport(Document):
     unknown             = IntField(default=0)
     meta = {
         'db_alias': DB,
+        'indexes': [
+            {'fields': ['today_date', 'site'], 'unique': True},
+        ],
     }
 
+    def to_json(self):
+        return {
+            'site': self.site,
+            'product_num': self.product_num,
+            'published_num': self.published_num,
+            'no_image_url_num': self.no_image_url_num,
+            'no_image_path_num': self.no_image_path_num,
+            'no_dept_num': self.no_dept_num,
+            'event_not_ready': self.event_not_ready,
+            'unknown': self.unknown,
+        }
+
 class EventReport(Document):
-    today_date                      = DateTimeField(unique=True)
-    site                            = StringField(required=True)
+    today_date                      = DateTimeField()
+    site                            = StringField()
+
     event_num                       = IntField(default=0)
     published_num                   = IntField(default=0)
 
@@ -228,8 +245,25 @@ class EventReport(Document):
     unknown                         = IntField(default=0)
     meta = {
         'db_alias': DB,
+        'indexes': [
+            {'fields': ['today_date', 'site'], 'unique': True},
+        ],
     }
 
+    def to_json(self):
+        return {
+            'site': self.site,
+            'event_num': self.event_num,
+            'published_num': self.published_num,
+            'not_leaf_num': self.not_leaf_num,
+            'upcoming_no_image_url_num': self.upcoming_no_image_url_num,
+            'upcoming_no_image_path_num': self.upcoming_no_image_path_num,
+            'onsale_no_product_num': self.onsale_no_product_num,
+            'onsale_no_image_url_num': self.onsale_no_image_url_num,
+            'onsale_no_image_path_num': self.onsale_no_image_path_num,
+            'onsale_propagation_not_complete': self.onsale_propagation_not_complete,
+            'unknown': self.unknown,
+        }
 
 
 if __name__ == '__main__':

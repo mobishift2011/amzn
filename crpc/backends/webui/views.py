@@ -1,19 +1,20 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import traceback
-from backends.monitor.models import Task, Schedule, fail, Stat
-from powers.models import Brand
-from powers.events import brand_refresh
-
-from settings import CRPC_ROOT
-from crawlers.common.stash import exclude_crawlers
 from os import listdir
 from os.path import join, isdir
 from datetime import datetime, timedelta
 from collections import Counter
-
 from bson.objectid import ObjectId
 from mongoengine import Q
+
+from backends.monitor.models import Task, Schedule, fail, Stat
+from powers.models import Brand
+from powers.events import brand_refresh
+from settings import CRPC_ROOT
+from crawlers.common.stash import exclude_crawlers
+#from crawlers.common.stash import picked_crawlers
+from backends.monitor.models import ProductReport, EventReport
 
 
 def mark_all_failed():
@@ -131,6 +132,14 @@ def get_publish_stats(site, doctype, time_value, time_cell, start_at, end_at):
         pass
 
     return data
+
+
+def get_publish_report(_thedate):
+    prds = ProductReport.objects(today_date=_thedate)
+    events = EventReport.objects(today_date=_thedate)
+    return {'event': [e.to_json() for e in events],
+            'product': [p.to_json() for p in prds]}
+
 
 def import_brands(eb):
     brand = Brand.objects(title=eb['title']).update(

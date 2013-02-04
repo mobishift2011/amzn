@@ -648,6 +648,7 @@ class Server(object):
         tree = self.download_product_page_get_correct_tree(url, url.rsplit('/', 1)[-1], 'download product page error', ctx)
         if tree is None:
             tree = self.download_product_page_get_correct_tree(url, url.rsplit('/', 1)[-1], 'download product page twice error', ctx)
+        if tree is None: return
 
         if '/home/sale' in url or '/sale/home' in url: # home
             nav = tree.cssselect('div.page-container > div.content-container > section.content > div.layout-container > div.positions > div.position-2 > section.module > div.elements-container > article.element-product')[0]
@@ -748,5 +749,6 @@ class Server(object):
 
 if __name__ == '__main__':
     server = Server()
-    server.crawl_listing('http://www.gilt.com/home/sale/the-americans'); exit()
+    server.crawl_product('http://www.gilt.com/sale/women/the-skinny-4501/product/173293951-dl1961-waxed-emma-legging-jean'); exit()
+    server.crawl_listing('http://www.gilt.com/home/sale/the-americans')
     server.crawl_listing('http://www.gilt.com/home/sale/candle-blowout-7052')

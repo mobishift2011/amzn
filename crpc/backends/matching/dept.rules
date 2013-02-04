@@ -688,10 +688,6 @@
 [0] Flat Boots -> Women; Shoes
 [0] Boot Jean -> Women; Pants & Shorts
 [0] Ravioli Attachment -> Home; Tools
-[0] Flatform -> Women; Shoes
-[0] Platform -> Women; Shoes
-[0] Platforms -> Women; Shoes
-[0] Flatforms -> Women; Shoes
 [0] Pug Boot -> Women; Shoes
 [0] Small Aviators -> Men; Women; Accessories
 [0] Tilt Head Mixer -> Home; Kitchen & Dining
@@ -1514,3 +1510,7 @@
 [2] Blouse -> Shirts & Sweaters
 [2] Tunic -> Shirts & Sweaters
 [2] Lace Top -> Shirts & Sweaters
+[2] Platform -> Shoes
+[2] Platforms -> Shoes
+[2] Flatform -> Shoes
+[2] Flatforms -> Shoes

@@ -146,13 +146,14 @@ class Server(object):
     def crawl_listing(self, url, ctx=''):
         event_id = self.extract_event_id.match(url).group(1)
         content = self.net.fetch_page( url )
-        if content is None or isinstance(content, int):
-            common_failed.send(sender=ctx, key='', url=url,
-                    reason='download listing page failed: {0}'.format(content))
         try:
             data = json.loads(content)['colors']
         except ValueError:
             content = self.net.fetch_page( url )
+            if content is None or isinstance(content, int):
+                common_failed.send(sender=ctx, key=event_id, url=url,
+                        reason='download listing page failed: {0}'.format(content))
+                return
             data = json.loads(content)['colors']
             
         for d in data:

@@ -524,8 +524,8 @@ if __name__ == '__main__':
             if options.prod == 'all':
                 if not options.upd:
                     print "operation not supported"
-                    return
-                prods = m.Product.objects.get(publish_time__exists=True)
+                    sys.exit()
+                prods = m.Product.objects(publish_time__exists=True)
             else:
                 prods = [m.Product.objects.get(key=options.prod)]
             if not options.upd:

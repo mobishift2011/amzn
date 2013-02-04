@@ -53,6 +53,7 @@ def toggle_auto_scheduling(sender, **kwargs):
 # end binding
 
 gevent.spawn(Scheduler().run)
+gevent.spawn(avoid_cold_start)
 
 
 while True:

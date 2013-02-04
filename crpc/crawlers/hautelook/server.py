@@ -67,7 +67,7 @@ class Server(object):
         hours, minutes = Time.split('-')[1].split(':')
         return datetime.strptime(time_str, fmt) + timedelta(hours=int(hours), minutes=int(minutes))
 
-    def crawl_category(self, ctx):
+    def crawl_category(self, ctx='', **kwargs):
         """.. :py:method::
             from self.event_url get all the events
         """
@@ -159,7 +159,7 @@ class Server(object):
                 url='{0}/event/{1}'.format(self.siteurl, event_id), is_new=is_new, is_updated=is_updated)
 
 
-    def crawl_listing(self, url, ctx):
+    def crawl_listing(self, url, ctx='', **kwargs):
         """.. :py:method::
             not useful
         :param url: event url with event_id 
@@ -224,7 +224,7 @@ class Server(object):
 
 
 
-    def crawl_product(self, url, ctx):
+    def crawl_product(self, url, ctx='', **kwargs):
         """.. :py:method::
             Got all the product information and save into the database
         :param url: product url, with product id

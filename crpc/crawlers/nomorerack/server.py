@@ -61,7 +61,7 @@ class Server(object):
         self.siteurl = 'http://nomorerack.com'
         self.east_tz = pytz.timezone('US/Eastern')
 
-    def crawl_category(self, ctx=''):
+    def crawl_category(self, ctx='', **kwargs):
         """.. :py:method::
             1. Get exclusive event
             2. From top depts, get all the category
@@ -140,7 +140,7 @@ class Server(object):
             common_saved.send(sender=ctx, obj_type='Category', key=category_key, url=category.combine_url, is_new=is_new, is_updated=is_updated)
     
 
-    def crawl_listing(self, url, ctx=''):
+    def crawl_listing(self, url, ctx='', **kwargs):
         """.. :py:method::
             1. Get events listing page's products
             2. Get deals from different categories
@@ -332,7 +332,7 @@ class Server(object):
                 common_saved.send(sender=ctx, obj_type='Product', key=product.key, url=product.combine_url, is_new=is_new, is_updated=is_updated)
 
 
-    def crawl_product(self, url, ctx=''):
+    def crawl_product(self, url, ctx='', **kwargs):
         """.. :py:method::
             Got all the product information and save into the database
         """

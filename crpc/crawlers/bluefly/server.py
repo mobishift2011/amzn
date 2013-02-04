@@ -31,7 +31,7 @@ class Server(object):
         self.extract_product_slug_key = re.compile(r'http://www.bluefly.com/(.+)/p/(.+)/detail.fly')
         self.extract_large_image = re.compile(".*smallimage: \'(.+?outputx=)(\d+)(&outputy=)(\d+)(&.+?)\'")
 
-    def crawl_category(self, ctx=''):
+    def crawl_category(self, ctx='', **kwargs):
         """.. :py:method::
         """
         women_url = 'http://www.bluefly.com/a/women-clothing'
@@ -167,7 +167,7 @@ class Server(object):
             self.save_category_to_db(url, key, slug, cats, ctx)
 
 
-    def crawl_listing(self, url, ctx=''):
+    def crawl_listing(self, url, ctx='', **kwargs):
         """.. :py:method::
             differenct between normal listing and newarrivals listing page
             nav = tree.xpath('//div[@id="listPage"]/div[@id="listProductPage"]') # normal listing
@@ -295,7 +295,7 @@ class Server(object):
         common_saved.send(sender=ctx, obj_type='Product', key=key, url=link, is_new=is_new, is_updated=is_updated)
 
 
-    def crawl_product(self, url, ctx=''):
+    def crawl_product(self, url, ctx='', **kwargs):
         """.. :py:method::
         """
         slug, key = self.extract_product_slug_key.match(url).groups()

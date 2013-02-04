@@ -113,7 +113,7 @@ class Server(object):
 
         self.east_tz = pytz.timezone('US/Eastern')
 
-    def crawl_category(self, ctx):
+    def crawl_category(self, ctx='', **kwargs):
         """.. :py:method::
             crawl upcoming sales, sales, and shop by category
         """
@@ -224,7 +224,7 @@ class Server(object):
             common_saved.send(sender=ctx, obj_type='Category', key=category_key, url=category.combine_url, is_new=is_new, is_updated=is_updated)
 
 
-    def crawl_listing(self, url, ctx):
+    def crawl_listing(self, url, ctx='', **kwargs):
         """.. :py:method::
             from url get listing page,
             either category_list or sale_list
@@ -393,7 +393,7 @@ class Server(object):
         debug_info.send(sender=DB + ".crawl_listing", url=self.siteurl + '/sales/' + event_id)
 
 
-    def crawl_product(self, url, ctx=''):
+    def crawl_product(self, url, ctx='', **kwargs):
         """.. :py:method::
             Got all the product information and save into the database
 

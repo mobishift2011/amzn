@@ -6,7 +6,8 @@ from powers.routine import get_site_module
 from boto.s3.connection import S3Connection
 from crawlers.common.stash import exclude_crawlers
 from os import listdir
-from os.path import join, isdir 
+from os.path import join, isdir
+from datetime import datetime 
 
 __s3conn = S3Connection(AWS_ACCESS_KEY, AWS_SECRET_KEY)
 
@@ -17,6 +18,7 @@ def crawl_images(instance, site, model):
     if it.image_complete:
         instance.image_path = it.image_path
         instance.image_complete = bool(instance.image_path)
+        instance.update_history.update({'image_path': datetime.utcnow()})
         instance.save()
 
 

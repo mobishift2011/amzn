@@ -300,7 +300,7 @@ class Publisher:
     
     ALL_PRODUCT_PUBLISH_FIELDS = ["favbuy_url", "events", "favbuy_price", "favbuy_listprice", "soldout",
                                 "color", "title", "summary", "list_info", "image_path", "favbuy_tag", "favbuy_brand", "favbuy_dept",
-                                "returned", "shipping" ]
+                                "returned", "shipping", "products_begin", "products_end" ]
     def publish_product(self, prod, upd=False, fields=[]):
         '''
         Publish product data to the mastiff service.
@@ -334,6 +334,8 @@ class Publisher:
                 elif f=='favbuy_dept': pdata["department_path"] = obj_getattr(prod, 'favbuy_dept', [])
                 elif f=="returned": pdata["return_policy"] = obj_getattr(prod, 'returned', '')
                 elif f=="shipping": pdata["shipping_policy"] = obj_getattr(prod, 'shipping', '')
+                elif f=="products_begin": pdata["starts_at"] = obj_getattr(prod, 'products_begin', datetime.utcnow()).isoformat()
+                elif f=="products_end": pdata["shipping_policy"] = obj_getattr(prod, 'products_end', datetime.utcnow()+timedelta(days=7)).isoformat()                               
             if not upd:
                 pdata["site_key"] = site+'_'+prod.key
             if upd and not pdata: return

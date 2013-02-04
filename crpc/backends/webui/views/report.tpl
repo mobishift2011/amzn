@@ -28,15 +28,25 @@
           % for prd in product:
           <tr>
             <td>{{prd['site']}}</td>
-            <td>{{prd['product_num']}}</td>
-            <td>{{prd['published_num']}}</td>
-            <td>{{prd['no_image_url_num']}}</td>
-            <td>{{prd['no_image_path_num']}}</td>
-            <td>{{prd['no_dept_num']}}</td>
-            <td>{{prd['event_not_ready']}}</td>
-            <td>{{prd['unknown']}}</td>
+            <td class='product_num'>{{prd['product_num']}}</td>
+            <td class='published_num'>{{prd['published_num']}}</td>
+            <td class='no_image_url_num'>{{prd['no_image_url_num']}}</td>
+            <td class='no_image_path_num'>{{prd['no_image_path_num']}}</td>
+            <td class='no_dept_num'>{{prd['no_dept_num']}}</td>
+            <td class='event_not_ready'>{{prd['event_not_ready']}}</td>
+            <td class='unknown'>{{prd['unknown']}}</td>
           </tr>
           % end
+          <tr>
+            <td>Total</td>
+            <td id='total_product_num'></td>
+            <td id='total_published_num'></td>
+            <td id='total_no_image_url_num'></td>
+            <td id='total_no_image_path_num'></td>
+            <td id='total_no_dept_num'></td>
+            <td id='total_event_not_ready'></td>
+            <td id='total_unknown'></td>
+          </tr>
         </tbody>
       </table>
 
@@ -77,5 +87,24 @@
       </table>
 
     </div>
+    <script type="text/javascript">
+      $(function(){
+        var fields = ['product_num', 'published_num', 'no_image_url_num', 'no_image_path_num', 'no_dept_num', 'event_not_ready', 'unknown']
+        for(var i in fields){
+          var node = 'td.' + fields[i];
+          var total_node = '#total_' + fields[i];
+          var total = 0;
+          var products = $(node);
+          for(var j in products){
+            var value = parseInt(products[j]).innerText);
+            if(value){
+              total += value
+            }
+          }
+
+          $(total_node).append(total);
+        }
+      })
+    </script>
   </body>
 </html>

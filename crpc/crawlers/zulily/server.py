@@ -78,6 +78,22 @@ class zulilyLogin(object):
         if ret.ok: return ret.content
         return ret.status_code
 
+    def fetch_listing_page(self, url):
+        """.. :py:method::
+            fetch page.
+            check whether the account is login, if not, login and fetch again
+        """
+        ret = req.get(url)
+
+        if ret.url == u'http://www.zulily.com/oops-event':
+            return -404
+        if ret.url == u'http://www.zulily.com/' or 'http://www.zulily.com/brand/' in ret.url:
+            return -302
+        if ret.url == 'http://www.zulily.com/?tab=new-today':
+            self.login_account()
+            ret = req.get(url)
+        if ret.ok: return ret.content
+        return ret.status_code
 
 
 class Server(object):
@@ -202,7 +218,10 @@ class Server(object):
                 brand.sale_description = sale_description
             if image and image not in brand.image_urls: brand.image_urls.append(image)
             start_time = node.cssselect('div.upcoming-date-reminder span.reminder-text')[0].text_content() # 'Starts Sat 10/27 6am pt - SET REMINDER'
-            brand.events_begin = time_convert( ' '.join( start_time.split(' ', 4)[1:-1] ), '%a %m/%d %I%p%Y' ) - timedelta(minutes=5) #'Sat 10/27 6am'
+            events_begin = time_convert( ' '.join( start_time.split(' ', 4)[1:-1] ), '%a %m/%d %I%p%Y' ) - timedelta(minutes=5) #'Sat 10/27 6am'
+            if brand.events_begin != events_begin:
+                brand.events_begin = events_begin
+                brand.update_history.update({ 'events_begin': datetime.utcnow() })
             brand.update_time = datetime.utcnow()
             brand.save()
             common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=pair[1], is_new=is_new, is_updated=False)
@@ -225,7 +244,7 @@ class Server(object):
         else: self.net.check_signin()
 
         event_id = self.extract_event_id.match(url).group(2)
-        cont = self.net.fetch_page(url)
+        cont = self.net.fetch_listing_page(url)
         if isinstance(cont, int):
             common_failed.send(sender=ctx, key=event_id, url=url, reason='crawl_listing url error: {0}'.format(cont))
             return
@@ -246,7 +265,10 @@ class Server(object):
             days = int(end_date.split()[0]) if 'day' in end_date else 0
             hours = int(end_date.split()[-2]) if 'hour' in end_date else 0
             events_end = datetime.utcnow() + timedelta(days=days, hours=hours) + timedelta(minutes=29, seconds=59, microseconds=999999)
-            brand.events_end = datetime(events_end.year, events_end.month, events_end.day, events_end.hour)
+            events_end = datetime(events_end.year, events_end.month, events_end.day, events_end.hour)
+            if brand.events_end != events_end:
+                brand.events_end = events_end
+                brand.update_history.update({ 'events_end': datetime.utcnow() })
 #        brand.num = len(items)
 
         for item in items: self.crawl_list_product(event_id, item, ctx)
@@ -285,7 +307,7 @@ class Server(object):
         :param page_num: page number of this event
         :param event_id: unique key in Event, which we can associate product with event
         """
-        cont = self.net.fetch_page(url + page_text)
+        cont = self.net.fetch_listing_page(url + page_text)
         tree = lxml.html.fromstring(cont)
         node = tree.cssselect('div.container>div#main>div#category-view')[0]
         items = node.cssselect('div#products-grid li.item')

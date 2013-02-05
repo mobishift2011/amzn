@@ -23,25 +23,25 @@
   {% if message %}
     {{ message }}
   {% else %}
-    <div style="display: inline-block; vertical-align:middle;">
-        <input class="input-large" id="searchinput" type="text" />
-        <button class="btn" id="searchtitle">Search Title</button> 
-    </div>
-      <div class="container">
-        {% for p in products %}
-        <div style="float: left; width: 250px; height:500px;">
-          <img src="{{ p.cover_image|imagesize('224x0') }}" /><br />
-          {{ p.title }}<br />
-          <b style="color:grey">@departments</b> {{ p.department_path }}<br />
-          <b style="color:grey">@brand</b> {{ p.brand }}<br />
-          <b style="color:grey">@tags(first 3)</b> {{ p.tags[:3] }}<br />
-          <b style="color:grey">@prices </b> {{ p.our_price }} / {{ p.list_price }} <br />
-          <a target="_blank"  href="http://favbuy.com/product/{{ p.id }}/"><i class="icon icon-yellow icon-extlink"></i>Go to Product</a><br />
-          <a href="/editdata/product/{{ p.id }}/"><i class="icon icon-edit icon-blue"></i>Edit Product</a><br />
-          <a href="#" name="reason" site_key="{{p.site_key}}"><i class="icon icon-red icon-search"></i>clf-reason</a>
-        </div>                                
+    <table class="table table-striped"><!--bootstrap-datatable datatable">-->
+    <div class="container">
+        {% for e in events %}
+        <div style="float:left; width:250px; height:500px;">
+          <img src="{{ e.cover_image|imagesize('280x280') }}" style="width:240px; height:240px;"/><br />
+          {% if e.recommend_score %}
+            <b style="color:black">@score</b> {{ e.recommend_score}} <br />
+          {% else %}
+            <b style="color:black">@score</b> {{ e.score }} <br />
+          {% endif %}
+          <b style="color:grey">@title</b> {{ e.title }}<br />
+          <b style="color:grey">@departments</b> {{ e.departments }}<br />
+          <b style="color:grey">@brands(first 3)</b> {{ e.brands[:3] }}<br />
+          <a target="_blank" href="http://www.favbuy.com/event/{{ e.id }}/"><i class="icon icon-yellow icon-extlink"></i>Go to Event</a><br />
+          <a href="/editdata/event/{{ e.id }}/"><i class="icon icon-edit icon-blue"></i>Edit Event</a><br />
+          <a href="/viewdata/products?events={{ e.id }}"><i class="icon icon-red icon-folder-open"></i>Products in Event</a><br />
+        </div>
         {% endfor %}
-      </div>  
+    </div>
     <div class="pagination pagination-centered">
       <ul>
         {% if pagination.has_prev %}
@@ -81,19 +81,6 @@
     <a href="#" class="btn btn-primary">Save changes</a>
   </div>
 </div>
-
-<div class="modal hide fade" id="reason-modal">
-  <div class="modal-header">
-    <button type="button" class="close" data-dismiss="modal">×</button>
-    <h3>Classification Reason</h3>
-  </div>
-  <div class="modal-body" id="reason-body">
-  </div>
-  <div class="modal-footer">
-    <a href="#" class="btn" data-dismiss="modal">Close</a>
-  </div>
-</div>
-
 {% endblock %}
 
 {% block script %}
@@ -104,7 +91,7 @@
     if (window.location.href.indexOf(link) != -1){
       $(this).addClass('active');
     }
-  });
+  })
 
   // make selection consistent with url
   var param = $.deparam(window.location.href.substr(window.location.href.indexOf('?')+1));
@@ -118,22 +105,5 @@
     }
   });
 
-  $('#searchtitle').click(function(){
-    var url = "/viewdata/products?"+ $.param({'title__iexact':$('#searchinput').val()});
-    window.location.href = url;
-  });
-
-  // reason
-  $('[name=reason]').live('click', function(){
-    var site_key = $(this).attr('site_key');
-    var s = site_key.split('_');
-    var site = s[0]
-    var key = s[1]
-    console.log(site, key);
-    $.get('/viewdata/classification_reason.ajax', $.param({site:site,key:key}), function(data){
-        $('#reason-body').html(data);
-        $('#reason-modal').modal();
-    });
-  });
 </script>
 {% endblock %}

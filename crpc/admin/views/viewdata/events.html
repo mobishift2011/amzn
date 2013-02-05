@@ -13,77 +13,35 @@
 
   <div>
     <ul class="nav nav-tabs">
+      <li name="viewdata"><a href="/viewdata/recommend">Recommend</a></li>
       <li name="viewdata"><a href="/viewdata/events">Events</a></li>
       <li name="viewdata"><a href="/viewdata/products">Products</a></li>
       <li name="viewdata"><a href="/viewdata/classification">Classification</a></li>
-      <li name="viewdata"><a href="/viewdata/recommend">Recommend</a></li>
     </ul>
   </div>
   <div>
   {% if message %}
     {{ message }}
   {% else %}
-    <div class="row-fluid">
-      <div class="span10">
-        Site:
-        <select id="selectSite" data-rel="chosen" class="span2">
-          {% for site in sites %}
-          {% if site == 'ALL' %}
-          <option value="">ALL</option>
-          {% else %}
-          <option value="site_key__startswith={{site}}">{{ site }}</option>
-          {% endif %}
-          {% endfor %}
-        </select>
-        &nbsp;
-        UpdateTime:
-        <select id="selectTime" data-rel="chosen" class="span2">
-          <option value="">ALL</option>
-          <option value="updated_at__gt={{times.onehourago}}">In one hour</option>
-          <option value="updated_at__gt={{times.onedayago}}">In one day</option>
-          <option value="updated_at__gt={{times.oneweekago}}">In one week</option>
-        </select>
-        <input type="text" name="custom" value="" />
-        <button id="filter-event" class="btn btn-primary">Filter</button>
-      </div>
+    <div style="display: inline-block; vertical-align:middle;">
+        <input class="input-large" id="searchinput" type="text" />
+        <button class="btn" id="searchtitle">Search Title</button> 
     </div>
-    <table class="table table-striped"><!--bootstrap-datatable datatable">-->
-      <thead>
-        <tr>
-          <th width="224px">Event Image</th>
-          <th width="400px">Event Info</th>
-          <th>Aggregated Info</th>                                          
-          <th width="150px">Control</th>
-        </tr>
-      </thead>   
-      <tbody>
+    <div class="container">
         {% for e in events %}
-        <tr>
-          <td><img src="{{ e.cover_image|imagesize('224x0') }}" /></td>
-          <td>
-            <b style="color:grey">@update</b> {% if e.updated_at %}{{ e.updated_at.replace('T',' ')[:19] }}{% endif %}<br />
-            <b style="color:grey">@start</b> {{ e.starts_at.replace('T',' ')[:19] }} <br />
-            <b style="color:grey">@end</b> {{ e.ends_at.replace('T',' ')[:19] }}<br />
-            <b style="color:grey">@site_key</b> {{ e.site_key }}<br />
-            <b style="color:grey">@title</b> {{ e.title }}<br />
-            <b style="color:grey">@description</b> {{ e.description }}
-          </td>
-          <td>
-            <b style="color:grey">@departments</b> {{ e.departments }}<br />
-            <b style="color:grey">@brands(first 3)</b> {{ e.brands[:3] }}<br />
-            <b style="color:grey">@tags(first 3)</b> {{ e.tags[:3] }}<br />
-            <b style="color:grey">@prices </b> {{ e.lowest_price }} ~ {{ e.highest_price }} <br />
-            <b style="color:grey">@discounts</b> {{ e.lowest_discount }} ~ {{ e.highest_discount }} <br />
-          </td>
-          <td>
-            <a target="_blank" href="http://favbuy.com/event/{{ e.id }}/"><i class="icon icon-yellow icon-extlink"></i>Go to Event</a><br />
-            <a href="/editdata/event/{{ e.id }}/"><i class="icon icon-edit icon-blue"></i>Edit Event</a><br />
-            <a href="Javascript:void(0)"><i class="icon icon-red icon-folder-open"></i>Products in Event</a><br />
-          </td>
-        </tr>                                
+        <div style="float: left; width: 250px; height: 500px;">
+          <img src="{{ e.cover_image|imagesize('280x280') }}" style="width:240px; height:240px;"/><br />
+          <b style="color:grey">@site_key</b> {{ e.site_key }}<br />
+          <b style="color:grey">@title</b> {{ e.title }}<br />
+          <b style="color:grey">@departments</b> {{ e.departments }}<br />
+          <b style="color:grey">@brands(first 3)</b> {{ e.brands[:3] }}<br />
+          <b style="color:grey">@tags(first 3)</b> {{ e.tags[:3] }}<br />
+          <a target="_blank" href="http://favbuy.com/event/{{ e.id }}/"><i class="icon icon-yellow icon-extlink"></i>Go to Event</a><br />
+          <a href="/editdata/event/{{ e.id }}/"><i class="icon icon-edit icon-blue"></i>Edit Event</a><br />
+          <a href="/viewdata/products?events={{ e.id }}"><i class="icon icon-red icon-folder-open"></i>Products in Event</a><br />
+        </div>                                
         {% endfor %}
-      </tbody>  
-    </table>
+    </div>
     <div class="pagination pagination-centered">
       <ul>
         {% if pagination.has_prev %}
@@ -135,50 +93,22 @@
     }
   })
 
-  // make selection consistent with url
-  var param = $.deparam(window.location.href.substr(window.location.href.indexOf('?')+1));
-  if (param['site_key__startswith']){
-    var value = 'site_key__startswith=' + param['site_key__startswith'];
-    $('#selectSite').val(value).trigger('liszt:updated');
-  }
-  if (param['updated_at__gt']){
-    var value = 'updated_at__gt=' + param['updated_at__gt'];
-    $('#selectTime').val(value).trigger('liszt:updated');
-  }
-
-  // helper functions
-  function get_param(){
-    var param = {};
-    var sitearg = $('#selectSite').val();
-    var timearg = $('#selectTime').val(); 
-    if (sitearg != 'ALL' && sitearg){
-      var list = sitearg.split('=');
-      param[list[0]] = list[1];
-    }
-    if (timearg != 'ALL' && timearg){
-      var list = timearg.split('=');
-      param[list[0]] = list[1];
-    }
-    return param
-  }
-
-  // translate chosen 
-  $('#filter-event').live('click', function(){
-    var param = get_param();
-    var url = "/viewdata/events?" + $.param(param);
+  $('#searchtitle').click(function(){
+    var url = "/viewdata/events?"+ $.param({'title__iexact':$('#searchinput').val()});
     window.location.href = url;
   });
+
+  // make selection consistent with url
+  var param = $.deparam(window.location.href.substr(window.location.href.indexOf('?')+1));
 
   // pagination
   $('a.pagination').live('click', function(){
     if ($(this).attr('page')) {
-      var param = get_param();
       param['offset'] = ($(this).attr('page')-1)*20;
       var url = "/viewdata/events?" + $.param(param);
       window.location.href = url;
     }
   });
-
 
 
 </script>

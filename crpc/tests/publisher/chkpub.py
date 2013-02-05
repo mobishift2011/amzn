@@ -80,7 +80,7 @@ class PubChecker:
             ('image not completed', image_incomplete),
 
             ('upcoming events', total_new),
-            ('upcoming events unpublished', unpublished_new),
+            ('upcoming events unpublished', unpublished_new.count()),
             ('upcoming events unpublished, no image', noimage_up),
             ('upcoming events unpublished remaining, nonleaf', nonleaf),
             ('upcoming events unpublished, unknown', unknown_up),

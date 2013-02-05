@@ -194,6 +194,7 @@ class EditDataHandler(BaseHandler):
         if self.get_argument('score'):
             try:
                 data['recommend_score'] = float(self.get_argument('score'))
+                data['score'] = data['recommend_score']
             except:
                 pass
         brands              = self.get_argument('brands') and self.get_argument('brands').split(',') or None

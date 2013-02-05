@@ -53,7 +53,7 @@ def toggle_auto_scheduling(sender, **kwargs):
 # end binding
 
 gevent.spawn(Scheduler().run)
-gevent.spawn(avoid_cold_start)
+auto_scheduling.send('webui', auto=True)
 
 
 while True:

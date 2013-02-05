@@ -24,8 +24,8 @@ exclude_crawlers = ['common', 'amazon', 'newegg', 'ecost', 'bhphotovideo', 'best
 # for auto-scheduler. bluefly, beyondtherack, nomorerack, zulily should better not be schedule together
 picked_crawlers = (
          'belleandclive',
-         'bluefly',
          'ideeli',
+         'bluefly',
          'ruelala',
          'gilt',
          'nomorerack',

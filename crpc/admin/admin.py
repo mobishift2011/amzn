@@ -445,7 +445,7 @@ class ViewDataHandler(BaseHandler):
 
         try:
             now = datetime.utcnow()
-            result= api.event.get(starts_at__lt=now, ends_at__gt=now, order_by='-recommend_score,-score',cover_image__ne="", limit=44,have_products='true')
+            result= api.event.get(starts_at__lt=now, ends_at__gt=now, order_by='-recommend_score,-score',cover_image__ne="", offset=offset, limit=limit,have_products='true')
             message = ''
         except:
             message = 'CANNOT Connect to Mastiff!'

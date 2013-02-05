@@ -12,6 +12,8 @@ import re
 import os
 import pytz
 import requests
+import ConfigParser
+import random
 from datetime import datetime
 from gevent.coros import Semaphore
 from settings import CRPC_ROOT
@@ -22,8 +24,8 @@ exclude_crawlers = ['common', 'amazon', 'newegg', 'ecost', 'bhphotovideo', 'best
 # for auto-scheduler. bluefly, beyondtherack, nomorerack, zulily should better not be schedule together
 picked_crawlers = (
          'belleandclive',
-         'bluefly',
          'ideeli',
+         'bluefly',
          'ruelala',
          'gilt',
          'nomorerack',
@@ -50,10 +52,17 @@ login_email = {'bluefly': '2012luxurygoods@gmail.com',
                'myhabit': '2012luxurygoods@gmail.com',
                'belleandclive': '2012luxurygoods@gmail.com',
                'modnique': '2012luxurygoods@gmail.com',
-               'zulily': 'woodena16@gmail.com',
+               'zulily': 'wenj428@gmail.com',
                'onekingslane': '2012luxurygoods@gmail.com',
                'hautelook': '2012luxurygoods@gmail.com',
 }
+
+configFile = ConfigParser.ConfigParser()
+def get_login_email(site):
+    configFile.read( os.path.join(os.path.dirname(__file__), 'username.ini') )
+    email = random.choice( [i.strip() for i in configFile.get('username', site).split(',')] )
+    return email
+
 login_passwd = 'abcd1234'
 
 headers = { 

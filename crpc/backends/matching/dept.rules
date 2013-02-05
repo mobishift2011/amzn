@@ -6,6 +6,15 @@
 #  [2] - if XXXX in a title; we can determine the sub department of it
 # The XXXX is tested in a brute-force; longest first way
 [0] iPhone Case -> Women; Men; Accessories
+[0] Nail Lacquer -> Beauty & Health; Makeup
+[0] Nail Polish -> Beauty & Health; Makeup
+[0] Lip Antioxidant -> Beauty & Health; Makeup
+[0] Lip Smoothie -> Beauty & Health; Makeup
+[0] Lip Glass -> Beauty & Health; Makeup
+[0] Lip Slip -> Beauty & Health; Makeup
+[0] Body Scrub -> Beauty & Health; Body Care & Hair
+[0] Smooth Shave -> Beauty & Health; Body Care & Hair
+[0] Hydrating Powder -> Beauty & Health; Body Care & Hair
 [0] Colorlock Iron -> Beauty & Health; Body Care & Hair
 [0] Straightening Iron -> Beauty & Health; Body Care & Hair
 [0] Curling Iron -> Beauty & Health; Body Care & Hair
@@ -129,7 +138,6 @@
 [0] Hardcover -> Home; Accessories
 [0] Coddler -> Home; Kitchen & Dining
 [0] Nutcracker -> Home; Kitchen & Dining
-[0] Plushie -> Kids & Baby; Toys, Games & Books
 [0] Armchair -> Home; Furniture & Lighting
 [0] Sheets Cases -> Home; Bed & Bath
 [0] Steamer -> Home; Kitchen & Dining
@@ -141,7 +149,6 @@
 [0] Diamond Stub -> Jewelry & Watches; Earrings
 [0] Diamond Vintage -> Jewelry & Watches; Rings
 [0] Stereo -> Home; Electronics
-[0] Plush -> Kids & Baby; Toys, Games & Books
 [0] Urban Trends Collection -> Home; Home Accessories
 [0] Melissa Doug -> Kids & Baby; Toys, Games & Books
 [0] Actimoist -> Beauty & Health; Skin Care
@@ -175,7 +182,6 @@
 [0] Lipliner -> Beauty & Helath; Makeup
 [0] Lipliners -> Beauty & Helath; Makeup
 [0] Lipsticks -> Beauty & Helath; Makeup
-[0] Brooch -> Jewelry & Watches; Pendants
 [0] Dead Sea Minerals -> Beauty & Health; Skin Care
 [0] Dead Sea -> Beauty & Health; Skin Care
 [0] Jewelry Box -> Home; Accessories; Women
@@ -267,7 +273,6 @@
 [0] Pettiskirt -> Kids & Baby; Girls' Clothing
 [0] Pettidress -> Kids & Baby; Girls' Clothing
 [0] Butcher -> Home; Kitchen & Dining
-[0] Grinder -> Home; Tools
 [0] Strainer -> Home; Kitchen & Dining
 [0] Whisk -> Home; Kitchen & Dining
 [0] Games Kids -> Kids & Baby; Toys, Games & Books
@@ -288,8 +293,6 @@
 [0] Stockpot -> Home; Kitchen & Dining
 [0] Stockpots -> Home; Kitchen & Dining
 [0] Tier Stand -> Home; Furniture & Lighting; Home Accessories
-[0] Kettle -> Home; Kitchen & Dining
-[0] Kettles -> Home; Kitchen & Dining
 [0] Sumak -> Home; Rugs & Textiles
 [0] Potholder -> Home; Kitchen & Dining
 [0] Wine Set -> Home; Kitchen & Dining
@@ -372,8 +375,6 @@
 [0] Pearl Duvet Set -> Home; Bed & Bath
 [0] Pearl Set -> Jewelry & Watches; Bracelets; Necklaces; Earrings; Rings
 [0] Drink Opener -> Home; Kitchen & Dining
-[0] Kitchen -> Home; Kitchen & Dining
-[0] Dining -> Home; Kitchen & Dining
 [0] Purse -> Bags; Wallets
 [0] Figurine -> Home; Home Accessories
 [0] Figurines -> Home; Home Accessories
@@ -433,7 +434,6 @@
 [0] Patent Skimmer -> Women; Shoes
 [0] Pestle -> Home; Kitchen & Dining
 [0] Pen -> Home; Home Accessories
-[0] Jewelry Set -> Jewelry & Watches; Necklaces; Bracelets; Earrings
 [0] Bowl-Set -> Home; Kitchen & Dining
 [0] Bowl -> Home; Kitchen & Dining
 [0] Bowls -> Home; Kitchen & Dining
@@ -589,14 +589,18 @@
 [0] Glasses Set -> Home; Kitchen & Dining
 [0] Glass Set -> Home; Kitchen & Dining
 [0] Glasses -> Men; Women; Accessories
+[0] DOF Glasses -> Home; Kitchen & Dining
+[0] Moroccan Glasses -> Home; Kitchen & Dining
+[0] Highball Glasses -> Home; Kitchen & Dining
+[0] Punch Glasses -> Home; Kitchen & Dining
+[0] Etched Glasses -> Home; Kitchen & Dining
+[0] Minerale Glasses -> Home; Kitchen & Dining
 [0] Piece Puzzle -> Home; Home Accessories
 [0] Calf Boot -> Women; Shoes
 [0] Hughanna Capri -> Women; Pants & Shorts
 [0] Heels -> Women; Shoes
 [0] Heeled -> Women; Shoes
 [0] Kilim -> Home; Rugs & Textiles
-[0] Ring -> Jewelry & Watches; Rings
-[0] Rings -> Jewelry & Watches; Rings
 [0] Compartment Bowl Set -> Home; Kitchen & Dining
 [0] Poster -> Home; Home Accessories
 [0] Waste Bin -> Home; Home Accessories
@@ -688,10 +692,6 @@
 [0] Flat Boots -> Women; Shoes
 [0] Boot Jean -> Women; Pants & Shorts
 [0] Ravioli Attachment -> Home; Tools
-[0] Flatform -> Women; Shoes
-[0] Platform -> Women; Shoes
-[0] Platforms -> Women; Shoes
-[0] Flatforms -> Women; Shoes
 [0] Pug Boot -> Women; Shoes
 [0] Small Aviators -> Men; Women; Accessories
 [0] Tilt Head Mixer -> Home; Kitchen & Dining
@@ -823,6 +823,8 @@
 [2] Paint Splatter Denim -> Pants & Shorts
 [2] Shorts -> Pants & Shorts
 [2] Short -> Pants & Shorts
+[2] Boardshort -> Pants & Shorts
+[2] Boardshorts -> Pants & Shorts
 [2] Leggin -> Pants & Shorts
 [2] Leggins -> Pants & Shorts
 [2] Legging -> Pants & Shorts
@@ -863,6 +865,7 @@
 [2] Snowsuits -> Suits & Coats
 [2] Waistcoat -> Suits & Coats
 [2] Waistcoats -> Suits & Coats
+[2] Ford Bomber -> Accessories
 [2] Bomber -> Suits & Coats
 [2] Suit -> Suits & Coats
 [2] Suits -> Suits & Coats
@@ -1514,3 +1517,20 @@
 [2] Blouse -> Shirts & Sweaters
 [2] Tunic -> Shirts & Sweaters
 [2] Lace Top -> Shirts & Sweaters
+[2] Platform -> Shoes
+[2] Platforms -> Shoes
+[2] Flatform -> Shoes
+[2] Flatforms -> Shoes
+[2] Plush -> Kids & Baby; Toys, Games & Books
+[2] Plushie -> Kids & Baby; Toys, Games & Books
+[2] Plush Slipper -> Shoes
+[2] Plush Slippers -> Shoes
+[2] Kettle -> Home; Kitchen & Dining
+[2] Kettles -> Home; Kitchen & Dining
+[2] Kitchen -> Home; Kitchen & Dining
+[2] Dining -> Home; Kitchen & Dining
+[2] Grinder -> Home; Tools
+[2] Ring -> Jewelry & Watches; Rings
+[2] Rings -> Jewelry & Watches; Rings
+[2] Brooch -> Jewelry & Watches; Pendants
+[2] Jewelry Set -> Jewelry & Watches; Necklaces; Bracelets; Earrings

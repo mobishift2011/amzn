@@ -31,7 +31,7 @@ class Server(object):
     def __init__(self):
         self.rooturl = 'http://www.myhabit.com/request/getAllPrivateSales'
 
-    def crawl_category(self, ctx=''):
+    def crawl_category(self, ctx='', **kwargs):
         r = req.get(self.rooturl)
         data = json.loads(r.text)
 
@@ -76,7 +76,7 @@ class Server(object):
         common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
 
 
-    def crawl_listing(self, url, ctx=''):
+    def crawl_listing(self, url, ctx='', **kwargs):
         prefix_url = url.rsplit('/', 1)[0] + '/'
         r = req.get(url)
         event_id, data = re.compile(r'parse_sale_(\w+)\((.*)\);$').search(r.text).groups()
@@ -154,7 +154,7 @@ class Server(object):
         common_saved.send(sender=ctx, obj_type='Product', key=casin, url=product.combine_url, is_new=is_new, is_updated=is_updated)
 
 
-    def crawl_product(self, url, casin, ctx=''):
+    def crawl_product(self, url, casin, ctx='', **kwargs):
         r = req.get(url)
         data = re.compile(r'parse_asin_\w+\((.*)\);$').search(r.text).group(1)
         data = json.loads(data)
@@ -164,14 +164,14 @@ class Server(object):
         list_info = [i.replace('&quot;', '"').replace('&#39;', '\'') for i in data['productDescription']['bullets'][0]['bulletsList']]
         brand = data['detailJSON']['brand']
         returned = data['detailJSON']['returnPolicy']
-        if 'intlShippable' in data['detailJSON']:
-            shipping = 'international shipping' if data['detailJSON']['intlShippable'] == 1 else 'no international shipping'
-        elif 'choices' in data['detailJSON']:
-            for i in data['detailJSON']['choices']:
-                if i['asin'] == casin:
-                    shipping = 'international shipping' if i['intlShippable'] == 1 else 'no international shipping'
-                    break
-        shipping = shipping if shipping else ''
+#        if 'intlShippable' in data['detailJSON']:
+#            shipping = 'international shipping' if data['detailJSON']['intlShippable'] == 1 else 'no international shipping'
+#        elif 'choices' in data['detailJSON']:
+#            for i in data['detailJSON']['choices']:
+#                if i['asin'] == casin:
+#                    shipping = 'international shipping' if i['intlShippable'] == 1 else 'no international shipping'
+#                    break
+#        shipping = shipping if shipping else ''
 
         video = ''
         for p in data['detailJSON']['asins']:
@@ -187,7 +187,7 @@ class Server(object):
         product.summary = summary
         product.list_info = list_info
         product.brand = brand
-        product.shipping = shipping
+        product.shipping = 'FAST, FREE SHIPPING, FREE RETURN SHIPPING in the U.S.'
         product.returned = returned
         product.video = video
         product.full_update_time = datetime.utcnow()

@@ -125,7 +125,7 @@ class ImageTool:
             s3_url = '{0}/{1}'.format(S3_IMAGE_URL, self.__key.key)
             if thumb:
                 if doctype.capitalize() == 'Product' or \
-                    (doctype.capitalize() == 'Event' and index == 0):
+                    (doctype.capitalize() == 'Event' and not self.__image_path):
                         resolutions = self.thumbnail_and_upload(doctype, image_content, self.__key.key, exist_keys)
 
             self.__image_path.append({'url':s3_url, 'resolutions':resolutions})
@@ -296,20 +296,15 @@ class Propagator(object):
                 # Event & Product begin_date, end_date
                 if not hasattr(product, 'products_begin') \
                     or not product.products_begin:
-                        product.products_begin = events_begin
+                        product.products_begin = self.event.events_begin
                 if not hasattr(product, 'products_end') \
                     or not product.products_end:
-                        product.products_end = events_end
-
-                if not events_begin and product.products_begin:
-                    events_begin = product.products_begin
-                if not events_end and product.products_end:
-                    events_end = product.products_end
+                        product.products_end = self.event.events_end
 
                 if events_begin and product.products_begin:
-                    events_begin = min(events_begin, product.products_begin)
+                    product.products_begin = min(events_begin, product.products_begin)
                 if events_end and product.products_end:
-                    events_end = max(events_end, product.products_end)
+                    product.products_end = max(events_end, product.products_end)
 
                 # (lowest, highest) discount, (lowest, highest) price propagation
                 try:
@@ -518,19 +513,21 @@ def unescape(text):
 def test_image():
     conn = S3Connection(AWS_ACCESS_KEY, AWS_SECRET_KEY)
     urls = [
-        'http://3.icdn.ideeli.net/attachments/147066986/430115381280-1_grid_image_zoom_largegrid_image_zoom_large900x1275.jpg',
-        'http://1.icdn.ideeli.net/attachments/147067318/430115381280-2_grid_image_zoom_largegrid_image_zoom_large900x1275.jpg',
-        'http://cdn03.mbbimg.cn/1307/13070129/01/480/01.jpg',
-        'http://cdn08.mbbimg.cn/1310/13100015/03/480/02.jpg',
+        'http://www1.hautelookcdn.com/assets/28313watcheswj/pop-large.jpg',
+        'http://www1.hautelookcdn.com/assets/28313watcheswj/event-small.jpg',
     ]
 
     it = ImageTool(connection = conn)
-    it.crawl(urls[0:2], 'venteprivee', 'event', 'abc123458', thumb=True)
+    it.crawl(urls, 'hautelook', 'event', '28313', thumb=True)
     print 'image path ---> {0}'.format(it.image_path)
     print 'complete ---> {0}\n'.format(it.image_complete)
 
+    urls = [
+        'http://www.hautelook.com/assets/28050kidorable/grid-large.jpg',
+        'http://www.hautelook.com/assets/28050kidorable/pop-large.jpg',
+    ]
     it = ImageTool(connection = conn)
-    it.crawl(urls[2:], 'venteprivee', 'product', '123456791', thumb=True)
+    it.crawl(urls, 'hautelook', 'event', '123456791', thumb=True)
     print 'image path ---> {0}'.format(it.image_path)
     print 'complete ---> {0}\n'.format(it.image_complete)
 

@@ -128,7 +128,7 @@ class Server(object):
         self.extract_image_url = re.compile('background-image: url\(\'(.*)\'\);')
 
 
-    def crawl_category(self, ctx=''):
+    def crawl_category(self, ctx='', **kwargs):
         self.crawl_category_text_info(self.all_event_url, ctx)
 
         for dept, url in self.dept_link.iteritems():
@@ -236,7 +236,7 @@ class Server(object):
             common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
 
 
-    def crawl_listing(self, url, ctx=''):
+    def crawl_listing(self, url, ctx='', **kwargs):
         event_id = url.rsplit('/', 1)[-1]
         content = self.net.fetch_listing_page(url)
         if isinstance(content, list):
@@ -386,7 +386,7 @@ class Server(object):
         common_saved.send(sender=ctx, obj_type='Product', key=key, url=product_url, is_new=is_new, is_updated=is_updated, ready=ready)
 
 
-    def crawl_product(self, url, ctx=''):
+    def crawl_product(self, url, ctx='', **kwargs):
         key = url.rsplit('/', 1)[-1]
         content = self.net.fetch_product_page(url)
         if content == -1:

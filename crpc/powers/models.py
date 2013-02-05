@@ -35,3 +35,23 @@ class Brand(Document):
         
     def __unicode__(self):
         return self.title
+
+    def to_json(self):
+        return {
+            'title'           :   self.title,
+            'title_edit'      :   self.title_edit,
+            'title_checked'   :   self.title_checked,
+            'alias'           :   self.alias,
+            'keywords'        :   self.keywords,
+            'url'             :   self.url,
+            'url_checked'     :   self.url_checked,
+            'blurb'           :   self.blurb,
+            'images'          :   self.images,
+            'level'           :   self.level,
+            'dept'            :   self.dept,
+            'is_delete'       :   self.is_delete,
+            'done'            :   self.done,
+            'global_searchs'  :   self.global_searchs,
+            'local_searchs'   :   self.local_searchs,
+            'created_at'      :   str(self.created_at)
+        }

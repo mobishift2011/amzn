@@ -24,7 +24,7 @@ except_crawler = ('bluefly',
                   'ideeli',
                   'nomorerack',
                   'lot18',
-                  'zulily', )
+                 )
 
 def ganglia_alarm():
     """..:py:method::

@@ -208,7 +208,9 @@ class Server(object):
                 event.image_urls = image
                 event.sale_title = sale_title # some sale_title is too long to be omit by ...
                 event.sale_description = sale_description
-            event.events_begin = events_begin
+            if event.events_begin != events_begin:
+                event.events_begin = events_begin
+                event.update_history.update({ 'events_begin': datetime.utcnow() })
 
             event.save()
             common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
@@ -223,7 +225,9 @@ class Server(object):
                 # some sale_title is too long to be omit by ...
                 event.sale_title = sale_title
                 event.sale_description = sale_description
-            event.events_begin = events_begin
+            if event.events_begin != events_begin:
+                event.events_begin = events_begin
+                event.update_history.update({ 'events_begin': datetime.utcnow() })
 
             event.save()
             common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
@@ -486,7 +490,17 @@ class Server(object):
             self.detect_rest_home_product(url, '', ctx)
         else: # women, men, children
             events_begin, image, sale_description = None, None, None
-            _end = tree.cssselect('section#main > div > section.page-header-container  section.page-head-top  > div.clearfix > section.sale-countdown > time.sale-end-time')[0].get('datetime')
+            try:
+                _end = tree.cssselect('section#main > div > section.page-header-container  section.page-head-top  > div.clearfix > section.sale-countdown > time.sale-end-time')[0].get('datetime')
+            except IndexError:
+                data_gilt_time = tree.cssselect('span#shopInCountdown')[0].get('data-gilt-time')
+                events_begin = self.gilt_time(data_gilt_time)
+                event = Event.objects(event_id=event_id).first()
+                if event.events_begin != events_begin:
+                    event.update_history.update({ 'events_begin': datetime.utcnow() })
+                    event.events_begin = events_begin
+                    event.save()
+                return
             events_end = datetime.strptime(_end, '%Y-%m-%dT%XZ') # 2012-12-26T05:00:00Z
 
             nodes = tree.cssselect('section#main > div > section#product-listing > div.elements-container > article[id^="look-"]')
@@ -498,8 +512,13 @@ class Server(object):
 
         event = Event.objects(event_id=event_id).first()
         if not event: event = Event(event_id=event_id)
-        if events_begin: event.events_begin = events_begin
-        event.events_end = events_end
+        if events_begin:
+            if event.events_begin != events_begin:
+                event.update_history.update({ 'events_begin': datetime.utcnow() })
+                event.events_begin = events_begin
+        if event.events_end != events_end
+            event.update_history.update({ 'events_end': datetime.utcnow() })
+            event.events_end = events_end
         if '/home/sale' in url or '/sale/home' in url: # home
             if not event.sale_description:
                 event.sale_description = sale_description

@@ -27,25 +27,30 @@ class giltLogin(object):
             'remember_me': 'on',
         }    
 
-        self._signin = False
+        self.current_email = login_email[DB]
+        self._signin = {}
 
     def login_account(self):
         """.. :py:method::
             use post method to login
         """
+        self.data['email'] = self.current_email
         _now = int(time.time())
         _before = _now - 11
         auth_url = 'https://www.gilt.com/login/auth?callback=jQuery17206991992753464729_{0}&email={1}&password={2}&remember_me=on&_={3}'.format(_before*1000 + 450, self.data['email'], self.data['password'], _now*1000 + 739)
         req.get(auth_url)
 
         req.post('https://www.gilt.com/login/redirect', data=self.data)
-        self._signin = True
+        self._signin[self.current_email] = True
 
-    def check_signin(self):
+    def check_signin(self, username=''):
         """.. :py:method::
             check whether the account is login
         """
-        if not self._signin:
+        if username == '':
+            self.login_account()
+        elif username not in self._signin:
+            self.current_email = username
             self.login_account()
 
     def fetch_page(self, url):
@@ -88,7 +93,9 @@ class Server(object):
     def crawl_category(self, ctx='', **kwargs):
         """.. :py:method::
         """
-        self.net.check_signin()
+        if kwargs.get('login_email'): self.net.check_signin( kwargs.get('login_email') )
+        else: self.net.check_signin()
+
         categories = ['women', 'men', 'children', ]
         for cat in categories:
             link = 'http://www.gilt.com/sale/{0}'.format(cat)
@@ -471,8 +478,10 @@ class Server(object):
             crawl women, men, children listing page
             crawl home listing page
         """
+        if kwargs.get('login_email'): self.net.check_signin( kwargs.get('login_email') )
+        else: self.net.check_signin()
+
         event_id = url.rsplit('/', 1)[-1]
-        self.net.check_signin()
         tree = self.download_listing_page_get_correct_tree(url, event_id, 'download listing page error', ctx)
         if tree is None: return
 
@@ -662,8 +671,10 @@ class Server(object):
     def crawl_product(self, url, ctx='', **kwargs):
         """.. :py:method::
         """
+        if kwargs.get('login_email'): self.net.check_signin( kwargs.get('login_email') )
+        else: self.net.check_signin()
+
         key = url.rsplit('/', 1)[-1]
-        self.net.check_signin()
         tree = self.download_product_page_get_correct_tree(url, url.rsplit('/', 1)[-1], 'download product page error', ctx)
         if tree is None:
             tree = self.download_product_page_get_correct_tree(url, url.rsplit('/', 1)[-1], 'download product page twice error', ctx)

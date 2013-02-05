@@ -27,25 +27,30 @@ class giltLogin(object):
             'remember_me': 'on',
         }    
 
-        self._signin = False
+        self.current_email = login_email[DB]
+        self._signin = {}
 
     def login_account(self):
         """.. :py:method::
             use post method to login
         """
+        self.data['email'] = self.current_email
         _now = int(time.time())
         _before = _now - 11
         auth_url = 'https://www.gilt.com/login/auth?callback=jQuery17206991992753464729_{0}&email={1}&password={2}&remember_me=on&_={3}'.format(_before*1000 + 450, self.data['email'], self.data['password'], _now*1000 + 739)
         req.get(auth_url)
 
         req.post('https://www.gilt.com/login/redirect', data=self.data)
-        self._signin = True
+        self._signin[self.current_email] = True
 
-    def check_signin(self):
+    def check_signin(self, username=''):
         """.. :py:method::
             check whether the account is login
         """
-        if not self._signin:
+        if username == '':
+            self.login_account()
+        elif username not in self._signin:
+            self.current_email = username
             self.login_account()
 
     def fetch_page(self, url):
@@ -88,7 +93,9 @@ class Server(object):
     def crawl_category(self, ctx='', **kwargs):
         """.. :py:method::
         """
-        self.net.check_signin()
+        if kwargs.get('login_email'): self.net.check_signin( kwargs.get('login_email') )
+        else: self.net.check_signin()
+
         categories = ['women', 'men', 'children', ]
         for cat in categories:
             link = 'http://www.gilt.com/sale/{0}'.format(cat)
@@ -208,7 +215,9 @@ class Server(object):
                 event.image_urls = image
                 event.sale_title = sale_title # some sale_title is too long to be omit by ...
                 event.sale_description = sale_description
-            event.events_begin = events_begin
+            if event.events_begin != events_begin:
+                event.events_begin = events_begin
+                event.update_history.update({ 'events_begin': datetime.utcnow() })
 
             event.save()
             common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
@@ -223,7 +232,9 @@ class Server(object):
                 # some sale_title is too long to be omit by ...
                 event.sale_title = sale_title
                 event.sale_description = sale_description
-            event.events_begin = events_begin
+            if event.events_begin != events_begin:
+                event.events_begin = events_begin
+                event.update_history.update({ 'events_begin': datetime.utcnow() })
 
             event.save()
             common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
@@ -467,8 +478,10 @@ class Server(object):
             crawl women, men, children listing page
             crawl home listing page
         """
+        if kwargs.get('login_email'): self.net.check_signin( kwargs.get('login_email') )
+        else: self.net.check_signin()
+
         event_id = url.rsplit('/', 1)[-1]
-        self.net.check_signin()
         tree = self.download_listing_page_get_correct_tree(url, event_id, 'download listing page error', ctx)
         if tree is None: return
 
@@ -486,7 +499,17 @@ class Server(object):
             self.detect_rest_home_product(url, '', ctx)
         else: # women, men, children
             events_begin, image, sale_description = None, None, None
-            _end = tree.cssselect('section#main > div > section.page-header-container  section.page-head-top  > div.clearfix > section.sale-countdown > time.sale-end-time')[0].get('datetime')
+            try:
+                _end = tree.cssselect('section#main > div > section.page-header-container  section.page-head-top  > div.clearfix > section.sale-countdown > time.sale-end-time')[0].get('datetime')
+            except IndexError:
+                data_gilt_time = tree.cssselect('span#shopInCountdown')[0].get('data-gilt-time')
+                events_begin = self.gilt_time(data_gilt_time)
+                event = Event.objects(event_id=event_id).first()
+                if event.events_begin != events_begin:
+                    event.update_history.update({ 'events_begin': datetime.utcnow() })
+                    event.events_begin = events_begin
+                    event.save()
+                return
             events_end = datetime.strptime(_end, '%Y-%m-%dT%XZ') # 2012-12-26T05:00:00Z
 
             nodes = tree.cssselect('section#main > div > section#product-listing > div.elements-container > article[id^="look-"]')
@@ -498,8 +521,13 @@ class Server(object):
 
         event = Event.objects(event_id=event_id).first()
         if not event: event = Event(event_id=event_id)
-        if events_begin: event.events_begin = events_begin
-        event.events_end = events_end
+        if events_begin:
+            if event.events_begin != events_begin:
+                event.update_history.update({ 'events_begin': datetime.utcnow() })
+                event.events_begin = events_begin
+        if event.events_end != events_end:
+            event.update_history.update({ 'events_end': datetime.utcnow() })
+            event.events_end = events_end
         if '/home/sale' in url or '/sale/home' in url: # home
             if not event.sale_description:
                 event.sale_description = sale_description
@@ -643,8 +671,10 @@ class Server(object):
     def crawl_product(self, url, ctx='', **kwargs):
         """.. :py:method::
         """
+        if kwargs.get('login_email'): self.net.check_signin( kwargs.get('login_email') )
+        else: self.net.check_signin()
+
         key = url.rsplit('/', 1)[-1]
-        self.net.check_signin()
         tree = self.download_product_page_get_correct_tree(url, url.rsplit('/', 1)[-1], 'download product page error', ctx)
         if tree is None:
             tree = self.download_product_page_get_correct_tree(url, url.rsplit('/', 1)[-1], 'download product page twice error', ctx)

@@ -315,7 +315,6 @@ class Server(object):
         [product.image_urls.append(img) for img in image_urls if img not in product.image_urls]
         product.shipping = shipping
         product.list_info = list_info
-        product.brand = brand
         product.returned = returned
         product.full_update_time = datetime.utcnow()
         if product.updated == False:
@@ -375,7 +374,6 @@ class Server(object):
         [product.image_urls.append(img) for img in image_urls if img not in product.image_urls]
         product.shipping = shipping
         product.list_info = list_info
-        product.brand = brand
         product.returned = returned
         product.price = price
         product.listprice = listprice

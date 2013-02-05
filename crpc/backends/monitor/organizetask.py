@@ -30,16 +30,25 @@ def detect_upcoming_new_schedule():
                     for begin in events_begin:
                         smethod_time['{0}.new_thrice'.format(crawler_name)].add(begin)
 
-        add_nomorerack_onsale()
+        add_noupcoming_onsale()
         gevent.sleep(UPCOMING_EVENTS_DETECT_INTERVAL * 60)
 
-def add_nomorerack_onsale():
+def add_noupcoming_onsale():
     """.. :py:method::
         nomorerack has no upcoming events, utc17:00 lunch
+        ideeli has no upcoming events, utc15:00, 16:00, 21:00 lunch
     """
     _utcnow = datetime.utcnow()
-    if _utcnow.hour < 17:
+    if _utcnow.hour < 17: # nomorerack
         smethod_time['nomorerack.new_thrice'].add(datetime(_utcnow.year, _utcnow.month, _utcnow.day, 17))
+    if _utcnow.hour < 15: # ideeli
+        smethod_time['ideeli.new_thrice'].add(datetime(_utcnow.year, _utcnow.month, _utcnow.day, 15))
+        smethod_time['ideeli.new_thrice'].add(datetime(_utcnow.year, _utcnow.month, _utcnow.day, 16))
+        smethod_time['ideeli.new_thrice'].add(datetime(_utcnow.year, _utcnow.month, _utcnow.day, 21))
+    if _utcnow.hour < 16: # belleandclive
+        smethod_time['belleandclive.new_thrice'].add(datetime(_utcnow.year, _utcnow.month, _utcnow.day, 16))
+    else:
+        smethod_time['belleandclive.new_thrice'].add(datetime(_utcnow.year, _utcnow.month, _utcnow.day) + timedelta(days=1))
 
 
 def arrange_new_schedule():

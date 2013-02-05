@@ -75,10 +75,6 @@
 [0] European Sham -> Home; Bed & Bath
 [0] Decorative Pillow -> Home; Bed & Bath
 [0] Decorative Pillows -> Home; Bed & Bath
-[0] iPhone Necklace -> Women; Men; Accessories
-[0] iPad Case -> Women; Men; Accessories
-[0] Tablet Case -> Women; Men; Accessories
-[0] iPod Touch -> Women; Men; Accessories
 [0] Toe Ring Sandal -> Women; Shoes
 [0] Swarovski Crystal -> Jewelry & Watches; Pendants
 [0] Key Enhancer -> Jewelry & Watches; Pendants
@@ -1536,3 +1532,7 @@
 [2] Jewelry Set -> Jewelry & Watches; Necklaces; Bracelets; Earrings
 [2] One Piece -> Shirts & Sweaters
 [2] One-Piece -> Shirts & Sweaters
+[2] iPhone Necklace -> Accessories
+[2] iPad Case -> Accessories
+[2] Tablet Case -> Accessories
+[2] iPod Touch -> Accessories

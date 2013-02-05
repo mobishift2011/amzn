@@ -190,7 +190,12 @@ class EditDataHandler(BaseHandler):
         data['title']       = self.get_argument('title')
         data['description'] = self.get_argument('description','')
         data['tags']        = self.get_argument('tags').split(',')
-        data['recommend_score'] = self.get_argument('score') or 99
+        data['departments']   = eval(self.get_argument('departments', '[]'))
+        if self.get_argument('score'):
+            try:
+                data['recommend_score'] = float(self.get_argument('score'))
+            except:
+                pass
         brands              = self.get_argument('brands') and self.get_argument('brands').split(',') or None
 
         # validate brands
@@ -211,6 +216,7 @@ class EditDataHandler(BaseHandler):
             e.sale_title = data['title']
             e.sale_description = data['description']
             e.favbuy_tag = data['tags']
+            e.departments = data['departments']
             e.save()
         except Exception,e:
             message = e.message
@@ -223,7 +229,11 @@ class EditDataHandler(BaseHandler):
             message = e.message
         else:
             message = 'Success'
-        return self.render('editdata/event.html',message=message)
+
+        event = api.event(id).get()
+        event['brands'] = ','.join(event.get('brands',[]))
+        event['tags'] = ','.join(event.get('tags',[]))
+        self.render('editdata/event.html',event=event, message=message)
 
     def _edit_product(self,id):
         # POST
@@ -235,7 +245,8 @@ class EditDataHandler(BaseHandler):
         data['details']       = self.get_argument('details')
         data['tags']          = self.get_argument('tags') and self.get_argument('tags').split(',') or []
         data['brand']         = self.get_argument('brand')
-        data['cover_image']   = eval(self.get_argument('cover_image'))
+        data['departments']   = eval(self.get_argument('departments', '[]'))
+        data['cover_image']   = eval(self.get_argument('cover_image', '{}'))
         data['details']       = self.get_argument('details') and self.get_argument('details').split('\n') or []
 
         # validate
@@ -252,6 +263,7 @@ class EditDataHandler(BaseHandler):
             p.list_info = data['details']
             p.brand = data['brand']
             p.tagline = data['tags']
+            p.department_path = data['departments']
             p.save()
         except Exception,e:
             message = e.message
@@ -264,7 +276,11 @@ class EditDataHandler(BaseHandler):
             message = e.message
         else:
             message = 'Success'
-        return self.render('editdata/product.html',message=message)
+
+        product = api.product(id).get()
+        product['tags'] = ','.join(product.get('tags') or [])
+        product['details'] = '\n'.join(product['details'])
+        self.render('editdata/product.html',product=product, message=message)
 
 class ViewDataHandler(BaseHandler):
     @tornado.web.authenticated

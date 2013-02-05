@@ -13,8 +13,10 @@
 
   <div>
   {% if message %}
+  <div class="alert alert-success">
     {{ message }}
-  {% else %}
+  </div>
+  {% endif %}
     <form class="form-horizontal" method="POST"> {{ xsrf_form_html()|safe }}
       <fieldset>
         <legend>Edit Event</legend>
@@ -37,6 +39,13 @@
           <label class="control-label" for="textarea2">Details</label>
           <div class="controls">
             <textarea name="description" rows="5",cols="50" style="width:400px;">{{ event.description }}</textarea>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label" for="typeahead">Departments</label>
+          <div class="controls">
+              <input type="text" class="span6 typeahead" name="departments" value="{{ event.departments }}">
           </div>
         </div>
 
@@ -66,7 +75,6 @@
           <button type="reset" class="btn">Cancel</button>
         </div>
 
-  {% endif %}
   </div>
 </div><!--main-content-->
   
@@ -87,50 +95,5 @@
 
 {% block script %}
 <script>
-  // make nav css correct
-  $('li[name=viewdata]').each(function(){
-    var link = $(this).find(">:first-child").attr('href');
-    if (window.location.href.indexOf(link) != -1){
-      $(this).addClass('active');
-    }
-  })
-
-  // make selection consistent with url
-  var param = $.deparam(window.location.href.substr(window.location.href.indexOf('?')+1));
-  if (param['site_key__startswith']){
-    var value = 'site_key__startswith=' + param['site_key__startswith'];
-    $('#selectSite').val(value).trigger('liszt:updated');
-  }
-  if (param['updated_at__gt']){
-    var value = 'updated_at__gt=' + param['updated_at__gt'];
-    $('#selectTime').val(value).trigger('liszt:updated');
-  }
-
-  // helper functions
-  function get_param(){
-    var param = {};
-    var sitearg = $('#selectSite').val();
-    var timearg = $('#selectTime').val(); 
-    if (sitearg != 'ALL' && sitearg){
-      var list = sitearg.split('=');
-      param[list[0]] = list[1];
-    }
-    if (timearg != 'ALL' && timearg){
-      var list = timearg.split('=');
-      param[list[0]] = list[1];
-    }
-    return param
-  }
-
-  // pagination
-  $('a.pagination').live('click', function(){
-    if ($(this).attr('page')) {
-      var param = get_param();
-      param['offset'] = ($(this).attr('page')-1)*20;
-      var url = "/viewdata/events?" + $.param(param);
-      window.location.href = url;
-    }
-  });
-
 </script>
 {% endblock %}

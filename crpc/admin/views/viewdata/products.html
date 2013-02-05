@@ -38,6 +38,7 @@
           <b style="color:grey">@prices </b> {{ p.our_price }} / {{ p.list_price }} <br />
           <a target="_blank"  href="http://favbuy.com/product/{{ p.id }}/"><i class="icon icon-yellow icon-extlink"></i>Go to Product</a><br />
           <a href="/editdata/product/{{ p.id }}/"><i class="icon icon-edit icon-blue"></i>Edit Product</a><br />
+          <a href="#" name="reason" site_key="{{p.site_key}}"><i class="icon icon-red icon-search"></i>clf-reason</a>
         </div>                                
         {% endfor %}
       </div>  
@@ -80,6 +81,19 @@
     <a href="#" class="btn btn-primary">Save changes</a>
   </div>
 </div>
+
+<div class="modal hide fade" id="reason-modal">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal">×</button>
+    <h3>Classification Reason</h3>
+  </div>
+  <div class="modal-body" id="reason-body">
+  </div>
+  <div class="modal-footer">
+    <a href="#" class="btn" data-dismiss="modal">Close</a>
+  </div>
+</div>
+
 {% endblock %}
 
 {% block script %}
@@ -105,9 +119,21 @@
   });
 
   $('#searchtitle').click(function(){
-    var url = "/viewdata/products?"+ $.param({'title':$('#searchinput').val()});
+    var url = "/viewdata/products?"+ $.param({'title__iexact':$('#searchinput').val()});
     window.location.href = url;
   });
 
+  // reason
+  $('[name=reason]').live('click', function(){
+    var site_key = $(this).attr('site_key');
+    var s = site_key.split('_');
+    var site = s[0]
+    var key = s[1]
+    console.log(site, key);
+    $.get('/viewdata/classification_reason.ajax', $.param({site:site,key:key}), function(data){
+        $('#reason-body').html(data);
+        $('#reason-modal').modal();
+    });
+  });
 </script>
 {% endblock %}

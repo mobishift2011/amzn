@@ -516,7 +516,7 @@ class Server(object):
             if event.events_begin != events_begin:
                 event.update_history.update({ 'events_begin': datetime.utcnow() })
                 event.events_begin = events_begin
-        if event.events_end != events_end
+        if event.events_end != events_end:
             event.update_history.update({ 'events_end': datetime.utcnow() })
             event.events_end = events_end
         if '/home/sale' in url or '/sale/home' in url: # home

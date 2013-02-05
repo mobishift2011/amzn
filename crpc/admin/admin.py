@@ -246,7 +246,7 @@ class EditDataHandler(BaseHandler):
         data['details']       = self.get_argument('details')
         data['tags']          = self.get_argument('tags') and self.get_argument('tags').split(',') or []
         data['brand']         = self.get_argument('brand')
-        data['departments']   = eval(self.get_argument('departments', '[]'))
+        data['department_path']   = eval(self.get_argument('departments', '[]'))
         data['cover_image']   = eval(self.get_argument('cover_image', '{}'))
         data['details']       = self.get_argument('details') and self.get_argument('details').split('\n') or []
 
@@ -264,7 +264,7 @@ class EditDataHandler(BaseHandler):
             p.list_info = data['details']
             p.brand = data['brand']
             p.tagline = data['tags']
-            p.department_path = data['departments']
+            p.department_path = data['department_path']
             p.save()
         except Exception,e:
             message = e.message

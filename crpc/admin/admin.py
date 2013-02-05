@@ -245,16 +245,17 @@ class EditDataHandler(BaseHandler):
         data['title']         = self.get_argument('title')
         data['details']       = self.get_argument('details')
         data['tags']          = self.get_argument('tags') and self.get_argument('tags').split(',') or []
-        data['brand']         = self.get_argument('brand')
-        data['departments']   = eval(self.get_argument('departments', '[]'))
+        data['brand']         = self.get_argument('brand', '')
+        data['department_path']   = eval(self.get_argument('departments', '[]'))
         data['cover_image']   = eval(self.get_argument('cover_image', '{}'))
         data['details']       = self.get_argument('details') and self.get_argument('details').split('\n') or []
 
         # validate
-        s,t = self.validate_brands([data['brand']])
-        if not s:
-            message = 'Brand name`{0}` does not exist.'.format(t)
-            return self.render('editdata/product.html',message=message)
+        if data['brand']:
+            s,t = self.validate_brands([data['brand']])
+            if not s:
+                message = 'Brand name`{0}` does not exist.'.format(t)
+                return self.render('editdata/product.html',message=message)
 
         # save to crawler's db
         try:
@@ -264,7 +265,7 @@ class EditDataHandler(BaseHandler):
             p.list_info = data['details']
             p.brand = data['brand']
             p.tagline = data['tags']
-            p.department_path = data['departments']
+            p.department_path = data['department_path']
             p.save()
         except Exception,e:
             message = e.message
@@ -444,7 +445,7 @@ class ViewDataHandler(BaseHandler):
 
         try:
             now = datetime.utcnow()
-            result= api.event.get(starts_at__lt=now, ends_at__gt=now, order_by='-recommend_score,-score',cover_image__ne="", limit=44,have_products='true')
+            result= api.event.get(starts_at__lt=now, ends_at__gt=now, order_by='-recommend_score,-score',cover_image__ne="", offset=offset, limit=limit,have_products='true')
             message = ''
         except:
             message = 'CANNOT Connect to Mastiff!'

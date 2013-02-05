@@ -17,6 +17,7 @@
     {{ message }}
   </div>
   {% endif %}
+  {% if product %}
     <form class="form-horizontal" method="POST"> {{ xsrf_form_html()|safe }}
       <fieldset>
         <legend>Edit Product</legend>
@@ -76,6 +77,7 @@
         </div>
       </fieldset>
     </form>   
+  {% endif %}
 
   </div>
 </div><!--main-content-->

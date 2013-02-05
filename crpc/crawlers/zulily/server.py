@@ -218,7 +218,8 @@ class Server(object):
                 brand.sale_description = sale_description
             if image and image not in brand.image_urls: brand.image_urls.append(image)
             start_time = node.cssselect('div.upcoming-date-reminder span.reminder-text')[0].text_content() # 'Starts Sat 10/27 6am pt - SET REMINDER'
-            events_begin = time_convert( ' '.join( start_time.split(' ', 4)[1:-1] ), '%a %m/%d %I%p%Y' ) - timedelta(minutes=5) #'Sat 10/27 6am'
+            ev_begin = time_convert( ' '.join( start_time.split(' ', 4)[1:-1] ), '%a %m/%d %I%p%Y' ) - timedelta(minutes=5) #'Sat 10/27 6am'
+            events_begin = datetime(ev_begin.year, ev_begin.month, ev_begin.day, ev_begin.hour, ev_begin.minute)
             if brand.events_begin != events_begin:
                 brand.events_begin = events_begin
                 brand.update_history.update({ 'events_begin': datetime.utcnow() })

@@ -245,16 +245,17 @@ class EditDataHandler(BaseHandler):
         data['title']         = self.get_argument('title')
         data['details']       = self.get_argument('details')
         data['tags']          = self.get_argument('tags') and self.get_argument('tags').split(',') or []
-        data['brand']         = self.get_argument('brand')
+        data['brand']         = self.get_argument('brand', '')
         data['department_path']   = eval(self.get_argument('departments', '[]'))
         data['cover_image']   = eval(self.get_argument('cover_image', '{}'))
         data['details']       = self.get_argument('details') and self.get_argument('details').split('\n') or []
 
         # validate
-        s,t = self.validate_brands([data['brand']])
-        if not s:
-            message = 'Brand name`{0}` does not exist.'.format(t)
-            return self.render('editdata/product.html',message=message)
+        if data['brand']:
+            s,t = self.validate_brands([data['brand']])
+            if not s:
+                message = 'Brand name`{0}` does not exist.'.format(t)
+                return self.render('editdata/product.html',message=message)
 
         # save to crawler's db
         try:

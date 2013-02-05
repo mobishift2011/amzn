@@ -17,6 +17,7 @@
     {{ message }}
   </div>
   {% endif %}
+  {% if event %}
     <form class="form-horizontal" method="POST"> {{ xsrf_form_html()|safe }}
       <fieldset>
         <legend>Edit Event</legend>
@@ -74,6 +75,8 @@
           <button type="submit" class="btn btn-primary">Save & Publish</button>
           <button type="reset" class="btn">Cancel</button>
         </div>
+    </form>
+    {% endif %}
 
   </div>
 </div><!--main-content-->

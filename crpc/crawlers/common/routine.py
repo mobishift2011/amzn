@@ -226,10 +226,9 @@ def new(site, rpc, method='new', concurrency=5):
     new_product(site, rpc, concurrency=concurrency, login_email=login_email)
 
 def new_thrice(site, rpc, method='new', concurrency=5):
-    login_email = get_login_email(site)
-    new(site, rpc, 'new', concurrency, login_email=login_email)
-    new(site, rpc, 'new', concurrency, login_email=login_email)
-    new(site, rpc, 'new', concurrency, login_email=login_email)
+    new(site, rpc, 'new', concurrency)
+    new(site, rpc, 'new', concurrency)
+    new(site, rpc, 'new', concurrency)
 
 
 if __name__ == '__main__':

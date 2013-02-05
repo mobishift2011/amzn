@@ -270,7 +270,7 @@ class ViewDataHandler(BaseHandler):
     @tornado.web.authenticated
     def get(self, subpath):
         if not subpath:
-            self.redirect('/viewdata/events')
+            self.redirect('/viewdata/recommend')
         if subpath == 'events':
             self.render_events()
         elif subpath == 'products':

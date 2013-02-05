@@ -79,7 +79,7 @@ class giltLogin(object):
             women will redirect to this product's brand page if it is off sale
         """
         ret = req.get(url)
-        if 'http://www.gilt.com/brand/' in ret.url:
+        if 'http://www.gilt.com/brand/' in ret.url or 'http://www.gilt.com/style/' in ret.url:
             return -302
         if ret.ok: return ret.content
         return ret.status_code
@@ -308,7 +308,7 @@ class Server(object):
         if not nav: return
         image = nav[0].xpath('./img/@src')
         sale_title = nav[0].cssselect('section.copy > header.header')[0].text_content().strip()
-        sale_description = nav[0].cssselect('section.copy > p.bio')[0].text_content().strip()
+        sale_description = nav[0].cssselect('section.copy > p.bio')[0].text_content().strip().encode('utf-8')
 
         data_gilt_time = tree.cssselect('span#shopInCountdown')[0].get('data-gilt-time')
         events_begin = self.gilt_time(data_gilt_time)

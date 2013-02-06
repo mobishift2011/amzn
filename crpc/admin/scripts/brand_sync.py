@@ -12,10 +12,10 @@ import traceback
 
 logger = getlogger('brandsync', filename='/tmp/brandsync.log')
 
-def sync2power(host="http://mongodb.favbuy.org:1317/brand/"):
+def sync2power(host="http://crpc.favbuy.org:1317/brand/"):
 	"""Brand of catalogIndex sync to the one of power"""
 	brands = EditBrand.objects(is_delete=False)
-	logger.debug('Total edit brands to sync: {0}'.format(len(brands)))
+	logger.debug('Total edit brands to sync {0}: {1}'.format(host, len(brands)))
 
 	for brand in brands:
 		try:
@@ -57,7 +57,7 @@ def sync2mastiff(host=MASTIFF_HOST):
 				api.brand.post(params)
 
 		except Exception, e:
-			logger.error('Sync to mastiff error: {0}'.format(traceback.format_exc()))
+			logger.error('Sync {0} to mastiff error: {1}'.format(name, traceback.format_exc()))
 			error_count += 1
 	print error_count
 

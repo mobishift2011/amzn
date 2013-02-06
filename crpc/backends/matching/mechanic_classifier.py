@@ -205,9 +205,9 @@ def preprocess(title):
     title = re.sub(r'designed in .+ silver', '', title)
     title = re.sub(r'made in [a-z]+', '', title)
     # wipe out sentences `with`s and `in`s and `-`s
-    title = re.sub(r'"[a-z ]+"', '', title)
+    title = re.sub(r'"[a-z0-9 &]+"', '', title)
     if "'s" not in title:
-        title = re.sub(r"'\w+'", '', title)
+        title = re.sub(r"'[a-z0-9 &]+'", '', title)
     title = re.sub(r", [0-9a-z' &]+$", '', title)
     title = re.sub(r'all in one', 'all-in-one', title)
     title = re.sub(r'with you', 'with-you', title)

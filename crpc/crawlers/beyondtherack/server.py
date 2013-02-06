@@ -248,7 +248,7 @@ class Server(object):
                     reason='download listing error or {0} return'.format(content))
             return
         tree = lxml.html.fromstring(content)
-        segment = tree.cssselect('div.mainframe > div#main-form')[0]
+        segment = tree.cssselect('div.mainframe')[0]
         events_end = tree.cssselect('div#eventTTL')
         if events_end:
             events_end = datetime.utcfromtimestamp( float(events_end[0].get('eventttl')) )

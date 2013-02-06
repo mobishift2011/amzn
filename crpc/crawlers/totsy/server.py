@@ -157,6 +157,11 @@ class Server(object):
         event, is_new, is_updated = self.get_or_create_event(event_id, link, sale_title)
         if is_new:
             content = self.net.fetch_page(link)
+            if content is None or isinstance(content, int):
+                content = self.net.fetch_page(link)
+                if content is None or isinstance(content, int):
+                    common_failed.send(sender=ctx, key=event_id, url=link,
+                        reason='download upcoming event page failed: {0}'.format(content))
             tree = lxml.html.fromstring(content)
             nav = tree.cssselect('div#mainContent > section.event-landing > div.intro')[0]
             img = nav.cssselect('div > div.category-image > img')

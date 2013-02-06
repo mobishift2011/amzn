@@ -13,6 +13,7 @@ class Brand(Document):
     url             =   StringField(default='')
     url_checked     =   BooleanField(default=False)
     blurb           =   StringField(default='')
+    icon            =   StringField()
     images          =   ListField(StringField())   
     level           =   IntField(default=0) # luxrious or not 
     dept            =   ListField(StringField(max_length=30))
@@ -37,6 +38,7 @@ class Brand(Document):
             'url'             :   self.url,
             'url_checked'     :   self.url_checked,
             'blurb'           :   self.blurb,
+            'icon'            :   self.icon,
             'images'          :   self.images,
             'level'           :   self.level,
             'dept'            :   self.dept,

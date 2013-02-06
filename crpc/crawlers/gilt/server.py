@@ -683,7 +683,7 @@ class Server(object):
         if '/home/sale' in url or '/sale/home' in url: # home
             nav = tree.cssselect('div.page-container > div.content-container > section.content > div.layout-container > div.positions > div.position-2 > section.module > div.elements-container > article.element-product')[0]
             text = nav.cssselect('section.product-details')[0]
-            shipping = text.cssselect('div.delivery-estimate')[0].text_content().strip()
+            shipping = 'Extended Delivery Timeline: ' + text.cssselect('div.delivery-estimate')[0].text_content().strip().replace('\n', ' ')
             returned = text.cssselect('div.return-policy')[0].text_content().strip()
             list_info = []
             detail = text.cssselect('section.product-description > div#PRODUCT_DETAILS')[0]
@@ -710,7 +710,7 @@ class Server(object):
             nav = tree.cssselect('section#main > section#product-detail > article.product')[0]
             text = nav.cssselect('div.summary')[0]
             shipping = text.cssselect('div.details > dl.delivery > dd.delivery-window')
-            shipping = shipping[0].text_content().strip() if shipping else ''
+            shipping = 'Estimated Delivery: ' + shipping[0].text_content().strip().replace('\n', ' ') if shipping else ''
             returned = text.cssselect('div.details > dl.return-policy > dd')
             returned = returned[0].text_content().strip() if returned else ''
             list_info = []
@@ -779,6 +779,5 @@ class Server(object):
 
 if __name__ == '__main__':
     server = Server()
-    server.crawl_product('http://www.gilt.com/sale/women/the-skinny-4501/product/173293951-dl1961-waxed-emma-legging-jean'); exit()
     server.crawl_listing('http://www.gilt.com/home/sale/the-americans')
     server.crawl_listing('http://www.gilt.com/home/sale/candle-blowout-7052')

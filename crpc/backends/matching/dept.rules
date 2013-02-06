@@ -5,6 +5,9 @@
 #  [1] - if XXXX in a title; we can determine the main department of it
 #  [2] - if XXXX in a title; we can determine the sub department of it
 # The XXXX is tested in a brute-force; longest first way
+[0] Pendants -> Jewelry & Watches; Pendants
+[0] Necklaces -> Jewelry & Watches; Necklaces
+[0] Pendant Necklace -> Jewelry & Watches; Necklaces
 [0] iPhone Case -> Women; Men; Accessories
 [0] Nail Lacquer -> Beauty & Health; Makeup
 [0] Nail Polish -> Beauty & Health; Makeup
@@ -196,7 +199,6 @@
 [0] Women Intimates -> Intimates & Loungewear
 [0] Roaster -> Home; Kitchen & Dining
 [0] Ramekin -> Home; Kitchen & Dining
-[0] Oven -> Home; Kitchen & Dining
 [0] Server -> Home; Kitchen & Dining
 [0] Tanning -> Beauty & Health; Skin Care
 [0] Bookends -> Home; Home Accessories
@@ -290,7 +292,6 @@
 [0] Tier Stand -> Home; Furniture & Lighting; Home Accessories
 [0] Sumak -> Home; Rugs & Textiles
 [0] Potholder -> Home; Kitchen & Dining
-[0] Wine Set -> Home; Kitchen & Dining
 [0] Goblet -> Home; Kitchen & Dining
 [0] Serving Set -> Home; Kitchen & Dining
 [0] Sculpture -> Home; Home Accessories
@@ -370,6 +371,8 @@
 [0] Pearl Set -> Jewelry & Watches; Bracelets; Necklaces; Earrings; Rings
 [0] Drink Opener -> Home; Kitchen & Dining
 [0] Purse -> Bags; Wallets
+[0] Purse Light -> Home; Home Accessories
+[0] Key Light -> Home; Home Accessories
 [0] Figurine -> Home; Home Accessories
 [0] Figurines -> Home; Home Accessories
 [0] Figure -> Home; Home Accessories
@@ -415,7 +418,6 @@
 [0] Organizer -> Home; Home Accessories
 [0] Step Stool -> Home; Furniture & Lighting
 [0] Shower Liner -> Home; Bed & Bath
-[0] Plate -> Home; Kitchen & Dining
 [0] Plates -> Home; Kitchen & Dining
 [0] Cooker -> Home; Kitchen & Dining
 [0] Lamp -> Home; Furniture & Lighting
@@ -466,7 +468,6 @@
 [0] Chameleon Bag -> Bags; Handbags
 [0] Placemat -> Home; Rugs & Textiles
 [0] Placemats -> Home; Rugs & Textiles
-[0] Cotton Set -> Home; Bed & Bath
 [0] Touch Scale -> Home; Home Accessories
 [0] Lantern -> Home; Furniture & Lighting
 [0] Meat Grinder -> Home; Kitchen & Dining
@@ -552,11 +553,6 @@
 [0] Fit Cords -> Men; Pants & Shorts
 [0] Flower Wrap -> Home; Home Accessories
 [0] Wristlet -> Bags; Wallets
-[0] Pendant -> Jewelry & Watches; Pendants
-[0] Pendants -> Jewelry & Watches; Pendants
-[0] Necklace -> Jewelry & Watches; Necklaces
-[0] Necklaces -> Jewelry & Watches; Necklaces
-[0] Pendant Necklace -> Jewelry & Watches; Necklaces
 [0] Family In -> Home; Home Accessories
 [0] Ice Chiller -> Home; Kitchen & Dining
 [0] Rainboot -> Women; Shoes
@@ -720,7 +716,6 @@
 [0] Umbrella -> Home; Home Accessories
 [0] Dog Leash -> Home; Home Accessories
 [0] Dinnerware -> Home; Kitchen & Dining
-[0] Cushion -> Home; Bed & Bath
 [0] Appetizer Set -> Home; Kitchen & Dining
 [0] Pill Box -> Home; Home Accessories
 [0] Candy Dish -> Home; Kitchen & Dining
@@ -1549,3 +1544,10 @@
 [2] Hipster -> Intimates & Loungewear
 [2] Hipsters -> Intimates & Loungewear
 [2] Swarovski Crystal -> Jewelry & Watches; Pendants
+[2] Cushion -> Home; Bed & Bath
+[2] Cotton Set -> Home; Bed & Bath
+[2] Plate -> Home; Kitchen & Dining
+[2] Oven -> Home; Kitchen & Dining
+[2] Wine Set -> Home; Kitchen & Dining
+[2] Pendant -> Jewelry & Watches; Pendants
+[2] Necklace -> Jewelry & Watches; Necklaces

@@ -163,7 +163,7 @@ def today_publish_report():
         if wink(_utcnow):
             return template('report.tpl', get_publish_report(_utcnow.replace(microsecond=0, second=0, minute=0, hour=9)))
         else:
-            return template('report.tpl', {'event': [], 'product': []})
+            return template('report.tpl', {'date': _utcnow.replace(microsecond=0, second=0, minute=0, hour=9),'event': [], 'product': []})
     elif method == 'POST':
         dat = request.POST['date']
         year, month, day = dat.split('-')
@@ -171,7 +171,7 @@ def today_publish_report():
         if wink(_thedate):
             return template('report.tpl', get_publish_report(_thedate.replace(hour=9)))
         else:
-            return template('report.tpl', {'event': [], 'product': []})
+            return template('report.tpl', {'date': _thedate.replace(hour=9),'event': [], 'product': []})
 
 
 @post('/brand/')

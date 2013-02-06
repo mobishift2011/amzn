@@ -224,7 +224,7 @@ class Server(object):
             link = item.get('href')
             if 'facebook' in link: continue
             event_id = self.extract_event_id.match(link).group(1)
-            image_text = item.cssselect('span[style]')[0].get('style')
+            image_text = item.get('style')
             image_url = self.extract_image_url.search(image_text).group(1)
         
             event, is_new, is_updated = self.get_or_create_event(event_id)

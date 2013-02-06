@@ -196,7 +196,6 @@
 [0] Women Intimates -> Intimates & Loungewear
 [0] Roaster -> Home; Kitchen & Dining
 [0] Ramekin -> Home; Kitchen & Dining
-[0] Oven -> Home; Kitchen & Dining
 [0] Server -> Home; Kitchen & Dining
 [0] Tanning -> Beauty & Health; Skin Care
 [0] Bookends -> Home; Home Accessories
@@ -290,7 +289,6 @@
 [0] Tier Stand -> Home; Furniture & Lighting; Home Accessories
 [0] Sumak -> Home; Rugs & Textiles
 [0] Potholder -> Home; Kitchen & Dining
-[0] Wine Set -> Home; Kitchen & Dining
 [0] Goblet -> Home; Kitchen & Dining
 [0] Serving Set -> Home; Kitchen & Dining
 [0] Sculpture -> Home; Home Accessories
@@ -415,7 +413,6 @@
 [0] Organizer -> Home; Home Accessories
 [0] Step Stool -> Home; Furniture & Lighting
 [0] Shower Liner -> Home; Bed & Bath
-[0] Plate -> Home; Kitchen & Dining
 [0] Plates -> Home; Kitchen & Dining
 [0] Cooker -> Home; Kitchen & Dining
 [0] Lamp -> Home; Furniture & Lighting
@@ -1549,3 +1546,6 @@
 [2] Swarovski Crystal -> Jewelry & Watches; Pendants
 [2] Cushion -> Home; Bed & Bath
 [2] Cotton Set -> Home; Bed & Bath
+[2] Plate -> Home; Kitchen & Dining
+[2] Oven -> Home; Kitchen & Dining
+[2] Wine Set -> Home; Kitchen & Dining

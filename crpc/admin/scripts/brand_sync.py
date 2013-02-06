@@ -7,6 +7,7 @@ from helpers.log import getlogger
 import slumber
 import json
 import requests
+import sys
 import traceback
 
 logger = getlogger('brandsync', filename='/tmp/brandsync.log')
@@ -45,6 +46,7 @@ def sync2mastiff(host=MASTIFF_HOST):
 				'level': brand.level,
 				# 'aliases': brand.alias,
 				'global_searchs': brand.global_searchs,
+				'logo_url': brand.images[0] if brand.images else ''
 			}
 
 			if query['meta']['total_count']:
@@ -59,5 +61,12 @@ def sync2mastiff(host=MASTIFF_HOST):
 			error_count += 1
 	print error_count
 
+
 if __name__ == '__main__':
-	sync2mastiff()
+	if sys.argv > 1:
+		if sys.argv[1] == '-p':
+			sync2power()
+		elif sys.argv[1] == '-m':
+			sync2mastiff()
+	else:
+		print 'Option -p or -m required.'

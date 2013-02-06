@@ -71,7 +71,7 @@ def setup():
 
 def run_supervisor():
     """ let run.py not down """
-    local("supervisord -c /srv/crpc/supervisord.conf -l /tmp/supervisord.log")
+    local("/usr/local/bin/supervisord -c /srv/crpc/supervisord.conf -l /tmp/supervisord.log")
 
 def deploy():
     """ deploy crawler&api server code to remotes """

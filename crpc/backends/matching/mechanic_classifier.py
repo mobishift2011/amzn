@@ -219,6 +219,7 @@ def preprocess(title):
     title = re.sub(r'(.*) - (.*)', r'\2 \1', title)
     title = re.sub(r'([a-z]+)-', r'\1', title)
     title = re.sub(r'baby pink', '', title)
+    title = re.sub(r'baby blue', '', title)
     title = re.sub(r'baby doll', 'babydoll', title)
     # then numbers & brackets
     title = re.sub(r'\d+/\d+ condition', '', title)

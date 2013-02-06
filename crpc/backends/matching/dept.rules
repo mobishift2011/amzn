@@ -5,6 +5,9 @@
 #  [1] - if XXXX in a title; we can determine the main department of it
 #  [2] - if XXXX in a title; we can determine the sub department of it
 # The XXXX is tested in a brute-force; longest first way
+[0] Pendants -> Jewelry & Watches; Pendants
+[0] Necklaces -> Jewelry & Watches; Necklaces
+[0] Pendant Necklace -> Jewelry & Watches; Necklaces
 [0] iPhone Case -> Women; Men; Accessories
 [0] Nail Lacquer -> Beauty & Health; Makeup
 [0] Nail Polish -> Beauty & Health; Makeup
@@ -548,11 +551,6 @@
 [0] Fit Cords -> Men; Pants & Shorts
 [0] Flower Wrap -> Home; Home Accessories
 [0] Wristlet -> Bags; Wallets
-[0] Pendant -> Jewelry & Watches; Pendants
-[0] Pendants -> Jewelry & Watches; Pendants
-[0] Necklace -> Jewelry & Watches; Necklaces
-[0] Necklaces -> Jewelry & Watches; Necklaces
-[0] Pendant Necklace -> Jewelry & Watches; Necklaces
 [0] Family In -> Home; Home Accessories
 [0] Ice Chiller -> Home; Kitchen & Dining
 [0] Rainboot -> Women; Shoes
@@ -1549,3 +1547,5 @@
 [2] Plate -> Home; Kitchen & Dining
 [2] Oven -> Home; Kitchen & Dining
 [2] Wine Set -> Home; Kitchen & Dining
+[2] Pendant -> Jewelry & Watches; Pendants
+[2] Necklace -> Jewelry & Watches; Necklaces

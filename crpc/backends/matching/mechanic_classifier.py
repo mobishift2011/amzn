@@ -205,10 +205,10 @@ def preprocess(title):
     title = re.sub(r'designed in .+ silver', '', title)
     title = re.sub(r'made in [a-z]+', '', title)
     # wipe out sentences `with`s and `in`s and `-`s
-    title = re.sub(r'"[a-z ]+"', '', title)
+    title = re.sub(r'"[a-z0-9 &]+"', '', title)
     if "'s" not in title:
-        title = re.sub(r"'\w+'", '', title)
-    title = re.sub(r", [0-9a-z' ]+$", '', title)
+        title = re.sub(r"'[a-z0-9 &]+'", '', title)
+    title = re.sub(r", [0-9a-z' &]+$", '', title)
     title = re.sub(r'all in one', 'all-in-one', title)
     title = re.sub(r'with you', 'with-you', title)
     title = re.sub(r'in a', 'in-a', title)
@@ -219,6 +219,7 @@ def preprocess(title):
     title = re.sub(r'(.*) - (.*)', r'\2 \1', title)
     title = re.sub(r'([a-z]+)-', r'\1', title)
     title = re.sub(r'baby pink', '', title)
+    title = re.sub(r'baby doll', 'babydoll', title)
     # then numbers & brackets
     title = re.sub(r'\d+/\d+ condition', '', title)
     title = re.sub(r'(.*)\(([^)]+)\)$', r'\1', title)
@@ -346,6 +347,11 @@ def classify_product_department(site, product, use_event_info=False, return_judg
                     return [u"Wine", u"Red Wine"], [u"Wine", u"Red Wine"]
                 else:
                     return [u"Wine", u"Red Wine"]
+            elif "sparkling" in tag.lower() or "champagne" in tag.lower():
+                if return_judge:
+                    return [u"Wine", u"Champagne"], [u"Wine", u"Champagne"]
+                else:
+                    return [u"Wine", u"Champagne"]
 
     kws = words_split.findall(title.lower())
     

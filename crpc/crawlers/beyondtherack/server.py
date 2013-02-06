@@ -330,7 +330,7 @@ class Server(object):
                     reason='download listing error or {0} return'.format(content))
             return
         tree = lxml.html.fromstring(content)
-        segment = tree.cssselect('div.pageframe > div#main-form')[0]
+        segment = tree.cssselect('div.mainframe')[0]
         prds = segment.cssselect('form[method=post] > div#product-list > div.product-row > div.product > div.section')
         for prd in prds: self.crawl_every_product_in_listing(event_id, page_url, prd, ctx)
 

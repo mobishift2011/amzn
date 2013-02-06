@@ -161,7 +161,8 @@ def today_publish_report():
     if method == 'GET':
         _utcnow = datetime.utcnow()
         if wink(_utcnow):
-            return template('report.tpl', get_publish_report(_utcnow.replace(microsecond=0, second=0, minute=0, hour=9)))
+            ret = get_publish_report(_utcnow.replace(microsecond=0, second=0, minute=0, hour=9))
+            return template('report.tpl', ret.update({'date': _utcnow.replace(microsecond=0, second=0, minute=0, hour=9)}))
         else:
             return template('report.tpl', {'date': _utcnow.replace(microsecond=0, second=0, minute=0, hour=9),'event': [], 'product': []})
     elif method == 'POST':
@@ -169,7 +170,8 @@ def today_publish_report():
         year, month, day = dat.split('-')
         _thedate = datetime(int(year), int(month), int(day))
         if wink(_thedate):
-            return template('report.tpl', get_publish_report(_thedate.replace(hour=9)))
+            ret = get_publish_report(_thedate.replace(hour=9))
+            return template('report.tpl', ret.update({'date': _thedate.replace(hour=9)}))
         else:
             return template('report.tpl', {'date': _thedate.replace(hour=9),'event': [], 'product': []})
 

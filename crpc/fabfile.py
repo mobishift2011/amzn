@@ -69,6 +69,10 @@ def setup():
                     run("pip install https://github.com/SiteSupport/gevent/tarball/master")
                 run("pip install zerorpc lxml requests pymongo mongoengine redis redisco pytz Pillow titlecase mock selenium blinker cssselect boto python-dateutil virtualenvwrapper slumber esmre django supervisor"+USE_INDEX) 
 
+def run_supervisor():
+    """ let run.py not down """
+    local("supervisord -c /srv/crpc/supervisord.conf -l /tmp/supervisord.log")
+
 def deploy():
     """ deploy crawler&api server code to remotes """
     execute(stop)

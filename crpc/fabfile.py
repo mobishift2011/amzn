@@ -67,7 +67,7 @@ def setup():
 
                 if 'gevent==1.0' not in run("pip freeze|grep gevent").stdout:
                     run("pip install https://github.com/SiteSupport/gevent/tarball/master")
-                run("pip install zerorpc lxml requests pymongo mongoengine redis redisco pytz Pillow titlecase mock selenium blinker cssselect boto python-dateutil virtualenvwrapper slumber esmre django"+USE_INDEX) 
+                run("pip install zerorpc lxml requests pymongo mongoengine redis redisco pytz Pillow titlecase mock selenium blinker cssselect boto python-dateutil virtualenvwrapper slumber esmre django supervisor"+USE_INDEX) 
 
 def deploy():
     """ deploy crawler&api server code to remotes """

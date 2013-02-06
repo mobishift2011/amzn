@@ -466,7 +466,6 @@
 [0] Chameleon Bag -> Bags; Handbags
 [0] Placemat -> Home; Rugs & Textiles
 [0] Placemats -> Home; Rugs & Textiles
-[0] Cotton Set -> Home; Bed & Bath
 [0] Touch Scale -> Home; Home Accessories
 [0] Lantern -> Home; Furniture & Lighting
 [0] Meat Grinder -> Home; Kitchen & Dining
@@ -720,7 +719,6 @@
 [0] Umbrella -> Home; Home Accessories
 [0] Dog Leash -> Home; Home Accessories
 [0] Dinnerware -> Home; Kitchen & Dining
-[0] Cushion -> Home; Bed & Bath
 [0] Appetizer Set -> Home; Kitchen & Dining
 [0] Pill Box -> Home; Home Accessories
 [0] Candy Dish -> Home; Kitchen & Dining
@@ -1549,3 +1547,5 @@
 [2] Hipster -> Intimates & Loungewear
 [2] Hipsters -> Intimates & Loungewear
 [2] Swarovski Crystal -> Jewelry & Watches; Pendants
+[2] Cushion -> Home; Bed & Bath
+[2] Cotton Set -> Home; Bed & Bath

@@ -18,6 +18,8 @@ from slumber import API
 from datetime import datetime, timedelta
 from mongoengine import Q
 
+from collections import Counter
+
 from views import get_all_brands, get_brand, update_brand, delete_brand
 
 def get_site_module(site):
@@ -122,7 +124,31 @@ class BaseHandler(tornado.web.RequestHandler):
 class IndexHandler(BaseHandler):
     @tornado.web.authenticated
     def get(self):
-        self.render("index.html")
+        yesterday = (datetime.utcnow() - timedelta(days=1)).isoformat()
+        num_members = api.user.get(limit=1)['meta']['total_count']
+        num_new_members = api.user.get(limit=1, date_joined__gt=yesterday)['meta']['total_count']
+        num_events = api.event.get(limit=1)['meta']['total_count']
+        num_new_events = api.event.get(limit=1, created_at__gt=yesterday)['meta']['total_count']
+        num_products = api.product.get(limit=1)['meta']['total_count']
+        num_new_products = api.product.get(limit=1, created_at__gt=yesterday)['meta']['total_count']
+        num_buys = api.useraction.get(limit=1, name='click buy')['meta']['total_count']
+        num_new_buys = api.useraction.get(limit=1, time__gt=yesterday, name='click buy')['meta']['total_count']
+        buys = api.useraction.get(limit=1000, name='click buy', order_by='-time')['objects']
+        top_buys = Counter()
+        for b in buys:
+            top_buys[ b['values']['product_id'] ] += 1
+        
+        self.render("index.html",
+            num_members = num_members,
+            num_new_members = num_new_members,
+            num_events = num_events,
+            num_new_events = num_new_events,
+            num_products = num_products,
+            num_new_products = num_new_products,
+            num_buys = num_buys,
+            num_new_buys = num_new_buys,
+            top_buys = top_buys.most_common(10)
+        )
 
 class ExampleHandler(BaseHandler):
     @tornado.web.authenticated
@@ -473,6 +499,16 @@ class CrawlerHandler(BaseHandler):
     def get(self):
         self.render('crawler.html')
 
+class DashboardHandler(BaseHandler):
+    def get(self, path):
+        if path == 'member_activity.json':
+            self.content_type = 'application/json'
+            useractions = api.useraction.get(limit=10, order_by='-time')['objects']
+            self.finish(json.dumps(useractions))
+        else:
+            self.content_type = 'application/json'
+            self.finish(json.dumps(['no content']))
+
 class BrandsHandler(BaseHandler):
     def get(self, db):
         brands = get_all_brands(db) if db else get_all_brands()
@@ -526,6 +562,7 @@ application = tornado.web.Application([
     (r"/editdata/(.*)/(.*)/", EditDataHandler),
     (r"/monitor/", MonitorHandler),
     (r"/crawler/", CrawlerHandler),
+    (r"/dashboard/(.*)", DashboardHandler),
     (r"/brands/(.*)", BrandsHandler),
     (r"/brand/(.*)", BrandHandler),
     (r"/", IndexHandler),

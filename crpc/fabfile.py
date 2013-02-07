@@ -69,10 +69,6 @@ def setup():
                     run("pip install https://github.com/SiteSupport/gevent/tarball/master")
                 run("pip install zerorpc lxml requests pymongo mongoengine redis redisco pytz Pillow titlecase mock selenium blinker cssselect boto python-dateutil virtualenvwrapper slumber esmre django supervisor"+USE_INDEX) 
 
-def run_supervisor():
-    """ let run.py not down """
-    local("/usr/local/bin/supervisord -c /srv/crpc/supervisord.conf -l /tmp/supervisord.log")
-
 def deploy():
     """ deploy crawler&api server code to remotes """
     execute(stop)
@@ -109,6 +105,7 @@ def start():
     execute(_start_publish)
     execute(_start_catalog)
     execute(_start_admin)
+    __run_supervisor()
 
 def restart():
     """ stop & start """
@@ -213,6 +210,7 @@ def _start_monitor():
     os.system("cd {0}/backends/webui && dtach -n /tmp/crpcwebui.sock python main.py".format(CRPC_ROOT))
 
 def _stop_monitor():
+    os.system("ps aux | grep supervisord | grep -v grep | awk '{print $2}' | xargs kill -9")
     os.system("ps aux | grep run.py | grep -v grep | awk '{print $2}' | xargs kill -9")
     os.system("ps aux | grep main.py | grep -v grep | awk '{print $2}' | xargs kill -9")
     os.system("rm /tmp/crpc*.sock")
@@ -237,6 +235,10 @@ def _start_admin():
 def _stop_admin():
     os.system("ps aux | grep admin | grep -v grep | awk '{print $2}' | xargs kill -9")
     os.system("rm /tmp/admin.sock")
+
+def __run_supervisor():
+    """ let run.py not down """
+    local("/usr/local/bin/supervisord -c /srv/crpc/supervisord.conf -l /tmp/supervisord.log")
 
 def _runbg(cmd, sockname="dtach"):
     """ A helper function to run command in background """

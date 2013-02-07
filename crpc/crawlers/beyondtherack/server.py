@@ -224,7 +224,7 @@ class Server(object):
             link = item.get('href')
             if 'facebook' in link: continue
             event_id = self.extract_event_id.match(link).group(1)
-            image_text = item.cssselect('span[style]')[0].get('style')
+            image_text = item.get('style')
             image_url = self.extract_image_url.search(image_text).group(1)
         
             event, is_new, is_updated = self.get_or_create_event(event_id)
@@ -248,8 +248,8 @@ class Server(object):
                     reason='download listing error or {0} return'.format(content))
             return
         tree = lxml.html.fromstring(content)
-        segment = tree.cssselect('div.pageframe > div#main-form')[0]
-        events_end = segment.cssselect('div.clearfix div#eventTTL')
+        segment = tree.cssselect('div.mainframe')[0]
+        events_end = tree.cssselect('div#eventTTL')
         if events_end:
             events_end = datetime.utcfromtimestamp( float(events_end[0].get('eventttl')) )
         # both button and nth-last-of-type condition
@@ -289,11 +289,11 @@ class Server(object):
             return
         key = re.compile('.*/event/sku/{0}/(\w+)\??.*'.format(event_id)).match(link).group(1)
 
-        brand = prd.cssselect('div.clearfix > div[style]:first-of-type')[0].text_content()
-        title = prd.cssselect('div.clearfix > div[style]:nth-of-type(2)')[0].text_content()
-        listprice = prd.cssselect('div.clearfix > div[style] > div.product-price-prev')[0].text_content()
-        price = prd.cssselect('div.clearfix > div[style] > div.product-price')[0].text_content()
-        size_nodes = prd.cssselect('div.clearfix > div[style]:nth-of-type(4) > div[style] > select.size-selector > option')
+        brand = prd.cssselect('div.clearfix > h4.brand')[0].text_content()
+        title = prd.cssselect('div.clearfix > div[style]:first-of-type')[0].text_content()
+        listprice = prd.cssselect('div.clearfix > div > div.product-price-prev')[0].text_content()
+        price = prd.cssselect('div.clearfix > div > div.product-price')[0].text_content()
+        size_nodes = prd.cssselect('div.clearfix > div > div > select.size-selector > option')
         sizes = []
         for size in size_nodes:
             sizes.append( size.text_content().strip() )
@@ -330,7 +330,7 @@ class Server(object):
                     reason='download listing error or {0} return'.format(content))
             return
         tree = lxml.html.fromstring(content)
-        segment = tree.cssselect('div.pageframe > div#main-form')[0]
+        segment = tree.cssselect('div.mainframe')[0]
         prds = segment.cssselect('form[method=post] > div#product-list > div.product-row > div.product > div.section')
         for prd in prds: self.crawl_every_product_in_listing(event_id, page_url, prd, ctx)
 
@@ -445,6 +445,8 @@ class Server(object):
 
 
 if __name__ == '__main__':
+    Server().crawl_listing('http://www.beyondtherack.com/event/showcase/32299')
+    exit();
     import zerorpc
     from settings import CRAWLER_PORT
     server = zerorpc.Server(Server())

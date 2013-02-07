@@ -3,6 +3,9 @@
 from gevent import monkey; monkey.patch_all()
 import gevent
 
+import resource
+resource.setrlimit(resource.RLIMIT_NOFILE, (4096, 4096))
+
 from datetime import datetime
 import collections
 

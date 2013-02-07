@@ -57,7 +57,7 @@ def sync2mastiff(host=MASTIFF_HOST):
 				api.brand.post(params)
 
 		except Exception, e:
-			logger.error('Sync {0} to mastiff error: {1}'.format(name, traceback.format_exc()))
+			logger.error('Sync {0} to mastiff error: {1}'.format(name.encode('utf-8'), traceback.format_exc()))
 			error_count += 1
 	print error_count
 

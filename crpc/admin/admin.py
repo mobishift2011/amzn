@@ -162,7 +162,7 @@ class LoginHandler(BaseHandler):
     def post(self):
         username = self.get_argument('username')
         password = self.get_argument('password')
-        if username == 'favbuy' and password == 'tempfavbuy':
+        if username == 'favbuy' and password == 'favbuy0208':
             self.set_secure_cookie('user', username)
         next_url = self.get_argument('next', '/')
         self.redirect(next_url)

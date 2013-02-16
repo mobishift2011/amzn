@@ -190,6 +190,7 @@ class Server(object):
     def crawl_one_dept_text_info(self, dept, tree, ctx):
         """.. :py:method::
 
+            event ending soon. This section is not exist in the beyondtherack anymore
         :param dept: dept of this site
         :param tree: the xpath tree of main page
         """
@@ -256,6 +257,7 @@ class Server(object):
         page_nums = segment.cssselect('div.clearfix form[method=get] > div.pagination > div.button:nth-last-of-type(1)')
         if page_nums:
             page_nums = int( page_nums[0].text_content() )
+        sale_title = tree.cssselect('title')[0].text_content()
         
         prds = segment.cssselect('form[method=post] > div#product-list > div.product-row > div.product > div.section')
         for prd in prds: self.crawl_every_product_in_listing(event_id, url, prd, ctx)
@@ -275,6 +277,7 @@ class Server(object):
         # some page return 'event has ended', but actually not.I keep record it.
         if events_end: event.events_end = events_end
         if isinstance(page_nums, int): event.num = page_nums
+        if not event.sale_title: event.sale_title = sale_title
         event.update_time = datetime.utcnow()
         event.save()
         common_saved.send(sender=ctx, obj_type='Event', key=event_id, is_new=False, is_updated=False, ready=ready)
@@ -445,8 +448,6 @@ class Server(object):
 
 
 if __name__ == '__main__':
-    Server().crawl_listing('http://www.beyondtherack.com/event/showcase/32299')
-    exit();
     import zerorpc
     from settings import CRAWLER_PORT
     server = zerorpc.Server(Server())

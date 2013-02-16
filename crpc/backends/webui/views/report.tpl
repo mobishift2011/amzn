@@ -7,7 +7,7 @@
     <form action="/publish/report" method="POST">
       <input type="date" name="date">
       <input type="submit" value="GO">
-      <output>{{date}}</output>
+      <output><br /> {{date}}</output>
     </form>
     <div>
 

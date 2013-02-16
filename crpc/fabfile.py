@@ -89,6 +89,7 @@ def copyfiles():
 
 def stop():
     # TODO should implement better stopping mechanism
+    execute(__stop_supervisor)
     execute(_stop_all)
     execute(_stop_monitor)
     execute(_stop_publish)
@@ -208,7 +209,6 @@ def _start_monitor():
     os.system("cd {0}/backends/webui && dtach -n /tmp/crpcwebui.sock python main.py".format(CRPC_ROOT))
 
 def _stop_monitor():
-    os.system("ps aux | grep supervisord | grep -v grep | awk '{print $2}' | xargs kill -9")
     os.system("ps aux | grep run.py | grep -v grep | awk '{print $2}' | xargs kill -9")
     os.system("ps aux | grep main.py | grep -v grep | awk '{print $2}' | xargs kill -9")
     os.system("rm /tmp/crpc*.sock")
@@ -230,6 +230,10 @@ def _stop_admin():
 def __run_supervisor():
     """ let run.py not down """
     local("/usr/local/bin/supervisord -c /srv/crpc/supervisord.conf -l /tmp/supervisord.log")
+
+def __stop_supervisor():
+    os.system("ps aux | grep supervisord | grep -v grep | awk '{print $2}' | xargs kill -9")
+
 
 def _runbg(cmd, sockname="dtach"):
     """ A helper function to run command in background """

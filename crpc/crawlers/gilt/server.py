@@ -52,6 +52,8 @@ class giltLogin(object):
         elif username not in self._signin:
             self.current_email = username
             self.login_account()
+        else:
+            self.current_email = username
 
     def fetch_page(self, url):
         """.. :py:method::

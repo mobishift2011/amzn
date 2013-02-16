@@ -25,23 +25,30 @@ class totsyLogin(object):
             'login[password]': login_passwd,
         }    
 
-        self._signin = False
         self.extract_product_id = re.compile('http://www.totsy.com/sales/.+/(.+).html')
+        self.current_email = login_email[DB]
+        self._signin = {}
 
     def login_account(self):
         """.. :py:method::
             use post method to login
         """
+        self.data['login[username]'] = self.current_email
         req.get(self.login_url)
         req.post('https://www.totsy.com/customer/account/loginPost/', data=self.data)
-        self._signin = True
+        self._signin[self.current_email] = True
 
-    def check_signin(self):
+    def check_signin(self, username=''):
         """.. :py:method::
             check whether the account is login
         """
-        if not self._signin:
+        if username == '':
             self.login_account()
+        elif username not in self._signin:
+            self.current_email = username
+            self.login_account()
+        else:
+            self.current_email = username
 
     def fetch_page(self, url):
         """.. :py:method::
@@ -102,6 +109,9 @@ class Server(object):
     def crawl_category(self, ctx='', **kwargs):
         """.. :py:method::
         """
+        if kwargs.get('login_email'): self.net.check_signin( kwargs.get('login_email') )
+        else: self.net.check_signin()
+
         content = self.net.fetch_page(self.eventurl)
         if content is None or isinstance(content, int):
             common_failed.send(sender=ctx, key='', url=url,
@@ -195,6 +205,9 @@ class Server(object):
     def crawl_listing(self, url, ctx='', **kwargs):
         """.. :py:method::
         """
+        if kwargs.get('login_email'): self.net.check_signin( kwargs.get('login_email') )
+        else: self.net.check_signin()
+
         event_id = self.extract_event_id.match(url).group(1)
         ret = self.net.fetch_listing_page(url)
         if isinstance(ret, tuple):
@@ -314,6 +327,9 @@ class Server(object):
     def crawl_product(self, url, ctx='', **kwargs):
         """.. :py:method::
         """
+        if kwargs.get('login_email'): self.net.check_signin( kwargs.get('login_email') )
+        else: self.net.check_signin()
+
         key = self.from_url_get_product_key(url)
         content = self.net.fetch_page(url)
         if content is None or isinstance(content, int):

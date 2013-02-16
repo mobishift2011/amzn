@@ -56,31 +56,35 @@ class ventepriveeLogin(object):
             variables need to be used
         """
         self.login_url = 'https://us.venteprivee.com/main/'
-        accounts = (('ethan@favbuy.com', '200591qq'), ('2012luxurygoods@gmail.com', 'abcd1234'))
-        email, password = random.choice(accounts)
         self.data = {
-            'email': email,
-            'password': password,
+            'email': login_email[DB],
+            'password': login_passwd,
             'rememberMe': False,
         }
-
-        self._signin = False
+        self.current_email = login_email[DB]
+        self._signin = {}
 
     def login_account(self):
         """.. :py:method::
             use post method to login
         """
+        self.data['email'] = self.current_email
         req.get(self.login_url)
         url = 'https://us.venteprivee.com/api/membership/signin'
         req.post(url, data=self.data)
-        self._signin = True
+        self._signin[self.current_email] = True
 
-    def check_signin(self):
+    def check_signin(self, username=''):
         """.. :py:method::
             check whether the account is login
         """
-        if not self._signin:
+        if username == '':
             self.login_account()
+        elif username not in self._signin:
+            self.current_email = username
+            self.login_account()
+        else:
+            self.current_email = username
 
     def fetch_page(self, url):
         """.. :py:method::
@@ -142,7 +146,8 @@ class Server(object):
         :param url: event url with event_id 
         """
         debug_info.send(sender=DB+'.listing.{0}.start'.format(url))
-        self.net.check_signin()
+        if kwargs.get('login_email'): self.net.check_signin( kwargs.get('login_email') )
+        else: self.net.check_signin()
         
         response = self.net.fetch_page(url)
         if response is None or isinstance(response, int):
@@ -197,7 +202,8 @@ class Server(object):
         :param url: product url, with product id
         """
         debug_info.send(sender=DB+'.product.{0}.start'.format(url))
-        self.net.check_signin()
+        if kwargs.get('login_email'): self.net.check_signin( kwargs.get('login_email') )
+        else: self.net.check_signin()
         
         is_updated = False
         ready = False

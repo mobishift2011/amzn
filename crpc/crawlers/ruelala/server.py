@@ -46,25 +46,31 @@ class ruelalaLogin(object):
             'loginType': 'gate',
             'rememberMe': 1, 
         }       
-
         self.event_is_product = re.compile('http://.*.ruelala.com/product/detail/eventId/\d{1,10}/styleNum/(\d{1,10})/viewAll/0')
-        self._signin = False
+        self.current_email = login_email[DB]
+        self._signin = {}
 
     def login_account(self):
         """.. :py:method::
             use post method to login
         """
+        self.data['email'] = self.current_email
         req.get(self.login_url)
         req.post('http://www.ruelala.com/access/formSetup', data={'userEmail':'','CmsPage':'/access/gate','formType':'signin'})
         req.post('https://www.ruelala.com/registration/login', data=self.data)
-        self._signin = True
+        self._signin[self.current_email] = True
 
-    def check_signin(self):
+    def check_signin(self, username=''):
         """.. :py:method::
             check whether the account is login
         """
-        if not self._signin:
+        if username == '':
             self.login_account()
+        elif username not in self._signin:
+            self.current_email = username
+            self.login_account()
+        else:
+            self.current_email = username
 
     def event_fetch_page(self, url):
         """.. :py:method::
@@ -119,6 +125,9 @@ class Server(object):
         """.. :py:method::
             From top depts, get all the events
         """
+        if kwargs.get('login_email'): self.net.check_signin( kwargs.get('login_email') )
+        else: self.net.check_signin()
+
         self.upcoming_proc(ctx)
         categorys = ['women', 'men', 'living', 'kids', 'gifts']
         for category in categorys:
@@ -401,6 +410,9 @@ class Server(object):
     def crawl_listing(self, url, ctx='', **kwargs):
         """.. :py:method::
         """
+        if kwargs.get('login_email'): self.net.check_signin( kwargs.get('login_email') )
+        else: self.net.check_signin()
+
         cont = self.net.event_fetch_page(url)
         if cont is None or isinstance(cont, int):
             cont = self.net.event_fetch_page(url)
@@ -495,6 +507,8 @@ class Server(object):
         """.. :py:method::
             Got all the product basic information and save into the database
         """
+        if kwargs.get('login_email'): self.net.check_signin( kwargs.get('login_email') )
+        else: self.net.check_signin()
         cont = self.net.product_fetch_page(url)
         if cont is None or isinstance(cont, int):
             cont = self.net.product_fetch_page(url)

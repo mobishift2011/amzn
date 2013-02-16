@@ -260,7 +260,7 @@ class Server(object):
                 brand.sale_description = sale_description[0].text_content().strip()
 
         items = node.cssselect('div#products-grid li.item')
-        end_date = node.cssselect('div#new-content-header>div.end-date')[0].text_content().strip()
+        end_date = node.cssselect('div#new-content-header > div.end-date')[0].text_content().strip()
         if 'in' in end_date: # 'on zulily every day'
             end_date = end_date[end_date.find('in')+2:].strip() # '2 hours' or '1 day(s) 3 hours' or ''
             days = int(end_date.split()[0]) if 'day' in end_date else 0

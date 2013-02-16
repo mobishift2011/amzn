@@ -6,8 +6,8 @@
   <body>
     <form action="/publish/report" method="POST">
       <input type="date" name="date" value={{date}}>
-      <input type="submit" value="GO">
-      <output><br /> {{date}}</output>
+      <input type="submit" value="GO"><br />
+      <output id="time"></output>
     </form>
     <div>
 
@@ -142,6 +142,17 @@
         }
         count_event();
 
+        function getday(){
+            var now = Date.parse("{{date}}");
+            var before = now - 24*3600*1000;
+            var aday = new Date(now);
+            var bday = new Date(before);
+            var today = aday.getMonth()+1 + "/" + aday.getDate() + "/" + aday.getFullYear() + "  " + aday.getHours() + ":" + aday.getMinutes() + ":" + aday.getSeconds();
+            var yesterday = bday.getMonth()+1 + "/" + bday.getDate() + "/" + bday.getFullYear() + "  " + bday.getHours() + ":" + bday.getMinutes() + ":" + bday.getSeconds();
+            var obj = document.getElementById("time");
+            obj.value = yesterday + "\t ~ \t" + today;
+        }
+        getday();
       })
     </script>
   </body>

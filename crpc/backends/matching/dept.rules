@@ -238,7 +238,6 @@
 [0] Washcloth -> Home; Bed & Bath
 [0] Washcloths -> Home; Bed & Bath
 [0] Wastebasket -> Home; Home Accessories
-[0] Chandelier -> Home; Furniture & Lighting
 [0] Fountain -> Home; Home Accessories
 [0] Fireplace -> Home; Furniture & Lighting
 [0] Fire Pit -> Home; Furniture & Lighting
@@ -434,7 +433,6 @@
 [0] Bowl -> Home; Kitchen & Dining
 [0] Bowls -> Home; Kitchen & Dining
 [0] Lunch Bag -> Bags; Handbags; Home; Home Accessories
-[0] Mirror -> Home; Furniture & Lighting
 [0] Mirrors -> Home; Furniture & Lighting
 [0] Griddle -> Home; Kitchen & Dining
 [0] Skillet -> Home; Kitchen & Dining
@@ -1551,3 +1549,5 @@
 [2] Wine Set -> Home; Kitchen & Dining
 [2] Pendant -> Jewelry & Watches; Pendants
 [2] Necklace -> Jewelry & Watches; Necklaces
+[2] Mirror -> Home; Furniture & Lighting
+[2] Chandelier -> Home; Furniture & Lighting

@@ -35,13 +35,13 @@ TEXT_HOSTS = []
 
 def production():
     global CRPC
-    _setup_env('PRODUCTION')
     CRPC = ['root@crpc.favbuy.org']
+    _setup_env('PRODUCTION')
 
 def integrate():
     global CRPC
-    _setup_env('INTEGRATE') 
     CRPC = ['root@mongodb.favbuy.org']
+    _setup_env('INTEGRATE') 
 
 def _setup_env(env):
     global ENV, CRPC, HOSTS, CRAWLER_HOSTS, POWER_HOSTS, TEXT_HOSTS
@@ -63,10 +63,6 @@ def setup_packages():
 
 @parallel
 def _setup_packages():
-    sudo("apt-get remove --purge -y libzmq-dev")
-    sudo("pip uninstall -y pyzmq")
-    sudo("pip install pyzmq")
-    return
     sudo("apt-get update")
     sudo("apt-get -y install build-essential python-dev libevent-dev libxslt-dev uuid-dev python-setuptools dtach redis-server chromium-browser xvfb unzip libjpeg8-dev gfortran libblas-dev liblapack-dev ganglia-monitor")
     sudo("apt-get -y build-dep python-imaging")

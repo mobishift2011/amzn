@@ -23,6 +23,7 @@
           <li><a href='/publish/chkpub'>check</a></li>
           <li><a href='/publish/stats'>stats</a></li>
           <li><a href='/publish/report'>report</a></li>
+          <li><a href='/publish/updatereport'>updatereport</a></li>
         </ul>
       </div>
     </div> <!-- /container -->

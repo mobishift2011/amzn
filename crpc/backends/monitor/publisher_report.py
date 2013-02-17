@@ -6,7 +6,11 @@
 UTC 09:00 = EST 4AM = PST 1AM
           = EDT 5AM = PDT 2AM
 
+UTC 00:00 ~ 09:00 dynamic calculate from crawler database
+After UTC 09:00 keep the publish number in monitor database
+
 """
+
 from datetime import datetime, timedelta
 from crawlers.common.stash import picked_crawlers
 from backends.monitor.models import ProductReport, EventReport
@@ -21,7 +25,7 @@ def get_site_module(site):
     return get_site_module.mod[site]
 
 
-def report_product(site, today_date, module):
+def report_product(site, today_date, module, complete):
     product_num = module.Product.objects(create_time__lt=today_date, create_time__gte=today_date-timedelta(days=1)).count()
     published_num = module.Product.objects(create_time__lt=today_date, create_time__gte=today_date-timedelta(days=1), publish_time__exists=True).count()
 
@@ -54,10 +58,11 @@ def report_product(site, today_date, module):
     product.site = site
     product.product_num = product_num
     product.published_num = published_num
+    product.complete = complete
     product.save()
 
 
-def report_event(site, today_date, module):
+def report_event(site, today_date, module, complete):
     event_num = module.Event.objects(create_time__lt=today_date, create_time__gte=today_date-timedelta(days=1)).count()
     published_num = module.Event.objects(create_time__lt=today_date, create_time__gte=today_date-timedelta(days=1), publish_time__exists=True).count()
 
@@ -102,24 +107,28 @@ def report_event(site, today_date, module):
     event.site = site
     event.event_num = event_num
     event.published_num = published_num
+    event.complete = complete
     event.save()
 
 
-def wink(_thedate=datetime.utcnow()):
+def wink(_thedate=datetime.utcnow(), force=False):
     _utcnow = datetime.utcnow()
     if _utcnow.date() < _thedate.date():
         return
+
     if _utcnow.date() == _thedate.date() and _utcnow.hour < 9: # today
-        return
+        complete = False
+    else: # _utcnow.date() > _thedate.date() or _utcnow.hour >=9
+        complete = True
 
     the_date = _thedate.replace(microsecond=0, second=0, minute=0, hour=9)
     for site in picked_crawlers:
         prd = ProductReport.objects(today_date=the_date, site=site).first()
-        if not prd:
+        if not prd or prd.complete is False or force is True:
             module = get_site_module(site)
-            report_product(site, the_date, module)
+            report_product(site, the_date, module, complete)
             if hasattr(module, 'Event'):
-                report_event(site, the_date, module)
+                report_event(site, the_date, module, complete)
     return True
 
 

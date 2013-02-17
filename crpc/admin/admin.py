@@ -526,7 +526,7 @@ class BrandHandler(BaseHandler):
         if not brand_title:
             self.render('brand.html')
 
-        brand = get_brand(url_unescape(brand_title), self.get_argument('d'))
+        brand = get_brand(brand_title, self.get_argument('d'))
         t_page = 'brand_iframe.html' \
                     if self.get_argument('t') == 'iframe' \
                         else 'brand.html'
@@ -563,8 +563,8 @@ application = tornado.web.Application([
     (r"/monitor/", MonitorHandler),
     (r"/crawler/", CrawlerHandler),
     (r"/dashboard/(.*)", DashboardHandler),
-    (r"/brands/(.*)", BrandsHandler),
-    (r"/brand/(.*)", BrandHandler),
+    (r"/brands/?(.*)", BrandsHandler),
+    (r"/brand/?(.*)", BrandHandler),
     (r"/", IndexHandler),
     (r"/assets/(.*)", tornado.web.StaticFileHandler, dict(path=settings['static_path'])),
 ], **settings)

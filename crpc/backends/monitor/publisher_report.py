@@ -54,6 +54,12 @@ def report_product(site, today_date, module, complete):
         product.no_dept_num = no_dept
         product.event_not_ready = event_not_ready
         product.unknown = unknown
+    else:
+        product.no_image_url_num = 0
+        product.no_image_path_num = 0
+        product.no_dept_num = 0
+        product.event_not_ready = 0
+        product.unknown = 0
 
     product.site = site
     product.product_num = product_num
@@ -103,6 +109,15 @@ def report_event(site, today_date, module, complete):
         event.onsale_no_image_path_num = onsale_no_image_path
         event.onsale_propagation_not_complete = onsale_propagation_not_complete
         event.unknown = unknown
+    else:
+        event.not_leaf_num = 0
+        event.upcoming_no_image_url_num = 0
+        event.upcoming_no_image_path_num = 0
+        event.onsale_no_product_num = 0
+        event.onsale_no_image_url_num = 0
+        event.onsale_no_image_path_num = 0
+        event.onsale_propagation_not_complete = 0
+        event.unknown = 0
 
     event.site = site
     event.event_num = event_num

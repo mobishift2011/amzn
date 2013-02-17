@@ -178,6 +178,29 @@ def today_publish_report():
             return template('report.tpl', {'date': _thedate.replace(hour=9),'event': [], 'product': []})
 
 
+@route('/publish/updatereport', method='GET')
+@route('/publish/updatereport', method='POST')
+def today_publish_report():
+    method = request.method
+    if method == 'GET':
+        _utcnow = datetime.utcnow()
+        if wink(_utcnow, force=True):
+            ret = get_publish_report(_utcnow.replace(microsecond=0, second=0, minute=0, hour=9))
+            ret.update( {'date': _utcnow.replace(microsecond=0, second=0, minute=0, hour=9)} )
+            return template('updatereport.tpl', ret)
+        else:
+            return template('updatereport.tpl', {'date': _utcnow.replace(microsecond=0, second=0, minute=0, hour=9),'event': [], 'product': []})
+    elif method == 'POST':
+        dat = request.POST['date']
+        year, month, day = dat.split('-')
+        _thedate = datetime(int(year), int(month), int(day))
+        if wink(_thedate, force=True):
+            ret = get_publish_report(_thedate.replace(hour=9))
+            ret.update( {'date': _thedate.replace(hour=9)} )
+            return template('updatereport.tpl', ret)
+        else:
+            return template('updatereport.tpl', {'date': _thedate.replace(hour=9),'event': [], 'product': []})
+
 @post('/brand/')
 def brands_import():
     eb = json.loads(request.POST['brand'])

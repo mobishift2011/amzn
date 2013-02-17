@@ -198,6 +198,7 @@ class Stat(Document):
 class ProductReport(Document):
     today_date          = DateTimeField()
     site                = StringField()
+    complete            = BooleanField()
 
     product_num         = IntField(default=0)
     published_num       = IntField(default=0)
@@ -230,6 +231,7 @@ class ProductReport(Document):
 class EventReport(Document):
     today_date                      = DateTimeField()
     site                            = StringField()
+    complete                        = BooleanField()
 
     event_num                       = IntField(default=0)
     published_num                   = IntField(default=0)

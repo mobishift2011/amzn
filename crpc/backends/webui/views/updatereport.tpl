@@ -4,7 +4,7 @@
   <head>
   </head>
   <body>
-    <form action="/publish/report" method="POST">
+    <form action="/publish/updatereport" method="POST">
       <input type="date" name="date" value={{date}}>
       <input type="submit" value="GO"><br />
       <output id="time"></output>

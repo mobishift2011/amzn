@@ -186,8 +186,12 @@ class Server(object):
             image_urls = upcoming_data[event_id]['images'].values()
             event, is_new, is_updated = self.get_or_create_event(event_id)
             if not event.sale_title: event.sale_title = sale_title
-            event.events_begin = events_begin
-            event.events_end = events_end
+            if event.events_begin != events_begin:
+                event.update_history.update({ 'events_begin': datetime.utcnow() })
+                event.events_begin = events_begin
+            if event.events_end != events_end:
+                event.update_history.update({ 'events_end': datetime.utcnow() })
+                event.events_end = events_end
             event.image_urls = image_urls
             event.update_time = datetime.utcnow()
             event.save()
@@ -288,7 +292,10 @@ class Server(object):
         else: ready = False
 
         # some page return 'event has ended', but actually not.I keep record it.
-        if events_end: event.events_end = events_end
+        if events_end:
+            if event.events_end != events_end:
+                event.update_history.update({ 'events_end': datetime.utcnow() })
+                event.events_end = events_end
         if isinstance(page_nums, int): event.num = page_nums
         if not event.sale_title: event.sale_title = sale_title
         event.update_time = datetime.utcnow()
@@ -328,8 +335,8 @@ class Server(object):
             product.price = price
             product.sizes = sizes
         else:
-            if soldout and product.soldout != soldout:
-                product.soldout = True
+            if product.soldout != soldout: # beyondtherack can change back
+                product.soldout = soldout
                 is_updated = True
                 product.update_history.update({ 'soldout': datetime.utcnow() })
             if not title: product.title = title

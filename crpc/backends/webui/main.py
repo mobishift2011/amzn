@@ -187,9 +187,9 @@ def today_publish_report():
         if wink(_utcnow, force=True):
             ret = get_publish_report(_utcnow.replace(microsecond=0, second=0, minute=0, hour=9))
             ret.update( {'date': _utcnow.replace(microsecond=0, second=0, minute=0, hour=9)} )
-            return template('report.tpl', ret)
+            return template('updatereport.tpl', ret)
         else:
-            return template('report.tpl', {'date': _utcnow.replace(microsecond=0, second=0, minute=0, hour=9),'event': [], 'product': []})
+            return template('updatereport.tpl', {'date': _utcnow.replace(microsecond=0, second=0, minute=0, hour=9),'event': [], 'product': []})
     elif method == 'POST':
         dat = request.POST['date']
         year, month, day = dat.split('-')
@@ -197,9 +197,9 @@ def today_publish_report():
         if wink(_thedate, force=True):
             ret = get_publish_report(_thedate.replace(hour=9))
             ret.update( {'date': _thedate.replace(hour=9)} )
-            return template('report.tpl', ret)
+            return template('updatereport.tpl', ret)
         else:
-            return template('report.tpl', {'date': _thedate.replace(hour=9),'event': [], 'product': []})
+            return template('updatereport.tpl', {'date': _thedate.replace(hour=9),'event': [], 'product': []})
 
 @post('/brand/')
 def brands_import():

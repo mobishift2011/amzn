@@ -34,10 +34,14 @@ POWER_HOSTS = []
 TEXT_HOSTS = []
 
 def production():
+    global CRPC
     _setup_env('PRODUCTION')
+    CRPC = ['root@crpc.favbuy.org']
 
 def integrate():
+    global CRPC
     _setup_env('INTEGRATE') 
+    CRPC = ['root@mongodb.favbuy.org']
 
 def _setup_env(env):
     global ENV, CRPC, HOSTS, CRAWLER_HOSTS, POWER_HOSTS, TEXT_HOSTS
@@ -47,7 +51,6 @@ def _setup_env(env):
     global PEERS, CRAWLER_PEERS, POWER_PEERS, TEXT_PEERS
 
     puts(red('Using PRODUCTION settings'))
-    CRPC = ['root@crpc.favbuy.org']
     HOSTS = list(set([ p['host_string'] for p in  PEERS ])) + CRPC
     CRAWLER_HOSTS = list(set([ p['host_string'] for p in CRAWLER_PEERS ]))
     POWER_HOSTS = list(set([ p['host_string'] for p in POWER_PEERS ]))

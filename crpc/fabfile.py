@@ -33,6 +33,11 @@ CRAWLER_HOSTS = []
 POWER_HOSTS = []
 TEXT_HOSTS = []
 
+def dev():
+    global CRPC
+    CRPC = ['root@127.0.0.1']
+    _setup_env('DEV')
+
 def production():
     global CRPC
     CRPC = ['root@crpc.favbuy.org']
@@ -280,7 +285,6 @@ def _restart_zero():
     with settings(warn_only=True):
         run('killall supervisord')
         run('sleep 0.5')
-        run('kill -9 `pgrep -f python`')
         with cd('/srv/crpc'):
             run('supervisord -c supervisord.conf -l /tmp/supervisord.log')
 
@@ -295,7 +299,6 @@ def deploy():
     configure_supervisor()
     
     sync_latest_code()
-    configure_initial_db()
 
     restart_ganglia_client()
     restart_all()

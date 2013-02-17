@@ -65,6 +65,7 @@ def report_product(site, today_date, module, complete):
     product.product_num = product_num
     product.published_num = published_num
     product.complete = complete
+    product.no_title = module.Product.objects(create_time__lt=today_date, create_time__gte=today_date-timedelta(days=1), title__exists=False).count()
     product.save()
 
 
@@ -123,6 +124,7 @@ def report_event(site, today_date, module, complete):
     event.event_num = event_num
     event.published_num = published_num
     event.complete = complete
+    event.no_sale_title = module.Event.objects(create_time__lt=today_date, create_time__gte=today_date-timedelta(days=1), sale_title__exists=False).count()
     event.save()
 
 

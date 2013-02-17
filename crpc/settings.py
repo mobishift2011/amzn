@@ -82,7 +82,7 @@ envs = {
         'REDIS_HOST': '10.145.188.43',
         'MASTIFF_HOST': "http://mastiff.favbuy.org:8001/api/v1"
     },
-    'TEST': {
+    'INTEGRATE': {
         'CRAWLER_PEERS': [
             {'host_string':'root@ec2-54-245-154-123.us-west-2.compute.amazonaws.com', 'port':1234},
             {'host_string':'root@ec2-54-245-154-123.us-west-2.compute.amazonaws.com', 'port':12344},

@@ -266,7 +266,7 @@ def stop_crpc_server():
 def _stop_crpc():
     puts(green("Stopping CRPC Servers"))
     with settings(warn_only=True):
-        run('kill -9 `pgrep -f super`')
+        run('killall supervisord')
         run('sleep 0.5')
 
 def start_crpc_server():
@@ -278,8 +278,9 @@ def start_crpc_server():
 def _restart_zero():
     puts(green("Restarting Zero Servers"))
     with settings(warn_only=True):
-        run('kill -9 `pgrep -f python`')
+        run('killall supervisord')
         run('sleep 0.5')
+        run('kill -9 `pgrep -f python`')
         with cd('/srv/crpc'):
             run('supervisord -c supervisord.conf -l /tmp/supervisord.log')
 

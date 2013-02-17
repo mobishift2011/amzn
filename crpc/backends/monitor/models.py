@@ -209,6 +209,7 @@ class ProductReport(Document):
     no_dept_num         = IntField(default=0)
     event_not_ready     = IntField(default=0)
     unknown             = IntField(default=0)
+    no_title            = IntField(default=0)
     meta = {
         'db_alias': DB,
         'indexes': [
@@ -226,6 +227,7 @@ class ProductReport(Document):
             'no_dept_num': self.no_dept_num,
             'event_not_ready': self.event_not_ready,
             'unknown': self.unknown,
+            'no_title': self.no_title,
         }
 
 class EventReport(Document):
@@ -245,6 +247,7 @@ class EventReport(Document):
     onsale_no_image_path_num        = IntField(default=0)
     onsale_propagation_not_complete = IntField(default=0)
     unknown                         = IntField(default=0)
+    no_sale_title                   = IntField(default=0)
     meta = {
         'db_alias': DB,
         'indexes': [
@@ -265,6 +268,7 @@ class EventReport(Document):
             'onsale_no_image_path_num': self.onsale_no_image_path_num,
             'onsale_propagation_not_complete': self.onsale_propagation_not_complete,
             'unknown': self.unknown,
+            'no_sale_title': self.no_sale_title,
         }
 
 

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from models import Brand
 from powers.models import Brand as PowerBrand
+from urllib import unquote
 
 def get_all_brands(db='catalogIndex'):
 	if db.lower() == "catalogindex":
@@ -14,6 +15,8 @@ def get_all_brands(db='catalogIndex'):
 	return brands
 
 def get_brand(title, db):
+	if not db:
+		db = 'e'
 	if db == 'e':
 		brand = Brand.objects.get(title=title)
 	elif db == 'p':
@@ -21,7 +24,8 @@ def get_brand(title, db):
 	return brand.to_json()
 
 def update_brand(title, arguments):
-	brand = Brand.objects.get(title=title)
+	brand = Brand.objects.get(title=title) \
+		if title else Brand()
 
 	for k, v in arguments.iteritems():
 		try:

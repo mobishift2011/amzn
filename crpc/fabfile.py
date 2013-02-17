@@ -33,6 +33,11 @@ CRAWLER_HOSTS = []
 POWER_HOSTS = []
 TEXT_HOSTS = []
 
+def dev():
+    global CRPC
+    CRPC = ['favbuy@127.0.0.1']
+    _setup_env('DEV')
+
 def production():
     global CRPC
     CRPC = ['root@crpc.favbuy.org']

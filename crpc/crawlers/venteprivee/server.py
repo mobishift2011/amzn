@@ -119,6 +119,14 @@ class Server(object):
         sales = self.vclient.sales()
         for sale in sales:
             debug_info.send(sender=DB+'.event.{0}.start'.format(sale.get('name').encode('utf-8')))
+            events_begin = pytz.timezone('US/Eastern').localize(datetime.strptime(sale.get('startDate'), '%Y-%m-%dT%H:%M:%S')).astimezone(pytz.utc)
+            events_end = pytz.timezone('US/Eastern').localize(datetime.strptime(sale.get('endDate'), '%Y-%m-%dT%H:%M:%S')).astimezone(pytz.utc)
+            if event.events_begin != events_begin:
+                event.update_history.update({ 'events_begin': datetime.utcnow() })
+                event.events_begin = events_begin
+            if event.events_end != events_end:
+                event.update_history.update({ 'events_end': datetime.utcnow() })
+                event.events_end = events_end
             
             is_updated = False
             event, is_new = Event.objects.get_or_create(event_id = str(sale.get('operationId')))
@@ -129,8 +137,6 @@ class Server(object):
                 if image_url not in event.image_urls:
                     event.image_urls.append(image_url)
             event.sale_description = sale.get('brandDescription')
-            event.events_begin = pytz.timezone('US/Eastern').localize(datetime.strptime(sale.get('startDate'), '%Y-%m-%dT%H:%M:%S')).astimezone(pytz.utc)
-            event.events_end = pytz.timezone('US/Eastern').localize(datetime.strptime(sale.get('endDate'), '%Y-%m-%dT%H:%M:%S')).astimezone(pytz.utc)
             event.type = sale.get('type')
             event.dept = [] # TODO cannot get the info
             event.urgent = is_new or event.urgent

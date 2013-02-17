@@ -42,22 +42,29 @@ class beyondtherackLogin(object):
             '_submit': 1,
         }
 
-        self._signin = False
+        self.current_email = login_email[DB]
+        self._signin = {}
 
     def login_account(self):
         """.. :py:method::
             use post method to login
         """
+        self.data['email'] = self.current_email
         req.post(self.login_url, data=self.data)
-        self._signin = True
+        self._signin[self.current_email] = True
 
 
-    def check_signin(self):
+    def check_signin(self, username=''):
         """.. :py:method::
             check whether the account is login
         """
-        if not self._signin:
+        if username == '': 
             self.login_account()
+        elif username not in self._signin:
+            self.current_email = username
+            self.login_account()
+        else:
+            self.current_email = username
 
     def fetch_page(self, url):
         """.. :py:method::
@@ -129,6 +136,9 @@ class Server(object):
 
 
     def crawl_category(self, ctx='', **kwargs):
+        if kwargs.get('login_email'): self.net.check_signin( kwargs.get('login_email') )
+        else: self.net.check_signin()
+
         self.crawl_category_text_info(self.all_event_url, ctx)
 
         for dept, url in self.dept_link.iteritems():
@@ -238,6 +248,9 @@ class Server(object):
 
 
     def crawl_listing(self, url, ctx='', **kwargs):
+        if kwargs.get('login_email'): self.net.check_signin( kwargs.get('login_email') )
+        else: self.net.check_signin()
+
         event_id = url.rsplit('/', 1)[-1]
         content = self.net.fetch_listing_page(url)
         if isinstance(content, list):
@@ -390,6 +403,9 @@ class Server(object):
 
 
     def crawl_product(self, url, ctx='', **kwargs):
+        if kwargs.get('login_email'): self.net.check_signin( kwargs.get('login_email') )
+        else: self.net.check_signin()
+
         key = url.rsplit('/', 1)[-1]
         content = self.net.fetch_product_page(url)
         if content == -1:

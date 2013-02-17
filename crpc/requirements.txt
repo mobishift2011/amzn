@@ -23,7 +23,7 @@ pytz
 pyzmq
 redis
 redisco
-requests
+requests==0.14.2
 selenium
 sh
 simplejson

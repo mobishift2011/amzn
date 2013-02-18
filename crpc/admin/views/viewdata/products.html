@@ -27,6 +27,9 @@
         <input class="input-large" id="searchinput" type="text" />
         <button class="btn" id="searchtitle">Search Title</button> 
     </div>
+    <div style="display: inline-block; vertical-align:middle;">
+        <button class="btn" id="editall">Reclassify All</button>
+    </div>
       <div class="container">
         {% for p in products %}
         <div style="float: left; width: 250px; height:500px;">
@@ -94,6 +97,19 @@
   </div>
 </div>
 
+<div class="modal hide fade" id="edit-modal">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal">x</button>
+    <h3>Reclassify All Departments</h3>
+  </div>
+  <div class="modal-body" id="edit-body">
+    Depts: (e.g. ['Women', 'Shoes']) <input type="text" id="edit-input" class="input-large" value=""/>
+  </div>
+  <div class="modal-footer">
+    <a href="#" class="btn btn-primary" id="edit-save">Save</a>
+    <a href="#" class="btn" data-dismiss="modal">Close</a>
+</div>
+
 {% endblock %}
 
 {% block script %}
@@ -129,10 +145,23 @@
     var s = site_key.split('_');
     var site = s[0]
     var key = s[1]
-    console.log(site, key);
     $.get('/viewdata/classification_reason.ajax', $.param({site:site,key:key}), function(data){
         $('#reason-body').html(data);
         $('#reason-modal').modal();
+    });
+  });
+
+  // reclassify all
+  $('#editall').live('click', function(){
+    $('#edit-modal').modal();
+  });
+
+  $('#edit-save').live('click', function(){
+    var value = $('#edit-input').val();
+    param['departments'] = value;
+    $.get('/viewdata/reclassify_all.ajax', param, function(data){
+        $('#edit-modal').modal('hide');
+        window.location.href = window.location.href;
     });
   });
 </script>

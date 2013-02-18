@@ -1,17 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-Tools for server to processing data
+Tools for server to process images
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This is the server part of zeroRPC module. Call by client automatically, run on many differen ec2 instances.
 
 """
-from gevent import monkey; monkey.patch_all()
-from gevent.coros import Semaphore
-from gevent.pool import Pool
-from functools import partial
-from collections import Counter
-
 from configs import *
 
 import boto
@@ -20,23 +14,17 @@ from boto.s3.connection import S3Connection
 
 from hashlib import md5
 import os
-import re, htmlentitydefs
 import json
 import requests
-import urllib
 from PIL import Image, ImageChops
 from cStringIO import StringIO
-from datetime import datetime
-from titlecase import titlecase
 
 from helpers.log import getlogger
-txtlogger = getlogger('powertools', filename='/tmp/textserver.log')
 imglogger = getlogger('powertools', filename='/tmp/powerserver.log')
 
 CURRDIR = os.path.dirname(__file__)
 
 from imglib import scale, trim, crop
-from backends.matching.mechanic_classifier import classify_event_department
 
 policy = {
   "Version": "2008-10-17",
@@ -238,283 +226,11 @@ class ImageTool:
         return fileobj, (width, height)
 
 
-class Propagator(object):
-    def __init__(self, site, event_id, module=None):
-        print 'init propogate %s event %s' % (site, event_id)
-
-        self.site = site
-        self.__module = module if module else \
-                        __import__('crawlers.{0}.models'.format(site), fromlist=['Event', 'Product', 'Category'])
-        self.event = self.__module.Event.objects(event_id=event_id).first()
-
-    def propagate(self):
-        """
-        * Tag, Dept extraction and propagation
-        * Event brand propagation
-        * Event (lowest, highest) discount, (lowest, highest) price propagation
-        * Event & Product begin_date, end_date
-        * Event soldout
-        """
-        if not self.event:
-            return
-
-        level1_depts = set([u"Women", u"Men", u"Beauty & Health", u"Jewelry & Watches", u"Handbags", u"Home", u"Wine", u"Kids & Baby"])
-
-        event_brands = set()
-        tags = set()
-        depts = Counter()
-        price_set = set()
-        discount_set = set()
-        events_begin = self.event.events_begin or None
-        events_end = self.event.events_end or None
-        soldout = True
-
-        products = self.__module.Product.objects(event_id=self.event.event_id)
-        num_products = len(products)
-        dept_threshold = int(.1*num_products)
-        print 'start to propogate %s event %s' % (self.site, self.event.event_id)
-
-        if num_products == 0:
-            return
-
-        counter = 0
-        for product in products:
-            try:
-                print 'start to propogate from  %s product %s' % (self.site, product.key)
-
-                # Tag, Dept extraction and propagation
-                if product.favbuy_tag:
-                    tags = tags.union(product.favbuy_tag)
-
-                if product.favbuy_dept:
-                    depts[tuple(product.favbuy_dept)] += 1
-
-                # Event brand propagation
-                if hasattr(product, 'favbuy_brand') and product.favbuy_brand:
-                    event_brands.add(product.favbuy_brand)
-
-                # Event & Product begin_date, end_date
-                if not hasattr(product, 'products_begin') \
-                    or not product.products_begin:
-                        product.products_begin = self.event.events_begin
-                if not hasattr(product, 'products_end') \
-                    or not product.products_end:
-                        product.products_end = self.event.events_end
-
-                if events_begin and product.products_begin:
-                    product.products_begin = min(events_begin, product.products_begin)
-                if events_end and product.products_end:
-                    product.products_end = max(events_end, product.products_end)
-
-                # (lowest, highest) discount, (lowest, highest) price propagation
-                try:
-                    price = float(product.favbuy_price)
-                except Exception, e:
-                    txtlogger.error('{0}.product.{1} favbuy price -> {2} exception: {3}'.format(self.site, product.key, product.favbuy_price, str(e)))
-                    price = 0.
-                try:
-                    listprice = float(product.favbuy_listprice)
-                except Exception, e:
-                    txtlogger.error('{0}.product.{1} favbuy listprice -> {2} exception: {3}'.format(self.site, product.key, product.favbuy_listprice, str(e)))
-                    listprice = price
-                
-                if price > 0:
-                    price_set.add(price)
-                
-                discount = 1.0 * price / listprice if listprice else 1.0
-                if discount < 1:
-                    discount_set.add(discount)
-
-                # soldout
-                if soldout and ((hasattr(product, 'soldout') and not product.soldout) \
-                    or (product.scarcity and int(product.scarcity))):
-                        soldout = False
-
-                product.save()
-                counter += 1
-            except Exception, e:
-                txtlogger.error('{0}.{1} product propagation exception'.format(self.site, product.key))
-
-        if not counter:
-            return self.event.propagation_complete
-
-        if self.event.sale_title:
-            self.event.sale_title = unescape(self.event.sale_title)
-            self.event.sale_title = titlecase(self.event.sale_title)
-        self.event.favbuy_brand = list(event_brands)
-        self.event.brand_complete = True
-        
-        self.event.favbuy_tag = list(tags)
-        self.event.favbuy_dept = []
-        for k, v in depts.items():
-             if v>=dept_threshold:
-                self.event.favbuy_dept.extend(list(k))
-        self.event.favbuy_dept = list(set(self.event.favbuy_dept))
-        #self.event.favbuy_dept = classify_event_department(self.site, self.event)
-
-        price_set = list(price_set)
-        price_set.sort()
-        discount_set = list(discount_set)
-        discount_set.sort()
-        self.event.lowest_price = str(price_set[0] if price_set else 0)
-        self.event.highest_price = str(price_set[-1] if price_set else 0)
-        self.event.lowest_discount = str(discount_set[-1] if discount_set else 1.0)
-        self.event.highest_discount = str(discount_set[0] if discount_set else 1.0)
-        self.event.events_begin = self.event.events_begin or events_begin
-        self.event.events_end = self.event.events_end or events_end
-        self.event.soldout = soldout
-        self.event.propagation_complete = True
-        self.event.propagation_time = datetime.utcnow()
-
-        # For upcoming events, publisher should no the update_history time.
-        self.event.update_history.update({
-            'favbuy_tag': self.event.propagation_time,
-            'favbuy_brand': self.event.propagation_time,
-            'favbuy_dept':  self.event.propagation_time,
-            'highest_discount': self.event.propagation_time,
-        })
-
-        self.event.save()
-
-        return self.event.propagation_complete
-
-    def update_propation(self):
-        if not self.event:
-            return
-
-        update_complete = False
-        products = self.__module.Product.objects(event_id=self.event.event_id)
-        print 'start to update propogate %s event %s' % (self.site, self.event.event_id)
-
-        lowest_price = float(self.event.lowest_price)
-        highest_price = float(self.event.highest_price)
-        lowest_discount = float(self.event.lowest_discount)
-        highest_discount = float(self.event.highest_discount)
-        event_brands = set()
-        event_tags = set()
-        if self.event.update_history:
-            update_propagation_time = self.event.update_history.get('update_propagation') \
-                                        or self.event.propagation_time
-        else:
-            update_propagation_time = self.event.propagation_time
-
-        for product in products:
-            update_history = product.update_history or {}
-
-            # To aggregate the product updated favbuy_brand
-            if update_history.get('favbuy_brand') \
-                and update_history['favbuy_brand'] > update_propagation_time:
-                event_brands.add(product.favbuy_brand)
-
-            # To aggregate the product updated favbuy_tag
-            if update_history.get('favbuy_tag') \
-                and update_history['favbuy_tag'] > update_propagation_time:
-                event_tags.update(product.favbuy_tag)
-
-            # To update price and discount
-            if update_history.get('favbuy_price') \
-                and update_history['favbuy_price'] > update_propagation_time:
-                try:
-                    price = float(product.favbuy_price)
-                    listprice = float(product.favbuy_listprice)
-                except:
-                    txtlogger.error('{0}.product.{1} favbuy price -> {2} exception: {3}'.format(self.site, product.key, product.favbuy_price, str(e)))
-                    continue
-
-                if price:
-                    lowest_price = min(lowest_price, price)
-                    highest_price = max(highest_price, price)
-
-                discount = 1. * price / listprice if listprice else 1.
-                if discount > 0 and discount < 1:
-                    lowest_discount = max(lowest_discount, discount)
-                    highest_discount = min(highest_discount, discount)
-
-        # Update the event
-        update_time = datetime.utcnow()
-
-        if event_brands.difference(self.event.favbuy_brand):
-            event_brands.update(self.event.favbuy_brand)
-            self.event.favbuy_brand = list(event_brands)
-            update_complete = True
-            self.event.update_history.update({
-                'favbuy_brand': update_time
-            })
-
-
-        if event_tags.difference(self.event.favbuy_tag):
-            event_tags.update(self.event.favbuy_tag)
-            self.event.favbuy_tag = list(event_tags)
-            update_complete = True
-            self.event.update_history.update({
-                'favbuy_tag': update_time
-            })
-
-        if self.event.lowest_price > lowest_price:
-            self.event.lowest_price = str(lowest_price)
-            update_complete = True
-            self.event.update_history.update({
-                'lowest_price': update_time
-            })
-
-        if self.event.highest_price < highest_price:
-            self.event.highest_price = str(highest_price)
-            update_complete = True
-            self.event.update_history.update({
-                'highest_price': update_time
-            })
-
-        if self.event.lowest_discount < lowest_discount:
-            self.event.lowest_discount = str(lowest_discount)
-            update_complete = True
-            self.event.update_history.update({
-                'lowest_discount': update_time
-            })
-
-        if self.event.highest_discount > highest_discount:
-            self.event.highest_discount = str(highest_discount)
-            update_complete = True
-            self.event.update_history.update({
-                'highest_discount': update_time
-            })
-
-        if update_complete:
-            self.event.update_history['update_propagation'] = update_time
-            self.event.save()
-
-        return update_complete
-
-
-# Removes HTML or XML character references and entities from a text string.
-#
-# @param text The HTML (or XML) source text.
-# @return The plain text, as a Unicode string, if necessary.
-def unescape(text):
-    def fixup(m):
-        text = m.group(0)
-        if text[:2] == "&#":
-            # character reference
-            try:
-                if text[:3] == "&#x":
-                    return unichr(int(text[3:-1], 16))
-                else:
-                    return unichr(int(text[2:-1]))
-            except ValueError:
-                pass
-        else:
-            # named entity
-            try:
-                text = unichr(htmlentitydefs.name2codepoint[text[1:-1]])
-            except KeyError:
-                pass
-        return text # leave as is
-    return re.sub("&#?\w+;", fixup, text)
-
 def test_image():
     conn = S3Connection(AWS_ACCESS_KEY, AWS_SECRET_KEY)
     urls = [
-        'http://www1.hautelookcdn.com/assets/28313watcheswj/pop-large.jpg',
-        'http://www1.hautelookcdn.com/assets/28313watcheswj/event-small.jpg',
+        'http://static.beyondtherack.com/productimages/GUISCARLETTTZ/large/GUISCARLETTTZ_1.jpg',
+        'http://static.beyondtherack.com/productimages/GUISCARLETTTZ/large/GUISCARLETTTZ_2.jpg',
     ]
 
     it = ImageTool(connection = conn)
@@ -531,34 +247,6 @@ def test_image():
     print 'image path ---> {0}'.format(it.image_path)
     print 'complete ---> {0}\n'.format(it.image_complete)
 
-def test_propagate(site='venteprivee', event_id=None):
-    import time
-    from mongoengine import Q
-    from backends.matching.extractor import Extractor
-    from backends.matching.classifier import FavbuyClassifier
-    extractor = Extractor()
-    classifier = FavbuyClassifier()
-    classifier.load_from_database()
-    
-    m = __import__('crawlers.{0}.models'.format(site), fromlist=['Event', 'Product'])
-    start = time.time()
-
-    if event_id:
-        p = Propagator(site, event_id, module=m)
-        p.propagate()
-    else:
-        now = datetime.utcnow()
-        #events = m.Event.objects(Q(propagation_complete = False) & (Q(events_begin__lte=now) | Q(events_begin__exists=False)) & (Q(events_end__gt=now) | Q(events_end__exists=False)) )
-        events = m.Event.objects()
-        counter = len(events)
-        for event in events:
-            print '\n', counter, ' left.'
-            p = Propagator(site, event.event_id, module=m)
-            p.propagate()
-
-            counter -= 1
-
-    print 'cost ', time.time() - start, ' s'
 
 if __name__ == '__main__':
     import time, sys
@@ -566,8 +254,4 @@ if __name__ == '__main__':
     if len(sys.argv) > 1:
         if sys.argv[1] == '-i':
             test_image()
-        elif sys.argv[1] == '-p':
-            f = test_propagate
-            event_id = sys.argv[3] if len(sys.argv)>3 else None
-            f(sys.argv[2], event_id)
     print time.time() - start, 's'

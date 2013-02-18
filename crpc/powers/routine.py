@@ -8,6 +8,7 @@ from mongoengine import Q
 from settings import POWER_PEERS, TEXT_PEERS
 from events import *
 from helpers.rpc import get_rpcs
+from crawlers.common.stash import picked_crawlers
 
 import uuid
 import random
@@ -15,9 +16,9 @@ import traceback
 from datetime import datetime
 
 from helpers.log import getlogger
-imglogger = getlogger('powerroutine', filename='/tmp/powerserver.log')
+logger = getlogger('powerroutine', filename='/tmp/powerroutine.log')
 
-from crawlers.common.stash import picked_crawlers
+
 def get_site_module(site):
     if not hasattr(get_site_module, 'mod'):
         setattr(get_site_module, 'mod', {})
@@ -25,13 +26,17 @@ def get_site_module(site):
     if not get_site_module.mod:
         for crawler in picked_crawlers:
             get_site_module.mod[crawler] = __import__('crawlers.'+ crawler +'.models', fromlist=['Category', 'Event', 'Product'])
+    
     return get_site_module.mod[site]
+
 
 def call_rpc(rpc, method, *args, **kwargs):
     try:
         return getattr(rpc, method)(args, kwargs)
-    except Exception:
+    except Exception as e:
+        logger.error('call rpc error: {0}'.format(traceback.format_exc()))
         print traceback.format_exc()
+
 
 def spout_images(site, doctype):
     m = get_site_module(site)
@@ -62,6 +67,7 @@ def spout_images(site, doctype):
             'image_urls': instance.image_urls,
         }
 
+
 def spout_extracted_products(site):
     m = get_site_module(site)
     now = datetime.utcnow()
@@ -80,13 +86,15 @@ def spout_extracted_products(site):
             'key': product.key,
         }
 
+
 def spout_propagate_events(site, complete=False):
-    m = __import__('crawlers.{0}.models'.format(site), fromlist=['Event'])
+    m = get_site_module(site)
     now = datetime.utcnow()
     try:
-        events = m.Event.objects(Q(propagation_complete = complete) & \
-            (Q(events_begin__lte=now) | Q(events_begin__exists=False)) & \
-                (Q(events_end__gt=now) | Q(events_end__exists=False)) )
+        logger.debug('spout {0} events to propagate and update propagate'.format(site))
+        events = m.Event.objects(Q(events_end__gt=now) | \
+            Q(events_end__exists=False)).timeout(False)
+        logger.debug('{0} events spouted'.format(site))
     except AttributeError:
         events = []
 
@@ -95,6 +103,7 @@ def spout_propagate_events(site, complete=False):
             'event_id': event.event_id,
             'site': site,
         }
+
 
 def scan_images(site, doctype, concurrency=3):
     """ If one site is already been scanning, not scan it this time
@@ -115,14 +124,14 @@ def scan_images(site, doctype, concurrency=3):
             pool.spawn(call_rpc, rpc, 'process_image', **kwargs)
         pool.join()
     except Exception as e:
-        imglogger.error('scan_images {0}.{1} error: {2}'.format(site, doctype, e.message))
+        logger.error('scan images {0}.{1} error: {2}'.format(site, doctype, traceback.format_exc()))
     finally:
         scan_images.run_flag[site] = False
 
 
 def crawl_images(site, doctype, key, *args, **kwargs):
     newargs = {}
-    m = __import__("crawlers."+site+'.models', fromlist=['Event', 'Product'])
+    m = get_site_module(site)
     model = doctype.capitalize()
     if model == 'Event':
         event = m.Event.objects.get(event_id=key)
@@ -144,52 +153,33 @@ def crawl_images(site, doctype, key, *args, **kwargs):
         rpc = random.choice(rpcs)
         call_rpc(rpc, 'process_image', **newargs)
 
+
 def propagate(site, concurrency=3):
-    """
-    * Event brand propagation
-    * Event (lowest, highest) discount, (lowest, highest) price propagation
-    * Event & product begin_date, end_date
-    * Event soldout
-    * tag, dept extraction
-    """
     rpcs = get_rpcs(TEXT_PEERS)
     pool = Pool(len(rpcs)*concurrency)
     events = spout_propagate_events(site)
 
+    no_events = True
     for event in events:
+        no_events = False
         rpc = random.choice(rpcs)
         pool.spawn(call_rpc, rpc, 'propagate', **event)
     pool.join()
 
-def update_propation(site, concurrency=3):
-    rpcs = get_rpcs(TEXT_PEERS)
-    pool = Pool(len(rpcs)*concurrency)
-    events = spout_propagate_events(site, complete=True)
-    
-    for event in events:
-        rpc = random.choice(rpcs)
-        pool.spawn(call_rpc, rpc, 'update_propation', **event)
-    pool.join()
+    if no_events:
+        # The site has no events to propagate, so call the rpc to process products.
+        extract_product(site, concurrency)
 
-def text_extract(site, concurrency=3):
-    """
-    * Product brand extraction.
-    """
+
+def extract_product(site, concurrency=3):
     rpcs = get_rpcs(TEXT_PEERS)
     pool = Pool(len(rpcs)*concurrency)
     products = spout_extracted_products(site)
-    
+
     for product in products:
         rpc = random.choice(rpcs)
-        pool.spawn(call_rpc, rpc, 'extract_text', **product)
+        pool.spawn(call_rpc, rpc, 'process_product', **product)
     pool.join()
-
-    # If site has event model, it should update and new the event propagation
-    # jobs = [gevent.spawn(update_propation, event_dict, site), \
-    #             gevent.spawn(propagate, site, concurrency)]
-    # gevent.joinall(jobs)
-    update_propation(site, concurrency)
-    propagate(site, concurrency)
 
 
 if __name__ == '__main__':

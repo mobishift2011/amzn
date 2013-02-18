@@ -3,6 +3,7 @@ from gevent import monkey; monkey.patch_all()
 import gevent
 from affiliate import Affiliate
 from backends.matching.mechanic_classifier import classify_product_department
+from powers.configs import BRAND_EXTRACT
 import re, htmlentitydefs
 from titlecase import titlecase
 from collections import Counter
@@ -78,9 +79,12 @@ class ProductPipeline(object):
             product.brand_complete=True
             product.update_history['favbuy_brand'] = datetime.utcnow()
             logger.info('product brand extracted -> {0}.{1}'.format(site, product.key))
+            return product.favbuy_brand
         else:
             product.update(set__brand_complete=False)
             logger.warning('product brand extract failed -> {0}.{1} {2}'.format(site, product.key, crawled_brand.encode('utf-8')))
+
+        return
 
     def extract_tag(self, text_list):
         site = self.site
@@ -96,8 +100,11 @@ class ProductPipeline(object):
         if product.tag_complete:
             product.update_history['favbuy_tag'] = datetime.utcnow()
             logger.info('product tag extracted -> {0}.{1} {2}'.format(site, product.key, product.favbuy_tag))
+            return product.favbuy_tag
         else:
             logger.warning('product tag extracted failed -> {0}.{1}'.format(site, product.key))
+
+        return
 
     def extract_dept(self, text_list):
         site = self.site
@@ -106,6 +113,10 @@ class ProductPipeline(object):
         if product.dept_complete:
             return
 
+        # I don't know where to add this statement, \
+        # just ensure that it'll be executed once when the product is crawled at the first time.
+        self.extract_text()
+
         favbuy_dept = classify_product_department(site, product)
         product.favbuy_dept = favbuy_dept
         product.dept_complete = True # bool(favbuy_dept)
@@ -113,12 +124,11 @@ class ProductPipeline(object):
         if product.dept_complete:
             product.update_history['favbuy_dept'] = datetime.utcnow()
             logger.info('product dept extracted -> {0}.{1} {2}'.format(site, product.key, product.favbuy_dept))
+            return product.favbuy_dept
         else:
             logger.error('product dept extract failed -> {0}.{1}'.format(site, product.key))
 
-        # I don't know where to add this statement, \
-        # just ensure that it'll be executed once when the product is crawled at the first time.
-        self.extract_text()
+        return
 
     def extract_price(self):
         product = self.product
@@ -149,13 +159,17 @@ class ProductPipeline(object):
 
         if product.url_complete:
             product.update_history['favbuy_url'] = datetime.utcnow()
+            return product.favbuy_url
         else:
             logger.error('product extract url failed -> {0}.{1}'.format(site, product.key))
 
+        return
+
     def clean(self):
+        product = self.product
+
         print 'start to clean product -> %s.%s' % (self.site, product.key)
 
-        product = self.product
         text_list = []
         text_list.append(product.title or u'')
         text_list.extend(product.list_info or [])
@@ -163,14 +177,22 @@ class ProductPipeline(object):
         text_list.append(product.short_desc or u'')
         text_list.extend(product.tagline or [])
 
-        jobs = [
-            gevent.spawn(self.extract_brand),
-            gevent.spawn(self.extract_tag, text_list),
-            gevent.spawn(self.extract_dept, text_list),
-            gevent.spawn(self.extract_price),
-            gevent.spawn(self.extract_url),
-        ]
-        gevent.joinall(jobs)
+        # jobs = [
+        #     gevent.spawn(self.extract_brand),
+        #     gevent.spawn(self.extract_tag, text_list),
+        #     gevent.spawn(self.extract_dept, text_list),
+        #     gevent.spawn(self.extract_price),
+        #     gevent.spawn(self.extract_url),
+        # ]
+        # gevent.joinall(jobs)
+
+        if self.extract_brand() or \
+            self.extract_tag(text_list) or \
+                self.extract_dept(text_list) or \
+                    self.extract_price() or \
+                        self.extract_url():
+                            return True
+        return False
 
 
 class EventPipeline(object):
@@ -244,6 +266,11 @@ class EventPipeline(object):
 
         updated = False
 
+        lowest_price = None
+        highest_price = None
+        lowest_discount = None
+        highest_discount = None
+
         if lowest_price != self.event.lowest_price:
             self.event.lowest_price = lowest_price
             self.event.update_history['lowest_price'] = datetime.utcnow()
@@ -284,12 +311,13 @@ class EventPipeline(object):
         discount_set = set()
         soldout = True
 
-        print 'start to propogate event -> %s.%s' % (self.site, self.event.event_id)
-
         counter = 0
         num_products = len(products)
         if num_products == 0:
             return
+
+        print 'start to propogate event -> %s.%s, product amount: %s' % \
+            (self.site, self.event.event_id, num_products)
 
         for product in products:
             pp = ProductPipeline(self.site, product)
@@ -328,6 +356,19 @@ class EventPipeline(object):
                 if discount < 1:
                     discount_set.add(discount)
 
+                # products_begin, products_end
+                if not product.products_begin or \
+                    (self.event.events_begin and \
+                        product.products_begin > self.event.events_begin):
+                            product.products_begin = self.event.events_begin
+                            product.update_history['products_begin'] = datetime.utcnow()
+
+                if not product.products_end or \
+                    (self.event.events_end and \
+                        product.products_end < self.event.events_end):
+                            product.products_end = self.event.events_end
+                            product.update_history['products_end'] = datetime.utcnow()
+
                 # soldout
                 if soldout and ((hasattr(product, 'soldout') and not product.soldout) \
                     or (product.scarcity and int(product.scarcity))):
@@ -344,7 +385,7 @@ class EventPipeline(object):
         self.extract_text()
         self.propagate_dept(depts, num_products)
         self.propagate_tag(tags)
-        self.propogate_brand(event_brands)
+        self.propagate_brand(event_brands)
         self.propagate_price_and_discount(price_set, discount_set)
         self.event.soldout = soldout
 
@@ -360,86 +401,86 @@ class EventPipeline(object):
 
         print 'start to update propogate %s event %s' % (self.site, self.event.event_id)
 
-        update_complete = False
-        event_brands = set(self.event.favbuy_brand) if self.event.favbuy_brand else set()
-        event_tags = set(self.event.favbuy_tag) if self.event.favbuy_tag else set()
-        price_set = set()
-        discount_set = set()
+        # unknow how to do
 
-        try:
-            price_set.add(float(self.event.lowest_price))
-        except:
-            print('event lowest_price error')
-        try:
-            price_set.add(float(self.event.highest_price))
-        except:
-            print('event highest_price error')
-        try:
-            discount_set.add(float(self.event.lowest_discount))
-        except:
-            print('event lowest_discount error')
-        try:
-            discount_set.add(float(self.event.highest_discount))
-        except:
-            print('event highest_discount error')
+        # update_complete = False
+        # event_brands = set(self.event.favbuy_brand) if self.event.favbuy_brand else set()
+        # event_tags = set(self.event.favbuy_tag) if self.event.favbuy_tag else set()
+        # price_set = set()
+        # discount_set = set()
 
-        if self.event.update_history:
-            update_propagation_time = self.event.update_history.get('update_propagation') \
-                                        or self.event.propagation_time
-        else:
-            update_propagation_time = self.event.propagation_time
+        # try:
+        #     price_set.add(float(self.event.lowest_price))
+        # except:
+        #     print('event lowest_price error')
+        # try:
+        #     price_set.add(float(self.event.highest_price))
+        # except:
+        #     print('event highest_price error')
+        # try:
+        #     discount_set.add(float(self.event.lowest_discount))
+        # except:
+        #     print('event lowest_discount error')
+        # try:
+        #     discount_set.add(float(self.event.highest_discount))
+        # except:
+        #     print('event highest_discount error')
 
-        for product in products:
-            update_history = product.update_history or {}
+        # if self.event.update_history:
+        #     update_propagation_time = self.event.update_history.get('update_propagation') \
+        #                                 or self.event.propagation_time
+        # else:
+        #     update_propagation_time = self.event.propagation_time
 
-            # To aggregate the product updated favbuy_brand
-            if update_history.get('favbuy_brand') \
-                and update_history['favbuy_brand'] > update_propagation_time:
-                event_brands.add(product.favbuy_brand)
+        # for product in products:
+        #     update_history = product.update_history or {}
 
-            # To aggregate the product updated favbuy_tag
-            if update_history.get('favbuy_tag') \
-                and update_history['favbuy_tag'] > update_propagation_time:
-                event_tags.add(product.favbuy_tag)
+        #     # To aggregate the product updated favbuy_brand
+        #     if update_history.get('favbuy_brand') \
+        #         and update_history['favbuy_brand'] > update_propagation_time:
+        #         event_brands.add(product.favbuy_brand)
 
-            # To update price and discount
-            if update_history.get('favbuy_price') \
-                and update_history['favbuy_price'] > update_propagation_time:
-                    price_set 
-                    discount_set 
-                try:
-                    price = float(product.favbuy_price)
-                    price_set.add(price)
-                    listprice = float(product.favbuy_listprice)
-                except:
-                    logger.error('product {0}.{1} favbuy price error -> {2}/{3}'.format( \
-                        self.site, product.key, product.favbuy_price, product.favbuy_listprice ))
-                    continue
+        #     # To aggregate the product updated favbuy_tag
+        #     if update_history.get('favbuy_tag') \
+        #         and update_history['favbuy_tag'] > update_propagation_time:
+        #         event_tags.add(product.favbuy_tag)
 
-                discount = 1. * price / listprice if listprice else 1.
-                if discount > 0 and discount < 1:
-                    discount_set.add(discount)
+        #     # To update price and discount
+        #     if update_history.get('favbuy_price') \
+        #         and update_history['favbuy_price'] > update_propagation_time: 
+        #         try:
+        #             price = float(product.favbuy_price)
+        #             price_set.add(price)
+        #             listprice = float(product.favbuy_listprice)
+        #         except:
+        #             logger.error('product {0}.{1} favbuy price error -> {2}/{3}'.format( \
+        #                 self.site, product.key, product.favbuy_price, product.favbuy_listprice ))
+        #             continue
 
-        # Update the event
-        update_time = datetime.utcnow()
+        #         discount = 1. * price / listprice if listprice else 1.
+        #         if discount > 0 and discount < 1:
+        #             discount_set.add(discount)
 
-        if self.propagate_brand(event_brands):
-            update_complete = True
+        # # Update the event
+        # update_time = datetime.utcnow()
 
-        if self.propagate_tag(event_tags):
-            update_complete = True
+        # if self.propagate_brand(event_brands):
+        #     update_complete = True
 
-        if self.propagate_price_and_discount(price_set, discount_set):
-            update_complete = True
+        # if self.propagate_tag(event_tags):
+        #     update_complete = True
 
-        if self.propagate_price_and_discount(price_set, discount_set):
-            update_complete = True
+        # if self.propagate_price_and_discount(price_set, discount_set):
+        #     update_complete = True
 
-        if update_complete:
-            self.event.update_history['update_propagation'] = update_time
-            self.event.save()
+        # if self.propagate_price_and_discount(price_set, discount_set):
+        #     update_complete = True
 
-        return update_complete
+        # if update_complete:
+        #     self.event.update_history['update_propagation'] = update_time
+        #     self.event.save()
+
+        # return update_complete
 
 
 # Removes HTML or XML character references and entities from a text string.

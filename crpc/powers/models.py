@@ -57,3 +57,30 @@ class Brand(Document):
             'local_searchs'   :   self.local_searchs,
             'created_at'      :   str(self.created_at)
         }
+
+
+class Link(Document):
+    site            =   StringField(required=True)
+    affiliate       =   StringField()
+    tracking_url    =   StringField()
+    created_at      =   DateTimeField(default=datetime.now())
+    updated_at      =   DateTimeField()
+ 
+    meta = {
+        'db_name': DB,
+        'db_alias': DB,
+        'indexes': [('site', 'affiliate')],
+        'ordering': ['-updated_at']
+    }
+
+    def to_json(self):
+        return {
+            field: getattr(self, field)
+                for field in self._fields.keys()
+        }
+
+    @classmethod
+    def pre_save(cls, sender, document, **kwargs):
+        document.updated_at = datetime.utcnow()
+
+signals.pre_save.connect(Link.pre_save, sender=Link)

@@ -69,7 +69,7 @@ def setup_packages():
 @parallel
 def _setup_packages():
     sudo("apt-get update")
-    sudo("apt-get -y install build-essential python-dev libevent-dev libxslt-dev uuid-dev python-setuptools dtach redis-server chromium-browser xvfb unzip libjpeg8-dev gfortran libblas-dev liblapack-dev ganglia-monitor")
+    sudo("apt-get -y install build-essential python-dev libevent-dev libxslt-dev uuid-dev python-setuptools dtach redis-server chromium-browser xvfb unzip libjpeg8-dev gfortran libblas-dev liblapack-dev ganglia-monitor git")
     sudo("apt-get -y build-dep python-imaging")
     sudo("ln -sf /usr/lib/`uname -i`-linux-gnu/libfreetype.so /usr/lib/")
     sudo("ln -sf /usr/lib/`uname -i`-linux-gnu/libjpeg.so /usr/lib/")
@@ -254,7 +254,7 @@ def restart_text_server():
     execute(_restart_zero)
 
 def restart_zero_server():
-    env.hosts = HOSTS
+    env.hosts = list(HOSTS)
     for host in CRPC:
         env.hosts.remove(host)
     execute(_restart_zero)

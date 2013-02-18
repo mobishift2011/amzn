@@ -276,13 +276,17 @@ class Server(object):
             page_nums = int( page_nums[0].text_content() )
         sale_title = tree.cssselect('title')[0].text_content()
         
+        product_ids = []
         prds = segment.cssselect('form[method=post] > div#product-list > div.product-row > div.product > div.section')
-        for prd in prds: self.crawl_every_product_in_listing(event_id, url, prd, ctx)
+        for prd in prds:
+            product_key = self.crawl_every_product_in_listing(event_id, url, prd, ctx)
+            product_ids.append(product_key)
 
         if isinstance(page_nums, int):
             for page_num in range(2, page_nums+1):
                 page_url = '{0}?page={1}'.format(url, page_num)
-                self.get_next_page_in_listing(event_id, page_url, page_num, ctx)
+                ret = self.get_next_page_in_listing(event_id, page_url, page_num, ctx)
+                product_ids.extend(ret)
 
         event = Event.objects(event_id=event_id).first()
         if not event: event = Event(event_id=event_id)
@@ -298,6 +302,7 @@ class Server(object):
                 event.events_end = events_end
         if isinstance(page_nums, int): event.num = page_nums
         if not event.sale_title: event.sale_title = sale_title
+        event.product_ids = product_ids
         event.update_time = datetime.utcnow()
         event.save()
         common_saved.send(sender=ctx, obj_type='Event', key=event_id, is_new=False, is_updated=False, ready=ready)
@@ -344,6 +349,7 @@ class Server(object):
         product.list_update_time = datetime.utcnow()
         product.save()
         common_saved.send(sender=ctx, obj_type='Product', key=key, url=link, is_new=is_new, is_updated=is_updated)
+        return key
 
 
     def get_next_page_in_listing(self, event_id, page_url, page_num, ctx):
@@ -352,10 +358,14 @@ class Server(object):
             common_failed.send(sender=ctx, key='', url=page_url,
                     reason='download listing error or {0} return'.format(content))
             return
+        product_ids = []
         tree = lxml.html.fromstring(content)
         segment = tree.cssselect('div.mainframe')[0]
         prds = segment.cssselect('form[method=post] > div#product-list > div.product-row > div.product > div.section')
-        for prd in prds: self.crawl_every_product_in_listing(event_id, page_url, prd, ctx)
+        for prd in prds:
+            product_key = self.crawl_every_product_in_listing(event_id, page_url, prd, ctx)
+            product_ids.append(product_key)
+        return product_ids
 
 
     def crawl_event_is_product(self, event_id, product_url, content, ctx):

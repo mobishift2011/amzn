@@ -168,6 +168,7 @@ class Server(object):
         primary = tree.cssselect('div#wrapper > div#content > div#front > div#primary')[0]
         sale_description = primary.cssselect('div.events_page_heading > div.text > p.description')[0].text_content().strip()
         nodes = primary.cssselect('div.raw_grid > div.deal')
+        product_ids = []
         for node in nodes:
             soldout = True if node.cssselect('div.image > div.sold_out') else False
             product, is_new, is_updated = self.from_listing_get_info(node, soldout)
@@ -175,6 +176,7 @@ class Server(object):
             if event_id not in product.event_id: product.event_id.append(event_id)
             product.save()
             common_saved.send(sender=ctx, obj_type='Product', key=product.key, url=product.combine_url, is_new=is_new, is_updated=is_updated)
+            product_ids.append(product.key)
 
         # After this event's products have been saved into DB,
         # send ready signal about this event to image processor
@@ -185,6 +187,7 @@ class Server(object):
             event.urgent = False
             ready = True
         else: ready = False
+        event.product_ids = product_ids
         event.update_time = datetime.utcnow()
         event.save()
         common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=event.combine_url, is_new=False, is_updated=False, ready=ready)

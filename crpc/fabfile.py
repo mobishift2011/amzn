@@ -305,10 +305,12 @@ def deploy():
 
 def crawler_login_file():
     """ change crawlers' login email, redeploy """
+    from settings import CRAWLER_PEERS
     for peer in CRAWLER_PEERS:
         multiprocessing.Process(target=__crawler_login_file, args=(peer['host_string'], peer['port'])).start()
 
 def __crawler_login_file(host_string, port):
+    from settings import CRPC_ROOT
     with settings(host_string=host_string):
         put(CRPC_ROOT + '/crawlers/common/username.ini', '/opt/crpc/crawlers/common/')
 

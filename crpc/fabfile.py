@@ -325,14 +325,5 @@ def __start_ganglia(host_string, name):
         run("sed -i 's/name = \"unspecified\"/name = \"{0}\"/' /etc/ganglia/gmond.conf".format(name))
         run("/etc/init.d/ganglia-monitor restart")
 
-def crawler_login_file():
-    """ change crawlers' login email, redeploy """
-    for peer in CRAWLER_PEERS:
-        multiprocessing.Process(target=__crawler_login_file, args=(peer['host_string'], peer['port'])).start()
-
-def __crawler_login_file(host_string, port):
-    with settings(host_string=host_string):
-        put(CRPC_ROOT + '/crawlers/common/username.ini', '/opt/crpc/crawlers/common/')
-
 if __name__ == "__main__":
     pass

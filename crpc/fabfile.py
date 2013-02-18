@@ -310,7 +310,7 @@ def crawler_login_file():
 def __crawler_login_file(host_string, port):
     from settings import CRPC_ROOT
     with settings(host_string=host_string):
-        put(CRPC_ROOT + '/crawlers/common/username.ini', '/opt/crpc/crawlers/common/')
+        put(CRPC_ROOT + '/crawlers/common/username.ini', '/srv/crpc/crawlers/common/')
 
 
 def restart_ganglia_client():

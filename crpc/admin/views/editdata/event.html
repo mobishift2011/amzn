@@ -32,35 +32,35 @@
         <div class="control-group">
           <label class="control-label" for="typeahead">Title</label>
           <div class="controls">
-              <input type="text" class="span6 typeahead" name="title" value="{{ event.title }}">
+              <input type="text" class="span6 typeahead" name="title" value="{{ event.title|e }}">
           </div>
         </div>
 
         <div class="control-group">
           <label class="control-label" for="textarea2">Details</label>
           <div class="controls">
-            <textarea name="description" rows="5",cols="50" style="width:400px;">{{ event.description }}</textarea>
+            <textarea name="description" rows="5",cols="50" style="width:400px;">{{ event.description|e }}</textarea>
           </div>
         </div>
 
         <div class="control-group">
           <label class="control-label" for="typeahead">Departments</label>
           <div class="controls">
-              <input type="text" class="span6 typeahead" name="departments" value="{{ event.departments }}">
+              <input type="text" class="span6 typeahead" name="departments" value="{{ event.departments|e }}">
           </div>
         </div>
 
         <div class="control-group">
           <label class="control-label" for="typeahead">Brands</label>
           <div class="controls">
-              <input type="text" class="span6 typeahead" name="brands" value="{{ event.brands }}">
+              <input type="text" class="span6 typeahead" name="brands" value="{{ event.brands|e }}">
           </div>
         </div>
 
         <div class="control-group">
           <label class="control-label" for="typeahead">Tags</label>
           <div class="controls">
-              <input type="text" class="span6 typeahead" name="tags" value="{{ event.tags }}">
+              <input type="text" class="span6 typeahead" name="tags" value="{{ event.tags|e }}">
           </div>
         </div>
 

@@ -82,6 +82,7 @@ def _setup_packages():
     sudo("pip install ez_setup")
     sudo("pip install https://github.com/SiteSupport/gevent/tarball/master")
     sudo("pip install zerorpc lxml requests pymongo mongoengine redis redisco pytz Pillow titlecase mock selenium blinker cssselect boto python-dateutil virtualenvwrapper slumber esmre django supervisor")
+    sudo("pip install pymongo==2.4.1")
 
 def setup_users():
     puts(green('Creating Ubuntu Users'))
@@ -108,7 +109,6 @@ def sync_latest_code():
 def _sync_latest_code():
     puts(green('Syncing Latest Code'))
     with cd('/srv/crpc'):
-        puts(green('Syncing Latest Code'))
         if dir_exists('/srv/crpc/src'):
             with cd('/srv/crpc/src'):
                 sudo('git checkout -- .')
@@ -261,7 +261,11 @@ def restart_zero_server():
 
 def restart_all():
     execute(stop_crpc_server)
-    execute(restart_zero_server)
+    import multiprocessing
+    job = multiprocessing.Process(target=execute, args=(restart_zero_server,))
+    job.start()
+    job.join()
+    #execute(restart_zero_server)
     execute(start_crpc_server)
 
 def stop_crpc_server():
@@ -277,16 +281,14 @@ def _stop_crpc():
 def start_crpc_server():
     for host_string in CRPC:
         with settings(host_string=host_string, warn_only=True):
-            with cd('/srv/crpc'):
-                run('supervisord -c supervisord.conf -l /tmp/supervisord.log')
+            run('cd /srv/crpc && ulimit -n 65536 && supervisord -c supervisord.conf -l /tmp/supervisord.log')
         
 def _restart_zero():
     puts(green("Restarting Zero Servers"))
     with settings(warn_only=True):
         run('killall supervisord')
         run('sleep 0.5')
-        with cd('/srv/crpc'):
-            run('supervisord -c supervisord.conf -l /tmp/supervisord.log')
+        run('cd /srv/crpc && ulimit -n 65536 && supervisord -c supervisord.conf -l /tmp/supervisord.log')
 
 def deploy():
     """ setup environment, configure, and start """
@@ -305,12 +307,14 @@ def deploy():
 
 def crawler_login_file():
     """ change crawlers' login email, redeploy """
+    from settings import CRAWLER_PEERS
     for peer in CRAWLER_PEERS:
         multiprocessing.Process(target=__crawler_login_file, args=(peer['host_string'], peer['port'])).start()
 
 def __crawler_login_file(host_string, port):
+    from settings import CRPC_ROOT
     with settings(host_string=host_string):
-        put(CRPC_ROOT + '/crawlers/common/username.ini', '/opt/crpc/crawlers/common/')
+        put(CRPC_ROOT + '/crawlers/common/username.ini', '/srv/crpc/crawlers/common/')
 
 
 def restart_ganglia_client():

@@ -109,7 +109,6 @@ def sync_latest_code():
 def _sync_latest_code():
     puts(green('Syncing Latest Code'))
     with cd('/srv/crpc'):
-        puts(green('Syncing Latest Code'))
         if dir_exists('/srv/crpc/src'):
             with cd('/srv/crpc/src'):
                 sudo('git checkout -- .')

@@ -189,7 +189,7 @@ class EditDataHandler(BaseHandler):
         return 1,''
 
     @tornado.web.authenticated
-    def get(self, type,id):
+    def get(self, type, id):
         if type == 'event':
             event = api.event(id).get()
             event['brands'] = ','.join(event.get('brands',[]))
@@ -202,7 +202,7 @@ class EditDataHandler(BaseHandler):
             self.render('editdata/product.html',product=product)
 
     @tornado.web.authenticated
-    def post(self,type,id):
+    def post(self, type, id):
         if type == 'event':
             self._edit_event(id)
         elif type == 'product':
@@ -323,8 +323,35 @@ class ViewDataHandler(BaseHandler):
             self.render_classification()
         elif subpath == 'classification_reason.ajax':
             self.render_classification_reason()
+        elif subpath == 'reclassify_all.ajax':
+            self.render_reclassify_all()
         elif subpath == 'recommend':
             self.render_recommend()
+    
+    def render_reclassify_all(self):
+        kwargs = {}
+        for k, v in self.request.arguments.iteritems():
+            if k != 'departments':
+                kwargs[k] = v[0]
+
+        departments = eval(self.get_argument('departments', '[]'))
+
+        try:
+            result = api.product.get(**kwargs)
+        except:
+            result = {'meta':{'total_count':0},'objects':[]}
+
+        for product in result['objects']:
+            site, key = product['site_key'].split('_',1)
+            m = get_site_module(site)
+            m.Product.objects(key=key).update(set__favbuy_dept=departments)
+            try:
+                api.product(product['id']).patch({'department_path':departments})
+            except:
+                pass
+
+        self.content_type = 'application/json'
+        self.finish(json.dumps({'status':'ok'}))
 
     def render_classification_reason(self):
         from backends.matching.mechanic_classifier import classify_product_department

@@ -169,6 +169,7 @@ def propagate(site, concurrency=3):
     if no_events:
         # The site has no events to propagate, so call the rpc to process products.
         extract_product(site, concurrency)
+        pass
 
 
 def extract_product(site, concurrency=3):

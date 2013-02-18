@@ -184,7 +184,9 @@ class Server(object):
                     event.combine_url = 'https://www.onekingslane.com/sales/{0}'.format(event_id)
                     event.dept = ['home']
                 
-                event.events_begin = date_begin
+                if event.events_begin != date_begin:
+                    event.update_history.update({ 'events_begin': datetime.utcnow() })
+                    event.events_begin = date_begin
                 event.update_time = datetime.utcnow()
                 event.save()
                 common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=link, is_new=is_new, is_updated=False)
@@ -332,9 +334,11 @@ class Server(object):
             sale_description = path.cssselect('div#okl-bio > div.event-description .description')
             if sale_description:
                 event.sale_description = sale_description[0].text_content().strip()
-        if not event.events_end:
-            end_date = path.cssselect('div#okl-bio > h2.share')[0].get('data-end')
-            event.events_end = self.utcstr2datetime(end_date)
+        end_date = path.cssselect('div#okl-bio > h2.share')[0].get('data-end')
+        events_end = self.utcstr2datetime(end_date)
+        if event.events_end != events_end:
+            event.update_history.update({ 'events_end': datetime.utcnow() })
+            event.events_end = events_end
         if not event.sale_title:
             event.sale_title = path.cssselect('div#okl-bio > h2.share > strong')[0].text
 

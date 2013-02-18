@@ -137,8 +137,12 @@ class Server(object):
             event.sale_title = sale_title
         if dept not in event.dept: event.dept.append(dept)
         if img not in event.image_urls: event.image_urls.append(img)
-        event.events_begin = events_begin
-        event.events_end = events_end
+        if event.events_begin != events_begin:
+            event.update_history.update({ 'events_begin': datetime.utcnow() })
+            event.events_begin = events_begin
+        if event.events_end != events_end:
+            event.update_history.update({ 'events_end': datetime.utcnow() })
+            event.events_end = events_end
         event.update_time = datetime.utcnow()
         event.save()
         common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=link, is_new=is_new, is_updated=is_updated)

@@ -63,8 +63,15 @@ class Server(object):
 
         event.listing_url = event_data['prefix'] + event_data['url']
         # updating fields
-        event.events_begin = time2utc(event_data['start'])
-        event.events_end = time2utc(event_data['end'])
+        events_begin = time2utc(event_data['start'])
+        events_end = time2utc(event_data['end'])
+        if event.events_begin != events_begin:
+            event.update_history.update({ 'events_begin': datetime.utcnow() })
+            event.events_begin = events_begin 
+        if event.events_end != events_end:
+            event.update_history.update({ 'events_end': datetime.utcnow() })
+            event.events_end = events_end
+
         [event.dept.append(dept) for dept in event_data['departments'] if dept not in event.dept]
         event.soldout = True if 'soldOut' in event_data and event_data['soldOut'] == 1 else False
         event.update_time = datetime.utcnow()

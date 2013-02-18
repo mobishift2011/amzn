@@ -104,7 +104,10 @@ class Server(object):
                     event.image_urls.append( img.replace('medium', 'large') )
                     event.image_urls.append( img.replace('medium', 'thumb') )
                 event.image_urls.append(img)
-            event.events_end = datetime.utcfromtimestamp(float(events_end[:10]))
+            events_end = datetime.utcfromtimestamp(float(events_end[:10]))
+            if event.events_end != events_end:
+                event.update_history.update({ 'events_end': datetime.utcnow() })
+                event.events_end = events_end
             event.update_time = datetime.utcnow()
             event.save()
             common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
@@ -220,8 +223,12 @@ class Server(object):
             product, is_new, is_updated = self.from_listing_get_info(node, soldout)
 
             product.event_type = False # different from events' product
-            product.products_begin = east_today_begin_in_utc
-            product.products_end = products_end
+            if product.products_begin != east_today_begin_in_utc:
+                product.update_history.update({ 'products_begin': datetime.utcnow() })
+                product.products_begin = east_today_begin_in_utc
+            if product.products_end != products_end:
+                product.update_history.update({ 'products_end': datetime.utcnow() })
+                product.products_end = products_end
             product.save()
             common_saved.send(sender=ctx, obj_type='Product', key=product.key, url=product.combine_url, is_new=is_new, is_updated=is_updated)
 

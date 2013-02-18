@@ -187,7 +187,6 @@
 [0] Jewelry Roll -> Home; Accessories; Women
 [0] Sewing Machine -> Home; Electronics
 [0] Sewing Machines -> Home; Electronics
-[0] Hobo -> Bags; Handbags
 [0] Hobos -> Bags; Handbags
 [0] Satchel -> Bags; Handbags
 [0] Satchels -> Bags; Handbags
@@ -1551,3 +1550,4 @@
 [2] Mirror -> Home; Furniture & Lighting
 [2] Chandelier -> Home; Furniture & Lighting
 [2] Figure -> Home; Home Accessories
+[2] Hobo -> Bags; Handbags

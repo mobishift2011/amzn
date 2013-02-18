@@ -75,10 +75,11 @@ class BaseEvent(Document, BaseDocumentSkeleton):
     events_end          = DateTimeField()
     soldout             = BooleanField(default=False)
     dept                = ListField(StringField())
+    product_ids         = ListField(StringField())
 
     # after setting urgent to False, you can't set it back
     # after event complete by crawler, urgent is False
-    urgent              = BooleanField(default=True)
+    urgent              =   BooleanField(default=True)
     
 
     image_complete      =   BooleanField(default=False)

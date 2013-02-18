@@ -22,6 +22,7 @@
             <th>No dept</th>
             <th>Event not ready</th>
             <th>Unknown</th>
+            <th>No title</th>
           </tr>
         </thead>
 
@@ -36,6 +37,7 @@
             <td class='no_dept_num'>{{prd['no_dept_num']}}</td>
             <td class='event_not_ready'>{{prd['event_not_ready']}}</td>
             <td class='unknown'>{{prd['unknown']}}</td>
+            <td class="no_title">{{prd['no_title']}}</td>
           </tr>
           % end
           <tr>
@@ -47,6 +49,7 @@
             <td id='total_no_dept_num'></td>
             <td id='total_event_not_ready'></td>
             <td id='total_unknown'></td>
+            <td id='total_no_title'></td>
           </tr>
         </tbody>
       </table>
@@ -65,6 +68,7 @@
             <th>Onsale no image path</th>
             <th>Propagation not complete</th>
             <th>Unknown</th>
+            <th>No sale title</th>
           </tr>
         </thead>
 
@@ -82,6 +86,7 @@
             <td class='onsale_no_image_path_num'>{{ev['onsale_no_image_path_num']}}</td>
             <td class='onsale_propagation_not_complete'>{{ev['onsale_propagation_not_complete']}}</td>
             <td class='event_unknown'>{{ev['unknown']}}</td>
+            <td class='no_sale_title'>{{ev['no_sale_title']}}</td>
           </tr>
           % end
           <tr>
@@ -96,6 +101,7 @@
             <td id='total_onsale_no_image_path_num'></td>
             <td id='total_onsale_propagation_not_complete'></td>
             <td id='total_event_unknown'></td>
+            <td id='total_no_sale_title'></td>
           </tr>
         </tbody>
       </table>
@@ -105,7 +111,7 @@
       $(function(){
 
         function count_product(){
-          var fields = ['product_num', 'published_num', 'no_image_url_num', 'no_image_path_num', 'no_dept_num', 'event_not_ready', 'unknown']
+          var fields = ['product_num', 'published_num', 'no_image_url_num', 'no_image_path_num', 'no_dept_num', 'event_not_ready', 'unknown', 'no_title']
           for(var i in fields){
             var node = 'td.' + fields[i];
             var total_node = '#total_' + fields[i];
@@ -125,7 +131,7 @@
 
 
         function count_event(){
-          var fields = ['event_num', 'event_published_num', 'not_leaf_num', 'upcoming_no_image_url_num', 'upcoming_no_image_path_num', 'onsale_no_product_num', 'onsale_no_image_url_num', 'onsale_no_image_path_num', 'onsale_propagation_not_complete', 'event_unknown'];
+          var fields = ['event_num', 'event_published_num', 'not_leaf_num', 'upcoming_no_image_url_num', 'upcoming_no_image_path_num', 'onsale_no_product_num', 'onsale_no_image_url_num', 'onsale_no_image_path_num', 'onsale_propagation_not_complete', 'event_unknown', 'no_sale_title'];
           for(var i in fields){
             var node = 'td.' + fields[i];
             var total_node = '#total_' + fields[i];

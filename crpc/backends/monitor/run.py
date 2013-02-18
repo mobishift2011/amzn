@@ -56,7 +56,7 @@ def toggle_auto_scheduling(sender, **kwargs):
 # end binding
 
 gevent.spawn(Scheduler().run)
-auto_scheduling.send('webui', auto=True)
+gevent.spawn_later(toggle_auto_scheduling, 5, 'webui', auto=True)
 
 
 while True:

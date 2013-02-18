@@ -111,7 +111,7 @@ class Server(object):
         """
         asin = product_data['asin']
         casin = product_data['cAsin']
-        title = product_data['title'] # color is in title
+        title = product_data['title'].encode('utf-8') # color is in title
         image_urls = [product_data['image']] + product_data['altImages'] # one picture, altImages is []
         if 'listPrice' in product_data:
             listprice = product_data['listPrice']['display'] # or 'amount', if isRange: True, don't know what 'amount' will be

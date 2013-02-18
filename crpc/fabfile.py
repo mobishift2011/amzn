@@ -69,7 +69,7 @@ def setup_packages():
 @parallel
 def _setup_packages():
     sudo("apt-get update")
-    sudo("apt-get -y install build-essential python-dev libevent-dev libxslt-dev uuid-dev python-setuptools dtach redis-server chromium-browser xvfb unzip libjpeg8-dev gfortran libblas-dev liblapack-dev ganglia-monitor")
+    sudo("apt-get -y install build-essential python-dev libevent-dev libxslt-dev uuid-dev python-setuptools dtach redis-server chromium-browser xvfb unzip libjpeg8-dev gfortran libblas-dev liblapack-dev ganglia-monitor git")
     sudo("apt-get -y build-dep python-imaging")
     sudo("ln -sf /usr/lib/`uname -i`-linux-gnu/libfreetype.so /usr/lib/")
     sudo("ln -sf /usr/lib/`uname -i`-linux-gnu/libjpeg.so /usr/lib/")
@@ -82,6 +82,7 @@ def _setup_packages():
     sudo("pip install ez_setup")
     sudo("pip install https://github.com/SiteSupport/gevent/tarball/master")
     sudo("pip install zerorpc lxml requests pymongo mongoengine redis redisco pytz Pillow titlecase mock selenium blinker cssselect boto python-dateutil virtualenvwrapper slumber esmre django supervisor")
+    sudo("pip install pymongo==2.4.1")
 
 def setup_users():
     puts(green('Creating Ubuntu Users'))
@@ -108,7 +109,6 @@ def sync_latest_code():
 def _sync_latest_code():
     puts(green('Syncing Latest Code'))
     with cd('/srv/crpc'):
-        puts(green('Syncing Latest Code'))
         if dir_exists('/srv/crpc/src'):
             with cd('/srv/crpc/src'):
                 sudo('git checkout -- .')
@@ -254,7 +254,7 @@ def restart_text_server():
     execute(_restart_zero)
 
 def restart_zero_server():
-    env.hosts = HOSTS
+    env.hosts = list(HOSTS)
     for host in CRPC:
         env.hosts.remove(host)
     execute(_restart_zero)
@@ -278,7 +278,7 @@ def start_crpc_server():
     for host_string in CRPC:
         with settings(host_string=host_string, warn_only=True):
             with cd('/srv/crpc'):
-                run('supervisord -c supervisord.conf -l /tmp/supervisord.log')
+                run('ulimit -n 65536 && supervisord -c supervisord.conf -l /tmp/supervisord.log')
         
 def _restart_zero():
     puts(green("Restarting Zero Servers"))
@@ -286,7 +286,7 @@ def _restart_zero():
         run('killall supervisord')
         run('sleep 0.5')
         with cd('/srv/crpc'):
-            run('supervisord -c supervisord.conf -l /tmp/supervisord.log')
+            run('ulimit -n 65536 && supervisord -c supervisord.conf -l /tmp/supervisord.log')
 
 def deploy():
     """ setup environment, configure, and start """

@@ -39,35 +39,35 @@
         <div class="control-group">
           <label class="control-label" for="typeahead">Title</label>
           <div class="controls">
-              <input type="text" class="span6 typeahead" name="title" value="{{ product.title }}">
+              <input type="text" class="span6 typeahead" name="title" value="{{ product.title|e }}">
           </div>
         </div>
 
         <div class="control-group">
           <label class="control-label" for="textarea2">Details</label>
           <div class="controls">
-            <textarea name="details" rows="5",cols="50" style="width:400px;">{{ product.details }}</textarea>
+            <textarea name="details" rows="5",cols="50" style="width:400px;">{{ product.details|e }}</textarea>
           </div>
         </div>
 
         <div class="control-group">
           <label class="control-label" for="typeahead">Departments</label>
           <div class="controls">
-              <input type="text" class="span6 typeahead" name="departments" value="{{ product.department_path }}">
+              <input type="text" class="span6 typeahead" name="departments" value="{{ product.department_path|e }}">
           </div>
         </div>
 
         <div class="control-group">
           <label class="control-label" for="typeahead">Brand</label>
           <div class="controls">
-              <input type="text" class="span6 typeahead" name="brand" value="{{ product.brand }}">
+              <input type="text" class="span6 typeahead" name="brand" value="{{ product.brand|e }}">
           </div>
         </div>
 
         <div class="control-group">
           <label class="control-label" for="typeahead">Tags</label>
           <div class="controls">
-              <input type="text" class="span6 typeahead" name="tags" value="{{ product.tags }}">
+              <input type="text" class="span6 typeahead" name="tags" value="{{ product.tags|e }}">
           </div>
         </div>
 

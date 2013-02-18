@@ -277,16 +277,14 @@ def _stop_crpc():
 def start_crpc_server():
     for host_string in CRPC:
         with settings(host_string=host_string, warn_only=True):
-            with cd('/srv/crpc'):
-                run('ulimit -n 65536 && supervisord -c supervisord.conf -l /tmp/supervisord.log')
+            run('cd /srv/crpc && ulimit -n 65536 && supervisord -c supervisord.conf -l /tmp/supervisord.log')
         
 def _restart_zero():
     puts(green("Restarting Zero Servers"))
     with settings(warn_only=True):
         run('killall supervisord')
         run('sleep 0.5')
-        with cd('/srv/crpc'):
-            run('ulimit -n 65536 && supervisord -c supervisord.conf -l /tmp/supervisord.log')
+        run('cd /srv/crpc && ulimit -n 65536 && supervisord -c supervisord.conf -l /tmp/supervisord.log')
 
 def deploy():
     """ setup environment, configure, and start """

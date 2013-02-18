@@ -261,7 +261,11 @@ def restart_zero_server():
 
 def restart_all():
     execute(stop_crpc_server)
-    execute(restart_zero_server)
+    import multiprocessing
+    job = multiprocessing.Process(target=execute, args=(restart_zero_server,))
+    job.start()
+    job.join()
+    #execute(restart_zero_server)
     execute(start_crpc_server)
 
 def stop_crpc_server():

@@ -55,7 +55,7 @@ def _setup_env(env):
     from settings import PEERS, CRAWLER_PEERS, POWER_PEERS, TEXT_PEERS
     global PEERS, CRAWLER_PEERS, POWER_PEERS, TEXT_PEERS
 
-    puts(red('Using PRODUCTION settings'))
+    puts(red('Using {0} settings'.format(env)))
     HOSTS = list(set([ p['host_string'] for p in  PEERS ])) + CRPC
     CRAWLER_HOSTS = list(set([ p['host_string'] for p in CRAWLER_PEERS ]))
     POWER_HOSTS = list(set([ p['host_string'] for p in POWER_PEERS ]))

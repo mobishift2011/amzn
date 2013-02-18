@@ -177,7 +177,9 @@ class Server(object):
             event.image_urls = [img]
             event.sale_title = sale_title
             event.sale_description = sale_description
-        event.events_end = events_end
+        if event.events_end != events_end:
+            event.update_history.update({ 'events_end': datetime.utcnow() })
+            event.events_end = events_end
         event.dept = [dept] # belleandclive's dept will change to be right, so I need to keep it right.
         event.update_time = datetime.utcnow()
         event.save()

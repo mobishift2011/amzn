@@ -46,25 +46,31 @@ class ruelalaLogin(object):
             'loginType': 'gate',
             'rememberMe': 1, 
         }       
-
         self.event_is_product = re.compile('http://.*.ruelala.com/product/detail/eventId/\d{1,10}/styleNum/(\d{1,10})/viewAll/0')
-        self._signin = False
+        self.current_email = login_email[DB]
+        self._signin = {}
 
     def login_account(self):
         """.. :py:method::
             use post method to login
         """
+        self.data['email'] = self.current_email
         req.get(self.login_url)
         req.post('http://www.ruelala.com/access/formSetup', data={'userEmail':'','CmsPage':'/access/gate','formType':'signin'})
         req.post('https://www.ruelala.com/registration/login', data=self.data)
-        self._signin = True
+        self._signin[self.current_email] = True
 
-    def check_signin(self):
+    def check_signin(self, username=''):
         """.. :py:method::
             check whether the account is login
         """
-        if not self._signin:
+        if username == '':
             self.login_account()
+        elif username not in self._signin:
+            self.current_email = username
+            self.login_account()
+        else:
+            self.current_email = username
 
     def event_fetch_page(self, url):
         """.. :py:method::
@@ -119,6 +125,9 @@ class Server(object):
         """.. :py:method::
             From top depts, get all the events
         """
+        if kwargs.get('login_email'): self.net.check_signin( kwargs.get('login_email') )
+        else: self.net.check_signin()
+
         self.upcoming_proc(ctx)
         categorys = ['women', 'men', 'living', 'kids', 'gifts']
         for category in categorys:
@@ -157,7 +166,9 @@ class Server(object):
                 event.urgent = True
                 event.combine_url = 'http://www.ruelala.com/event/{0}'.format(event_id)
                 
-            event.events_begin = events_begin
+            if event.events_begin != events_begin:
+                event.update_history.update({ 'events_begin': datetime.utcnow() })
+                event.events_begin = events_begin
             event.update_time = datetime.utcnow()
             event.save()
             common_saved.send(sender=ctx, obj_type='Event', key=event_id, is_new=is_new, is_updated=is_updated)
@@ -207,14 +218,19 @@ class Server(object):
             num, isodate = self.is_parent_event(dept, event_id, link, ctx)
             if num == -1 or num == 0: # event is product or event is special
                 countdown = re.compile("countdownFactory.create\(('|\"){0}('|\"), ('|\")(\\d+)('|\"), ('|\")('|\")\);".format(event_id)).search(cont).group(4)
-                event.events_end = datetime.utcfromtimestamp(float(countdown[:-3]))
+                events_end = datetime.utcfromtimestamp(float(countdown[:-3]))
+                if event.events_end != events_end:
+                    event.update_history.update({ 'events_end': datetime.utcnow() })
+                    event.events_end = events_end
                 if num == 0:
                     self.la_perla(dept, link, event.events_end, ctx)
                 event.is_leaf = False
                 event.save()
             if num >= 1:
                 if num > 1: event.is_leaf = False
-                event.events_end = isodate
+                if event.events_end != isodate:
+                    event.update_history.update({ 'events_end': datetime.utcnow() })
+                    event.events_end = isodate
                 event.save()
 
 
@@ -269,8 +285,11 @@ class Server(object):
 
                 for item in countdown_num:
                     if item[1] == child_event_id:
-                        event.events_end = datetime.utcfromtimestamp( float(item[4][:-3]) )
-                        event.save()
+                        events_end = datetime.utcfromtimestamp( float(item[4][:-3]) )
+                        if event.events_end != events_end:
+                            event.update_history.update({ 'events_end': datetime.utcnow() })
+                            event.events_end = events_end
+                            event.save()
                         break
             return len(countdown_num), [datetime.utcfromtimestamp( float(item[4][:-3]) ) for item in countdown_num if item[1] == event_id][0]
 
@@ -401,6 +420,9 @@ class Server(object):
     def crawl_listing(self, url, ctx='', **kwargs):
         """.. :py:method::
         """
+        if kwargs.get('login_email'): self.net.check_signin( kwargs.get('login_email') )
+        else: self.net.check_signin()
+
         cont = self.net.event_fetch_page(url)
         if cont is None or isinstance(cont, int):
             cont = self.net.event_fetch_page(url)
@@ -495,6 +517,8 @@ class Server(object):
         """.. :py:method::
             Got all the product basic information and save into the database
         """
+        if kwargs.get('login_email'): self.net.check_signin( kwargs.get('login_email') )
+        else: self.net.check_signin()
         cont = self.net.product_fetch_page(url)
         if cont is None or isinstance(cont, int):
             cont = self.net.product_fetch_page(url)

@@ -176,7 +176,9 @@ class Server(object):
 
             event, is_new, is_updated = self.get_event_from_db(event_id, link, slug, sale_title)
             [event.image_urls.append(img) for img in image_urls if img not in event.image_urls]
-            event.events_end = events_end
+            if event.events_end != events_end:
+                event.update_history.update({ 'events_end': datetime.utcnow() })
+                event.events_end = events_end
             event.save()
             common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=link, is_new=is_new, is_updated=is_updated)
 
@@ -202,7 +204,9 @@ class Server(object):
 
             event, is_new, is_updated = self.get_event_from_db(event_id, link, slug, sale_title)
             [event.image_urls.append(img) for img in image_urls if img not in event.image_urls]
-            event.events_begin = events_begin
+            if event.events_begin != events_begin:
+                event.update_history.update({ 'events_begin': datetime.utcnow() })
+                event.events_begin = events_begin
             event.save()
             common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=link, is_new=is_new, is_updated=is_updated)
 

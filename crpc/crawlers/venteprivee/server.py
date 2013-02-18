@@ -56,31 +56,35 @@ class ventepriveeLogin(object):
             variables need to be used
         """
         self.login_url = 'https://us.venteprivee.com/main/'
-        accounts = (('ethan@favbuy.com', '200591qq'), ('2012luxurygoods@gmail.com', 'abcd1234'))
-        email, password = random.choice(accounts)
         self.data = {
-            'email': email,
-            'password': password,
+            'email': login_email[DB],
+            'password': login_passwd,
             'rememberMe': False,
         }
-
-        self._signin = False
+        self.current_email = login_email[DB]
+        self._signin = {}
 
     def login_account(self):
         """.. :py:method::
             use post method to login
         """
+        self.data['email'] = self.current_email
         req.get(self.login_url)
         url = 'https://us.venteprivee.com/api/membership/signin'
         req.post(url, data=self.data)
-        self._signin = True
+        self._signin[self.current_email] = True
 
-    def check_signin(self):
+    def check_signin(self, username=''):
         """.. :py:method::
             check whether the account is login
         """
-        if not self._signin:
+        if username == '':
             self.login_account()
+        elif username not in self._signin:
+            self.current_email = username
+            self.login_account()
+        else:
+            self.current_email = username
 
     def fetch_page(self, url):
         """.. :py:method::
@@ -115,6 +119,14 @@ class Server(object):
         sales = self.vclient.sales()
         for sale in sales:
             debug_info.send(sender=DB+'.event.{0}.start'.format(sale.get('name').encode('utf-8')))
+            events_begin = pytz.timezone('US/Eastern').localize(datetime.strptime(sale.get('startDate'), '%Y-%m-%dT%H:%M:%S')).astimezone(pytz.utc)
+            events_end = pytz.timezone('US/Eastern').localize(datetime.strptime(sale.get('endDate'), '%Y-%m-%dT%H:%M:%S')).astimezone(pytz.utc)
+            if event.events_begin != events_begin:
+                event.update_history.update({ 'events_begin': datetime.utcnow() })
+                event.events_begin = events_begin
+            if event.events_end != events_end:
+                event.update_history.update({ 'events_end': datetime.utcnow() })
+                event.events_end = events_end
             
             is_updated = False
             event, is_new = Event.objects.get_or_create(event_id = str(sale.get('operationId')))
@@ -125,8 +137,6 @@ class Server(object):
                 if image_url not in event.image_urls:
                     event.image_urls.append(image_url)
             event.sale_description = sale.get('brandDescription')
-            event.events_begin = pytz.timezone('US/Eastern').localize(datetime.strptime(sale.get('startDate'), '%Y-%m-%dT%H:%M:%S')).astimezone(pytz.utc)
-            event.events_end = pytz.timezone('US/Eastern').localize(datetime.strptime(sale.get('endDate'), '%Y-%m-%dT%H:%M:%S')).astimezone(pytz.utc)
             event.type = sale.get('type')
             event.dept = [] # TODO cannot get the info
             event.urgent = is_new or event.urgent
@@ -142,7 +152,8 @@ class Server(object):
         :param url: event url with event_id 
         """
         debug_info.send(sender=DB+'.listing.{0}.start'.format(url))
-        self.net.check_signin()
+        if kwargs.get('login_email'): self.net.check_signin( kwargs.get('login_email') )
+        else: self.net.check_signin()
         
         response = self.net.fetch_page(url)
         if response is None or isinstance(response, int):
@@ -197,7 +208,8 @@ class Server(object):
         :param url: product url, with product id
         """
         debug_info.send(sender=DB+'.product.{0}.start'.format(url))
-        self.net.check_signin()
+        if kwargs.get('login_email'): self.net.check_signin( kwargs.get('login_email') )
+        else: self.net.check_signin()
         
         is_updated = False
         ready = False

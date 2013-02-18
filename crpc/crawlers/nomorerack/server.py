@@ -104,7 +104,10 @@ class Server(object):
                     event.image_urls.append( img.replace('medium', 'large') )
                     event.image_urls.append( img.replace('medium', 'thumb') )
                 event.image_urls.append(img)
-            event.events_end = datetime.utcfromtimestamp(float(events_end[:10]))
+            events_end = datetime.utcfromtimestamp(float(events_end[:10]))
+            if event.events_end != events_end:
+                event.update_history.update({ 'events_end': datetime.utcnow() })
+                event.events_end = events_end
             event.update_time = datetime.utcnow()
             event.save()
             common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
@@ -165,6 +168,7 @@ class Server(object):
         primary = tree.cssselect('div#wrapper > div#content > div#front > div#primary')[0]
         sale_description = primary.cssselect('div.events_page_heading > div.text > p.description')[0].text_content().strip()
         nodes = primary.cssselect('div.raw_grid > div.deal')
+        product_ids = []
         for node in nodes:
             soldout = True if node.cssselect('div.image > div.sold_out') else False
             product, is_new, is_updated = self.from_listing_get_info(node, soldout)
@@ -172,6 +176,7 @@ class Server(object):
             if event_id not in product.event_id: product.event_id.append(event_id)
             product.save()
             common_saved.send(sender=ctx, obj_type='Product', key=product.key, url=product.combine_url, is_new=is_new, is_updated=is_updated)
+            product_ids.append(product.key)
 
         # After this event's products have been saved into DB,
         # send ready signal about this event to image processor
@@ -182,6 +187,7 @@ class Server(object):
             event.urgent = False
             ready = True
         else: ready = False
+        event.product_ids = product_ids
         event.update_time = datetime.utcnow()
         event.save()
         common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=event.combine_url, is_new=False, is_updated=False, ready=ready)
@@ -220,8 +226,12 @@ class Server(object):
             product, is_new, is_updated = self.from_listing_get_info(node, soldout)
 
             product.event_type = False # different from events' product
-            product.products_begin = east_today_begin_in_utc
-            product.products_end = products_end
+            if product.products_begin != east_today_begin_in_utc:
+                product.update_history.update({ 'products_begin': datetime.utcnow() })
+                product.products_begin = east_today_begin_in_utc
+            if product.products_end != products_end:
+                product.update_history.update({ 'products_end': datetime.utcnow() })
+                product.products_end = products_end
             product.save()
             common_saved.send(sender=ctx, obj_type='Product', key=product.key, url=product.combine_url, is_new=is_new, is_updated=is_updated)
 

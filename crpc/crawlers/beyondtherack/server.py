@@ -42,22 +42,29 @@ class beyondtherackLogin(object):
             '_submit': 1,
         }
 
-        self._signin = False
+        self.current_email = login_email[DB]
+        self._signin = {}
 
     def login_account(self):
         """.. :py:method::
             use post method to login
         """
+        self.data['email'] = self.current_email
         req.post(self.login_url, data=self.data)
-        self._signin = True
+        self._signin[self.current_email] = True
 
 
-    def check_signin(self):
+    def check_signin(self, username=''):
         """.. :py:method::
             check whether the account is login
         """
-        if not self._signin:
+        if username == '': 
             self.login_account()
+        elif username not in self._signin:
+            self.current_email = username
+            self.login_account()
+        else:
+            self.current_email = username
 
     def fetch_page(self, url):
         """.. :py:method::
@@ -129,6 +136,9 @@ class Server(object):
 
 
     def crawl_category(self, ctx='', **kwargs):
+        if kwargs.get('login_email'): self.net.check_signin( kwargs.get('login_email') )
+        else: self.net.check_signin()
+
         self.crawl_category_text_info(self.all_event_url, ctx)
 
         for dept, url in self.dept_link.iteritems():
@@ -176,8 +186,12 @@ class Server(object):
             image_urls = upcoming_data[event_id]['images'].values()
             event, is_new, is_updated = self.get_or_create_event(event_id)
             if not event.sale_title: event.sale_title = sale_title
-            event.events_begin = events_begin
-            event.events_end = events_end
+            if event.events_begin != events_begin:
+                event.update_history.update({ 'events_begin': datetime.utcnow() })
+                event.events_begin = events_begin
+            if event.events_end != events_end:
+                event.update_history.update({ 'events_end': datetime.utcnow() })
+                event.events_end = events_end
             event.image_urls = image_urls
             event.update_time = datetime.utcnow()
             event.save()
@@ -238,6 +252,9 @@ class Server(object):
 
 
     def crawl_listing(self, url, ctx='', **kwargs):
+        if kwargs.get('login_email'): self.net.check_signin( kwargs.get('login_email') )
+        else: self.net.check_signin()
+
         event_id = url.rsplit('/', 1)[-1]
         content = self.net.fetch_listing_page(url)
         if isinstance(content, list):
@@ -259,13 +276,17 @@ class Server(object):
             page_nums = int( page_nums[0].text_content() )
         sale_title = tree.cssselect('title')[0].text_content()
         
+        product_ids = []
         prds = segment.cssselect('form[method=post] > div#product-list > div.product-row > div.product > div.section')
-        for prd in prds: self.crawl_every_product_in_listing(event_id, url, prd, ctx)
+        for prd in prds:
+            product_key = self.crawl_every_product_in_listing(event_id, url, prd, ctx)
+            product_ids.append(product_key)
 
         if isinstance(page_nums, int):
             for page_num in range(2, page_nums+1):
                 page_url = '{0}?page={1}'.format(url, page_num)
-                self.get_next_page_in_listing(event_id, page_url, page_num, ctx)
+                ret = self.get_next_page_in_listing(event_id, page_url, page_num, ctx)
+                product_ids.extend(ret)
 
         event = Event.objects(event_id=event_id).first()
         if not event: event = Event(event_id=event_id)
@@ -275,9 +296,13 @@ class Server(object):
         else: ready = False
 
         # some page return 'event has ended', but actually not.I keep record it.
-        if events_end: event.events_end = events_end
+        if events_end:
+            if event.events_end != events_end:
+                event.update_history.update({ 'events_end': datetime.utcnow() })
+                event.events_end = events_end
         if isinstance(page_nums, int): event.num = page_nums
         if not event.sale_title: event.sale_title = sale_title
+        event.product_ids = product_ids
         event.update_time = datetime.utcnow()
         event.save()
         common_saved.send(sender=ctx, obj_type='Event', key=event_id, is_new=False, is_updated=False, ready=ready)
@@ -315,8 +340,8 @@ class Server(object):
             product.price = price
             product.sizes = sizes
         else:
-            if soldout and product.soldout != soldout:
-                product.soldout = True
+            if product.soldout != soldout: # beyondtherack can change back
+                product.soldout = soldout
                 is_updated = True
                 product.update_history.update({ 'soldout': datetime.utcnow() })
             if not title: product.title = title
@@ -324,6 +349,7 @@ class Server(object):
         product.list_update_time = datetime.utcnow()
         product.save()
         common_saved.send(sender=ctx, obj_type='Product', key=key, url=link, is_new=is_new, is_updated=is_updated)
+        return key
 
 
     def get_next_page_in_listing(self, event_id, page_url, page_num, ctx):
@@ -332,10 +358,14 @@ class Server(object):
             common_failed.send(sender=ctx, key='', url=page_url,
                     reason='download listing error or {0} return'.format(content))
             return
+        product_ids = []
         tree = lxml.html.fromstring(content)
         segment = tree.cssselect('div.mainframe')[0]
         prds = segment.cssselect('form[method=post] > div#product-list > div.product-row > div.product > div.section')
-        for prd in prds: self.crawl_every_product_in_listing(event_id, page_url, prd, ctx)
+        for prd in prds:
+            product_key = self.crawl_every_product_in_listing(event_id, page_url, prd, ctx)
+            product_ids.append(product_key)
+        return product_ids
 
 
     def crawl_event_is_product(self, event_id, product_url, content, ctx):
@@ -390,6 +420,9 @@ class Server(object):
 
 
     def crawl_product(self, url, ctx='', **kwargs):
+        if kwargs.get('login_email'): self.net.check_signin( kwargs.get('login_email') )
+        else: self.net.check_signin()
+
         key = url.rsplit('/', 1)[-1]
         content = self.net.fetch_product_page(url)
         if content == -1:

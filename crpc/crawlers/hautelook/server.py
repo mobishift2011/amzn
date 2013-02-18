@@ -126,8 +126,12 @@ class Server(object):
                 event.sale_description = sale_description
             if grid_img not in event.image_urls: event.image_urls.append(grid_img)
             if pop_img not in event.image_urls: event.image_urls.append(pop_img)
-            event.events_begin = events_begin
-            event.events_end = events_end
+            if event.events_begin != events_begin:
+                event.update_history.update({ 'events_begin': datetime.utcnow() })
+                event.events_begin = events_begin
+            if event.events_end != events_end:
+                event.update_history.update({ 'events_end': datetime.utcnow() })
+                event.events_end = events_end
             event.update_time = _utcnow
             event.save()
             common_saved.send(sender=ctx, obj_type='Event', key=event_id,
@@ -151,8 +155,12 @@ class Server(object):
             event.combine_url = 'http://www.hautelook.com/event/{0}'.format(event_id)
         if sale_description and not event.sale_description:
             event.sale_description = sale_description
-        event.events_begin = events_begin
-        event.events_end = events_end
+        if event.events_begin != events_begin:
+            event.update_history.update({ 'events_begin': datetime.utcnow() })
+            event.events_begin = events_begin
+        if event.events_end != events_end:
+            event.update_history.update({ 'events_end': datetime.utcnow() })
+            event.events_end = events_end
         event.update_time = datetime.utcnow()
         event.save()
         common_saved.send(sender=ctx, obj_type='Event', key=event_id,

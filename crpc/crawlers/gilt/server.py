@@ -52,6 +52,8 @@ class giltLogin(object):
         elif username not in self._signin:
             self.current_email = username
             self.login_account()
+        else:
+            self.current_email = username
 
     def fetch_page(self, url):
         """.. :py:method::
@@ -481,6 +483,7 @@ class Server(object):
         if kwargs.get('login_email'): self.net.check_signin( kwargs.get('login_email') )
         else: self.net.check_signin()
 
+        product_ids = []
         event_id = url.rsplit('/', 1)[-1]
         tree = self.download_listing_page_get_correct_tree(url, event_id, 'download listing page error', ctx)
         if tree is None: return
@@ -496,7 +499,7 @@ class Server(object):
             image = image if image.startswith('http:') else 'http:' + image
             sale_description = bottom_node.cssselect('div.promo-content-wrapper > header.element-header > div.element-content')[0].text_content().strip()
 
-            self.detect_rest_home_product(url, '', ctx)
+            product_ids = self.detect_rest_home_product(url, '', ctx)
         else: # women, men, children
             events_begin, image, sale_description = None, None, None
             try:
@@ -508,6 +511,7 @@ class Server(object):
                 if event.events_begin != events_begin:
                     event.update_history.update({ 'events_begin': datetime.utcnow() })
                     event.events_begin = events_begin
+                    event.product_ids = []
                     event.save()
                 return
             events_end = datetime.strptime(_end, '%Y-%m-%dT%XZ') # 2012-12-26T05:00:00Z
@@ -516,8 +520,9 @@ class Server(object):
             for node in nodes:
                 look_id, brand, link, title, price, listprice, soldout = self.parse_listing_one_product_node(node)
                 self.get_or_create_product(ctx, event_id, link.rsplit('/', 1)[-1], link, title, listprice, price, brand, soldout)
+                product_ids.append(link.rsplit('/', 1)[-1])
 
-            self.detect_rest_product(url, look_id, ctx)
+            product_ids.extend(  self.detect_rest_product(url, look_id, ctx)  )
 
         event = Event.objects(event_id=event_id).first()
         if not event: event = Event(event_id=event_id)
@@ -532,6 +537,7 @@ class Server(object):
             if not event.sale_description:
                 event.sale_description = sale_description
             event.image_urls = [image]
+        event.product_ids = product_ids
         event.save()
         if event.urgent == True:
             event.urgent = False
@@ -612,13 +618,18 @@ class Server(object):
         if cont.find('registerLooks') < 200:
             return
 
+        product_ids = []
         tree = lxml.html.fromstring(cont)
         nodes = tree.cssselect('div.elements-container > article')
         for node in nodes:
             look_id, brand, link, title, price, listprice, soldout = self.parse_listing_one_product_node(node)
             self.get_or_create_product(ctx, url.rsplit('/', 1)[-1], link.rsplit('/', 1)[-1], link, title, listprice, price, brand, soldout)
+            product_ids.append(link.rsplit('/', 1)[-1])
 
-        self.detect_rest_product(url, look_id, ctx)
+
+        ret = self.detect_rest_product(url, look_id, ctx)
+        if ret: product_ids.extend(ret)
+        return product_ids
 
     def detect_rest_home_product(self, url, look_id, ctx):
         """.. :py:method::
@@ -637,6 +648,7 @@ class Server(object):
         if cont.find('requireModules') < 100:
             return
 
+        product_ids = []
         tree = lxml.html.fromstring(cont)
         # "product-on-sale" is the only difference between two right pattern.
         # nodes = tree.cssselect('article.product-on-sale')
@@ -663,7 +675,10 @@ class Server(object):
                     sizes.append( size.get('data-gilt-value-name') )
 
             self.get_or_create_product(ctx, url.rsplit('/', 1)[-1], link.rsplit('/', 1)[-1], link, title, listprice, price, brand, soldout, color, sizes)
-        self.detect_rest_home_product(url, look_id, ctx)
+            product_ids.append(link.rsplit('/', 1)[-1])
+        ret = self.detect_rest_home_product(url, look_id, ctx)
+        if ret: product_ids.extend(ret)
+        return product_ids
 
 
 #####################################################

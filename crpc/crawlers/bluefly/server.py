@@ -282,8 +282,8 @@ class Server(object):
             product.title = title
             product.rating = rating if rating else ''
         else:
-            if soldout and product.soldout != soldout:
-                product.soldout = True
+            if product.soldout != soldout: # bluefly can change back
+                product.soldout = soldout
                 is_updated = True
                 product.update_history.update({ 'soldout': datetime.utcnow() })
         if listprice and not product.listprice: product.listprice = listprice

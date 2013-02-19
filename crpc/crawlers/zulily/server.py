@@ -277,11 +277,13 @@ class Server(object):
 #        event.num = len(items)
 
         for item in items:
-            self.crawl_list_product(event_id, item, ctx)
+            product_id = self.crawl_list_product(event_id, item, ctx)
+            product_ids.append(product_id)
         page_num = 1
         next_page_url = self.detect_list_next(node, page_num + 1)
         if next_page_url:
-            self.crawl_list_next(url, next_page_url, page_num + 1, event_id, ctx)
+            ret = self.crawl_list_next(url, next_page_url, page_num + 1, event_id, ctx)
+            product_ids.extend(ret)
 
         if event.urgent == True:
             event.urgent = False
@@ -319,10 +321,15 @@ class Server(object):
         node = tree.cssselect('div.container>div#main>div#category-view')[0]
         items = node.cssselect('div#products-grid li.item')
 
-        for item in items: self.crawl_list_product(event_id, item, ctx)
+        product_ids = []
+        for item in items:
+            product_id = self.crawl_list_product(event_id, item, ctx)
+            product_ids.append(product_id)
         next_page_url = self.detect_list_next(node, page_num + 1)
         if next_page_url:
-            self.crawl_list_next(url, next_page_url, page_num + 1, event_id, ctx)
+            ret = self.crawl_list_next(url, next_page_url, page_num + 1, event_id, ctx)
+            product_ids.extend(ret)
+        return product_ids
 
     def crawl_list_product(self, event_id, item, ctx):
         """.. :py:method::
@@ -374,6 +381,7 @@ class Server(object):
         product.save()
         common_saved.send(sender=ctx, obj_type='Product', key=slug, url=self.siteurl + '/e/' + event_id + '.html', is_new=is_new, is_updated=is_updated)
         debug_info.send(sender=DB + ".crawl_listing", url=self.siteurl + '/e/' + event_id + '.html')
+        return slug
 
 #        counter = 0
 #        if is_new:

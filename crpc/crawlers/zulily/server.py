@@ -251,15 +251,17 @@ class Server(object):
         if isinstance(cont, int):
             common_failed.send(sender=ctx, key=event_id, url=url, reason='crawl_listing url error: {0}'.format(cont))
             return
+
+        product_ids = []
         tree = lxml.html.fromstring(cont)
         node = tree.cssselect('div.container > div#main > div#category-view')[0]
-        brand, is_new = Event.objects.get_or_create(event_id=event_id)
-        if not brand.sale_description:
+        event, is_new = Event.objects.get_or_create(event_id=event_id)
+        if not event.sale_description:
             sale_description = node.cssselect('div#category-description>div#desc-with-expanded')
             if not sale_description:
                 sale_description = node.cssselect('div#category-view-brand > div.category-description-bg > div.category-view-brand-description > p:first-of-type')
             if sale_description:
-                brand.sale_description = sale_description[0].text_content().strip()
+                event.sale_description = sale_description[0].text_content().strip()
 
         items = node.cssselect('div#products-grid li.item')
         end_date = node.cssselect('div#new-content-header > div.end-date')[0].text_content().strip()
@@ -269,23 +271,25 @@ class Server(object):
             hours = int(end_date.split()[-2]) if 'hour' in end_date else 0
             events_end = datetime.utcnow() + timedelta(days=days, hours=hours) + timedelta(minutes=29, seconds=59, microseconds=999999)
             events_end = datetime(events_end.year, events_end.month, events_end.day, events_end.hour)
-            if brand.events_end != events_end:
-                brand.events_end = events_end
-                brand.update_history.update({ 'events_end': datetime.utcnow() })
-#        brand.num = len(items)
+            if event.events_end != events_end:
+                event.events_end = events_end
+                event.update_history.update({ 'events_end': datetime.utcnow() })
+#        event.num = len(items)
 
-        for item in items: self.crawl_list_product(event_id, item, ctx)
+        for item in items:
+            self.crawl_list_product(event_id, item, ctx)
         page_num = 1
         next_page_url = self.detect_list_next(node, page_num + 1)
         if next_page_url:
             self.crawl_list_next(url, next_page_url, page_num + 1, event_id, ctx)
 
-        if brand.urgent == True:
-            brand.urgent = False
+        if event.urgent == True:
+            event.urgent = False
             ready = True
         else: ready = False
-        brand.update_time = datetime.utcnow()
-        brand.save()
+        event.product_ids = product_ids
+        event.update_time = datetime.utcnow()
+        event.save()
         common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=url, is_new=is_new, is_updated=False, ready=ready)
 
     def detect_list_next(self, node, page_num):

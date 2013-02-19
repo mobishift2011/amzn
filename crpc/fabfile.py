@@ -281,7 +281,7 @@ def _stop_crpc():
 def start_crpc_server():
     for host_string in CRPC:
         with settings(host_string=host_string, warn_only=True):
-            run('sudo ulimit -n 8192 && sudo supervisord -c /srv/crpc/supervisord.conf -l /tmp/supervisord.log')
+            run('sudo supervisord -c /srv/crpc/supervisord.conf -l /tmp/supervisord.log')
         
 def _restart_zero():
     puts(green("Restarting Zero Servers"))

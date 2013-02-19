@@ -336,9 +336,9 @@ def old_deploy():
     env.hosts = HOSTS
     execute(_stop_all_server)
     execute(copyfiles)
-    job = multiprocessing.Process(target=execute, args=(_start_all_server,))
-    job.start()
-    job.join()
+
+    env.hosts = []
+    execute(_start_all_server)
 
 @parallel
 def _stop_all_server():
@@ -371,7 +371,6 @@ def _start_all_server():
     execute(_start_text)
     execute(_start_monitor)
     execute(_start_publish)
-
 
 
 #def _start_xvfb():

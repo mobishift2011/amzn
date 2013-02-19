@@ -351,8 +351,8 @@ class Server(object):
 
         product_ids = []
         for item in items:
-            product_id = self.crawl_sale_list_product(event_id, item, ctx)
-            product_ids.append(product_id)
+            ret = self.crawl_sale_list_product(event_id, item, ctx)
+            product_ids.append(ret)
 
         event.save()
         event.product_ids = product_ids

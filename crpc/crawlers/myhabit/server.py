@@ -97,14 +97,19 @@ class Server(object):
                 event_id, data = re.compile(r'parse_sale_(\w+)\((.*)\);$').search(r.text).groups()
                 data = json.loads(data)
 
+        product_ids = []
         for product_data in data['asins']:
-            self._parse_product(event_id, event.asin_detail_page, event.casin_soldout_info, prefix_url, product_data, ctx)
+            ret = self._parse_product(event_id, event.asin_detail_page, event.casin_soldout_info, prefix_url, product_data, ctx)
+            product_ids.append(ret)
 
         if event.urgent == True:
             event.urgent = False
-            event.update_time = datetime.utcnow()
-            event.save()
-            common_saved.send(sender=ctx, obj_type='Event', key=event_id, is_new=False, is_updated=False, ready=True)
+            ready = True
+        else: ready = False
+        event.product_ids = product_ids
+        event.update_time = datetime.utcnow()
+        event.save()
+        common_saved.send(sender=ctx, obj_type='Event', key=event_id, is_new=False, is_updated=False, ready=ready)
 
 
     def _parse_product(self, event_id, asins, cAsins, prefix_url, product_data, ctx):
@@ -159,6 +164,7 @@ class Server(object):
         product.list_update_time = datetime.utcnow()
         product.save()
         common_saved.send(sender=ctx, obj_type='Product', key=casin, url=product.combine_url, is_new=is_new, is_updated=is_updated)
+        return casin
 
 
     def crawl_product(self, url, casin, ctx='', **kwargs):

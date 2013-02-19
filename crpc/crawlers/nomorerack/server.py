@@ -217,6 +217,7 @@ class Server(object):
         ends = ends.split('until')[-1].strip().replace('st', '').replace('nd', '').replace('rd', '').replace('th', '')
         time_str, time_zone = ends.rsplit(' ', 1)
         products_end = time_convert(time_str, '%B %d %I:%M %p%Y', time_zone)
+        products_end = datetime(products_end.year, products_end.month, products_end.day, products_end.hour, products_end.minute)
         _eastnow = datetime.now(tz=self.east_tz)
         east_today_begin_in_utc = self.east_tz.localize( datetime(_eastnow.year, _eastnow.month, _eastnow.day) ).astimezone(pytz.utc)
         east_today_begin_in_utc = datetime(east_today_begin_in_utc.year, east_today_begin_in_utc.month, east_today_begin_in_utc.day, east_today_begin_in_utc.hour, east_today_begin_in_utc.minute)

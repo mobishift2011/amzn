@@ -224,6 +224,7 @@ class Server(object):
         else:
             pass
 
+        product_ids = []
         tree = lxml.html.fromstring(ret)
         nodes = tree.cssselect('div#mainContent > section.event-landing > div.row > div.event-products > ul.event_prod_grid > li')
         for node in nodes:
@@ -257,6 +258,7 @@ class Server(object):
             product.list_update_time = datetime.utcnow()
             product.save()
             common_saved.send(sender=ctx, obj_type='Product', key=key, url=link, is_new=is_new, is_updated=is_updated)
+            product_ids.append(key)
 
         event = Event.objects(event_id=event_id).first()
         if not event: event = Event(event_id=event_id)
@@ -269,10 +271,10 @@ class Server(object):
         if event.urgent == True:
             event.urgent = False
             ready = True
-        if ready is not None:
-            event.update_time = datetime.utcnow()
-            event.save()
-            common_saved.send(sender=ctx, obj_type='Event', key=event_id, is_new=False, is_updated=False, ready=ready)
+        event.product_ids = product_ids
+        event.update_time = datetime.utcnow()
+        event.save()
+        common_saved.send(sender=ctx, obj_type='Event', key=event_id, is_new=False, is_updated=False, ready=ready)
 
 
     def crawl_event_is_product(self, event_id, key, url, content, ctx):

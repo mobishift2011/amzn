@@ -349,9 +349,13 @@ class Server(object):
             ready = True
         else: ready = False
 
-        for item in items: self.crawl_sale_list_product(event_id, item, ctx)
+        product_ids = []
+        for item in items:
+            product_id = self.crawl_sale_list_product(event_id, item, ctx)
+            product_ids.append(product_id)
 
         event.save()
+        event.product_ids = product_ids
         common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=url, is_new=is_new, is_updated=False, ready=ready)
 
 
@@ -395,6 +399,7 @@ class Server(object):
         product.save()
         common_saved.send(sender=ctx, obj_type='Product', key=product_id, url=self.siteurl + '/sales/' + event_id, is_new=is_new, is_updated=is_updated)
         debug_info.send(sender=DB + ".crawl_listing", url=self.siteurl + '/sales/' + event_id)
+        return product_id
 
 
     def crawl_product(self, url, ctx='', **kwargs):

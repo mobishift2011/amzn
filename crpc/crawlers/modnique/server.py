@@ -244,6 +244,8 @@ class Server(object):
                 common_failed.send(sender=ctx, key=event_id, url=url,
                     reason='download listing url error, {0}'.format(content))
                 return
+
+        product_ids = []
         tree = lxml.html.fromstring(content)
         nodes = tree.cssselect('div.line > div.page > div#items > ul#products > li.product')
         for node in nodes:
@@ -286,14 +288,18 @@ class Server(object):
             product.list_update_time = datetime.utcnow()
             product.save()
             common_saved.send(sender=ctx, obj_type='Product', key=key, url=link, is_new=is_new, is_updated=is_updated)
+            product_ids.append(key)
 
         event = Event.objects(event_id=event_id).first()
         if not event: event = Event(event_id=event_id)
         if event.urgent == True:
             event.urgent = False
-            event.update_time = datetime.utcnow()
-            event.save()
-            common_saved.send(sender=ctx, obj_type='Event', key=event_id, is_new=False, is_updated=False, ready=True)
+            ready = True
+        else: ready = False
+        event.product_ids = product_ids
+        event.update_time = datetime.utcnow()
+        event.save()
+        common_saved.send(sender=ctx, obj_type='Event', key=event_id, is_new=False, is_updated=False, ready=ready)
 
 
     def crawl_product(self, url, ctx='', **kwargs):

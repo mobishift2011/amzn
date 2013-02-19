@@ -121,6 +121,8 @@ class Server(object):
             debug_info.send(sender=DB+'.event.{0}.start'.format(sale.get('name').encode('utf-8')))
             events_begin = pytz.timezone('US/Eastern').localize(datetime.strptime(sale.get('startDate'), '%Y-%m-%dT%H:%M:%S')).astimezone(pytz.utc)
             events_end = pytz.timezone('US/Eastern').localize(datetime.strptime(sale.get('endDate'), '%Y-%m-%dT%H:%M:%S')).astimezone(pytz.utc)
+            events_begin = datetime(events_begin.year, events_begin.month, events_begin.day, events_begin.hour, events_begin.minute)
+            events_end = datetime(events_end.year, events_end.month, events_end.day, events_end.hour, events_end.minute)
             event, is_new = Event.objects.get_or_create(event_id = str(sale.get('operationId'))) 
             if event.events_begin != events_begin:
                 event.update_history.update({ 'events_begin': datetime.utcnow() })

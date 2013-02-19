@@ -160,6 +160,7 @@ class Server(object):
                 return
             data = json.loads(content)['colors']
             
+        product_ids = []
         for d in data:
             key = str(d[0])
             soldout = not d[1]['available']
@@ -205,14 +206,18 @@ class Server(object):
             product.list_update_time = datetime.utcnow()
             product.save()
             common_saved.send(sender=ctx, obj_type='Product', key=key, url=link, is_new=is_new, is_updated=is_updated)
+            product_ids.append(key)
 
         event = Event.objects(event_id=event_id).first()
         if not event: event = Event(event_id=event_id)
         if event.urgent == True:
             event.urgent = False
-            event.update_time = datetime.utcnow()
-            event.save()
-            common_saved.send(sender=ctx, obj_type='Event', key=event_id, is_new=False, is_updated=False, ready=True)
+            ready = True
+        else:    ready = False
+        event.product_ids = product_ids
+        event.update_time = datetime.utcnow()
+        event.save()
+        common_saved.send(sender=ctx, obj_type='Event', key=event_id, is_new=False, is_updated=False, ready=ready)
 
         
     def crawl_product(self, url, ctx='', **kwargs):

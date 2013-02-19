@@ -152,6 +152,7 @@ class Server(object):
             et_date = node.cssselect('td[style]:nth-of-type(2)')[0].text_content().strip()
             time_str, time_zone = et_date.rsplit(' ', 1)
             events_begin = time_convert(time_str + ' ', '%m/%d at %I%p %Y', time_zone)
+            events_begin = datetime(events_begin.year, events_begin.month, events_begin.day, events_begin.hour, events_begin.minute)
 
             is_new, is_updated = False, False
             event = Event.objects(event_id=event_id).first()

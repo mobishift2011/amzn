@@ -183,6 +183,8 @@ class Server(object):
 
             events_begin = self.et.localize( datetime.strptime(upcoming_data[event_id]['start_time'], '%Y-%m-%d %X') ).astimezone(pytz.utc)
             events_end = self.et.localize( datetime.strptime(upcoming_data[event_id]['end_time'], '%Y-%m-%d %X') ).astimezone(pytz.utc)
+            events_begin = datetime(events_begin.year, events_begin.month, events_begin.day, events_begin.hour, events_begin.minute)
+            events_end = datetime(events_end.year, events_end.month, events_end.day, events_end.hour, events_end.minute)
             image_urls = upcoming_data[event_id]['images'].values()
             event, is_new, is_updated = self.get_or_create_event(event_id)
             if not event.sale_title: event.sale_title = sale_title
@@ -280,13 +282,13 @@ class Server(object):
         prds = segment.cssselect('form[method=post] > div#product-list > div.product-row > div.product > div.section')
         for prd in prds:
             product_key = self.crawl_every_product_in_listing(event_id, url, prd, ctx)
-            product_ids.append(product_key)
+            if product_key: product_ids.append(product_key)
 
         if isinstance(page_nums, int):
             for page_num in range(2, page_nums+1):
                 page_url = '{0}?page={1}'.format(url, page_num)
                 ret = self.get_next_page_in_listing(event_id, page_url, page_num, ctx)
-                product_ids.extend(ret)
+                if ret: product_ids.extend(ret)
 
         event = Event.objects(event_id=event_id).first()
         if not event: event = Event(event_id=event_id)
@@ -364,7 +366,7 @@ class Server(object):
         prds = segment.cssselect('form[method=post] > div#product-list > div.product-row > div.product > div.section')
         for prd in prds:
             product_key = self.crawl_every_product_in_listing(event_id, page_url, prd, ctx)
-            product_ids.append(product_key)
+            if product_key: product_ids.append(product_key)
         return product_ids
 
 

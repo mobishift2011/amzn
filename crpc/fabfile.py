@@ -262,11 +262,9 @@ def restart_zero_server():
 
 def restart_all():
     execute(stop_crpc_server)
-    import multiprocessing
     job = multiprocessing.Process(target=execute, args=(restart_zero_server,))
     job.start()
     job.join()
-    #execute(restart_zero_server)
     execute(start_crpc_server)
 
 def stop_crpc_server():
@@ -336,7 +334,9 @@ def old_deploy():
     env.hosts = HOSTS
     execute(_stop_all_server)
     execute(copyfiles)
-    execute(_start_all_server)
+    job = multiprocessing.Process(target=execute, args=(_start_all_server,))
+    job.start()
+    job.join()
 
 @parallel
 def _stop_all_server():

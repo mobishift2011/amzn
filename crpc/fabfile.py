@@ -331,6 +331,8 @@ def __start_ganglia(host_string, name):
 
 def old_deploy():
     """ deploy crawler&api server code to remotes """
+    execute(_stop_monitor)
+    execute(_stop_publish)
     env.hosts = HOSTS
     execute(_stop_all_server)
     execute(copyfiles)
@@ -349,6 +351,7 @@ def _stop_all_server():
         run("ps aux | grep textserver.py | grep -v grep | awk '{print $2}' | xargs kill -9")
         run("rm /tmp/*.sock")
 
+
 @parallel
 def copyfiles():
     """ rebuild the whole project directory on remotes """
@@ -366,6 +369,9 @@ def _start_all_server():
     execute(_start_crawler)
     execute(_start_power)
     execute(_start_text)
+    execute(_start_monitor)
+    execute(_start_publish)
+
 
 
 #def _start_xvfb():
@@ -417,6 +423,24 @@ def __start_text(host_string, port):
 def _runbg(cmd, sockname="dtach"):
     """ A helper function to run command in background """
     return run('dtach -n /tmp/{0}.sock {1}'.format(sockname, cmd))
+
+
+def _start_monitor():
+    os.system("ulimit -n 4096 && cd {0}/backends/monitor && dtach -n /tmp/crpcscheduler.sock python run.py".format(CRPC_ROOT))
+    os.system("cd {0}/backends/webui && dtach -n /tmp/crpcwebui.sock python main.py".format(CRPC_ROOT))
+
+def _stop_monitor():
+    os.system("ps aux | grep run.py | grep -v grep | awk '{print $2}' | xargs kill -9")
+    os.system("ps aux | grep main.py | grep -v grep | awk '{print $2}' | xargs kill -9")
+    os.system("rm /tmp/crpc*.sock")
+
+def _start_publish():
+    os.system("ulimit -n 4096 && dtach -n /tmp/publish.sock python {0}/publisher/publish.py -d".format(CRPC_ROOT))
+
+def _stop_publish():
+    os.system("ps aux | grep publish.py | grep -v grep | awk '{print $2}' | xargs kill -9")
+    os.system("rm /tmp/publish*.sock")
+
 
 if __name__ == "__main__":
     pass

@@ -414,6 +414,9 @@ def __start_text(host_string, port):
                         with prefix("source ./env.sh {0}".format(os.environ.get('ENV','TEST'))):
                             _runbg("python powers/textserver.py {0}".format(port), sockname="textserver.{0}".format(port))
 
+def _runbg(cmd, sockname="dtach"):
+    """ A helper function to run command in background """
+    return run('dtach -n /tmp/{0}.sock {1}'.format(sockname, cmd))
 
 if __name__ == "__main__":
     pass

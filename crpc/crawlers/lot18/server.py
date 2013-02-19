@@ -148,12 +148,13 @@ class Server(object):
             elif 'week' in period:
                 products_end = _utcnow + timedelta(weeks=int(num))
             else:
-                pass
-            if products_end.minute > 55:
+                products_end = None
+            if products_end and products_end.minute > 55:
                 products_end = products_end.replace(hour=products_end.hour + 1, minute=0)
-            else:
+            elif products_end:
                 products_end = products_end.replace(minute=0)
-            product.products_end = products_end.replace(second=0, microsecond=0)
+            if products_end:
+                product.products_end = products_end.replace(second=0, microsecond=0)
         product.list_update_time = _utcnow
         product.save()
         common_saved.send(sender=ctx, obj_type='Product', key=prd['id'], url=product.combine_url, is_new=is_new, is_updated=is_updated)

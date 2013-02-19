@@ -368,7 +368,6 @@
 [0] Pearl Duvet Set -> Home; Bed & Bath
 [0] Pearl Set -> Jewelry & Watches; Bracelets; Necklaces; Earrings; Rings
 [0] Drink Opener -> Home; Kitchen & Dining
-[0] Purse -> Bags; Wallets
 [0] Purse Light -> Home; Home Accessories
 [0] Key Light -> Home; Home Accessories
 [0] Figurine -> Home; Home Accessories
@@ -684,7 +683,6 @@
 [0] Coffeemaker -> Home; Kitchen & Dining
 [0] Wall Decor -> Home; Home Accessories
 [0] Thread Count Sheet -> Home; Bed & Bath
-[0] Pochette -> Bags; Handbags
 [0] Silicone Madeleine -> Home; Kitchen & Dining
 [0] Bath Sheet -> Home; Bed & Bath
 [0] Babies Puffer Jacket -> Kids & Baby; Boys' Clothing; Girls' Clothing
@@ -1551,3 +1549,5 @@
 [2] Chandelier -> Home; Furniture & Lighting
 [2] Figure -> Home; Home Accessories
 [2] Hobo -> Bags; Handbags
+[2] Purse -> Bags; Wallets
+[2] Pochette -> Bags; Handbags

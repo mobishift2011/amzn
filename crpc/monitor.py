@@ -23,7 +23,7 @@ def monitor_fd():
         mongodb_pid = lsof('-t', '-i:27017').split('\n')[0]
         num_fd = int(wc(ls('/proc/{0}/fd'.format(mongodb_pid), '-l'), '-l').strip())
         print 'num_fd:',  num_fd
-        if num_fd >= 20000:
+        if num_fd >= 4096:
             service('mongodb', 'restart')
             pkill('-f', 'run.py')
             for p in chain(CRAWLER_PEERS, POWER_PEERS, TEXT_PEERS):

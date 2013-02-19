@@ -167,7 +167,7 @@ def propagate(site, concurrency=3):
     pool.join()
 
     if no_events:
-        # The site has no events to propagate, so call the rpc to process products.
+        # The site has no events(maybe just has category) to propagate, so call the rpc to process products.
         extract_product(site, concurrency)
         pass
 

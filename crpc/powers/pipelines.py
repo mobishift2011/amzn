@@ -25,6 +25,31 @@ def parse_price(price):
     return float(amount)
 
 
+# Removes HTML or XML character references and entities from a text string.
+# @param text The HTML (or XML) source text.
+# @return The plain text, as a Unicode string, if necessary.
+def unescape(text):
+    def fixup(m):
+        text = m.group(0)
+        if text[:2] == "&#":
+            # character reference
+            try:
+                if text[:3] == "&#x":
+                    return unichr(int(text[3:-1], 16))
+                else:
+                    return unichr(int(text[2:-1]))
+            except ValueError:
+                pass
+        else:
+            # named entity
+            try:
+                text = unichr(htmlentitydefs.name2codepoint[text[1:-1]])
+            except KeyError:
+                pass
+        return text # leave as is
+    return re.sub("&#?\w+;", fixup, text)
+
+
 class ProductPipeline(object):
     def __init__(self, site, product):
         self.site = site
@@ -143,6 +168,8 @@ class ProductPipeline(object):
             listprice = parse_price(product.listprice) or product.favbuy_price
             product.favbuy_listprice = str(listprice)
 
+        logger.debug('product price extract {0}/{1} -> {1}/{2}'.format( \
+            product.price, product.listprice, product.favbuy_price, product.favbuy_listprice))
         return favbuy_price
 
     def extract_url(self):
@@ -186,13 +213,24 @@ class ProductPipeline(object):
         # ]
         # gevent.joinall(jobs)
 
-        if self.extract_brand() or \
-            self.extract_tag(text_list) or \
-                self.extract_dept(text_list) or \
-                    self.extract_price() or \
-                        self.extract_url():
-                            return True
-        return False
+        updated = False
+
+        if self.extract_brand():
+            updated = True
+
+        if self.extract_tag(text_list):
+            updated = True
+
+        if self.extract_dept(text_list):
+            updated = True
+
+        if self.extract_price():
+            updated = True
+
+        if self.extract_url():
+            updated = True
+
+        return updated
 
 
 class EventPipeline(object):
@@ -259,17 +297,12 @@ class EventPipeline(object):
         price_set.sort()
         discount_set = list(discount_set)
         discount_set.sort()
-        self.event.lowest_price = str(price_set[0] if price_set else 0)
-        self.event.highest_price = str(price_set[-1] if price_set else 0)
-        self.event.lowest_discount = str(discount_set[-1] if discount_set else 1.0)
-        self.event.highest_discount = str(discount_set[0] if discount_set else 1.0)
+        lowest_price = str(price_set[0] if price_set else 0)
+        highest_price = str(price_set[-1] if price_set else 0)
+        lowest_discount = str(discount_set[-1] if discount_set else 1.0)
+        highest_discount = str(discount_set[0] if discount_set else 1.0)
 
         updated = False
-
-        lowest_price = None
-        highest_price = None
-        lowest_discount = None
-        highest_discount = None
 
         if lowest_price != self.event.lowest_price:
             self.event.lowest_price = lowest_price
@@ -320,6 +353,11 @@ class EventPipeline(object):
             (self.site, self.event.event_id, num_products)
 
         for product in products:
+            # It's important to verify whether the product belongs to the product_id currently.
+            if self.event.product_ids and \
+                product.key not in self.event.product_ids:
+                    continue
+
             pp = ProductPipeline(self.site, product)
             pp.clean()
 
@@ -481,31 +519,6 @@ class EventPipeline(object):
         #     self.event.save()
 
         # return update_complete
-
-
-# Removes HTML or XML character references and entities from a text string.
-# @param text The HTML (or XML) source text.
-# @return The plain text, as a Unicode string, if necessary.
-def unescape(text):
-    def fixup(m):
-        text = m.group(0)
-        if text[:2] == "&#":
-            # character reference
-            try:
-                if text[:3] == "&#x":
-                    return unichr(int(text[3:-1], 16))
-                else:
-                    return unichr(int(text[2:-1]))
-            except ValueError:
-                pass
-        else:
-            # named entity
-            try:
-                text = unichr(htmlentitydefs.name2codepoint[text[1:-1]])
-            except KeyError:
-                pass
-        return text # leave as is
-    return re.sub("&#?\w+;", fixup, text)
 
 
 if __name__ == '__main__':

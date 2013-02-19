@@ -354,6 +354,14 @@ class Server(object):
         if not product:
             is_new = True
             product = Product(key=key)
+
+        if not product.price:
+            prices = detail.cssselect('div.product-info > div.product-prices > div.product-price')
+            if prices:
+                product.price = prices[0].cssselect('span[itemprop=price]')[0].text_content().strip()
+                if not product.listprice:
+                    product.listprice = prices[0].cssselect('span.retail-price')[0].text_content().replace('retail :', '').strip()
+
         product.image_urls = image_urls
         product.color = color
         product.sizes_scarcity = sizes_scarcity

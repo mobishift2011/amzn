@@ -91,9 +91,9 @@
                             <a class="btn btn-info btn_edit" link="/brand/{{ brand['title'] }}?t=p" title="{{ brand['title'] }}" target='_blank'>
                                 <i class="icon-edit icon-white"></i>
                             </a>
-<!--                            <a class="btn btn-danger btn_delete" href="#">
+                           <a class="btn btn-danger btn_delete" href="#">
                                 <i class="icon-trash icon-white"></i>
-                            </a> -->
+                            </a>
                         </td>
                     </tr>
                     {% endfor %}
@@ -217,6 +217,10 @@ $('.btn_delete').click(function(e){
     var tag_a = $(this)
     var tr = tag_a.parent().parent()
     var title = tr.attr('title');
+
+    if(!confirm('Are you sure to delete '+ title +' ?')){
+        return;
+    }
 
     $.ajax({
         url: '/brand/'+title+'?_xsrf='+getCookie("_xsrf"),

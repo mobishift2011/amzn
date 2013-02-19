@@ -262,11 +262,9 @@ def restart_zero_server():
 
 def restart_all():
     execute(stop_crpc_server)
-    import multiprocessing
     job = multiprocessing.Process(target=execute, args=(restart_zero_server,))
     job.start()
     job.join()
-    #execute(restart_zero_server)
     execute(start_crpc_server)
 
 def stop_crpc_server():
@@ -333,9 +331,13 @@ def __start_ganglia(host_string, name):
 
 def old_deploy():
     """ deploy crawler&api server code to remotes """
+    execute(_stop_monitor)
+    execute(_stop_publish)
     env.hosts = HOSTS
     execute(_stop_all_server)
     execute(copyfiles)
+
+    env.hosts = []
     execute(_start_all_server)
 
 @parallel
@@ -348,6 +350,7 @@ def _stop_all_server():
         run("ps aux | grep powerserver.py | grep -v grep | awk '{print $2}' | xargs kill -9")
         run("ps aux | grep textserver.py | grep -v grep | awk '{print $2}' | xargs kill -9")
         run("rm /tmp/*.sock")
+
 
 @parallel
 def copyfiles():
@@ -366,6 +369,8 @@ def _start_all_server():
     execute(_start_crawler)
     execute(_start_power)
     execute(_start_text)
+    execute(_start_monitor)
+    execute(_start_publish)
 
 
 #def _start_xvfb():
@@ -381,7 +386,7 @@ def __start_crawler(host_string, port):
         with prefix("source /usr/local/bin/virtualenvwrapper.sh"):
             with prefix("ulimit -s 1024"):
                 with prefix("ulimit -n 4096"):
-                    with cd("/opt/crpc"):
+                    with cd("/srv/crpc"):
                         with prefix("source ./env.sh {0}".format(os.environ.get('ENV','TEST'))):
                             with prefix("export DISPLAY=:99"):
                                 _runbg("python crawlers/common/crawlerserver.py {0}".format(port), sockname="crawlerserver.{0}".format(port))
@@ -396,7 +401,7 @@ def __start_power(host_string, port):
         with prefix("source /usr/local/bin/virtualenvwrapper.sh"):
             with prefix("ulimit -s 1024"):
                 with prefix("ulimit -n 4096"):
-                    with cd("/opt/crpc"):
+                    with cd("/srv/crpc"):
                         with prefix("source ./env.sh {0}".format(os.environ.get('ENV','TEST'))):
                             _runbg("python powers/powerserver.py {0}".format(port), sockname="powerserver.{0}".format(port))
 
@@ -410,13 +415,33 @@ def __start_text(host_string, port):
         with prefix("source /usr/local/bin/virtualenvwrapper.sh"):
             with prefix("ulimit -s 1024"):
                 with prefix("ulimit -n 4096"):
-                    with cd("/opt/crpc"):
+                    with cd("/srv/crpc"):
                         with prefix("source ./env.sh {0}".format(os.environ.get('ENV','TEST'))):
                             _runbg("python powers/textserver.py {0}".format(port), sockname="textserver.{0}".format(port))
 
 def _runbg(cmd, sockname="dtach"):
     """ A helper function to run command in background """
     return run('dtach -n /tmp/{0}.sock {1}'.format(sockname, cmd))
+
+
+def _start_monitor():
+    from settings import CRPC_ROOT
+    local("ulimit -n 4096 && cd {0}/backends/monitor && dtach -n /tmp/crpcscheduler.sock python run.py".format(CRPC_ROOT))
+    local("cd {0}/backends/webui && dtach -n /tmp/crpcwebui.sock python main.py".format(CRPC_ROOT))
+
+def _stop_monitor():
+    os.system("ps aux | grep run.py | grep -v grep | awk '{print $2}' | xargs kill -9")
+    os.system("ps aux | grep main.py | grep -v grep | awk '{print $2}' | xargs kill -9")
+    os.system("rm /tmp/crpc*.sock")
+
+def _start_publish():
+    from settings import CRPC_ROOT
+    local("ulimit -n 4096 && dtach -n /tmp/publish.sock python {0}/publisher/publish.py -d".format(CRPC_ROOT))
+
+def _stop_publish():
+    os.system("ps aux | grep publish.py | grep -v grep | awk '{print $2}' | xargs kill -9")
+    os.system("rm /tmp/publish*.sock")
+
 
 if __name__ == "__main__":
     pass

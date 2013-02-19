@@ -381,7 +381,7 @@ def __start_crawler(host_string, port):
         with prefix("source /usr/local/bin/virtualenvwrapper.sh"):
             with prefix("ulimit -s 1024"):
                 with prefix("ulimit -n 4096"):
-                    with cd("/opt/crpc"):
+                    with cd("/srv/crpc"):
                         with prefix("source ./env.sh {0}".format(os.environ.get('ENV','TEST'))):
                             with prefix("export DISPLAY=:99"):
                                 _runbg("python crawlers/common/crawlerserver.py {0}".format(port), sockname="crawlerserver.{0}".format(port))
@@ -396,7 +396,7 @@ def __start_power(host_string, port):
         with prefix("source /usr/local/bin/virtualenvwrapper.sh"):
             with prefix("ulimit -s 1024"):
                 with prefix("ulimit -n 4096"):
-                    with cd("/opt/crpc"):
+                    with cd("/srv/crpc"):
                         with prefix("source ./env.sh {0}".format(os.environ.get('ENV','TEST'))):
                             _runbg("python powers/powerserver.py {0}".format(port), sockname="powerserver.{0}".format(port))
 
@@ -410,7 +410,7 @@ def __start_text(host_string, port):
         with prefix("source /usr/local/bin/virtualenvwrapper.sh"):
             with prefix("ulimit -s 1024"):
                 with prefix("ulimit -n 4096"):
-                    with cd("/opt/crpc"):
+                    with cd("/srv/crpc"):
                         with prefix("source ./env.sh {0}".format(os.environ.get('ENV','TEST'))):
                             _runbg("python powers/textserver.py {0}".format(port), sockname="textserver.{0}".format(port))
 

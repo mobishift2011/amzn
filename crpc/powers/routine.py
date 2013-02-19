@@ -71,15 +71,14 @@ def spout_images(site, doctype):
 def spout_extracted_products(site):
     m = get_site_module(site)
     now = datetime.utcnow()
-    products = m.Product.objects( \
-        # (Q(brand_complete = False) | \
-        #         Q(tag_complete = False) | Q(dept_complete = False)) & \
-                    (Q(products_begin__lte=now) | Q(products_begin__exists=False)) & \
-                        (Q(products_end__gt=now) | Q(products_end__exists=False))).timeout(False)
-
-    # products = m.Product.objects(Q(dept_complete = False) & \
+    # products = m.Product.objects((Q(brand_complete = False) | \
+    #             Q(tag_complete = False) | Q(dept_complete = False)) & \
     #                 (Q(products_begin__lte=now) | Q(products_begin__exists=False)) & \
-    #                     (Q(products_end__gt=now) | Q(products_end__exists=False)))
+    #                     (Q(products_end__gt=now) | Q(products_end__exists=False))).timeout(False)
+
+    products = m.Product.objects( \
+        (Q(products_begin__lte=now) | Q(products_begin__exists=False)) & \
+            (Q(products_end__gt=now) | Q(products_end__exists=False)))
 
     for product in products:
         yield {

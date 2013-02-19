@@ -158,19 +158,20 @@ class ProductPipeline(object):
     def extract_price(self):
         product = self.product
         favbuy_price = None
+        listprice = None
 
-        if not product.favbuy_price:
+        if not product.favbuy_price or not float(product.favbuy_price):
             favbuy_price = parse_price(product.price)
             product.favbuy_price = str(favbuy_price)
             product.update_history['favbuy_price'] = datetime.utcnow()
 
-        if not product.favbuy_listprice:
+        if not product.favbuy_listprice or not float(product.favbuy_listprice):
             listprice = parse_price(product.listprice) or product.favbuy_price
             product.favbuy_listprice = str(listprice)
 
-        logger.debug('product price extract {0}/{1} -> {1}/{2}'.format( \
+        logger.debug('product price extract {0}/{1} -> {2}/{3}'.format( \
             product.price, product.listprice, product.favbuy_price, product.favbuy_listprice))
-        return favbuy_price
+        return favbuy_price or listprice
 
     def extract_url(self):
         site = self.site
@@ -345,7 +346,7 @@ class EventPipeline(object):
         soldout = True
 
         counter = 0
-        num_products = len(products)
+        num_products = len(self.event.product_ids) if self.event.product_ids else 0
         if num_products == 0:
             return
 

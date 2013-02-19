@@ -161,7 +161,7 @@ class Server(object):
 
             brand, is_new = Event.objects.get_or_create(event_id=event_id)
             if is_new:
-                brand.sale_title = sale_title
+                brand.sale_title = sale_title.encode('utf-8')
                 brand.urgent = True
                 brand.combine_url = 'http://www.zulily.com/e/{0}.html'.format(event_id)
             if image not in brand.image_urls: brand.image_urls.append(image)
@@ -216,7 +216,7 @@ class Server(object):
             if is_new:
                 brand.urgent = True
                 brand.combine_url = 'http://www.zulily.com/e/{0}.html'.format(event_id)
-                brand.sale_title = sale_title 
+                brand.sale_title = sale_title.encode('utf-8')
                 brand.sale_description = sale_description
             if image and image not in brand.image_urls: brand.image_urls.append(image)
             start_time = node.cssselect('div.upcoming-date-reminder span.reminder-text')[0].text_content() # 'Starts Sat 10/27 6am pt - SET REMINDER'

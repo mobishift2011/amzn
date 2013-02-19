@@ -426,8 +426,8 @@ def _runbg(cmd, sockname="dtach"):
 
 def _start_monitor():
     from settings import CRPC_ROOT
-    os.system("ulimit -n 4096 && cd {0}/backends/monitor && dtach -n /tmp/crpcscheduler.sock python run.py".format(CRPC_ROOT))
-    os.system("cd {0}/backends/webui && dtach -n /tmp/crpcwebui.sock python main.py".format(CRPC_ROOT))
+    local("ulimit -n 4096 && cd {0}/backends/monitor && dtach -n /tmp/crpcscheduler.sock python run.py".format(CRPC_ROOT))
+    local("cd {0}/backends/webui && dtach -n /tmp/crpcwebui.sock python main.py".format(CRPC_ROOT))
 
 def _stop_monitor():
     os.system("ps aux | grep run.py | grep -v grep | awk '{print $2}' | xargs kill -9")
@@ -436,7 +436,7 @@ def _stop_monitor():
 
 def _start_publish():
     from settings import CRPC_ROOT
-    os.system("ulimit -n 4096 && dtach -n /tmp/publish.sock python {0}/publisher/publish.py -d".format(CRPC_ROOT))
+    local("ulimit -n 4096 && dtach -n /tmp/publish.sock python {0}/publisher/publish.py -d".format(CRPC_ROOT))
 
 def _stop_publish():
     os.system("ps aux | grep publish.py | grep -v grep | awk '{print $2}' | xargs kill -9")

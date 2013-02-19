@@ -6,6 +6,12 @@ Created on 2012-11-6
 
 DEBUG = True
 
+BRAND_EXTRACT = {
+	'not_title': [
+		'Add'
+	]
+}
+
 AWS_ACCESS_KEY 	= "AKIAIQC5UD4UWIJTBB2A"
 AWS_SECRET_KEY 	= "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"
 S3_IMAGE_BUCKET = 'favbuy-images6'

@@ -217,7 +217,7 @@ class Server(object):
                 brand.urgent = True
                 brand.combine_url = 'http://www.zulily.com/e/{0}.html'.format(event_id)
                 brand.sale_title = sale_title.encode('utf-8')
-                brand.sale_description = sale_description
+                brand.sale_description = sale_description.encode('utf-8')
             if image and image not in brand.image_urls: brand.image_urls.append(image)
             start_time = node.cssselect('div.upcoming-date-reminder span.reminder-text')[0].text_content() # 'Starts Sat 10/27 6am pt - SET REMINDER'
             ev_begin = time_convert( ' '.join( start_time.split(' ', 4)[1:-1] ), '%a %m/%d %I%p%Y' ) - timedelta(minutes=5) #'Sat 10/27 6am'
@@ -261,7 +261,7 @@ class Server(object):
             if not sale_description:
                 sale_description = node.cssselect('div#category-view-brand > div.category-description-bg > div.category-view-brand-description > p:first-of-type')
             if sale_description:
-                event.sale_description = sale_description[0].text_content().strip()
+                event.sale_description = sale_description[0].text_content().strip().encode('utf-8')
 
         items = node.cssselect('div#products-grid li.item')
         end_date = node.cssselect('div#new-content-header > div.end-date')[0].text_content().strip()

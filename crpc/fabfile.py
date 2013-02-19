@@ -16,6 +16,7 @@ from fabric.api import *
 from fabric.context_managers import *
 from fabric.utils import puts
 from fabric.colors import red, green
+from fabric.contrib.project import upload_project
 
 import os
 import sys
@@ -317,7 +318,7 @@ def __crawler_login_file(host_string, port):
         put(CRPC_ROOT + '/crawlers/common/username.ini', '/srv/crpc/crawlers/common/')
 
 
-def restart_ganglia_client():
+def config_ganglia_client():
     """ change ganglia client's configration file """
     import itertools
     for peer in itertools.chain(POWER_PEERS, CRAWLER_PEERS):
@@ -328,6 +329,94 @@ def __start_ganglia(host_string, name):
     with settings(host_string=host_string):
         run("sed -i 's/name = \"unspecified\"/name = \"{0}\"/' /etc/ganglia/gmond.conf".format(name))
         run("/etc/init.d/ganglia-monitor restart")
+
+
+def old_deploy():
+    """ deploy crawler&api server code to remotes """
+    env.hosts = HOSTS
+    execute(_stop_all_server)
+    execute(copyfiles)
+    execute(_start_all_server)
+
+@parallel
+def _stop_all_server():
+    with settings(warn_only=True):
+        run("kill -9 `pgrep -f crawlerserver.py`")
+        run("kill -9 `pgrep -f powerserver.py`")
+        run("kill -9 `pgrep -f textserver.py`")
+        run("ps aux | grep crawlerserver.py | grep -v grep | awk '{print $2}' | xargs kill -9")
+        run("ps aux | grep powerserver.py | grep -v grep | awk '{print $2}' | xargs kill -9")
+        run("ps aux | grep textserver.py | grep -v grep | awk '{print $2}' | xargs kill -9")
+        run("rm /tmp/*.sock")
+
+@parallel
+def copyfiles():
+    """ rebuild the whole project directory on remotes """
+    # copy files
+    from settings import CRPC_ROOT
+    with settings(warn_only=True):
+        local('find {0} -name "*.pyc" -delete'.format(CRPC_ROOT))
+        run("rm -rf /srv/crpc")
+        run("mkdir -p /sev/crpc")
+        #put(CRPC_ROOT+"/*", "/srv/crpc/")
+        upload_project(CRPC_ROOT+'/', '/srv/')
+
+def _start_all_server():
+    """ start remote executions """
+    execute(_start_crawler)
+    execute(_start_power)
+    execute(_start_text)
+
+
+#def _start_xvfb():
+#    _runbg("Xvfb :99 -screen 0 1024x768x8 -ac +extension GLX +render -noreset", sockname="graphicXvfb")
+
+def _start_crawler():
+    for peer in CRAWLER_PEERS:
+        print 'CRAWLER', peer
+        multiprocessing.Process(target=__start_crawler, args=(peer['host_string'], peer['port'])).start()
+
+def __start_crawler(host_string, port):
+    with settings(host_string=host_string):
+        with prefix("source /usr/local/bin/virtualenvwrapper.sh"):
+            with prefix("ulimit -s 1024"):
+                with prefix("ulimit -n 4096"):
+                    with cd("/opt/crpc"):
+                        with prefix("source ./env.sh {0}".format(os.environ.get('ENV','TEST'))):
+                            with prefix("export DISPLAY=:99"):
+                                _runbg("python crawlers/common/crawlerserver.py {0}".format(port), sockname="crawlerserver.{0}".format(port))
+
+def _start_power():
+    for peer in POWER_PEERS:
+        print 'POWER', peer
+        multiprocessing.Process(target=__start_power, args=(peer['host_string'], peer['port'])).start()
+
+def __start_power(host_string, port):
+    with settings(host_string=host_string):
+        with prefix("source /usr/local/bin/virtualenvwrapper.sh"):
+            with prefix("ulimit -s 1024"):
+                with prefix("ulimit -n 4096"):
+                    with cd("/opt/crpc"):
+                        with prefix("source ./env.sh {0}".format(os.environ.get('ENV','TEST'))):
+                            _runbg("python powers/powerserver.py {0}".format(port), sockname="powerserver.{0}".format(port))
+
+def _start_text():
+    for peer in TEXT_PEERS:
+        print 'TEXT', peer
+        multiprocessing.Process(target=__start_text, args=(peer['host_string'], peer['port'])).start()
+
+def __start_text(host_string, port):
+    with settings(host_string=host_string):
+        with prefix("source /usr/local/bin/virtualenvwrapper.sh"):
+            with prefix("ulimit -s 1024"):
+                with prefix("ulimit -n 4096"):
+                    with cd("/opt/crpc"):
+                        with prefix("source ./env.sh {0}".format(os.environ.get('ENV','TEST'))):
+                            _runbg("python powers/textserver.py {0}".format(port), sockname="textserver.{0}".format(port))
+
+def _runbg(cmd, sockname="dtach"):
+    """ A helper function to run command in background """
+    return run('dtach -n /tmp/{0}.sock {1}'.format(sockname, cmd))
 
 if __name__ == "__main__":
     pass

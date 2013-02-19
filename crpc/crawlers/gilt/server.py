@@ -522,7 +522,8 @@ class Server(object):
                 self.get_or_create_product(ctx, event_id, link.rsplit('/', 1)[-1], link, title, listprice, price, brand, soldout)
                 product_ids.append(link.rsplit('/', 1)[-1])
 
-            product_ids.extend(  self.detect_rest_product(url, look_id, ctx)  )
+            ret = self.detect_rest_product(url, look_id, ctx)
+            if ret: product_ids.extend( ret )
 
         event = Event.objects(event_id=event_id).first()
         if not event: event = Event(event_id=event_id)

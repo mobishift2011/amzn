@@ -333,13 +333,13 @@ def __start_ganglia(host_string, name):
 
 def old_deploy():
     """ deploy crawler&api server code to remotes """
+    env.hosts = HOSTS
     execute(_stop_all_server)
     execute(copyfiles)
     execute(_start_all_server)
 
 @parallel
 def _stop_all_server():
-    env.hosts = HOSTS
     with settings(warn_only=True):
         run("kill -9 `pgrep -f crawlerserver.py`")
         run("kill -9 `pgrep -f powerserver.py`")
@@ -353,7 +353,7 @@ def _stop_all_server():
 def copyfiles():
     """ rebuild the whole project directory on remotes """
     # copy files
-    env.hosts = HOSTS
+    from settings import CRPC_ROOT
     with settings(warn_only=True):
         local('find {0} -name "*.pyc" -delete'.format(CRPC_ROOT))
         run("rm -rf /srv/crpc")
@@ -363,7 +363,6 @@ def copyfiles():
 
 def _start_all_server():
     """ start remote executions """
-    env.hosts = HOSTS
     execute(_start_crawler)
     execute(_start_power)
     execute(_start_text)

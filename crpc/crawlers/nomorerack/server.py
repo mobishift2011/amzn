@@ -219,6 +219,7 @@ class Server(object):
         products_end = time_convert(time_str, '%B %d %I:%M %p%Y', time_zone)
         _eastnow = datetime.now(tz=self.east_tz)
         east_today_begin_in_utc = self.east_tz.localize( datetime(_eastnow.year, _eastnow.month, _eastnow.day) ).astimezone(pytz.utc)
+        east_today_begin_in_utc = datetime(east_today_begin_in_utc.year, east_today_begin_in_utc.month, east_today_begin_in_utc.day, east_today_begin_in_utc.hour, east_today_begin_in_utc.minute)
 
         nodes = tree.cssselect('div#wrapper > div#content > div#front > div#primary > div.deals > div.deal')
         for node in nodes:

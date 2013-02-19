@@ -430,6 +430,7 @@ class Server(object):
                 common_failed.send(sender=ctx, key=url.rsplit('/', 1)[-1], url=url,
                         reason="download listing page error: {0}".format(cont))
                 return
+        product_ids = []
         tree = lxml.html.fromstring(cont)
         event_id = self.url2eventid.match(url).group(1)
         nodes = tree.cssselect('div#main > div#productContainerThreeUp > div#productGrid > article.product')
@@ -473,14 +474,18 @@ class Server(object):
             product.list_update_time = datetime.utcnow()
             product.save()
             common_saved.send(sender=ctx, obj_type='Product', key=product_id, is_new=is_new, is_updated=is_updated)
+            product_ids.append(product_id)
 
         event = Event.objects(event_id=event_id).first()
         if not event: event = Event(event_id=event_id)
         if event.urgent == True:
             event.urgent = False
-            event.update_time = datetime.utcnow()
-            event.save()
-            common_saved.send(sender=ctx, obj_type='Event', key=event_id, is_new=False, is_updated=False, ready=True)
+            ready = True
+        else: ready = False
+        event.product_ids = product_ids
+        event.update_time = datetime.utcnow()
+        event.save()
+        common_saved.send(sender=ctx, obj_type='Event', key=event_id, is_new=False, is_updated=False, ready=ready)
 
 
     def num_image_urls(self, product_id):

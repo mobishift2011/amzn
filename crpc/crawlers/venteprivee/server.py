@@ -165,6 +165,7 @@ class Server(object):
                 return
         res = response.json
         
+        product_ids = []
         event_id = str(res.get('operationId'))
         products = res.get('productFamilies')
         for prodNode in products:
@@ -191,14 +192,18 @@ class Server(object):
             
             debug_info.send(sender=DB+'.listing.product.{0}.crawled'.format(product.key))
             common_saved.send(sender=ctx, obj_type='Product', key=product.key, url=url, is_new=is_new, is_updated=is_updated)
+            product_ids.append(key)
         
-        ready = False
         event = Event.objects.get(event_id=event_id)
-        if event and event.urgent:
+        if not event: event = Event(event_id=event_id)
+        if event.urgent == True:
             event.urgent = False
             ready = True
-            event.save()
-            common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=False, is_updated=False, ready=ready)
+        else: ready = False
+        event.product_ids = product_ids
+        event.update_time = datetime.utcnow()
+        event.save()
+        common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=False, is_updated=False, ready=ready)
         
         debug_info.send(sender=DB+'.listing.{0}.end'.format(url))
 

@@ -121,6 +121,7 @@ class Server(object):
             debug_info.send(sender=DB+'.event.{0}.start'.format(sale.get('name').encode('utf-8')))
             events_begin = pytz.timezone('US/Eastern').localize(datetime.strptime(sale.get('startDate'), '%Y-%m-%dT%H:%M:%S')).astimezone(pytz.utc)
             events_end = pytz.timezone('US/Eastern').localize(datetime.strptime(sale.get('endDate'), '%Y-%m-%dT%H:%M:%S')).astimezone(pytz.utc)
+            event, is_new = Event.objects.get_or_create(event_id = str(sale.get('operationId'))) 
             if event.events_begin != events_begin:
                 event.update_history.update({ 'events_begin': datetime.utcnow() })
                 event.events_begin = events_begin
@@ -129,7 +130,6 @@ class Server(object):
                 event.events_end = events_end
             
             is_updated = False
-            event, is_new = Event.objects.get_or_create(event_id = str(sale.get('operationId')))
             event.combine_url = 'https://us.venteprivee.com/main/#/catalog/%s' % event.event_id
             event.sale_title = sale.get('name')
             for media in ['home', 'icon', 'preview']:

@@ -19,9 +19,13 @@ def spout_mastiff_products():
     products = db_mastiff.product.find({}, fields=['site_key', 'products_begin', 'products_end'])
     for product in products:
         try:
-            site, key = product['site_key'].split('_')
-        except ValueError:
+            splits = product['site_key'].split('_')
+            site = splits[0]
+            key = '_'.join(splits[1:])
+        except Exception, e:
+            print e
             print product['site_key']
+            print
         yield {
             'site': site,
             'key': key,

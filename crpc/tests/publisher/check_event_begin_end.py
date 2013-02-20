@@ -8,7 +8,7 @@ from settings import MONGODB_HOST, MASTIFF_HOST
 from crawlers.common.stash import picked_crawlers
 
 conn = pymongo.Connection(MONGODB_HOST)
-conn_m = pymongo.Connection(MASTIFF_HOST.split(':')[1].replace('//'))
+conn_m = pymongo.Connection(MASTIFF_HOST.split(':')[1].replace('//', ''))
 
 
 def check_events_begin_end(data=collections.defaultdict(dict)):

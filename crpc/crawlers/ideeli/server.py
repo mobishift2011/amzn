@@ -48,7 +48,7 @@ class ideeliLogin(object):
         """
         self.data['login'] = self.current_email
         req.post(self.login_url, data=self.data)
-        self._signin = True
+        self._signin[self.current_email] = True
 
     def check_signin(self, username=''):
         """.. :py:method::

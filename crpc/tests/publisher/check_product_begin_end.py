@@ -29,8 +29,8 @@ def spout_mastiff_products():
         yield {
             'site': site,
             'key': key,
-            'products_begin': product.get('products_begin'),
-            'products_end': product.get('products_end')
+            'products_begin': product.get('starts_at'),
+            'products_end': product.get('ends_at')
         }
 
 

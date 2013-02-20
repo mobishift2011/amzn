@@ -8,7 +8,8 @@ DEBUG = True
 
 BRAND_EXTRACT = {
 	'not_title': [
-		'Add'
+		'Add',
+		'Hobo',
 	]
 }
 

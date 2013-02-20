@@ -36,7 +36,13 @@ def spout_mastiff_products():
 
 def check(site, key, products_begin, products_end):
     print 'begin to check ', site, key
-    db = db_pool_crpc[site]
+
+    try:
+        db = db_pool_crpc[site]
+    except KeyError:
+        # It's mastiff's data error, so return true to ignore the error.
+        return True
+
     product = db.product.find({'_id': key})[0]
     crpc_products_begin = product.get('products_begin')
     crpc_products_end = product.get('products_end')

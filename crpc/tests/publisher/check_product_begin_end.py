@@ -35,6 +35,7 @@ def spout_mastiff_products():
 
 
 def check(site, key, products_begin, products_end):
+    print 'begin to check ', site, key
     db = db_pool_crpc[site]
     product = db.product.find({'_id': key})[0]
     crpc_products_begin = product.get('products_begin')
@@ -69,6 +70,7 @@ def check(site, key, products_begin, products_end):
 
 def main():
     with open(log_path, 'w') as f:
+        print 'begin to query products from mastiff'
         for mastiff_product in spout_mastiff_products():
             if not check(**mastiff_product):
                 f.write(

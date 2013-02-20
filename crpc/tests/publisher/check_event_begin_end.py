@@ -4,7 +4,7 @@
 
 import pymongo
 import collections
-from settings import MONGODB_HOST
+from settings import MONGODB_HOST, MASTIFF_HOST
 from crawlers.common.stash import picked_crawlers
 
 conn = pymongo.Connection(MONGODB_HOST)

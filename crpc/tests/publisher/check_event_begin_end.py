@@ -18,7 +18,9 @@ def check_events_begin_end(data=collections.defaultdict(dict)):
             if site not in data: data[site] = {}
             ev = conn[site].event.find({}, fields=['event_id', 'events_begin', 'events_end'])
             for e in ev:
-                data[site][e['event_id']] = [e['events_begin'], e['events_end']]
+                begin = None if 'events_begin' not in e else e['events_begin']
+                end = None if 'events_end' not in e else e['events_end']
+                data[site][e['event_id']] = [begin, end]
 
     ev = conn_m.event.find({}, fields=['site_key', 'starts_at', 'ends_at'])
     for e in ev:

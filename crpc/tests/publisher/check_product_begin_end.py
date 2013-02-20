@@ -43,23 +43,26 @@ def check(site, key, products_begin, products_end):
     if product.get('event_id'):
         for event_id in product.get('event_id'):
             event = db.event.find({'event_id': event_id})[0]
-            if event.get('events_begin'):
 
+            if event.get('events_begin'):
                 if not crpc_products_begin \
                     or event.get('events_begin') <  crpc_products_begin:
                         crpc_products_begin = event.get('events_begin')
 
+            if event.get('events_end'):
                 if not crpc_products_end \
                     or event.get('events_end') >  crpc_products_end:
                         crpc_products_end = event.get('events_end')
 
-    if (not products_begin and crpc_products_begin) \
-        or (products_begin > crpc_products_begin ):
-            return False
-
     if (not products_end and crpc_products_end) \
-        or (products_end < crpc_products_end ):
-            return False
+        or (products_end and crpc_products_end \
+            and products_end < crpc_products_end):
+                return False
+
+    if (not products_begin and crpc_products_begin) \
+        or (products_begin and crpc_products_begin \
+            and products_begin > crpc_products_begin): 
+                return False
 
     return True
 

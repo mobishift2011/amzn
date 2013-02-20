@@ -43,7 +43,11 @@ def check(site, key, products_begin, products_end):
         # It's mastiff's data error, so return true to ignore the error.
         return True
 
-    product = db.product.find({'_id': key})[0]
+    try:
+        product = db.product.find({'_id': key})[0]
+    except IndexError::
+        return False
+
     crpc_products_begin = product.get('products_begin')
     crpc_products_end = product.get('products_end')
 

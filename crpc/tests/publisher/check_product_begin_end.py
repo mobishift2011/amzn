@@ -24,8 +24,10 @@ def spout_mastiff_products():
             key = '_'.join(splits[1:])
         except Exception, e:
             print e
-            print product['site_key']
+            print product.get('site_key')
             print
+            continue
+
         yield {
             'site': site,
             'key': key,

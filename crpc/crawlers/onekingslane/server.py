@@ -65,22 +65,30 @@ class onekingslaneLogin(object):
             'sumbit.x': 54,
             'sumbit.y': 7,
             'returnUrl': '0',
-        }   
-        self._signin = False
+        }
+        self.current_email = login_email[DB] 
+        self._signin = {}
 
     def login_account(self):
         """.. :py:method::
             use post method to login
         """
+        self.data['email'] = self.current_email
         req.post(self.login_url, data=self.data)
-        self._signin = True
+        self._signin[self.current_email] = True
 
-    def check_signin(self):
+    def check_signin(self, username=''):
         """.. :py:method::
             check whether the account is login
         """
-        if not self._signin:
+        if username == '': 
             self.login_account()
+        elif username not in self._signin:
+            self.current_email = username
+            self.login_account()
+        else:
+            self.current_email = username
+
 
     def fetch_page(self, url):
         """.. :py:method::

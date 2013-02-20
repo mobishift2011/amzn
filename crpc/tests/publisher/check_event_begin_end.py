@@ -48,6 +48,7 @@ def sync_time_mastiff_to_mongodb(data=collections.defaultdict(dict)):
 
 
 if __name__ == '__main__':
+    import sys
     from optparse import OptionParser
 
     parser = OptionParser(usage='usage: %prog [options]')

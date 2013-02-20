@@ -31,7 +31,7 @@ def check_events_begin_end(data=collections.defaultdict(dict)):
             print 'events_end error: {0}, {1}'.format(site, key)
 
 def sync_time_mastiff_to_mongodb(data=collections.defaultdict(dict)):
-    ev = conn_m.event.find({}, fields=['site_key', 'starts_at', 'ends_at'])
+    ev = conn_m.mastiff.event.find({}, fields=['site_key', 'starts_at', 'ends_at'])
     for e in ev:
         site, key = e['site_key'].split('_')
         if site not in data: data[site] = {}
@@ -42,10 +42,32 @@ def sync_time_mastiff_to_mongodb(data=collections.defaultdict(dict)):
         if 'event' in col:
             ev = conn[site].event.find({}, fields=['event_id', 'events_begin', 'events_end'])
             for e in ev:
+                if e['event_id'] not in data[site]: continue
                 e['events_begin'] = data[site][e['event_id']][0]
                 e['events_end'] = data[site][e['event_id']][1]
                 conn[site].event.save(e)
 
 
 if __name__ == '__main__':
-    check_events_begin_end()
+    import sys
+    from optparse import OptionParser
+
+    parser = OptionParser(usage='usage: %prog [options]')
+    parser.add_option('-c', '--check', dest='check', help='check events begin end', default=False)
+    parser.add_option('-s', '--sync', dest='sync', help='sync events begin end from mastiff to mongodb', default=False)
+
+    if len(sys.argv) == 1:
+        parser.print_help()
+        exit()
+
+    options, args = parser.parse_args(sys.argv[1:])
+    if options.check:
+        check_events_begin_end()
+    elif options.sync:
+        sync_time_mastiff_to_mongodb()
+    elif 'check' in args:
+        check_events_begin_end()
+    elif 'sync' in args:
+        sync_time_mastiff_to_mongodb()
+    else:
+        parser.print_help()

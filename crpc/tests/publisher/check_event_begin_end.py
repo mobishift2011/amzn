@@ -64,5 +64,9 @@ if __name__ == '__main__':
         check_events_begin_end()
     elif options.sync:
         sync_time_mastiff_to_mongodb()
+    elif 'check' in args:
+        check_events_begin_end()
+    elif 'sync' in args:
+        sync_time_mastiff_to_mongodb()
     else:
         parser.print_help()

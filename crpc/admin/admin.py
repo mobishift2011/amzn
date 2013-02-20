@@ -536,6 +536,13 @@ class DashboardHandler(BaseHandler):
             self.content_type = 'application/json'
             self.finish(json.dumps(['no content']))
 
+
+class TraceDataHandler(BaseHandler):
+    def get(self, site, key):
+        if not site:
+            self.render('tracedata.html')
+
+
 class BrandsHandler(BaseHandler):
     def get(self, db):
         brands = get_all_brands(db) if db else get_all_brands()
@@ -585,11 +592,12 @@ application = tornado.web.Application([
     (r"/examples/(ui|form|chart|typography|gallery|table|calendar|grid|file-manager|tour|icon|error|login)/", ExampleHandler),
     (r"/login/", LoginHandler),
     (r"/logout/", LogoutHandler),
+    (r"/crawler/", CrawlerHandler),
+    (r"/monitor/", MonitorHandler),
+    (r"/dashboard/(.*)", DashboardHandler),
     (r"/viewdata/(.*)", ViewDataHandler),
     (r"/editdata/(.*)/(.*)/", EditDataHandler),
-    (r"/monitor/", MonitorHandler),
-    (r"/crawler/", CrawlerHandler),
-    (r"/dashboard/(.*)", DashboardHandler),
+    (r"/tracedata/?(.*)/?(.*)/?", TraceDataHandler),
     (r"/brands/?(.*)", BrandsHandler),
     (r"/brand/?(.*)", BrandHandler),
     (r"/", IndexHandler),

@@ -22,7 +22,7 @@ def check_events_begin_end(data=collections.defaultdict(dict)):
                 end = None if 'events_end' not in e else e['events_end']
                 data[site][e['event_id']] = [begin, end]
 
-    ev = conn_m.event.find({}, fields=['site_key', 'starts_at', 'ends_at'])
+    ev = conn_m.mastiff.event.find({}, fields=['site_key', 'starts_at', 'ends_at'])
     for e in ev:
         site, key = e['site_key'].split('_')
         if data[site][key][0] != e['starts_at']:

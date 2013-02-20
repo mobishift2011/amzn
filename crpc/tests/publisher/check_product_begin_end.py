@@ -71,8 +71,10 @@ def check(site, key, products_begin, products_end):
 def main():
     with open(log_path, 'w') as f:
         print 'begin to query products from mastiff'
+        count = 0
         for mastiff_product in spout_mastiff_products():
             if not check(**mastiff_product):
+                count += 1
                 f.write(
                     '%s\n%s\n%s\n%s\n\n' % (
                         mastiff_product['site'],
@@ -81,6 +83,7 @@ def main():
                         mastiff_product.get('products_end')
                     )
                 )
+        f.write('Total error: %s' % count)
 
 
 if __name__ == '__main__':

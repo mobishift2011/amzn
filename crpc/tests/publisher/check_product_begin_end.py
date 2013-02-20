@@ -18,7 +18,10 @@ db_pool_crpc = {}
 def spout_mastiff_products():
     products = db_mastiff.product.find({}, fields=['site_key', 'products_begin', 'products_end'])
     for product in products:
-        site, key = product['site_key'].split('_')
+        try:
+            site, key = product['site_key'].split('_')
+        except ValueError:
+            print product['site_key'].split('_')
         yield {
             'site': site,
             'key': key,

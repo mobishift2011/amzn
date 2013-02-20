@@ -46,11 +46,15 @@ def check(site, key, products_begin, products_end):
                     or event.get('events_end') >  crpc_products_end:
                         crpc_products_end = event.get('events_end')
 
-    if products_begin <= crpc_products_begin \
-        and products_end >= crpc_products_end:
-            return True
+    if (not products_begin and crpc_products_begin) \
+        or (products_begin > crpc_products_begin ):
+            return False
 
-    return False
+    if (not products_end and crpc_products_end) \
+        or (products_end < crpc_products_end ):
+            return False
+
+    return True
 
 
 def main():

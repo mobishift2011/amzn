@@ -29,7 +29,7 @@ def spout_mastiff_products():
 
 def check(site, key, products_begin, products_end):
     db = db_pool_crpc[site]
-    product = db.product.find('_id': key)[0]
+    product = db.product.find({'_id': key})[0]
     crpc_products_begin = product.get('products_begin')
     crpc_products_end = product.get('products_end')
 

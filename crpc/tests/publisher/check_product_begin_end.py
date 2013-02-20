@@ -21,7 +21,7 @@ def spout_mastiff_products():
         try:
             site, key = product['site_key'].split('_')
         except ValueError:
-            print product['site_key'].split('_')
+            print product['site_key']
         yield {
             'site': site,
             'key': key,

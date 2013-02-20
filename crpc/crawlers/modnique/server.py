@@ -374,6 +374,7 @@ class Server(object):
         price = pprice.cssselect('span.price')[0].text_content()
         listprice = pprice.cssselect('span.bare')
         listprice = listprice[0].text_content().replace('retail', '').strip() if listprice else ''
+        title = nav.cssselect('div.lastUnit > div.line > h4.pbs')[0].text_content().strip()
 
         is_new, is_updated = False, False
         product = Product.objects(key=key).first()
@@ -387,6 +388,7 @@ class Server(object):
         product.returned = returned
         product.price = price
         product.listprice = listprice
+        product.title = title
         product.event_type = False
         product.products_begin = datetime.now(tz=self.pt).replace(hour=0, minute=0, second=0, microsecond=0).astimezone(pytz.utc)
         product.products_end = product.products_begin + timedelta(days=1)

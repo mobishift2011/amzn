@@ -26,22 +26,29 @@ class lot18Login(object):
             'password': login_passwd,
         }
 
-        self._signin = False
+        self.current_email = login_email[DB]
+        self._signin = {}
 
     def login_account(self):
         """.. :py:method::
             use post method to login
         """
+        self.data['email'] = self.current_email
         req.get(self.login_url)
         req.post(self.login_url, self.data)
-        self._signin = True
+        self._signin[self.current_email] = True
 
-    def check_signin(self):
+    def check_signin(self, username=''):
         """.. :py:method::
             check whether the account is login
         """
-        if not self._signin:
+        if username == '':
             self.login_account()
+        elif username not in self._signin:
+            self.current_email = username
+            self.login_account()
+        else:
+            self.current_email = username
 
     def fetch_page(self, url):
         """.. :py:method::
@@ -87,7 +94,9 @@ class Server(object):
             url is useless in here
         :param str url: None
         """
-        self.net.check_signin()
+        if kwargs.get('login_email'): self.net.check_signin( kwargs.get('login_email') )
+        else: self.net.check_signin()
+
         data = { 'attributes': '', 'page': 1, 'price_per_bottle': '' }
         ret = self.net.post_to_get(self.post_url, data)
         d = json.loads(ret)['data']
@@ -163,6 +172,9 @@ class Server(object):
     def crawl_product(self, url, ctx='', **kwargs):
         """.. :py:method::
         """
+        if kwargs.get('login_email'): self.net.check_signin( kwargs.get('login_email') )
+        else: self.net.check_signin()
+
         content = self.net.fetch_page(url)
         try:
             tree = lxml.html.fromstring(content)

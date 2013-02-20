@@ -50,23 +50,30 @@ class belleandcliveLogin(object):
             '_DARGS': '/account/login/login_or_request.jsp.member-form',
         }   
 
-        self._signin = False
+        self.current_email = login_email[DB]
+        self._signin = {}
 
     def login_account(self):
         """.. :py:method::
             use post method to login
         """
+        self.data['email'] = self.current_email
         login_post = 'https://www.belleandclive.com/index.jsp?_DARGS=/account/login/login_or_request.jsp.member-form'
         req.get(self.login_url)
         req.post(login_post, data=self.data)
-        self._signin = True
+        self._signin[self.current_email] = True
 
-    def check_signin(self):
+    def check_signin(self, username=''):
         """.. :py:method::
             check whether the account is login
         """
-        if not self._signin:
+        if username == '': 
             self.login_account()
+        elif username not in self._signin:
+            self.current_email = username
+            self.login_account()
+        else:
+            self.current_email = username
 
     def fetch_page(self, url):
         """.. :py:method::
@@ -90,7 +97,9 @@ class Server(object):
         self.extract_large_image = re.compile("(.+&outputx=)(\d+)(&outputy=)(\d+)(.+)")
 
     def crawl_category(self, ctx='', **kwargs):
-        # self.net.check_signin()
+        if kwargs.get('login_email'): self.net.check_signin( kwargs.get('login_email') )
+        else: self.net.check_signin()
+
         depts = ['women', 'men']
         for dept in depts:
             url = 'http://www.belleandclive.com/browse/sales/current.jsp?shop={0}'.format(dept)
@@ -187,6 +196,9 @@ class Server(object):
 
 
     def crawl_listing(self, url, ctx='', **kwargs):
+        if kwargs.get('login_email'): self.net.check_signin( kwargs.get('login_email') )
+        else: self.net.check_signin()
+
         event_id = url.rsplit('cat', 1)[-1]
         tree = self.download_page_ret_tree(event_id, url, 'download listing page failed:', ctx)
         if tree is None: return
@@ -242,6 +254,9 @@ class Server(object):
 
         
     def crawl_product(self, url, ctx='', **kwargs):
+        if kwargs.get('login_email'): self.net.check_signin( kwargs.get('login_email') )
+        else: self.net.check_signin()
+
         key = url.rsplit('id=', 1)[-1]
         tree = self.download_page_ret_tree(key, url, 'download product page failed:', ctx)
         color = tree.cssselect('div#colors span#color-label')

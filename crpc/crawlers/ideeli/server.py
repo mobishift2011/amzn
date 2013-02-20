@@ -39,21 +39,28 @@ class ideeliLogin(object):
             'y': 20,
         }   
 
-        self._signin = False
+        self.current_email = login_email[DB]
+        self._signin = {}
 
     def login_account(self):
         """.. :py:method::
             use post method to login
         """
+        self.data['login'] = self.current_email
         req.post(self.login_url, data=self.data)
         self._signin = True
 
-    def check_signin(self):
+    def check_signin(self, username=''):
         """.. :py:method::
             check whether the account is login
         """
-        if not self._signin:
+        if username == '':
             self.login_account()
+        elif username not in self._signin:
+            self.current_email = username
+            self.login_account()
+        else:
+            self.current_email = username
 
     def fetch_page(self, url):
         """.. :py:method::
@@ -80,6 +87,9 @@ class Server(object):
         self.extract_product_id = re.compile('http://www.ideeli.com/events/\w+/offers/\w+/latest_view/(\w+)')
 
     def crawl_category(self, ctx='', **kwargs):
+        if kwargs.get('login_email'): self.net.check_signin( kwargs.get('login_email') )
+        else: self.net.check_signin()
+
         depts = ['women', 'men', 'home', ]
         for dept in depts:
             self.crawl_one_dept(dept, ctx)
@@ -148,6 +158,9 @@ class Server(object):
         common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=link, is_new=is_new, is_updated=is_updated)
 
     def crawl_listing(self, url, ctx='', **kwargs):
+        if kwargs.get('login_email'): self.net.check_signin( kwargs.get('login_email') )
+        else: self.net.check_signin()
+
         event_id = self.extract_event_id.match(url).group(1)
         content = self.net.fetch_page( url )
         try:
@@ -221,6 +234,9 @@ class Server(object):
 
         
     def crawl_product(self, url, ctx='', **kwargs):
+        if kwargs.get('login_email'): self.net.check_signin( kwargs.get('login_email') )
+        else: self.net.check_signin()
+
         key = self.extract_product_id.match(url).group(1)
         content = self.net.fetch_page( url )
         if content is None or isinstance(content, int):

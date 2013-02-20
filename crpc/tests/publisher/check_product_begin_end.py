@@ -10,7 +10,7 @@ from crawlers.common.stash import picked_crawlers
 log_path = '/tmp/check_prod_begin_end.log'
 
 conn = pymongo.Connection(MONGODB_HOST)
-conn_m = pymongo.Connection(MASTIFF_HOST.split(':')[1].replace('//'), '')
+conn_m = pymongo.Connection(MASTIFF_HOST.split(':')[1].replace('//', ''))
 db_mastiff = conn_m['mastiff']
 db_pool_crpc = {}
 

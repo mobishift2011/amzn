@@ -168,6 +168,7 @@ class ProductPipeline(object):
         if not product.favbuy_listprice or not float(product.favbuy_listprice):
             listprice = parse_price(product.listprice) or product.favbuy_price
             product.favbuy_listprice = str(listprice)
+            product.update_history['favbuy_listprice'] = datetime.utcnow()
 
         logger.debug('product price extract {0}/{1} -> {2}/{3}'.format( \
             product.price, product.listprice, product.favbuy_price, product.favbuy_listprice))

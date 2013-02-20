@@ -33,7 +33,12 @@ def check_events_begin_end(data=collections.defaultdict(dict)):
 def sync_time_mastiff_to_mongodb(data=collections.defaultdict(dict)):
     ev = conn_m.mastiff.event.find({}, fields=['site_key', 'starts_at', 'ends_at'])
     for e in ev:
-        site, key = e['site_key'].split('_')
+        try:
+            site, key = e['site_key'].split('_')
+        except KeyError:
+            print e
+            continue
+        
         if site not in data: data[site] = {}
         data[site][key] = [e['starts_at'], e['ends_at']]
 

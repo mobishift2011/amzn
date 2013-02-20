@@ -45,6 +45,9 @@ def check(site, key, products_begin, products_end):
         for event_id in product.get('event_id'):
             event = db.event.find({'event_id': event_id})[0]
 
+            if not event.get('product_ids') or key not in event.get('product_ids'):
+                continue
+            
             if event.get('events_begin'):
                 if not crpc_products_begin \
                     or event.get('events_begin') <  crpc_products_begin:
@@ -71,8 +74,10 @@ def check(site, key, products_begin, products_end):
 def main():
     with open(log_path, 'w') as f:
         print 'begin to query products from mastiff'
+        count = 0
         for mastiff_product in spout_mastiff_products():
             if not check(**mastiff_product):
+                count += 1
                 f.write(
                     '%s\n%s\n%s\n%s\n\n' % (
                         mastiff_product['site'],
@@ -81,6 +86,7 @@ def main():
                         mastiff_product.get('products_end')
                     )
                 )
+        f.write('Total error: %s' % count)
 
 
 if __name__ == '__main__':

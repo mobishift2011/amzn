@@ -42,6 +42,7 @@ def sync_time_mastiff_to_mongodb(data=collections.defaultdict(dict)):
         if 'event' in col:
             ev = conn[site].event.find({}, fields=['event_id', 'events_begin', 'events_end'])
             for e in ev:
+                if e['event_id'] not in data[site]: continue
                 e['events_begin'] = data[site][e['event_id']][0]
                 e['events_end'] = data[site][e['event_id']][1]
                 conn[site].event.save(e)

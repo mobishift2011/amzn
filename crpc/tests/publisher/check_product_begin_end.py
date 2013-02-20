@@ -45,7 +45,7 @@ def check(site, key, products_begin, products_end):
 
     try:
         product = db.product.find({'_id': key})[0]
-    except IndexError::
+    except IndexError:
         return False
 
     crpc_products_begin = product.get('products_begin')

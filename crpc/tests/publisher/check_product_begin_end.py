@@ -45,6 +45,9 @@ def check(site, key, products_begin, products_end):
         for event_id in product.get('event_id'):
             event = db.event.find({'event_id': event_id})[0]
 
+            if not event.get('product_ids') or key not in event.get('product_ids'):
+                continue
+            
             if event.get('events_begin'):
                 if not crpc_products_begin \
                     or event.get('events_begin') <  crpc_products_begin:

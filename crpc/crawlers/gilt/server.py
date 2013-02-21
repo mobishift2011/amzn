@@ -195,7 +195,10 @@ class Server(object):
             event, is_new, is_updated = ret
 
             begins = node.cssselect('header > hgroup > h3 > span')[0].get('data-gilt-date')
-            event.events_begin = datetime.strptime(begins[:begins.index('+')], '%m/%d/%Y %H:%M ')
+            events_begin = datetime.strptime(begins[:begins.index('+')], '%m/%d/%Y %H:%M ')
+            if event.events_begin != events_begin:
+                event.events_begin = events_begin
+                event.update_history.update({ 'events_begin': datetime.utcnow() })
             if not event.sale_description:
                 ret = self.get_picture_description(event.combine_url, ctx)
                 if ret is not None: # starting later today, already on sale

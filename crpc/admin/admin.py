@@ -23,7 +23,10 @@ from collections import Counter
 
 from views import get_all_brands, get_brand, update_brand, delete_brand
 from powers.tools import ImageTool, Image
+from powers.configs import AWS_ACCESS_KEY, AWS_SECRET_KEY
+from boto.cloudfront import CloudFrontConnection
 from StringIO import StringIO
+DISTRIBUTIONID = 'E3QJD92P0IKIG2'
 
 def get_site_module(site):
     return __import__('crawlers.'+site+'.models', fromlist=['Category', 'Event', 'Product'])
@@ -597,6 +600,8 @@ class AjaxHandler(BaseHandler):
             im.save(fileobj, 'jpeg', quality=95)
             fileobj.seek(0)
             it.upload2s3(fileobj, key)
+            conn = CloudFrontConnection(AWS_ACCESS_KEY, AWS_SECRET_KEY)
+            conn.create_invalidation_request(DISTRIBUTIONID, [key])
             break
         self.redirect(self.request.headers.get('Referer'))
 
@@ -619,6 +624,9 @@ class AjaxHandler(BaseHandler):
             print 'croped'
             it.upload2s3(fileobj, key)
             print 'uploaded'
+            conn = CloudFrontConnection(AWS_ACCESS_KEY, AWS_SECRET_KEY)
+            conn.create_invalidation_request(DISTRIBUTIONID, [key])
+            print 'invalid request sent'
             self.content_type = 'application/json'
             self.write(json.dumps({'status':'ok'}))
         except:

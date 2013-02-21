@@ -266,8 +266,12 @@ class Publisher:
                 elif f=="sale_description": ev_data['description'] = obj_getattr(ev, 'sale_description', '')
                 elif f=="events_end":
                     ret = ev_data['ends_at'] = obj_getattr(ev, 'events_end', '')
-                    if ret:
-                        ev_data['ends_at'] = ret.isoformat()
+                    # if one event is off sale, then on sale again, need patch ''
+                    if upd: # patch ''
+                        if ret: ev_data['ends_at'] = ret.isoformat()
+                        else: ev_data['ends_at'] = ret
+                    else: # post None
+                        if ret: ev_data['ends_at'] = ret.isoformat()
                 elif f=="events_begin": ev_data['starts_at'] = obj_getattr(ev, 'events_begin', datetime.utcnow()).isoformat()
                 elif f=="image_path": ev_data['cover_image'] = ev['image_path'][0] if ev['image_path'] else {}
                 elif f=="highest_discount": 

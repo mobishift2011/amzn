@@ -72,6 +72,12 @@ class zulilyLogin(object):
         """
         ret = req.get(url)
 
+        if ret.url == u'https://www.zulily.com/z/bubble-gum-pink-pillow-with-chocolate-hug.html':
+            self.login_account()
+            ret = req.get(url)
+            if ret.url == u'https://www.zulily.com/z/bubble-gum-pink-pillow-with-chocolate-hug.html':
+                return -500
+
         if ret.url == u'http://www.zulily.com/oops-event':
             return -404
         if ret.url == 'http://www.zulily.com/?tab=new-today':

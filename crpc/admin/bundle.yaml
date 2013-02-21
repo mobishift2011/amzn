@@ -17,6 +17,7 @@ cssheader:
         - css/jquery.iphone.toggle.css
         - css/opa-icons.css
         - css/uploadify.css
+        - css/jquery.jcrop.min.css
 jsfooter:
     output: cache/footer.bundled.js
     contents:
@@ -61,6 +62,8 @@ jsfooter:
         - js/charisma.js
 
         - js/jquery.deparam.js
+        - js/jquery.jcrop.min.js
+        - js/jquery.color.js
 
 cssall:
     output: cache/all.bundled.css
@@ -92,6 +95,7 @@ cssall:
         - css/bootstrap-redy.css           
         - css/bootstrap-responsive.css     
         - css/charisma-app.css             
+        - css/jquery.jcrop.min.css
 
 jsall:
     filters: jsmin, jspacker 
@@ -133,3 +137,5 @@ jsall:
         - js/fullcalendar.min.js            
         - js/excanvas.js                    
         - js/charisma.js                    
+        - js/jquery.jcrop.min.js
+        - js/jquery.color.js

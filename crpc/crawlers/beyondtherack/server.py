@@ -384,7 +384,9 @@ class Server(object):
         events_end = datetime.utcfromtimestamp( float(events_end[0].get('eventttl')) )
         event = Event.objects(event_id=event_id).first()
         title = event.sale_title
-        event.events_end = events_end
+        if event.events_end != events_end:
+            event.update_history.update({ 'events_end': datetime.utcnow() })
+            event.events_end = events_end
         event.update_time = datetime.utcnow()
         if event.urgent == True:
             event.urgent = False

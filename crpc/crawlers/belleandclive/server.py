@@ -272,7 +272,7 @@ class Server(object):
 
         image_urls = []
         for image in tree.cssselect('div#thumbnails > img.thumbnail'):
-            aa, outx, bb, outy, cc = self.extract_large_image.search( image.get('relsmall') ).groups()
+            aa, outx, bb, outy, cc = self.extract_large_image.search( image.get('rel') ).groups()
             image_urls.append( '{0}{1}{2}{3}{4}'.format(aa, int(outx)*2, bb, int(outy)*2, cc) )
 
         is_new, is_updated = False, False

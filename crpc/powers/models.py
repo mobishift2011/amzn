@@ -25,7 +25,7 @@ class Brand(Document):
     done            =   BooleanField(default = False)
     global_searchs  =   IntField(default=0)
     local_searchs   =   IntField(default=0)
-    created_at      =   DateTimeField(default=datetime.now())
+    created_at      =   DateTimeField(default=datetime.utcnow())
  
     meta = {
         'db_name': DB,
@@ -60,10 +60,11 @@ class Brand(Document):
 
 
 class Link(Document):
+    key             =   StringField(primary_key=True)
     site            =   StringField(required=True)
     affiliate       =   StringField()
     tracking_url    =   StringField()
-    created_at      =   DateTimeField(default=datetime.now())
+    created_at      =   DateTimeField(default=datetime.utcnow())
     updated_at      =   DateTimeField()
  
     meta = {

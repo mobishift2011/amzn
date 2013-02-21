@@ -30,5 +30,12 @@ def repair_event_sale_title():
         site, key = e['site_key'].split('_')
         conn[site].event.update({'event_id': key}, {'$set': {'update_history.sale_title': datetime.utcnow()} })
 
+def repair_product_title():
+    prd = conn_m.mastiff.product.find({'title': ''}, fields=['site_key'])
+    for e in prd:
+        site, key = e['site_key'].split('_')
+        conn[site].product.update({'_id': key}, {'$set': {'update_history.title': datetime.utcnow()} })
+
 if __name__ == '__main__':
     repair_event_sale_title()
+    repair_product_title()

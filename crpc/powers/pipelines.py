@@ -140,7 +140,10 @@ class ProductPipeline(object):
 
         # I don't know where to add this statement, \
         # just ensure that it'll be executed once when the product is crawled at the first time.
-        self.extract_text()
+        try:
+            self.extract_text()
+        except:
+            pass
 
         favbuy_dept = classify_product_department(site, product)
         product.favbuy_dept = favbuy_dept
@@ -190,7 +193,7 @@ class ProductPipeline(object):
             product.update_history['favbuy_url'] = datetime.utcnow()
             return product.favbuy_url
         else:
-            logger.error('product extract url failed -> {0}.{1}'.format(site, product.key))
+            logger.warning('product extract url failed -> {0}.{1}'.format(site, product.key))
 
         return
 

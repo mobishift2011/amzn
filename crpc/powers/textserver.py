@@ -65,7 +65,8 @@ class TextServer(object):
 
         p = EventPipeline(site, event)
 
-        if event.events_begin > datetime.utcnow():
+        # For uppcoming events, do nothing with propagation but something with text processing.
+        if event.events_begin and event.events_begin > datetime.utcnow():
             if p.extract_text():
                 event.save()
             return

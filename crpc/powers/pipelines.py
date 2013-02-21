@@ -347,7 +347,7 @@ class EventPipeline(object):
         soldout = True
 
         counter = 0
-        num_products = len(self.event.product_ids) if self.event.product_ids else 0
+        num_products = len(self.event.product_ids) if self.event.product_ids else len(products)
         if num_products == 0:
             return
 

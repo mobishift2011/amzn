@@ -65,8 +65,8 @@ if __name__ == '__main__':
     from optparse import OptionParser
 
     parser = OptionParser(usage='usage: %prog [options]')
-    parser.add_option('-c', '--check', dest='check', help='check events begin end', default=False)
-    parser.add_option('-s', '--sync', dest='sync', help='sync events begin end from mastiff to mongodb', default=False)
+    parser.add_option('-c', '--check', dest='check', action='store_true', help='check events begin end', default=False)
+    parser.add_option('-s', '--sync', dest='sync', action='store_true', help='sync events begin end from mastiff to mongodb', default=False)
 
     if len(sys.argv) == 1:
         parser.print_help()

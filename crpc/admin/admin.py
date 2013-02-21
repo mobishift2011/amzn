@@ -26,7 +26,22 @@ from powers.tools import ImageTool, Image
 from powers.configs import AWS_ACCESS_KEY, AWS_SECRET_KEY
 from boto.cloudfront import CloudFrontConnection
 from StringIO import StringIO
+import threading
 DISTRIBUTIONID = 'E3QJD92P0IKIG2'
+
+def invalidate_cloudfront(key):
+    threading.Thread(target=_invalidate, args=(key,)).start()
+
+def _invalidate(key):
+    while True:
+        try:
+            conn = CloudFrontConnection(AWS_ACCESS_KEY, AWS_SECRET_KEY)
+            conn.create_invalidation_request(DISTRIBUTIONID, [key])
+        except:
+            import time
+            time.sleep(60)
+        else:
+            break
 
 def get_site_module(site):
     return __import__('crawlers.'+site+'.models', fromlist=['Category', 'Event', 'Product'])
@@ -600,8 +615,7 @@ class AjaxHandler(BaseHandler):
             im.save(fileobj, 'jpeg', quality=95)
             fileobj.seek(0)
             it.upload2s3(fileobj, key)
-            conn = CloudFrontConnection(AWS_ACCESS_KEY, AWS_SECRET_KEY)
-            conn.create_invalidation_request(DISTRIBUTIONID, [key])
+            invalidate_cloudfront(key)
             break
         self.redirect(self.request.headers.get('Referer'))
 
@@ -624,8 +638,7 @@ class AjaxHandler(BaseHandler):
             print 'croped'
             it.upload2s3(fileobj, key)
             print 'uploaded'
-            conn = CloudFrontConnection(AWS_ACCESS_KEY, AWS_SECRET_KEY)
-            conn.create_invalidation_request(DISTRIBUTIONID, [key])
+            invalidate_cloudfront(key)
             print 'invalid request sent'
             self.content_type = 'application/json'
             self.write(json.dumps({'status':'ok'}))

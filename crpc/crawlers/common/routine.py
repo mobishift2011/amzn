@@ -41,11 +41,17 @@ def get_site_module(site):
     return __import__('crawlers.'+site+'.models', fromlist=['Category', 'Event', 'Product'])
 
 def spout_listing(site):
-    """ return a generator spouting listing pages """
+    """ return a generator spouting listing pages
+
+        spout event off sale then on sale again.
+        now > events_begin > events_end, old spout will not spout them when on sale again.
+    """
     m = get_site_module(site)
     now = datetime.utcnow()
+    isonow = now.isoformat()
     if hasattr(m, 'Event'):
-        for event in m.Event.objects(Q(urgent=True) & (Q(events_begin__lte=now) | Q(events_begin__exists=False)) & (Q(events_end__gte=now) | Q(events_end__exists=False)) & (Q(is_leaf=True) | Q(is_leaf__exists=False))).timeout(False):
+#        for event in m.Event.objects(Q(urgent=True) & (Q(events_begin__lte=now) | Q(events_begin__exists=False)) & (Q(events_end__gte=now) | Q(events_end__exists=False)) & (Q(is_leaf=True) | Q(is_leaf__exists=False))).timeout(False):
+        for event in m.Event.objects.where("this.urgent==true && (this.is_leaf!=false) && (((this.events_begin==undefined || this.events_begin <= ISODate('{0}')) && (this.events_end==undefined || this.events_end >= ISODate('{0}'))) || (this.events_begin > this.events_end && this.events_begin < ISODate('{0}')))".format(isonow)).timeout(False):
             yield event
     if hasattr(m, 'Category'):
         for category in m.Category.objects(is_leaf=True).order_by('update_time').timeout(False):
@@ -56,7 +62,8 @@ def spout_listing_update(site):
     m = get_site_module(site)
     now = datetime.utcnow()
     if hasattr(m, 'Event'):
-        for event in m.Event.objects(Q(urgent=False) & (Q(events_begin__lte=now) | Q(events_begin__exists=False)) & (Q(events_end__gte=now) | Q(events_end__exists=False)) & (Q(is_leaf=True) | Q(is_leaf__exists=False))).timeout(False):
+#        for event in m.Event.objects(Q(urgent=False) & (Q(events_begin__lte=now) | Q(events_begin__exists=False)) & (Q(events_end__gte=now) | Q(events_end__exists=False)) & (Q(is_leaf=True) | Q(is_leaf__exists=False))).timeout(False):
+        for event in m.Event.objects.where("this.urgent==false && (this.is_leaf!=false) && (((this.events_begin==undefined || this.events_begin <= ISODate('{0}')) && (this.events_end==undefined || this.events_end >= ISODate('{0}'))) || (this.events_begin > this.events_end && this.events_begin < ISODate('{0}')))".format(isonow)).timeout(False):
             yield event
     if hasattr(m, 'Category'):
         for category in m.Category.objects(is_leaf=True).order_by('update_time').timeout(False):

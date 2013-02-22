@@ -232,9 +232,6 @@ class ProductPipeline(object):
         if self.extract_price():
             updated = True
 
-        if self.extract_url():
-            updated = True
-
         return updated
 
 

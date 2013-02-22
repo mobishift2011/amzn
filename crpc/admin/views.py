@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from models import Brand
-from powers.models import Brand as PowerBrand
+from powers.models import Brand as PowerBrand, Link
 from urllib import unquote
 
 def get_all_brands(db='catalogIndex'):
@@ -56,3 +56,26 @@ def delete_brand(title):
 		return False
 
 	return True
+
+
+def get_all_links():
+	return [ link.to_json() for link in Link.objects() ]
+
+
+def post_link(patch=False, **kwargs):
+	site = kwargs.get('site')
+	affiliate = kwargs.get('affiliate')
+
+	link = Link.objects(key=kwargs.get('key')).first() \
+		if patch else Link(key = ('%s_%s' % (site, affiliate)))
+
+	for k,v in kwargs.iteritems():
+		setattr(link, k, v)
+
+	link.save()
+
+
+def delete_link(key):
+	links = Link.objects(key=key)
+	links.delete()
+

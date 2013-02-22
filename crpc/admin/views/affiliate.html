@@ -1,0 +1,152 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<div class="row-fluid">
+    <div>
+        <ul class="breadcrumb">
+            <li>
+                <a href="/">Home</a> <span class="divider">/</span>
+            </li>
+            <li>
+                <a href="/affiliate/">Affiliate</a>
+            </li>
+        </ul>
+    </div>
+
+    {% if links %}
+
+    <div class="row-fluid sortable">        
+        <div class="box span12">
+            <div class="box-header well" data-original-title>
+                <h2><a data-rel="popover" data-content="add new affiliate link" href="/affiliate/?ac=a"><i class="icon-plus"></i></a> Affiliates</h2>
+                <div class="box-icon">
+                    <a href="#" id="toggle-fullscreen" class="btn btn-setting btn-round"><i class="icon-fullscreen"></i></a>
+                    <a href="#" class="btn btn-minimize btn-round"><i class="icon-chevron-up"></i></a>
+                    <a href="#" class="btn btn-close btn-round"><i class="icon-remove"></i></a>
+                </div>
+            </div>
+            <div class="box-content">
+                <table class="table table-striped table-bordered bootstrap-datatable datatable" id='linktable'>
+                    <thead>
+                        <tr>
+                            <th>site</th>
+                            <th>affiliate</th>
+                            <th>tracking_url</th>
+                            <th>updated</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>   
+                  <tbody>
+                    {% for link in links %}
+                    <tr title="{{ link['key'] }}">
+                        <td>{{ link['site'] }}</td>
+                        <td>{{ link['affiliate'] }}</td>
+                        <td>{{ link['tracking_url'] }}</td>
+                        <td>{{ link['updated_at'] }}</td>
+                        <td class="center">
+<!--                             <a class="btn btn-success btn_view" href="#">
+                                <i class="icon-zoom-in icon-white"></i>
+                            </a>
+                            <a class="btn btn-info btn_edit" link="/affiliate/{{ link['key'] }}" target='_blank'>
+                                <i class="icon-edit icon-white"></i>
+                            </a> -->
+                           <a class="btn btn-danger btn_delete" href="#">
+                                <i class="icon-trash icon-white"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+                <p class="pull-right">
+<!--                     <a class="btn btn-success" href="#">
+                        <i class="icon-zoom-in icon-white"></i>  
+                        View                                            
+                    </a>
+                    <a class="btn btn-info" href="#">
+                        <i class="icon-edit icon-white"></i>  
+                        Edit                                            
+                    </a> -->
+                    <a class="btn btn-danger" href="#">
+                        <i class="icon-trash icon-white"></i> 
+                        Delete
+                    </a>
+                </p>            
+            </div>
+        </div><!--/span-->
+
+    </div><!--/row-->
+
+    {% else %}
+    
+    <div class="row-fluid sortable ui-sortable">
+        <div class="box span12">
+            <div class="box-header well" data-original-title="">
+                <h2><i class="icon icon-color icon-add"></i>Affiliate</h2>
+                <div class="box-icon">
+                    <a href="#" id="toggle-fullscreen" class="btn btn-setting btn-round"><i class="icon-fullscreen"></i></a>
+                    <a href="#" class="btn btn-minimize btn-round"><i class="icon-chevron-up"></i></a>
+                    <a href="#" class="btn btn-close btn-round"><i class="icon-remove"></i></a>
+                </div>
+            </div>
+            <div class="box-content">
+                <form class="form-horizontal" method="post">
+                    {{ xsrf_form_html() }}
+                    <fieldset>
+                        <legend></legend>
+                        <div class="control-group">
+                            <label class="control-label" for="typeahead">site</label>
+                            <div class="controls">
+                                <select id="selectError3" name="site">
+                                    {% for site in sites %}
+                                    <option>{{ site }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label" for="typeahead">affiliate</label>
+                            <div class="controls">
+                                <select id="selectError3" name="affiliate">
+                                    <option>cj</option>
+                                    <option>linkshare</option>
+                                    <option>amazon</option>
+                                    <option>google</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label" for="typeahead">tracking_url</label>
+                            <div class="controls">
+                                <input type="text" class="span6 typeahead" name="tracking_url" data-provide="typeahead" data-items="4" data-source="[]">
+                                <p class="help-block"></p>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">Save changes</button>
+                            <button type="reset" class="btn">Cancel</button>
+                        </div>
+                    </fieldset>
+                </form>   
+
+            </div>
+        </div><!--/span-->
+
+    </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}
+
+{% block script %}
+
+<script>
+    $('')
+        $('#linktable').dataTable().makeEditable({
+                            sUpdateURL: "UpdateData.php"
+                            });
+</script>
+
+{% endblock %}

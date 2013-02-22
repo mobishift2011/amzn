@@ -21,7 +21,9 @@ from mongoengine import Q
 
 from collections import Counter
 
+from crawlers.common.stash import picked_crawlers
 from views import get_all_brands, get_brand, update_brand, delete_brand
+from views import get_all_links, post_link, delete_link
 from powers.tools import ImageTool, Image
 from powers.configs import AWS_ACCESS_KEY, AWS_SECRET_KEY
 from boto.cloudfront import CloudFrontConnection
@@ -564,6 +566,29 @@ class TraceDataHandler(BaseHandler):
             self.render('tracedata.html')
 
 
+class AffiliateHandler(BaseHandler):
+    def get(self, key):
+        if not key:
+            if self.get_argument('ac') == 'a':
+                return self.render('affiliate.html', links=None, sites=picked_crawlers)
+
+            return self.render('affiliate.html', links=get_all_links(), sites=picked_crawlers)
+
+    def post(self, key):
+        arguments = {
+            'site': self.get_argument('site'),
+            'affiliate': self.get_argument('affiliate'),
+            'tracking_url' : self.get_argument('tracking_url')
+        }
+
+        if key:
+            arguments['key'] = key
+            post_link(patch=True, **arguments)
+
+        post_link(**arguments)
+        return self.render('affiliate.html', links=get_all_links(), sites=picked_crawlers)
+
+
 class BrandsHandler(BaseHandler):
     def get(self, db):
         brands = get_all_brands(db) if db else get_all_brands()
@@ -673,6 +698,7 @@ application = tornado.web.Application([
     (r"/viewdata/(.*)", ViewDataHandler),
     (r"/editdata/(.*)/(.*)/", EditDataHandler),
     (r"/tracedata/?(.*)/?(.*)/?", TraceDataHandler),
+    (r"/affiliate/?(.*)/?", AffiliateHandler),
     (r"/brands/?(.*)", BrandsHandler),
     (r"/brand/?(.*)", BrandHandler),
     (r"/", IndexHandler),

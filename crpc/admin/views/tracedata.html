@@ -1,0 +1,18 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="row-fluid">
+	<div class="row-fluid sortable ui-sortable">
+		<form class="navbar-search pull-left">
+			<select id="selectError" data-rel="chosen" style="display: none;" class="chzn-done">
+				<option>Option 1</option>
+				<option>Option 2</option>
+			</select>
+<div id="selectError_chzn" class="chzn-container chzn-container-single" style="width: 220px;"><a href="javascript:void(0)" class="chzn-single" tabindex="0"><span>Option 1</span><div><b></b></div></a><div class="chzn-drop" style="left: -9000px; width: 218px; top: 24px;"><div class="chzn-search"><input type="text" autocomplete="off" style="width: 183px;" tabindex="-1"></div><ul class="chzn-results"><li id="selectError_chzn_o_0" class="active-result result-selected" style="">Option 1</li><li id="selectError_chzn_o_1" class="active-result" style="">Option 2</li><li id="selectError_chzn_o_2" class="active-result" style="">Option 3</li><li id="selectError_chzn_o_3" class="active-result" style="">Option 4</li><li id="selectError_chzn_o_4" class="active-result" style="">Option 5</li></ul></div></div>
+			<input placeholder="Please input the url of the web page" class="search-query" name="query_url" type="text">
+			<br /	>
+			<button type="submit"><i class="icon icon-red icon-search"></i></button>
+		</form>
+	</div>
+
+</div>
+{% endblock %}

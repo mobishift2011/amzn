@@ -23,9 +23,10 @@
         <legend>Edit Event</legend>
 
         <div class="control-group">
-          <label class="control-label" for="typeahead">Cover image</label>
-          <div class="controls">
-                <img src="{{ event.cover_image|imagesize('224x0') }}"/>
+          <label class="control-label" for="typeahead">Cover Image</label>
+          <div class="controls" id='coverimage'>
+                <img src="{{ event.cover_image|imagesize('280x280') }}"/>
+                <button id="recrop" class="btn btn-primary" onclick="javascript:void(0)">ReCrop</button>
           </div>
         </div>
 
@@ -94,9 +95,117 @@
     <a href="#" class="btn btn-primary">Save changes</a>
   </div>
 </div>
+
+{% if event %}
+<div class="modal hide" id="cropimage" style="width:500px;">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal">x</button>
+    <h3>ReCrop Image</h3>
+  </div>
+  <div class="modal-body">
+    <!-- This is the image we're attaching Jcrop to -->
+    <img src="{{ event.cover_image.url }}" id="cropbox" />
+
+    <!-- This is the form that our event handler fills -->
+    <br />
+    <div>
+      <form action="/ajax/upload_image.ajax" method="post" id="formupload" enctype="multipart/form-data">
+        {{ xsrf_form_html()|safe }}
+        <input type="hidden" id="x" name="x" />
+        <input type="hidden" id="y" name="y" />
+        <input type="hidden" id="w" name="w" />
+        <input type="hidden" id="h" name="h" />
+        <input type="hidden" id="url" name="url" value="{{event.cover_image.url}}" />
+        <input type="hidden" id="target_width" name="target_width" value="280" />
+        <input type="hidden" id="target_height" name="target_height" value="280" />
+        <button class="btn" style="float:left; width: 98px;" id="crop">Crop Image</button>
+        <p style="margin: 0 0 0 120px; padding-top: 5px; font-size: 90%;">
+          Crop the Image to replace the Cover Image.
+        </p>
+        <hr style="border-top: 3px solid #f5f5f5; border-bottom: 3px solid #ffffff">
+        <button class="btn btn-file" style="float:left; width: 108px;" id="upload">Upload Image</button>
+        <input name="imagefile" id="realfile" type="file" />
+        <p style="margin: 0 0 0 120px; padding-top: 5px; font-size: 90%;">
+          Replace the Cover Image with a local file.
+        </p>
+      </form>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <a href="#" class="btn" data-dismiss="modal">Close</a>
+  </div>
+</div>
+{% endif %}
+
 {% endblock %}
 
 {% block script %}
 <script>
+    var jcrop_api;
+    jQuery(function($){
+        $('#cropbox').Jcrop({
+            setSelect: [0, 0, 400, 400],
+            boxWidth: 470,
+            boxHeight: 240,
+            bgOpacity: .6,
+            onChange: updateCoords,
+            onSelect: updateCoords,
+            aspectRatio: 1
+        }, function(){
+            jcrop_api = this;
+        });
+    });
+
+    function updateCoords(c)
+    {
+        $('#x').val(c.x);
+        $('#y').val(c.y);
+        $('#w').val(c.w);
+        $('#h').val(c.h);
+    };
+
+    $('#recrop').live('click', function(e){
+        e.preventDefault(); 
+        $('#cropimage').modal();
+    });
+    
+    $('#crop').live('click', function(e){
+        e.preventDefault();
+        if (parseInt($('#w').val())>0) {
+            var param = {
+                url: $('#url').val(),
+                w: parseInt($('#w').val()),
+                h: parseInt($('#h').val()),
+                x: parseInt($('#x').val()),
+                y: parseInt($('#y').val()),
+                target_width: parseInt($('#target_width').val()),
+                target_height: parseInt($('#target_height').val())
+            };
+            console.log(param);
+            $('#cropimage').modal('hide');
+            $('#coverimage').html('loading...');
+            $.getJSON('/ajax/recrop_image.ajax', param, function(data){
+                console.log(data);
+                if (data['status'] == 'ok'){
+                }else{
+                    alert('crop failed');
+                }
+                window.location.href = window.location.href;                 
+            });
+        }else{
+            alert('Please select a crop region then press submit.');
+        }
+    });
+
+    $('#upload').live('click', function(e){
+        e.preventDefault();
+        $('#realfile').click();
+    });
+
+    $('#realfile').live('change', function(){
+        console.log('changed');
+        $('#formupload').submit();
+    });
+
 </script>
 {% endblock %}

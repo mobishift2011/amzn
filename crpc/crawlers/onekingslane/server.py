@@ -391,7 +391,7 @@ class Server(object):
         is_updated = False
         if is_new:
             product.event_id = [event_id]
-            product.title = item.cssselect('h3 > a[data-linkname]')[0].text
+            product.title = item.cssselect('h3 > a[data-linkname]')[0].text.encode('utf-8')
             product.sell_rank = int(item.get('data-sortorder'))
             img = item.cssselect('a > img.productImage')[0].get('src')
             image = self.extract_large_img.match(img).group(1) + '$fullzoom$'

@@ -20,15 +20,28 @@ def monitor_zerorpc(peers):
 def monitor_fd():
     from sh import lsof, wc, ls, pkill, service
     try:
-        mongodb_pid = lsof('-t', '-i:27017').split('\n')[0]
-        num_fd = int(wc(ls('/proc/{0}/fd'.format(mongodb_pid), '-l'), '-l').strip())
+        mongodb_pid = lsof('-t', '-i:27017', '-sTCP:LISTEN').split('\n')[0]
+        num_fd = int(wc(lsof('-p', '{0}'.format(mongodb_pid)), '-l').strip())
         print 'num_fd:',  num_fd
         if num_fd >= 4096:
-            service('mongodb', 'restart')
+            #service('mongodb', 'restart')
             pkill('-f', 'run.py')
             for p in chain(CRAWLER_PEERS, POWER_PEERS, TEXT_PEERS):
                 with settings(host_string=p['host_string'], warn_only=True):
                     run('kill $(sudo lsof -t -i:{0})'.format(p['port']))
+    except Exception:
+        import traceback
+        traceback.print_exc()
+
+def monitor_publisher_size():
+    #ps aux | grep publish | awk '{print $6}'
+    from sh import ps, grep, pkill
+    try:
+        psinfo = grep(ps('aux'), 'publish')
+        mem_used = int(psinfo.strip().split()[5])
+        print 'mem_publish:', mem_used
+        if mem_used >= 1 * 1024 * 1024: #(1G = 1*1024*1024K)
+            pkill('-f', 'publish.py')
     except Exception:
         import traceback
         traceback.print_exc()
@@ -39,6 +52,7 @@ def main():
         monitor_zerorpc(POWER_PEERS)
         monitor_zerorpc(TEXT_PEERS)
         monitor_fd()
+        monitor_publisher_size()
         print 'sleeping 60 seconds...'
         time.sleep(60)
 

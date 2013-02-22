@@ -81,6 +81,7 @@
     <a href="#" class="btn btn-primary">Save changes</a>
   </div>
 </div>
+
 {% endblock %}
 
 {% block script %}
@@ -94,7 +95,7 @@
   })
 
   $('#searchtitle').click(function(){
-    var url = "/viewdata/events?"+ $.param({'title__iexact':$('#searchinput').val()});
+    var url = "/viewdata/events?"+ $.param({'title__icontains':$('#searchinput').val()});
     window.location.href = url;
   });
 

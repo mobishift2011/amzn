@@ -50,6 +50,8 @@ class ImageTool:
     # pip install Pillow
     """
     def __init__(self, connection=None, bucket_name=S3_IMAGE_BUCKET):
+        if connection is None:
+            connection = S3Connection(AWS_ACCESS_KEY, AWS_SECRET_KEY)
         self.__s3conn = connection
         try:
             bucket = self.__s3conn.get_bucket(bucket_name)

@@ -250,7 +250,7 @@ class Server(object):
             try:
                 data = json.loads(resp.text)['data']
             except ValueError:
-                common_failed.send(sender=ctx, key='get product twice, url has nothing', url=url, reason='url has nothing')
+                common_failed.send(sender=ctx, key='get product twice, url has nothing', url=url, reason='url has nothing 404')
                 return
 
 #        event_id = [str(data['event_id'])]

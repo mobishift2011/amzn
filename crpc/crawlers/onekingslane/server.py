@@ -100,6 +100,17 @@ class onekingslaneLogin(object):
         if ret.ok: return ret.content
         return ret.status_code
 
+    def fetch_product_page(self, url):
+        """.. :py:method::
+            fetch page.
+            product page can redirect to homepage
+        """
+        ret = req.get(url)
+
+        if ret.url == u'https://www.onekingslane.com/':
+            return -302
+        if ret.ok: return ret.content
+        return ret.status_code
 
 
 class Server(object):
@@ -416,7 +427,7 @@ class Server(object):
 
         :param url: product url
         """
-        cont = self.net.fetch_page(url)
+        cont = self.net.fetch_product_page(url)
         if isinstance(cont, int):
             common_failed.send(sender=ctx, url=url, reason=cont)
             return

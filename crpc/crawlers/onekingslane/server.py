@@ -374,8 +374,8 @@ class Server(object):
             ret = self.crawl_sale_list_product(event_id, item, ctx)
             product_ids.append(ret)
 
-        event.save()
         event.product_ids = product_ids
+        event.save()
         common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=url, is_new=is_new, is_updated=False, ready=ready)
 
 

@@ -301,7 +301,7 @@ def deploy():
     
     sync_latest_code()
 
-    restart_ganglia_client()
+    config_ganglia_client()
     restart_all()
 
 def crawler_login_file():

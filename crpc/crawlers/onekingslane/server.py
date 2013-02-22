@@ -184,6 +184,7 @@ class Server(object):
             date = ' '.join( [d for d in node.cssselect('span.date')[0].text_content().split('\n') if d] )
             all_times = node.cssselect('div.all-times > h3')[0].text_content().split('PT')[0].split()[-1]
             date_begin = time_convert(date + ' ' + all_times + ' ', '%b %d %I%p %Y')
+            date_begin = datetime(date_begin.year, date_begin.month, date_begin.day, date_begin.hour, date_begin.minute)
             markets = node.cssselect('div.all-times > ul > li')
             for market in markets:
                 link = market.cssselect('h4 > a')[0].get('href')

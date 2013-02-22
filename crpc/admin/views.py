@@ -71,7 +71,7 @@ def post_link(patch=False, **kwargs):
 	affiliate = kwargs.get('affiliate')
 
 	request = link_api.affiliate(kwargs.get('key')).patch(kwargs) \
-		if patch else link_api.affiliate.post(params)
+		if patch else link_api.affiliate.post(kwargs)
 
 
 def delete_link(key):

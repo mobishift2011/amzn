@@ -382,9 +382,12 @@ class Server(object):
         if not event: event = Event(event_id=event_id)
         if event.urgent == True:
             event.urgent = False
-            event.update_time = datetime.utcnow()
-            event.save()
-            common_saved.send(sender=ctx, obj_type='Event', key=event_id, is_new=False, is_updated=False, ready=True)
+            ready = True
+        else: ready = False
+        event.product_ids = [product_id]
+        event.update_time = datetime.utcnow()
+        event.save()
+        common_saved.send(sender=ctx, obj_type='Event', key=event_id, is_new=False, is_updated=False, ready=ready)
 
 
     def la_perla(self, dept, url, events_end, ctx):

@@ -61,6 +61,7 @@ def spout_listing_update(site):
     """ return a generator spouting listing pages """
     m = get_site_module(site)
     now = datetime.utcnow()
+    isonow = now.isoformat()
     if hasattr(m, 'Event'):
 #        for event in m.Event.objects(Q(urgent=False) & (Q(events_begin__lte=now) | Q(events_begin__exists=False)) & (Q(events_end__gte=now) | Q(events_end__exists=False)) & (Q(is_leaf=True) | Q(is_leaf__exists=False))).timeout(False):
         for event in m.Event.objects.where("this.urgent==false && (this.is_leaf!=false) && (((this.events_begin==undefined || this.events_begin <= ISODate('{0}')) && (this.events_end==undefined || this.events_end >= ISODate('{0}'))) || (this.events_begin > this.events_end && this.events_begin < ISODate('{0}')))".format(isonow)).timeout(False):

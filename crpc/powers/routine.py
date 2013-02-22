@@ -89,6 +89,8 @@ def spout_extracted_products(site):
 
 def spout_propagate_events(site, complete=False):
     m = get_site_module(site)
+    if not hasattr(m, 'Event'):
+        return
     now = datetime.utcnow()
     try:
         logger.debug('spout {0} events to propagate and update propagate'.format(site))

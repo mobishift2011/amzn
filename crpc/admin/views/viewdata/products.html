@@ -135,7 +135,7 @@
   });
 
   $('#searchtitle').click(function(){
-    var url = "/viewdata/products?"+ $.param({'title__iexact':$('#searchinput').val().replace(')','\\)').replace('(','\\(')});
+    var url = "/viewdata/products?"+ $.param({'title__icontains':$('#searchinput').val().replace(')','\\)').replace('(','\\(')});
     window.location.href = url;
   });
 

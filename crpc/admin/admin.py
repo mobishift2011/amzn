@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from gevent import monkey; monkey.patch_all()
 import tornado.ioloop
 import tornado.web
 import tornado.httpserver
@@ -21,6 +22,26 @@ from mongoengine import Q
 from collections import Counter
 
 from views import get_all_brands, get_brand, update_brand, delete_brand
+from powers.tools import ImageTool, Image
+from powers.configs import AWS_ACCESS_KEY, AWS_SECRET_KEY
+from boto.cloudfront import CloudFrontConnection
+from StringIO import StringIO
+import threading
+DISTRIBUTIONID = 'E3QJD92P0IKIG2'
+
+def invalidate_cloudfront(key):
+    threading.Thread(target=_invalidate, args=(key,)).start()
+
+def _invalidate(key):
+    while True:
+        try:
+            conn = CloudFrontConnection(AWS_ACCESS_KEY, AWS_SECRET_KEY)
+            conn.create_invalidation_request(DISTRIBUTIONID, [key])
+        except:
+            import time
+            time.sleep(60)
+        else:
+            break
 
 def get_site_module(site):
     return __import__('crawlers.'+site+'.models', fromlist=['Category', 'Event', 'Product'])
@@ -577,6 +598,60 @@ class BrandHandler(BaseHandler):
     def delete(self, brand_title):
         self.write(str(delete_brand(brand_title)))
 
+class AjaxHandler(BaseHandler):
+    def get(self, path):
+        if path == 'recrop_image.ajax':
+            self.recrop_image()
+    
+    def post(self, path):
+        if path == 'upload_image.ajax':
+            self.upload_image()
+
+    def upload_image(self):
+        url = self.get_argument('url')
+        target_width = int(self.get_argument('target_width'))
+        target_height = int(self.get_argument('target_height'))
+        key = url.split('/',4)[-1]+'_{0}x{1}'.format(target_width, target_height)
+        fs = self.request.files['imagefile']
+        it = ImageTool()
+        for f in fs:
+            content = f['body']
+            im = Image.open(StringIO(content))
+            im = im.resize((target_width, target_height), Image.ANTIALIAS)
+            fileobj = StringIO()
+            im.save(fileobj, 'jpeg', quality=95)
+            fileobj.seek(0)
+            it.upload2s3(fileobj, key)
+            invalidate_cloudfront(key)
+            break
+        self.redirect(self.request.headers.get('Referer'))
+
+    def recrop_image(self):
+        try:
+            url = self.get_argument('url')
+            for name in ['x', 'y', 'w', 'h', 'target_width', 'target_height']:
+                globals()[name] = int(self.get_argument(name))
+            key = url.split('/',4)[-1]+'_{0}x{1}'.format(target_width, target_height)
+            it = ImageTool()
+            print 'connected to s3'
+            content = it.download(url)
+            print 'downloaded'
+            im = Image.open(StringIO(content))
+            im = im.crop( (x, y, (x+w), (y+h)) )
+            im = im.resize((target_width, target_height), Image.ANTIALIAS)
+            fileobj = StringIO()
+            im.save(fileobj, 'jpeg', quality=95)
+            fileobj.seek(0)
+            print 'croped'
+            it.upload2s3(fileobj, key)
+            print 'uploaded'
+            invalidate_cloudfront(key)
+            print 'invalid request sent'
+            self.content_type = 'application/json'
+            self.write(json.dumps({'status':'ok'}))
+        except:
+            self.content_type = 'application/json'
+            self.write(json.dumps({'status':'failed'}))
 
 settings = {
     "debug": True,

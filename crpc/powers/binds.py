@@ -77,11 +77,11 @@ def batch_text_extract(sender, **kwargs):
 
         propagate(site, 15)
         logger.info('batch text extracted: {0}'.format(sender))
-        ready_for_publish.send(None, **{'site': site})
     except Exception as e:
         logger.error('batch text extract error: {0} -> {1}'.format(sender, traceback.format_exc()))
     finally:
         batch_text_extract.run_flag[site] = False
+        ready_for_publish.send(None, **{'site': site})
 
 
 if __name__ == '__main__':

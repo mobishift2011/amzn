@@ -307,9 +307,12 @@ class Server(object):
         if event.urgent == True:
             event.urgent = False
             event.image_urls = product.image_urls
-            event.update_time = datetime.utcnow()
-            event.save()
-            common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=url, is_new=False, is_updated=False, ready=True)
+            ready = True
+        else: ready = False
+        event.product_ids = [key]
+        event.update_time = datetime.utcnow()
+        event.save()
+        common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=url, is_new=False, is_updated=False, ready=ready)
 
 
     def from_url_get_product_key(self, url):

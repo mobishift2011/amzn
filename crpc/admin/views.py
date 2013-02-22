@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from settings import MASTIFF_HOST
 from models import Brand
 from powers.models import Brand as PowerBrand, Link
 import slumber
@@ -59,6 +60,8 @@ def delete_brand(title):
 	return True
 
 
+link_api = slumber.API(MASTIFF_HOST)
+
 def get_all_links():
 	return [ link for link in link_api.affiliate.get().get('objects') ]
 
@@ -67,8 +70,8 @@ def post_link(patch=False, **kwargs):
 	site = kwargs.get('site')
 	affiliate = kwargs.get('affiliate')
 
-	request = api.affiliate(kwargs.get('key')).patch(kwargs) \
-		if patch else api.affiliate.post(params)
+	request = link_api.affiliate(kwargs.get('key')).patch(kwargs) \
+		if patch else link_api.affiliate.post(params)
 
 
 def delete_link(key):

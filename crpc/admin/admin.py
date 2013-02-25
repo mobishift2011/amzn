@@ -156,7 +156,7 @@ class IndexHandler(BaseHandler):
         num_new_products = api.product.get(limit=1, created_at__gt=yesterday)['meta']['total_count']
         num_buys = api.useraction.get(limit=1, name='click buy')['meta']['total_count']
         num_new_buys = api.useraction.get(limit=1, time__gt=yesterday, name='click buy')['meta']['total_count']
-        buys = api.useraction.get(limit=1000, name='click buy', order_by='-time')['objects']
+        buys = api.useraction.get(limit=1000, name='click buy', order_by='-time' time__gt=yesterday)['objects']
         top_buys = Counter()
         for b in buys:
             top_buys[ b['values']['product_id'] ] += 1

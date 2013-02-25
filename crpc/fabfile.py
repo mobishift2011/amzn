@@ -102,6 +102,19 @@ def configure_mongodb():
 def configure_supervisor():
     pass
 
+def crpc_checkout(tag):
+    for crpc in CRPC:
+        puts(green('Checking out {0}'.format(tag)))
+        with settings(host_string=crpc):
+            with cd('/srv/crpc'):
+                if dir_exists('/srv/crpc/src'):
+                    with cd('/srv/crpc/src'):
+                        sudo('git reset HEAD --hard && git fetch --all')
+                        sudo('git checkout {0}'.format(tag))
+                else:
+                    sudo('git clone %s src' % GIT_REPO)
+            sudo('cp -r /srv/crpc/src/crpc/* /srv/crpc/')
+
 def sync_latest_code():
     env.hosts = HOSTS
     execute(_sync_latest_code)  

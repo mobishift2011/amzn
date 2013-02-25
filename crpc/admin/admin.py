@@ -147,7 +147,7 @@ class BaseHandler(tornado.web.RequestHandler):
 class IndexHandler(BaseHandler):
     @tornado.web.authenticated
     def get(self):
-        yesterday = (datetime.utcnow() - timedelta(days=1)).isoformat()
+        yesterday = (datetime.utcnow() - timedelta(days=1)).isoformat().replace('T', ' ')
         num_members = api.user.get(limit=1)['meta']['total_count']
         num_new_members = api.user.get(limit=1, date_joined__gt=yesterday)['meta']['total_count']
         num_events = api.event.get(limit=1)['meta']['total_count']

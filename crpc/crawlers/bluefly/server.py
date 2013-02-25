@@ -52,6 +52,12 @@ class Server(object):
         self.crawl_kids_category('kids', kids_url, ctx)
         self.crawl_newarrivals_category('new', new_url, ctx)
 
+        # add some more products, like La Perla
+        self.save_category_to_db('http://www.bluefly.com/Designer-Beauty-Fragrance/_/N-nd52/list.fly',
+                'nd52',
+                'Designer-Beauty-Fragrance',
+                ['Home', 'Beauty & Fragrance'],
+                ctx)
 
     def save_category_to_db(self, url, key, slug, cats, ctx):
         """.. :py:method::

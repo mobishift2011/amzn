@@ -117,7 +117,10 @@ class Server(object):
         if bottle_count == 0:
             listprice = float(prd['prices']['msrp'])
         else:
-            listprice = float(prd['prices']['msrp']) * prd['bottle_count']
+            if prd['prices']['msrp'] == u'':
+                listprice = 0.0
+            else:
+                listprice = float(prd['prices']['msrp']) * prd['bottle_count']
         listprice = '' if listprice - 0 < 0.001 else str(listprice) # listprice is u'0.0'
 
         is_new, is_updated = False, False
@@ -213,4 +216,6 @@ class Server(object):
 
 
 if __name__ == '__main__':
-    Server().crawl_product('http://www.lot18.com/product/2891/2001-seavey-napa-valley-cabernet-sauvignon-magnum')
+    ss = Server()
+    ss.crawl_category()
+    ss.crawl_listing(None)

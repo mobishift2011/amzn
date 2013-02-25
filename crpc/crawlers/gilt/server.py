@@ -401,8 +401,12 @@ class Server(object):
 
                     if not event.sale_description:
                         events_begin, events_end, image, sale_description = self.get_home_future_events_begin_end(event.combine_url, event.event_id, ctx)
-                        event.events_begin = events_begin
-                        event.events_end = events_end
+                        if event.events_begin != events_begin:
+                            event.events_begin = events_begin
+                            event.update_history.update({ 'events_begin': datetime.utcnow() })
+                        if event.events_end != events_end:
+                            event.events_end = events_end
+                            event.update_history.update({ 'events_end': datetime.utcnow() })
                         event.image_urls = [image]
                         event.sale_description = sale_description
                     event.save()
@@ -450,9 +454,13 @@ class Server(object):
 
             if not event.sale_description:
                 events_begin, events_end, image, sale_description = self.get_home_future_events_begin_end(link, link.rsplit('/', 1)[-1], ctx)
-                event.events_begin = events_begin
-                event.events_end = events_end
-                event.image_urls = [image]
+                if event.events_begin != events_begin:
+                    event.events_begin = events_begin
+                    event.update_history.update({ 'events_begin': datetime.utcnow() })
+                if event.events_end != events_end:
+                    event.events_end = events_end
+                    event.update_history.update({ 'events_end': datetime.utcnow() })
+                event.image_urls = image if isinstance(image, list) else [image]
                 event.sale_description = sale_description
             event.save()
             common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
@@ -463,6 +471,10 @@ class Server(object):
         :param link: link to upcoming page
         :param key: event id or department
         """
+        if '/sale/children' in link or '/sale/women' in link or '/sale/men' in link:
+            image, sale_title, sale_description, events_begin = self.get_picture_description(link, ctx)
+            return events_begin, None, image, sale_description
+
         tree = self.download_page_get_correct_tree(link, key, 'download \'home\' upcoming event page error', ctx)
         timer = tree.cssselect('div.page-container > div.content-container > section.page-details > div.layout-background > div.layout-wrapper > div.layout-container > section.sale-details > div.sale-time')[0]
         _begin = timer.get('data-timer-start')

@@ -25,7 +25,6 @@ class totsyLogin(object):
             'login[password]': login_passwd,
         }    
 
-        self.extract_product_id = re.compile('http://www.totsy.com/sales/.+/(.+).html')
         self.current_email = login_email[DB]
         self._signin = {}
 
@@ -67,7 +66,7 @@ class totsyLogin(object):
 
         return ret.status_code
 
-    def fetch_listing_page(self, url):
+    def fetch_listing_page(self, url, event_id):
         """.. :py:method::
             fetch listing page.
             check whether the page is redirect to product(event is product)
@@ -85,7 +84,8 @@ class totsyLogin(object):
             return -302
 
         if ret.ok:
-            m = self.extract_product_id.match(ret.url)
+            # re add event_id because event_id might be 'award-winners-and-honors-book/infant-fun-pack-socks-booties-under-5'
+            m = re.compile('http://www.totsy.com/sales/{0}/(.+).html'.format(event_id)).match(ret.url)
             if m: # event is product
                 key = m.group(1)
                 return key, ret.url, ret.content
@@ -211,7 +211,7 @@ class Server(object):
         else: self.net.check_signin()
 
         event_id = self.extract_event_id.match(url).group(1)
-        ret = self.net.fetch_listing_page(url)
+        ret = self.net.fetch_listing_page(url, event_id)
         if isinstance(ret, tuple):
             self.crawl_event_is_product(event_id, ret[0], ret[1], ret[2], ctx)
             return
@@ -400,4 +400,3 @@ class Server(object):
 
 if __name__ == '__main__':
     Server().crawl_product('http://www.totsy.com/sales/last-chance-youth-footwear/girls-burlap-slip-on.html')
-    Server().crawl_listing('http://www.totsy.com/sales/girls-sets-under-6-blowout.html')

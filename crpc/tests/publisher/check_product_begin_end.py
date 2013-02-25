@@ -16,18 +16,17 @@ db_pool_crpc = {}
 
 
 def spout_mastiff_products():
+    print 'begin to query products from mastiff'
     products = db_mastiff.product.find({}, fields=['site_key', 'products_begin', 'products_end'])
     for product in products:
         try:
             site, key = product['site_key'].split('_', 1)
         except Exception as e:
             print e, product.get('site_key')
-            print
             continue
 
         if product.get('starts_at') is None and product.get('ends_at') is None:
             continue
-        print product.get('starts_at'), product.get('ends_at')
         yield {
             'site': site,
             'key': key,
@@ -46,46 +45,41 @@ def check(site, key, products_begin, products_end):
         return True
 
     try:
-        product = db.product.find({'_id': key})[0]
+        prd = db.product.find({'_id': key})[0]
     except IndexError:
         return False
 
-    crpc_products_begin = product.get('products_begin')
-    crpc_products_end = product.get('products_end')
+    crpc_prd_begin = prd.get('products_begin')
+    crpc_prd_end = prd.get('products_end')
 
-    if product.get('event_id'):
-        for event_id in product.get('event_id'):
+    if prd.get['event_id']: # category
+        for event_id in prd['event_id']:
             event = db.event.find({'event_id': event_id})[0]
 
-            if not event.get('product_ids') or key not in event.get('product_ids'):
+            if not event['product_ids'] or key not in event['product_ids']: # current product
                 continue
             
-            if event.get('events_begin'):
-                if not crpc_products_begin \
-                    or event.get('events_begin') <  crpc_products_begin:
-                        crpc_products_begin = event.get('events_begin')
+            if event['events_begin']:
+                if not crpc_prd_begin or event['events_begin'] <  crpc_prd_begin:
+                    crpc_prd_begin = event['events_begin']
 
-            if event.get('events_end'):
-                if not crpc_products_end \
-                    or event.get('events_end') >  crpc_products_end:
-                        crpc_products_end = event.get('events_end')
+            if event['events_end']:
+                if not crpc_prd_end or event['events_end'] >  crpc_prd_end:
+                    crpc_prd_end = event['events_end']
 
-    if (not products_end and crpc_products_end) \
-        or (products_end and crpc_products_end \
-            and products_end < crpc_products_end):
-                return False
+    if (not products_end and crpc_prd_end) or \ # not published
+        (products_end and crpc_prd_end and products_end != crpc_prd_end): # publish not right
+        return False
 
-    if (not products_begin and crpc_products_begin) \
-        or (products_begin and crpc_products_begin \
-            and products_begin > crpc_products_begin): 
-                return False
+    if (not products_begin and crpc_prd_begin) or \
+        (products_begin and crpc_prd_begin and products_begin != crpc_prd_begin): 
+        return False
 
     return True
 
 
 def main():
     with open(log_path, 'w') as f:
-        print 'begin to query products from mastiff'
         count = 0
         for mastiff_product in spout_mastiff_products():
             if not check(**mastiff_product):

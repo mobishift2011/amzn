@@ -107,22 +107,33 @@ def check_propagation():
             for prd in prds:
                 for event_id in prd['event_id']:
                     ev = conn[site].event.find({'event_id': event_id}, fields=['events_begin', 'events_end'])[0]
-                    if ev['events_begin'] > ev['events_end']: # event off sale then on again
+
+                    if 'products_begin' not in prd and 'events_begin' in ev:
+                        print '{0} products_begin[{1}] not exist:'.format(site, prd['_id'])
+                        print '\t event_id: {1}, event begin: {2}'.format(event_id, ev['events_begin'])
+                    elif 'products_end' not in prd and 'events_end' in ev:
+                        print '{0} products_end[{1}] not exist:'.format(site, prd['_id'])
+                        print '\t event_id: {1}, event end: {2}'.format(site, event_id, ev['events_end'])
+                    elif 'events_begin' not in ev and 'events_end' in ev:
                         if prd['products_end'] < ev['events_end']:
-                            print '{0} product begin: {1}; product end: {2}'.format(site, prd['products_begin'], prd['products_end'])
-                            print '{0} event begin: {1}, event end: {2}'.format(site, ev['events_begin'], ev['events_end'])
-                    elif 'products_begin' not in prd:
-                        if 'events_begin' in ev:
-                            print '{0} event_id: {1}, event begin: {2}, product_id: {3}'.format(site, event_id, ev['events_begin'], prd['_id'])
-                    elif 'products_end' not in prd:
-                        if 'events_end' in ev:
-                            print '{0} event_id: {1}, event end: {2}, product_id: {3}'.format(site, event_id, ev['events_end'], prd['_id'])
+                            print '{0} events_begin[{1}] not exist, products_end[{2}] not right:'.format(site, event_id, prd['_id'])
+                            print '\t event end: {1}, product end: {2}'.format(ev['events_end'], prd['products_end'])
+                    elif 'events_begin' in ev and 'events_end' not in ev:
+                        if prd['products_begin'] > ev['events_begin']:
+                            print '{0} events_end[{1}] not exist, products_begin[{2}] not right:'.format(site, event_id, prd['_id'])
+                            print '\t event begin: {1}; product begin: {2}'.format(ev['events_begin'], prd['products_begin'])
+                    elif ev['events_begin'] > ev['events_end']: # event off sale then on again
+                        if prd['products_end'] < ev['events_end']:
+                            print '{0} off sale then on again, event[{1}], product[{2}] '.format(site, event_id, prd['_id'])
+                            print '\t product begin: {0}, product end: {1}'.format(prd['products_begin'], prd['products_end'])
+                            print '\t event begin: {0}, event end: {1}'.format(ev['events_begin'], ev['events_end'])
                     else:
                         if prd['products_begin'] <= ev['events_begin'] and prd['products_end'] >= ev['events_end']:
                             pass
                         else:
-                            print '{0} product begin: {1}; product end: {2}'.format(site, prd['products_begin'], prd['products_end'])
-                            print '{0} event begin: {1}, event end: {2}'.format(site, ev['events_begin'], ev['events_end'])
+                            print '{0} product time not right, event[{1}], product[{2}] '.format(site, event_id, prd['_id'])
+                            print '\t product begin: {1}, product end: {2}'.format(prd['products_begin'], prd['products_end'])
+                            print '\t event begin: {1}, event end: {2}'.format(ev['events_begin'], ev['events_end'])
 
 
 if __name__ == '__main__':

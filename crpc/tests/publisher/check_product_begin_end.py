@@ -67,8 +67,8 @@ def check(site, key, products_begin, products_end):
                 if not crpc_prd_end or event['events_end'] >  crpc_prd_end:
                     crpc_prd_end = event['events_end']
 
-    if (not products_end and crpc_prd_end) or \ # not published
-        (products_end and crpc_prd_end and products_end != crpc_prd_end): # publish not right
+    if (not products_end and crpc_prd_end) or \
+        (products_end and crpc_prd_end and products_end != crpc_prd_end): # not published or publish not right
         return False
 
     if (not products_begin and crpc_prd_begin) or \
@@ -106,6 +106,9 @@ def check_propagation():
                         if prd['products_end'] < ev['events_end']:
                             print 'product begin: {0}; product end: {1}'.format(prd['products_begin'], prd['products_end'])
                             print 'event begin: {0}, event end: {1}'.format(ev['events_begin'], ev['events_end'])
+                    elif 'products_begin' not in prd:
+                        if 'events_begin' in ev:
+                            print 'event_id: {0}, event begin: {1}, product_id: {2}'.format(event_id, ev['events_begin'], prd['_id'])
                     else:
                         if prd['products_begin'] <= ev['events_begin'] and prd['products_end'] >= ev['events_end']:
                             pass
@@ -121,3 +124,4 @@ if __name__ == '__main__':
             db_pool_crpc[site] = db
 
     main()
+    check_propagation()

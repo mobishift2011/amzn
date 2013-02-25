@@ -77,6 +77,25 @@
                     </div>
                 </div><!--/span-->
                         
+                <div class="box span4">
+                    <div class="box-header well" data-original-title>
+                        <h2><i class="icon-user"></i> Top Buy Sites Within 24 hours</h2>
+                        <div class="box-icon">
+                            <a href="#" class="btn btn-minimize btn-round"><i class="icon-chevron-up"></i></a>
+                            <a href="#" class="btn btn-close btn-round"><i class="icon-remove"></i></a>
+                        </div>
+                    </div>
+                    <div class="box-content">
+                        <div class="box-content">
+                            <ul class="dashboard-list" id="member-activity">
+                            {% for site, count in top_buy_sites.most_common() %}
+                              <li>{{site}}, {{count}} buys</li>
+                            {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div><!--/span-->
+                        
                 <!--
                 <div class="box span4">
                     <div class="box-header well" data-original-title>

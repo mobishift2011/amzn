@@ -540,6 +540,20 @@ class ViewDataHandler(BaseHandler):
         self.render('viewdata/recommend.html', meta=meta, events=events, sites=sites, 
             times=times, pagination=pagination, message=message)
 
+class FeedbackHandler(BaseHandler):
+    def get(self,id=None):
+        if id:
+            return self.render_detail(id)
+
+        limit = self.get_argument('limit', 20)
+        offset = self.get_argument('offset', 0)
+        results = api.feedback.get(limit=limit,offset=offset)['objects']
+        print 'results',results
+        self.render('feedback/list.html',results=results)
+
+    def render_detail(self,id):
+        r = api.feedback(id).get()
+        return self.render('feedback/detail.html',r=r)
 
 class MonitorHandler(BaseHandler):
     def get(self):
@@ -558,7 +572,6 @@ class DashboardHandler(BaseHandler):
         else:
             self.content_type = 'application/json'
             self.finish(json.dumps(['no content']))
-
 
 class TraceDataHandler(BaseHandler):
     def get(self, site, key):
@@ -701,6 +714,7 @@ application = tornado.web.Application([
     (r"/affiliate/?(.*)/?", AffiliateHandler),
     (r"/brands/?(.*)", BrandsHandler),
     (r"/brand/?(.*)", BrandHandler),
+    (r"/feedback/(.*)", FeedbackHandler),
     (r"/", IndexHandler),
     (r"/assets/(.*)", tornado.web.StaticFileHandler, dict(path=settings['static_path'])),
 ], **settings)

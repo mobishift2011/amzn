@@ -374,8 +374,8 @@ class Server(object):
             ret = self.crawl_sale_list_product(event_id, item, ctx)
             product_ids.append(ret)
 
-        event.save()
         event.product_ids = product_ids
+        event.save()
         common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=url, is_new=is_new, is_updated=False, ready=ready)
 
 
@@ -391,7 +391,7 @@ class Server(object):
         is_updated = False
         if is_new:
             product.event_id = [event_id]
-            product.title = item.cssselect('h3 > a[data-linkname]')[0].text
+            product.title = item.cssselect('h3 > a[data-linkname]')[0].text.encode('utf-8')
             product.sell_rank = int(item.get('data-sortorder'))
             img = item.cssselect('a > img.productImage')[0].get('src')
             image = self.extract_large_img.match(img).group(1) + '$fullzoom$'

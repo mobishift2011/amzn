@@ -79,6 +79,11 @@ def check(site, key, products_begin, products_end):
 
 
 def main():
+    for site in picked_crawlers:
+        db = conn[site]
+        if site not in db_pool_crpc:
+            db_pool_crpc[site] = db
+
     with open(log_path, 'w') as f:
         count = 0
         for mastiff_product in spout_mastiff_products():
@@ -121,10 +126,26 @@ def check_propagation():
 
 
 if __name__ == '__main__':
-    for site in picked_crawlers:
-        db = conn[site]
-        if site not in db_pool_crpc:
-            db_pool_crpc[site] = db
+    import sys 
+    from optparse import OptionParser
 
-    main()
-    check_propagation()
+    parser = OptionParser(usage='usage: %prog [options]')
+    parser.add_option('-c', '--check', dest='check', action='store_true', help='check products begin end', default=False)
+    parser.add_option('-s', '--sync', dest='sync', action='store_true', help='check whether mastiff and crpc products begin end sync', default=False)
+
+    if len(sys.argv) == 1:
+        parser.print_help()
+        exit()
+
+    options, args = parser.parse_args(sys.argv[1:])
+    if options.check:
+        check_propagation()
+    elif options.sync:
+        main()
+    elif 'check' in args:
+        check_propagation()
+    elif 'sync' in args:
+        main()
+    else:
+        parser.print_help()
+

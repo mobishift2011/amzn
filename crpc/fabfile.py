@@ -114,6 +114,12 @@ def crpc_checkout(tag):
                 else:
                     sudo('git clone %s src' % GIT_REPO)
             sudo('cp -r /srv/crpc/src/crpc/* /srv/crpc/')
+        
+            with cd('/srv/crpc'):
+                puts(green('Installing dependencies'))
+                sudo('pip install -r requirements.txt')
+
+            _inject_settings()
 
 def sync_latest_code():
     env.hosts = HOSTS
@@ -125,8 +131,8 @@ def _sync_latest_code():
     with cd('/srv/crpc'):
         if dir_exists('/srv/crpc/src'):
             with cd('/srv/crpc/src'):
-                sudo('git checkout -- .')
-                sudo('git pull')
+                sudo('git reset HEAD --hard && git fetch --all')
+                sudo('git checkout master')
                 sudo('cp -r /srv/crpc/src/crpc/* /srv/crpc/')
         else:
             sudo('git clone %s src' % GIT_REPO)
@@ -134,8 +140,13 @@ def _sync_latest_code():
         
         puts(green('Installing dependencies'))
         sudo('pip install -r requirements.txt')
+        
+    _inject_settings()
     
-        puts('Injecting supervisor settings')
+
+def _inject_settings():
+    with cd('/srv/crpc'):
+        puts(green('Injecting supervisor settings'))
         with mode_sudo():
             basic_conf = text_strip_margin('''
             |[unix_http_server]

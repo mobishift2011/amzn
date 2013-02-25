@@ -30,9 +30,9 @@ def check_events_begin_end(data=collections.defaultdict(dict)):
             print e
             continue
         
-        if data[site][key][0] != e['starts_at']:
+        if data[site][key][0] and data[site][key][0] != e['starts_at']: # publish will add now as default
             print 'events_begin error: {0}, {1}'.format(site, key)
-        if data[site][key][1] != e['ends_at']:
+        if data[site][key][1] and data[site][key][1] != e['ends_at']: # events off sale then on again
             print 'events_end error: {0}, {1}'.format(site, key)
 
 def sync_time_mastiff_to_mongodb(data=collections.defaultdict(dict)):

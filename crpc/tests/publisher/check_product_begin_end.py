@@ -132,8 +132,8 @@ def check_propagation():
                             pass
                         else:
                             print '{0} product time not right, event[{1}], product[{2}] '.format(site, event_id, prd['_id'])
-                            print '\t product begin: {1}, product end: {2}'.format(prd['products_begin'], prd['products_end'])
-                            print '\t event begin: {1}, event end: {2}'.format(ev['events_begin'], ev['events_end'])
+                            print '\t product begin: {0}, product end: {1}'.format(prd['products_begin'], prd['products_end'])
+                            print '\t event begin: {0}, event end: {1}'.format(ev['events_begin'], ev['events_end'])
 
 
 if __name__ == '__main__':

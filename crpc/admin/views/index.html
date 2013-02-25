@@ -44,7 +44,7 @@
             <div class="row-fluid sortable">
                 <div class="box span4">
                     <div class="box-header well" data-original-title>
-                        <h2><i class="icon-user"></i> Member Activity</h2>
+                        <h2><i class="icon-user"></i> User Activity</h2>
                         <div class="box-icon">
                             <a href="#" class="btn btn-minimize btn-round"><i class="icon-chevron-up"></i></a>
                             <a href="#" class="btn btn-close btn-round"><i class="icon-remove"></i></a>
@@ -60,7 +60,7 @@
                         
                 <div class="box span4">
                     <div class="box-header well" data-original-title>
-                        <h2><i class="icon-user"></i> Top Buys</h2>
+                        <h2><i class="icon-user"></i> Top Buys Within 24 hours</h2>
                         <div class="box-icon">
                             <a href="#" class="btn btn-minimize btn-round"><i class="icon-chevron-up"></i></a>
                             <a href="#" class="btn btn-close btn-round"><i class="icon-remove"></i></a>
@@ -69,8 +69,8 @@
                     <div class="box-content">
                         <div class="box-content">
                             <ul class="dashboard-list" id="member-activity">
-                            {% for pid, count in top_buys %}
-                              <li><a href="http://www.favbuy.com/product/{{pid}}/" target="_blank">{{pid}}</a>, {{count}} clicks</li>
+                            {% for pid, buy in top_buys %}
+                              <li><a href="http://www.favbuy.com/product/{{pid}}/" target="_blank">[{{buy.get('product', {}).get('site_key', 'unknown').split('_',1)[0]}}]{{buy.get('product',{}).get('title',pid)[:35]}}</a>, {{buy['count']}} clicks</li>
                             {% endfor %}
                             </ul>
                         </div>
@@ -198,17 +198,17 @@ function poll(interval){
                 if (d['user']['screen_name']){
                     html += '<a href="#">' + d['user']['screen_name'] + '</a>';
                 }else{
-                    html += '<a href="#">' + d['session_id'].substr(0,10) + '</a>';
+                    html += '<a href="#">' + 'user_'+d['session_id'].substr(0,10) + '</a>';
                 }
                 html += ' ';
                 if (d['values']['event_id']){
-                    html += '<a href="http://www.favbuy.com/event/'+d['values']['event_id'] +'/" target="_blank">' + d['name'] + '</a>';
+                    html += '<a href="http://www.favbuy.com/event/'+d['values']['event_id'] +'/" target="_blank">(' + d['name'] + ')</a>';
                 }else if (d['values']['product_id']){
-                    html += '<a href="http://www.favbuy.com/product/'+d['values']['product_id'] +'/" target="_blank">' + d['name'] + '</a>';
+                    html += '<a href="http://www.favbuy.com/product/'+d['values']['product_id'] +'/" target="_blank">(' + d['name'] + ')</a>';
                 }else if (d['values']['category_name']){
-                    html += '<a href="http://www.favbuy.com/'+d['values']['category_name'] +'/" target="_blank">' + d['name'] + '</a>';
+                    html += '<a href="http://www.favbuy.com/'+d['values']['category_name'] +'/" target="_blank">(' + d['name'] + ')</a>';
                 }else{
-                    html += '<a href="" target="_blank">'+ d['name'] + '</a>';
+                    html += '<a href="" target="_blank">('+ d['name'] + ')</a>';
                 }
     
                 html += ' @'+d['time'].substr(5,14)+'</li>\n';

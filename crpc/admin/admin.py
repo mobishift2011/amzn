@@ -157,10 +157,20 @@ class IndexHandler(BaseHandler):
         num_buys = api.useraction.get(limit=1, name='click buy')['meta']['total_count']
         num_new_buys = api.useraction.get(limit=1, time__gt=yesterday, name='click buy')['meta']['total_count']
         buys = api.useraction.get(limit=1000, name='click buy', order_by='-time', time__gt=yesterday)['objects']
-        top_buys = Counter()
+
+        top_buys = {}
+        c_top_buys = Counter()
         for b in buys:
-            top_buys[ b['values']['product_id'] ] += 1
-        
+            c_top_buys[ b['values']['product_id'] ] += 1
+        c_top_buys = c_top_buys.most_common(10)
+        for id, count in c_top_buys:
+            top_buys[id] = {'count': count}
+        list_products = api.product.get(_id__in=','.join([ b[0] for b in c_top_buys ]))['objects']
+        for p in list_products:
+            top_buys[p['id']]['product'] = p
+
+        top_buys = sorted(top_buys.items(), key=lambda x:x[1]['count'], reverse=True)
+    
         self.render("index.html",
             num_members = num_members,
             num_new_members = num_new_members,
@@ -170,7 +180,7 @@ class IndexHandler(BaseHandler):
             num_new_products = num_new_products,
             num_buys = num_buys,
             num_new_buys = num_new_buys,
-            top_buys = top_buys.most_common(10)
+            top_buys = top_buys
         )
 
 class ExampleHandler(BaseHandler):

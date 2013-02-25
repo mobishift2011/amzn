@@ -72,7 +72,7 @@ def check(site, key, products_begin, products_end):
         return False
 
     if (not products_begin and crpc_prd_begin) or \
-        (products_begin and crpc_prd_begin and products_begin != crpc_prd_begin): 
+        (products_begin and crpc_prd_begin and products_begin != crpc_prd_begin):
         return False
 
     return True
@@ -93,6 +93,25 @@ def main():
                     )
                 )
         f.write('Total error: %s' % count)
+
+def check_propagation():
+    for site in picked_crawlers:
+        col = conn[site].collection_names()
+        if 'event' in col:
+            prds = conn[site].product.find({}, fields=['event_id', 'products_begin', 'products_end'])
+            for prd in prds:
+                for event_id in prd['event_id']:
+                    ev = conn[site].event.find({'event_id': event_id}, fields=['events_begin', 'events_end'])[0]
+                    if ev['events_begin'] > ev['events_end']: # event off sale then on again
+                        if prd['products_end'] < ev['events_end']:
+                            print 'product begin: {0}; product end: {1}'.format(prd['products_begin'], prd['products_end'])
+                            print 'event begin: {0}, event end: {1}'.format(ev['events_begin'], ev['events_end'])
+                    else:
+                        if prd['products_begin'] <= ev['events_begin'] and prd['products_end'] >= ev['events_end']:
+                            pass
+                        else:
+                            print 'product begin: {0}; product end: {1}'.format(prd['products_begin'], prd['products_end'])
+                            print 'event begin: {0}, event end: {1}'.format(ev['events_begin'], ev['events_end'])
 
 
 if __name__ == '__main__':

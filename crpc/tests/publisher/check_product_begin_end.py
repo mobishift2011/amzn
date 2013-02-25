@@ -104,17 +104,20 @@ def check_propagation():
                     ev = conn[site].event.find({'event_id': event_id}, fields=['events_begin', 'events_end'])[0]
                     if ev['events_begin'] > ev['events_end']: # event off sale then on again
                         if prd['products_end'] < ev['events_end']:
-                            print 'product begin: {0}; product end: {1}'.format(prd['products_begin'], prd['products_end'])
-                            print 'event begin: {0}, event end: {1}'.format(ev['events_begin'], ev['events_end'])
+                            print '{0} product begin: {1}; product end: {2}'.format(site, prd['products_begin'], prd['products_end'])
+                            print '{0} event begin: {1}, event end: {2}'.format(site, ev['events_begin'], ev['events_end'])
                     elif 'products_begin' not in prd:
                         if 'events_begin' in ev:
-                            print 'event_id: {0}, event begin: {1}, product_id: {2}'.format(event_id, ev['events_begin'], prd['_id'])
+                            print '{0} event_id: {1}, event begin: {2}, product_id: {3}'.format(site, event_id, ev['events_begin'], prd['_id'])
+                    elif 'products_end' not in prd:
+                        if 'events_end' in ev:
+                            print '{0} event_id: {1}, event end: {2}, product_id: {3}'.format(site, event_id, ev['events_end'], prd['_id'])
                     else:
                         if prd['products_begin'] <= ev['events_begin'] and prd['products_end'] >= ev['events_end']:
                             pass
                         else:
-                            print 'product begin: {0}; product end: {1}'.format(prd['products_begin'], prd['products_end'])
-                            print 'event begin: {0}, event end: {1}'.format(ev['events_begin'], ev['events_end'])
+                            print '{0} product begin: {1}; product end: {2}'.format(site, prd['products_begin'], prd['products_end'])
+                            print '{0} event begin: {1}, event end: {2}'.format(site, ev['events_begin'], ev['events_end'])
 
 
 if __name__ == '__main__':

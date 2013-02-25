@@ -105,8 +105,11 @@ def check_propagation():
         if 'event' in col:
             prds = conn[site].product.find({}, fields=['event_id', 'products_begin', 'products_end'])
             for prd in prds:
+                if 'event_id' not in prd: continue
                 for event_id in prd['event_id']:
-                    ev = conn[site].event.find({'event_id': event_id}, fields=['events_begin', 'events_end'])[0]
+                    ev = conn[site].event.find({'event_id': event_id}, fields=['events_begin', 'events_end', 'product_ids'])[0]
+                    if 'product_ids' in ev and prd['_id'] not in ev['product_ids']:
+                        continue
 
                     if 'products_begin' not in prd and 'events_begin' in ev:
                         print '{0} products_begin[{1}] not exist:'.format(site, prd['_id'])

@@ -110,14 +110,14 @@ def check_propagation():
 
                     if 'products_begin' not in prd and 'events_begin' in ev:
                         print '{0} products_begin[{1}] not exist:'.format(site, prd['_id'])
-                        print '\t event_id: {1}, event begin: {2}'.format(event_id, ev['events_begin'])
+                        print '\t event_id: {0}, event begin: {1}'.format(event_id, ev['events_begin'])
                     elif 'products_end' not in prd and 'events_end' in ev:
                         print '{0} products_end[{1}] not exist:'.format(site, prd['_id'])
-                        print '\t event_id: {1}, event end: {2}'.format(site, event_id, ev['events_end'])
+                        print '\t event_id: {0}, event end: {1}'.format(event_id, ev['events_end'])
                     elif 'events_begin' not in ev and 'events_end' in ev:
                         if prd['products_end'] < ev['events_end']:
                             print '{0} events_begin[{1}] not exist, products_end[{2}] not right:'.format(site, event_id, prd['_id'])
-                            print '\t event end: {1}, product end: {2}'.format(ev['events_end'], prd['products_end'])
+                            print '\t event end: {0}, product end: {1}'.format(ev['events_end'], prd['products_end'])
                     elif 'events_begin' in ev and 'events_end' not in ev:
                         if prd['products_begin'] > ev['events_begin']:
                             print '{0} events_end[{1}] not exist, products_begin[{2}] not right:'.format(site, event_id, prd['_id'])

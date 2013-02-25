@@ -25,6 +25,8 @@ def spout_mastiff_products():
             print
             continue
 
+        if product.get('starts_at') is None and product.get('ends_at') is None:
+            continue
         print product.get('starts_at'), product.get('ends_at')
         yield {
             'site': site,

@@ -70,6 +70,10 @@ def spout_images(site, doctype):
 
 def spout_extracted_products(site):
     m = get_site_module(site)
+
+    if not hasattr(m, 'Category'):
+        return
+
     now = datetime.utcnow()
     # products = m.Product.objects((Q(brand_complete = False) | \
     #             Q(tag_complete = False) | Q(dept_complete = False)) & \
@@ -89,11 +93,13 @@ def spout_extracted_products(site):
 
 def spout_propagate_events(site, complete=False):
     m = get_site_module(site)
+
     if not hasattr(m, 'Event'):
         return
-    now = datetime.utcnow()
+
     try:
         logger.debug('spout {0} events to propagate and update propagate'.format(site))
+        now = datetime.utcnow()
         events = m.Event.objects(Q(events_end__gt=now) | \
             Q(events_end__exists=False)).timeout(False)
         logger.debug('{0} events spouted'.format(site))
@@ -161,17 +167,15 @@ def propagate(site, concurrency=3):
     pool = Pool(len(rpcs)*concurrency)
     events = spout_propagate_events(site)
 
-    no_events = True
-    for event in events:
-        no_events = False
-        rpc = random.choice(rpcs)
-        pool.spawn(call_rpc, rpc, 'propagate', **event)
-    pool.join()
+    if events:
+        logger.debug('{0} events to call rpc'.format(site))
+        for event in events:
+            rpc = random.choice(rpcs)
+            pool.spawn(call_rpc, rpc, 'propagate', **event)
+        pool.join()
 
-    if no_events:
-        # The site has no events(maybe just has category) to propagate, so call the rpc to process products.
-        extract_product(site, concurrency)
-        pass
+    # The site has no events(maybe just has category) to propagate, so call the rpc to process products.
+    extract_product(site, concurrency)
 
 
 def extract_product(site, concurrency=3):
@@ -179,10 +183,12 @@ def extract_product(site, concurrency=3):
     pool = Pool(len(rpcs)*concurrency)
     products = spout_extracted_products(site)
 
-    for product in products:
-        rpc = random.choice(rpcs)
-        pool.spawn(call_rpc, rpc, 'process_product', **product)
-    pool.join()
+    if products:
+        logger.debug('{0} products to call rpc'.format(site))
+        for product in products:
+            rpc = random.choice(rpcs)
+            pool.spawn(call_rpc, rpc, 'process_product', **product)
+        pool.join()
 
 
 if __name__ == '__main__':

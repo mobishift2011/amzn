@@ -156,11 +156,30 @@ class IndexHandler(BaseHandler):
         num_new_products = api.product.get(limit=1, created_at__gt=yesterday)['meta']['total_count']
         num_buys = api.useraction.get(limit=1, name='click buy')['meta']['total_count']
         num_new_buys = api.useraction.get(limit=1, time__gt=yesterday, name='click buy')['meta']['total_count']
-        buys = api.useraction.get(limit=1000, name='click buy', order_by='-time' time__gt=yesterday)['objects']
-        top_buys = Counter()
+        buys = api.useraction.get(limit=1000, name='click buy', order_by='-time', time__gt=yesterday)['objects']
+        #buys = api.useraction.get(limit=1000, name='click buy', order_by='-time')['objects']
+
+        top_buys = {}
+        top_buy_sites = Counter()
+        c_top_buys = Counter()
+        pids = []
         for b in buys:
-            top_buys[ b['values']['product_id'] ] += 1
-        
+            c_top_buys[ b['values']['product_id'] ] += 1
+            pids.append( b['values']['product_id'] )
+        c10_top_buys = c_top_buys.most_common(10)
+        for id, count in c10_top_buys:
+            top_buys[id] = {'count': count}
+        list_products = []
+        for i in range((len(pids)-1)/100+1):
+            pidsi = pids[i*100:i*100+100]
+            list_products.extend( api.product.get(limit=1000, _id__in=','.join(pidsi))['objects'] )
+        for p in list_products:
+            top_buy_sites[ p['site_key'].split('_', 1)[0] ] += c_top_buys[ p['id'] ]
+            if p['id'] in top_buys:
+                top_buys[p['id']]['product'] = p
+
+        top_buys = sorted(top_buys.items(), key=lambda x:x[1]['count'], reverse=True)
+    
         self.render("index.html",
             num_members = num_members,
             num_new_members = num_new_members,
@@ -170,7 +189,8 @@ class IndexHandler(BaseHandler):
             num_new_products = num_new_products,
             num_buys = num_buys,
             num_new_buys = num_new_buys,
-            top_buys = top_buys.most_common(10)
+            top_buys = top_buys,
+            top_buy_sites = top_buy_sites
         )
 
 class ExampleHandler(BaseHandler):
@@ -540,6 +560,20 @@ class ViewDataHandler(BaseHandler):
         self.render('viewdata/recommend.html', meta=meta, events=events, sites=sites, 
             times=times, pagination=pagination, message=message)
 
+class FeedbackHandler(BaseHandler):
+    def get(self,id=None):
+        if id:
+            return self.render_detail(id)
+
+        limit = self.get_argument('limit', 20)
+        offset = self.get_argument('offset', 0)
+        results = api.feedback.get(limit=limit,offset=offset)['objects']
+        print 'results',results
+        self.render('feedback/list.html',results=results)
+
+    def render_detail(self,id):
+        r = api.feedback(id).get()
+        return self.render('feedback/detail.html',r=r)
 
 class MonitorHandler(BaseHandler):
     def get(self):
@@ -558,7 +592,6 @@ class DashboardHandler(BaseHandler):
         else:
             self.content_type = 'application/json'
             self.finish(json.dumps(['no content']))
-
 
 class TraceDataHandler(BaseHandler):
     def get(self, site, key):
@@ -701,6 +734,7 @@ application = tornado.web.Application([
     (r"/affiliate/?(.*)/?", AffiliateHandler),
     (r"/brands/?(.*)", BrandsHandler),
     (r"/brand/?(.*)", BrandHandler),
+    (r"/feedback/(.*)", FeedbackHandler),
     (r"/", IndexHandler),
     (r"/assets/(.*)", tornado.web.StaticFileHandler, dict(path=settings['static_path'])),
 ], **settings)

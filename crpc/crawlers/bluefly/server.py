@@ -251,8 +251,9 @@ class Server(object):
 
 
     def crawl_brand_listing(self, url, tree, ctx):
-        page_num = tree.cssselect('div#ls_topRightNavBar > div.ls_pageNav > a:last-of-type')
-        if page_num: page_num = int( page_num[0].text_content() )
+        page_num = tree.cssselect('div#ls_topRightNavBar > div.ls_pageNav > a:nth-last-of-type(1)')
+        if page_num:
+            page_num = int( page_num[0].text_content() )
         nodes = tree.cssselect('div#productGridContainer > div.productGridRow > div.productContainer')
         for node in nodes:
             self.crawl_every_product_in_listing(url.rsplit('/', 1)[-1], [], node, 1, ctx)

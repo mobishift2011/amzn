@@ -32,6 +32,7 @@ header = {
     'Accept-Encoding': 'gzip,deflate,sdch',
     'Accept-Language': 'zh-CN,en-US;q=0.8,en;q=0.6',
     'Host': 'www.zulily.com',
+    'Referer': 'http://www.zulily.com/',
     'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.17 (KHTML, like Gecko) Ubuntu Chromium/24.0.1312.56 Chrome/24.0.1312.56 Safari/537.17',
 }
 req = requests.Session(prefetch=True, timeout=30, config=config, headers=header)

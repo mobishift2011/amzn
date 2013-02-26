@@ -215,6 +215,7 @@ class Server(object):
 
         if 'bluefly.com/designer/' in url:
             self.crawl_brand_listing(url, tree, ctx)
+            return
 
         key = self.extract_category_key.match(url).group(1)
         navigation = tree.cssselect('div[id] > div#listProductPage')

@@ -44,10 +44,17 @@ def batch_image_crawling(sender, **kwargs):
     doctype = kwargs.get('doctype') or ''
 
     if site and doctype.capitalize() in ('Event', 'Product'):
+        if not hasattr(batch_image_crawling, 'run_flag'):
+            setattr(batch_image_crawling, 'run_flag', {})
+
         try:
-            scan_images(site, doctype, 10)
+            if site not in batch_image_crawling.run_flag or batch_image_crawling.run_flag[site] == False:
+                batch_image_crawling.run_flag[site] = True
+                scan_images(site, doctype, 10)
         except Exception as e:
             logger.error('batch image crawling error: {0} -> {1}'.format(sender, traceback.format_exc()))
+        finally:
+            batch_image_crawling.run_flag[site] = False
     else:
         logger.error('batch image crawling failed: {0}'.format(sender))
 

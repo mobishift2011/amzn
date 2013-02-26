@@ -656,6 +656,40 @@ class BrandHandler(BaseHandler):
     def delete(self, brand_title):
         self.write(str(delete_brand(brand_title)))
 
+class MemberHandler(BaseHandler):
+    def get(self, path):
+        if path == '':
+            self.user_index()
+
+    def post(self, path):
+        if path == 'delete_user.ajax':
+            self.delete_user()
+
+    def delete_user(self):
+        username = self.get_argument('username')
+        self.content_type = 'application/json'
+        try:
+            api.usermanage(username).delete()
+        except Exception, e:
+            self.write(json.dumps({'status':'failed', 'reason': e.message }))
+        else:
+            self.write(json.dumps({'status':'ok'}))
+
+    def user_index(self):
+        limit = self.get_argument('limit', '50')
+        offset = self.get_argument('offset', '0')
+        offset, limit = int(offset), int(limit)
+
+        data = api.usermanage.get(offset=offset, limit=limit, order_by='-date_joined')
+        users = data['objects']
+        total_count = data['meta']['total_count']
+        pagination = Pagination(1+offset/50, 50, total_count)
+
+        self.render('member.html',
+            users = users,
+            pagination = pagination
+        )
+
 class AjaxHandler(BaseHandler):
     def get(self, path):
         if path == 'recrop_image.ajax':
@@ -735,6 +769,7 @@ application = tornado.web.Application([
     (r"/brands/?(.*)", BrandsHandler),
     (r"/brand/?(.*)", BrandHandler),
     (r"/feedback/(.*)", FeedbackHandler),
+    (r"/member/(.*)", MemberHandler),
     (r"/ajax/(.*)", AjaxHandler),
     (r"/", IndexHandler),
     (r"/assets/(.*)", tornado.web.StaticFileHandler, dict(path=settings['static_path'])),

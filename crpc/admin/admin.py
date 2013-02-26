@@ -169,14 +169,14 @@ class IndexHandler(BaseHandler):
         c10_top_buys = c_top_buys.most_common(10)
         for id, count in c10_top_buys:
             top_buys[id] = {'count': count}
-        list_products = api.product.get(limit=1000, _id__in=','.join(pids))['objects']
+        list_products = []
+        for i in range((len(pids)-1)/100+1):
+            pidsi = pids[i*100:i*100+100]
+            list_products.extend( api.product.get(limit=1000, _id__in=','.join(pids))['objects'] )
         for p in list_products:
             top_buy_sites[ p['site_key'].split('_', 1)[0] ] += c_top_buys[ p['id'] ]
             if p['id'] in top_buys:
                 top_buys[p['id']]['product'] = p
-
-        from pprint import pprint
-        pprint(top_buy_sites)
 
         top_buys = sorted(top_buys.items(), key=lambda x:x[1]['count'], reverse=True)
     

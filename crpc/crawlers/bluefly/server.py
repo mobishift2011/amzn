@@ -43,21 +43,21 @@ class Server(object):
         kids_url = 'http://www.bluefly.com/Designer-Kids/_/N-v2wq/list.fly'
         new_url = 'http://www.bluefly.com/New-Arrivals/_/N-1aaqZapsz/newarrivals.fly'
 
-        self.crawl_women_or_shoes_category('women', women_url, ctx)
-        self.crawl_women_or_shoes_category('shoes', shoes_url, ctx)
-        self.crawl_handbag_accessories_category('handbags&accessories', handbags_accessories_url, ctx)
-        self.crawl_jewelry_or_men_category('jewelry', jewelry_url, ctx)
-        self.crawl_jewelry_or_men_category('men', men_url, ctx)
-        self.crawl_sale_category('sale', sale_url, ctx)
-        self.crawl_kids_category('kids', kids_url, ctx)
-        self.crawl_newarrivals_category('new', new_url, ctx)
-
-        # add some more products, like La Perla
-        self.save_category_to_db('http://www.bluefly.com/Designer-Beauty-Fragrance/_/N-nd52/list.fly',
-                'nd52',
-                'Designer-Beauty-Fragrance',
-                ['Home', 'Beauty & Fragrance'],
-                ctx)
+#        self.crawl_women_or_shoes_category('women', women_url, ctx)
+#        self.crawl_women_or_shoes_category('shoes', shoes_url, ctx)
+#        self.crawl_handbag_accessories_category('handbags&accessories', handbags_accessories_url, ctx)
+#        self.crawl_jewelry_or_men_category('jewelry', jewelry_url, ctx)
+#        self.crawl_jewelry_or_men_category('men', men_url, ctx)
+#        self.crawl_sale_category('sale', sale_url, ctx)
+#        self.crawl_kids_category('kids', kids_url, ctx)
+#        self.crawl_newarrivals_category('new', new_url, ctx)
+#
+#        # add some more products, like La Perla
+#        self.save_category_to_db('http://www.bluefly.com/Designer-Beauty-Fragrance/_/N-nd52/list.fly',
+#                'nd52',
+#                'Designer-Beauty-Fragrance',
+#                ['Home', 'Beauty & Fragrance'],
+#                ctx)
 
         self.crawl_designer_brand_page('designer', 'http://www.bluefly.com/designers.fly', ctx)
 
@@ -176,7 +176,7 @@ class Server(object):
             self.save_category_to_db(url, key, slug, cats, ctx)
 
 
-    def crawl_designer_brand_page(self, category, url, ctx):
+    def crawl_designer_brand_page(self, cat, url, ctx):
         tree = self.download_category_return_xmltree(category, url, ctx)
         if tree is None: return
         brands_nodes = tree.cssselect('div#designerAlpha > ul#designList > li > a[href]')
@@ -193,7 +193,7 @@ class Server(object):
                 category = Category(key=key)
                 category.is_leaf = True
                 category.combine_url = link
-                category.cats = [category, key]
+                category.cats = [cat, key]
             category.update_time = datetime.utcnow()
             category.save()
             common_saved.send(sender=ctx, obj_type='Category', key=key, url=link, is_new=is_new, is_updated=is_updated)
@@ -449,6 +449,8 @@ class Server(object):
 
 
 if __name__ == '__main__':
+    Server().crawl_category()
+    exit()
     server = zerorpc.Server(Server())
     server.bind("tcp://0.0.0.0:{0}".format(CRAWLER_PORT))
     server.run()

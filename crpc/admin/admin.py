@@ -735,6 +735,7 @@ application = tornado.web.Application([
     (r"/brands/?(.*)", BrandsHandler),
     (r"/brand/?(.*)", BrandHandler),
     (r"/feedback/(.*)", FeedbackHandler),
+    (r"/ajax/(.*)", AjaxHandler),
     (r"/", IndexHandler),
     (r"/assets/(.*)", tornado.web.StaticFileHandler, dict(path=settings['static_path'])),
 ], **settings)

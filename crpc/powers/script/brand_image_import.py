@@ -28,6 +28,8 @@ bucket = conn.create_bucket(S3_IMAGE_BUCKET)
 bucket.set_policy(json.dumps(policy))
 key = Key(bucket)
 
+print 'Input dir path:'
+ipath = raw_input() or '/home/ethan/projects/brandall'
 
 def upload(name, appendix):
 	print 'uploading', name, '...'
@@ -65,6 +67,4 @@ def main(path):
 
 
 if __name__ == '__main__':
-	print 'Input dir path:'
-	ipath = raw_input() or '/home/ethan/projects/brandall'
 	main(ipath)

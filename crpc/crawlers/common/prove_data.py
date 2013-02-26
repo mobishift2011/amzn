@@ -18,14 +18,14 @@ def get_site_module(site):
     if hasattr(get_site_module, 'mod'):
         setattr(get_site_module, 'mod', {})
 
-    if site not in get_site_module:
+    if site not in get_site_module.mod:
         for site in picked_crawlers:
             get_site_module.mod[site] = __import__("crawlers.{0}.models".format(site), fromlist=['Event', 'Category', 'Product'])
 
     return get_site_module.mod[site]
 
 for crawler in picked_crawlers:
-    old_exists, new_not_exist = 0
+    old_exists, new_not_exist = 0, 0
     if crawler in req_site:
         login = __import__('crawlers.{0}.server'.format(crawler), fromlist=['req'])
     elif crawler in fetch_page_site:

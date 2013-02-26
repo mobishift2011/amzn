@@ -37,6 +37,7 @@ class zulilyLogin(object):
             variables need to be used
         """
         self.login_url = 'https://www.zulily.com/auth'
+        self.badpage_url = re.compile('.*zulily.com/z/.*html')
         self.data = {
             'login[username]': login_email[DB],
             'login[password]': login_passwd
@@ -72,10 +73,11 @@ class zulilyLogin(object):
         """
         ret = req.get(url)
 
-        if ret.url == u'https://www.zulily.com/z/bubble-gum-pink-pillow-with-chocolate-hug.html':
+        if self.badpage_url.match(ret.url):
+            self.current_email = get_login_email('zulily')
             self.login_account()
             ret = req.get(url)
-            if ret.url == u'https://www.zulily.com/z/bubble-gum-pink-pillow-with-chocolate-hug.html':
+            if self.badpage_url.match(ret.url):
                 return -500
 
         if ret.url == u'http://www.zulily.com/oops-event':
@@ -92,6 +94,13 @@ class zulilyLogin(object):
             check whether the account is login, if not, login and fetch again
         """
         ret = req.get(url)
+
+        if self.badpage_url.match(ret.url):
+            self.current_email = get_login_email('zulily')
+            self.login_account()
+            ret = req.get(url)
+            if self.badpage_url.match(ret.url):
+                return -500
 
         if ret.url == u'http://www.zulily.com/oops-event':
             return -404

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 # Author: bishop Liu <miracle (at) gmail.com>
 
+from datetime import datetime
 from crawlers.common.stash import picked_crawlers
 
 
@@ -16,3 +17,9 @@ def get_site_module(site):
 
     return get_site_module.mod[site]
 
+for crawler in picked_crawlers:
+    module = get_site_module(crawler)
+    for prd in module.Product.objects(products_end__lte=datetime.utcnow()):
+        # link not exist, or exist link statistics
+        prd['combine_url']
+    for prd in module.Product.objects(products_end__gt=datetime.utcnow()):

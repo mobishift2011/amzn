@@ -47,14 +47,15 @@ def batch_image_crawling(sender, **kwargs):
         if not hasattr(batch_image_crawling, 'run_flag'):
             setattr(batch_image_crawling, 'run_flag', {})
 
+        key = '{0}.{1}'.format(site, doctype.capitalize())
         try:
-            if site not in batch_image_crawling.run_flag or batch_image_crawling.run_flag[site] == False:
-                batch_image_crawling.run_flag[site] = True
+            if key not in batch_image_crawling.run_flag or batch_image_crawling.run_flag[key] == False:
+                batch_image_crawling.run_flag[key] = True
                 scan_images(site, doctype, 10)
         except Exception as e:
             logger.error('batch image crawling error: {0} -> {1}'.format(sender, traceback.format_exc()))
         finally:
-            batch_image_crawling.run_flag[site] = False
+            batch_image_crawling.run_flag[key] = False
     else:
         logger.error('batch image crawling failed: {0}'.format(sender))
 

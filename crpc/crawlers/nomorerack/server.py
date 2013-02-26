@@ -24,24 +24,24 @@ header = {
     'Host': 'nomorerack.com',
     'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:17.0) Gecko/17.0 Firefox/17.0',
 }
-request = requests.Session(prefetch=True, timeout=30, config=config, headers=header)
+req = requests.Session(prefetch=True, timeout=30, config=config, headers=header)
 
 def fetch_page(url):
     try:
-        ret = request.get(url)
+        ret = req.get(url)
     except:
         # page not exist or timeout
-        ret = request.get(url)
+        ret = req.get(url)
 
     if ret.ok: return ret.content
     else: return ret.status_code
 
 def fetch_product_page(url):
     try:
-        ret = request.get(url)
+        ret = req.get(url)
     except:
         # page not exist or timeout
-        ret = request.get(url)
+        ret = req.get(url)
 
     # nomorerack will redirect to homepage automatically when this product is not exists.
     if ret.url == u'http://nomorerack.com/' and ret.url[:-1] != url:

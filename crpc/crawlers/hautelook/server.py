@@ -34,7 +34,7 @@ header = {
     'X-Requested-With': 'XMLHttpRequest',
 }
 
-request = requests.Session(prefetch=True, timeout=30, config=config, headers=header)
+req = requests.Session(prefetch=True, timeout=30, config=config, headers=header)
 
 
 class Server(object):
@@ -73,11 +73,11 @@ class Server(object):
         """
         debug_info.send(sender=DB + '.category.begin')
 
-        resp = request.get(self.event_url)
+        resp = req.get(self.event_url)
         try:
             data = json.loads(resp.text)
         except ValueError:
-            resp = request.get(self.event_url)
+            resp = req.get(self.event_url)
             data = json.loads(resp.text)
         lay1 = data['events']
         lay2_upcoming, lay2_ending_soon, lay2_today = lay1['upcoming'], lay1['ending_soon'], lay1['today']
@@ -172,14 +172,14 @@ class Server(object):
             not useful
         :param url: event url with event_id 
         """
-        resp = request.get(url)
+        resp = req.get(url)
         try:
             data = json.loads(resp.text)
         except ValueError:
-            resp = request.get(url)
+            resp = req.get(url)
             data = json.loads(resp.text)
         if data.keys()[0] != 'availabilities':
-            resp = request.get(url)
+            resp = req.get(url)
             data = json.loads(resp.text)
         if data.keys()[0] != 'availabilities':
             common_failed.send(sender=ctx, key='get availabilities twice, both error', url=url, reason=data)
@@ -190,7 +190,7 @@ class Server(object):
         event = Event.objects(event_id=event_id).first()
         if not event: event = Event(event_id=event_id)
         if not event.image_urls: # child events don't fill up image_urls in crawl_category, until following code block
-            resp = request.get('http://www.hautelook.com/v3/event/{0}'.format(event_id))
+            resp = req.get('http://www.hautelook.com/v3/event/{0}'.format(event_id))
             jsd = json.loads(resp.content)
             image_url = jsd['event']['image_url'].replace('event-small', 'pop-large')
             event.sale_title = jsd['event']['title']
@@ -242,11 +242,11 @@ class Server(object):
             Got all the product information and save into the database
         :param url: product url, with product id
         """
-        resp = request.get(url)
+        resp = req.get(url)
         try:
             data = json.loads(resp.text)['data']
         except ValueError:
-            resp = request.get(url)
+            resp = req.get(url)
             try:
                 data = json.loads(resp.text)['data']
             except ValueError:

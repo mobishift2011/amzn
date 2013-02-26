@@ -177,7 +177,7 @@ class Server(object):
 
 
     def crawl_designer_brand_page(self, cat, url, ctx):
-        tree = self.download_category_return_xmltree(category, url, ctx)
+        tree = self.download_category_return_xmltree(cat, url, ctx)
         if tree is None: return
         brands_nodes = tree.cssselect('div#designerAlpha > ul#designList > li > a[href]')
         for node in brands_nodes:

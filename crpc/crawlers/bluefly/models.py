@@ -22,6 +22,7 @@ class Category(BaseCategory):
     }
 
     def url(self):
+        return self.combine_url
         return 'http://www.bluefly.com/_/N-{0}/list.fly'.format(self.key)
 
 

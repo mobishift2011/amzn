@@ -26,7 +26,15 @@ from models import *
 from crawlers.common.events import *
 from crawlers.common.stash import *
 
-req = requests.Session(prefetch=True, timeout=30, config=config, headers=headers)
+header = {
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    'Accept-Charset': 'UTF-8,*;q=0.5',
+    'Accept-Encoding': 'gzip,deflate,sdch',
+    'Accept-Language': 'zh-CN,en-US;q=0.8,en;q=0.6',
+    'Host': 'www.zulily.com',
+    'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.17 (KHTML, like Gecko) Ubuntu Chromium/24.0.1312.56 Chrome/24.0.1312.56 Safari/537.17',
+}
+req = requests.Session(prefetch=True, timeout=30, config=config, headers=header)
 
 class zulilyLogin(object):
     """.. :py:class:: zulilyLogin
@@ -37,6 +45,7 @@ class zulilyLogin(object):
             variables need to be used
         """
         self.login_url = 'https://www.zulily.com/auth'
+        self.badpage_url = re.compile('.*zulily.com/z/.*html')
         self.data = {
             'login[username]': login_email[DB],
             'login[password]': login_passwd
@@ -72,10 +81,11 @@ class zulilyLogin(object):
         """
         ret = req.get(url)
 
-        if ret.url == u'https://www.zulily.com/z/bubble-gum-pink-pillow-with-chocolate-hug.html':
+        if self.badpage_url.match(ret.url):
+            self.current_email = get_login_email('zulily')
             self.login_account()
             ret = req.get(url)
-            if ret.url == u'https://www.zulily.com/z/bubble-gum-pink-pillow-with-chocolate-hug.html':
+            if self.badpage_url.match(ret.url):
                 return -500
 
         if ret.url == u'http://www.zulily.com/oops-event':
@@ -92,6 +102,13 @@ class zulilyLogin(object):
             check whether the account is login, if not, login and fetch again
         """
         ret = req.get(url)
+
+        if self.badpage_url.match(ret.url):
+            self.current_email = get_login_email('zulily')
+            self.login_account()
+            ret = req.get(url)
+            if self.badpage_url.match(ret.url):
+                return -500
 
         if ret.url == u'http://www.zulily.com/oops-event':
             return -404

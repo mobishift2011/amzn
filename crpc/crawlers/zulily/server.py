@@ -26,7 +26,15 @@ from models import *
 from crawlers.common.events import *
 from crawlers.common.stash import *
 
-req = requests.Session(prefetch=True, timeout=30, config=config, headers=headers)
+header = {
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    'Accept-Charset': 'UTF-8,*;q=0.5',
+    'Accept-Encoding': 'gzip,deflate,sdch',
+    'Accept-Language': 'zh-CN,en-US;q=0.8,en;q=0.6',
+    'Host': 'www.zulily.com',
+    'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.17 (KHTML, like Gecko) Ubuntu Chromium/24.0.1312.56 Chrome/24.0.1312.56 Safari/537.17',
+}
+req = requests.Session(prefetch=True, timeout=30, config=config, headers=header)
 
 class zulilyLogin(object):
     """.. :py:class:: zulilyLogin

@@ -28,12 +28,15 @@ class Hautelook(object):
     def check_product_right(self):
         utcnow = datetime.utcnow()
         for prd in Product.objects(products_end__gt=utcnow):
-            js = self.s.get('http://www.hautelook.com/v2/product/{0}'.format(prd._id), headers=self.headers)
-            if prd.title.lower() != js['data']['title'].lower():
+            ret = self.s.get('http://www.hautelook.com/v2/product/{0}'.format(prd.key), headers=self.headers)
+            js = json.loads(ret.content)
+            if not prd.title:
+                print 'hautelook product[{0}] title not exist'.format(prd.combine_url)
+            elif prd.title.lower() != js['data']['title'].lower():
                 print 'hautelook product[{0}] title error'.format(prd.combine_url)
             if js['data']['event_display_brand_name']:
                 if js['data']['event_title'] != js['data']['brand_name']:
-                    if prd.brand != js['data']['brand_name']
+                    if prd.brand != js['data']['brand_name']:
                         print 'hautelook product[{0}] brand error'.format(prd.combine_url)
 
             data = js['data']

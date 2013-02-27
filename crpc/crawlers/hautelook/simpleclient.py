@@ -1,5 +1,6 @@
 
 import requests
+import json
 import lxml.html
 import re
 from models import *
@@ -47,7 +48,7 @@ class Hautelook(object):
                 if not price_flage: break
                 if isinstance(v, list):
                     for val in v:
-                        if product_id == str(val['inventory_id']):
+                        if prd.key == str(val['inventory_id']):
                             price = str(val['sale_price'])
                             listprice = str(val['retail_price'])
                             price_flage = False
@@ -58,7 +59,7 @@ class Hautelook(object):
                         listprice = str(val['retail_price'])
                 elif isinstance(v, dict):
                     for size, val in v.iteritems():
-                        if product_id == str(val['inventory_id']):
+                        if prd.key == str(val['inventory_id']):
                             price = str(val['sale_price'])
                             listprice = str(val['retail_price'])
                             price_flage = False

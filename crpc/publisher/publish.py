@@ -239,7 +239,7 @@ class Publisher:
         '''condition for publishing product update (the product was published before).
         :param prod: product object. Note: now only handle favbuy text update.
         '''
-        update_time = max([v for k,v in product.update_history.iteritems() if k in ALL_PRODUCT_PUBLISH_FIELDS]) \
+        update_time = max([v for k,v in prod.update_history.iteritems() if k in ALL_PRODUCT_PUBLISH_FIELDS]) \
             if prod.update_history else None
 
         return prod.publish_time and update_time and prod.publish_time < update_time

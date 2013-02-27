@@ -265,7 +265,7 @@ class Publisher:
                 if f=="sale_title": ev_data['title'] = obj_getattr(ev, 'sale_title', '')
                 elif f=="sale_description": ev_data['description'] = obj_getattr(ev, 'sale_description', '')
                 elif f=="events_end":
-                    ret = ev_data['ends_at'] = obj_getattr(ev, 'events_end', '')
+                    ret = obj_getattr(ev, 'events_end', '')
                     # if one event is off sale, then on sale again, need patch ''
                     if upd: # patch ''
                         if ret: ev_data['ends_at'] = ret.isoformat()

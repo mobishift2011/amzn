@@ -9,6 +9,7 @@
                     <li>
                         <a href="#">Dashboard</a>
                     </li>
+                    <li class="pull-right" id="time"></li>
                 </ul>
             </div>
             <div class="sortable row-fluid">
@@ -239,6 +240,10 @@ function poll(interval){
 }
 
 poll(5000);
+
+$('#time').text(
+    new Date()
+);
     
 </script>
 {% endblock %}

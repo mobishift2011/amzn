@@ -181,6 +181,7 @@ class IndexHandler(BaseHandler):
         top_buys = sorted(top_buys.items(), key=lambda x:x[1]['count'], reverse=True)
     
         self.render("index.html",
+            utcnow = datetime.utcnow(),
             num_members = num_members,
             num_new_members = num_new_members,
             num_events = num_events,

@@ -44,7 +44,7 @@ class Myhabit(object):
             else:
                 print 'myhabit product[{0}] listprice can not get from network {1}'.format(prd.combine_url, prd.listprice)
             if title.lower() != prd.title.rsplit('(', 1)[0].rstrip().lower():
-                print 'myhabit product[{0}] title error: {1} vs {2}'.format(prd.combine_url, [title, prd.title])
+                print 'myhabit product[{0}] title error: [{1}] vs [{2}]'.format(prd.combine_url, title, prd.title)
             if brand != prd.brand:
                 print 'myhabit product[{0}] brand error: {1} vs {2}'.format(prd.combine_url, brand, prd.brand)
 

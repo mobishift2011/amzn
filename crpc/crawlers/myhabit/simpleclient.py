@@ -37,7 +37,7 @@ class Myhabit(object):
                 print 'myhabit product[{0}] price error: {1} vs {2}'.format(prd.combine_url, price, prd.price)
             if listprice != float( prd.listprice.replace('$', '') ):
                 print 'myhabit product[{0}] listprice error: {1} vs {2}'.format(prd.combine_url, listprice, prd.listprice)
-            if title != prd.title:
+            if title != prd.title.rsplit('(', 1)[0]:
                 print 'myhabit product[{0}] title error: {1} vs {2}'.format(prd.combine_url, title, prd.title)
             if brand != prd.brand:
                 print 'myhabit product[{0}] brand error: {1} vs {2}'.format(prd.combine_url, brand, prd.brand)

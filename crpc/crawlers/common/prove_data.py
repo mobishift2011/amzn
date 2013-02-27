@@ -15,7 +15,7 @@ not_need_login = ['gilt', 'onekingslane', 'ruelala', 'zulily' ]
 
 def get_site_module(site):
 
-    if hasattr(get_site_module, 'mod'):
+    if not hasattr(get_site_module, 'mod'):
         setattr(get_site_module, 'mod', {})
 
     if site not in get_site_module.mod:

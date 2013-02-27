@@ -21,13 +21,15 @@ class Myhabit(object):
 
     def check_product_right(self):
         utcnow = datetime.utcnow()
-        obj = Product.objects(products_end__gt=utcnow)
+        obj = Product.objects(products_end__gt=utcnow).timeout(False)
         print 'Myhabit have {0} products.'.format(obj.count())
 
         for prd in obj:
             ret = self.s(prd.jslink, headers=self.headers)
             data = re.compile(r'parse_asin_\w+\((.*)\);$').search(r.text).group(1)
             js = json.loads(data)
+            asin = js['detailJSON']['asin']
+            brand = data['detailJSON']['brand']
 
 
     def bootstrap_jslink(self):

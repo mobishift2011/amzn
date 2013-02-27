@@ -28,7 +28,7 @@ class Hautelook(object):
     
     def check_product_right(self):
         utcnow = datetime.utcnow()
-        obj = Product.objects(products_end__gt=utcnow)
+        obj = Product.objects(products_end__gt=utcnow).timeout(False)
         print 'Hautelook have {0} products.'.format(obj.count())
 
         for prd in obj:
@@ -41,7 +41,7 @@ class Hautelook(object):
             if not prd.title:
                 print 'hautelook product[{0}] title not exist'.format(prd.combine_url)
             elif prd.title.lower() != js['data']['title'].lower():
-                print 'hautelook product[{0}] title error'.format(prd.combine_url)
+                print 'hautelook product[{0}] title error: {1} vs {2}'.format(prd.combine_url, prd.title, js['data']['title'])
             if js['data']['event_display_brand_name']:
                 if js['data']['event_title'] != js['data']['brand_name']:
                     if prd.brand != js['data']['brand_name']:

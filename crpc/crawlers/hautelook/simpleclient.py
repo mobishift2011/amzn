@@ -45,7 +45,7 @@ class Hautelook(object):
             if js['data']['event_display_brand_name']:
                 if js['data']['event_title'] != js['data']['brand_name']:
                     if prd.brand != js['data']['brand_name']:
-                        print 'hautelook product[{0}] brand error'.format(prd.combine_url)
+                        print 'hautelook product[{0}] brand error: {1} vs {2}'.format(prd.combine_url, js['data']['brand_name'], prd.brand)
 
             data = js['data']
             color, price, listprice = '', '', ''
@@ -78,10 +78,10 @@ class Hautelook(object):
 
             if price:
                 if price != prd.price:
-                    print 'hautelook product[{0}] price error'.format(prd.combine_url)
+                    print 'hautelook product[{0}] price error: {1} vs {2}'.format(prd.combine_url, price, prd.price)
             if listprice:
                 if listprice != prd.listprice:
-                    print 'hautelook product[{0}] listprice error'.format(prd.combine_url)
+                    print 'hautelook product[{0}] listprice error: {1} vs {2}'.format(prd.combine_url, listprice, prd.listprice)
 
 
     def get_product_abstract_by_url(self, url):

@@ -1,9 +1,10 @@
+
 import requests
 import lxml.html
 import re
+from models import *
+from datetime import datetime
 
-test_url = 'http://www.hautelook.com/product/6766649'
-test_url = 'http://www.hautelook.com/product/6766416'
 
 class Hautelook(object):
     def __init__(self):
@@ -24,6 +25,54 @@ class Hautelook(object):
     'X-Requested-With': 'XMLHttpRequest',
         }
     
+    def check_product_right(self):
+        utcnow = datetime.utcnow()
+        for prd in Product.objects(products_end__gt=utcnow):
+            js = self.s.get('http://www.hautelook.com/v2/product/{0}'.format(prd._id), headers=self.headers)
+            if prd.title.lower() != js['data']['title'].lower():
+                print 'hautelook product[{0}] title error'.format(prd.combine_url)
+            if js['data']['event_display_brand_name']:
+                if js['data']['event_title'] != js['data']['brand_name']:
+                    if prd.brand != js['data']['brand_name']
+                        print 'hautelook product[{0}] brand error'.format(prd.combine_url)
+
+            data = js['data']
+            color, price, listprice = '', '', ''
+            # same product with different colors, all in the same product id
+            price_flage = True
+            for color_str,v in data['prices'].iteritems():
+                if not price_flage: break
+                if isinstance(v, list):
+                    for val in v:
+                        if product_id == str(val['inventory_id']):
+                            price = str(val['sale_price'])
+                            listprice = str(val['retail_price'])
+                            price_flage = False
+                            color = color_str
+                            break
+                    else:
+                        price = str(val['sale_price'])
+                        listprice = str(val['retail_price'])
+                elif isinstance(v, dict):
+                    for size, val in v.iteritems():
+                        if product_id == str(val['inventory_id']):
+                            price = str(val['sale_price'])
+                            listprice = str(val['retail_price'])
+                            price_flage = False
+                            color = color_str
+                            break
+                    else:
+                        price = str(val['sale_price'])
+                        listprice = str(val['retail_price'])
+
+            if price:
+                if price != prd.price:
+                    print 'hautelook product[{0}] price error'.format(prd.combine_url)
+            if listprice:
+                if listprice != prd.listprice:
+                    print 'hautelook product[{0}] listprice error'.format(prd.combine_url)
+
+
     def get_product_abstract_by_url(self, url):
         product_id = re.compile(r'/product/(\d+)').search(url).group(1)
         url = 'http://www.hautelook.com/v2/product/' + product_id
@@ -33,4 +82,4 @@ class Hautelook(object):
         return 'hautelook_'+product_id, title+'_'+description
 
 if __name__ == '__main__':
-    print Hautelook().get_product_abstract_by_url(test_url)
+    Hautelook().check_product_right()

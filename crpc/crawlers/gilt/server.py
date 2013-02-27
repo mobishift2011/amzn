@@ -69,6 +69,8 @@ class giltLogin(object):
             fetch listing page.
         """
         ret = req.get(url)
+        if ret.url == 'http://www.gilt.com/':
+            return -302
         if ret.url == 'http://www.gilt.com/sale/women' or ret.url == 'http://www.gilt.com/sale/men' or 'http://www.gilt.com/brand/' in ret.url:
             return -302
         if ret.ok: return ret.content
@@ -199,6 +201,12 @@ class Server(object):
             if event.events_begin != events_begin:
                 event.events_begin = events_begin
                 event.update_history.update({ 'events_begin': datetime.utcnow() })
+            if event.events_end != None:
+                event.events_end = None
+                event.update_history.update({ 'events_end': datetime.utcnow() })
+            if event.product_ids != []:
+                event.product_ids = []
+                event.update_history.update({ 'product_ids': datetime.utcnow() })
             if not event.sale_description:
                 ret = self.get_picture_description(event.combine_url, ctx)
                 if ret is not None: # starting later today, already on sale
@@ -223,6 +231,12 @@ class Server(object):
             if event.events_begin != events_begin:
                 event.events_begin = events_begin
                 event.update_history.update({ 'events_begin': datetime.utcnow() })
+            if event.events_end != None:
+                event.events_end = None
+                event.update_history.update({ 'events_end': datetime.utcnow() })
+            if event.product_ids != []:
+                event.product_ids = []
+                event.update_history.update({ 'product_ids': datetime.utcnow() })
 
             event.save()
             common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
@@ -240,6 +254,12 @@ class Server(object):
             if event.events_begin != events_begin:
                 event.events_begin = events_begin
                 event.update_history.update({ 'events_begin': datetime.utcnow() })
+            if event.events_end != None:
+                event.events_end = None
+                event.update_history.update({ 'events_end': datetime.utcnow() })
+            if event.product_ids != []:
+                event.product_ids = []
+                event.update_history.update({ 'product_ids': datetime.utcnow() })
 
             event.save()
             common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
@@ -810,5 +830,6 @@ class Server(object):
 
 if __name__ == '__main__':
     server = Server()
-    server.crawl_listing('http://www.gilt.com/home/sale/the-americans')
+    server.crawl_listing('http://www.gilt.com/sale/men/last-chance-essentials-7424')
+    exit()
     server.crawl_listing('http://www.gilt.com/home/sale/candle-blowout-7052')

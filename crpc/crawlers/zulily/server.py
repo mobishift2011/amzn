@@ -32,6 +32,7 @@ header = {
     'Accept-Encoding': 'gzip,deflate,sdch',
     'Accept-Language': 'zh-CN,en-US;q=0.8,en;q=0.6',
     'Host': 'www.zulily.com',
+    'Referer': 'http://www.zulily.com/',
     'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.17 (KHTML, like Gecko) Ubuntu Chromium/24.0.1312.56 Chrome/24.0.1312.56 Safari/537.17',
 }
 req = requests.Session(prefetch=True, timeout=30, config=config, headers=header)
@@ -62,14 +63,19 @@ class zulilyLogin(object):
         req.post(self.login_url, data=self.data)
         self._signin[self.current_email] = True
 
+    def logout_account(self):
+        req.get('https://www.zulily.com/auth/logout/')
+
     def check_signin(self, username=''):
         """.. :py:method::
             check whether the account is login
         """
         if username == '':
+            self.logout_account()
             self.login_account()
         elif username not in self._signin:
             self.current_email = username
+            self.logout_account()
             self.login_account()
         else:
             self.current_email = username
@@ -83,6 +89,7 @@ class zulilyLogin(object):
 
         if self.badpage_url.match(ret.url):
             self.current_email = get_login_email('zulily')
+            self.logout_account()
             self.login_account()
             ret = req.get(url)
             if self.badpage_url.match(ret.url):
@@ -91,6 +98,7 @@ class zulilyLogin(object):
         if ret.url == u'http://www.zulily.com/oops-event':
             return -404
         if ret.url == 'http://www.zulily.com/?tab=new-today':
+            self.logout_account()
             self.login_account()
             ret = req.get(url)
         if ret.ok: return ret.content
@@ -105,6 +113,7 @@ class zulilyLogin(object):
 
         if self.badpage_url.match(ret.url):
             self.current_email = get_login_email('zulily')
+            self.logout_account()
             self.login_account()
             ret = req.get(url)
             if self.badpage_url.match(ret.url):
@@ -115,6 +124,7 @@ class zulilyLogin(object):
         if ret.url == u'http://www.zulily.com/' or 'http://www.zulily.com/brand/' in ret.url:
             return -302
         if ret.url == 'http://www.zulily.com/?tab=new-today':
+            self.logout_account()
             self.login_account()
             ret = req.get(url)
         if ret.ok: return ret.content

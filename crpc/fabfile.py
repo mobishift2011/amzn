@@ -132,7 +132,7 @@ def _sync_latest_code():
         if dir_exists('/srv/crpc/src'):
             with cd('/srv/crpc/src'):
                 sudo('git reset HEAD --hard && git fetch --all')
-                sudo('git checkout master')
+                sudo('git pull origin master')
                 sudo('cp -r /srv/crpc/src/crpc/* /srv/crpc/')
         else:
             sudo('git clone %s src' % GIT_REPO)

@@ -91,6 +91,9 @@
         }
     });
 
+  // make selection consistent with url
+  var param = $.deparam(window.location.href.substr(window.location.href.indexOf('?')+1));
+
   $('a.pagination').live('click', function(){
     if ($(this).attr('page')) {
       param['offset'] = ($(this).attr('page')-1)*50;

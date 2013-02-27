@@ -170,6 +170,13 @@ class Server(object):
             if event.events_begin != events_begin:
                 event.update_history.update({ 'events_begin': datetime.utcnow() })
                 event.events_begin = events_begin
+            if event.events_end != None:
+                event.events_end = None
+                event.update_history.update({ 'events_end': datetime.utcnow() })
+            if event.product_ids != []: 
+                event.product_ids = []
+                event.update_history.update({ 'product_ids': datetime.utcnow() })
+
             event.update_time = datetime.utcnow()
             event.save()
             common_saved.send(sender=ctx, obj_type='Event', key=event_id, is_new=is_new, is_updated=is_updated)

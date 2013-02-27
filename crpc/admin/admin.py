@@ -621,6 +621,9 @@ class AffiliateHandler(BaseHandler):
         post_link(**arguments)
         return self.render('affiliate.html', links=get_all_links(), sites=picked_crawlers)
 
+    def delete(self, key):
+        print 'method delete'
+
 
 class BrandsHandler(BaseHandler):
     def get(self, db):

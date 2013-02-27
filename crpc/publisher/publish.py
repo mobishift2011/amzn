@@ -232,14 +232,16 @@ class Publisher:
         '''condition for publishing product update (the product was published before).
         :param prod: product object. Note: now only handle favbuy text update.
         '''
-        update_time = max(prod.update_history.values()) if prod.update_history else None
+        update_time = max([v for k,v in product.update_history.iteritems() if k in ALL_PRODUCT_PUBLISH_FIELDS]) \
+            if prod.update_history else None
+
         return prod.publish_time and update_time and prod.publish_time < update_time
         
     def ev_updflds_for_publish(self, ev):
         return [fld for fld in ev.update_history.keys() if ev.update_history[fld]>ev.publish_time] if ev.update_history else []
         
     def prod_updflds_for_publish(self, prod):
-        return [fld for fld in prod.update_history.keys() if prod.update_history[fld]>prod.publish_time] if prod.update_history else []
+        return [fld for fld in prod.update_history.keys() if fld in ALL_PRODUCT_PUBLISH_FIELDS and prod.update_history[fld]>prod.publish_time] if prod.update_history else []
         
     ALL_EVENT_PUBLISH_FIELDS = ["sale_title", "sale_description", "events_end", "events_begin",
                                 "image_path", "highest_discount", "favbuy_tag", "favbuy_brand", "favbuy_dept"]

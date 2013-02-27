@@ -15,13 +15,6 @@ from os import listdir
 from os.path import join, isdir
 from crawlers.common.stash import exclude_crawlers
 
-ALL_EVENT_PUBLISH_FIELDS = ["sale_title", "sale_description", "events_end", "events_begin",
-                            "image_path", "highest_discount", "favbuy_tag", "favbuy_brand", "favbuy_dept"]
-
-ALL_PRODUCT_PUBLISH_FIELDS = ["favbuy_url", "events", "favbuy_price", "favbuy_listprice", "soldout",
-                            "color", "title", "summary", "list_info", "image_path", "favbuy_tag", "favbuy_brand", "favbuy_dept",
-                            "returned", "shipping", "products_begin", "products_end" ]
-
 class Publisher:
     def __init__(self):
         self.mapi = slumber.API(MASTIFF_ENDPOINT)
@@ -32,7 +25,14 @@ class Publisher:
             path = join(CRPC_ROOT, "crawlers", name)
             if name not in exclude_crawlers and isdir(path):
                 self.m[name] = get_site_module(name)
-                
+
+    ALL_EVENT_PUBLISH_FIELDS = ["sale_title", "sale_description", "events_end", "events_begin",
+                                "image_path", "highest_discount", "favbuy_tag", "favbuy_brand", "favbuy_dept"]
+
+    ALL_PRODUCT_PUBLISH_FIELDS = ["favbuy_url", "events", "favbuy_price", "favbuy_listprice", "soldout",
+                                "color", "title", "summary", "list_info", "image_path", "favbuy_tag", "favbuy_brand", "favbuy_dept",
+                                "returned", "shipping", "products_begin", "products_end" ]
+        
     def get_module(self, site):
         return self.m[site]
         

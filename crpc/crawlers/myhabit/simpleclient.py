@@ -26,7 +26,7 @@ class Myhabit(object):
 
         for prd in obj:
             ret = self.s.get(prd.jslink, headers=self.headers)
-            data = re.compile(r'parse_asin_\w+\((.*)\);$').search(r.text).group(1)
+            data = re.compile(r'parse_asin_\w+\((.*)\);$').search(ret.text).group(1)
             js = json.loads(data)
             asin = js['detailJSON']['asin']
             title = js['detailJSON']['title']

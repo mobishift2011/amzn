@@ -69,6 +69,8 @@ class giltLogin(object):
             fetch listing page.
         """
         ret = req.get(url)
+        if ret.url == 'http://www.gilt.com/':
+            return -302
         if ret.url == 'http://www.gilt.com/sale/women' or ret.url == 'http://www.gilt.com/sale/men' or 'http://www.gilt.com/brand/' in ret.url:
             return -302
         if ret.ok: return ret.content
@@ -828,5 +830,6 @@ class Server(object):
 
 if __name__ == '__main__':
     server = Server()
-    server.crawl_listing('http://www.gilt.com/home/sale/the-americans')
+    server.crawl_listing('http://www.gilt.com/sale/men/last-chance-essentials-7424')
+    exit()
     server.crawl_listing('http://www.gilt.com/home/sale/candle-blowout-7052')

@@ -25,7 +25,7 @@ class Myhabit(object):
         print 'Myhabit have {0} products.'.format(obj.count())
 
         for prd in obj:
-            ret = self.s(prd.jslink, headers=self.headers)
+            ret = self.s.get(prd.jslink, headers=self.headers)
             data = re.compile(r'parse_asin_\w+\((.*)\);$').search(r.text).group(1)
             js = json.loads(data)
             asin = js['detailJSON']['asin']
@@ -71,4 +71,4 @@ class Myhabit(object):
 
 if __name__ == '__main__':
     myhabit = Myhabit()
-    print myhabit.get_product_abstract_by_url('http://www.myhabit.com/#page=d&dept=men&sale=A25ZXVWLT0BY7D&asin=B009QTU916&cAsin=B009QTUEM0&ref=qd_b_img_d_1')
+    myhabit.check_product_right()

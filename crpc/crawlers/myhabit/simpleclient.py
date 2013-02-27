@@ -4,10 +4,10 @@
 import requests
 import json
 import re
-from pprint import pprint
 from datetime import datetime, timedelta
 
 from models import Jslinker
+from models import Event, Product
 
 class Myhabit(object):
     def __init__(self):
@@ -18,7 +18,17 @@ class Myhabit(object):
     'Cookie': 'session-id=187-2590046-5168141; session-id-time=1981953112l; session-token="Du3P0R8YKirRoBoLUW7vGfb+S4AxLHVDHugauuoNNbe7GL7+HdYVbj4R6E0qd0kOYZP1p08iLRS4ifjAM9g3q++7Lnin99mUIyiifqkyaVyFlYZgMzNQRFPtBch2NtU6zsVHt7E0ZipCJzZCBR9wa0RcALAyoWXh3O3XQ2LqcmilYQDqvGwRruHKDHBMFGrsJ8m23uWs+OU9tEn4C9p0IO9kl6t0xjv/0im28qSEE+s="; ct-main=dggZr9fLGRQ6nJUa9lswPE8VamKEexge; ubid-main=180-1581204-1041538',
     'x-amzn-auth': '187-2590046-5168141',
         }
-        self.bootstrap_jslink()
+
+    def check_product_right(self):
+        utcnow = datetime.utcnow()
+        obj = Product.objects(products_end__gt=utcnow)
+        print 'Myhabit have {0} products.'.format(obj.count())
+
+        for prd in obj:
+            ret = self.s(prd.jslink, headers=self.headers)
+            data = re.compile(r'parse_asin_\w+\((.*)\);$').search(r.text).group(1)
+            js = json.loads(data)
+
 
     def bootstrap_jslink(self):
         r = self.s.get(self.rooturl, headers=self.headers)

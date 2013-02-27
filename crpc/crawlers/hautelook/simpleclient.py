@@ -28,9 +28,16 @@ class Hautelook(object):
     
     def check_product_right(self):
         utcnow = datetime.utcnow()
-        for prd in Product.objects(products_end__gt=utcnow):
+        obj = Product.objects(products_end__gt=utcnow)
+        print 'Hautelook have {0} products.'.format(obj.count())
+
+        for prd in obj:
             ret = self.s.get('http://www.hautelook.com/v2/product/{0}'.format(prd.key), headers=self.headers)
-            js = json.loads(ret.content)
+            try:
+                js = json.loads(ret.content)
+            except ValueError:
+                print 'hautelook request return error[{0}]'.format(prd.combine_url)
+                continue
             if not prd.title:
                 print 'hautelook product[{0}] title not exist'.format(prd.combine_url)
             elif prd.title.lower() != js['data']['title'].lower():

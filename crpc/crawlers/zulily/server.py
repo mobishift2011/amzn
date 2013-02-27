@@ -245,21 +245,28 @@ class Server(object):
                 continue
             event_id = m.group(2)
 
-            brand, is_new = Event.objects.get_or_create(event_id=event_id)
+            event, is_new = Event.objects.get_or_create(event_id=event_id)
             if is_new:
-                brand.urgent = True
-                brand.combine_url = 'http://www.zulily.com/e/{0}.html'.format(event_id)
-                brand.sale_title = sale_title.encode('utf-8')
-                brand.sale_description = sale_description.encode('utf-8')
-            if image and image not in brand.image_urls: brand.image_urls.append(image)
+                event.urgent = True
+                event.combine_url = 'http://www.zulily.com/e/{0}.html'.format(event_id)
+                event.sale_title = sale_title.encode('utf-8')
+                event.sale_description = sale_description.encode('utf-8')
+            if image and image not in event.image_urls: event.image_urls.append(image)
             start_time = node.cssselect('div.upcoming-date-reminder span.reminder-text')[0].text_content() # 'Starts Sat 10/27 6am pt - SET REMINDER'
             ev_begin = time_convert( ' '.join( start_time.split(' ', 4)[1:-1] ), '%a %m/%d %I%p%Y' ) - timedelta(minutes=5) #'Sat 10/27 6am'
             events_begin = datetime(ev_begin.year, ev_begin.month, ev_begin.day, ev_begin.hour, ev_begin.minute)
-            if brand.events_begin != events_begin:
-                brand.events_begin = events_begin
-                brand.update_history.update({ 'events_begin': datetime.utcnow() })
-            brand.update_time = datetime.utcnow()
-            brand.save()
+            if event.events_begin != events_begin:
+                event.events_begin = events_begin
+                event.update_history.update({ 'events_begin': datetime.utcnow() })
+            if event.events_end != None:
+                event.events_end = None
+                event.update_history.update({ 'events_end': datetime.utcnow() })
+            if event.product_ids != []: 
+                event.product_ids = []
+                event.update_history.update({ 'product_ids': datetime.utcnow() })
+
+            event.update_time = datetime.utcnow()
+            event.save()
             common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=pair[1], is_new=is_new, is_updated=False)
             
 

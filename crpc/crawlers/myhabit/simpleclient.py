@@ -29,7 +29,20 @@ class Myhabit(object):
             data = re.compile(r'parse_asin_\w+\((.*)\);$').search(r.text).group(1)
             js = json.loads(data)
             asin = js['detailJSON']['asin']
-            brand = data['detailJSON']['brand']
+            title = js['detailJSON']['title']
+            brand = js['detailJSON']['brand']
+            price = float( js['detailJSON']['ourPrice']['amount'] )
+            listprice = float( js['detailJSON']['listPrice']['amount'] )
+            if price != prd.price:
+                print 'myhabit product[{0}] price error: {1} vs {2}'.format(prd.combine_url, price, prd.price)
+            if listprice != prd.listprice:
+                print 'myhabit product[{0}] listprice error: {1} vs {2}'.format(prd.combine_url, listprice, prd.listprice)
+            if title != prd.title:
+                print 'myhabit product[{0}] title error: {1} vs {2}'.format(prd.combine_url, title, prd.title)
+            if brand != prd.brand:
+                print 'myhabit product[{0}] brand error: {1} vs {2}'.format(prd.combine_url, brand, prd.brand)
+
+
 
 
     def bootstrap_jslink(self):

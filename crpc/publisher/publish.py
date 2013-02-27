@@ -15,6 +15,13 @@ from os import listdir
 from os.path import join, isdir
 from crawlers.common.stash import exclude_crawlers
 
+ALL_EVENT_PUBLISH_FIELDS = ["sale_title", "sale_description", "events_end", "events_begin",
+                            "image_path", "highest_discount", "favbuy_tag", "favbuy_brand", "favbuy_dept"]
+
+ALL_PRODUCT_PUBLISH_FIELDS = ["favbuy_url", "events", "favbuy_price", "favbuy_listprice", "soldout",
+                            "color", "title", "summary", "list_info", "image_path", "favbuy_tag", "favbuy_brand", "favbuy_dept",
+                            "returned", "shipping", "products_begin", "products_end" ]
+
 class Publisher:
     def __init__(self):
         self.mapi = slumber.API(MASTIFF_ENDPOINT)
@@ -242,9 +249,7 @@ class Publisher:
         
     def prod_updflds_for_publish(self, prod):
         return [fld for fld in prod.update_history.keys() if fld in ALL_PRODUCT_PUBLISH_FIELDS and prod.update_history[fld]>prod.publish_time] if prod.update_history else []
-        
-    ALL_EVENT_PUBLISH_FIELDS = ["sale_title", "sale_description", "events_end", "events_begin",
-                                "image_path", "highest_discount", "favbuy_tag", "favbuy_brand", "favbuy_dept"]
+    
     def publish_event(self, ev, upd=False, fields=[]):
         '''publish event data to the mastiff service.
         
@@ -307,9 +312,6 @@ class Publisher:
             self.logger.error(e)
             self.logger.error("publishing event %s:%s failed", obj_to_site(ev), ev.event_id)
     
-    ALL_PRODUCT_PUBLISH_FIELDS = ["favbuy_url", "events", "favbuy_price", "favbuy_listprice", "soldout",
-                                "color", "title", "summary", "list_info", "image_path", "favbuy_tag", "favbuy_brand", "favbuy_dept",
-                                "returned", "shipping", "products_begin", "products_end" ]
     def publish_product(self, prod, upd=False, fields=[]):
         '''
         Publish product data to the mastiff service.

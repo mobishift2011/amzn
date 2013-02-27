@@ -31,18 +31,19 @@ class Myhabit(object):
             asin = js['detailJSON']['asin']
             title = js['detailJSON']['title']
             brand = js['detailJSON']['brand']
-            price = float( js['detailJSON']['ourPrice']['amount'] )
+            if 'amount' in js['detailJSON']['ourPrice']:
+                price = float( js['detailJSON']['ourPrice']['amount'] )
+                if price != float( prd.price.replace('$', '') ):
+                    print 'myhabit product[{0}] price error: {1} vs {2}'.format(prd.combine_url, price, prd.price)
+            else:
+                print 'myhabit product[{0}] price can not get from network {1}'.format(prd.combine_url, prd.price)
             listprice = float( js['detailJSON']['listPrice']['amount'] )
-            if price != float( prd.price.replace('$', '') ):
-                print 'myhabit product[{0}] price error: {1} vs {2}'.format(prd.combine_url, price, prd.price)
             if listprice != float( prd.listprice.replace('$', '') ):
                 print 'myhabit product[{0}] listprice error: {1} vs {2}'.format(prd.combine_url, listprice, prd.listprice)
-            if title != prd.title.rsplit('(', 1)[0].rstrip():
-                print 'myhabit product[{0}] title error: {1} vs {2}'.format(prd.combine_url, title, prd.title)
+            if title.lower() != prd.title.rsplit('(', 1)[0].rstrip().lower():
+                print 'myhabit product[{0}] title error: {1} vs {2}'.format(prd.combine_url, [title, prd.title])
             if brand != prd.brand:
                 print 'myhabit product[{0}] brand error: {1} vs {2}'.format(prd.combine_url, brand, prd.brand)
-
-
 
 
     def bootstrap_jslink(self):

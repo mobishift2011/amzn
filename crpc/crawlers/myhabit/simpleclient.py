@@ -25,6 +25,8 @@ class Myhabit(object):
         print 'Myhabit have {0} products.'.format(obj.count())
 
         for prd in obj:
+            if not prd.jslink:
+                print 'myhabit product[{0}] has no jslink'.format(prd.combine_url)
             ret = self.s.get(prd.jslink, headers=self.headers)
             data = re.compile(r'parse_asin_\w+\((.*)\);$').search(ret.text).group(1)
             js = json.loads(data)

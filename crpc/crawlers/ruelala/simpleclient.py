@@ -32,7 +32,10 @@ class Ruelala(object):
                 continue
             cont = ret.content
             tree = lxml.html.fromstring(cont)
-            title = tree.cssselect('h2#productName')[0].text_content().strip()
+            try:
+                title = tree.cssselect('h2#productName')[0].text_content().strip()
+            except IndexError:
+                print '\n\n ruelala product[{0}] title not extract right. return url: {1}\n\n'.format(prd.combine_url, ret.url)
             listprice = tree.cssselect('span#strikePrice')[0].text_content().strip()
             price = tree.cssselect('span#salePrice')[0].text_content().strip()
             soldout = tree.cssselect('span#inventoryAvailable')

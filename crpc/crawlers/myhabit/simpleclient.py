@@ -42,10 +42,10 @@ class Myhabit(object):
                 listprice = float( js['detailJSON']['listPrice']['amount'] )
                 if listprice != float( prd.listprice.replace('$', '').replace(',', '') ):
                     print 'myhabit product[{0}] listprice error: {1} vs {2}'.format(prd.combine_url, listprice, prd.listprice)
-            else:
-                print 'myhabit product[{0}] listprice can not get from network {1}'.format(prd.combine_url, prd.listprice)
+#            else:
+#                print 'myhabit product[{0}] listprice can not get from network {1}'.format(prd.combine_url, prd.listprice)
             if title.lower() != prd.title.rsplit('(', 1)[0].rstrip().lower():
-                print 'myhabit product[{0}] title error: [{1}] vs [{2}]'.format(prd.combine_url, title, prd.title)
+                print 'myhabit product[{0}] title error: [{1}] vs [{2}]'.format(prd.combine_url, title.encode('utf-8'), prd.title.encode('utf-8'))
             if brand != prd.brand:
                 print 'myhabit product[{0}] brand error: {1} vs {2}'.format(prd.combine_url, brand, prd.brand)
 

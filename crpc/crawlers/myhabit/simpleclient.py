@@ -40,6 +40,7 @@ class Myhabit(object):
 #                print 'myhabit product[{0}] price can not get from network {1}'.format(prd.combine_url, prd.price)
             if 'listPrice' in js['detailJSON'] and 'amount' in js['detailJSON']['listPrice']:
                 listprice = float( js['detailJSON']['listPrice']['amount'] )
+                if '-' in prd.listprice: continue
                 if listprice != float( prd.listprice.replace('$', '').replace(',', '') ):
                     print 'myhabit product[{0}] listprice error: {1} vs {2}'.format(prd.combine_url, listprice, prd.listprice)
 #            else:

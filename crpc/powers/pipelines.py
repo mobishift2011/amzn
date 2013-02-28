@@ -197,6 +197,25 @@ class ProductPipeline(object):
 
         return
 
+    def update_events(self):
+        """
+        To fix the bug that the publisher will ignore the new event added to a product.
+        The product should add update_history about adding event to inform the publisher.
+        """
+        product = self.product
+        events = product.event_id
+
+        if not events:
+            return
+
+        if not product.update_history.get('event_id'):
+            product.update_history['event_id'] = {}
+
+        for event_id in events:
+            if event_id not in product.update_history['event_id']:
+                product.update_history['event_id'][event_id] = datetime.utcnow()
+                product.update_history['events'] = datetime.utcnow()
+
     def clean(self):
         product = self.product
 
@@ -230,6 +249,9 @@ class ProductPipeline(object):
             updated = True
 
         if self.extract_price():
+            updated = True
+
+        if self.update_events():
             updated = True
 
         return updated

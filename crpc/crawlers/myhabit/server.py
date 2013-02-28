@@ -159,6 +159,9 @@ class Server(object):
                 product.soldout = True
                 is_updated = True
                 product.update_history.update({ 'soldout': datetime.utcnow() })
+            if product.title != title:
+                product.title = title
+                product.update_history.update({ 'title': datetime.utcnow() })
         if event_id not in product.event_id: product.event_id.append(event_id)
         product.jslink = jslink
         product.list_update_time = datetime.utcnow()

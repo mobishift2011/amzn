@@ -26,7 +26,16 @@ from models import *
 from crawlers.common.events import *
 from crawlers.common.stash import *
 
-req = requests.Session(prefetch=True, timeout=30, config=config, headers=headers)
+header = {
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    'Accept-Charset': 'UTF-8,*;q=0.5',
+    'Accept-Encoding': 'gzip,deflate,sdch',
+    'Accept-Language': 'zh-CN,en-US;q=0.8,en;q=0.6',
+    'Host': 'www.zulily.com',
+    'Referer': 'http://www.zulily.com/',
+    'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.17 (KHTML, like Gecko) Ubuntu Chromium/24.0.1312.56 Chrome/24.0.1312.56 Safari/537.17',
+}
+req = requests.Session(prefetch=True, timeout=30, config=config, headers=header)
 
 class zulilyLogin(object):
     """.. :py:class:: zulilyLogin
@@ -37,6 +46,7 @@ class zulilyLogin(object):
             variables need to be used
         """
         self.login_url = 'https://www.zulily.com/auth'
+        self.badpage_url = re.compile('.*zulily.com/z/.*html')
         self.data = {
             'login[username]': login_email[DB],
             'login[password]': login_passwd
@@ -53,14 +63,19 @@ class zulilyLogin(object):
         req.post(self.login_url, data=self.data)
         self._signin[self.current_email] = True
 
+    def logout_account(self):
+        req.get('https://www.zulily.com/auth/logout/')
+
     def check_signin(self, username=''):
         """.. :py:method::
             check whether the account is login
         """
         if username == '':
+            self.logout_account()
             self.login_account()
         elif username not in self._signin:
             self.current_email = username
+            self.logout_account()
             self.login_account()
         else:
             self.current_email = username
@@ -72,15 +87,18 @@ class zulilyLogin(object):
         """
         ret = req.get(url)
 
-        if ret.url == u'https://www.zulily.com/z/bubble-gum-pink-pillow-with-chocolate-hug.html':
+        if self.badpage_url.match(ret.url):
+            self.current_email = get_login_email('zulily')
+            self.logout_account()
             self.login_account()
             ret = req.get(url)
-            if ret.url == u'https://www.zulily.com/z/bubble-gum-pink-pillow-with-chocolate-hug.html':
+            if self.badpage_url.match(ret.url):
                 return -500
 
         if ret.url == u'http://www.zulily.com/oops-event':
             return -404
         if ret.url == 'http://www.zulily.com/?tab=new-today':
+            self.logout_account()
             self.login_account()
             ret = req.get(url)
         if ret.ok: return ret.content
@@ -93,11 +111,20 @@ class zulilyLogin(object):
         """
         ret = req.get(url)
 
+        if self.badpage_url.match(ret.url):
+            self.current_email = get_login_email('zulily')
+            self.logout_account()
+            self.login_account()
+            ret = req.get(url)
+            if self.badpage_url.match(ret.url):
+                return -500
+
         if ret.url == u'http://www.zulily.com/oops-event':
             return -404
         if ret.url == u'http://www.zulily.com/' or 'http://www.zulily.com/brand/' in ret.url:
             return -302
         if ret.url == 'http://www.zulily.com/?tab=new-today':
+            self.logout_account()
             self.login_account()
             ret = req.get(url)
         if ret.ok: return ret.content
@@ -218,21 +245,28 @@ class Server(object):
                 continue
             event_id = m.group(2)
 
-            brand, is_new = Event.objects.get_or_create(event_id=event_id)
+            event, is_new = Event.objects.get_or_create(event_id=event_id)
             if is_new:
-                brand.urgent = True
-                brand.combine_url = 'http://www.zulily.com/e/{0}.html'.format(event_id)
-                brand.sale_title = sale_title.encode('utf-8')
-                brand.sale_description = sale_description.encode('utf-8')
-            if image and image not in brand.image_urls: brand.image_urls.append(image)
+                event.urgent = True
+                event.combine_url = 'http://www.zulily.com/e/{0}.html'.format(event_id)
+                event.sale_title = sale_title.encode('utf-8')
+                event.sale_description = sale_description.encode('utf-8')
+            if image and image not in event.image_urls: event.image_urls.append(image)
             start_time = node.cssselect('div.upcoming-date-reminder span.reminder-text')[0].text_content() # 'Starts Sat 10/27 6am pt - SET REMINDER'
             ev_begin = time_convert( ' '.join( start_time.split(' ', 4)[1:-1] ), '%a %m/%d %I%p%Y' ) - timedelta(minutes=5) #'Sat 10/27 6am'
             events_begin = datetime(ev_begin.year, ev_begin.month, ev_begin.day, ev_begin.hour, ev_begin.minute)
-            if brand.events_begin != events_begin:
-                brand.events_begin = events_begin
-                brand.update_history.update({ 'events_begin': datetime.utcnow() })
-            brand.update_time = datetime.utcnow()
-            brand.save()
+            if event.events_begin != events_begin:
+                event.events_begin = events_begin
+                event.update_history.update({ 'events_begin': datetime.utcnow() })
+            if event.events_end != None:
+                event.events_end = None
+                event.update_history.update({ 'events_end': datetime.utcnow() })
+            if event.product_ids != []: 
+                event.product_ids = []
+                event.update_history.update({ 'product_ids': datetime.utcnow() })
+
+            event.update_time = datetime.utcnow()
+            event.save()
             common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=pair[1], is_new=is_new, is_updated=False)
             
 

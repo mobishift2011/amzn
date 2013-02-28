@@ -60,6 +60,14 @@ def delete_brand(title):
 	return True
 
 
+def update_brand_volumn(title, volumns):
+	pb = PowerBrand.objects.get(title=title)
+	pb.global_searchs = volumns
+	pb.save()
+	return pb.to_json()
+
+
+
 link_api = slumber.API(MASTIFF_HOST)
 
 def get_all_links():

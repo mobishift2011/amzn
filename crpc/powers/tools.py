@@ -228,32 +228,38 @@ class ImageTool:
         return fileobj, (width, height)
 
 
-def test_image():
+def test_image(site, doctype, key):
     conn = S3Connection(AWS_ACCESS_KEY, AWS_SECRET_KEY)
-    urls = [
-        'http://static.beyondtherack.com/productimages/GUISCARLETTTZ/large/GUISCARLETTTZ_1.jpg',
-        'http://static.beyondtherack.com/productimages/GUISCARLETTTZ/large/GUISCARLETTTZ_2.jpg',
-    ]
+    doctype = doctype.capitalize()
+    m = __import__('crawlers.'+site+'.models', fromlist=[doctype])
+    params = {
+        'Event': {
+            'event_id': key,
+        },
+        'Product': {
+            'key': key,
+        }
+    }
+    urls = getattr(m, doctype).objects(**params[doctype]).first()['image_urls']
+    print 'image urls:'
+    for url in urls:
+        print url
+    print
 
     it = ImageTool(connection = conn)
-    it.crawl(urls, 'hautelook', 'event', '28313', thumb=True)
-    print 'image path ---> {0}'.format(it.image_path)
-    print 'complete ---> {0}\n'.format(it.image_complete)
-
-    urls = [
-        'http://www.hautelook.com/assets/28050kidorable/grid-large.jpg',
-        'http://www.hautelook.com/assets/28050kidorable/pop-large.jpg',
-    ]
-    it = ImageTool(connection = conn)
-    it.crawl(urls, 'hautelook', 'event', '123456791', thumb=True)
+    it.crawl(urls, site, doctype, key, thumb=True)
     print 'image path ---> {0}'.format(it.image_path)
     print 'complete ---> {0}\n'.format(it.image_complete)
 
 
 if __name__ == '__main__':
-    import time, sys
-    start = time.time()
-    if len(sys.argv) > 1:
-        if sys.argv[1] == '-i':
-            test_image()
-    print time.time() - start, 's'
+    import sys
+    from optparse import OptionParser
+
+    parser =  OptionParser(usage='usage: %prog [options]')
+    parser.add_option('-t', '--test', dest='test_image', action='store_true', help='test image upload', default=False)
+
+    option, args = parser.parse_args(sys.argv[1:])
+    if option.test_image:
+        site, doctype, key = args
+        test_image(site, doctype, key)

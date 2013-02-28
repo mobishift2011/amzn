@@ -4,10 +4,10 @@
 import requests
 import json
 import re
-from pprint import pprint
 from datetime import datetime, timedelta
 
 from models import Jslinker
+from models import Event, Product
 
 class Myhabit(object):
     def __init__(self):
@@ -18,7 +18,40 @@ class Myhabit(object):
     'Cookie': 'session-id=187-2590046-5168141; session-id-time=1981953112l; session-token="Du3P0R8YKirRoBoLUW7vGfb+S4AxLHVDHugauuoNNbe7GL7+HdYVbj4R6E0qd0kOYZP1p08iLRS4ifjAM9g3q++7Lnin99mUIyiifqkyaVyFlYZgMzNQRFPtBch2NtU6zsVHt7E0ZipCJzZCBR9wa0RcALAyoWXh3O3XQ2LqcmilYQDqvGwRruHKDHBMFGrsJ8m23uWs+OU9tEn4C9p0IO9kl6t0xjv/0im28qSEE+s="; ct-main=dggZr9fLGRQ6nJUa9lswPE8VamKEexge; ubid-main=180-1581204-1041538',
     'x-amzn-auth': '187-2590046-5168141',
         }
-        self.bootstrap_jslink()
+
+    def check_product_right(self):
+        utcnow = datetime.utcnow()
+        obj = Product.objects(products_end__gt=utcnow).timeout(False)
+        print 'Myhabit have {0} products.'.format(obj.count())
+
+        for prd in obj:
+            if not prd.jslink:
+                print 'myhabit product[{0}] has no jslink'.format(prd.combine_url)
+            ret = self.s.get(prd.jslink, headers=self.headers)
+            data = re.compile(r'parse_asin_\w+\((.*)\);$').search(ret.text).group(1)
+            js = json.loads(data)
+            asin = js['detailJSON']['asin']
+            title = js['detailJSON']['title']
+            brand = js['detailJSON']['brand']
+#            Ourprice is not right
+#            if 'amount' in js['detailJSON']['ourPrice']:
+#                price = float( js['detailJSON']['ourPrice']['amount'] )
+#                if price != float( prd.price.replace('$', '') ):
+#                    print 'myhabit product[{0}] price error: {1} vs {2}'.format(prd.combine_url, price, prd.price)
+#            else:
+#                print 'myhabit product[{0}] price can not get from network {1}'.format(prd.combine_url, prd.price)
+            if 'listPrice' in js['detailJSON'] and 'amount' in js['detailJSON']['listPrice']:
+                listprice = float( js['detailJSON']['listPrice']['amount'] )
+                if '-' in prd.listprice: continue
+                if listprice != float( prd.listprice.replace('$', '').replace(',', '') ):
+                    print 'myhabit product[{0}] listprice error: {1} vs {2}'.format(prd.combine_url, listprice, prd.listprice)
+#            else:
+#                print 'myhabit product[{0}] listprice can not get from network {1}'.format(prd.combine_url, prd.listprice)
+            if title.lower() != prd.title.rsplit('(', 1)[0].rstrip().lower():
+                print 'myhabit product[{0}] title error: [{1}] vs [{2}]'.format(prd.combine_url, title.encode('utf-8'), prd.title.encode('utf-8'))
+            if brand != prd.brand:
+                print 'myhabit product[{0}] brand error: {1} vs {2}'.format(prd.combine_url, brand, prd.brand)
+
 
     def bootstrap_jslink(self):
         r = self.s.get(self.rooturl, headers=self.headers)
@@ -46,4 +79,4 @@ class Myhabit(object):
 
 if __name__ == '__main__':
     myhabit = Myhabit()
-    print myhabit.get_product_abstract_by_url('http://www.myhabit.com/#page=d&dept=men&sale=A25ZXVWLT0BY7D&asin=B009QTU916&cAsin=B009QTUEM0&ref=qd_b_img_d_1')
+    myhabit.check_product_right()

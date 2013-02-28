@@ -25,7 +25,14 @@ class Publisher:
             path = join(CRPC_ROOT, "crawlers", name)
             if name not in exclude_crawlers and isdir(path):
                 self.m[name] = get_site_module(name)
-                
+
+    ALL_EVENT_PUBLISH_FIELDS = ["sale_title", "sale_description", "events_end", "events_begin",
+                                "image_path", "highest_discount", "favbuy_tag", "favbuy_brand", "favbuy_dept"]
+
+    ALL_PRODUCT_PUBLISH_FIELDS = ["favbuy_url", "events", "favbuy_price", "favbuy_listprice", "soldout",
+                                "color", "title", "summary", "list_info", "image_path", "favbuy_tag", "favbuy_brand", "favbuy_dept",
+                                "returned", "shipping", "products_begin", "products_end" ]
+
     def get_module(self, site):
         return self.m[site]
         
@@ -232,17 +239,17 @@ class Publisher:
         '''condition for publishing product update (the product was published before).
         :param prod: product object. Note: now only handle favbuy text update.
         '''
-        update_time = max(prod.update_history.values()) if prod.update_history else None
+        update_time = max([v for k,v in prod.update_history.iteritems() if k in self.ALL_PRODUCT_PUBLISH_FIELDS]) \
+            if prod.update_history else None
+
         return prod.publish_time and update_time and prod.publish_time < update_time
         
     def ev_updflds_for_publish(self, ev):
         return [fld for fld in ev.update_history.keys() if ev.update_history[fld]>ev.publish_time] if ev.update_history else []
         
     def prod_updflds_for_publish(self, prod):
-        return [fld for fld in prod.update_history.keys() if prod.update_history[fld]>prod.publish_time] if prod.update_history else []
-        
-    ALL_EVENT_PUBLISH_FIELDS = ["sale_title", "sale_description", "events_end", "events_begin",
-                                "image_path", "highest_discount", "favbuy_tag", "favbuy_brand", "favbuy_dept"]
+        return [fld for fld in prod.update_history.keys() if fld in self.ALL_PRODUCT_PUBLISH_FIELDS and prod.update_history[fld]>prod.publish_time] if prod.update_history else []
+    
     def publish_event(self, ev, upd=False, fields=[]):
         '''publish event data to the mastiff service.
         
@@ -265,7 +272,7 @@ class Publisher:
                 if f=="sale_title": ev_data['title'] = obj_getattr(ev, 'sale_title', '')
                 elif f=="sale_description": ev_data['description'] = obj_getattr(ev, 'sale_description', '')
                 elif f=="events_end":
-                    ret = ev_data['ends_at'] = obj_getattr(ev, 'events_end', '')
+                    ret = obj_getattr(ev, 'events_end', '')
                     # if one event is off sale, then on sale again, need patch ''
                     if upd: # patch ''
                         if ret: ev_data['ends_at'] = ret.isoformat()
@@ -305,9 +312,6 @@ class Publisher:
             self.logger.error(e)
             self.logger.error("publishing event %s:%s failed", obj_to_site(ev), ev.event_id)
     
-    ALL_PRODUCT_PUBLISH_FIELDS = ["favbuy_url", "events", "favbuy_price", "favbuy_listprice", "soldout",
-                                "color", "title", "summary", "list_info", "image_path", "favbuy_tag", "favbuy_brand", "favbuy_dept",
-                                "returned", "shipping", "products_begin", "products_end" ]
     def publish_product(self, prod, upd=False, fields=[]):
         '''
         Publish product data to the mastiff service.

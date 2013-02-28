@@ -132,7 +132,7 @@ def _sync_latest_code():
         if dir_exists('/srv/crpc/src'):
             with cd('/srv/crpc/src'):
                 sudo('git reset HEAD --hard && git fetch --all')
-                sudo('git checkout master')
+                sudo('git pull origin master')
                 sudo('cp -r /srv/crpc/src/crpc/* /srv/crpc/')
         else:
             sudo('git clone %s src' % GIT_REPO)
@@ -306,11 +306,12 @@ def start_crpc_server():
         with settings(host_string=host_string, warn_only=True):
             run('sudo supervisord -c /srv/crpc/supervisord.conf -l /tmp/supervisord.log')
         
+@parallel
 def _restart_zero():
     puts(green("Restarting Zero Servers"))
     with settings(warn_only=True):
         run('killall supervisord')
-        run('sleep 0.5')
+        run('sleep 1')
         run('cd /srv/crpc && ulimit -n 8192 && supervisord -c supervisord.conf -l /tmp/supervisord.log')
 
 def deploy():

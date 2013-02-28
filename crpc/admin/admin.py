@@ -22,7 +22,7 @@ from mongoengine import Q
 from collections import Counter
 
 from crawlers.common.stash import picked_crawlers
-from views import get_all_brands, get_brand, update_brand, delete_brand
+from views import get_all_brands, get_brand, update_brand, delete_brand, update_brand_volumn
 from views import get_all_links, post_link, delete_link
 from powers.tools import ImageTool, Image
 from powers.configs import AWS_ACCESS_KEY, AWS_SECRET_KEY
@@ -169,18 +169,19 @@ class IndexHandler(BaseHandler):
         c10_top_buys = c_top_buys.most_common(10)
         for id, count in c10_top_buys:
             top_buys[id] = {'count': count}
-        list_products = api.product.get(limit=1000, _id__in=','.join(pids))['objects']
+        list_products = []
+        for i in range((len(pids)-1)/100+1):
+            pidsi = pids[i*100:i*100+100]
+            list_products.extend( api.product.get(limit=1000, _id__in=','.join(pidsi))['objects'] )
         for p in list_products:
             top_buy_sites[ p['site_key'].split('_', 1)[0] ] += c_top_buys[ p['id'] ]
             if p['id'] in top_buys:
                 top_buys[p['id']]['product'] = p
 
-        from pprint import pprint
-        pprint(top_buy_sites)
-
         top_buys = sorted(top_buys.items(), key=lambda x:x[1]['count'], reverse=True)
     
         self.render("index.html",
+            utcnow = datetime.utcnow(),
             num_members = num_members,
             num_new_members = num_new_members,
             num_events = num_events,
@@ -618,6 +619,7 @@ class TraceDataHandler(BaseHandler):
             self.render('tracedata.html')
 
 class AffiliateHandler(BaseHandler):
+    @tornado.web.authenticated
     def get(self, key):
         if not key:
             if self.get_argument('ac') == 'a':
@@ -625,6 +627,7 @@ class AffiliateHandler(BaseHandler):
 
             return self.render('affiliate.html', links=get_all_links(), sites=picked_crawlers)
 
+    @tornado.web.authenticated
     def post(self, key):
         arguments = {
             'site': self.get_argument('site'),
@@ -638,6 +641,10 @@ class AffiliateHandler(BaseHandler):
 
         post_link(**arguments)
         return self.render('affiliate.html', links=get_all_links(), sites=picked_crawlers)
+
+    @tornado.web.authenticated
+    def delete(self, key):
+        print 'method delete'
 
 class BrandsHandler(BaseHandler):
     def get(self, db):
@@ -672,6 +679,54 @@ class BrandHandler(BaseHandler):
     @tornado.web.authenticated
     def delete(self, brand_title):
         self.write(str(delete_brand(brand_title)))
+
+
+class PowerBrandHandler(BaseHandler):
+    @tornado.web.authenticated
+    def get(self, brand_title):
+        brand = get_brand(brand_title, 'p')
+        self.render('brandpower.html', brand=brand)
+
+    @tornado.web.authenticated
+    def post(self, brand_title):
+        arguments = self.request.arguments
+        brand = update_brand_volumn(brand_title, int(arguments['global_searchs'][0]))
+        self.render('brandpower.html', brand=brand)
+
+
+class MemberHandler(BaseHandler):
+    def get(self, path):
+        if path == '':
+            self.user_index()
+
+    def post(self, path):
+        if path == 'delete_user.ajax':
+            self.delete_user()
+
+    def delete_user(self):
+        username = self.get_argument('username')
+        self.content_type = 'application/json'
+        try:
+            api.usermanage(username).delete()
+        except Exception, e:
+            self.write(json.dumps({'status':'failed', 'reason': e.message }))
+        else:
+            self.write(json.dumps({'status':'ok'}))
+
+    def user_index(self):
+        limit = self.get_argument('limit', '50')
+        offset = self.get_argument('offset', '0')
+        offset, limit = int(offset), int(limit)
+
+        data = api.usermanage.get(offset=offset, limit=limit, order_by='-date_joined')
+        users = data['objects']
+        total_count = data['meta']['total_count']
+        pagination = Pagination(1+offset/50, 50, total_count)
+
+        self.render('member.html',
+            users = users,
+            pagination = pagination
+        )
 
 class AjaxHandler(BaseHandler):
     def get(self, path):
@@ -750,9 +805,12 @@ application = tornado.web.Application([
     (r"/tracedata/?(.*)/?(.*)/?", TraceDataHandler),
     (r"/affiliate/?(.*)/?", AffiliateHandler),
     (r"/brands/?(.*)", BrandsHandler),
+    (r"/brand/power/(.*)", PowerBrandHandler),
     (r"/brand/?(.*)", BrandHandler),
     (r"/feedback/(.*)", FeedbackHandler),
     (r"/email/(.*)", EmailHandler),
+    (r"/member/(.*)", MemberHandler),
+    (r"/ajax/(.*)", AjaxHandler),
     (r"/", IndexHandler),
     (r"/assets/(.*)", tornado.web.StaticFileHandler, dict(path=settings['static_path'])),
 ], **settings)

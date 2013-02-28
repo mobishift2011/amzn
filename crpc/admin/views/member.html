@@ -1,0 +1,108 @@
+{% extends "layout.html" %}
+{% block content %}
+        <!-- content starts -->
+            <div>
+                <ul class="breadcrumb">
+                    <li>
+                        <a href="#">Home</a> <span class="divider">/</span>
+                    </li>
+                    <li>
+                        <a href="/member/">Members</a>
+                    </li>
+                </ul>
+            </div>
+            <div>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Username/Email</th>
+                            <th>Display name</th>
+                            <th>Date Joined</th>
+                            <th>is_active</th>
+                            <th>SNS</th>
+                            <th>Signup From</th>
+                            <th>Control</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for u in users %}
+                            <tr>
+                                <td>{{ u.username }}</td>
+                                <td>{{ u.screen_name }}</td>
+                                <td>{{ u.date_joined }}</td>
+                                <td>{{ u.is_active }}</td>
+                                <td> facebook: {{ u.facebook_id }}/ twitter: {{ u.twitter_id }}</td>
+                                <td> {{ u.signup_from }}</td>
+                                <td>
+                                    <a id="delete-user" username="{{u.username}}" class="btn btn-danger"><i class="icon-trash icon-white"></i></a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+    <div class="pagination pagination-centered">
+      <ul>
+        {% if pagination.has_prev %}
+        <li><a class="pagination" page="{{pagination.page-1}}" href="#">Prev</a></li>
+        {% endif %}
+        {% for page in pagination.iter_pages() %}
+        {% if page %}
+          {% if page == pagination.page %}
+            <li class="active"><a class="pagination" page="" href="#">{{page}}</a></li>
+          {% else %}
+            <li><a class="pagination" page="{{page}}" href="#">{{page}}</a></li>
+          {% endif %}
+        {% else %}
+          <li><a class="pagination" page="" href="#">...</a></li>
+        {% endif %}
+        {% endfor %}
+        {% if pagination.has_next %}
+        <li><a class="pagination" page="{{pagination.page+1}}" href="#">Next</a></li>
+        {% endif %}
+      </ul>
+    </div>   
+                  
+{% endblock %}
+
+{% block script %}
+<script>
+    function getCookie(name) {
+        var r = document.cookie.match("\\b" + name + "=([^;]*)\\b");
+        return r ? r[1] : undefined;
+    }
+    
+    $('#delete-user').live('click', function(){
+        var del = confirm("are you sure to delete this user?");
+        if (del){
+            var username = $(this).attr('username');
+            var self = $(this);
+            $.ajax({
+                type: "POST",
+                dataType: "json", 
+                data: {username:username, _xsrf:getCookie('_xsrf')},
+                url: "/member/delete_user.ajax",
+                success: function(data){
+                    console.log(data);
+                    if (data['status'] == 'ok'){
+                        self.parent().parent().remove();
+                    }
+                }
+            }) 
+        }
+    });
+
+  // make selection consistent with url
+  var param = $.deparam(window.location.href.substr(window.location.href.indexOf('?')+1));
+
+  $('a.pagination').live('click', function(){
+    if ($(this).attr('page')) {
+      param['offset'] = ($(this).attr('page')-1)*50;
+      var url = "/member/?" + $.param(param);
+      window.location.href = url;
+    }
+  });
+
+</script>
+{% endblock %}

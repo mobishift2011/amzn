@@ -59,6 +59,9 @@ class Server(object):
                 ['Home', 'Beauty & Fragrance'],
                 ctx)
 
+        self.crawl_designer_brand_page('designer', 'http://www.bluefly.com/designers.fly', ctx)
+
+
     def save_category_to_db(self, url, key, slug, cats, ctx):
         """.. :py:method::
             common save to db in crawl_category
@@ -173,13 +176,35 @@ class Server(object):
             self.save_category_to_db(url, key, slug, cats, ctx)
 
 
+    def crawl_designer_brand_page(self, cat, url, ctx):
+        tree = self.download_category_return_xmltree(cat, url, ctx)
+        if tree is None: return
+        brands_nodes = tree.cssselect('div#designerAlpha > ul#designList > li > a[href]')
+        for node in brands_nodes:
+            brand = node.get('name')
+            link = node.get('href')
+            key = link.rsplit('/', 1)[-1]
+            link = link if link.startswith('http') else self.siteurl + link
+
+            is_new, is_updated = False, False
+            category = Category.objects(key=key).first()
+            if not category:
+                is_new = True
+                category = Category(key=key)
+                category.is_leaf = True
+                category.combine_url = link
+                category.cats = [cat, key]
+            category.update_time = datetime.utcnow()
+            category.save()
+            common_saved.send(sender=ctx, obj_type='Category', key=key, url=link, is_new=is_new, is_updated=is_updated)
+
+
     def crawl_listing(self, url, ctx='', **kwargs):
         """.. :py:method::
             differenct between normal listing and newarrivals listing page
             nav = tree.xpath('//div[@id="listPage"]/div[@id="listProductPage"]') # normal listing
             nav = tree.xpath('//div[@id="newArrivals"]/div[@id="listProductPage"]') # new arrival
         """
-        key = self.extract_category_key.match(url).group(1)
         content = fetch_page(url)
         if content is None: content = fetch_page(url)
         if content is None or isinstance(content, int):
@@ -187,6 +212,12 @@ class Server(object):
                     reason='download error listing or {0} return'.format(content))
             return
         tree = lxml.html.fromstring(content)
+
+        if 'bluefly.com/designer/' in url:
+            self.crawl_brand_listing(url, tree, ctx)
+            return
+
+        key = self.extract_category_key.match(url).group(1)
         navigation = tree.cssselect('div[id] > div#listProductPage')
         if not navigation:
             with open('test.html', 'w') as fd:
@@ -217,6 +248,30 @@ class Server(object):
         for page_num in xrange(1, pages_num): # the real page number is page_num+1
             page_url = '{0}/_/N-{1}/Nao-{2}/list.fly'.format(self.siteurl, key, page_num*NUM_PER_PAGE)
             self.get_next_page_in_listing(key, category_path, page_url, page_num+1, ctx)
+
+
+    def crawl_brand_listing(self, url, tree, ctx):
+        page_num = tree.cssselect('div#ls_topRightNavBar > div.ls_pageNav > a:nth-last-of-type(1)')
+        if page_num:
+            page_num = int( page_num[0].text_content() )
+        nodes = tree.cssselect('div#productGridContainer > div.productGridRow > div.productContainer')
+        for node in nodes:
+            self.crawl_every_product_in_listing(url.rsplit('/', 1)[-1], [], node, 1, ctx)
+
+        if page_num:
+            for i in xrange(1, page_num):
+                page_url = '{0}?page={1}'.format(url, i+1)
+                content = fetch_page(page_url)
+                if content is None: content = fetch_page(page_url)
+                if content is None or isinstance(content, int):
+                    common_failed.send(sender=ctx, key='', url=page_url,
+                            reason='download error listing or {0} return'.format(content))
+                    return
+                tree = lxml.html.fromstring(content)
+                nodes = tree.cssselect('div#productGridContainer > div.productGridRow > div.productContainer')
+                for node in nodes:
+                    self.crawl_every_product_in_listing(url.rsplit('/', 1)[-1], [], node, i+1, ctx)
+
 
     def get_next_page_in_listing(self, key, category_path, url, page_num, ctx):
         """.. :py:method::
@@ -295,7 +350,7 @@ class Server(object):
         if listprice and not product.listprice: product.listprice = listprice
         if price and not product.price: product.price = price
         if category_key not in product.category_key: product.category_key.append(category_key)
-        if category_path not in product.cats: product.cats.append(category_path)
+        if category_path and category_path not in product.cats: product.cats.append(category_path)
         product.list_update_time = datetime.utcnow()
         product.save()
         common_saved.send(sender=ctx, obj_type='Product', key=key, url=link, is_new=is_new, is_updated=is_updated)

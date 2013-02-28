@@ -52,7 +52,7 @@ login_email = {'bluefly': '2012luxurygoods@gmail.com',
                'myhabit': '2012luxurygoods@gmail.com',
                'belleandclive': '2012luxurygoods@gmail.com',
                'modnique': '2012luxurygoods@gmail.com',
-               'zulily': 'wenj428@gmail.com',
+               'zulily': 'badname@zulily.com',
                'onekingslane': '2012luxurygoods@gmail.com',
                'hautelook': '2012luxurygoods@gmail.com',
 }

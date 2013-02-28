@@ -7,7 +7,7 @@
       <a href="/">Home</a> <span class="divider">/</span>
     </li>
     <li>
-      <a href="#">Feed Back</a>
+      <a href="/feedback/">Feed Back</a>
     </li>
   </ul>
 
@@ -36,8 +36,32 @@
               {% endfor %}
           </table>
       </div>  
+
+    <div class="pagination pagination-centered">
+      <ul>
+        {% if pagination.has_prev %}
+        <li><a class="pagination" page="{{pagination.page-1}}" href="#">Prev</a></li>
+        {% endif %}
+        {% for page in pagination.iter_pages() %}
+        {% if page %}
+          {% if page == pagination.page %}
+            <li class="active"><a class="pagination" page="" href="#">{{page}}</a></li>
+          {% else %}
+            <li><a class="pagination" page="{{page}}" href="#">{{page}}</a></li>
+          {% endif %}
+        {% else %}
+          <li><a class="pagination" page="" href="#">...</a></li>
+        {% endif %}
+        {% endfor %}
+        {% if pagination.has_next %}
+        <li><a class="pagination" page="{{pagination.page+1}}" href="#">Next</a></li>
+        {% endif %}
+      </ul>
+    </div>   
+
   {% endif %}
   </div>
+
 </div><!--main-content-->
   
       
@@ -98,41 +122,11 @@
   // pagination
   $('a.pagination').live('click', function(){
     if ($(this).attr('page')) {
-      param['offset'] = ($(this).attr('page')-1)*20;
-      var url = "/viewdata/products?" + $.param(param);
+      var url = "/feedback/?page=" + $(this).attr('page');
       window.location.href = url;
     }
   });
 
-  $('#searchtitle').click(function(){
-    var url = "/viewdata/products?"+ $.param({'title__icontains':$('#searchinput').val().replace(')','\\)').replace('(','\\(')});
-    window.location.href = url;
-  });
 
-  // reason
-  $('[name=reason]').live('click', function(){
-    var site_key = $(this).attr('site_key');
-    var s = site_key.split('_');
-    var site = s[0]
-    var key = s[1]
-    $.get('/viewdata/classification_reason.ajax', $.param({site:site,key:key}), function(data){
-        $('#reason-body').html(data);
-        $('#reason-modal').modal();
-    });
-  });
-
-  // reclassify all
-  $('#editall').live('click', function(){
-    $('#edit-modal').modal();
-  });
-
-  $('#edit-save').live('click', function(){
-    var value = $('#edit-input').val();
-    param['departments'] = value;
-    $.get('/viewdata/reclassify_all.ajax', param, function(data){
-        $('#edit-modal').modal('hide');
-        window.location.href = window.location.href;
-    });
-  });
 </script>
 {% endblock %}

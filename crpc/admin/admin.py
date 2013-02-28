@@ -565,15 +565,34 @@ class FeedbackHandler(BaseHandler):
         if id:
             return self.render_detail(id)
 
-        limit = self.get_argument('limit', 20)
-        offset = self.get_argument('offset', 0)
-        results = api.feedback.get(limit=limit,offset=offset)['objects']
-        print 'results',results
-        self.render('feedback/list.html',results=results)
+        page = int(self.get_argument('page', 1))
+        limit = 20
+        offset = (page-1)*limit
+        res = api.feedback.get(limit=limit,offset=offset,order_by='-created_at')
+        total_count =  res['meta']['total_count']
+        pagination = Pagination(page, limit, total_count)
+        self.render('feedback/list.html',results=res['objects'],pagination=pagination)
 
     def render_detail(self,id):
         r = api.feedback(id).get()
         return self.render('feedback/detail.html',r=r)
+
+class EmailHandler(BaseHandler):
+    def get(self,id=None):
+        if id:
+            return self.render_detail(id)
+
+        page = int(self.get_argument('page', 1))
+        limit = 20
+        offset = (page-1)*limit
+        res = api.email.get(limit=limit,offset=offset,order_by='-created_at')
+        total_count =  res['meta']['total_count']
+        pagination = Pagination(page, limit, total_count)
+        self.render('email/list.html',results=res['objects'],pagination=pagination)
+
+    def render_detail(self,id):
+        r = api.email(id).get()
+        return self.render('email/detail.html',r=r)
 
 class MonitorHandler(BaseHandler):
     def get(self):
@@ -598,7 +617,6 @@ class TraceDataHandler(BaseHandler):
         if not site:
             self.render('tracedata.html')
 
-
 class AffiliateHandler(BaseHandler):
     def get(self, key):
         if not key:
@@ -620,7 +638,6 @@ class AffiliateHandler(BaseHandler):
 
         post_link(**arguments)
         return self.render('affiliate.html', links=get_all_links(), sites=picked_crawlers)
-
 
 class BrandsHandler(BaseHandler):
     def get(self, db):
@@ -735,6 +752,7 @@ application = tornado.web.Application([
     (r"/brands/?(.*)", BrandsHandler),
     (r"/brand/?(.*)", BrandHandler),
     (r"/feedback/(.*)", FeedbackHandler),
+    (r"/email/(.*)", EmailHandler),
     (r"/", IndexHandler),
     (r"/assets/(.*)", tornado.web.StaticFileHandler, dict(path=settings['static_path'])),
 ], **settings)

@@ -1,8 +1,9 @@
 import requests
 import lxml.html
 import re
+from datetime import datetime
+from models import Product
 
-test_url = 'http://www.ruelala.com/event/product/63747/1111937972/0/DEFAULT'
 
 class Ruelala(object):
     def __init__(self):
@@ -18,6 +19,26 @@ class Ruelala(object):
         }       
         self.s.post('https://www.ruelala.com/registration/login', data=self.data)
     
+    def check_product_right(self):
+        utcnow = datetime.utcnow()
+        obj = Product.objects(products_end__gt=utcnow).timeout(False)
+        print 'Ruelala have {0} products.'.format(obj.count())
+
+        for prd in obj:
+            cont = self.s.get(prd.combine_url).content
+            tree = lxml.html.fromstring(cont)
+            title = tree.cssselect('h2#productName')[0].text_content().strip()
+            listprice = tree.cssselect('span#strikePrice')[0].text_content().strip()
+            price = tree.cssselect('span#salePrice')[0].text_content().strip()
+            soldout = tree.cssselect('span#inventoryAvailable')
+            if title != prd.title:
+                print 'ruelala product[{0}] title error: [{1}, {2}]'.format(prd.combine_url, title, prd.title)
+            if listprice != prd.listprice:
+                print 'ruelala product[{0}] listprice error: [{1}, {2}]'.format(prd.combine_url, listprice, prd.listprice)
+            if price != prd.price:
+                print 'ruelala product[{0}] price error: [{1}, {2}]'.format(prd.combine_url, price, prd.price)
+
+
     def get_product_abstract_by_url(self, url):
         content = self.s.get(url).content
         product_id = re.compile(r'/product/(\d+)').search(url).group(1)
@@ -29,4 +50,4 @@ class Ruelala(object):
         return 'ruelala_'+product_id, title+'_'+description
 
 if __name__ == '__main__':
-    print Ruelala().get_product_abstract_by_url(test_url)
+    Ruelala().check_product_right()

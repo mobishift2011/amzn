@@ -22,7 +22,7 @@ from mongoengine import Q
 from collections import Counter
 
 from crawlers.common.stash import picked_crawlers
-from views import get_all_brands, get_brand, update_brand, delete_brand
+from views import get_all_brands, get_brand, update_brand, delete_brand, update_brand_volumn
 from views import get_all_links, post_link, delete_link
 from powers.tools import ImageTool, Image
 from powers.configs import AWS_ACCESS_KEY, AWS_SECRET_KEY
@@ -601,6 +601,7 @@ class TraceDataHandler(BaseHandler):
 
 
 class AffiliateHandler(BaseHandler):
+    @tornado.web.authenticated
     def get(self, key):
         if not key:
             if self.get_argument('ac') == 'a':
@@ -608,6 +609,7 @@ class AffiliateHandler(BaseHandler):
 
             return self.render('affiliate.html', links=get_all_links(), sites=picked_crawlers)
 
+    @tornado.web.authenticated
     def post(self, key):
         arguments = {
             'site': self.get_argument('site'),
@@ -622,6 +624,7 @@ class AffiliateHandler(BaseHandler):
         post_link(**arguments)
         return self.render('affiliate.html', links=get_all_links(), sites=picked_crawlers)
 
+    @tornado.web.authenticated
     def delete(self, key):
         print 'method delete'
 
@@ -659,6 +662,20 @@ class BrandHandler(BaseHandler):
     @tornado.web.authenticated
     def delete(self, brand_title):
         self.write(str(delete_brand(brand_title)))
+
+
+class PowerBrandHandler(BaseHandler):
+    @tornado.web.authenticated
+    def get(self, brand_title):
+        brand = get_brand(brand_title, 'p')
+        self.render('brandpower.html', brand=brand)
+
+    @tornado.web.authenticated
+    def post(self, brand_title):
+        arguments = self.request.arguments
+        brand = update_brand_volumn(brand_title, int(arguments['global_searchs'][0]))
+        self.render('brandpower.html', brand=brand)
+
 
 class MemberHandler(BaseHandler):
     def get(self, path):
@@ -771,6 +788,7 @@ application = tornado.web.Application([
     (r"/tracedata/?(.*)/?(.*)/?", TraceDataHandler),
     (r"/affiliate/?(.*)/?", AffiliateHandler),
     (r"/brands/?(.*)", BrandsHandler),
+    (r"/brand/power/(.*)", PowerBrandHandler),
     (r"/brand/?(.*)", BrandHandler),
     (r"/feedback/(.*)", FeedbackHandler),
     (r"/member/(.*)", MemberHandler),

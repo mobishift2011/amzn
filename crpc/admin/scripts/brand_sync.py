@@ -49,7 +49,7 @@ def sync2mastiff(host=MASTIFF_HOST):
 				'logo_url': brand.images[0] if brand.images else ''
 			}
 
-			if query['meta']['total_count']:
+			if query['objects']:
 				brand_id = query['objects'][0]['id']
 				api.brand(brand_id).patch(params)
 			else:

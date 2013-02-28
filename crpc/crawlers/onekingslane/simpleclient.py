@@ -16,6 +16,13 @@ class Onekingslane(object):
         obj = Product.objects(products_end__gt=utcnow).timeout(False)
         print 'Onekingslane have {0} products.'.format(obj.count())
 
+        for prd in obj:
+            ret = self.s.get(prd.combine_url, headers=self.headers)
+            tree = lxml.html.fromstring(ret.content)
+            title = tree.cssselect('#productOverview h1.serif')[0].text_content()
+            price = tree.cssselect('p#oklPriceLabel')[0].text_content()
+            tree.cssselect('p#msrpLabel')
+
 
     def get_product_abstract_by_url(self, url):
         product_id = re.compile(r'/product/\d+/(\d+)').search(url).group(1)

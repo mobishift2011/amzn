@@ -31,12 +31,13 @@ class Myhabit(object):
             asin = js['detailJSON']['asin']
             title = js['detailJSON']['title']
             brand = js['detailJSON']['brand']
-            if 'amount' in js['detailJSON']['ourPrice']:
-                price = float( js['detailJSON']['ourPrice']['amount'] )
-                if price != float( prd.price.replace('$', '') ):
-                    print 'myhabit product[{0}] price error: {1} vs {2}'.format(prd.combine_url, price, prd.price)
-            else:
-                print 'myhabit product[{0}] price can not get from network {1}'.format(prd.combine_url, prd.price)
+#            Ourprice is not right
+#            if 'amount' in js['detailJSON']['ourPrice']:
+#                price = float( js['detailJSON']['ourPrice']['amount'] )
+#                if price != float( prd.price.replace('$', '') ):
+#                    print 'myhabit product[{0}] price error: {1} vs {2}'.format(prd.combine_url, price, prd.price)
+#            else:
+#                print 'myhabit product[{0}] price can not get from network {1}'.format(prd.combine_url, prd.price)
             if 'amount' in js['detailJSON']['listPrice']:
                 listprice = float( js['detailJSON']['listPrice']['amount'] )
                 if listprice != float( prd.listprice.replace('$', '').replace(',', '') ):

@@ -20,6 +20,7 @@
                             <th>Date Joined</th>
                             <th>is_active</th>
                             <th>SNS</th>
+                            <th>Signup From</th>
                             <th>Control</th>
                         </tr>
                     </thead>
@@ -31,6 +32,7 @@
                                 <td>{{ u.date_joined }}</td>
                                 <td>{{ u.is_active }}</td>
                                 <td> facebook: {{ u.facebook_id }}/ twitter: {{ u.twitter_id }}</td>
+                                <td> {{ u.signup_from }}</td>
                                 <td>
                                     <a id="delete-user" username="{{u.username}}" class="btn btn-danger"><i class="icon-trash icon-white"></i></a>
                                 </td>

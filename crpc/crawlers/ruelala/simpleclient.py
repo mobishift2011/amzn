@@ -25,10 +25,14 @@ class Ruelala(object):
         print 'Ruelala have {0} products.'.format(obj.count())
 
         redirect_count = 0
+        error_page = 0
         for prd in obj:
             ret = self.s.get(prd.combine_url)
             if ret.url == 'http://www.ruelala.com/event':
                 redirect_count += 1
+                continue
+            if ret.url == 'http://www.ruelala.com/common/errorGeneral':
+                error_page += 1
                 continue
             cont = ret.content
             tree = lxml.html.fromstring(cont)
@@ -36,7 +40,10 @@ class Ruelala(object):
                 title = tree.cssselect('h2#productName')[0].text_content().strip()
             except IndexError:
                 print '\n\n ruelala product[{0}] title not extract right. return url: {1}\n\n'.format(prd.combine_url, ret.url)
-            listprice = tree.cssselect('span#strikePrice')[0].text_content().strip()
+            try:
+                listprice = tree.cssselect('span#strikePrice')[0].text_content().strip()
+            except IndexError:
+                print '\n\n ruelala product[{0}] listprice error. {1}'.format(prd.combine_url, ret.url)
             price = tree.cssselect('span#salePrice')[0].text_content().strip()
             soldout = tree.cssselect('span#inventoryAvailable')
             if title != prd.title:
@@ -45,7 +52,7 @@ class Ruelala(object):
                 print 'ruelala product[{0}] listprice error: [{1}, {2}]'.format(prd.combine_url, listprice, prd.listprice)
             if price != prd.price:
                 print 'ruelala product[{0}] price error: [{1}, {2}]'.format(prd.combine_url, price, prd.price)
-        print 'ruelala have {0} products redirect.'.format(redirect_count)
+        print 'ruelala have {0} products redirect, {1} products page error.'.format(redirect_count, error_page)
 
 
     def get_product_abstract_by_url(self, url):

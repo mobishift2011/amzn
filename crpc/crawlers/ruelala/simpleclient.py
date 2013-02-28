@@ -24,8 +24,13 @@ class Ruelala(object):
         obj = Product.objects(products_end__gt=utcnow).timeout(False)
         print 'Ruelala have {0} products.'.format(obj.count())
 
+        redirect_count = 0
         for prd in obj:
-            cont = self.s.get(prd.combine_url).content
+            ret = self.s.get(prd.combine_url)
+            if ret.url == 'http://www.ruelala.com/event':
+                redirect_count += 1
+                continue
+            cont = ret.content
             tree = lxml.html.fromstring(cont)
             title = tree.cssselect('h2#productName')[0].text_content().strip()
             listprice = tree.cssselect('span#strikePrice')[0].text_content().strip()
@@ -37,6 +42,7 @@ class Ruelala(object):
                 print 'ruelala product[{0}] listprice error: [{1}, {2}]'.format(prd.combine_url, listprice, prd.listprice)
             if price != prd.price:
                 print 'ruelala product[{0}] price error: [{1}, {2}]'.format(prd.combine_url, price, prd.price)
+        print 'ruelala have {0} products redirect.'.format(redirect_count)
 
 
     def get_product_abstract_by_url(self, url):

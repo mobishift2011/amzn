@@ -43,7 +43,7 @@ class Onekingslane(object):
                 continue
             title = tree.cssselect('#productOverview h1.serif')[0].text_content().strip()
             soldout = True if tree.cssselect('.sold-out') else False
-            if prd.title.lower() != title.lower:
+            if prd.title.lower() != title.lower():
                 print 'onekingslane product[{0}] title error: [{1}, {2}]'.format(prd.combine_url, title.encode('utf-8'), prd.title.encode('utf-8'))
             price = tree.cssselect('p#oklPriceLabel')[0].text_content().replace('Our Price', '').strip()
             listprice = tree.cssselect('p#msrpLabel')[0].text_content().replace('Retail', '').replace('Estimated Market Value', '').strip()

@@ -29,8 +29,7 @@ class Onekingslane(object):
         }
     
     def check_product_right(self):
-        utcnow = datetime.utcnow()
-        obj = Product.objects(products_end__gt=utcnow).timeout(False)
+        obj = Product.objects(products_end__gt=datetime.utcnow()).timeout(False)
         print 'Onekingslane have {0} products.'.format(obj.count())
 
         end_count = 0
@@ -65,8 +64,7 @@ class Onekingslane(object):
         print 'onekingslane have {0} products end.'.format(end_count)
 
     def check_end_product_still_on(self):
-        utcnow = datetime.utcnow()
-        obj = Product.objects(products_end__lt=utcnow).timeout(False)
+        obj = Product.objects(products_end__lt=datetime.utcnow()).timeout(False)
         print 'Onekingslane have {0} products end.'.format(obj.count())
 
         stillon_count = 0
@@ -80,8 +78,7 @@ class Onekingslane(object):
 
 
     def check_end_event_still_on(self):
-        utcnow = datetime.utcnow()
-        obj = Event.objects(events_end__lt=utcnow).timeout(False)
+        obj = Event.objects(events_end__lt=datetime.utcnow()).timeout(False)
         print 'Onekingslane have {0} events end.'.format(obj.count())
 
         stillon_count = 0

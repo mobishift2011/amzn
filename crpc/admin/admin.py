@@ -566,15 +566,34 @@ class FeedbackHandler(BaseHandler):
         if id:
             return self.render_detail(id)
 
-        limit = self.get_argument('limit', 20)
-        offset = self.get_argument('offset', 0)
-        results = api.feedback.get(limit=limit,offset=offset)['objects']
-        print 'results',results
-        self.render('feedback/list.html',results=results)
+        page = int(self.get_argument('page', 1))
+        limit = 20
+        offset = (page-1)*limit
+        res = api.feedback.get(limit=limit,offset=offset,order_by='-created_at')
+        total_count =  res['meta']['total_count']
+        pagination = Pagination(page, limit, total_count)
+        self.render('feedback/list.html',results=res['objects'],pagination=pagination)
 
     def render_detail(self,id):
         r = api.feedback(id).get()
         return self.render('feedback/detail.html',r=r)
+
+class EmailHandler(BaseHandler):
+    def get(self,id=None):
+        if id:
+            return self.render_detail(id)
+
+        page = int(self.get_argument('page', 1))
+        limit = 20
+        offset = (page-1)*limit
+        res = api.email.get(limit=limit,offset=offset,order_by='-created_at')
+        total_count =  res['meta']['total_count']
+        pagination = Pagination(page, limit, total_count)
+        self.render('email/list.html',results=res['objects'],pagination=pagination)
+
+    def render_detail(self,id):
+        r = api.email(id).get()
+        return self.render('email/detail.html',r=r)
 
 class MonitorHandler(BaseHandler):
     def get(self):
@@ -590,6 +609,10 @@ class DashboardHandler(BaseHandler):
             self.content_type = 'application/json'
             useractions = api.useraction.get(limit=10, order_by='-time')['objects']
             self.finish(json.dumps(useractions))
+        elif path == 'email.json':
+            self.content_type = 'application/json'
+            emails = api.email.get(limit=10,order_by='-created_at')['objects']
+            self.finish(json.dumps(emails))
         else:
             self.content_type = 'application/json'
             self.finish(json.dumps(['no content']))
@@ -598,7 +621,6 @@ class TraceDataHandler(BaseHandler):
     def get(self, site, key):
         if not site:
             self.render('tracedata.html')
-
 
 class AffiliateHandler(BaseHandler):
     @tornado.web.authenticated
@@ -627,7 +649,6 @@ class AffiliateHandler(BaseHandler):
     @tornado.web.authenticated
     def delete(self, key):
         print 'method delete'
-
 
 class BrandsHandler(BaseHandler):
     def get(self, db):
@@ -791,6 +812,7 @@ application = tornado.web.Application([
     (r"/brand/power/(.*)", PowerBrandHandler),
     (r"/brand/?(.*)", BrandHandler),
     (r"/feedback/(.*)", FeedbackHandler),
+    (r"/email/(.*)", EmailHandler),
     (r"/member/(.*)", MemberHandler),
     (r"/ajax/(.*)", AjaxHandler),
     (r"/", IndexHandler),

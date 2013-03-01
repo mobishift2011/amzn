@@ -609,6 +609,10 @@ class DashboardHandler(BaseHandler):
             self.content_type = 'application/json'
             useractions = api.useraction.get(limit=10, order_by='-time')['objects']
             self.finish(json.dumps(useractions))
+        elif path == 'email.json':
+            self.content_type = 'application/json'
+            emails = api.email.get(limit=10,order_by='-created_at')['objects']
+            self.finish(json.dumps(emails))
         else:
             self.content_type = 'application/json'
             self.finish(json.dumps(['no content']))

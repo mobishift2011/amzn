@@ -43,11 +43,11 @@ class Onekingslane(object):
                 continue
             try:
                 title = tree.cssselect('#productOverview h1.serif')[0].text_content().strip()
+                if prd.title.lower() != title.lower():
+                    print 'onekingslane product[{0}] title error: [{1}, {2}]'.format(prd.combine_url, title.encode('utf-8'), prd.title.encode('utf-8'))
             except IndexError:
                 print '\n\nonekingslane product[{0}] title can not get it.\n\n'.format(prd.combine_url)
-            soldout = True if tree.cssselect('.sold-out') else False
-            if prd.title.lower() != title.lower():
-                print 'onekingslane product[{0}] title error: [{1}, {2}]'.format(prd.combine_url, title.encode('utf-8'), prd.title.encode('utf-8'))
+
             price = tree.cssselect('p#oklPriceLabel')[0].text_content().replace('Our Price', '').strip()
             listprice = tree.cssselect('p#msrpLabel')[0].text_content().replace('Retail', '').replace('Estimated Market Value', '').strip()
             if '-' not in price:
@@ -56,6 +56,8 @@ class Onekingslane(object):
             if '-' not in listprice:
                 if float( listprice.replace('$', '').replace(',', '') ) != float( prd.listprice.replace('$', '').replace(',', '') ):
                     print 'onekingslane product[{0}] listprice error: {1} vs {2}'.format(prd.combine_url, listprice, prd.listprice)
+
+            soldout = True if tree.cssselect('.sold-out') else False
             if soldout !=  prd.soldout:
                 print 'onekingslane product[{0}] soldout error: {1} vs {2}'.format(prd.combine_url, soldout, prd.soldout)
         print 'onekingslane have {0} products end.'.format(end_count)

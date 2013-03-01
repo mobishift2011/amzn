@@ -324,8 +324,8 @@ class Server(object):
             product.image_urls = [item.cssselect('a[href] > img')[0].get('src').replace('medium', 'fullzoom')]
             product.short_desc = item.cssselect('h6')[0].text_content()
             product.title = item.cssselect('h5 > a')[0].text_content().strip()
-            product.listprice = item.cssselect('ul > li.retail')[0].text_content()
-            product.price = item.cssselect('ul > li:nth-of-type(2)')[0].text_content().replace(',','')
+            product.listprice = item.cssselect('ul > li.retail')[0].text_content().replace(',','').replace('Retail', '').strip()
+            product.price = item.cssselect('ul > li:nth-of-type(2)')[0].text_content().replace(',','').replace('Our Price', '').strip()
             if item.cssselect('em.sold'): product.soldout = True
             product.event_type = False
             product.updated = False
@@ -338,6 +338,14 @@ class Server(object):
                     product.soldout = True
                     is_updated = True
                     product.update_history.update({ 'soldout': datetime.utcnow() })
+            listprice = item.cssselect('ul > li.retail')[0].text_content().replace(',','').replace('Retail', '').strip()
+            price = item.cssselect('ul > li:nth-of-type(2)')[0].text_content().replace(',','').replace('Our Price', '').strip()
+            if product.listprice != listprice:
+                product.listprice = listprice
+                product.update_history.update({ 'listprice': datetime.utcnow() })
+            if product.price != price:
+                product.price = price
+                product.update_history.update({ 'price': datetime.utcnow() })
         # products_begin already happen, so not need to update
         if products_begin: product.products_begin = products_begin
         product.list_update_time = datetime.utcnow()
@@ -379,7 +387,7 @@ class Server(object):
         product_ids = []
         for item in items:
             ret = self.crawl_sale_list_product(event_id, item, ctx)
-            product_ids.append(ret)
+            if ret: product_ids.append(ret)
 
         event.product_ids = product_ids
         event.save()
@@ -395,6 +403,9 @@ class Server(object):
         """
         product_id = item.get('data-product-id')
         product, is_new = Product.objects.get_or_create(pk=product_id)
+
+        listprice = item.cssselect('ul > li.msrp')
+        price = item.cssselect('ul > li:last-of-type')
         is_updated = False
         if is_new:
             product.event_id = [event_id]
@@ -404,12 +415,11 @@ class Server(object):
             image = self.extract_large_img.match(img).group(1) + '$fullzoom$'
             product.image_urls = [image]
 
-            listprice = item.cssselect('ul > li.msrp')
             if listprice:
                 product.listprice = listprice[0].text_content().replace(',','').replace('Retail', '').strip()
-            price = item.cssselect('ul > li:last-of-type')
             if not price:
                 common_failed.send(sender=ctx, url=event_id + '/' + product_id, reason='price not resolve right')
+                return
             product.price = price[0].text_content().replace(',','').replace('Our Price', '').strip()
             if item.cssselect('a.sold-out'): product.soldout = True
             product.updated = False
@@ -426,6 +436,16 @@ class Server(object):
             if product.combine_url != combine_url:
                 product.combine_url = combine_url
                 product.update_history.update({ 'combine_url': datetime.utcnow() })
+            if listprice:
+                listprice = listprice[0].text_content().replace(',','').replace('Retail', '').strip()
+                if product.listprice != listprice:
+                    product.listprice = listprice
+                    product.update_history.update({ 'listprice': datetime.utcnow() })
+            if price:
+                price = price[0].text_content().replace(',','').replace('Our Price', '').strip()
+                if product.price != price:
+                    product.price = price
+                    product.update_history.update({ 'price': datetime.utcnow() })
         product.list_update_time = datetime.utcnow()
         product.save()
         common_saved.send(sender=ctx, obj_type='Product', key=product_id, url=self.siteurl + '/sales/' + event_id, is_new=is_new, is_updated=is_updated)

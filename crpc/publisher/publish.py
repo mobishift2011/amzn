@@ -29,7 +29,7 @@ class Publisher:
     ALL_EVENT_PUBLISH_FIELDS = ["sale_title", "sale_description", "events_end", "events_begin",
                                 "image_path", "highest_discount", "favbuy_tag", "favbuy_brand", "favbuy_dept"]
 
-    ALL_PRODUCT_PUBLISH_FIELDS = ["favbuy_url", "events", "favbuy_price", "favbuy_listprice", "soldout",
+    ALL_PRODUCT_PUBLISH_FIELDS = ["combine_url", "events", "favbuy_price", "favbuy_listprice", "soldout",
                                 "color", "title", "summary", "list_info", "image_path", "favbuy_tag", "favbuy_brand", "favbuy_dept",
                                 "returned", "shipping", "products_begin", "products_end" ]
 
@@ -328,7 +328,8 @@ class Publisher:
 
             pdata = {}
             for f in fields:
-                if f=="favbuy_url": pdata["original_url"] = prod.favbuy_url if prod.url_complete else prod.combine_url
+                # if f=="favbuy_url": pdata["original_url"] = prod.favbuy_url if prod.url_complete else prod.combine_url
+                if f=="combine_url": pdata["original_url"] = prod.combine_url
                 elif f=="events": pdata["events"] = self.get_ev_uris(prod)
                 elif f=="favbuy_price": pdata["our_price"] = float(obj_getattr(prod, 'favbuy_price', 0))
                 elif f=="favbuy_listprice": pdata["list_price"] = float(obj_getattr(prod, 'favbuy_listprice', 0))

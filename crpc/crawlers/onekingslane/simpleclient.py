@@ -55,7 +55,7 @@ class Onekingslane(object):
             if '-' not in price:
                 if float( price.replace('$', '').replace(',', '') ) != float( prd.price.replace('Our Price', '').replace('$', '').replace(',', '') ):
                     print 'onekingslane product[{0}] price error: {1} vs {2}'.format(prd.combine_url, price, prd.price)
-            if '-' not in listprice:
+            if '-' not in listprice and listprice:
                 if float( listprice.replace('$', '').replace(',', '') ) != float( prd.listprice.replace('$', '').replace(',', '') ):
                     print 'onekingslane product[{0}] listprice error: {1} vs {2}'.format(prd.combine_url, listprice, prd.listprice)
 
@@ -91,6 +91,13 @@ class Onekingslane(object):
         title = t.xpath('//html/head/title')[0].text.encode('utf-8')
         description = t.xpath('//*[@id="description"]/p')[0].text.encode('utf-8')
         return 'onekingslane_'+product_id, title+'_'+description
+
+    def test(self, testurl):
+        ret = self.s.get(testurl, headers=self.headers)
+        tree = lxml.html.fromstring(ret.content)
+        title = tree.cssselect('#productOverview h1.serif')[0].text_content().strip()
+        print title
+
 
 if __name__ == '__main__':
     Onekingslane().check_product_right()

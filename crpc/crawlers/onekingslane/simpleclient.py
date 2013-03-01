@@ -76,13 +76,38 @@ class Onekingslane(object):
             already_end = True if tree.cssselect('#productOverview div.expired') else False
             if not already_end:
                 stillon_count += 1
-        print 'onekingslane have {0} products still on.'.format(stillon_count)
+        print 'onekingslane have {0} end products still on.'.format(stillon_count)
 
 
     def check_end_event_still_on(self):
         utcnow = datetime.utcnow()
         obj = Product.objects(events_end__lt=utcnow).timeout(False)
         print 'Onekingslane have {0} events end.'.format(obj.count())
+
+        stillon_count = 0
+        for ev in obj:
+            ret = self.s.get(ev.combine_url, headers=self.headers)
+            tree = lxml.html.fromstring(ret.content)
+            text = tree.cssselect('div#okl-content div.sales-event')[0].get('class')
+            if 'ended' in text:
+                continue
+            if 'started' in text:
+                stillon_count += 1
+        print 'Onekingslane have {0} end events still on.'.format(stillon_count)
+
+
+    def test_product(self, testurl):
+        ret = self.s.get(testurl, headers=self.headers)
+        tree = lxml.html.fromstring(ret.content)
+        title = tree.cssselect('#productOverview h1.serif')[0].text_content().strip()
+        print title
+
+    def test_event(self, testurl):
+        ret = self.s.get(testurl, headers=self.headers)
+        tree = lxml.html.fromstring(ret.content)
+        text = tree.cssselect('div#okl-content div.sales-event')[0].get('class')
+        print text
+
 
     def get_product_abstract_by_url(self, url):
         product_id = re.compile(r'/product/\d+/(\d+)').search(url).group(1)
@@ -92,13 +117,26 @@ class Onekingslane(object):
         description = t.xpath('//*[@id="description"]/p')[0].text.encode('utf-8')
         return 'onekingslane_'+product_id, title+'_'+description
 
-    def test(self, testurl):
-        ret = self.s.get(testurl, headers=self.headers)
-        tree = lxml.html.fromstring(ret.content)
-        title = tree.cssselect('#productOverview h1.serif')[0].text_content().strip()
-        print title
-
-
 if __name__ == '__main__':
-    Onekingslane().check_product_right()
-    Onekingslane().check_end_product_still_on()
+    import sys
+    from optparse import OptionParser
+
+    parser = OptionParser(usage='usage: %prog [options]')
+    parser.add_option('-e', '--event', dest='event', action='store_true', help='check event off sale whether still on', default=False)
+    parser.add_option('-p', '--product', dest='product', action='store_true', help='check product off sale whether still on', default=False)
+    praser.add_option('-c', '--check', dest='check', action='store_true', help='check on sale product whether off sale', default=False)
+
+    if len(sys.argv) == 1:
+        parser.print_help()
+        exit()
+
+    onekingslane = Onekingslane()
+    options, args = parser.parse_args(sys.argv[1:])
+    if options.event:
+        onekingslane.check_end_event_still_on()
+    elif options.product:
+        onekingslane.check_end_product_still_on()
+    elif options.check:
+        onekingslane.check_product_right()
+    else:
+        parser.print_help()

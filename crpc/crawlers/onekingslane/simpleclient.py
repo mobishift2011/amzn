@@ -80,3 +80,4 @@ class Onekingslane(object):
 
 if __name__ == '__main__':
     Onekingslane().check_product_right()
+    Onekingslane().check_end_product_still_on()

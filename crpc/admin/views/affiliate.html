@@ -38,7 +38,7 @@
                     </thead>   
                   <tbody>
                     {% for link in links %}
-                    <tr title="{{ link['id'] }}">
+                    <tr title="{{ link['site'] }}_{{ link['affiliate'] }}", aid="{{ link['id'] }}">
                         <td>{{ link['site'] }}</td>
                         <td>{{ link['affiliate'] }}</td>
                         <td>{{ link['tracking_url'] }}</td>
@@ -50,7 +50,7 @@
                             <a class="btn btn-info btn_edit" link="/affiliate/{{ link['key'] }}" target='_blank'>
                                 <i class="icon-edit icon-white"></i>
                             </a> -->
-                           <a class="btn btn-danger btn_delete" href="#">
+                           <a class="btn btn-danger btn_delete_affiliate" href="#">
                                 <i class="icon-trash icon-white"></i>
                             </a>
                         </td>
@@ -143,6 +143,57 @@
 {% block script %}
 
 <script>
+function getCookie(name) {
+    var r = document.cookie.match("\\b" + name + "=([^;]*)\\b");
+    return r ? r[1] : undefined;
+}
+
+function notify(text, params){
+    var data_noty_options = {
+        'text': text,
+        'layout': 'topRight',
+        'type': 'success'
+    };
+    data_noty_options.text = text;
+
+    if(params){
+        data_noty_options['layout'] = params['layout'] ? params['layout'] : "topRight";
+        data_noty_options['type'] = params['type'] ? params['type']: "success";
+    }
+
+    noty(data_noty_options);
+}
+
+$('.btn_delete_affiliate').click(function(e){
+    e.preventDefault();
+
+    var tag_a = $(this)
+    var tr = tag_a.parent().parent()
+    var title = tr.attr('title');
+    var aid = tr.attr('aid');
+
+    if(!confirm('Are you sure to delete '+ title +' ?')){
+        return;
+    }
+
+    $.ajax({
+        url: '/affiliate/'+aid+'?_xsrf='+getCookie("_xsrf"),
+        type: 'DELETE',
+        data: {_xsrf: getCookie("_xsrf")}, 
+        success: function(response) {
+            if(response=='True'){
+                notify(title+' deleted!');
+                tr.remove();
+            }
+            else{
+                notify(title+' delete failed!', {'type': 'error'});
+            }
+        }
+    });
+})
+.error(function(err){
+    notify('delete exception!', {'type': 'error'});
+});
 </script>
 
 {% endblock %}

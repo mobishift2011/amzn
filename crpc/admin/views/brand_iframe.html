@@ -23,6 +23,12 @@
 						<td>Title Edit</td>
 						<td>{{ brand['title_edit'] }}</td>
 					</tr>
+					{% if brand['global_searchs'] or brand['global_searchs'] == 0 %}
+					<tr>
+						<td>Global Searchs</td>
+						<td>{{ brand['global_searchs'] }}</td>
+					</tr>
+					{% endif %}
 					<tr>
 						<td>Title Checked</td>
 						<td>{{ brand['title_checked'] }}</td>

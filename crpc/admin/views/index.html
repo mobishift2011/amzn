@@ -58,6 +58,22 @@
                         </div>
                     </div>
                 </div><!--/span-->
+
+                <div class="box span4">
+                    <div class="box-header well" data-original-title>
+                        <h2><i class="icon-user"></i> System Email</h2>
+                        <div class="box-icon">
+                            <a href="#" class="btn btn-minimize btn-round"><i class="icon-chevron-up"></i></a>
+                            <a href="#" class="btn btn-close btn-round"><i class="icon-remove"></i></a>
+                        </div>
+                    </div>
+                    <div class="box-content">
+                        <div class="box-content">
+                            <ul class="dashboard-list" id="email">
+                            </ul>
+                        </div>
+                    </div>
+                </div><!--/span-->
                         
                 <div class="box span4">
                     <div class="box-header well" data-original-title>
@@ -236,6 +252,27 @@ function poll(interval){
             $('#member-activity').html(html);
             setTimeout(function(){poll(interval)}, interval);
         },
+    });
+
+    $.ajax({
+        type:'GET',
+        url:'/dashboard/email.json',
+        dataType:'json',
+        success:function(data){
+            var html = ''
+            for(var i=0; i<data.length;i++){
+                var d = data[i];
+                html += '<li><a href="/email/' + d['id'] + '/">' + d['subject'] + '</a>  '
+                for(var j=0;j<d['receiver'].length;j++){html+=d['receiver'][j]}
+                html += '</li>'
+            }
+
+            $('#email').html(html);
+            setTimeout(function(){poll(interval)}, interval);
+        
+        },
+        
+    
     });
 }
 

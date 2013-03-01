@@ -147,7 +147,7 @@
                         <tr>
                             <th>title</th>
                             <th>title edit</th>
-                            <th>title checked</th>
+                            <th>global searchs</th>
                             <th>Actions</th>
                         </tr>
                     </thead>   
@@ -162,6 +162,9 @@
                         <td class="center">
                             <a class="btn btn-success btn_view_power" href="#">
                                 <i class="icon-zoom-in icon-white"></i>
+                            </a>
+                            <a class="btn btn-info btn_edit_power" title="{{ brand['title'] }}">
+                                <i class="icon-edit icon-white"></i>                                         
                             </a>
                         </td>
                     </tr>
@@ -249,14 +252,20 @@ $('.btn_view').click(function(e){
 
 $('.btn_edit').click(function(e){
         e.preventDefault();
-        url = "/brand/" + encodeURIComponent($(this).attr('title')) + "?t=p"
+        var url = "/brand/" + encodeURIComponent($(this).attr('title')) + "?t=p"
         window.open(url);
 });
 
 $('.btn_view_power').click(function(e){
         e.preventDefault();
-        $('#iframe_brand').attr('src', '../brand/'+$(this).parent().parent().attr('title')+'?t=iframe&d=p');
+        $('#iframe_brand').attr('src', '../brand/'+encodeURIComponent($(this).parent().parent().attr('title'))+'?t=iframe&d=p');
         $('#brand_modal').modal('show');
+});
+
+$('.btn_edit_power').click(function(e){
+        e.preventDefault();
+        var url = "/brand/power/" + encodeURIComponent($(this).attr('title'));
+        window.open(url);
 });
 
 </script>

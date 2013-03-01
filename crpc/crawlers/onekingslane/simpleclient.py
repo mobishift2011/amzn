@@ -42,15 +42,17 @@ class Onekingslane(object):
                 end_count += 1
                 continue
             title = tree.cssselect('#productOverview h1.serif')[0].text_content().strip()
-            price = tree.cssselect('p#oklPriceLabel')[0].text_content().replace('Our Price', '').strip()
-            listprice = tree.cssselect('p#msrpLabel')[0].text_content().replace('Retail', '').replace('Estimated Market Value', '').strip()
             soldout = True if tree.cssselect('.sold-out') else False
             if prd.title.lower() != title.lower:
                 print 'onekingslane product[{0}] title error: [{1}, {2}]'.format(prd.combine_url, title.encode('utf-8'), prd.title.encode('utf-8'))
-            if price != prd.price:
-                print 'onekingslane product[{0}] price error: {1} vs {2}'.format(prd.combine_url, price, prd.price)
-            if listprice != prd.listprice:
-                print 'onekingslane product[{0}] listprice error: {1} vs {2}'.format(prd.combine_url, listprice, prd.listprice)
+            price = tree.cssselect('p#oklPriceLabel')[0].text_content().replace('Our Price', '').strip()
+            listprice = tree.cssselect('p#msrpLabel')[0].text_content().replace('Retail', '').replace('Estimated Market Value', '').strip()
+            if '-' not in price:
+                if float( price.replace('$', '') ) != float( prd.price.replace('Our Price', '').replace('$', '') ):
+                    print 'onekingslane product[{0}] price error: {1} vs {2}'.format(prd.combine_url, price, prd.price)
+            if '-' not in listprice:
+                if float( listprice.replace('$', '') ) != float( prd.listprice.replace('$', '') ):
+                    print 'onekingslane product[{0}] listprice error: {1} vs {2}'.format(prd.combine_url, listprice, prd.listprice)
             if soldout !=  prd.soldout:
                 print 'onekingslane product[{0}] soldout error: {1} vs {2}'.format(prd.combine_url, soldout, prd.soldout)
         print 'onekingslane have {0} products end.'.format(end_count)

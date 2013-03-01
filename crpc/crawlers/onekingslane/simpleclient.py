@@ -41,12 +41,12 @@ class Onekingslane(object):
             if already_end:
                 end_count += 1
                 continue
-            title = tree.cssselect('#productOverview h1.serif')[0].text_content()
-            price = tree.cssselect('p#oklPriceLabel')[0].text_content()
-            listprice = tree.cssselect('p#msrpLabel')[0].text_content().replace('Retail', '').strip()
+            title = tree.cssselect('#productOverview h1.serif')[0].text_content().strip()
+            price = tree.cssselect('p#oklPriceLabel')[0].text_content().replace('Our Price', '').strip()
+            listprice = tree.cssselect('p#msrpLabel')[0].text_content().replace('Retail', '').replace('Estimated Market Value', '').strip()
             soldout = True if tree.cssselect('.sold-out') else False
             if prd.title.lower() != title.lower:
-                print 'onekingslane product[{0}] title error: [{1}, {2}]'.format(prd.combine_url, title, prd.title)
+                print 'onekingslane product[{0}] title error: [{1}, {2}]'.format(prd.combine_url, title.encode('utf-8'), prd.title.encode('utf-8'))
             if price != prd.price:
                 print 'onekingslane product[{0}] price error: {1} vs {2}'.format(prd.combine_url, price, prd.price)
             if listprice != prd.listprice:
@@ -54,6 +54,20 @@ class Onekingslane(object):
             if soldout !=  prd.soldout:
                 print 'onekingslane product[{0}] soldout error: {1} vs {2}'.format(prd.combine_url, soldout, prd.soldout)
         print 'onekingslane have {0} products end.'.format(end_count)
+
+    def check_end_product_still_on(self):
+        utcnow = datetime.utcnow()
+        obj = Product.objects(products_end__lt=utcnow).timeout(False)
+        print 'Onekingslane have {0} products end.'.format(obj.count())
+
+        stillon_count = 0
+        for prd in obj:
+            ret = self.s.get(prd.combine_url, headers=self.headers)
+            tree = lxml.html.fromstring(ret.content)
+            already_end = True if tree.cssselect('#productOverview div.expired') else False
+            if not already_end:
+                stillon_count += 1
+        print 'onekingslane have {0} products still on.'.format(stillon_count)
 
 
     def get_product_abstract_by_url(self, url):

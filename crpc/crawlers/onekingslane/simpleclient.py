@@ -21,7 +21,16 @@ class Onekingslane(object):
             tree = lxml.html.fromstring(ret.content)
             title = tree.cssselect('#productOverview h1.serif')[0].text_content()
             price = tree.cssselect('p#oklPriceLabel')[0].text_content()
-            tree.cssselect('p#msrpLabel')
+            listprice = tree.cssselect('p#msrpLabel')[0].text_content().replace('Retail', '').strip()
+            soldout = True if tree.cssselect('.sold-out') else False
+            if prd.title.lower() != title.lower:
+                print 'onekingslane product[{0}] title error: [{1}, {2}]'.format(prd.combine_url, title, prd.title)
+            if price != prd.price:
+                print 'onekingslane product[{0}] price error: {1} vs {2}'.format(prd.combine_url, price, prd.price)
+            if listprice != prd.listprice:
+                print 'onekingslane product[{0}] listprice error: {1} vs {2}'.format(prd.combine_url, listprice, prd.listprice)
+            if soldout !=  prd.soldout:
+                print 'onekingslane product[{0}] soldout error: {1} vs {2}'.format(prd.combine_url, soldout, prd.soldout)
 
 
     def get_product_abstract_by_url(self, url):

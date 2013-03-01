@@ -48,7 +48,7 @@ class Onekingslane(object):
             price = tree.cssselect('p#oklPriceLabel')[0].text_content().replace('Our Price', '').strip()
             listprice = tree.cssselect('p#msrpLabel')[0].text_content().replace('Retail', '').replace('Estimated Market Value', '').strip()
             if '-' not in price:
-                if float( price.replace('$', '') ) != float( prd.price.replace('Our Price', '').replace('$', '') ):
+                if float( price.replace('$', '').replace(',', '') ) != float( prd.price.replace('Our Price', '').replace('$', '').replace(',', '') ):
                     print 'onekingslane product[{0}] price error: {1} vs {2}'.format(prd.combine_url, price, prd.price)
             if '-' not in listprice:
                 if float( listprice.replace('$', '') ) != float( prd.listprice.replace('$', '') ):

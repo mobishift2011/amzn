@@ -2,7 +2,7 @@ import requests
 import lxml.html
 import re
 from datetime import datetime
-from models import Product
+from models import Event, Product
 
 from requests.packages.urllib3.connectionpool import *
 import ssl
@@ -46,7 +46,9 @@ class Onekingslane(object):
                 if prd.title.lower() != title.lower():
                     print 'onekingslane product[{0}] title error: [{1}, {2}]'.format(prd.combine_url, title.encode('utf-8'), prd.title.encode('utf-8'))
             except IndexError:
-                print '\n\nonekingslane product[{0}] title can not get it.\n\n'.format(prd.combine_url)
+                print '\n\nonekingslane product[{0}] title label can not get it.\n\n'.format(prd.combine_url)
+            except AttributeError:
+                print '\n\nonekingslane product[{0}] title None not get it.\n\n'.format(prd.combine_url)
 
             price = tree.cssselect('p#oklPriceLabel')[0].text_content().replace('Our Price', '').strip()
             listprice = tree.cssselect('p#msrpLabel')[0].text_content().replace('Retail', '').replace('Estimated Market Value', '').strip()
@@ -76,6 +78,11 @@ class Onekingslane(object):
                 stillon_count += 1
         print 'onekingslane have {0} products still on.'.format(stillon_count)
 
+
+    def check_end_event_still_on(self):
+        utcnow = datetime.utcnow()
+        obj = Product.objects(events_end__lt=utcnow).timeout(False)
+        print 'Onekingslane have {0} events end.'.format(obj.count())
 
     def get_product_abstract_by_url(self, url):
         product_id = re.compile(r'/product/\d+/(\d+)').search(url).group(1)

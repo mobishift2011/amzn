@@ -4,6 +4,23 @@ import re
 from datetime import datetime
 from models import Product
 
+from requests.packages.urllib3.connectionpool import *
+import ssl
+def connect_vnew(self):
+    # Add certificate verification
+    sock = socket.create_connection((self.host, self.port), self.timeout)
+
+    # Wrap socket using verification with the root certs in
+    # trusted_root_certs
+    self.sock = ssl.wrap_socket(sock, self.key_file, self.cert_file,
+                                cert_reqs=self.cert_reqs,
+                                ca_certs=self.ca_certs,
+                                ssl_version=ssl.PROTOCOL_TLSv1)
+    if self.ca_certs:
+        match_hostname(self.sock.getpeercert(), self.host)
+
+VerifiedHTTPSConnection.connect = connect_vnew
+
 
 class Onekingslane(object):
     def __init__(self):
@@ -42,4 +59,4 @@ class Onekingslane(object):
         return 'onekingslane_'+product_id, title+'_'+description
 
 if __name__ == '__main__':
-    Onekingslane().get_product_abstract_by_url(test_url)
+    Onekingslane().check_product_right()

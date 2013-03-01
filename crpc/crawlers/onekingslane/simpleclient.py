@@ -33,9 +33,14 @@ class Onekingslane(object):
         obj = Product.objects(products_end__gt=utcnow).timeout(False)
         print 'Onekingslane have {0} products.'.format(obj.count())
 
+        end_count = 0
         for prd in obj:
             ret = self.s.get(prd.combine_url, headers=self.headers)
             tree = lxml.html.fromstring(ret.content)
+            already_end = True if tree.cssselect('#productOverview div.expired') else False
+            if already_end:
+                end_count += 1
+                continue
             title = tree.cssselect('#productOverview h1.serif')[0].text_content()
             price = tree.cssselect('p#oklPriceLabel')[0].text_content()
             listprice = tree.cssselect('p#msrpLabel')[0].text_content().replace('Retail', '').strip()
@@ -48,6 +53,7 @@ class Onekingslane(object):
                 print 'onekingslane product[{0}] listprice error: {1} vs {2}'.format(prd.combine_url, listprice, prd.listprice)
             if soldout !=  prd.soldout:
                 print 'onekingslane product[{0}] soldout error: {1} vs {2}'.format(prd.combine_url, soldout, prd.soldout)
+        print 'onekingslane have {0} products end.'.format(end_count)
 
 
     def get_product_abstract_by_url(self, url):

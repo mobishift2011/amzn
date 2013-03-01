@@ -81,7 +81,7 @@ class Onekingslane(object):
 
     def check_end_event_still_on(self):
         utcnow = datetime.utcnow()
-        obj = Product.objects(events_end__lt=utcnow).timeout(False)
+        obj = Event.objects(events_end__lt=utcnow).timeout(False)
         print 'Onekingslane have {0} events end.'.format(obj.count())
 
         stillon_count = 0

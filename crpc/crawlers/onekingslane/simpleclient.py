@@ -124,7 +124,7 @@ if __name__ == '__main__':
     parser = OptionParser(usage='usage: %prog [options]')
     parser.add_option('-e', '--event', dest='event', action='store_true', help='check event off sale whether still on', default=False)
     parser.add_option('-p', '--product', dest='product', action='store_true', help='check product off sale whether still on', default=False)
-    praser.add_option('-c', '--check', dest='check', action='store_true', help='check on sale product whether off sale', default=False)
+    parser.add_option('-c', '--check', dest='check', action='store_true', help='check on sale product whether off sale', default=False)
 
     if len(sys.argv) == 1:
         parser.print_help()

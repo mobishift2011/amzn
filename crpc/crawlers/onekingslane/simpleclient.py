@@ -41,7 +41,10 @@ class Onekingslane(object):
             if already_end:
                 end_count += 1
                 continue
-            title = tree.cssselect('#productOverview h1.serif')[0].text_content().strip()
+            try:
+                title = tree.cssselect('#productOverview h1.serif')[0].text_content().strip()
+            except IndexError:
+                print '\n\nonekingslane product[{0}] title can not get it.\n\n'.format(prd.combine_url)
             soldout = True if tree.cssselect('.sold-out') else False
             if prd.title.lower() != title.lower():
                 print 'onekingslane product[{0}] title error: [{1}, {2}]'.format(prd.combine_url, title.encode('utf-8'), prd.title.encode('utf-8'))

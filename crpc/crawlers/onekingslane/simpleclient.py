@@ -28,9 +28,9 @@ class Onekingslane(object):
         self.headers = {
         }
     
-    def check_product_right(self):
+    def check_onsale_product(self):
         obj = Product.objects(products_end__gt=datetime.utcnow()).timeout(False)
-        print 'Onekingslane have {0} products.'.format(obj.count())
+        print 'Onekingslane have {0} on sale products.'.format(obj.count())
 
         end_count = 0
         for prd in obj:
@@ -63,9 +63,9 @@ class Onekingslane(object):
                 print 'onekingslane product[{0}] soldout error: {1} vs {2}'.format(prd.combine_url, soldout, prd.soldout)
         print 'onekingslane have {0} products end.'.format(end_count)
 
-    def check_end_product_still_on(self):
+    def check_offsale_product(self):
         obj = Product.objects(products_end__lt=datetime.utcnow()).timeout(False)
-        print 'Onekingslane have {0} products end.'.format(obj.count())
+        print 'Onekingslane have {0} off sale products.'.format(obj.count())
 
         stillon_count = 0
         for prd in obj:
@@ -77,7 +77,7 @@ class Onekingslane(object):
         print 'onekingslane have {0} end products still on.'.format(stillon_count)
 
 
-    def check_end_event_still_on(self):
+    def check_offsale_event(self):
         obj = Event.objects(events_end__lt=datetime.utcnow()).timeout(False)
         print 'Onekingslane have {0} events end.'.format(obj.count())
 
@@ -130,10 +130,10 @@ if __name__ == '__main__':
     onekingslane = Onekingslane()
     options, args = parser.parse_args(sys.argv[1:])
     if options.event:
-        onekingslane.check_end_event_still_on()
+        onekingslane.check_offsale_event()
     elif options.product:
-        onekingslane.check_end_product_still_on()
+        onekingslane.check_offsale_product()
     elif options.check:
-        onekingslane.check_product_right()
+        onekingslane.check_onsale_product()
     else:
         parser.print_help()

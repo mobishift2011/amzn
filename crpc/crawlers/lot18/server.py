@@ -166,7 +166,10 @@ class Server(object):
             elif products_end:
                 products_end = products_end.replace(minute=0)
             if products_end:
-                product.products_end = products_end.replace(second=0, microsecond=0)
+                products_end = products_end.replace(second=0, microsecond=0)
+            if products_end and products_end != product.products_end:
+                product.products_end = products_end
+                product.update_history.update({ 'products_end': datetime.utcnow() })
         product.list_update_time = _utcnow
         product.save()
         common_saved.send(sender=ctx, obj_type='Product', key=prd['id'], url=product.combine_url, is_new=is_new, is_updated=is_updated)

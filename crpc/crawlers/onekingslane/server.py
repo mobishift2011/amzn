@@ -422,6 +422,11 @@ class Server(object):
                     product.soldout = True
                     is_updated = True
                     product.update_history.update({ 'soldout': datetime.utcnow() })
+            combine_url = 'https://www.onekingslane.com/product/{0}/{1}'.format(event_id, product_id)
+            if product.combine_url != combine_url:
+                product.combine_url = combine_url
+                product.update_history.update({ 'combine_url': datetime.utcnow() })
+
         product.list_update_time = datetime.utcnow()
         product.save()
         common_saved.send(sender=ctx, obj_type='Product', key=product_id, url=self.siteurl + '/sales/' + event_id, is_new=is_new, is_updated=is_updated)

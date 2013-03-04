@@ -161,7 +161,7 @@ class IndexHandler(BaseHandler):
         num_buys = api.useraction.get(limit=1, name='click buy')['meta']['total_count']
         num_new_buys = api.useraction.get(limit=1, time__gt=yesterday, name='click buy')['meta']['total_count']
         num_view_products = api.useraction.get(limit=1, name='view product')['meta']['total_count']
-        num_new_view_products = api.useraction.get(limit=1, time_gt=yesterday, name='view product')['meta']['total_count']
+        num_new_view_products = api.useraction.get(limit=1, time__gt=yesterday, name='view product')['meta']['total_count']
         buys = api.useraction.get(limit=1000, name='click buy', order_by='-time', time__gt=yesterday)['objects']
         #buys = api.useraction.get(limit=1000, name='click buy', order_by='-time')['objects']
 

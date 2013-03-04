@@ -1,0 +1,133 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<div id="main-content">
+  <ul class="breadcrumb">
+    <li>
+      <a href="/">Home</a> <span class="divider">/</span>
+    </li>
+    <li>
+      <a href="/email/">Email</a>
+    </li>
+  </ul>
+
+  <div>
+  {% if message %}
+    {{ message }}
+  {% else %}
+          <table class="table">
+              <thead>
+                  <tr>
+                      <td>id</td>
+                      <td>subject</td>
+                      <td>receiver</td>
+                      <td>created at</td>
+                      <td></td>
+                  </tr>
+              </thead>
+              <tbody>
+
+              {% for r in results %}
+              <tr>
+                  <td>{{ r.id }}</td>
+                  <td>{{ r.subject }}</td>
+                  <td>{% for i in r.receiver %}{{i}} {% endfor %}</td>
+                  <td>{{ r.created_at }}</td>
+                  <td><a href="/email/{{ r.id }}/">detail</a></td>
+              </tr>
+              {% endfor %}
+              </tbody>
+          </table>
+      </div>  
+
+    <div class="pagination pagination-centered">
+      <ul>
+        {% if pagination.has_prev %}
+        <li><a class="pagination" page="{{pagination.page-1}}" href="#">Prev</a></li>
+        {% endif %}
+        {% for page in pagination.iter_pages() %}
+        {% if page %}
+          {% if page == pagination.page %}
+            <li class="active"><a class="pagination" page="" href="#">{{page}}</a></li>
+          {% else %}
+            <li><a class="pagination" page="{{page}}" href="#">{{page}}</a></li>
+          {% endif %}
+        {% else %}
+          <li><a class="pagination" page="" href="#">...</a></li>
+        {% endif %}
+        {% endfor %}
+        {% if pagination.has_next %}
+        <li><a class="pagination" page="{{pagination.page+1}}" href="#">Next</a></li>
+        {% endif %}
+      </ul>
+    </div>   
+  {% endif %}
+
+</div><!--main-content-->
+  
+      
+<div class="modal hide fade" id="myModal">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal">×</button>
+    <h3>Settings</h3>
+  </div>
+  <div class="modal-body">
+    <p>Here settings can be configured...</p>
+  </div>
+  <div class="modal-footer">
+    <a href="#" class="btn" data-dismiss="modal">Close</a>
+    <a href="#" class="btn btn-primary">Save changes</a>
+  </div>
+</div>
+
+<div class="modal hide fade" id="reason-modal">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal">×</button>
+    <h3>Classification Reason</h3>
+  </div>
+  <div class="modal-body" id="reason-body">
+  </div>
+  <div class="modal-footer">
+    <a href="#" class="btn" data-dismiss="modal">Close</a>
+  </div>
+</div>
+
+<div class="modal hide fade" id="edit-modal">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal">x</button>
+    <h3>Reclassify All Departments</h3>
+  </div>
+  <div class="modal-body" id="edit-body">
+    Depts: (e.g. ['Women', 'Shoes']) <input type="text" id="edit-input" class="input-large" value=""/>
+  </div>
+  <div class="modal-footer">
+    <a href="#" class="btn btn-primary" id="edit-save">Save</a>
+    <a href="#" class="btn" data-dismiss="modal">Close</a>
+</div>
+
+{% endblock %}
+
+{% block script %}
+<script>
+  // make nav css correct
+  $('li[name=viewdata]').each(function(){
+    var link = $(this).find(">:first-child").attr('href');
+    if (window.location.href.indexOf(link) != -1){
+      $(this).addClass('active');
+    }
+  });
+
+  // make selection consistent with url
+  var param = $.deparam(window.location.href.substr(window.location.href.indexOf('?')+1));
+
+  // pagination
+  $('a.pagination').live('click', function(){
+    if ($(this).attr('page')) {
+      var url = "/email/?page=" + $(this).attr('page');
+      window.location.href = url;
+    }
+  });
+
+
+</script>
+{% endblock %}

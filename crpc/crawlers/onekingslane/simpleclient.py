@@ -1,7 +1,10 @@
 import requests
 import lxml.html
 import re
+import slumber
 from datetime import datetime
+
+from settings import MASTIFF_HOST
 from models import Event, Product
 
 from requests.packages.urllib3.connectionpool import *
@@ -21,6 +24,7 @@ def connect_vnew(self):
 
 VerifiedHTTPSConnection.connect = connect_vnew
 
+api = slumber.API(MASTIFF_HOST)
 
 class CheckServer(object):
     def __init__(self):
@@ -33,6 +37,7 @@ class CheckServer(object):
         tree = lxml.html.fromstring(ret.content)
         already_end = True if tree.cssselect('#productOverview div.expired') else False
         if already_end:
+            # api.product(umi).patch({'ends_at': datetime.utcnow()})
             return False
         try:
             title = tree.cssselect('#productOverview h1.serif')[0].text_content().strip()

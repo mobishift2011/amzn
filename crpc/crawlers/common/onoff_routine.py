@@ -53,7 +53,7 @@ def spout_obj(site, method):
 
 def call_rpc(rpc, site, method, *args, **kwargs):
     try:
-        rpc.run_cmd(site, method, kwargs)
+        rpc.run_cmd(site, method, args, kwargs)
     except Exception as e:
         print 'RPC call error: {0}'.format(e.message)
 
@@ -61,6 +61,7 @@ def call_rpc(rpc, site, method, *args, **kwargs):
 def checkout(site, method, concurrency=10):
     """ """
     rpcs = get_rpcs()
+#    rpcs = get_rpcs([{'host_string':'root@127.0.0.1', 'port':8899}])
     pool = Pool(len(rpcs) * concurrency)
     ret = spout_obj(site, method)
     if ret is False:

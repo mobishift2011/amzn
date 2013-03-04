@@ -19,8 +19,8 @@ def get_site_module(site):
         setattr(get_site_module, 'mod', {}) 
 
     if site not in get_site_module.mod:
-        for site in picked_crawlers:
-            get_site_module.mod[site] = __import__("crawlers.{0}.models".format(site), fromlist=['Event', 'Category', 'Product'])
+        for crawler in picked_crawlers:
+            get_site_module.mod[crawler] = __import__("crawlers.{0}.models".format(crawler), fromlist=['Event', 'Category', 'Product'])
 
     return get_site_module.mod[site]
 

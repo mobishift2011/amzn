@@ -16,8 +16,8 @@ class CheckServer(object):
             except:
                 continue
 
-    def run_cmd(self, site, method, obj):
-        return getattr(self.mod[site], method)(obj)
+    def run_cmd(self, site, method, args, kwargs):
+        return getattr(self.mod[site], method)(*args, **kwargs)
 
 if __name__ == '__main__':
     import sys

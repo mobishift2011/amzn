@@ -32,8 +32,9 @@ class CheckServer(object):
         self.headers = {
         }
     
-    def check_onsale_product(self, prd):
-        ret = self.s.get(prd.combine_url, headers=self.headers)
+    def check_onsale_product(self, id, url, kwargs):
+        prd = Product.objects(key=id).first()
+        ret = self.s.get(url, headers=self.headers)
         tree = lxml.html.fromstring(ret.content)
         already_end = True if tree.cssselect('#productOverview div.expired') else False
         if already_end:
@@ -76,8 +77,8 @@ class CheckServer(object):
 
 
 
-    def check_offsale_product(self, prd):
-        ret = self.s.get(prd.combine_url, headers=self.headers)
+    def check_offsale_product(self, url, id, kwargs):
+        ret = self.s.get(url, headers=self.headers)
         tree = lxml.html.fromstring(ret.content)
         already_end = True if tree.cssselect('#productOverview div.expired') else False
         if already_end:
@@ -86,8 +87,8 @@ class CheckServer(object):
             return False
 
 
-    def check_offsale_event(self, ev):
-        ret = self.s.get(ev.combine_url, headers=self.headers)
+    def check_offsale_event(self, url, id, kwargs):
+        ret = self.s.get(url, headers=self.headers)
         tree = lxml.html.fromstring(ret.content)
         text = tree.cssselect('div#okl-content div.sales-event')[0].get('class')
         if 'ended' in text:

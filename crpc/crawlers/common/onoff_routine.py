@@ -32,9 +32,15 @@ def spout_obj(site, method):
         obj = m.Product.objects(products_end__gt=datetime.utcnow()).timeout(False)
         print '{0} have {1} on sale products.'.format(site, obj.count())
 
+        for o in obj:
+            yield {'id': o.key, 'url': o.combine_url}
+
     elif method == 'check_offsale_product':
         obj = m.Product.objects(products_end__lt=datetime.utcnow()).timeout(False)
         print '{0} have {1} off sale products.'.format(site, obj.count())
+
+        for o in obj:
+            yield {'id': o.key, 'url': o.combine_url}
 
     elif method == 'check_offsale_event':
         if not hasattr(m, 'Event'):
@@ -42,12 +48,12 @@ def spout_obj(site, method):
         obj = m.Event.objects(events_end__lt=datetime.utcnow()).timeout(False)
         print '{0} have {1} events end.'.format(site, obj.count())
 
-    for o in obj:
-        yield o
+        for o in obj:
+            yield {'id': o.event_id, 'url': o.combine_url}
 
-def call_rpc(rpc, site, method, obj):
+def call_rpc(rpc, site, method, kwargs):
     try:
-        rpc.run_cmd(site, method, obj)
+        rpc.run_cmd(site, method, **kwargs)
     except Exception as e:
         print 'RPC call error: {0}'.format(e.message)
 
@@ -59,9 +65,9 @@ def checkout(site, method, concurrency=10):
     ret = spout_obj(site, method)
     if ret is False:
         return
-    for obj in ret:
+    for kwargs in ret:
         rpc = random.choice(rpcs)
-        pool.spawn(call_rpc, rpc, site, method, obj)
+        pool.spawn(call_rpc, rpc, site, method, **kwargs)
     pool.join()
 
 

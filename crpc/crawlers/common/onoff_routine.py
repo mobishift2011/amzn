@@ -51,9 +51,9 @@ def spout_obj(site, method):
         for o in obj:
             yield {'id': o.event_id, 'url': o.combine_url}
 
-def call_rpc(rpc, site, method, kwargs):
+def call_rpc(rpc, site, method, *args, **kwargs):
     try:
-        rpc.run_cmd(site, method, **kwargs)
+        rpc.run_cmd(site, method, kwargs)
     except Exception as e:
         print 'RPC call error: {0}'.format(e.message)
 

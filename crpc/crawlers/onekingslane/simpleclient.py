@@ -32,8 +32,11 @@ class CheckServer(object):
         self.headers = {
         }
     
-    def check_onsale_product(self, id, url, kwargs):
+    def check_onsale_product(self, id, url):
         prd = Product.objects(key=id).first()
+        if prd is None:
+            print id, url
+            return
         ret = self.s.get(url, headers=self.headers)
         tree = lxml.html.fromstring(ret.content)
         already_end = True if tree.cssselect('#productOverview div.expired') else False
@@ -48,9 +51,9 @@ class CheckServer(object):
                 prd.title = title
                 prd.save()
         except IndexError:
-            print '\n\nonekingslane product[{0}] title label can not get it.\n\n'.format(prd.combine_url)
+            print '\n\nonekingslane product[{0}] title label can not get it.\n\n'.format(url)
         except AttributeError:
-            print '\n\nonekingslane product[{0}] title None not get it.\n\n'.format(prd.combine_url)
+            print '\n\nonekingslane product[{0}] title None not get it.\n\n'.format(url)
 
         img = tree.cssselect('div#productDescription > div#altImages')
         if img:
@@ -77,7 +80,7 @@ class CheckServer(object):
 
 
 
-    def check_offsale_product(self, url, id, kwargs):
+    def check_offsale_product(self, url, id):
         ret = self.s.get(url, headers=self.headers)
         tree = lxml.html.fromstring(ret.content)
         already_end = True if tree.cssselect('#productOverview div.expired') else False
@@ -87,7 +90,7 @@ class CheckServer(object):
             return False
 
 
-    def check_offsale_event(self, url, id, kwargs):
+    def check_offsale_event(self, url, id):
         ret = self.s.get(url, headers=self.headers)
         tree = lxml.html.fromstring(ret.content)
         text = tree.cssselect('div#okl-content div.sales-event')[0].get('class')

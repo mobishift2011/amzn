@@ -163,12 +163,18 @@ class ProductPipeline(object):
         favbuy_price = None
         listprice = None
 
-        if not product.favbuy_price or not float(product.favbuy_price):
+        update_history = product.update_history or {}
+
+        if not product.favbuy_price or not float(product.favbuy_price) \
+            or ( update_history.get('favbuy_price') and update_history.get('price') \
+                and update_history.get('favbuy_price') < update_history.get('price') ):
             favbuy_price = parse_price(product.price)
             product.favbuy_price = str(favbuy_price)
             product.update_history['favbuy_price'] = datetime.utcnow()
 
-        if not product.favbuy_listprice or not float(product.favbuy_listprice):
+        if not product.favbuy_listprice or not float(product.favbuy_listprice) \
+            or ( update_history.get('favbuy_listprice') and update_history.get('listprice') \
+                and update_history.get('favbuy_listprice') < update_history.get('listprice') ):
             listprice = parse_price(product.listprice) or product.favbuy_price
             product.favbuy_listprice = str(listprice)
             product.update_history['favbuy_listprice'] = datetime.utcnow()

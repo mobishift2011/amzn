@@ -44,7 +44,7 @@
                     {% for brand in brands %}
                     <tr title="{{ brand['title'] }}">
                         <td>{{ brand['title'] }}</td>
-                        <td>{{ brand['title_edit'] }}</td>
+                        <td>{% if brand['title_edit'] %}{{ brand['title_edit'] }}{% endif %}</td>
                         <td>
                             {% if brand['title_checked'] %}
                             <i class="icon-ok"></i>
@@ -155,7 +155,7 @@
                     {% for brand in power_brands %}
                     <tr title="{{ brand['title'] }}">
                         <td>{{ brand['title'] }}</td>
-                        <td>{{ brand['title_edit'] }}</td>
+                        <td>{% if brand['title_edit'] %}{{ brand['title_edit'] }}{% endif %}</td>
                         <td>{{ brand['global_searchs'] }}
                         </td>
                        

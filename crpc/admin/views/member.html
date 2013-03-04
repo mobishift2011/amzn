@@ -15,6 +15,7 @@
                 <table class="table table-striped">
                     <thead>
                         <tr>
+                            <th>Avatar</th>
                             <th>Username/Email</th>
                             <th>Display name</th>
                             <th>Date Joined</th>
@@ -27,6 +28,11 @@
                     <tbody>
                         {% for u in users %}
                             <tr>
+                                {% if u.avatar_large %}
+                                <td><a href="{{u.avatar_large}}" target="_blank"><img src="{{u.avatar_large}}" style="width:32px;"/></a></td>
+                                {% else %}
+                                <td><i class="icon32 icon-user icon-orange"></i></td>
+                                {% endif %}
                                 <td>{{ u.username }}</td>
                                 <td>{{ u.screen_name }}</td>
                                 <td>{{ u.date_joined }}</td>

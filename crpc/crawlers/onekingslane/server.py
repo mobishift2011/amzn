@@ -436,6 +436,7 @@ class Server(object):
             if product.combine_url != combine_url:
                 product.combine_url = combine_url
                 product.update_history.update({ 'combine_url': datetime.utcnow() })
+
             if listprice:
                 listprice = listprice[0].text_content().replace(',','').replace('Retail', '').strip()
                 if product.listprice != listprice:

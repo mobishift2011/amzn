@@ -7,7 +7,7 @@ from models import *
 from datetime import datetime
 
 
-class Hautelook(object):
+class CheckServer(object):
     def __init__(self):
         self.s = requests.session()
         self.headers = {
@@ -93,4 +93,4 @@ class Hautelook(object):
         return 'hautelook_'+product_id, title+'_'+description
 
 if __name__ == '__main__':
-    Hautelook().check_product_right()
+    CheckServer().check_product_right()

@@ -2,14 +2,18 @@
 # -*- coding: utf-8 -*-
 # Author: bishop Liu <miracle (at) gmail.com>
 
+import zerorpc
 from crawlers.common.stash import picked_crawlers
 
 class CheckServer(object):
     def __init__(self):
         self.mod = {}
 
-        for crawler in picked_crawlers
-            m = __import__('crawlers.{0}.simpleclient'.format(crawler), fromlist=['CheckServer'])
+        for crawler in picked_crawlers:
+            try:
+                m = __import__('crawlers.{0}.simpleclient'.format(crawler), fromlist=['CheckServer'])
+            except:
+                continue
             self.mod[crawler] = m.CheckServer()
 
     def run_cmd(self, site, method, obj):

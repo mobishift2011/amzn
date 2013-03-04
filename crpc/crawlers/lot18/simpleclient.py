@@ -6,7 +6,7 @@ from server import lot18Login
 from models import Product
 
 
-class Lot18(object):
+class CheckServer(object):
     def __init__(self):
         self.s = requests.session()
         self.headers = {}
@@ -42,4 +42,4 @@ class Lot18(object):
         return 'lot18_'+product_id, title+'_'+description
 
 if __name__ == '__main__':
-    Lot18()
+    CheckServer()

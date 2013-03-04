@@ -22,7 +22,7 @@ def get_rpcs(peers=CRAWLER_PEERS):
             host = peer['host_string'][peer['host_string'].index('@')+1:]
             port = peer['port']
             client_string = 'tcp://{0}:{1}'.format(host, port)
-            c = zerorpc.Client(client_string, timeout=120, heartbeat=None)
+            c = zerorpc.Client(client_string, timeout=300, heartbeat=None)
             if c:
                rpcs.append(c)
 

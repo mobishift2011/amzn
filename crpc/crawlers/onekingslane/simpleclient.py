@@ -43,10 +43,21 @@ class CheckServer(object):
             title = tree.cssselect('#productOverview h1.serif')[0].text_content().strip()
             if prd.title.lower() != title.lower():
                 print 'onekingslane product[{0}] title error: [{1}, {2}]'.format(prd.combine_url, title.encode('utf-8'), prd.title.encode('utf-8'))
+            if not prd.title:
+                prd.title = title
+                prd.save()
         except IndexError:
             print '\n\nonekingslane product[{0}] title label can not get it.\n\n'.format(prd.combine_url)
         except AttributeError:
             print '\n\nonekingslane product[{0}] title None not get it.\n\n'.format(prd.combine_url)
+
+        img = tree.cssselect('div#productDescription > div#altImages')
+        if img:
+            for i in img[0].cssselect('img.altImage'):
+                img_url = i.get('data-altimgbaseurl') + '?$fullzoom$'
+                if img_url not in prd.image_urls:
+                    prd.image_urls.append(img_url)
+            prd.save()
 
         price = tree.cssselect('p#oklPriceLabel')[0].text_content().replace('Our Price', '').strip()
         listprice = tree.cssselect('p#msrpLabel')[0].text_content().replace('Retail', '').replace('Estimated Market Value', '').strip()
@@ -60,7 +71,9 @@ class CheckServer(object):
         soldout = True if tree.cssselect('.sold-out') else False
         if soldout !=  prd.soldout:
             print 'onekingslane product[{0}] soldout error: {1} vs {2}'.format(prd.combine_url, soldout, prd.soldout)
+
         return True
+
 
 
     def check_offsale_product(self, prd):

@@ -12,9 +12,9 @@ class CheckServer(object):
         for crawler in picked_crawlers:
             try:
                 m = __import__('crawlers.{0}.simpleclient'.format(crawler), fromlist=['CheckServer'])
+                self.mod[crawler] = m.CheckServer()
             except:
                 continue
-            self.mod[crawler] = m.CheckServer()
 
     def run_cmd(self, site, method, obj):
         return getattr(self.mod[site], method)(obj)

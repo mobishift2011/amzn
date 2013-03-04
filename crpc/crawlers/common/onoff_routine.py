@@ -29,16 +29,16 @@ def spout_obj(site, method):
     """ """
     m = get_site_module(site)
     if method == 'check_onsale_product':
-        obj = Product.objects(products_end__gt=datetime.utcnow()).timeout(False)
+        obj = m.Product.objects(products_end__gt=datetime.utcnow()).timeout(False)
         print '{0} have {1} on sale products.'.format(site, obj.count())
 
     elif method == 'check_offsale_product':
-        obj = Product.objects(products_end__lt=datetime.utcnow()).timeout(False)
+        obj = m.Product.objects(products_end__lt=datetime.utcnow()).timeout(False)
         print '{0} have {1} off sale products.'.format(site, obj.count())
 
     elif method == 'check_offsale_event':
         if not hasattr(m, 'Event'):
-            return False
+            return
         obj = m.Event.objects(events_end__lt=datetime.utcnow()).timeout(False)
         print '{0} have {1} events end.'.format(site, obj.count())
 
@@ -56,7 +56,7 @@ def checkout(site, method, concurrency=10):
     """ """
     rpcs = get_rpcs()
     pool = Pool(len(rpcs) * concurrency)
-    ret = spout_obj(site, method):
+    ret = spout_obj(site, method)
     if ret is False:
         return
     for obj in ret:
@@ -67,5 +67,5 @@ def checkout(site, method, concurrency=10):
 
 if __name__ == '__main__':
     checkout('onekingslane', 'check_onsale_product')
-    checkout('onekingslane', 'check_offsale_product')
-    checkout('onekingslane', 'check_offsale_event')
+#    checkout('onekingslane', 'check_offsale_product')
+#    checkout('onekingslane', 'check_offsale_event')

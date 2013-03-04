@@ -678,7 +678,7 @@ class Server(object):
         cont = self.net.fetch_page(link)
         if cont is None or isinstance(cont, int):
             common_failed.send(sender=ctx, key=look_id, url=url,
-                    reason='Download rest home product of url error: {1}'.format(cont))
+                    reason='Download rest home product of url error: {0}'.format(cont))
             return
         # The position is 39, if no more products get
         if cont.find('requireModules') < 100:

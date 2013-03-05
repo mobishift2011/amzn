@@ -47,12 +47,13 @@ class CheckServer(object):
             return False
         try:
             title = tree.cssselect('#productOverview h1.serif')[0].text_content().strip()
-            if prd.title.lower() != title.lower():
-                print 'onekingslane product[{0}] title error: [{1}, {2}]'.format(prd.combine_url, title.encode('utf-8'), prd.title.encode('utf-8'))
             if not prd.title:
                 prd.title = title
                 prd.update_history.update({ 'title': datetime.utcnow() })
                 prd.save()
+            else:
+                if prd.title.lower() != title.lower():
+                    print 'onekingslane product[{0}] title error: [{1}, {2}]'.format(prd.combine_url, title.encode('utf-8'), prd.title.encode('utf-8'))
         except IndexError:
             print '\n\nonekingslane product[{0}] title label can not get it.\n\n'.format(url)
         except AttributeError:
@@ -88,7 +89,7 @@ class CheckServer(object):
 
 
 
-    def check_offsale_product(self, url, id):
+    def check_offsale_product(self, id, url):
         ret = self.s.get(url, headers=self.headers)
         tree = lxml.html.fromstring(ret.content)
         already_end = True if tree.cssselect('#productOverview div.expired') else False
@@ -98,7 +99,7 @@ class CheckServer(object):
             return False
 
 
-    def check_offsale_event(self, url, id):
+    def check_offsale_event(self, id, url):
         ret = self.s.get(url, headers=self.headers)
         tree = lxml.html.fromstring(ret.content)
         text = tree.cssselect('div#okl-content div.sales-event')[0].get('class')
@@ -134,9 +135,9 @@ if __name__ == '__main__':
     from optparse import OptionParser
 
     parser = OptionParser(usage='usage: %prog [options]')
-    parser.add_option('-e', '--event', dest='event', action='store_true', help='check event off sale whether still on', default=False)
-    parser.add_option('-p', '--product', dest='product', action='store_true', help='check product off sale whether still on', default=False)
-    parser.add_option('-c', '--check', dest='check', action='store_true', help='check on sale product whether off sale', default=False)
+    parser.add_option('-e', '--event', dest='event', action='store', help='check event off sale whether still on', default=False)
+    parser.add_option('-p', '--product', dest='product', action='store', help='check product off sale whether still on', default=False)
+    parser.add_option('-c', '--check', dest='check', action='store', help='check on sale product whether off sale', default=False)
     parser.add_option('-d', '--daemon', dest='daemon', action='store_true', help='run as a rpc server', default=False)
 
     if len(sys.argv) == 1:
@@ -148,10 +149,13 @@ if __name__ == '__main__':
     if options.daemon:
         pass
     elif options.event:
-        onekingslane.check_offsale_event()
+        _id = options.check.rsplit('/', 1)[-1]
+        onekingslane.check_offsale_event(_id, options.event)
     elif options.product:
-        onekingslane.check_offsale_product()
+        _id = options.check.rsplit('/', 1)[-1]
+        onekingslane.check_offsale_product(_id, options.product)
     elif options.check:
-        onekingslane.check_onsale_product()
+        _id = options.check.rsplit('/', 1)[-1]
+        onekingslane.check_onsale_product(_id, options.check)
     else:
         parser.print_help()

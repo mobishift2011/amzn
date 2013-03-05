@@ -38,6 +38,8 @@ class CheckServer(object):
             print id, url
             return
         ret = self.s.get(url, headers=self.headers)
+        if ret.url == u'https://www.onekingslane.com/':
+            return -302
         tree = lxml.html.fromstring(ret.content)
         already_end = True if tree.cssselect('#productOverview div.expired') else False
         if already_end:
@@ -49,6 +51,7 @@ class CheckServer(object):
                 print 'onekingslane product[{0}] title error: [{1}, {2}]'.format(prd.combine_url, title.encode('utf-8'), prd.title.encode('utf-8'))
             if not prd.title:
                 prd.title = title
+                prd.update_history.update({ 'title': datetime.utcnow() })
                 prd.save()
         except IndexError:
             print '\n\nonekingslane product[{0}] title label can not get it.\n\n'.format(url)
@@ -61,6 +64,7 @@ class CheckServer(object):
                 img_url = i.get('data-altimgbaseurl') + '?$fullzoom$'
                 if img_url not in prd.image_urls:
                     prd.image_urls.append(img_url)
+                    prd.update_history.update({ 'image_urls': datetime.utcnow() })
             prd.save()
 
         try:

@@ -33,7 +33,7 @@ class CheckServer(object):
         }
     
     def offsale_update(self, muri):
-        _id = muri.rsplit('/', 1)[-1]
+        _id = muri.rsplit('/', 2)[-2]
         utcnow = datetime.utcnow()
         var = api.product(_id).get()
         if var['ends_at'] > utcnow:
@@ -42,7 +42,7 @@ class CheckServer(object):
     def check_onsale_product(self, id, url):
         prd = Product.objects(key=id).first()
         if prd is None:
-            print id, url
+            print '\n\nonekingslane {0}, {1}\n\n'.format(id, url)
             return
         ret = self.s.get(url, headers=self.headers)
         if ret.url == u'https://www.onekingslane.com/':

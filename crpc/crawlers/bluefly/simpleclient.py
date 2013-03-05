@@ -40,7 +40,7 @@ class CheckServer(object):
         if price != prd.price.replace('$', '').strip():
             print 'bluefly product[{0}] price error: {1} vs {2}'.format(url, prd.price.replace('$', '').strip(), price)
         if title.lower() != prd.title.lower():
-            print 'bluefly product[{0}] title error: {1} vs {2}'.format(url, prd.title.encode('utf-8'), title('utf-8'))
+            print 'bluefly product[{0}] title error: {1} vs {2}'.format(url, prd.title.encode('utf-8'), title.encode('utf-8'))
 
 if __name__ == '__main__':
     pass

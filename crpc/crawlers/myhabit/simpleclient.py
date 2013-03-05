@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 from models import Jslinker
 from models import Event, Product
 
-class Myhabit(object):
+class CheckServer(object):
     def __init__(self):
         self.s = requests.session()
         self.rooturl = 'http://www.myhabit.com/request/getAllPrivateSales'
@@ -79,5 +79,5 @@ class Myhabit(object):
         return 'myhabit_'+asin, title + '\n' + listinfo
 
 if __name__ == '__main__':
-    myhabit = Myhabit()
+    myhabit = CheckServer()
     myhabit.check_product_right()

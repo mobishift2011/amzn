@@ -5,7 +5,7 @@ from datetime import datetime
 from models import Product
 
 
-class Ruelala(object):
+class CheckServer(object):
     def __init__(self):
         self.s = requests.session()
         self.login_url = 'http://www.ruelala.com/access/gate'
@@ -67,4 +67,4 @@ class Ruelala(object):
         return 'ruelala_'+product_id, title+'_'+description
 
 if __name__ == '__main__':
-    Ruelala().check_product_right()
+    CheckServer().check_product_right()

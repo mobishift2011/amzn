@@ -1,7 +1,10 @@
 import requests
 import lxml.html
 import re
+import slumber
 from datetime import datetime
+
+from settings import MASTIFF_HOST
 from models import Event, Product
 
 from requests.packages.urllib3.connectionpool import *
@@ -21,76 +24,89 @@ def connect_vnew(self):
 
 VerifiedHTTPSConnection.connect = connect_vnew
 
+api = slumber.API(MASTIFF_HOST)
 
-class Onekingslane(object):
+class CheckServer(object):
     def __init__(self):
         self.s = requests.session()
         self.headers = {
         }
     
-    def check_product_right(self):
-        obj = Product.objects(products_end__gt=datetime.utcnow()).timeout(False)
-        print 'Onekingslane have {0} products.'.format(obj.count())
-
-        end_count = 0
-        for prd in obj:
-            ret = self.s.get(prd.combine_url, headers=self.headers)
-            tree = lxml.html.fromstring(ret.content)
-            already_end = True if tree.cssselect('#productOverview div.expired') else False
-            if already_end:
-                end_count += 1
-                continue
-            try:
-                title = tree.cssselect('#productOverview h1.serif')[0].text_content().strip()
+    def check_onsale_product(self, id, url):
+        prd = Product.objects(key=id).first()
+        if prd is None:
+            print id, url
+            return
+        ret = self.s.get(url, headers=self.headers)
+        if ret.url == u'https://www.onekingslane.com/':
+            return -302
+        tree = lxml.html.fromstring(ret.content)
+        already_end = True if tree.cssselect('#productOverview div.expired') else False
+        if already_end:
+            # api.product(umi).patch({'ends_at': datetime.utcnow()})
+            return False
+        try:
+            title = tree.cssselect('#productOverview h1.serif')[0].text_content().strip()
+            if not prd.title:
+                prd.title = title
+                prd.update_history.update({ 'title': datetime.utcnow() })
+                prd.save()
+            else:
                 if prd.title.lower() != title.lower():
                     print 'onekingslane product[{0}] title error: [{1}, {2}]'.format(prd.combine_url, title.encode('utf-8'), prd.title.encode('utf-8'))
-            except IndexError:
-                print '\n\nonekingslane product[{0}] title label can not get it.\n\n'.format(prd.combine_url)
-            except AttributeError:
-                print '\n\nonekingslane product[{0}] title None not get it.\n\n'.format(prd.combine_url)
+        except IndexError:
+            print '\n\nonekingslane product[{0}] title label can not get it.\n\n'.format(url)
+        except AttributeError:
+            print '\n\nonekingslane product[{0}] title None not get it.\n\n'.format(url)
 
+        img = tree.cssselect('div#productDescription > div#altImages')
+        if img:
+            for i in img[0].cssselect('img.altImage'):
+                img_url = i.get('data-altimgbaseurl') + '?$fullzoom$'
+                if img_url not in prd.image_urls:
+                    prd.image_urls.append(img_url)
+                    prd.update_history.update({ 'image_urls': datetime.utcnow() })
+            prd.save()
+
+        try:
             price = tree.cssselect('p#oklPriceLabel')[0].text_content().replace('Our Price', '').strip()
-            listprice = tree.cssselect('p#msrpLabel')[0].text_content().replace('Retail', '').replace('Estimated Market Value', '').strip()
-            if '-' not in price:
-                if float( price.replace('$', '').replace(',', '') ) != float( prd.price.replace('Our Price', '').replace('$', '').replace(',', '') ):
-                    print 'onekingslane product[{0}] price error: {1} vs {2}'.format(prd.combine_url, price, prd.price)
-            if '-' not in listprice and listprice:
-                if float( listprice.replace('$', '').replace(',', '') ) != float( prd.listprice.replace('$', '').replace(',', '') ):
-                    print 'onekingslane product[{0}] listprice error: {1} vs {2}'.format(prd.combine_url, listprice, prd.listprice)
+        except IndexError:
+            print '\n\nonekingslane product[{0}] price label can not get.\n\n'.format(url)
 
-            soldout = True if tree.cssselect('.sold-out') else False
-            if soldout !=  prd.soldout:
-                print 'onekingslane product[{0}] soldout error: {1} vs {2}'.format(prd.combine_url, soldout, prd.soldout)
-        print 'onekingslane have {0} products end.'.format(end_count)
+        listprice = tree.cssselect('p#msrpLabel')[0].text_content().replace('Retail', '').replace('Estimated Market Value', '').strip()
+        if '-' not in price:
+            if float( price.replace('$', '').replace(',', '') ) != float( prd.price.replace('Our Price', '').replace('$', '').replace(',', '') ):
+                print 'onekingslane product[{0}] price error: {1} vs {2}'.format(prd.combine_url, price, prd.price)
+        if '-' not in listprice and listprice:
+            if float( listprice.replace('$', '').replace(',', '') ) != float( prd.listprice.replace('$', '').replace(',', '') ):
+                print 'onekingslane product[{0}] listprice error: {1} vs {2}'.format(prd.combine_url, listprice, prd.listprice)
 
-    def check_end_product_still_on(self):
-        obj = Product.objects(products_end__lt=datetime.utcnow()).timeout(False)
-        print 'Onekingslane have {0} products end.'.format(obj.count())
+        soldout = True if tree.cssselect('.sold-out') else False
+        if soldout !=  prd.soldout:
+            print 'onekingslane product[{0}] soldout error: {1} vs {2}'.format(prd.combine_url, soldout, prd.soldout)
 
-        stillon_count = 0
-        for prd in obj:
-            ret = self.s.get(prd.combine_url, headers=self.headers)
-            tree = lxml.html.fromstring(ret.content)
-            already_end = True if tree.cssselect('#productOverview div.expired') else False
-            if not already_end:
-                stillon_count += 1
-        print 'onekingslane have {0} end products still on.'.format(stillon_count)
+        return True
 
 
-    def check_end_event_still_on(self):
-        obj = Event.objects(events_end__lt=datetime.utcnow()).timeout(False)
-        print 'Onekingslane have {0} events end.'.format(obj.count())
 
-        stillon_count = 0
-        for ev in obj:
-            ret = self.s.get(ev.combine_url, headers=self.headers)
-            tree = lxml.html.fromstring(ret.content)
-            text = tree.cssselect('div#okl-content div.sales-event')[0].get('class')
-            if 'ended' in text:
-                continue
-            if 'started' in text:
-                stillon_count += 1
-        print 'Onekingslane have {0} end events still on.'.format(stillon_count)
+    def check_offsale_product(self, id, url):
+        ret = self.s.get(url, headers=self.headers)
+        tree = lxml.html.fromstring(ret.content)
+        already_end = True if tree.cssselect('#productOverview div.expired') else False
+        if already_end:
+            return True
+        else:
+            return False
+
+
+    def check_offsale_event(self, id, url):
+        ret = self.s.get(url, headers=self.headers)
+        tree = lxml.html.fromstring(ret.content)
+        text = tree.cssselect('div#okl-content div.sales-event')[0].get('class')
+        if 'ended' in text:
+            return True
+        if 'started' in text:
+            return False
 
 
     def test_product(self, testurl):
@@ -119,21 +135,27 @@ if __name__ == '__main__':
     from optparse import OptionParser
 
     parser = OptionParser(usage='usage: %prog [options]')
-    parser.add_option('-e', '--event', dest='event', action='store_true', help='check event off sale whether still on', default=False)
-    parser.add_option('-p', '--product', dest='product', action='store_true', help='check product off sale whether still on', default=False)
-    parser.add_option('-c', '--check', dest='check', action='store_true', help='check on sale product whether off sale', default=False)
+    parser.add_option('-e', '--event', dest='event', action='store', help='check event off sale whether still on', default=False)
+    parser.add_option('-p', '--product', dest='product', action='store', help='check product off sale whether still on', default=False)
+    parser.add_option('-c', '--check', dest='check', action='store', help='check on sale product whether off sale', default=False)
+    parser.add_option('-d', '--daemon', dest='daemon', action='store_true', help='run as a rpc server', default=False)
 
     if len(sys.argv) == 1:
         parser.print_help()
         exit()
 
-    onekingslane = Onekingslane()
+    onekingslane = CheckServer()
     options, args = parser.parse_args(sys.argv[1:])
-    if options.event:
-        onekingslane.check_end_event_still_on()
+    if options.daemon:
+        pass
+    elif options.event:
+        _id = options.check.rsplit('/', 1)[-1]
+        onekingslane.check_offsale_event(_id, options.event)
     elif options.product:
-        onekingslane.check_end_product_still_on()
+        _id = options.check.rsplit('/', 1)[-1]
+        onekingslane.check_offsale_product(_id, options.product)
     elif options.check:
-        onekingslane.check_product_right()
+        _id = options.check.rsplit('/', 1)[-1]
+        onekingslane.check_onsale_product(_id, options.check)
     else:
         parser.print_help()

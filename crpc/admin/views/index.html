@@ -250,7 +250,7 @@
 {% block script %}
 <script>
 
-function poll(interval){
+function poll_1(interval){
     $.ajax({
         type: 'GET',
         url: '/dashboard/member_activity.json',
@@ -280,10 +280,13 @@ function poll(interval){
                 html += ' @'+d['time'].substr(5,14)+'</li>\n';
             }
             $('#member-activity').html(html);
-            setTimeout(function(){poll(interval)}, interval);
+            setTimeout(function(){poll_1(interval)}, interval);
         },
     });
+}
 
+
+function poll_2(interval){
     $.ajax({
         type:'GET',
         url:'/dashboard/email.json',
@@ -298,7 +301,7 @@ function poll(interval){
             }
 
             $('#email').html(html);
-            setTimeout(function(){poll(interval)}, interval);
+            setTimeout(function(){poll_2(interval)}, interval);
         
         },
         
@@ -306,7 +309,8 @@ function poll(interval){
     });
 }
 
-poll(5000);
+poll_1(15000);
+poll_2(15000);
 
 $('#time').text(
     new Date()

@@ -63,7 +63,11 @@ class CheckServer(object):
                     prd.image_urls.append(img_url)
             prd.save()
 
-        price = tree.cssselect('p#oklPriceLabel')[0].text_content().replace('Our Price', '').strip()
+        try:
+            price = tree.cssselect('p#oklPriceLabel')[0].text_content().replace('Our Price', '').strip()
+        except IndexError:
+            print '\n\nonekingslane product[{0}] price label can not get.\n\n'.format(url)
+
         listprice = tree.cssselect('p#msrpLabel')[0].text_content().replace('Retail', '').replace('Estimated Market Value', '').strip()
         if '-' not in price:
             if float( price.replace('$', '').replace(',', '') ) != float( prd.price.replace('Our Price', '').replace('$', '').replace(',', '') ):

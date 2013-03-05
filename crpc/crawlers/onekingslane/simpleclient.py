@@ -32,18 +32,28 @@ class CheckServer(object):
         self.headers = {
         }
     
+    def offsale_update(self, muri):
+        _id = muri.rsplit('/', 2)[-2]
+        utcnow = datetime.utcnow()
+        var = api.product(_id).get()
+        if var['ends_at'] > utcnow:
+            api.product(_id).patch({ 'ends_at': utcnow })
+
     def check_onsale_product(self, id, url):
         prd = Product.objects(key=id).first()
         if prd is None:
-            print id, url
+            print '\n\nonekingslane {0}, {1}\n\n'.format(id, url)
             return
         ret = self.s.get(url, headers=self.headers)
         if ret.url == u'https://www.onekingslane.com/':
+            if prd.muri:
+                self.offsale_update(prd.muri)
             return -302
         tree = lxml.html.fromstring(ret.content)
         already_end = True if tree.cssselect('#productOverview div.expired') else False
         if already_end:
-            # api.product(umi).patch({'ends_at': datetime.utcnow()})
+            if prd.muri:
+                self.offsale_update(prd.muri)
             return False
         try:
             title = tree.cssselect('#productOverview h1.serif')[0].text_content().strip()

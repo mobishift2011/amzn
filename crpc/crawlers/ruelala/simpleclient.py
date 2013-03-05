@@ -1,9 +1,13 @@
 import requests
 import lxml.html
 import re
+import slumber
 from datetime import datetime
+
+from settings import MASTIFF_HOST
 from models import Product
 
+api = slumber.API(MASTIFF_HOST)
 
 class CheckServer(object):
     def __init__(self):
@@ -61,6 +65,11 @@ class CheckServer(object):
         if price != prd.price:
             print 'ruelala product[{0}] price error: [{1}, {2}]'.format(prd.combine_url, price, prd.price)
 
+    def check_offsale_product(self, id, url):
+        pass
+
+    def check_offsale_event(self, id, url):
+        pass
 
     def get_product_abstract_by_url(self, url):
         content = self.s.get(url).content

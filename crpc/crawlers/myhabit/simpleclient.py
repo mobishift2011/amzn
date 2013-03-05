@@ -19,40 +19,46 @@ class CheckServer(object):
     'x-amzn-auth': '187-2590046-5168141',
         }
 
-    def check_product_right(self):
-        utcnow = datetime.utcnow()
-        obj = Product.objects(products_end__gt=utcnow).timeout(False)
-        print 'Myhabit have {0} products.'.format(obj.count())
+    def check_onsale_product(self, id, url):
+        prd = Product.objects(key=id).first()
+        if prd is None:
+            print '\n\nmyhabit {0}, {1}\n\n'.format(id, url)
+            return
 
-        for prd in obj:
-            if not prd.jslink:
-                print 'myhabit product[{0}] has no jslink'.format(prd.combine_url)
-                continue
-            ret = self.s.get(prd.jslink, headers=self.headers)
-            data = re.compile(r'parse_asin_\w+\((.*)\);$').search(ret.text).group(1)
-            js = json.loads(data)
-            asin = js['detailJSON']['asin']
-            title = js['detailJSON']['title']
-            brand = js['detailJSON']['brand']
-#            Ourprice is not right
-#            if 'amount' in js['detailJSON']['ourPrice']:
-#                price = float( js['detailJSON']['ourPrice']['amount'] )
-#                if price != float( prd.price.replace('$', '') ):
-#                    print 'myhabit product[{0}] price error: {1} vs {2}'.format(prd.combine_url, price, prd.price)
-#            else:
-#                print 'myhabit product[{0}] price can not get from network {1}'.format(prd.combine_url, prd.price)
-            if 'listPrice' in js['detailJSON'] and 'amount' in js['detailJSON']['listPrice']:
-                listprice = float( js['detailJSON']['listPrice']['amount'] )
-                if '-' in prd.listprice: continue
+        if not prd.jslink:
+            print 'myhabit product[{0}] has no jslink'.format(prd.combine_url)
+            return
+        ret = self.s.get(prd.jslink, headers=self.headers)
+        data = re.compile(r'parse_asin_\w+\((.*)\);$').search(ret.text).group(1)
+        js = json.loads(data)
+        asin = js['detailJSON']['asin']
+        title = js['detailJSON']['title']
+        brand = js['detailJSON']['brand']
+#        Ourprice is not right
+#        if 'amount' in js['detailJSON']['ourPrice']:
+#            price = float( js['detailJSON']['ourPrice']['amount'] )
+#            if price != float( prd.price.replace('$', '') ):
+#                print 'myhabit product[{0}] price error: {1} vs {2}'.format(prd.combine_url, price, prd.price)
+#        else:
+#            print 'myhabit product[{0}] price can not get from network {1}'.format(prd.combine_url, prd.price)
+        if 'listPrice' in js['detailJSON'] and 'amount' in js['detailJSON']['listPrice']:
+            listprice = float( js['detailJSON']['listPrice']['amount'] )
+            if '-' not in prd.listprice:
                 if listprice != float( prd.listprice.replace('$', '').replace(',', '') ):
                     print 'myhabit product[{0}] listprice error: {1} vs {2}'.format(prd.combine_url, listprice, prd.listprice)
-#            else:
-#                print 'myhabit product[{0}] listprice can not get from network {1}'.format(prd.combine_url, prd.listprice)
-            if title.lower() != prd.title.rsplit('(', 1)[0].rstrip().lower():
-                print 'myhabit product[{0}] title error: [{1}] vs [{2}]'.format(prd.combine_url, title.encode('utf-8'), prd.title.encode('utf-8'))
-            if brand != prd.brand:
-                print 'myhabit product[{0}] brand error: {1} vs {2}'.format(prd.combine_url, brand, prd.brand)
+#        else:
+#            print 'myhabit product[{0}] listprice can not get from network {1}'.format(prd.combine_url, prd.listprice)
+        if title.lower() != prd.title.rsplit('(', 1)[0].rstrip().lower():
+            print 'myhabit product[{0}] title error: [{1}] vs [{2}]'.format(prd.combine_url, title.encode('utf-8'), prd.title.encode('utf-8'))
+        if brand != prd.brand:
+            print 'myhabit product[{0}] brand error: {1} vs {2}'.format(prd.combine_url, brand, prd.brand)
 
+
+    def check_offsale_product(self, id, url):
+        pass
+
+    def check_offsale_event(self, id, url):
+        pass
 
     def bootstrap_jslink(self):
         r = self.s.get(self.rooturl, headers=self.headers)
@@ -80,4 +86,4 @@ class CheckServer(object):
 
 if __name__ == '__main__':
     myhabit = CheckServer()
-    myhabit.check_product_right()
+    myhabit.check_onsale_product()

@@ -323,7 +323,7 @@ class Server(object):
         slug, key = self.extract_product_slug_key.match(link).groups()
         soldout = True if prd.cssselect('div.stockMessage div.listOutOfStock') else False
         brand = prd.cssselect('div.layoutChanger > div.listBrand > a')[0].text_content().strip()
-        title = prd.cssselect('div.layoutChanger > div.listLineMargin > div.productShortName')[0].text_content().strip()
+        title = prd.cssselect('div.layoutChanger > div.listLineMargin > div.productShortName')[0].text_content().strip().encode('utf-8')
         listprice = prd.cssselect('div.layoutChanger > div.listProductPrices > div.priceRetail > span.priceRetailvalue')
         listprice = listprice[0].text_content().strip() if listprice else ''
         
@@ -347,8 +347,12 @@ class Server(object):
                 product.soldout = soldout
                 is_updated = True
                 product.update_history.update({ 'soldout': datetime.utcnow() })
-        if listprice and not product.listprice: product.listprice = listprice
-        if price and not product.price: product.price = price
+        if listprice and listprice != product.listprice:
+            product.listprice = listprice
+            product.update_history.update({ 'listprice': datetime.utcnow() })
+        if price and price != product.price:
+            product.price = price
+            product.update_history.update({ 'price': datetime.utcnow() })
         if category_key not in product.category_key: product.category_key.append(category_key)
         if category_path and category_path not in product.cats: product.cats.append(category_path)
         product.list_update_time = datetime.utcnow()

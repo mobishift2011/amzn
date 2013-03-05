@@ -32,15 +32,15 @@ class CheckServer(object):
         # brand = tree.cssselect('section#main-product-detail > div.product-info > div.limitBrandName > h1.product-brand > a')[0].get('name')
         title = tree.cssselect('section#main-product-detail > div.product-info > h2.product-name')[0].text_content().strip()
 
-        price = tree.cssselect('div.product-info div.product-prices span[itemprop=price]')[0].text_content().replace('retail', '').replace(':', '').replace('$', '').strip()
+        price = tree.cssselect('div.product-info div.product-prices span[itemprop=price]')[0].text_content().replace('(FINAL SALE)', '').replace('$', '').strip()
 
         soldout = True if tree.cssselect('div.product-info div.product-prices div.soldout-label') else False
         if soldout != prd.soldout:
             print 'bluefly product[{0}] soldout error: {1} vs {2}'.format(url, prd.soldout, soldout)
         if price != prd.price.replace('$', '').strip():
-            print 'bluefly product[{0}] price error: {1} vs {2}'.format(url, prd.price, price)
+            print 'bluefly product[{0}] price error: {1} vs {2}'.format(url, prd.price.replace('$', '').strip(), price)
         if title.lower() != prd.title.lower():
-            print 'bluefly product[{0}] title error: {1} vs {2}'.format(url, prd.title, title)
+            print 'bluefly product[{0}] title error: {1} vs {2}'.format(url, prd.title.encode('utf-8'), title('utf-8'))
 
 if __name__ == '__main__':
     pass

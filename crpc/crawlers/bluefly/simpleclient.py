@@ -52,5 +52,11 @@ class CheckServer(object):
         if title.lower() != prd.title.lower():
             print 'bluefly product[{0}] title error: {1} vs {2}'.format(url, prd.title.encode('utf-8'), title.encode('utf-8'))
 
+    def check_offsale_product(self, id, url):
+        pass
+
+    def check_offsale_event(self, id, url):
+        pass
+
 if __name__ == '__main__':
     pass

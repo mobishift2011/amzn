@@ -36,8 +36,8 @@ class CheckServer(object):
         _id = muri.rsplit('/', 2)[-2]
         utcnow = datetime.utcnow()
         var = api.product(_id).get()
-        if var['ends_at'] > utcnow:
-            api.product(_id).patch({ 'ends_at': utcnow })
+        if var['ends_at'] > utcnow.isoformat():
+            api.product(_id).patch({ 'ends_at': utcnow.isoformat() })
 
     def check_onsale_product(self, id, url):
         prd = Product.objects(key=id).first()

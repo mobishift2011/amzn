@@ -315,7 +315,7 @@ class Server(object):
         if not price: price = prd.cssselect('div.layoutChanger > div.listProductPrices div.priceReduced > span.priceReducedvalue')
         if not price: price = prd.cssselect('div.layoutChanger > div.listProductPrices div.priceClearance > span.priceClearancevalue')
         if price:
-            price = price[0].text_content().strip()
+            price = price[0].text_content().replace('$', '').replace(',', '').strip()
 #        else:
 #            common_failed.send(sender=ctx, key=category_key, url=link,
 #                    reason='This product have no price.page_num: {0}'.format(page_num))
@@ -325,7 +325,7 @@ class Server(object):
         brand = prd.cssselect('div.layoutChanger > div.listBrand > a')[0].text_content().strip()
         title = prd.cssselect('div.layoutChanger > div.listLineMargin > div.productShortName')[0].text_content().strip().encode('utf-8')
         listprice = prd.cssselect('div.layoutChanger > div.listProductPrices > div.priceRetail > span.priceRetailvalue')
-        listprice = listprice[0].text_content().strip() if listprice else ''
+        listprice = listprice[0].text_content().replace('$', '').replace(',', '').strip() if listprice else ''
         
         rating = prd.cssselect('div.layoutChanger > div.product-detail-rating > img')
         rating = rating[0].get('alt') if rating else ''
@@ -423,9 +423,9 @@ class Server(object):
         if not product.price:
             prices = detail.cssselect('div.product-info > div.product-prices > div.product-price')
             if prices:
-                product.price = prices[0].cssselect('span[itemprop=price]')[0].text_content().strip()
+                product.price = prices[0].cssselect('span[itemprop=price]')[0].text_content().replace('$', '').replace('(FINAL SALE)', '').replace(',', '').strip()
                 if not product.listprice:
-                    product.listprice = prices[0].cssselect('span.retail-price')[0].text_content().replace('retail :', '').strip()
+                    product.listprice = prices[0].cssselect('span.retail-price')[0].text_content().replace('retail :', '').replace('$', '').replace(',', '').strip()
 
         product.image_urls = image_urls
         product.color = color

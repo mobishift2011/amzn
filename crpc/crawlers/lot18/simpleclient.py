@@ -26,11 +26,13 @@ class CheckServer(object):
             if isinstance(ret, int):
                 return
         soldout = True if self.soldout.search(ret) else False
+        if prd.soldout != soldout:
+            print 'lot18 product[{0}] soldout error: {1} vs {2}'.format(url, prd.soldout, soldout)
+
+        if soldout: return
         title = self.title.search(ret).group(1)
         tree = lxml.html.fromstring(ret.content)
         price = tree.cssselect('div.container-content div.container-product-detail div.container-product-info span.product-total')[0].text_content().strip()
-        if prd.soldout != soldout:
-            print 'lot18 product[{0}] soldout error: {1} vs {2}'.format(url, prd.soldout, soldout)
         if prd.title != title:
             print 'lot18 product[{0}] title error: {1} vs {2}'.format(url, prd.title, title)
         if prd.price != price:

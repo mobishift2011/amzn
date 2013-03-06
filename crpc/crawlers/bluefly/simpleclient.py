@@ -5,6 +5,7 @@
 import requests
 import slumber
 import lxml.html
+from datetime import datetime
 
 from settings import MASTIFF_HOST
 from models import Product

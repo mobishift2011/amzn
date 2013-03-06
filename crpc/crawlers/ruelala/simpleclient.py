@@ -52,20 +52,20 @@ class CheckServer(object):
         try:
             title = tree.cssselect('h2#productName')[0].text_content().strip()
             if title.lower() != prd.title.lower():
-                print 'ruelala product[{0}] title error: [{1}, {2}]'.format(prd.combine_url, title.encode('utf-8'), prd.title.encode('utf-8'))
+                print 'ruelala product[{0}] title error: [{1}, {2}]'.format(prd.combine_url, prd.title.encode('utf-8'), title.encode('utf-8'))
         except IndexError:
             print '\n\n ruelala product[{0}] title not extract right. return url: {1}\n\n'.format(prd.combine_url, ret.url)
 
         try:
             listprice = tree.cssselect('span#strikePrice')[0].text_content().strip()
             if listprice != prd.listprice:
-                print 'ruelala product[{0}] listprice error: [{1}, {2}]'.format(prd.combine_url, listprice, prd.listprice)
+                print 'ruelala product[{0}] listprice error: [{1}, {2}]'.format(prd.combine_url, prd.listprice, listprice)
         except IndexError:
             print '\n\n ruelala product[{0}] listprice error. {1}'.format(prd.combine_url, ret.url)
         price = tree.cssselect('span#salePrice')[0].text_content().strip()
         soldout = tree.cssselect('span#inventoryAvailable')
         if price != prd.price:
-            print 'ruelala product[{0}] price error: [{1}, {2}]'.format(prd.combine_url, price, prd.price)
+            print 'ruelala product[{0}] price error: [{1}, {2}]'.format(prd.combine_url, prd.price, price)
 
     def check_offsale_product(self, id, url):
         pass

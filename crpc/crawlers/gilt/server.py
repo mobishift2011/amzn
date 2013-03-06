@@ -833,6 +833,4 @@ class Server(object):
 
 if __name__ == '__main__':
     server = Server()
-    server.crawl_listing('http://www.gilt.com/sale/men/last-chance-essentials-7424')
-    exit()
     server.crawl_listing('http://www.gilt.com/home/sale/candle-blowout-7052')

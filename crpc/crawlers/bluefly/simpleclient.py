@@ -33,20 +33,24 @@ class CheckServer(object):
         # brand = tree.cssselect('section#main-product-detail > div.product-info > div.limitBrandName > h1.product-brand > a')[0].get('name')
         title = tree.cssselect('section#main-product-detail > div.product-info > h2.product-name')[0].text_content().strip()
 
-        listprice = tree.cssselect('div.product-info div.product-prices span.retail-price')[0].text_content().replace('retail :', '').replace('$', '').replace(',', '').strip()
-        price = tree.cssselect('div.product-info div.product-prices span[itemprop=price]')[0].text_content().replace('(FINAL SALE)', '').replace('$', '').replace(',', '').strip()
-
         soldout = True if tree.cssselect('div.product-info div.product-prices div.soldout-label') else False
         if soldout != prd.soldout:
             prd.soldout = soldout
             prd.update_history.update({ 'soldout': datetime.utcnow() })
             prd.save()
-            print 'bluefly product[{0}] soldout error: {1} vs {2}'.format(url, prd.soldout, soldout)
-        if listprice != prd.listprice.replace('$', '').replace(',', '').strip():
-            prd.listprice = listprice
-            prd.update_history.update({ 'listprice': datetime.utcnow() })
-            print 'bluefly product[{0}] listprice error: {1} vs {2}'.format(url, prd.listprice.replace('$', '').replace(',', '').strip(), listprice)
-        if price != prd.price.replace('$', '').replace(',', '').strip():
+            print 'bluefly product[{0}] soldout error: {1}.{2} vs {3}.{4}'.format(url, type(prd.soldout), prd.soldout, type(soldout), soldout)
+
+        try:
+            listprice = tree.cssselect('div.product-info div.product-prices span.retail-price')[0].text_content().replace('retail :', '').replace('$', '').replace(',', '').strip()
+            if float(listprice) != float(prd.listprice.replace('$', '').replace(',', '').strip()):
+                prd.listprice = listprice
+                prd.update_history.update({ 'listprice': datetime.utcnow() })
+                print 'bluefly product[{0}] listprice error: {1} vs {2}'.format(url, prd.listprice.replace('$', '').replace(',', '').strip(), listprice)
+        except IndexError:
+            print 'bluefly product[{0}] listprice not get.'.format(url)
+
+        price = tree.cssselect('div.product-info div.product-prices span[itemprop=price]')[0].text_content().replace('(FINAL SALE)', '').replace('$', '').replace(',', '').strip()
+        if float(price) != float(prd.price.replace('$', '').replace(',', '').strip()):
             prd.price = price
             prd.update_history.update({ 'price': datetime.utcnow() })
             print 'bluefly product[{0}] price error: {1} vs {2}'.format(url, prd.price.replace('$', '').replace(',', '').strip(), price)

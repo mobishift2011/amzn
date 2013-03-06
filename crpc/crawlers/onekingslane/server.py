@@ -321,6 +321,7 @@ class Server(object):
         is_new, is_updated = False, False
         if not product:
             is_new = True
+            product = Product(key=product_id)
             product.category_key = [category_key]
             product.image_urls = [item.cssselect('a[href] > img')[0].get('src').replace('medium', 'fullzoom')]
             product.short_desc = item.cssselect('h6')[0].text_content()
@@ -410,6 +411,7 @@ class Server(object):
         is_new, is_updated = False, False
         if not product:
             is_new = True
+            product = Product(key=product_id)
             product.event_id = [event_id]
             product.title = item.cssselect('h3 > a[data-linkname]')[0].text.encode('utf-8').strip()
 #            product.sell_rank = int(item.get('data-sortorder'))

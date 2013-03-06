@@ -128,7 +128,7 @@ class CheckServer(object):
         text = tree.cssselect('div#okl-content div.sales-event')[0].get('class')
         if 'ended' in text:
             utcnow = datetime.utcnow()
-            if ev.events_end > utcnow:
+            if not ev.events_end or ev.events_end > utcnow:
                 ev.events_end = utcnow.replace(minute=0, second=0, microsecond=0)
                 ev.update_history.update({ 'events_end': utcnow })
                 ev.save()

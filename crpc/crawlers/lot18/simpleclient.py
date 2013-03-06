@@ -14,20 +14,22 @@ class CheckServer(object):
         self.soldout = re.compile('<p class="main">.*sold out.*</p>')
         self.title = re.compile('<div class="product-info product-name">\s*<h1>(.*)</h1>\s*</div>')
     
-    def check_onsale_product(self):
-        obj = Product.objects(products_end__gt=datetime.utcnow()).timeout(False)
-        print 'Lot18 have {0} on sale products.'.format(obj.count())
-        for prd in obj:
+    def check_onsale_product(self, id, url):
+        ret = self.net.fetch_page(prd.combine_url)
+        if isinstance(ret, int):
             ret = self.net.fetch_page(prd.combine_url)
-            if isinstance(ret, int):
-                ret = self.net.fetch_page(prd.combine_url)
-                if isinstance(ret, int):
-                    continue
-            soldout = True if self.soldout.search(ret) else False
-            title = self.title.search(ret).group(1)
+            if isinstance(ret, int): continue
+        soldout = True if self.soldout.search(ret) else False
+        title = self.title.search(ret).group(1)
 
 
-    def check_offsale_product(self):
+    def check_offsale_product(self, id, url):
+        pass
+
+    def check_onsale_event(self, id, url):
+        pass
+
+    def check_offsale_event(self, id, url):
         pass
 
     def get_product_abstract_by_url(self, url):

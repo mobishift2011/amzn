@@ -86,6 +86,9 @@ class CheckServer(object):
     def check_offsale_product(self, id, url):
         pass
 
+    def check_onsale_event(self, id, url):
+        pass
+
     def check_offsale_event(self, id, url):
         pass
 

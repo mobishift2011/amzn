@@ -5,6 +5,7 @@
 import random
 from datetime import datetime
 from gevent.pool import Pool
+from mongoengine import Q
 
 from crawlers.common.stash import picked_crawlers
 from helpers.rpc import get_rpcs
@@ -29,7 +30,7 @@ def spout_obj(site, method):
     """ """
     m = get_site_module(site)
     if method == 'check_onsale_product':
-        obj = m.Product.objects(products_end__gt=datetime.utcnow()).timeout(False)
+        obj = m.Product.objects(Q(products_end__gt=datetime.utcnow()) | Q(products_end__exists=False)).timeout(False)
         print '{0} have {1} on sale event products.'.format(site, obj.count())
         for o in obj:
             yield {'id': o.key, 'url': o.combine_url}
@@ -52,20 +53,20 @@ def spout_obj(site, method):
             for o in obj:
                 yield {'id': o.key, 'url': o.combine_url}
 
+    elif method == 'check_onsale_event':
+        if not hasattr(m, 'Event'):
+            return
+        obj = m.Event.objects(Q(events_end__gt=datetime.utcnow()) | Q(events_end__exists=False)).timeout(False)
+        print '{0} have {1} on sale events.'.format(site, obj.count())
+
+        for o in obj:
+            yield {'id': o.event_id, 'url': o.combine_url}
+
     elif method == 'check_offsale_event':
         if not hasattr(m, 'Event'):
             return
         obj = m.Event.objects(events_end__lt=datetime.utcnow()).timeout(False)
         print '{0} have {1} off sale events.'.format(site, obj.count())
-
-        for o in obj:
-            yield {'id': o.event_id, 'url': o.combine_url}
-
-    elif method == 'check_onsale_event':
-        if not hasattr(m, 'Event'):
-            return
-        obj = m.Event.objects(events_end__gt=datetime.utcnow()).timeout(False)
-        print '{0} have {1} on sale events.'.format(site, obj.count())
 
         for o in obj:
             yield {'id': o.event_id, 'url': o.combine_url}

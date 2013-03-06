@@ -15,12 +15,26 @@ class CheckServer(object):
         self.title = re.compile('<div class="product-info product-name">\s*<h1>(.*)</h1>\s*</div>')
     
     def check_onsale_product(self, id, url):
-        ret = self.net.fetch_page(prd.combine_url)
+        prd = Product.objects(key=id).first()
+        if prd is None:
+            print '\n\nlot18 {0}, {1}\n\n'.format(id, url)
+            return
+
+        ret = self.net.fetch_page(url)
         if isinstance(ret, int):
-            ret = self.net.fetch_page(prd.combine_url)
-            if isinstance(ret, int): continue
+            ret = self.net.fetch_page(url)
+            if isinstance(ret, int):
+                return
         soldout = True if self.soldout.search(ret) else False
         title = self.title.search(ret).group(1)
+        tree = lxml.html.fromstring(ret.content)
+        price = tree.cssselect('div.container-content div.container-product-detail div.container-product-info span.product-total')[0].text_content().strip()
+        if prd.soldout != soldout:
+            print 'lot18 product[{0}] soldout error: {1} vs {2}'.format(url, prd.soldout, soldout)
+        if prd.title != title:
+            print 'lot18 product[{0}] title error: {1} vs {2}'.format(url, prd.title, title)
+        if prd.price != price:
+            print 'lot18 product[{0}] price error: {1} vs {2}'.format(url, prd.title, title)
 
 
     def check_offsale_product(self, id, url):

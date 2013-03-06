@@ -56,10 +56,20 @@ def spout_obj(site, method):
         if not hasattr(m, 'Event'):
             return
         obj = m.Event.objects(events_end__lt=datetime.utcnow()).timeout(False)
-        print '{0} have {1} events end.'.format(site, obj.count())
+        print '{0} have {1} off sale events.'.format(site, obj.count())
 
         for o in obj:
             yield {'id': o.event_id, 'url': o.combine_url}
+
+    elif method == 'check_onsale_event':
+        if not hasattr(m, 'Event'):
+            return
+        obj = m.Event.objects(events_end__gt=datetime.utcnow()).timeout(False)
+        print '{0} have {1} on sale events.'.format(site, obj.count())
+
+        for o in obj:
+            yield {'id': o.event_id, 'url': o.combine_url}
+
 
 def call_rpc(rpc, site, method, *args, **kwargs):
     try:
@@ -83,6 +93,7 @@ def checkout(site, method, concurrency=10):
 
 
 if __name__ == '__main__':
-    checkout('onekingslane', 'check_onsale_product')
+    checkout('onekingslane', 'check_onsale_event')
+    checkout('ruelala', 'check_onsale_product')
 #    checkout('onekingslane', 'check_offsale_product')
 #    checkout('onekingslane', 'check_offsale_event')

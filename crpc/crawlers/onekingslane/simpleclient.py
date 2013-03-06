@@ -117,9 +117,23 @@ class CheckServer(object):
         text = tree.cssselect('div#okl-content div.sales-event')[0].get('class')
         if 'ended' in text:
             return True
-        if 'started' in text:
+        elif 'started' in text:
             return False
 
+
+    def check_onsale_event(self, id, url):
+        ev = Event.objects(event_id=id).first()
+        ret = self.s.get(url, headers=self.headers)
+        tree = lxml.html.fromstring(ret.content)
+        text = tree.cssselect('div#okl-content div.sales-event')[0].get('class')
+        if 'ended' in text:
+            utcnow = datetime.utcnow()
+            if ev.events_end > utcnow:
+                ev.events_end = utcnow.replace(minute=0, second=0, microsecond=0)
+                ev.update_history.update({ 'events_end': utcnow })
+                ev.save()
+        elif 'started' in text:
+            return True
 
     def test_product(self, testurl):
         ret = self.s.get(testurl, headers=self.headers)

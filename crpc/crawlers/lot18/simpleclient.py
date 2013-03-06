@@ -11,7 +11,8 @@ class CheckServer(object):
         self.s = requests.session()
         self.headers = {}
         self.net = lot18Login()
-        self.soldout = re.compile('<p class="main">.*sold out.*</p>')
+        self.net.check_signin()
+        self.soldout = re.compile('<p class="main">.*Unfortunately,.*</p>')
         self.title = re.compile('<div class="product-info product-name">\s*<h1>(.*)</h1>\s*</div>')
     
     def check_onsale_product(self, id, url):
@@ -31,12 +32,17 @@ class CheckServer(object):
 
         if soldout: return
         title = self.title.search(ret).group(1)
+        if prd.title.encode('utf-8').lower() != title.lower():
+            print 'lot18 product[{0}] title error: [{1} vs {2}]'.format(url, prd.title.encode('utf-8'), title)
+
         tree = lxml.html.fromstring(ret)
-        price = tree.cssselect('div.container-content div.container-product-detail div.container-product-info span.product-total')[0].text_content().strip()
-        if prd.title != title:
-            print 'lot18 product[{0}] title error: {1} vs {2}'.format(url, prd.title, title)
-        if prd.price != price:
-            print 'lot18 product[{0}] price error: {1} vs {2}'.format(url, prd.title, title)
+        price = tree.cssselect('div.container-content div.container-product-detail div.container-product-info span.product-total')
+        if not price:
+            print '\n\nlot18 product[{0}] price not found \n\n'.format(url)
+            return
+        price = price[0].text_content().replace('$', '').strip()
+        if float(prd.price) != float(price):
+            print 'lot18 product[{0}] price error: {1} vs {2}'.format(url, prd.price, price)
 
 
     def check_offsale_product(self, id, url):

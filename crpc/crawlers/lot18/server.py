@@ -141,10 +141,19 @@ class Server(object):
             product.soldout = prd['is_soldout']
             product.category_key = ['lot18']
         else:
-            if prd['is_soldout'] and product.soldout != True:
-                product.soldout = True
+            if product.soldout != prd['is_soldout']:
+                product.soldout = prd['is_soldout']
                 is_updated = True
                 product.update_history.update({ 'soldout': datetime.utcnow() })
+            if product.title != prd['title']:
+                product.title = prd['title']
+                product.update_history.update({ 'title': datetime.utcnow() })
+            if float(product.listprice) != float(listprice):
+                product.listprice = listprice
+                product.update_history.update({ 'listprice': datetime.utcnow() })
+            if float(product.price) != float(prd['prices']['price']):
+                product.price = prd['prices']['price']
+                product.update_history.update({ 'price': datetime.utcnow() })
 
         if prd['type'] not in product.cats: product.cats.append(prd['type'])
         _utcnow = datetime.utcnow()

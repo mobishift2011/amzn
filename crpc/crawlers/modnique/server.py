@@ -291,6 +291,9 @@ class Server(object):
                     product.soldout = True
                     is_updated = True
                     product.update_history.update({ 'soldout': datetime.utcnow() })
+                if product.combine_url != link:
+                    product.combine_url = link
+                    product.update_history.update({ 'combine_url': datetime.utcnow() })
             if event_id not in product.event_id: product.event_id.append(event_id)
             product.list_update_time = datetime.utcnow()
             product.save()

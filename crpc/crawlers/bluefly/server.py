@@ -329,6 +329,7 @@ class Server(object):
         
         rating = prd.cssselect('div.layoutChanger > div.product-detail-rating > img')
         rating = rating[0].get('alt') if rating else ''
+        combine_url = '{0}/slug/p/{1}/detail.fly'.format(self.siteurl, key)
 
         is_new, is_updated = False, False
         product = Product.objects(key=key).first()
@@ -336,7 +337,7 @@ class Server(object):
             is_new = True
             product = Product(key=key)
             product.updated = False
-            product.combine_url = '{0}/slug/p/{1}/detail.fly'.format(self.siteurl, key)
+            product.combine_url = combine_url
             product.slug = slug
             product.soldout = soldout
             product.brand = brand
@@ -347,6 +348,10 @@ class Server(object):
                 product.soldout = soldout
                 is_updated = True
                 product.update_history.update({ 'soldout': datetime.utcnow() })
+            if product.combine_url != combine_url:
+                product.combine_url = combine_url
+                product.update_history.update({ 'combine_url': datetime.utcnow() })
+
         if listprice and listprice != product.listprice:
             product.listprice = listprice
             product.update_history.update({ 'listprice': datetime.utcnow() })

@@ -35,25 +35,27 @@ class CheckServer(object):
 
         soldout = True if tree.cssselect('div.product-info div.product-prices div.soldout-label') else False
         if soldout != prd.soldout:
+            print 'bluefly product[{0}] soldout error: {1} vs {2}'.format(url, prd.soldout, soldout)
             prd.soldout = soldout
             prd.update_history.update({ 'soldout': datetime.utcnow() })
             prd.save()
-            print 'bluefly product[{0}] soldout error: {1}.{2} vs {3}.{4}'.format(url, type(prd.soldout), prd.soldout, type(soldout), soldout)
 
         try:
             listprice = tree.cssselect('div.product-info div.product-prices span.retail-price')[0].text_content().replace('retail :', '').replace('$', '').replace(',', '').strip()
             if float(listprice) != float(prd.listprice.replace('$', '').replace(',', '').strip()):
+                print 'bluefly product[{0}] listprice error: {1} vs {2}'.format(url, prd.listprice.replace('$', '').replace(',', '').strip(), listprice)
                 prd.listprice = listprice
                 prd.update_history.update({ 'listprice': datetime.utcnow() })
-                print 'bluefly product[{0}] listprice error: {1} vs {2}'.format(url, prd.listprice.replace('$', '').replace(',', '').strip(), listprice)
+                prd.save()
         except IndexError:
             print 'bluefly product[{0}] listprice not get.'.format(url)
 
         price = tree.cssselect('div.product-info div.product-prices span[itemprop=price]')[0].text_content().replace('(FINAL SALE)', '').replace('$', '').replace(',', '').strip()
         if float(price) != float(prd.price.replace('$', '').replace(',', '').strip()):
+            print 'bluefly product[{0}] price error: {1} vs {2}'.format(url, prd.price.replace('$', '').replace(',', '').strip(), price)
             prd.price = price
             prd.update_history.update({ 'price': datetime.utcnow() })
-            print 'bluefly product[{0}] price error: {1} vs {2}'.format(url, prd.price.replace('$', '').replace(',', '').strip(), price)
+            prd.save()
         if title.lower() != prd.title.lower():
             print 'bluefly product[{0}] title error: {1} vs {2}'.format(url, prd.title.encode('utf-8'), title.encode('utf-8'))
 

@@ -31,7 +31,7 @@ class CheckServer(object):
 
         if soldout: return
         title = self.title.search(ret).group(1)
-        tree = lxml.html.fromstring(ret.content)
+        tree = lxml.html.fromstring(ret)
         price = tree.cssselect('div.container-content div.container-product-detail div.container-product-info span.product-total')[0].text_content().strip()
         if prd.title != title:
             print 'lot18 product[{0}] title error: {1} vs {2}'.format(url, prd.title, title)

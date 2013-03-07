@@ -71,7 +71,7 @@ class CheckServer(object):
 
             listprice = node.cssselect('header.overview div.price div.original-price span.msrp')
             listprice = listprice[0].text_content().replace('$', '').replace(',', '').strip() if listprice else ''
-            if listprice  and '-' in listprice and (prd.listprice.replace('$', '').replace(',', '').strip() != listprice:
+            if listprice  and '-' in listprice and prd.listprice.replace('$', '').replace(',', '').strip() != listprice:
                 print 'gilt product[{0}] listprice {1} vs {2}'.format(url, prd.listprice.replace('$', '').replace(',', '').strip(), listprice)
             elif listprice and float(prd.listprice.replace('$', '').replace(',', '').strip()) != float(listprice):
                 print 'gilt product[{0}] listprice error: [{1}, {2}]'.format(url, prd.listprice.replace('$', '').replace(',', '').strip(), listprice)

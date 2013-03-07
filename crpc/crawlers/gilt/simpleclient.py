@@ -1,8 +1,9 @@
 import requests
 import re
 import json
+import lxml.html
 
-
+from models import Product
 from server import giltLogin
 """ gilt not need to login ,
     but the price is not right when we access it from China
@@ -32,7 +33,7 @@ class CheckServer(object):
             print '\n\ngilt {0}, {1}\n\n'.format(id, url)
             return
 
-        ret = self.s.get(url, self.headers)
+        ret = self.s.get(url, headers=self.headers)
         tree = self.get_correct_tree(ret.content)
         if '/home/sale' in url or '/sale/home' in url: # home
             node = tree.cssselect('div.content-container div.positions div.elements-container article.product-full section.product-details')[0]
@@ -44,10 +45,10 @@ class CheckServer(object):
 
             if prd.title.lower() != title.lower():
                 print 'gilt product[{0}] title error: [{1}, {2}]'.format(url, prd.title.encode('utf-8').lower(), title.encode('utf-8').lower())
-            if float(prd.price) != float(price):
-                print 'gilt product[{0}] price error: [{1}, {2}]'.format(url, prd.price, price)
-            if float(prd.listprice) != float(listprice):
-                print 'gilt product[{0}] listprice error: [{1}, {2}]'.format(url, prd.listprice, listprice)
+            if float(prd.price.replace('$', '').strip()) != float(price):
+                print 'gilt product[{0}] price error: [{1}, {2}]'.format(url, prd.price.replace('$', '').strip(), price)
+            if float(prd.listprice.replace('$', '').strip()) != float(listprice):
+                print 'gilt product[{0}] listprice error: [{1}, {2}]'.format(url, prd.listprice.replace('$', '').strip(), listprice)
             if prd.soldout != soldout:
                 print 'gilt product[{0}] soldout error: [{1}, {2}]'.format(url, prd.soldout, soldout)
 
@@ -62,10 +63,10 @@ class CheckServer(object):
 
             if prd.title.lower() != title.lower():
                 print 'gilt product[{0}] title error: [{1}, {2}]'.format(url, prd.title.encode('utf-8').lower(), title.encode('utf-8').lower())
-            if float(prd.price) != float(price):
-                print 'gilt product[{0}] price error: [{1}, {2}]'.format(url, prd.price, price)
-            if float(prd.listprice) != float(listprice):
-                print 'gilt product[{0}] listprice error: [{1}, {2}]'.format(url, prd.listprice, listprice)
+            if float(prd.price.replace('$', '').strip()) != float(price):
+                print 'gilt product[{0}] price error: [{1}, {2}]'.format(url, prd.price.replace('$', '').strip(), price)
+            if float(prd.listprice.replace('$', '').strip()) != float(listprice):
+                print 'gilt product[{0}] listprice error: [{1}, {2}]'.format(url, prd.listprice.replace('$', '').strip(), listprice)
             if prd.soldout != soldout:
                 print 'gilt product[{0}] soldout error: [{1}, {2}]'.format(url, prd.soldout, soldout)
 

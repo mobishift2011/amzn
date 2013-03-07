@@ -40,18 +40,17 @@ class CheckServer(object):
             brand = node.cssselect('h3.product-brand')[0].text_content()
             title = node.cssselect('h1.product-name')[0].text_content()
             price = node.cssselect('div.product-price div.gilt-price')[0].text_content().replace('$', '').replace('Gilt', '').strip()
-            try:
-                listprice = node.cssselect('div.product-price div.original-price')[0].text_content().replace('$', '').strip()
-            except IndexError:
-                print '\n\ngilt listprice {0} \n\n'.format(url)
             soldout = True if node.cssselect('form.sku-selection div.actions p.secondary-action a') else False
+
+            listprice = node.cssselect('div.product-price div.original-price')
+            listprice = listprice[0].text_content().replace('$', '').strip() if listprice else ''
+            if listprice and float(prd.listprice.replace('$', '').strip()) != float(listprice):
+                print 'gilt product[{0}] listprice error: [{1}, {2}]'.format(url, prd.listprice.replace('$', '').strip(), listprice)
 
             if prd.title.lower() != title.lower():
                 print 'gilt product[{0}] title error: [{1}, {2}]'.format(url, prd.title.encode('utf-8').lower(), title.encode('utf-8').lower())
             if float(prd.price.replace('$', '').replace('Gilt', '').strip()) != float(price):
                 print 'gilt product[{0}] price error: [{1}, {2}]'.format(url, prd.price.replace('$', '').strip(), price)
-            if float(prd.listprice.replace('$', '').strip()) != float(listprice):
-                print 'gilt product[{0}] listprice error: [{1}, {2}]'.format(url, prd.listprice.replace('$', '').strip(), listprice)
             if prd.soldout != soldout:
                 print 'gilt product[{0}] soldout error: [{1}, {2}]'.format(url, prd.soldout, soldout)
 
@@ -59,20 +58,23 @@ class CheckServer(object):
             node = tree.cssselect('#main #product-detail div.summary')[0]
             title = node.cssselect('header.overview h1.product-name div.product-display-name')[0].text_content().strip()
             try:
-                brand = node.cssselect('header.overview h2.brand-name a.primary')[0].text_content().strip()
+                brand = node.cssselect('header.overview h2.brand-name .primary')[0].text_content().strip()
             except IndexError:
                 print '\n\ngilt brand {0} \n\n'.format(url)
             price = node.cssselect('header.overview div.price div.sale-price span.nouveau-price')[0].text_content().replace('$', '').strip()
-            listprice = node.cssselect('header.overview div.price div.original-price span.msrp')[0].text_content().replace('$', '').strip()
             soldout = node.cssselect('form.sku-selection div.submit-area a.add-to-wait-list')[0].get('class')
             soldout = False if 'hidden' in soldout else True
+
+            listprice = node.cssselect('header.overview div.price div.original-price span.msrp')[0].text_content().replace('$', '').strip()
+            if '-' in listprice:
+                print 'gilt listprice {0} vs {1}'.format(listprice, prd.listprice)
+            elif float(prd.listprice.replace('$', '').strip()) != float(listprice):
+                print 'gilt product[{0}] listprice error: [{1}, {2}]'.format(url, prd.listprice.replace('$', '').strip(), listprice)
 
             if prd.title.lower() != title.lower():
                 print 'gilt product[{0}] title error: [{1}, {2}]'.format(url, prd.title.encode('utf-8').lower(), title.encode('utf-8').lower())
             if float(prd.price.replace('$', '').strip()) != float(price):
                 print 'gilt product[{0}] price error: [{1}, {2}]'.format(url, prd.price.replace('$', '').strip(), price)
-            if float(prd.listprice.replace('$', '').strip()) != float(listprice):
-                print 'gilt product[{0}] listprice error: [{1}, {2}]'.format(url, prd.listprice.replace('$', '').strip(), listprice)
             if prd.soldout != soldout:
                 print 'gilt product[{0}] soldout error: [{1}, {2}]'.format(url, prd.soldout, soldout)
 
@@ -101,4 +103,4 @@ class CheckServer(object):
         return 'gilt_'+product_id, title+'\n'+description
 
 if __name__ == '__main__':
-    CheckServer().check_onsale_product('159846199-amrita-singh-izabella-crystal-filigree-earrings', 'http://www.gilt.com/sale/women/amrita-singh-jewelry-3411/product/159846199-amrita-singh-izabella-crystal-filigree-earrings')
+    CheckServer().check_onsale_product('142260201-hiho-batik-mom-onesie-2-pack', 'http://www.gilt.com/sale/children/beanstalx-by-jaxxwear/product/142260201-hiho-batik-mom-onesie-2-pack')

@@ -42,10 +42,10 @@ class CheckServer(object):
             soldout = True if node.cssselect('form.sku-selection div.actions p.secondary-action a') else False
 
             listprice = node.cssselect('div.product-price div.original-price')
-            listprice = listprice[0].text_content().replace('$', '').strip() if listprice else ''
+            listprice = listprice[0].text_content().replace('$', '').replace(',', '').strip() if listprice else ''
             if listprice and '-' in listprice:
                 print 'gilt product[{0}] listprice {1} vs {2}'.format(url, prd.listprice, listprice)
-            elif listprice and float(prd.listprice.replace('$', '').strip()) != float(listprice):
+            elif listprice and float(prd.listprice.replace('$', '').replace(',', '').strip()) != float(listprice):
                 print 'gilt product[{0}] listprice error: [{1}, {2}]'.format(url, prd.listprice.replace('$', '').strip(), listprice)
 
             price = node.cssselect('div.product-price div.gilt-price')[0].text_content().replace('$', '').replace('Gilt', '').strip()
@@ -66,12 +66,11 @@ class CheckServer(object):
                 brand = node.cssselect('header.overview h2.brand-name .primary')[0].text_content().strip()
             except IndexError:
                 print '\n\ngilt brand {0} \n\n'.format(url)
-            price = node.cssselect('header.overview div.price div.sale-price span.nouveau-price')[0].text_content().replace('$', '').strip()
             soldout = node.cssselect('form.sku-selection div.submit-area a.add-to-wait-list')[0].get('class')
             soldout = False if 'hidden' in soldout else True
 
             listprice = node.cssselect('header.overview div.price div.original-price span.msrp')
-            listprice = listprice[0].text_content().replace('$', '').strip() if listprice else ''
+            listprice = listprice[0].text_content().replace('$', '').replace(',', '').strip() if listprice else ''
             if listprice  and '-' in listprice:
                 print 'gilt product[{0}] listprice {1} vs {2}'.format(url, listprice, prd.listprice)
             elif listprice and float(prd.listprice.replace('$', '').strip()) != float(listprice):
@@ -79,7 +78,10 @@ class CheckServer(object):
 
             if prd.title.lower() != title.lower():
                 print 'gilt product[{0}] title error: [{1}, {2}]'.format(url, prd.title.encode('utf-8').lower(), title.encode('utf-8').lower())
-            if float(prd.price.replace('$', '').strip()) != float(price):
+            price = node.cssselect('header.overview div.price div.sale-price span.nouveau-price')[0].text_content().replace('$', '').strip()
+            if '-' in price:
+                print 'gilt product[{0}] price {1} vs {2}'.format(url, prd.price, price)
+            elif float(prd.price.replace('$', '').strip()) != float(price):
                 print 'gilt product[{0}] price error: [{1}, {2}]'.format(url, prd.price.replace('$', '').strip(), price)
             if prd.soldout != soldout:
                 print 'gilt product[{0}] soldout error: [{1}, {2}]'.format(url, prd.soldout, soldout)

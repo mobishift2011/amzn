@@ -643,9 +643,9 @@ class Server(object):
         link = product_name.get('href')
         link = link if link.startswith('http') else self.siteurl + link
         title = ' '.join( product_name.xpath('.//text()') )
-        price = node.cssselect('header.overview > div.price > div.sale-price > span.nouveau-price')[0].text_content().strip()
+        price = node.cssselect('header.overview > div.price > div.sale-price > span.nouveau-price')[0].text_content().replace('$', '').strip()
         listprice = node.cssselect('header.overview > div.price > div.original-price > span')
-        listprice = listprice[0].text_content().strip() if listprice else ''
+        listprice = listprice[0].text_content().replace('$', '').replace(',', '').strip() if listprice else ''
         soldout = True if 'Sold Out' == node.cssselect('section.inventory-status > h1.inventory-state')[0].text_content().strip() else False
         return look_id, brand, link, title, price, listprice, soldout
 
@@ -706,7 +706,7 @@ class Server(object):
             link = link if link.startswith('http') else self.siteurl + link
             title = text.cssselect('h1.product-name > a')[0].text_content()
             listprice = node.cssselect('div.product-price > div.original-price')
-            listprice = listprice[0].text_content().replace('$', '').strip() if listprice else ''
+            listprice = listprice[0].text_content().replace('$', '').replace(',', '').strip() if listprice else ''
             price = node.cssselect('div.product-price > div.gilt-price')[0].text_content().replace('$', '').replace('Gilt', '').strip()
             status = node.cssselect('section.product-details > section.inventory-status')
             soldout = True if status and 'Sold Out' in status[0].text_content() else False

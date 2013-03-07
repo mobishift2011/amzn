@@ -71,7 +71,7 @@ class giltLogin(object):
         ret = req.get(url)
         if ret.url == 'http://www.gilt.com/':
             return -302
-        if ret.url == 'http://www.gilt.com/sale/women' or ret.url == 'http://www.gilt.com/sale/men' or 'http://www.gilt.com/brand/' in ret.url or 'http://www.gilt.com/apps/iphone' in ret.url:
+        if ret.url == 'http://www.gilt.com/sale/women' or ret.url == 'http://www.gilt.com/sale/men' or ret.url == 'http://www.gilt.com/sale/children' or 'http://www.gilt.com/brand/' in ret.url or 'http://www.gilt.com/apps/iphone' in ret.url:
             return -302
         if ret.ok: return ret.content
         return ret.status_code

@@ -31,15 +31,15 @@ def spout_obj(site, method):
     m = get_site_module(site)
     if method == 'check_onsale_product':
         obj = m.Product.objects(Q(products_end__gt=datetime.utcnow()) | Q(products_end__exists=False)).timeout(False)
-        print '{0} have {1} on sale event products.'.format(site, obj.count())
+        print '{0} have {1} on sale event/category products.'.format(site, obj.count())
         for o in obj:
             yield {'id': o.key, 'url': o.combine_url}
 
-        if hasattr(m, 'Category'):
-            obj = m.Product.objects(products_end__exists=False).timeout(False)
-            print '{0} have {1} on sale category products.'.format(site, obj.count())
-            for o in obj:
-                yield {'id': o.key, 'url': o.combine_url}
+#        if hasattr(m, 'Category'):
+#            obj = m.Product.objects(products_end__exists=False).timeout(False)
+#            print '{0} have {1} on sale category products.'.format(site, obj.count())
+#            for o in obj:
+#                yield {'id': o.key, 'url': o.combine_url}
 
     elif method == 'check_offsale_product':
         obj = m.Product.objects(products_end__lt=datetime.utcnow()).timeout(False)

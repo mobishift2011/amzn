@@ -35,7 +35,22 @@ class CheckServer(object):
         ret = self.s.get(url, self.headers)
         tree = self.get_correct_tree(ret.content)
         if '/home/sale' in url or '/sale/home' in url: # home
-            pass
+            node = tree.cssselect('div.content-container div.positions div.elements-container article.product-full section.product-details')[0]
+            brand = node.cssselect('h3.product-brand')[0].text_content()
+            title = node.cssselect('h1.product-name')[0].text_content()
+            price = node.cssselect('div.product-price div.gilt-price')[0].text_content().replace('$', '').strip()
+            listprice = node.cssselect('div.product-price div.original-price')[0].text_content().replace('$', '').strip()
+            soldout = True if node.cssselect('form.sku-selection div.actions p.secondary-action a') else False
+
+            if prd.title.lower() != title.lower():
+                print 'gilt product[{0}] title error: [{1}, {2}]'.format(url, prd.title.encode('utf-8').lower(), title.encode('utf-8').lower())
+            if float(prd.price) != float(price):
+                print 'gilt product[{0}] price error: [{1}, {2}]'.format(url, prd.price, price)
+            if float(prd.listprice) != float(listprice):
+                print 'gilt product[{0}] listprice error: [{1}, {2}]'.format(url, prd.listprice, listprice)
+            if prd.soldout != soldout:
+                print 'gilt product[{0}] soldout error: [{1}, {2}]'.format(url, prd.soldout, soldout)
+
         else: # women, men, children
             node = tree.cssselect('#main #product-detail div.summary')[0]
             title = node.cssselect('header.overview h1.product-name div.product-display-name')[0].text_content().strip()

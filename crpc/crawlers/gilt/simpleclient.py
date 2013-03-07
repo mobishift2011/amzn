@@ -45,13 +45,13 @@ class CheckServer(object):
             listprice = listprice[0].text_content().replace('$', '').replace(',', '').strip() if listprice else ''
             if listprice and ('-' in listprice or '-' in prd.listprice) and prd.listprice.replace('$', '').replace(',', '').strip() != listprice:
                 print 'gilt product[{0}] listprice {1} vs {2}'.format(url, prd.listprice.replace('$', '').replace(',', '').strip(), listprice)
-            elif listprice and float(prd.listprice.replace('$', '').replace(',', '').strip()) != float(listprice):
+            elif listprice and '-' not in listprice and '-' not in prd.listprice and float(prd.listprice.replace('$', '').replace(',', '').strip()) != float(listprice):
                 print 'gilt product[{0}] listprice error: [{1}, {2}]'.format(url, prd.listprice.replace('$', '').replace(',', '').strip(), listprice)
 
             price = node.cssselect('div.product-price div.gilt-price')[0].text_content().replace('$', '').replace('Gilt', '').replace(',', '').strip()
             if ('-' in price or '-' in prd.price) and prd.price.replace('$', '').replace('Gilt', '').replace(',', '').strip() != price:
                 print 'gilt product[{0}] price {1} vs {2}'.format(url, prd.price.replace('$', '').replace('Gilt', '').replace(',', '').strip(), price)
-            elif float(prd.price.replace('$', '').replace('Gilt', '').replace(',', '').strip()) != float(price):
+            elif '-' not in price and '-' not in prd.price and float(prd.price.replace('$', '').replace('Gilt', '').replace(',', '').strip()) != float(price):
                 print 'gilt product[{0}] price error: [{1}, {2}]'.format(url, prd.price.replace('$', '').replace('Gilt', '').replace(',', '').strip(), price)
 
             if prd.title.lower() != title.lower():
@@ -73,7 +73,7 @@ class CheckServer(object):
             listprice = listprice[0].text_content().replace('$', '').replace(',', '').strip() if listprice else ''
             if listprice  and ('-' in listprice or '-' in prd.listprice) and prd.listprice.replace('$', '').replace(',', '').strip() != listprice:
                 print 'gilt product[{0}] listprice {1} vs {2}'.format(url, prd.listprice.replace('$', '').replace(',', '').strip(), listprice)
-            elif listprice and float(prd.listprice.replace('$', '').replace(',', '').strip()) != float(listprice):
+            elif listprice and '-' not in listprice and '-' not in prd.listprice and float(prd.listprice.replace('$', '').replace(',', '').strip()) != float(listprice):
                 print 'gilt product[{0}] listprice error: [{1}, {2}]'.format(url, prd.listprice.replace('$', '').replace(',', '').strip(), listprice)
 
             if prd.title.lower() != title.lower():
@@ -81,8 +81,9 @@ class CheckServer(object):
             price = node.cssselect('header.overview div.price div.sale-price span.nouveau-price')[0].text_content().replace('$', '').replace(',', '').strip()
             if ('-' in price or '-' in prd.price) and prd.price.replace('$', '').replace(',', '').strip() != price:
                 print 'gilt product[{0}] price {1} vs {2}'.format(url, prd.price.replace('$', '').replace(',', '').strip(), price)
-            elif float(prd.price.replace('$', '').replace(',', '').strip()) != float(price):
+            elif '-' not in price and '-' not in prd.price and float(prd.price.replace('$', '').replace(',', '').strip()) != float(price):
                 print 'gilt product[{0}] price error: [{1}, {2}]'.format(url, prd.price.replace('$', '').replace(',', '').strip(), price)
+
             if prd.soldout != soldout:
                 print 'gilt product[{0}] soldout error: [{1}, {2}]'.format(url, prd.soldout, soldout)
 

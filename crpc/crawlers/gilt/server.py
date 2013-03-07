@@ -615,8 +615,8 @@ class Server(object):
             if color: product.color = color
             if sizes: product.sizes = sizes
         else:
-            if soldout and product.soldout != True:
-                product.soldout = True
+            if soldout != product.soldout:
+                product.soldout = soldout
                 is_updated = True
                 product.update_history.update({ 'soldout': datetime.utcnow() })
             if product.combine_url != link:

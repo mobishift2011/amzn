@@ -40,7 +40,10 @@ class CheckServer(object):
             brand = node.cssselect('h3.product-brand')[0].text_content()
             title = node.cssselect('h1.product-name')[0].text_content()
             price = node.cssselect('div.product-price div.gilt-price')[0].text_content().replace('$', '').replace('Gilt', '').strip()
-            listprice = node.cssselect('div.product-price div.original-price')[0].text_content().replace('$', '').strip()
+            try:
+                listprice = node.cssselect('div.product-price div.original-price')[0].text_content().replace('$', '').strip()
+            except IndexError:
+                print '\n\ngilt listprice {0} \n\n'.format(url)
             soldout = True if node.cssselect('form.sku-selection div.actions p.secondary-action a') else False
 
             if prd.title.lower() != title.lower():
@@ -55,7 +58,10 @@ class CheckServer(object):
         else: # women, men, children
             node = tree.cssselect('#main #product-detail div.summary')[0]
             title = node.cssselect('header.overview h1.product-name div.product-display-name')[0].text_content().strip()
-            brand = node.cssselect('header.overview h2.brand-name a.primary')[0].text_content().strip()
+            try:
+                brand = node.cssselect('header.overview h2.brand-name a.primary')[0].text_content().strip()
+            except IndexError:
+                print '\n\ngilt brand {0} \n\n'.format(url)
             price = node.cssselect('header.overview div.price div.sale-price span.nouveau-price')[0].text_content().replace('$', '').strip()
             listprice = node.cssselect('header.overview div.price div.original-price span.msrp')[0].text_content().replace('$', '').strip()
             soldout = node.cssselect('form.sku-selection div.submit-area a.add-to-wait-list')[0].get('class')

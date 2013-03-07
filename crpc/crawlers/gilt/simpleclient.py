@@ -39,13 +39,13 @@ class CheckServer(object):
             node = tree.cssselect('div.content-container div.positions div.elements-container article.product-full section.product-details')[0]
             brand = node.cssselect('h3.product-brand')[0].text_content()
             title = node.cssselect('h1.product-name')[0].text_content()
-            price = node.cssselect('div.product-price div.gilt-price')[0].text_content().replace('$', '').strip()
+            price = node.cssselect('div.product-price div.gilt-price')[0].text_content().replace('$', '').replace('Gilt', '').strip()
             listprice = node.cssselect('div.product-price div.original-price')[0].text_content().replace('$', '').strip()
             soldout = True if node.cssselect('form.sku-selection div.actions p.secondary-action a') else False
 
             if prd.title.lower() != title.lower():
                 print 'gilt product[{0}] title error: [{1}, {2}]'.format(url, prd.title.encode('utf-8').lower(), title.encode('utf-8').lower())
-            if float(prd.price.replace('$', '').strip()) != float(price):
+            if float(prd.price.replace('$', '').replace('Gilt', '').strip()) != float(price):
                 print 'gilt product[{0}] price error: [{1}, {2}]'.format(url, prd.price.replace('$', '').strip(), price)
             if float(prd.listprice.replace('$', '').strip()) != float(listprice):
                 print 'gilt product[{0}] listprice error: [{1}, {2}]'.format(url, prd.listprice.replace('$', '').strip(), listprice)

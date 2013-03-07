@@ -700,8 +700,8 @@ class Server(object):
             link = link if link.startswith('http') else self.siteurl + link
             title = text.cssselect('h1.product-name > a')[0].text_content()
             listprice = node.cssselect('div.product-price > div.original-price')
-            listprice = listprice[0].text_content() if listprice else ''
-            price = node.cssselect('div.product-price > div.gilt-price')[0].text_content().strip()
+            listprice = listprice[0].text_content().replace('$', '').strip() if listprice else ''
+            price = node.cssselect('div.product-price > div.gilt-price')[0].text_content().replace('$', '').replace('Gilt', '').strip()
             status = node.cssselect('section.product-details > section.inventory-status')
             soldout = True if status and 'Sold Out' in status[0].text_content() else False
             attribute = node.cssselect('div.quickadd-wrapper > section.quickadd > form.sku-selection')[0]

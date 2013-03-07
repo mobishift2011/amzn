@@ -622,6 +622,12 @@ class Server(object):
             if product.combine_url != link:
                 product.combine_url = link
                 product.update_history.update({ 'combine_url': datetime.utcnow() })
+            if product.price != price:
+                product.price = price
+                product.update_history.update({ 'price': datetime.utcnow() })
+            if listprice and product.listprice != listprice:
+                product.listprice = listprice
+                product.update_history.update({ 'listprice': datetime.utcnow() })
         if event_id not in product.event_id: product.event_id.append(event_id)
         product.list_update_time = datetime.utcnow()
         product.save()

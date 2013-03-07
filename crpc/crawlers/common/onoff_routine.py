@@ -102,3 +102,5 @@ if __name__ == '__main__':
     checkout('ruelala', 'check_onsale_product')
 
     checkout('bluefly', 'check_onsale_product')
+
+    checkout('lot18', 'check_onsale_product')

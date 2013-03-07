@@ -38,20 +38,20 @@ class CheckServer(object):
 #        if 'amount' in js['detailJSON']['ourPrice']:
 #            price = float( js['detailJSON']['ourPrice']['amount'] )
 #            if price != float( prd.price.replace('$', '') ):
-#                print 'myhabit product[{0}] price error: {1} vs {2}'.format(prd.combine_url, price, prd.price)
+#                print 'myhabit product[{0}] price error: {1} vs {2}'.format(prd.combine_url, prd.price, price)
 #        else:
 #            print 'myhabit product[{0}] price can not get from network {1}'.format(prd.combine_url, prd.price)
         if 'listPrice' in js['detailJSON'] and 'amount' in js['detailJSON']['listPrice']:
             listprice = float( js['detailJSON']['listPrice']['amount'] )
             if '-' not in prd.listprice:
                 if listprice != float( prd.listprice.replace('$', '').replace(',', '') ):
-                    print 'myhabit product[{0}] listprice error: {1} vs {2}'.format(prd.combine_url, listprice, prd.listprice)
+                    print 'myhabit product[{0}] listprice error: {1} vs {2}'.format(prd.combine_url, prd.listprice, listprice)
 #        else:
 #            print 'myhabit product[{0}] listprice can not get from network {1}'.format(prd.combine_url, prd.listprice)
         if title.lower() != prd.title.rsplit('(', 1)[0].rstrip().lower():
-            print 'myhabit product[{0}] title error: [{1}] vs [{2}]'.format(prd.combine_url, title.encode('utf-8'), prd.title.encode('utf-8'))
+            print 'myhabit product[{0}] title error: [{1}] vs [{2}]'.format(prd.combine_url, prd.title.encode('utf-8'), title.encode('utf-8'))
         if brand != prd.brand:
-            print 'myhabit product[{0}] brand error: {1} vs {2}'.format(prd.combine_url, brand, prd.brand)
+            print 'myhabit product[{0}] brand error: {1} vs {2}'.format(prd.combine_url, prd.brand, brand)
 
 
     def check_offsale_product(self, id, url):

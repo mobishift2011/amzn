@@ -2,14 +2,69 @@ import requests
 import re
 import json
 
-test_url = 'http://www.gilt.com/sale/women/kate-spade-new-york-handbags-5860/product/168155147-kate-spade-new-york-signature-spade-leather-roxanns-satchel'
-test_url = 'http://www.gilt.com/home/sale/kate-spade-5571/143776857-kate-spade-new-york-bedding-piedmont-park-flat-sheet'
+
+from server import giltLogin
+""" gilt not need to login ,
+    but the price is not right when we access it from China
+"""
 
 class CheckServer(object):
     def __init__(self):
         self.headers = {
             'Cookie': 'optimizelyEndUserId=oeu1351495981434r0.0753983361646533; sid=z_20121121_020756_116.231.107.183_63_32_94; csrf=npatkkwelh72vzlm3apmylxnmhxg4zlv3ey7hh3l; JSESSIONID=1xcr2rh2fsk4p1ma3q33xiqkkh; guid=4b5a82d59566f78b2f7b5a45e690e73b34094d1842e31e3463628e3cd4b551bc_f2fc40a5-afb9-4dc6-90ea-986bcf1cf7c1; ca=3a4b38cc87d1aa9aa19cc63ca796b459c82442bdc6ce44f014210c9e56efd6c1_m.0.1.; gender=f; cp=428; test_bucket=996; test_bucket_id=753501140521019148; optimizelySegments=%7B%7D; optimizelyBuckets=%7B%22137351109%22%3A%22137342151%22%2C%22138556151%22%3A%22138479831%22%2C%22141164996%22%3A%22141243248%22%7D; store=home; __utma=170966838.1464646229.1351495984.1354499825.1354520369.10; __utmb=170966838.2.8.1354523121878; __utmc=170966838; __utmz=170966838.1354334621.7.3.utmcsr=google|utmccn=(organic)|utmcmd=organic|utmctr=(not%20provided); __utmv=170966838.|1=GUID=f2fc40a5-afb9-4dc6-90ea-986bcf1cf7c1=1^2=Partition=428=1^9=gender=female=1^12=Variant=login_reg_regwall%3Dmosaic%7Clogin_reg_modal%3Dinternational%7Cloyalty_test%3DUNKNOWN%2Ffalse%2Ffalse=1^24=Visitor%20ID=v_20121029_153303_76_81_38=1; NRAGENT=tk=fbd7760aefe06ca4'}
         self.s = requests.session()
+
+    def get_correct_tree(self, cont):
+        """.. :py:method::
+        :param cont: page content
+        :rtype: right xml tree
+        """
+        end_html_position = cont.find('</html>')
+        if len(cont) - end_html_position > 200:
+            tree = lxml.html.fromstring(cont[:end_html_position] + cont[end_html_position+7:])
+        else:
+            tree = lxml.html.fromstring(cont)
+        return tree
+
+    def check_onsale_product(self, id, url):
+        prd = Product.objects(key=id).first()
+        if prd is None:
+            print '\n\ngilt {0}, {1}\n\n'.format(id, url)
+            return
+
+        ret = self.s.get(url, self.headers)
+        tree = self.get_correct_tree(ret.content)
+        if '/home/sale' in url or '/sale/home' in url: # home
+            pass
+        else: # women, men, children
+            node = tree.cssselect('#main #product-detail div.summary')[0]
+            title = node.cssselect('header.overview h1.product-name div.product-display-name')[0].text_content().strip()
+            brand = node.cssselect('header.overview h2.brand-name a.primary')[0].text_content().strip()
+            price = node.cssselect('header.overview div.price div.sale-price span.nouveau-price')[0].text_content().replace('$', '').strip()
+            listprice = node.cssselect('header.overview div.price div.original-price span.msrp')[0].text_content().replace('$', '').strip()
+            soldout = node.cssselect('form.sku-selection div.submit-area a.add-to-wait-list')[0]
+            soldout = False if 'hidden' in soldout else True
+
+            if prd.title.lower() != title.lower():
+                print 'gilt product[{0}] title error: [{1}, {2}]'.format(url, prd.title.encode('utf-8').lower(), title.encode('utf-8').lower())
+            if float(prd.price) != float(price):
+                print 'gilt product[{0}] price error: [{1}, {2}]'.format(url, prd.price, price)
+            if float(prd.listprice) != float(listprice):
+                print 'gilt product[{0}] listprice error: [{1}, {2}]'.format(url, prd.listprice, listprice)
+            if prd.soldout != soldout:
+                print 'gilt product[{0}] soldout error: [{1}, {2}]'.format(url, prd.soldout, soldout)
+
+
+
+    def check_offsale_product(self, id, url):
+        pass
+
+    def check_onsale_event(self, id, url):
+        pass
+
+    def check_offsale_event(self, id, url):
+        pass
+
 
     def get_product_abstract_by_url(self, url):
         content = self.s.get(url, headers=self.headers).content
@@ -24,4 +79,4 @@ class CheckServer(object):
         return 'gilt_'+product_id, title+'\n'+description
 
 if __name__ == '__main__':
-    CheckServer().get_product_abstract_by_url(test_url)
+    CheckServer()

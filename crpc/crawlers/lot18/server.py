@@ -148,7 +148,7 @@ class Server(object):
             if product.title != prd['title']:
                 product.title = prd['title']
                 product.update_history.update({ 'title': datetime.utcnow() })
-            if float(product.listprice) != float(listprice):
+            if listprice and float(product.listprice) != float(listprice):
                 product.listprice = listprice
                 product.update_history.update({ 'listprice': datetime.utcnow() })
             if float(product.price) != float(prd['prices']['price']):

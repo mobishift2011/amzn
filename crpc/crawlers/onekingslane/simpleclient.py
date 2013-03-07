@@ -65,7 +65,7 @@ class CheckServer(object):
                 prd.save()
             else:
                 if prd.title.lower() != title.lower():
-                    print 'onekingslane product[{0}] title error: [{1}, {2}]'.format(prd.combine_url, title.encode('utf-8'), prd.title.encode('utf-8'))
+                    print 'onekingslane product[{0}] title error: [{1}, {2}]'.format(prd.combine_url, prd.title.encode('utf-8'), title.encode('utf-8'))
         except IndexError:
             print '\n\nonekingslane product[{0}] title label can not get it.\n\n'.format(url)
         except AttributeError:
@@ -88,14 +88,14 @@ class CheckServer(object):
         listprice = tree.cssselect('p#msrpLabel')[0].text_content().replace('Retail', '').replace('Estimated Market Value', '').strip()
         if '-' not in price:
             if float( price.replace('$', '').replace(',', '') ) != float( prd.price.replace('Our Price', '').replace('$', '').replace(',', '') ):
-                print 'onekingslane product[{0}] price error: {1} vs {2}'.format(prd.combine_url, price, prd.price)
+                print 'onekingslane product[{0}] price error: {1} vs {2}'.format(prd.combine_url, prd.price, price)
         if '-' not in listprice and listprice:
             if float( listprice.replace('$', '').replace(',', '') ) != float( prd.listprice.replace('$', '').replace(',', '') ):
-                print 'onekingslane product[{0}] listprice error: {1} vs {2}'.format(prd.combine_url, listprice, prd.listprice)
+                print 'onekingslane product[{0}] listprice error: {1} vs {2}'.format(prd.combine_url, prd.listprice, listprice)
 
         soldout = True if tree.cssselect('.sold-out') else False
         if soldout !=  prd.soldout:
-            print 'onekingslane product[{0}] soldout error: {1} vs {2}'.format(prd.combine_url, soldout, prd.soldout)
+            print 'onekingslane product[{0}] soldout error: {1} vs {2}'.format(prd.combine_url, prd.soldout, soldout)
 
         return True
 

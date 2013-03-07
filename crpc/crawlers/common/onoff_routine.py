@@ -3,6 +3,7 @@
 # Author: bishop Liu <miracle (at) gmail.com>
 
 import random
+import traceback
 from datetime import datetime
 from gevent.pool import Pool
 from mongoengine import Q
@@ -76,7 +77,7 @@ def call_rpc(rpc, site, method, *args, **kwargs):
     try:
         rpc.run_cmd(site, method, args, kwargs)
     except Exception as e:
-        print 'RPC call error: {0}'.format(e.message)
+        print 'RPC call error: {0}'.format(traceback.format_exc())
 
 
 def checkout(site, method, concurrency=10):

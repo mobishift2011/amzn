@@ -58,7 +58,7 @@ class CheckServer(object):
             brand = node.cssselect('header.overview h2.brand-name a.primary')[0].text_content().strip()
             price = node.cssselect('header.overview div.price div.sale-price span.nouveau-price')[0].text_content().replace('$', '').strip()
             listprice = node.cssselect('header.overview div.price div.original-price span.msrp')[0].text_content().replace('$', '').strip()
-            soldout = node.cssselect('form.sku-selection div.submit-area a.add-to-wait-list')[0]
+            soldout = node.cssselect('form.sku-selection div.submit-area a.add-to-wait-list')[0].get('class')
             soldout = False if 'hidden' in soldout else True
 
             if prd.title.lower() != title.lower():
@@ -95,4 +95,4 @@ class CheckServer(object):
         return 'gilt_'+product_id, title+'\n'+description
 
 if __name__ == '__main__':
-    CheckServer()
+    CheckServer().check_onsale_product('159846199-amrita-singh-izabella-crystal-filigree-earrings', 'http://www.gilt.com/sale/women/amrita-singh-jewelry-3411/product/159846199-amrita-singh-izabella-crystal-filigree-earrings')

@@ -20,7 +20,7 @@ from settings import CRPC_ROOT
 
 __lock = Semaphore(1)
 
-exclude_crawlers = ['common', 'amazon', 'newegg', 'ecost', 'bhphotovideo', 'bestbuy', 'dickssport', 'overstock', 'cabelas', ]
+exclude_crawlers = ['common', 'amazon', 'newegg', 'ecost', 'bhphotovideo', 'bestbuy', 'dickssport', 'overstock', 'cabelas', 'zulily']
 # for auto-scheduler. bluefly, beyondtherack, nomorerack, zulily should better not be schedule together
 picked_crawlers = (
          'belleandclive',
@@ -35,7 +35,7 @@ picked_crawlers = (
          'lot18',
          'myhabit',
          'modnique',
-         'zulily',
+#         'zulily',
          'onekingslane',
          'hautelook', )
 
@@ -52,7 +52,7 @@ login_email = {'bluefly': '2012luxurygoods@gmail.com',
                'myhabit': '2012luxurygoods@gmail.com',
                'belleandclive': '2012luxurygoods@gmail.com',
                'modnique': '2012luxurygoods@gmail.com',
-               'zulily': 'badbad@zulily.com',
+#               'zulily': 'badbad@zulily.com',
                'onekingslane': '2012luxurygoods@gmail.com',
                'hautelook': '2012luxurygoods@gmail.com',
 }

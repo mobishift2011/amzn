@@ -109,3 +109,5 @@ if __name__ == '__main__':
     checkout('lot18', 'check_onsale_product')
 
     checkout('gilt', 'check_onsale_product')
+
+    checkout('nomorerack', 'check_offsale_product')

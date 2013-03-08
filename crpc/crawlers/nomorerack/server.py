@@ -277,7 +277,7 @@ class Server(object):
         link = node.cssselect('div.image > a.image_tag')[0].get('href')
         product_id = link.rsplit('/', 1)[-1]
         # img = node.cssselect('div.image > a.image_tag > img')[0].get('src')
-        title = node.cssselect('div.info > div.display > p')[0].text_content()
+        title = node.cssselect('div.info > div.display > p')[0].text_content().encode('utf-8')
         price = node.cssselect('div.info > div.display > div.pricing > ins')[0].text_content().replace('$', '').replace(',', '').strip()
         listprice = node.cssselect('div.info > div.display > div.pricing > del')
         listprice = listprice[0].text_content().replace('$', '').replace(',', '').replace('Retail', '').strip() if listprice else ''

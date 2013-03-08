@@ -13,6 +13,71 @@ class CheckServer(object):
         self.s = requests.session()
         self.headers = {}
     
+
+    def check_onsale_product(self, id, url):
+        prd = Product.objects(key=id).first()
+        if prd is None:
+            print '\n\nnomorerack {0}, {1}\n\n'.format(id, url)
+            return
+        cont = fetch_product_page(url)
+        if isinstance(cont, int):
+            print '\nnomorerack on sale page[{0}] return: {1}\n'.format(url, cont)
+            return
+        tree = lxml.html.fromstring(cont)
+        node = tree.cssselect('div#content div#front div#primary div#products_view div.right')[0]
+        title = node.cssselect('div h2')[0].text_content()
+        price_node = node.cssselect('div.add_to_cart div.offer_method div.standard')[0]
+        
+        try:
+            price = price_node.cssselect('h3 span[data-issw-price-value]')[0].text_content().replace('$', '').replace(',', '').strip()
+        except:
+            return
+        listprice = price_node.cssselect('p del')[0].text_content().replace('$', '').replace(',', '').replace('Retail', '').strip()
+        soldout = node.cssselect('div.add_to_cart div#add_to_cart div.error_message')
+        soldout = 'out' in soldout[0].text_content() if soldout else False
+        products_end = self.parse_time(tree)
+
+        if prd.title.lower() != title.lower():
+            print 'nomorerack product[{0}] title error: [{1} vs {2}]'.format(url, prd.title.encode('utf-8'), title.encode('utf-8'))
+        if float(prd.price.replace('$', '').replace(',', '').strip()) != float(price):
+            print 'nomorerack product[{0}] price error: [{1} vs {2}]'.format(url, prd.price, price)
+        if float(prd.listprice.replace('$', '').replace(',', '').replace('Retail', '').strip()) != float(listprice):
+            print 'nomorerack product[{0}] listprice error: [{1} vs {2}]'.format(url, prd.listprice, listprice)
+        if prd.products_end != products_end:
+            print 'nomorerack product[{0}] products_end error: [{1} vs {2}]'.format(url, prd.products_end, products_end)
+            prd.products_end = products_end
+            prd.update_history.update({ 'products_end': datetime.utcnow() })
+            prd.save()
+        
+
+
+    def check_offsale_product(self, id, url):
+        prd = Product.objects(key=id).first()
+        if prd is None:
+            print '\n\nnomorerack {0}, {1}\n\n'.format(id, url)
+            return
+
+        cont = fetch_product_page(url)
+        if isinstance(cont, int):
+            print '\nnomorerack off sale page[{0}] return: {1}\n'.format(url, cont)
+            return
+        tree = lxml.html.fromstring(cont)
+        offsale = tree.cssselect('div#content div#front div#primary div#products_view div.right div.add_to_cart div#add_to_cart div.error_message')
+        offsale = 'not available' in offsale[0].text_content() if offsale else False
+        products_end = self.parse_time(tree)
+        if prd.products_end != products_end:
+            print 'nomorerack product[{0}] products_end error: [{1} vs {2}]'.format(url, prd.products_end, products_end)
+            prd.products_end = products_end
+            prd.update_history.update({ 'products_end': datetime.utcnow() })
+            prd.save()
+
+
+    def check_onsale_event(self, id, url):
+        pass
+
+    def check_offsale_event(self, id, url):
+        pass
+
     def parse_time(self, tree):
         ends = tree.cssselect('div#wrapper > div#content > div#front > div.ribbon > div.ribbon-center h4')
         if not ends:
@@ -49,67 +114,6 @@ class CheckServer(object):
         return datetime(products_end.year, products_end.month, products_end.day, products_end.hour, products_end.minute)
 
 
-    def check_onsale_product(self, id, url):
-        prd = Product.objects(key=id).first()
-        if prd is None:
-            print '\n\nnomorerack {0}, {1}\n\n'.format(id, url)
-            return
-        cont = fetch_product_page(url)
-        if isinstance(cont, int):
-            print '\nnomorerack on sale page[{0}] return: {1}\n'.format(url, cont)
-            return
-        tree = lxml.html.fromstring(cont)
-        node = tree.cssselect('div#content div#front div#primary div#products_view div.right')[0]
-        title = node.cssselect('div h2')[0].text_content()
-        price_node = node.cssselect('div.add_to_cart div.offer_method div.standard')[0]
-        
-        try:
-            price = price_node.cssselect('h3 span[data-issw-price-value]')[0].text_content().replace('$', '').replace(',', '').strip()
-        except:
-            return
-        listprice = price_node.cssselect('p del')[0].text_content().replace('$', '').replace(',', '').replace('Retail', '').strip()
-        soldout = node.cssselect('div.add_to_cart div#add_to_cart div.error_message')
-        soldout = 'out' in soldout[0].text_content() if soldout else False
-        products_end = self.parse_time(tree)
-
-        if prd.title.lower() != title.lower():
-            print 'nomorerack product[{0}] title error: [{1} vs {2}]'.format(url, prd.title.encode('utf-8'), title.encode('utf-8'))
-        if float(prd.price.replace('$', '').replace(',', '').strip()) != float(price):
-            print 'nomorerack product[{0}] price error: [{1} vs {2}]'.format(url, prd.price, price)
-        if float(prd.listprice.replace('$', '').replace(',', '').replace('Retail', '').strip()) != float(listprice):
-            print 'nomorerack product[{0}] listprice error: [{1} vs {2}]'.format(url, prd.listprice, listprice)
-        if prd.products_end != products_end:
-            print 'nomorerack product[{0}] products_end error: [{1} vs {2}]'.format(url, prd.products_end, products_end)
-        
-
-
-    def check_offsale_product(self, id, url):
-        prd = Product.objects(key=id).first()
-        if prd is None:
-            print '\n\nnomorerack {0}, {1}\n\n'.format(id, url)
-            return
-
-        cont = fetch_product_page(url)
-        if isinstance(cont, int):
-            print '\nnomorerack off sale page[{0}] return: {1}\n'.format(url, cont)
-            return
-        tree = lxml.html.fromstring(cont)
-        offsale = tree.cssselect('div#content div#front div#primary div#products_view div.right div.add_to_cart div#add_to_cart div.error_message')
-        offsale = 'not available' in offsale[0].text_content() if offsale else False
-        products_end = self.parse_time(tree)
-        if prd.products_end != products_end:
-            print 'nomorerack product[{0}] products_end error: [{1} vs {2}]'.format(url, prd.products_end, products_end)
-            prd.products_end = products_end
-            prd.update_history.update({ 'products_end': datetime.utcnow() })
-            prd.save()
-
-
-    def check_onsale_event(self, id, url):
-        pass
-
-    def check_offsale_event(self, id, url):
-        pass
-
     def get_product_abstract_by_url(self, url):
         content = self.s.get(url, headers=self.headers).content
         product_id = re.compile(r'/view/(\d+)').search(url).group(1)
@@ -122,4 +126,4 @@ class CheckServer(object):
         return 'nomorerack_'+product_id, title+'_'+description
 
 if __name__ == '__main__':
-    CheckServer()
+    CheckServer().check_offsale_product('228589-genuine_diamond_accent_ring_in_sterling_silver_with_gift_box', 'http://nomorerack.com/daily_deals/view/228589-genuine_diamond_accent_ring_in_sterling_silver_with_gift_box')

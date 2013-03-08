@@ -278,9 +278,9 @@ class Server(object):
         product_id = link.rsplit('/', 1)[-1]
         # img = node.cssselect('div.image > a.image_tag > img')[0].get('src')
         title = node.cssselect('div.info > div.display > p')[0].text_content()
-        price = node.cssselect('div.info > div.display > div.pricing > ins')[0].text_content()
+        price = node.cssselect('div.info > div.display > div.pricing > ins')[0].text_content().replace('$', '').replace(',', '').strip()
         listprice = node.cssselect('div.info > div.display > div.pricing > del')
-        listprice = listprice[0].text_content() if listprice else ''
+        listprice = listprice[0].text_content().replace('$', '').replace(',', '').replace('Retail', '').strip() if listprice else ''
         scarcity = node.cssselect('div.qty > span')
         scarcity = scarcity[0].text_content() if scarcity else ''
 
@@ -301,9 +301,15 @@ class Server(object):
             if scarcity and product.scarcity != scarcity:
                 product.scarcity = scarcity
             if soldout and product.soldout != soldout:
-                product.soldout = True
+                product.soldout = soldout
                 is_updated = True
                 product.update_history.update({ 'soldout': datetime.utcnow() })
+            if product.price != price:
+                product.price = price
+                product.update_history.update({ 'price': datetime.utcnow() })
+            if product.listprice != listprice:
+                product.listprice = listprice
+                product.update_history.update({ 'listprice': datetime.utcnow() })
         product.list_update_time = datetime.utcnow()
         return product, is_new, is_updated
 

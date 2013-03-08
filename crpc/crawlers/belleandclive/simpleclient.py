@@ -25,7 +25,20 @@ class CheckServer(object):
         tree = lxml.html.fromstring(cont)
         node = tree.cssselect('div#product-detail-wrapper div#product-details')[0]
         title = node.cssselect('div.left h1')[0].text_content().encode('utf-8')
+        price = node.cssselect('div.left h3')[0].text_content().replace('$', '').replace(',', '').strip()
+        listprice = node.cssselect('div.left p span')
+        listprice = listprice[0].text_content().replace('$', '').replace(',', '').strip() if listprice else ''
+        soldout = node.cssselect('div#product-detail-wrapper div#product-images div#img-div div.soldout-wrapper')
+        soldout = True if soldout else False
 
+        if prd.title.lower() != title.lower():
+            print 'belleandclive product[{0}] title error: [{1} vs {2}]'.format(url, prd.title.encode('utf-8'), title.encode('utf-8'))
+        if prd.listprice != listprice:
+            print 'belleandclive product[{0}] listprice error: [{1} vs {2}]'.format(url, prd.listprice, listprice)
+        if prd.price != price:
+            print 'belleandclive product[{0}] price error: [{1} vs {2}]'.format(url, prd.price, price)
+        if prd.soldout != soldout:
+            print 'belleandclive product[{0}] soldout error: [{1} vs {2}]'.format(url, prd.soldout, soldout)
 
 
     def check_offsale_product(self, id, url):

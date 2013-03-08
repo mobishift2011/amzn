@@ -4,6 +4,7 @@
 
 import requests
 import lxml.html
+from datetime import datetime
 
 from server import belleandcliveLogin
 from models import Product, Event
@@ -20,14 +21,24 @@ class CheckServer(object):
             return
 
         cont = self.net.fetch_product_page(url)
-        if cont is None or isinstance(cont, int):
-            print '\n\nbelleandclive product[{0}] download error of out of date\n\n'.format(url)
-            return
+        if cont == -302:
+            print '\n\nbelleandclive product[{1}] sale end.'.format(id, url)
+            if not prd.products_end or prd.products_end > datetime.utcnow():
+                prd.products_end = datetime.utcnow().replace(minute=0, second=0, microsecond=0)
+                prd.update_history.update({ 'products_end': datetime.utcnow() })
+                prd.save()
+
+        elif cont is None or isinstance(cont, int):
+            cont = self.net.fetch_product_page(url)
+            if cont is None or isinstance(cont, int):
+                print '\n\nbelleandclive product[{0}] download error.\n\n'.format(url)
+                return
+
         tree = lxml.html.fromstring(cont)
         node = tree.cssselect('div#product-detail-wrapper div#product-details')[0]
         title = node.cssselect('div.left h1')[0].text_content().encode('utf-8')
         price = node.cssselect('div.left h3')[0].text_content().replace('$', '').replace(',', '').strip()
-        listprice = node.cssselect('div.left p span')
+        listprice = node.cssselect('div.left p span.linethrough')
         listprice = listprice[0].text_content().replace('$', '').replace(',', '').strip() if listprice else ''
         soldout = node.cssselect('div#product-detail-wrapper div#product-images div#img-div div.soldout-wrapper')
         soldout = True if soldout else False
@@ -52,4 +63,4 @@ class CheckServer(object):
         pass
 
 if __name__ == '__main__':
-    pass
+    CheckServer().check_onsale_product('323383501', 'http://www.belleandclive.com/browse/product.jsp?id=323383501')

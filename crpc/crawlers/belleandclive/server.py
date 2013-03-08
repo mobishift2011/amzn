@@ -89,6 +89,21 @@ class belleandcliveLogin(object):
 
         return ret.status_code
 
+    def fetch_product_page(self, url):
+        """.. :py:method::
+            fetch product page.
+            check whether the account is login, if not, login and fetch again
+        """
+        ret = req.get(url)
+
+        if 'http://www.belleandclive.com/member' in ret.url: #login
+            self.login_account()
+            ret = req.get(url)
+        if 'http://www.belleandclive.com/browse/sales/current.jsp' in ret.url:
+            return -302
+        if ret.ok: return ret.content
+
+        return ret.status_code
 
 class Server(object):
     def __init__(self):

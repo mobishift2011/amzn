@@ -19,14 +19,12 @@ class CheckServer(object):
             print '\n\nbelleandclive {0}, {1}\n\n'.format(id, url)
             return
 
-        cont = self.net.fetch_page(url)
+        cont = self.net.fetch_product_page(url)
         if cont is None or isinstance(cont, int):
+            print '\n\nbelleandclive product[{0}] download error of out of date\n\n'.format(url)
             return
         tree = lxml.html.fromstring(cont)
-        try:
-            node = tree.cssselect('div#product-detail-wrapper div#product-details')[0]
-        except:
-            print '\n\nbelleandclive product[{0}] '.format(url)
+        node = tree.cssselect('div#product-detail-wrapper div#product-details')[0]
         title = node.cssselect('div.left h1')[0].text_content().encode('utf-8')
         price = node.cssselect('div.left h3')[0].text_content().replace('$', '').replace(',', '').strip()
         listprice = node.cssselect('div.left p span')

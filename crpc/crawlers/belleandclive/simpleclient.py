@@ -23,7 +23,10 @@ class CheckServer(object):
         if cont is None or isinstance(cont, int):
             return
         tree = lxml.html.fromstring(cont)
-        node = tree.cssselect('div#product-detail-wrapper div#product-details')[0]
+        try:
+            node = tree.cssselect('div#product-detail-wrapper div#product-details')[0]
+        except:
+            print '\n\nbelleandclive product[{0}] '.format(url)
         title = node.cssselect('div.left h1')[0].text_content().encode('utf-8')
         price = node.cssselect('div.left h3')[0].text_content().replace('$', '').replace(',', '').strip()
         listprice = node.cssselect('div.left p span')
@@ -33,10 +36,10 @@ class CheckServer(object):
 
         if prd.title.lower() != title.lower():
             print 'belleandclive product[{0}] title error: [{1} vs {2}]'.format(url, prd.title.encode('utf-8'), title.encode('utf-8'))
-        if prd.listprice != listprice:
-            print 'belleandclive product[{0}] listprice error: [{1} vs {2}]'.format(url, prd.listprice, listprice)
-        if prd.price != price:
-            print 'belleandclive product[{0}] price error: [{1} vs {2}]'.format(url, prd.price, price)
+        if listprice and prd.listprice.replace('$', '').replace(',', '').strip() != listprice:
+            print 'belleandclive product[{0}] listprice error: [{1} vs {2}]'.format(url, prd.listprice.replace('$', '').replace(',', '').strip(), listprice)
+        if prd.price.replace('$', '').replace(',', '').strip() != price:
+            print 'belleandclive product[{0}] price error: [{1} vs {2}]'.format(url, prd.price.replace('$', '').replace(',', '').strip(), price)
         if prd.soldout != soldout:
             print 'belleandclive product[{0}] soldout error: [{1} vs {2}]'.format(url, prd.soldout, soldout)
 

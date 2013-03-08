@@ -45,7 +45,7 @@ class CheckServer(object):
         soldout = True if soldout else False
 
         try:
-            if prd.title.lower() != title.lower():
+            if prd.title.encode('utf-8').lower() != title.lower():
                 print 'belleandclive product[{0}] title error: [{1} vs {2}]'.format(url, prd.title.encode('utf-8'), title)
         except:
             print '\n\nbelleandclive product[{0}] title encoding error.\n\n'.format(url)

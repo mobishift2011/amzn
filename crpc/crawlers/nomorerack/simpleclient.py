@@ -1,6 +1,7 @@
 import requests
 import lxml.html
 import re
+from datetime import datetime
 
 from crawlers.common.stash import time_convert
 from models import Product, Event
@@ -93,11 +94,14 @@ class CheckServer(object):
             print '\nnomorerack off sale page[{0}] return: {1}\n'.format(url, cont)
             return
         tree = lxml.html.fromstring(cont)
-        offsale = tree.cssselect('div#content div#front div#primary div#products_view div.right div.add_to_cart div#add_to_cart div.error_message')[0].text_content()
-        offsale = 'not available' in offsale
+        offsale = tree.cssselect('div#content div#front div#primary div#products_view div.right div.add_to_cart div#add_to_cart div.error_message')
+        offsale = 'not available' offsale[0].text_content() if offsale else False
         products_end = self.parse_time(tree)
         if prd.products_end != products_end:
             print 'nomorerack product[{0}] products_end error: [{1} vs {2}]'.format(url, prd.products_end, products_end)
+            prd.products_end = products_end
+            prd.update_history.update({ 'products_end': datetime.utcnow() })
+            prd.save()
 
 
     def check_onsale_event(self, id, url):

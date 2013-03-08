@@ -69,7 +69,7 @@ class CheckServer(object):
         listprice = price_node.cssselect('p del')[0].text_content().replace('$', '').replace(',', '').replace('Retail', '').strip()
         soldout = node.cssselect('div.add_to_cart div#add_to_cart div.error_message')
         soldout = 'out' in soldout[0].text_content() if soldout else False
-        products_end = self.parse_time(self, tree)
+        products_end = self.parse_time(tree)
 
         if prd.title.lower() != title.lower():
             print 'nomorerack product[{0}] title error: [{1} vs {2}]'.format(url, prd.title.encode('utf-8'), title.encode('utf-8'))
@@ -95,7 +95,7 @@ class CheckServer(object):
         tree = lxml.html.fromstring(cont)
         offsale = tree.cssselect('div#content div#front div#primary div#products_view div.right div.add_to_cart div#add_to_cart div.error_message')[0].text_content()
         offsale = 'not available' in offsale
-        products_end = self.parse_time(self, tree)
+        products_end = self.parse_time(tree)
         if prd.products_end != products_end:
             print 'nomorerack product[{0}] products_end error: [{1} vs {2}]'.format(url, prd.products_end, products_end)
 

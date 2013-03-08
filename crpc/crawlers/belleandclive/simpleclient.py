@@ -44,17 +44,25 @@ class CheckServer(object):
         soldout = tree.cssselect('div#product-detail-wrapper div#product-images div#img-div div.soldout-wrapper')
         soldout = True if soldout else False
 
-        try:
-            if prd.title.encode('utf-8').lower() != title.lower():
-                print 'belleandclive product[{0}] title error: [{1} vs {2}]'.format(url, prd.title.encode('utf-8'), title)
-        except:
-            print '\n\nbelleandclive product[{0}] title encoding error.\n\n'.format(url)
+        if prd.title.encode('utf-8').lower() != title.lower():
+            print 'belleandclive product[{0}] title error: [{1} vs {2}]'.format(url, prd.title.encode('utf-8'), title)
         if listprice and prd.listprice.replace('$', '').replace(',', '').strip() != listprice:
             print 'belleandclive product[{0}] listprice error: [{1} vs {2}]'.format(url, prd.listprice.replace('$', '').replace(',', '').strip(), listprice)
+            prd.listprice = listprice
+            prd.update_history.update({ 'listprice': datetime.utcnow() })
+            prd.save()
+
         if prd.price.replace('$', '').replace(',', '').strip() != price:
             print 'belleandclive product[{0}] price error: [{1} vs {2}]'.format(url, prd.price.replace('$', '').replace(',', '').strip(), price)
+            prd.price = price
+            prd.update_history.update({ 'price': datetime.utcnow() })
+            prd.save()
+
         if prd.soldout != soldout:
             print 'belleandclive product[{0}] soldout error: [{1} vs {2}]'.format(url, prd.soldout, soldout)
+            prd.soldout = soldout
+            prd.update_history.update({ 'soldout': datetime.utcnow() })
+            prd.save()
 
 
     def check_offsale_product(self, id, url):

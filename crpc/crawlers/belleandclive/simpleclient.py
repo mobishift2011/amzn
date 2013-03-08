@@ -41,12 +41,12 @@ class CheckServer(object):
         price = node.cssselect('div.left h3')[0].text_content().replace('$', '').replace(',', '').strip()
         listprice = node.cssselect('div.left p span.linethrough')
         listprice = listprice[0].text_content().replace('$', '').replace(',', '').strip() if listprice else ''
-        soldout = node.cssselect('div#product-detail-wrapper div#product-images div#img-div div.soldout-wrapper')
+        soldout = tree.cssselect('div#product-detail-wrapper div#product-images div#img-div div.soldout-wrapper')
         soldout = True if soldout else False
 
         try:
             if prd.title.lower() != title.lower():
-                print 'belleandclive product[{0}] title error: [{1} vs {2}]'.format(url, prd.title.encode('utf-8'), title.encode('utf-8'))
+                print 'belleandclive product[{0}] title error: [{1} vs {2}]'.format(url, prd.title.encode('utf-8'), title)
         except:
             print '\n\nbelleandclive product[{0}] title encoding error.\n\n'.format(url)
         if listprice and prd.listprice.replace('$', '').replace(',', '').strip() != listprice:
@@ -67,4 +67,4 @@ class CheckServer(object):
         pass
 
 if __name__ == '__main__':
-    CheckServer().check_onsale_product('323383501', 'http://www.belleandclive.com/browse/product.jsp?id=323383501')
+    CheckServer().check_onsale_product('323367001','http://www.belleandclive.com/browse/product.jsp?id=323367001')

@@ -21,7 +21,18 @@ class CheckServer(object):
         tree = lxml.html.fromstring(cont)
         node = tree.cssselect('div#content div#front div#primary div#products_view div.right')[0]
         title = node.cssselect('div h2')[0].text_content()
-        price = node.cssselect('')
+        price_node = node.cssselect('div.add_to_cart div.offer_method div.standard')[0]
+        price = price_node.cssselect('h3 span.data-issw-price-value')[0].text_content().replace('$', '').replace(',', '')
+        listprice = price_node.cssselect('p del')[0].text_content().replace('$', '').replace(',', '').replace('Retail', '')
+        soldout = node.cssselect('div.add_to_cart div#add_to_cart div.error_message span')
+        soldout = 'out' in soldout[0].text_content() if soldout else False
+
+        if prd.title.lower() != title.lower():
+            print 'nomorerack product[{0}] title error: [{1} vs {2}]'.format(url, prd.title.encode('utf-8'), title.encode('utf-8'))
+        if float(prd.price) != float(price):
+            print 'nomorerack product[{0}] price error: [{1} vs {2}]'.format(url, prd.price, price)
+        if float(prd.listprice) != float(listprice):
+            print 'nomorerack product[{0}] listprice error: [{1} vs {2}]'.format(url, prd.listprice, listprice)
         
 
 

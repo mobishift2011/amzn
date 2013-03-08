@@ -45,7 +45,7 @@ class CheckServer(object):
                     products_end = time_convert(time_str.replace('AM', ''), '%B %d %H:%M %Y', time_zone)
                 elif int(c[:2]) >=13 and d[0] == 'P':
                     products_end = time_convert(time_str.replace('PM', ''), '%B %d %H:%M %Y', time_zone)
-        return products_end
+        return datetime(products_end.year, products_end.month, products_end.day, products_end.hour, products_end.minute)
 
 
     def check_onsale_product(self, id, url):

@@ -37,7 +37,13 @@ class CheckServer(object):
 
 
     def check_offsale_product(self, id, url):
-        pass
+        prd = Product.objects(key=id).first()
+        if prd is None:
+            print '\n\nnomorerack {0}, {1}\n\n'.format(id, url)
+            return
+        cont = fetch_product_page(url)
+        if isinstance(cont, int):
+            return
 
     def check_onsale_event(self, id, url):
         pass

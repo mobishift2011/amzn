@@ -27,6 +27,7 @@ class CheckServer(object):
                 prd.products_end = datetime.utcnow().replace(minute=0, second=0, microsecond=0)
                 prd.update_history.update({ 'products_end': datetime.utcnow() })
                 prd.save()
+                return
 
         elif cont is None or isinstance(cont, int):
             cont = self.net.fetch_product_page(url)
@@ -43,8 +44,11 @@ class CheckServer(object):
         soldout = node.cssselect('div#product-detail-wrapper div#product-images div#img-div div.soldout-wrapper')
         soldout = True if soldout else False
 
-        if prd.title.lower() != title.lower():
-            print 'belleandclive product[{0}] title error: [{1} vs {2}]'.format(url, prd.title.encode('utf-8'), title.encode('utf-8'))
+        try:
+            if prd.title.lower() != title.lower():
+                print 'belleandclive product[{0}] title error: [{1} vs {2}]'.format(url, prd.title.encode('utf-8'), title.encode('utf-8'))
+        except:
+            print '\n\nbelleandclive product[{0}] title encoding error.\n\n'.format(url)
         if listprice and prd.listprice.replace('$', '').replace(',', '').strip() != listprice:
             print 'belleandclive product[{0}] listprice error: [{1} vs {2}]'.format(url, prd.listprice.replace('$', '').replace(',', '').strip(), listprice)
         if prd.price.replace('$', '').replace(',', '').strip() != price:

@@ -95,7 +95,7 @@ class CheckServer(object):
             return
         tree = lxml.html.fromstring(cont)
         offsale = tree.cssselect('div#content div#front div#primary div#products_view div.right div.add_to_cart div#add_to_cart div.error_message')
-        offsale = 'not available' offsale[0].text_content() if offsale else False
+        offsale = 'not available' in offsale[0].text_content() if offsale else False
         products_end = self.parse_time(tree)
         if prd.products_end != products_end:
             print 'nomorerack product[{0}] products_end error: [{1} vs {2}]'.format(url, prd.products_end, products_end)

@@ -35,11 +35,10 @@ class CheckServer(object):
                 return
 
         tree = lxml.html.fromstring(cont)
-        node = tree.cssselect('div#product-detail-wrapper div#product-details')[0]
-        title = node.cssselect('div.left h1')[0].text_content().encode('utf-8')
-        price = node.cssselect('div.left h3')[0].text_content().replace('$', '').replace(',', '').strip()
-        listprice = node.cssselect('div.left p span.linethrough')
-        listprice = listprice[0].text_content().replace('$', '').replace(',', '').strip() if listprice else ''
+        title = tree.cssselect('div.prodDetail div.clearfix div[style] div[style=font-size: 20px; font-weight: 900;]')[0].text_content()
+        listprice = tree.cssselect('div.prodDetail div.clearfix div[style] div.clearfix div[style] span.product-price-prev')[0]
+        price = tree.cssselect('div.prodDetail div.clearfix div[style] div.clearfix div[style] span.product-price')[0]
+
         soldout = tree.cssselect('div#product-detail-wrapper div#product-images div#img-div div.soldout-wrapper')
         soldout = True if soldout else False
 

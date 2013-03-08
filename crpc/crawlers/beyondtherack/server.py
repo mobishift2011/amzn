@@ -106,7 +106,7 @@ class beyondtherackLogin(object):
             self.login_account()
             ret = req.get(url)
         if ret.ok and ret.url == 'http://www.beyondtherack.com/event/calendar':
-            return -1
+            return -302
         elif ret.ok:
             return ret.content
 
@@ -434,7 +434,7 @@ class Server(object):
 
         key = url.rsplit('/', 1)[-1]
         content = self.net.fetch_product_page(url)
-        if content == -1:
+        if content == -302:
             common_failed.send(sender=ctx, key=key, url=url, reason='download product redirect to homepage')
             return
         if content is None or isinstance(content, int):

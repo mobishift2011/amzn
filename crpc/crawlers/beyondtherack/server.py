@@ -327,6 +327,7 @@ class Server(object):
         sizes = []
         for size in size_nodes:
             sizes.append( size.text_content().strip() )
+        combine_url = 'http://www.beyondtherack.com/event/sku/{0}/{1}'.format(event_id, key)
 
         is_new, is_updated = False, False
         product = Product.objects(key=key).first()
@@ -334,7 +335,7 @@ class Server(object):
             is_new = True
             product = Product(key=key)
             product.updated = False
-            product.combine_url = 'http://www.beyondtherack.com/event/sku/{0}/{1}'.format(event_id, key)
+            product.combine_url = combine_url
             product.soldout = soldout
             product.brand = brand
             product.title = title
@@ -346,6 +347,9 @@ class Server(object):
                 product.soldout = soldout
                 is_updated = True
                 product.update_history.update({ 'soldout': datetime.utcnow() })
+            if product.combine_url != combine_url:
+                product.combine_url = combine_url
+                product.update_history.update({ 'combine_url': datetime.utcnow() })
             if not product.title: product.title = title
         if event_id not in product.event_id: product.event_id.append(event_id)
         product.list_update_time = datetime.utcnow()

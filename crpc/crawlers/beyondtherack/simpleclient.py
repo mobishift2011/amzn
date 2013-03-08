@@ -5,23 +5,23 @@
 import lxml.html
 from datetime import datetime
 
-from server import belleandcliveLogin
+from server import beyondtherackLogin
 from models import Product, Event
 
 class CheckServer(object):
     def __init__(self):
-        self.net = belleandcliveLogin()
+        self.net = beyondtherackLogin()
         self.net.check_signin()
 
     def check_onsale_product(self, id, url):
         prd = Product.objects(key=id).first()
         if prd is None:
-            print '\n\nbelleandclive {0}, {1}\n\n'.format(id, url)
+            print '\n\nbeyondtherack {0}, {1}\n\n'.format(id, url)
             return
 
         cont = self.net.fetch_product_page(url)
         if cont == -302:
-            print '\n\nbelleandclive product[{1}] sale end.'.format(id, url)
+            print '\n\nbeyondtherack product[{1}] sale end.'.format(id, url)
             if not prd.products_end or prd.products_end > datetime.utcnow():
                 prd.products_end = datetime.utcnow().replace(minute=0, second=0, microsecond=0)
                 prd.update_history.update({ 'products_end': datetime.utcnow() })
@@ -31,7 +31,7 @@ class CheckServer(object):
         elif cont is None or isinstance(cont, int):
             cont = self.net.fetch_product_page(url)
             if cont is None or isinstance(cont, int):
-                print '\n\nbelleandclive product[{0}] download error.\n\n'.format(url)
+                print '\n\nbeyondtherack product[{0}] download error.\n\n'.format(url)
                 return
 
         tree = lxml.html.fromstring(cont)
@@ -44,21 +44,21 @@ class CheckServer(object):
         soldout = True if soldout else False
 
         if prd.title.encode('utf-8').lower() != title.lower():
-            print 'belleandclive product[{0}] title error: [{1} vs {2}]'.format(url, prd.title.encode('utf-8'), title)
+            print 'beyondtherack product[{0}] title error: [{1} vs {2}]'.format(url, prd.title.encode('utf-8'), title)
         if listprice and prd.listprice.replace('$', '').replace(',', '').strip() != listprice:
-            print 'belleandclive product[{0}] listprice error: [{1} vs {2}]'.format(url, prd.listprice.replace('$', '').replace(',', '').strip(), listprice)
+            print 'beyondtherack product[{0}] listprice error: [{1} vs {2}]'.format(url, prd.listprice.replace('$', '').replace(',', '').strip(), listprice)
             prd.listprice = listprice
             prd.update_history.update({ 'listprice': datetime.utcnow() })
             prd.save()
 
         if prd.price.replace('$', '').replace(',', '').strip() != price:
-            print 'belleandclive product[{0}] price error: [{1} vs {2}]'.format(url, prd.price.replace('$', '').replace(',', '').strip(), price)
+            print 'beyondtherack product[{0}] price error: [{1} vs {2}]'.format(url, prd.price.replace('$', '').replace(',', '').strip(), price)
             prd.price = price
             prd.update_history.update({ 'price': datetime.utcnow() })
             prd.save()
 
         if prd.soldout != soldout:
-            print 'belleandclive product[{0}] soldout error: [{1} vs {2}]'.format(url, prd.soldout, soldout)
+            print 'beyondtherack product[{0}] soldout error: [{1} vs {2}]'.format(url, prd.soldout, soldout)
             prd.soldout = soldout
             prd.update_history.update({ 'soldout': datetime.utcnow() })
             prd.save()
@@ -74,4 +74,4 @@ class CheckServer(object):
         pass
 
 if __name__ == '__main__':
-    CheckServer().check_onsale_product('323367001','http://www.belleandclive.com/browse/product.jsp?id=323367001')
+    CheckServer().check_onsale_product('','')

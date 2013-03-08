@@ -28,10 +28,7 @@ class CheckServer(object):
         title = node.cssselect('div h2')[0].text_content()
         price_node = node.cssselect('div.add_to_cart div.offer_method div.standard')[0]
         
-        try:
-            price = price_node.cssselect('h3 span[data-issw-price-value]')[0].text_content().replace('$', '').replace(',', '').strip()
-        except:
-            return
+        price = price_node.cssselect('h3 span[data-issw-price-value]')[0].text_content().replace('$', '').replace(',', '').strip()
         listprice = price_node.cssselect('p del')[0].text_content().replace('$', '').replace(',', '').replace('Retail', '').strip()
         soldout = node.cssselect('div.add_to_cart div#add_to_cart div.error_message')
         soldout = 'out' in soldout[0].text_content() if soldout else False
@@ -41,8 +38,14 @@ class CheckServer(object):
             print 'nomorerack product[{0}] title error: [{1} vs {2}]'.format(url, prd.title.encode('utf-8'), title.encode('utf-8'))
         if float(prd.price.replace('$', '').replace(',', '').strip()) != float(price):
             print 'nomorerack product[{0}] price error: [{1} vs {2}]'.format(url, prd.price, price)
+            prd.price = price
+            prd.update_history.update({ 'price': datetime.utcnow() })
+            prd.save()
         if float(prd.listprice.replace('$', '').replace(',', '').replace('Retail', '').strip()) != float(listprice):
             print 'nomorerack product[{0}] listprice error: [{1} vs {2}]'.format(url, prd.listprice, listprice)
+            prd.listprice = listprice
+            prd.update_history.update({ 'listprice': datetime.utcnow() })
+            prd.save()
         if prd.products_end != products_end:
             print 'nomorerack product[{0}] products_end error: [{1} vs {2}]'.format(url, prd.products_end, products_end)
             prd.products_end = products_end

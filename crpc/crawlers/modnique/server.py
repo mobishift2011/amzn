@@ -346,8 +346,8 @@ class Server(object):
 
 
     def parse_product(self, tree):
-        nav = tree.cssselect('div > div.ptl > div.page > div.line')[0] # bgDark or bgShops
-        images = nav.cssselect('div > div#product_gallery > div.line > div#product_imagelist > a')
+        # nav = tree.cssselect('div > div.line > div.page > div.line')[0] # bgDark or bgShops
+        images = tree.cssselect('div#product_gallery > div.line > div#product_imagelist > a')
         image_urls = []
         for img in images:
             img_url = img.get('href') 
@@ -355,8 +355,8 @@ class Server(object):
             if img_url == 'http://llthumb.bids.com/mod$image.getSuperImgsSrc()':
                 img_url = img.cssselect('img')[0].get('src')
             image_urls.append( img_url )
-        shipping = nav.cssselect('div.lastUnit > div.line form div#item_content_wrapper > div#item_wrapper > div#product_delivery')[0].text_content().strip()
-        info = nav.cssselect('div.lastUnit > div.line div#showcase > div.container')[0]
+        shipping = tree.cssselect('div#item_content_wrapper > div#item_wrapper > div#product_delivery')[0].text_content().strip()
+        info = tree.cssselect('div.lastUnit div.line div#showcase > div.container')[0]
         list_info = []
         nodes = info.cssselect('div.tab_container > div#tab1 p')
         for node in nodes:

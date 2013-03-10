@@ -315,7 +315,7 @@ class Server(object):
         if not price: price = prd.cssselect('div.layoutChanger > div.listProductPrices div.priceReduced > span.priceReducedvalue')
         if not price: price = prd.cssselect('div.layoutChanger > div.listProductPrices div.priceClearance > span.priceClearancevalue')
         if price:
-            price = price[0].text_content().strip()
+            price = price[0].text_content().replace('$', '').replace(',', '').strip()
 #        else:
 #            common_failed.send(sender=ctx, key=category_key, url=link,
 #                    reason='This product have no price.page_num: {0}'.format(page_num))
@@ -323,12 +323,13 @@ class Server(object):
         slug, key = self.extract_product_slug_key.match(link).groups()
         soldout = True if prd.cssselect('div.stockMessage div.listOutOfStock') else False
         brand = prd.cssselect('div.layoutChanger > div.listBrand > a')[0].text_content().strip()
-        title = prd.cssselect('div.layoutChanger > div.listLineMargin > div.productShortName')[0].text_content().strip()
+        title = prd.cssselect('div.layoutChanger > div.listLineMargin > div.productShortName')[0].text_content().strip().encode('utf-8')
         listprice = prd.cssselect('div.layoutChanger > div.listProductPrices > div.priceRetail > span.priceRetailvalue')
-        listprice = listprice[0].text_content().strip() if listprice else ''
+        listprice = listprice[0].text_content().replace('$', '').replace(',', '').strip() if listprice else ''
         
         rating = prd.cssselect('div.layoutChanger > div.product-detail-rating > img')
         rating = rating[0].get('alt') if rating else ''
+        combine_url = '{0}/slug/p/{1}/detail.fly'.format(self.siteurl, key)
 
         is_new, is_updated = False, False
         product = Product.objects(key=key).first()
@@ -336,7 +337,7 @@ class Server(object):
             is_new = True
             product = Product(key=key)
             product.updated = False
-            product.combine_url = '{0}/slug/p/{1}/detail.fly'.format(self.siteurl, key)
+            product.combine_url = combine_url
             product.slug = slug
             product.soldout = soldout
             product.brand = brand
@@ -347,8 +348,16 @@ class Server(object):
                 product.soldout = soldout
                 is_updated = True
                 product.update_history.update({ 'soldout': datetime.utcnow() })
-        if listprice and not product.listprice: product.listprice = listprice
-        if price and not product.price: product.price = price
+            if product.combine_url != combine_url:
+                product.combine_url = combine_url
+                product.update_history.update({ 'combine_url': datetime.utcnow() })
+
+        if listprice and listprice != product.listprice:
+            product.listprice = listprice
+            product.update_history.update({ 'listprice': datetime.utcnow() })
+        if price and price != product.price:
+            product.price = price
+            product.update_history.update({ 'price': datetime.utcnow() })
         if category_key not in product.category_key: product.category_key.append(category_key)
         if category_path and category_path not in product.cats: product.cats.append(category_path)
         product.list_update_time = datetime.utcnow()
@@ -419,9 +428,9 @@ class Server(object):
         if not product.price:
             prices = detail.cssselect('div.product-info > div.product-prices > div.product-price')
             if prices:
-                product.price = prices[0].cssselect('span[itemprop=price]')[0].text_content().strip()
+                product.price = prices[0].cssselect('span[itemprop=price]')[0].text_content().replace('$', '').replace('(FINAL SALE)', '').replace(',', '').strip()
                 if not product.listprice:
-                    product.listprice = prices[0].cssselect('span.retail-price')[0].text_content().replace('retail :', '').strip()
+                    product.listprice = prices[0].cssselect('span.retail-price')[0].text_content().replace('retail :', '').replace('$', '').replace(',', '').strip()
 
         product.image_urls = image_urls
         product.color = color

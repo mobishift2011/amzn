@@ -13,32 +13,46 @@
                 </ul>
             </div>
             <div class="sortable row-fluid">
-                <a data-rel="tooltip" title="{{ num_new_members }} new members." class="well span3 top-block" href="/member/">
+                <a data-rel="tooltip" title="{{ num_new_members }} 24-hour members." class="well span2 top-block" href="/member/">
                     <span class="icon32 icon-red icon-user"></span>
                     <div>Total Members</div>
                     <div>{{ num_members }}</div>
                     <span class="notification">{{ num_new_members }}</span>
                 </a>
 
-                <a data-rel="tooltip" title="{{ num_new_events }} new events." class="well span3 top-block" href="#">
+                <a data-rel="tooltip" title="{{ num_new_events }} 24-hour events." class="well span2 top-block" href="#">
                     <span class="icon32 icon-color icon-web"></span>
                     <div>Total Events</div>
                     <div>{{ num_events }}</div>
                     <span class="notification green">{{ num_new_events }}</span>
                 </a>
 
-                <a data-rel="tooltip" title="{{ num_new_products }} new products." class="well span3 top-block" href="#">
+                <a data-rel="tooltip" title="{{ num_new_products }} 24-hour products." class="well span2 top-block" href="#">
                     <span class="icon32 icon-color icon-globe"></span>
                     <div>Total Products</div>
                     <div>{{ num_products }}</div>
                     <span class="notification yellow">{{ num_new_products }}</span>
                 </a>
                 
-                <a data-rel="tooltip" title="{{ num_new_buys }} new buys." class="well span3 top-block" href="#">
+                <a data-rel="tooltip" title="{{ num_new_buys }} 24-hour buys." class="well span2 top-block" href="#">
                     <span class="icon32 icon-color icon-cart"></span>
                     <div>Total Buys</div>
                     <div>{{ num_buys }}</div>
                     <span class="notification red">{{ num_new_buys }}</span>
+                </a>
+
+                <a data-rel="tooltip" title="{{ num_new_view_products }} 24-hour view products." class="well span2 top-block" href="#">
+                    <span class="icon32 icon-color icon-arrowrefresh-e"></span>
+                    <div>View Products</div>
+                    <div>{{ num_view_products }}</div>
+                    <span class="notification red">{{ num_new_view_products }}</span>
+                </a>
+
+                <a data-rel="tooltip" title="{{ "{:,.2f}".format(100*num_new_buys/num_new_view_products if num_new_view_products else 0) }} % 24-hour conversion rate (click-buys/view-products)." class="well span2 top-block" href="#">
+                    <span class="icon32 icon-color icon-lightbulb"></span>
+                    <div>"Conversion" Rate</div>
+                    <div>{{ "{:,.2f}".format(100*num_buys/num_view_products if num_view_products else 0) }}%</div>
+                    <span class="notification red">{{ "{:,.2f}".format(100*num_new_buys/num_new_view_products if num_new_view_products else 0) }} %</span>
                 </a>
             </div>
             
@@ -75,6 +89,7 @@
                     </div>
                 </div><!--/span-->
                         
+                <!--
                 <div class="box span4">
                     <div class="box-header well" data-original-title>
                         <h2><i class="icon-user"></i> Top Buys Within 24 hours</h2>
@@ -92,7 +107,7 @@
                             </ul>
                         </div>
                     </div>
-                </div><!--/span-->
+                </div> -->
                         
                 <div class="box span4">
                     <div class="box-header well" data-original-title>
@@ -104,11 +119,26 @@
                     </div>
                     <div class="box-content">
                         <div class="box-content">
-                            <ul class="dashboard-list" id="member-activity">
+                          <table class="table table-striped table-condensed">
+                            <thead>
+                              <tr>
+                                <th>site</th>
+                                <th>buy count</th>
+                                <th>buy/total ratio</th>
+                              </tr>
+                            </thead>
+                            <tbody>     
                             {% for site, count in top_buy_sites.most_common() %}
-                              <li>{{site}}, {{count}} buys</li>
+                              <tr>
+                                <td>{{site}}</td>
+                                <td>{{count}}</td>
+                                {% if site in num_products_by_site and num_products_by_site[site] %}
+                                <td>{{ "{:,.2f}".format(100*count/num_products_by_site[site]) }} %</td>
+                                {% endif %}
+                              </tr>
                             {% endfor %}
-                            </ul>
+                            </tbody>
+                          </table>
                         </div>
                     </div>
                 </div><!--/span-->
@@ -220,7 +250,7 @@
 {% block script %}
 <script>
 
-function poll(interval){
+function poll_1(interval){
     $.ajax({
         type: 'GET',
         url: '/dashboard/member_activity.json',
@@ -250,10 +280,13 @@ function poll(interval){
                 html += ' @'+d['time'].substr(5,14)+'</li>\n';
             }
             $('#member-activity').html(html);
-            setTimeout(function(){poll(interval)}, interval);
+            setTimeout(function(){poll_1(interval)}, interval);
         },
     });
+}
 
+
+function poll_2(interval){
     $.ajax({
         type:'GET',
         url:'/dashboard/email.json',
@@ -268,7 +301,7 @@ function poll(interval){
             }
 
             $('#email').html(html);
-            setTimeout(function(){poll(interval)}, interval);
+            setTimeout(function(){poll_2(interval)}, interval);
         
         },
         
@@ -276,7 +309,8 @@ function poll(interval){
     });
 }
 
-poll(5000);
+poll_1(15000);
+poll_2(15000);
 
 $('#time').text(
     new Date()

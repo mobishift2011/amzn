@@ -48,10 +48,10 @@ class zulilyLogin(object):
         self.login_url = 'https://www.zulily.com/auth'
         self.badpage_url = re.compile('.*zulily.com/z/.*html')
         self.data = {
-            'login[username]': login_email[DB],
+            'login[username]': get_login_email('zulily'),
             'login[password]': login_passwd
         }
-        self.current_email = login_email[DB]
+        self.current_email = self.data['login[username]']
         # self.reg_check = re.compile(r'https://www.zulily.com/auth/create.*') # need to authentication
         self._signin = {}
 

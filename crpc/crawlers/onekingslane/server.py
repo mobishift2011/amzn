@@ -317,9 +317,11 @@ class Server(object):
         l = item.cssselect('a[href]')[0].get('href')
         link = l if l.startswith('http') else self.siteurl + l
         product_id = re.compile(r'https://www.onekingslane.com/vintage-market-finds/product/(\d+)').match(link).group(1)
-        product, is_new = Product.objects.get_or_create(pk=product_id)
-        is_updated = False
-        if is_new:
+        product = Product.objects(key=product_id).first()
+        is_new, is_updated = False, False
+        if not product:
+            is_new = True
+            product = Product(key=product_id)
             product.category_key = [category_key]
             product.image_urls = [item.cssselect('a[href] > img')[0].get('src').replace('medium', 'fullzoom')]
             product.short_desc = item.cssselect('h6')[0].text_content()
@@ -402,12 +404,14 @@ class Server(object):
         :param item: item of xml node
         """
         product_id = item.get('data-product-id')
-        product, is_new = Product.objects.get_or_create(pk=product_id)
+        product = Product.objects(key=product_id).first()
 
         listprice = item.cssselect('ul > li.msrp')
         price = item.cssselect('ul > li:last-of-type')
-        is_updated = False
-        if is_new:
+        is_new, is_updated = False, False
+        if not product:
+            is_new = True
+            product = Product(key=product_id)
             product.event_id = [event_id]
             product.title = item.cssselect('h3 > a[data-linkname]')[0].text.encode('utf-8').strip()
 #            product.sell_rank = int(item.get('data-sortorder'))

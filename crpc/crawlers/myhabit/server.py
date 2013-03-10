@@ -139,13 +139,14 @@ class Server(object):
             soldout = True
         else: soldout = False
         jslink = prefix_url + asins[asin]['url'] if asin in asins else ''
+        combine_url = 'http://www.myhabit.com/homepage#page=d&sale={0}&asin={1}&cAsin={2}'.format(event_id, asin, casin)
 
         is_new, is_updated = False, False
         product = Product.objects(key=casin).first()
         if not product:
             is_new = True
             product = Product(key=casin)
-            product.combine_url = 'http://www.myhabit.com/homepage#page=d&sale={0}&asin={1}&cAsin={2}'.format(event_id, asin, casin)
+            product.combine_url = combine_url
             product.asin = asin
             product.title = title
             product.image_urls = image_urls
@@ -162,6 +163,10 @@ class Server(object):
             if product.title != title:
                 product.title = title
                 product.update_history.update({ 'title': datetime.utcnow() })
+            if product.combine_url != combine_url:
+                product.combine_url = combine_url
+                product.update_history.update({ 'combine_url': datetime.utcnow() })
+
         if event_id not in product.event_id: product.event_id.append(event_id)
         product.jslink = jslink
         product.list_update_time = datetime.utcnow()

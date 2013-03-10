@@ -21,10 +21,6 @@
                   <td>{{ r.id }}</td>
               </tr>
               <tr>
-                  <td>content</td>
-                  <td>{{ r.content }}</td>
-              </tr>
-              <tr>
                   <td>device token</td>
                   <td>{{ r.device_token }}</td>
               </tr>
@@ -33,8 +29,21 @@
                   <td>{{ r.user.username }}</td>
               </tr>
               <tr>
+                  <td>ios version</td>
+                  <td>{{ r.ios_version }}</td>
+              </tr>
+              <tr>
+                  <td>app version</td>
+                  <td>{{ r.app_version }}</td>
+              </tr>
+              <tr>
                   <td>created at</td>
                   <td>{{ r.created_at }}</td>
+              </tr>
+
+              <tr>
+                  <td>content</td>
+                  <td>{{ r.content }}</td>
               </tr>
 
           </table>

@@ -291,6 +291,9 @@ class Server(object):
                     product.soldout = True
                     is_updated = True
                     product.update_history.update({ 'soldout': datetime.utcnow() })
+                if product.combine_url != link:
+                    product.combine_url = link
+                    product.update_history.update({ 'combine_url': datetime.utcnow() })
             if event_id not in product.event_id: product.event_id.append(event_id)
             product.list_update_time = datetime.utcnow()
             product.save()
@@ -343,8 +346,8 @@ class Server(object):
 
 
     def parse_product(self, tree):
-        nav = tree.cssselect('div > div.ptl > div.page > div.line')[0] # bgDark or bgShops
-        images = nav.cssselect('div > div#product_gallery > div.line > div#product_imagelist > a')
+        # nav = tree.cssselect('div > div.line > div.page > div.line')[0] # bgDark or bgShops
+        images = tree.cssselect('div#product_gallery > div.line > div#product_imagelist > a')
         image_urls = []
         for img in images:
             img_url = img.get('href') 
@@ -352,8 +355,8 @@ class Server(object):
             if img_url == 'http://llthumb.bids.com/mod$image.getSuperImgsSrc()':
                 img_url = img.cssselect('img')[0].get('src')
             image_urls.append( img_url )
-        shipping = nav.cssselect('div.lastUnit > div.line form div#item_content_wrapper > div#item_wrapper > div#product_delivery')[0].text_content().strip()
-        info = nav.cssselect('div.lastUnit > div.line div#showcase > div.container')[0]
+        shipping = tree.cssselect('div#item_content_wrapper > div#item_wrapper > div#product_delivery')[0].text_content().strip()
+        info = tree.cssselect('div.lastUnit div.line div#showcase > div.container')[0]
         list_info = []
         nodes = info.cssselect('div.tab_container > div#tab1 p')
         for node in nodes:
@@ -376,12 +379,12 @@ class Server(object):
         key = re.compile('.*itemid=([^&]+).*').match(content[1]).group(1)
 
         image_urls, shipping, list_info, brand, returned = self.parse_product(tree)
-        nav = tree.cssselect('div > div.ptl > div.page > div.line')[0] # bgDark or bgShops
-        pprice = nav.cssselect('div.lastUnit > div.line form > div.mod > div.hd > div.media > div.bd')[0]
+        # nav = tree.cssselect('div > div.line > div.page > div.line')[0] # bgDark or bgShops
+        pprice = tree.cssselect('div.lastUnit > div.line form > div.mod > div.hd > div.media > div.bd')[0]
         price = pprice.cssselect('span.price')[0].text_content()
         listprice = pprice.cssselect('span.bare')
         listprice = listprice[0].text_content().replace('retail', '').strip() if listprice else ''
-        title = nav.cssselect('div.lastUnit > div.line > h4.pbs')[0].text_content().strip()
+        title = tree.cssselect('div.lastUnit > div.line > h4.pbs')[0].text_content().strip()
 
         is_new, is_updated = False, False
         product = Product.objects(key=key).first()

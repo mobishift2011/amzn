@@ -71,7 +71,7 @@ class giltLogin(object):
         ret = req.get(url)
         if ret.url == 'http://www.gilt.com/':
             return -302
-        if ret.url == 'http://www.gilt.com/sale/women' or ret.url == 'http://www.gilt.com/sale/men' or 'http://www.gilt.com/brand/' in ret.url:
+        if ret.url == 'http://www.gilt.com/sale/women' or ret.url == 'http://www.gilt.com/sale/men' or ret.url == 'http://www.gilt.com/sale/children' or 'http://www.gilt.com/brand/' in ret.url or 'http://www.gilt.com/apps/iphone' in ret.url:
             return -302
         if ret.ok: return ret.content
         return ret.status_code
@@ -615,10 +615,19 @@ class Server(object):
             if color: product.color = color
             if sizes: product.sizes = sizes
         else:
-            if soldout and product.soldout != True:
-                product.soldout = True
+            if soldout != product.soldout:
+                product.soldout = soldout
                 is_updated = True
                 product.update_history.update({ 'soldout': datetime.utcnow() })
+            if product.combine_url != link:
+                product.combine_url = link
+                product.update_history.update({ 'combine_url': datetime.utcnow() })
+            if product.price != price:
+                product.price = price
+                product.update_history.update({ 'price': datetime.utcnow() })
+            if listprice and product.listprice != listprice:
+                product.listprice = listprice
+                product.update_history.update({ 'listprice': datetime.utcnow() })
         if event_id not in product.event_id: product.event_id.append(event_id)
         product.list_update_time = datetime.utcnow()
         product.save()
@@ -634,9 +643,9 @@ class Server(object):
         link = product_name.get('href')
         link = link if link.startswith('http') else self.siteurl + link
         title = ' '.join( product_name.xpath('.//text()') )
-        price = node.cssselect('header.overview > div.price > div.sale-price > span.nouveau-price')[0].text_content().strip()
+        price = node.cssselect('header.overview > div.price > div.sale-price > span.nouveau-price')[0].text_content().replace('$', '').replace(',', '').strip()
         listprice = node.cssselect('header.overview > div.price > div.original-price > span')
-        listprice = listprice[0].text_content().strip() if listprice else ''
+        listprice = listprice[0].text_content().replace('$', '').replace(',', '').strip() if listprice else ''
         soldout = True if 'Sold Out' == node.cssselect('section.inventory-status > h1.inventory-state')[0].text_content().strip() else False
         return look_id, brand, link, title, price, listprice, soldout
 
@@ -678,7 +687,7 @@ class Server(object):
         cont = self.net.fetch_page(link)
         if cont is None or isinstance(cont, int):
             common_failed.send(sender=ctx, key=look_id, url=url,
-                    reason='Download rest home product of url error: {1}'.format(cont))
+                    reason='Download rest home product of url error: {0}'.format(cont))
             return
         # The position is 39, if no more products get
         if cont.find('requireModules') < 100:
@@ -697,8 +706,8 @@ class Server(object):
             link = link if link.startswith('http') else self.siteurl + link
             title = text.cssselect('h1.product-name > a')[0].text_content()
             listprice = node.cssselect('div.product-price > div.original-price')
-            listprice = listprice[0].text_content() if listprice else ''
-            price = node.cssselect('div.product-price > div.gilt-price')[0].text_content().strip()
+            listprice = listprice[0].text_content().replace('$', '').replace(',', '').strip() if listprice else ''
+            price = node.cssselect('div.product-price > div.gilt-price')[0].text_content().replace('$', '').replace('Gilt', '').replace(',', '').strip()
             status = node.cssselect('section.product-details > section.inventory-status')
             soldout = True if status and 'Sold Out' in status[0].text_content() else False
             attribute = node.cssselect('div.quickadd-wrapper > section.quickadd > form.sku-selection')[0]
@@ -830,6 +839,4 @@ class Server(object):
 
 if __name__ == '__main__':
     server = Server()
-    server.crawl_listing('http://www.gilt.com/sale/men/last-chance-essentials-7424')
-    exit()
     server.crawl_listing('http://www.gilt.com/home/sale/candle-blowout-7052')

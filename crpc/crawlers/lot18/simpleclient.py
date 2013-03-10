@@ -2,32 +2,66 @@ import requests
 import lxml.html
 import re
 from datetime import datetime
+
 from server import lot18Login
 from models import Product
 
 
-class Lot18(object):
+class CheckServer(object):
     def __init__(self):
         self.s = requests.session()
         self.headers = {}
         self.net = lot18Login()
-        self.soldout = re.compile('<p class="main">.*sold out.*</p>')
+        self.net.check_signin()
+        self.soldout = re.compile('<p class="main">.*Unfortunately,.*</p>')
         self.title = re.compile('<div class="product-info product-name">\s*<h1>(.*)</h1>\s*</div>')
     
-    def check_onsale_product(self):
-        obj = Product.objects(products_end__gt=datetime.utcnow()).timeout(False)
-        print 'Lot18 have {0} on sale products.'.format(obj.count())
-        for prd in obj:
-            ret = self.net.fetch_page(prd.combine_url)
+    def check_onsale_product(self, id, url):
+        prd = Product.objects(key=id).first()
+        if prd is None:
+            print '\n\nlot18 {0}, {1}\n\n'.format(id, url)
+            return
+
+        ret = self.net.fetch_page(url)
+        if isinstance(ret, int):
+            ret = self.net.fetch_page(url)
             if isinstance(ret, int):
-                ret = self.net.fetch_page(prd.combine_url)
-                if isinstance(ret, int):
-                    continue
-            soldout = True if self.soldout.search(ret) else False
-            title = self.title.search(ret).group(1)
+                return
+        soldout = True if self.soldout.search(ret) else False
+        if prd.soldout != soldout:
+            print 'lot18 product[{0}] soldout error: {1} vs {2}'.format(url, prd.soldout, soldout)
+            prd.soldout = soldout
+            prd.update_history.update({ 'soldout': datetime.utcnow() })
+            prd.save()
+
+        if soldout: return
+        title = self.title.search(ret).group(1)
+        if prd.title.encode('utf-8').lower() != title.lower():
+            print 'lot18 product[{0}] title error: [{1} vs {2}]'.format(url, prd.title.encode('utf-8'), title)
+            prd.title = title
+            prd.update_history.update({ 'title': datetime.utcnow() })
+            prd.save()
+
+        tree = lxml.html.fromstring(ret)
+        price = tree.cssselect('div.container-content div.container-product-detail div.container-product-info span.product-total')
+        if not price:
+            print '\n\nlot18 product[{0}] price not found \n\n'.format(url)
+            return
+        price = price[0].text_content().replace('$', '').strip()
+        if float(prd.price) != float(price):
+            print 'lot18 product[{0}] price error: {1} vs {2}'.format(url, prd.price, price)
+            prd.price = price
+            prd.update_history.update({ 'price': datetime.utcnow() })
+            prd.save()
 
 
-    def check_offsale_product(self):
+    def check_offsale_product(self, id, url):
+        pass
+
+    def check_onsale_event(self, id, url):
+        pass
+
+    def check_offsale_event(self, id, url):
         pass
 
     def get_product_abstract_by_url(self, url):
@@ -42,4 +76,4 @@ class Lot18(object):
         return 'lot18_'+product_id, title+'_'+description
 
 if __name__ == '__main__':
-    Lot18()
+    CheckServer()

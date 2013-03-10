@@ -22,8 +22,10 @@ from mongoengine import Q
 from collections import Counter
 
 from crawlers.common.stash import picked_crawlers
+from backends.monitor.events import run_command
 from views import get_all_brands, get_brand, update_brand, delete_brand, update_brand_volumn
 from views import get_all_links, post_link, delete_link
+from views import get_all_schedules, update_schedule, delete_schedule, execute as execute_deal
 from powers.tools import ImageTool, Image
 from powers.configs import AWS_ACCESS_KEY, AWS_SECRET_KEY
 from boto.cloudfront import CloudFrontConnection
@@ -622,6 +624,34 @@ class TraceDataHandler(BaseHandler):
         if not site:
             self.render('tracedata.html')
 
+
+class ScheduleHandler(BaseHandler):
+    @tornado.web.authenticated
+    def get(self, key):
+        if not key:
+            s = get_all_schedules()
+            self.render('schedule.html', schedules=s)
+    @tornado.web.authenticated
+    def post(self, key):
+        d = {k:v[0] for k,v in self.request.arguments.iteritems() if v}
+
+        if key == 'run':
+            method = d['method']
+            site = d['site']
+            run_command.send('admin', site=site, method=method, command_type='deal')
+            return self.write(json.dumps({'status':'ok'}))
+
+        r = update_schedule(d)
+        return self.write(json.dumps(r))
+
+    @tornado.web.authenticated
+    def delete(self, key):
+        d = {k:v[0] for k,v in self.request.arguments.iteritems() if v}
+        d.update({'pk': key})
+        r = delete_schedule(d)
+        return self.write(json.dumps(r))
+
+
 class AffiliateHandler(BaseHandler):
     @tornado.web.authenticated
     def get(self, key):
@@ -807,6 +837,7 @@ application = tornado.web.Application([
     (r"/viewdata/(.*)", ViewDataHandler),
     (r"/editdata/(.*)/(.*)/", EditDataHandler),
     (r"/tracedata/?(.*)/?(.*)/?", TraceDataHandler),
+    (r"/schedule/?(.*)/?", ScheduleHandler),
     (r"/affiliate/?(.*)/?", AffiliateHandler),
     (r"/brands/?(.*)", BrandsHandler),
     (r"/brand/power/(.*)", PowerBrandHandler),

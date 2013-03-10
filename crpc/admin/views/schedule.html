@@ -1,0 +1,150 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<div class="row-fluid">
+    <div class="row-fluid sortable">        
+        <div class="box span12">
+            <div class="box-header well" data-original-title="">
+                <h2><i class="icon-time"></i> Deal Schedules</h2>
+                <div class="box-icon">
+                    <a href="#" class="btn btn-setting btn-round"><i class="icon-cog"></i></a>
+                    <a href="#" class="btn btn-minimize btn-round"><i class="icon-chevron-up"></i></a>
+                    <a href="#" class="btn btn-close btn-round"><i class="icon-remove"></i></a>
+                </div>
+            </div>
+            <div class="box-content">
+                <table class="table table-striped table-bordered bootstrap-datatable datatable">
+                    <thead>
+                        <tr>
+                            <th>Crawler.Method</th>
+                            <th>Description</th>
+                            <th>Crontab Arguments</th>
+                            <th>Enabled</th>
+                            <th>Control</th>
+                        </tr>
+                    </thead>  
+                    <tbody>
+                        {% for s in schedules %}
+                        <tr pk="{{ s['pk'] }}" title="{{ s['name'] }}">
+                            <td>{{ s['name'] }}</td>
+                            <td>{{ s['description'] }}</td>
+                            <td>{{ s['crontab_arguments' ]}}</td>
+                            <td>{{ s['enabled'] }}</td>
+                            <td class="center">
+                                <a class="btn btn-danger btn_delete" href="#">
+                                    <i class="icon-trash icon-white"></i>
+                                    Delete
+                                </a>&nbsp;&nbsp;
+                                <a class="btn btn-success btn_run" href="#">
+                                    <i class="icon-zoom-in icon-white"></i>
+                                    Run
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <br/><br/>
+                <form id="schedule-form" ng-submit="addSchedule()">
+                    {{ xsrf_form_html() }}
+                    <input type="text" placeholder="CrawlerName" ng-model="newSchedule.name" name='name'>
+                    <input type="text" placeholder="Describe what it would do." ng-model="newSchedule.description" name='description'>
+                    <input type="text" placeholder="0 * * * *" ng-model="newSchedule.cron" name='crontab_arguments'>
+                    <a href="#" class="btn btn-primary" ng-click="addSchedule()" id='btnAddSchedule'>ADD SCHEDULE</a>
+                </form>
+            </div>
+        </div><!--/span-->
+
+    </div><!--/row-->
+</div>
+{% endblock %}
+
+{% block script %}
+<script type="text/javascript">
+function getCookie(name) {
+    var r = document.cookie.match("\\b" + name + "=([^;]*)\\b");
+    return r ? r[1] : undefined;
+}
+
+function notify(text, params){
+    var data_noty_options = {
+        'text': text,
+        'layout': 'topRight',
+        'type': 'success'
+    };
+
+    if(params){
+        data_noty_options['layout'] = params['layout'] ? params['layout'] : "topRight";
+        data_noty_options['type'] = params['type'] ? params['type']: "success";
+    }
+
+    noty(data_noty_options);
+}
+
+$('#btnAddSchedule').click(function(e){
+    e.preventDefault();
+    form = $(this).parent()
+    params = form.serialize();
+    $.post('/schedule/', params, function(data){
+        data = JSON.parse(data);
+        if(data['status'].toLowerCase() == 'ok'){
+            notify('New shedule added, please refresh to show the results', {'layout': 'bottomRight'});
+            return;
+        }
+        notify('Add Failed: ' + data['reason'], {'layout': 'bottomRight', 'type': 'error'});
+    })
+})
+
+$('.btn_delete').click(function(e){
+    e.preventDefault();
+
+    var tag_a = $(this);
+    var tr = tag_a.parent().parent()
+    var pk = tr.attr('pk');
+    var title = tr.attr('title');
+
+    if(!confirm('Are you sure to delete ' + title + '.' + pk +' ?')){
+        return;
+    }
+
+    $.ajax({
+        url: '/schedule/'+pk+'?_xsrf='+getCookie("_xsrf"),
+        type: 'DELETE',
+        data: {_xsrf: getCookie("_xsrf")}, 
+        success: function(response) {
+            var data = JSON.parse(response);
+            if(data['status'].toLowerCase() == 'ok'){
+                notify(title + ' deleted!', {'layout': 'bottomRight'});
+                tr.remove();
+                return;
+            }
+            notify(title + ' delete failed!\n' + data['reason'], {'layout': 'bottomRight', 'type': 'error'});
+        }
+    });
+})
+.error(function(err){
+    notify('delete exception! Error Msg: ' + err, {'type': 'error'});
+});
+
+$('.btn_run').click(function(e){
+    e.preventDefault();
+
+    var td_tags = $(this).parent().siblings();
+    var name = $(td_tags[0]).text()
+    var splits = name.split('.');
+    var site = splits[0];
+    var method = splits[1];
+    var params = {
+        'site': site,
+        'method': method,
+        '_xsrf': getCookie("_xsrf"),
+    };
+
+    $.post('/schedule/run', params, function(res){
+        var data = JSON.parse(res);
+        notify(name+' run '+data.status);
+    });
+});
+
+</script>
+{% endblock %}

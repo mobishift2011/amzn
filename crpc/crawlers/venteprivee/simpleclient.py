@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 # Author: bishop Liu <miracle (at) gmail.com>
 
+from datetime import datetime
+
 from server import ventepriveeLogin
 from models import Product
 
@@ -22,7 +24,7 @@ class CheckServer(object):
             if isinstance(ret, int):
                 print '\n\nventeprivee product[{0}] download error.\n\n'.format(url)
                 return
-        js = cont.json
+        js = ret.json
         brand = js['operationName']
         title = js['name']
         if prd.title.lower() != title.lower():
@@ -47,3 +49,5 @@ class CheckServer(object):
     def check_offsale_event(self, id, url):
         pass
 
+if __name__ == '__main__':
+    CheckServer().check_onsale_product('1056013', 'http://us.venteprivee.com/v1/api/productdetail/content/1056013')

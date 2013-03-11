@@ -7,7 +7,7 @@ from models import Product
 
 class CheckServer(object):
     def __init__(self):
-        self.net = ventepriveeLogin
+        self.net = ventepriveeLogin()
 
     def check_onsale_product(self, id, url):
         prd = Product.objects(key=id).first()

@@ -38,6 +38,9 @@ class CheckServer(object):
         soldout = js['isSoldOut']
         if prd.soldout != soldout:
             print 'venteprivee product[{0}] soldout error: {1}, {2}'.format(prd.combine_url, prd.soldout, soldout)
+            prd.soldout = soldout
+            prd.update_history.update({ 'soldout': datetime.utcnow() })
+            prd.save()
 
 
     def check_offsale_product(self, id, url):

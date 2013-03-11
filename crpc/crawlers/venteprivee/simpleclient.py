@@ -8,6 +8,7 @@ from models import Product
 class CheckServer(object):
     def __init__(self):
         self.net = ventepriveeLogin()
+        self.net.check_signin()
 
     def check_onsale_product(self, id, url):
         prd = Product.objects(key=id).first()
@@ -15,13 +16,24 @@ class CheckServer(object):
             print '\n\nventepricee {0}, {1}\n\n'.format(id, url)
             return
 
-        cont = self.net.fetch_page(url)
-        if isinstance(cont, int):
-            cont = self.net.fetch_page(url)
-            if isinstance(cont, int):
+        ret = self.net.fetch_page(url)
+        if isinstance(ret, int):
+            ret = self.net.fetch_page(url)
+            if isinstance(ret, int):
                 print '\n\nventeprivee product[{0}] download error.\n\n'.format(url)
                 return
         js = cont.json
+        brand = js['operationName']
+        title = js['name']
+            print 'venteprivee product[{0}] title error: {1}, {2}'.format(prd.combine_url, prd.title, title)
+        price = js['formattedPrice']
+            print 'venteprivee product[{0}] price error: {1}, {2}'.format(prd.combine_url, prd.price, price)
+        listprice = js['formattedMsrp']
+        if prd.listprice != listprice:
+            print 'venteprivee product[{0}] listprice error: {1}, {2}'.format(prd.combine_url, prd.listprice, listprice)
+        soldout = js['isSoldOut']
+        if prd.soldout != soldout:
+            print 'venteprivee product[{0}] soldout error: {1}, {2}'.format(prd.combine_url, prd.soldout, soldout)
 
 
     def check_offsale_product(self, id, url):

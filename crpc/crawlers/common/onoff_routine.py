@@ -34,25 +34,25 @@ def spout_obj(site, method):
         obj = m.Product.objects(Q(products_end__gt=datetime.utcnow()) | Q(products_end__exists=False)).timeout(False)
         print '{0} have {1} on sale event/category products.'.format(site, obj.count())
         for o in obj:
-            yield {'id': o.key, 'url': o.combine_url}
+            yield {'id': o.key, 'url': o.url()}
 
 #        if hasattr(m, 'Category'):
 #            obj = m.Product.objects(products_end__exists=False).timeout(False)
 #            print '{0} have {1} on sale category products.'.format(site, obj.count())
 #            for o in obj:
-#                yield {'id': o.key, 'url': o.combine_url}
+#                yield {'id': o.key, 'url': o.url()}
 
     elif method == 'check_offsale_product':
         obj = m.Product.objects(products_end__lt=datetime.utcnow()).timeout(False)
         print '{0} have {1} off sale event products.'.format(site, obj.count())
         for o in obj:
-            yield {'id': o.key, 'url': o.combine_url}
+            yield {'id': o.key, 'url': o.url()}
 
         if hasattr(m, 'Category'):
             obj = m.Product.objects(products_end__exists=False).timeout(False)
             print '{0} have {1} off sale category products.'.format(site, obj.count())
             for o in obj:
-                yield {'id': o.key, 'url': o.combine_url}
+                yield {'id': o.key, 'url': o.url()}
 
     elif method == 'check_onsale_event':
         if not hasattr(m, 'Event'):
@@ -61,7 +61,7 @@ def spout_obj(site, method):
         print '{0} have {1} on sale events.'.format(site, obj.count())
 
         for o in obj:
-            yield {'id': o.event_id, 'url': o.combine_url}
+            yield {'id': o.event_id, 'url': o.url()}
 
     elif method == 'check_offsale_event':
         if not hasattr(m, 'Event'):
@@ -70,7 +70,7 @@ def spout_obj(site, method):
         print '{0} have {1} off sale events.'.format(site, obj.count())
 
         for o in obj:
-            yield {'id': o.event_id, 'url': o.combine_url}
+            yield {'id': o.event_id, 'url': o.url()}
 
 
 def call_rpc(rpc, site, method, *args, **kwargs):

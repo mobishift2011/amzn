@@ -25,8 +25,10 @@ class CheckServer(object):
         js = cont.json
         brand = js['operationName']
         title = js['name']
+        if prd.title.lower() != title.lower():
             print 'venteprivee product[{0}] title error: {1}, {2}'.format(prd.combine_url, prd.title, title)
         price = js['formattedPrice']
+        if prd.price != price:
             print 'venteprivee product[{0}] price error: {1}, {2}'.format(prd.combine_url, prd.price, price)
         listprice = js['formattedMsrp']
         if prd.listprice != listprice:

@@ -41,6 +41,8 @@ class CheckServer(object):
         if cont == -302:
             if prd.muri:
                 self.offsale_update(prd.muri)
+            print '\n\nideeli product[{0}] redirect to homepage.\n\n'.format(url)
+            return
         if isinstance(cont, int):
             cont = self.net.fetch_product_page(url)
             if isinstance(cont, int):

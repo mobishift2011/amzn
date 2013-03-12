@@ -6,7 +6,7 @@ import re
 import json
 import lxml.html
 
-from server import ideeliLogin
+from server import ideeliLogin, req
 from models import Product
 
 class CheckServer(object):
@@ -19,9 +19,9 @@ class CheckServer(object):
 
     def check_onsale_product(self, id, url):
         prd = Product.objects(key=id).first()
-#        if prd is None:
-#            print '\n\nideeli {0}, {1}\n\n'.format(id, url)
-#            return
+        if prd is None:
+            print '\n\nideeli {0}, {1}\n\n'.format(id, url)
+            return
 
         cont = self.net.fetch_product_page(url)
         if isinstance(cont, int):
@@ -31,7 +31,18 @@ class CheckServer(object):
                 return
 
         tree = lxml.html.fromstring(cont)
-        title = tree.cssselect('div#offer_price div.info div.name_container div.name span.product_name')[0].text_content()
+        try:
+            title = tree.cssselect('div#offer_price div.info div.name_container div.name span.product_name')[0].text_content()
+        except:
+            ret = req.get(url)
+            self.net.login_account()
+            ret = req.get(url)
+            tree = lxml.html.fromstring(ret.content)
+            try:
+                title = tree.cssselect('div#offer_price div.info div.name_container div.name span.product_name')[0].text_content()
+            except:
+                print '\n\n%s, %s \n\n' % (ret.url, url)
+                open('a.html', 'w').write(ret.content)
         price = tree.cssselect('div#offer_price div.info div.name_container div.price_container span.price')[0].text_content().replace('$', '').strip()
         if not price:
             node = tree.cssselect('div#sizes_container_{0} div.sizes div.size_container'.format(id))[0]
@@ -46,11 +57,11 @@ class CheckServer(object):
         id1, id2 = self.getids.match(url).groups()
         link = 'http://www.ideeli.com/events/{0}/offers/{1}/refresh_sale?force_cache_write=1'.format(id1, id2)
         ret = self.net.fetch_page(link)
-        soldout = False
+        soldout = True
         for sku in sizes:
-            avl = re.compile("ideeli.size_selectors.sizes['size_container_{0}'].markAs(.+)\(\);".format(sku)).search(ret).group(1)
+            avl = re.compile("ideeli.size_selectors.sizes\['size_container_{0}'\].markAs(.+)\(\);".format(sku)).search(ret).group(1)
             if avl == 'Available':
-                soldout = True
+                soldout = False
 
 #        link = self.size_scarcity.search(cont).group(1)
 #        link = link if link.startswith('http') else 'http://www.ideeli.com' + link
@@ -83,4 +94,4 @@ class CheckServer(object):
         pass
 
 if __name__ == '__main__':
-    CheckServer().check_onsale_product('2968730', 'http://www.ideeli.com/events/128734/offers/7102354/latest_view/2968730')
+    CheckServer().check_onsale_product('2140150', 'http://www.ideeli.com/events/113762/offers/6122326/latest_view/2140150')

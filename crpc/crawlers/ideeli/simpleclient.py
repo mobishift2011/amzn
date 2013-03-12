@@ -54,7 +54,10 @@ class CheckServer(object):
         sizes = []
         for ss in tree.cssselect('div#sizes_container_{0} div.sizes div.size_container'.format(id)):
             sizes.append( ss.get('data-type-skuid') )
-        id1, id2 = self.getids.match(returl).groups()
+        try:
+            id1, id2 = self.getids.match(returl).groups()
+        except AttributeError:
+            print '\n\n {0} \n\n'.format(retrul)
         link = 'http://www.ideeli.com/events/{0}/offers/{1}/refresh_sale?force_cache_write=1'.format(id1, id2)
         ret = self.net.fetch_page(link)
         soldout = True

@@ -43,9 +43,13 @@ class CheckServer(object):
                 return
             tree = lxml.html.fromstring(cont[1])
             title = tree.cssselect('div#offer_price div.info div.name_container div.name span.product_strapline')[0].text_content().encode('utf-8')
+
         price = tree.cssselect('div#offer_price div.info div.name_container div.price_container span.price')[0].text_content().replace('$', '').replace(',', '').strip()
         if not price:
-            node = tree.cssselect('div#sizes_container_{0} div.sizes div.size_container'.format(id))[0]
+            try:
+                node = tree.cssselect('div#sizes_container_{0} div.sizes div.size_container'.format(id))[0]
+            except IndexError:
+                node = tree.cssselect("div[id^='sizes_container_'] div.sizes div.size_container")[0]
             price = node.get('data-type-price').replace('$', '').replace(',', '').strip()
             listprice = node.get('data-type-msrp').replace('$', '').replace(',', '').strip()
         else:
@@ -82,16 +86,19 @@ class CheckServer(object):
             print 'ideeli product[{0}] price error: {1}, {2}'.format(prd.combine_url, prd.price.replace('$', '').replace(',', '').strip(), price)
             prd.price = price
             prd.update_history.update({ 'price': datetime.utcnow() })
+            prd.save()
         if prd.listprice.replace('$', '').replace(',', '').strip() != listprice:
             print 'ideeli product[{0}] listprice error: {1}, {2}'.format(prd.combine_url, prd.listprice.replace('$', '').replace(',', '').strip(), listprice)
             prd.listprice = listprice
             prd.update_history.update({ 'listprice': datetime.utcnow() })
+            prd.save()
         if prd.title.encode('utf-8').lower() != title.lower():
             print 'ideeli product[{0}] title error: {1}, {2}'.format(prd.combine_url, prd.title.encode('utf-8'), title)
         if prd.soldout != soldout:
             print 'ideeli product[{0}] soldout error: {1}, {2}'.format(prd.combine_url, prd.soldout, soldout)
             prd.soldout = soldout
             prd.update_history.update({ 'soldout': datetime.utcnow() })
+            prd.save()
 
 
     def check_offsale_product(self, id, url):
@@ -104,4 +111,4 @@ class CheckServer(object):
         pass
 
 if __name__ == '__main__':
-    CheckServer().check_onsale_product('2968718', 'http://www.ideeli.com/events/110518/offers/5862198/latest_view/2968718')
+    CheckServer().check_onsale_product('3080850', 'http://www.ideeli.com/events/127202/offers/7009630/latest_view/3080850')

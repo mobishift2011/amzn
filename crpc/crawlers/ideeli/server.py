@@ -267,14 +267,18 @@ class Server(object):
         else: self.net.check_signin()
 
         key = self.extract_product_id.match(url).group(1)
-        content = self.net.fetch_page( url )
-        if content is None or isinstance(content, int):
-            content = self.net.fetch_page( url )
-            if content is None or isinstance(content, int):
+        ret = self.net.fetch_product_page( url )
+        if ret == -302:
+            common_failed.send(sender=ctx, key='', url=url, reason='product page redirect home: {0}'.format(ret))
+            return
+
+        if ret is None or isinstance(ret, int):
+            ret = self.net.fetch_product_page( url )
+            if ret is None or isinstance(ret, int):
                 common_failed.send(sender=ctx, key='', url=url,
-                        reason='download product page failed: {0}'.format(content))
+                        reason='download product page failed: {0}'.format(ret))
                 return
-        tree = lxml.html.fromstring(content)
+        tree = lxml.html.fromstring(ret[1])
         nav = tree.cssselect('div#container > div#content > div#latest_container > div#latest > div.event > div.offer_container')[0]
         info = nav.cssselect('div#offer_sizes_colors > div.details_tabs_content > div.spec_on_sku')[0]
         list_info = []

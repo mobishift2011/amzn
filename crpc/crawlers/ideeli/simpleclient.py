@@ -4,11 +4,15 @@
 
 import re
 import json
+import slumber
 import lxml.html
 from datetime import datetime
 
 from server import ideeliLogin, req
 from models import Product
+from settings import MASTIFF_HOST
+
+api = slumber.API(MASTIFF_HOST)
 
 class CheckServer(object):
     def __init__(self):
@@ -16,6 +20,15 @@ class CheckServer(object):
         self.getids = re.compile('http://www.ideeli.com/events/(\d+)/offers/(\d+)/latest_view/')
         self.net = ideeliLogin()
         self.net.check_signin()
+
+    def offsale_update(self, muri):
+        _id = muri.rsplit('/', 2)[-2]
+        utcnow = datetime.utcnow()
+        var = api.product(_id).get()
+        if 'ends_at' in var and var['ends_at'] > utcnow.isoformat():
+            api.product(_id).patch({ 'ends_at': utcnow.isoformat() })
+        if 'ends_at' not in var:
+            api.product(_id).patch({ 'ends_at': utcnow.isoformat() })
 
 
     def check_onsale_product(self, id, url):
@@ -25,6 +38,9 @@ class CheckServer(object):
             return
 
         cont = self.net.fetch_product_page(url)
+        if cont == -302:
+            if prd.muri:
+                self.offsale_update(prd.muri)
         if isinstance(cont, int):
             cont = self.net.fetch_product_page(url)
             if isinstance(cont, int):
@@ -56,7 +72,10 @@ class CheckServer(object):
             listprice = tree.cssselect('div#offer_price div.info div.name_container div.price_container span.msrp_price')[0].text_content().replace('$', '').replace(',', '').strip()
 
         sizes = []
-        for ss in tree.cssselect('div#sizes_container_{0} div.sizes div.size_container'.format(id)):
+        size = tree.cssselect('div#sizes_container_{0} div.sizes div.size_container'.format(id))
+        if not size:
+            size = tree.cssselect('div[id^="sizes_container_"] div.sizes div.size_container')
+        for ss in size:
             sizes.append( ss.get('data-type-skuid') )
         try:
             id1, id2 = self.getids.match(returl).groups()

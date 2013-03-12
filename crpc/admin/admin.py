@@ -707,6 +707,45 @@ class PowerBrandHandler(BaseHandler):
         self.render('brandpower.html', brand=brand)
 
 
+class PreferenceHandler(BaseHandler):
+    def get(self, path):
+        if path == '':
+            self.pref_index()
+    
+    def post(self, path):
+        if path == 'update.ajax':
+            self.pref_update()
+        elif path == 'unset.ajax':
+            self.pref_unset()
+
+    def pref_unset(self):
+        self.content_type = 'application/json'
+        try:
+            site = self.get_argument('site')
+            field = self.get_argument('unset')
+            api.sitepref(site).post({'$unset':{field:1}}) 
+        except Exception, e:
+            self.write(json.dumps({'status':'failed', 'reason':e.message}))
+        else:
+            self.write(json.dumps({'status':'ok'})) 
+
+    def pref_index(self):
+        try:
+            prefs = api.sitepref().get()['objects']
+        except:
+            prefs = []
+        self.render('preference.html', prefs=prefs)
+
+    def pref_update(self):
+        self.content_type = 'application/json'
+        try:
+            d = { k: v[-1] for k, v in self.request.arguments.iteritems() }
+            api.sitepref(d['site']).post(d)
+        except Exception, e:
+            self.write(json.dumps({'status':'failed', 'reason':e.message}))
+        else:
+            self.write(json.dumps({'status':'ok'})) 
+
 class MemberHandler(BaseHandler):
     def get(self, path):
         if path == '':
@@ -823,6 +862,7 @@ application = tornado.web.Application([
     (r"/feedback/(.*)", FeedbackHandler),
     (r"/email/(.*)", EmailHandler),
     (r"/member/(.*)", MemberHandler),
+    (r"/sitepref/(.*)", PreferenceHandler),
     (r"/ajax/(.*)", AjaxHandler),
     (r"/", IndexHandler),
     (r"/assets/(.*)", tornado.web.StaticFileHandler, dict(path=settings['static_path'])),

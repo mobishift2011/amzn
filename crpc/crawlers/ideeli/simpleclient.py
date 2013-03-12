@@ -33,7 +33,7 @@ class CheckServer(object):
         returl, cont = cont
         tree = lxml.html.fromstring(cont)
         try:
-            title = tree.cssselect('div#offer_price div.info div.name_container div.name span.product_name')[0].text_content().encode('utf-8')
+            title = tree.cssselect('div#offer_price div.info div.name_container div.name span.product_strapline')[0].text_content().encode('utf-8')
         except:
             self.net.login_account()
             cont = self.net.fetch_product_page(url)
@@ -57,7 +57,7 @@ class CheckServer(object):
         try:
             id1, id2 = self.getids.match(returl).groups()
         except AttributeError:
-            print '\n\n {0} \n\n'.format(retrul)
+            print '\n\n {0} \n\n'.format(returl)
         link = 'http://www.ideeli.com/events/{0}/offers/{1}/refresh_sale?force_cache_write=1'.format(id1, id2)
         ret = self.net.fetch_page(link)
         soldout = True

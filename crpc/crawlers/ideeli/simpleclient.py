@@ -55,9 +55,10 @@ class CheckServer(object):
             sizes.append( ss.get('data-type-skuid') )
         try:
             id1, id2 = self.getids.match(returl).groups()
+            link = 'http://www.ideeli.com/events/{0}/offers/{1}/refresh_sale?force_cache_write=1'.format(id1, id2)
         except AttributeError:
-            print '\n\n {0} \n\n'.format(returl)
-        link = 'http://www.ideeli.com/events/{0}/offers/{1}/refresh_sale?force_cache_write=1'.format(id1, id2)
+            link = tree.cssselect('#refresh_event_path')[0].get('value')
+            link = link if link.startswith('http') else 'http://www.ideeli.com' + link
         ret = self.net.fetch_page(link)
         soldout = True
         for sku in sizes:

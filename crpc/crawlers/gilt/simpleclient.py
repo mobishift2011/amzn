@@ -43,16 +43,16 @@ class CheckServer(object):
 
             listprice = node.cssselect('div.product-price div.original-price')
             listprice = listprice[0].text_content().replace('$', '').replace(',', '').strip() if listprice else ''
-            if listprice and
-                        ('-' in listprice or '-' in prd.listprice) and
+            if listprice and \
+                        ('-' in listprice or '-' in prd.listprice) and \
                         prd.listprice.replace('$', '').replace(',', '').strip() != listprice:
 
                 print 'gilt product[{0}] listprice {1} vs {2}'.format(url, prd.listprice.replace('$', '').replace(',', '').strip(), listprice)
                 prd.listprice = listprice
                 prd.update_history.update({ 'listprice': datetime.utcnow() })
                 prd.save()
-            elif listprice and '-' not in listprice and
-                            '-' not in prd.listprice and
+            elif listprice and '-' not in listprice and \
+                            '-' not in prd.listprice and \
                             float(prd.listprice.replace('$', '').replace(',', '').strip()) != float(listprice):
                 print 'gilt product[{0}] listprice error: [{1}, {2}]'.format(url, prd.listprice.replace('$', '').replace(',', '').strip(), listprice)
                 prd.listprice = listprice
@@ -60,14 +60,14 @@ class CheckServer(object):
                 prd.save()
 
             price = node.cssselect('div.product-price div.gilt-price')[0].text_content().replace('$', '').replace('Gilt', '').replace(',', '').strip()
-            if ('-' in price or '-' in prd.price) and
+            if ('-' in price or '-' in prd.price) and \
                     prd.price.replace('$', '').replace('Gilt', '').replace(',', '').strip() != price:
                 print 'gilt product[{0}] price {1} vs {2}'.format(url, prd.price.replace('$', '').replace('Gilt', '').replace(',', '').strip(), price)
                 prd.price = price
                 prd.update_history.update({ 'price': datetime.utcnow() })
                 prd.save()
-            elif '-' not in price and
-                    '-' not in prd.price and
+            elif '-' not in price and \
+                    '-' not in prd.price and \
                     float(prd.price.replace('$', '').replace('Gilt', '').replace(',', '').strip()) != float(price):
                 print 'gilt product[{0}] price error: [{1}, {2}]'.format(url, prd.price.replace('$', '').replace('Gilt', '').replace(',', '').strip(), price)
                 prd.price = price
@@ -94,16 +94,16 @@ class CheckServer(object):
 
             listprice = node.cssselect('header.overview div.price div.original-price span.msrp')
             listprice = listprice[0].text_content().replace('$', '').replace(',', '').strip() if listprice else ''
-            if listprice and
-                    ('-' in listprice or '-' in prd.listprice) and
+            if listprice and \
+                    ('-' in listprice or '-' in prd.listprice) and \
                     prd.listprice.replace('$', '').replace(',', '').strip() != listprice:
                 print 'gilt product[{0}] listprice {1} vs {2}'.format(url, prd.listprice.replace('$', '').replace(',', '').strip(), listprice)
                 prd.listprice = listprice
                 prd.update_history.update({ 'listprice': datetime.utcnow() })
                 prd.save()
-            elif listprice and
-                    '-' not in listprice and
-                    '-' not in prd.listprice and
+            elif listprice and \
+                    '-' not in listprice and \
+                    '-' not in prd.listprice and \
                     float(prd.listprice.replace('$', '').replace(',', '').strip()) != float(listprice):
                 print 'gilt product[{0}] listprice error: [{1}, {2}]'.format(url, prd.listprice.replace('$', '').replace(',', '').strip(), listprice)
                 prd.listprice = listprice
@@ -111,14 +111,14 @@ class CheckServer(object):
                 prd.save()
 
             price = node.cssselect('header.overview div.price div.sale-price span.nouveau-price')[0].text_content().replace('$', '').replace(',', '').strip()
-            if ('-' in price or '-' in prd.price) and
+            if ('-' in price or '-' in prd.price) and \
                     prd.price.replace('$', '').replace(',', '').strip() != price:
                 print 'gilt product[{0}] price {1} vs {2}'.format(url, prd.price.replace('$', '').replace(',', '').strip(), price)
                 prd.price = price
                 prd.update_history.update({ 'price': datetime.utcnow() })
                 prd.save()
-            elif '-' not in price and
-                    '-' not in prd.price and
+            elif '-' not in price and \
+                    '-' not in prd.price and \
                     float(prd.price.replace('$', '').replace(',', '').strip()) != float(price):
                 print 'gilt product[{0}] price error: [{1}, {2}]'.format(url, prd.price.replace('$', '').replace(',', '').strip(), price)
                 prd.price = price

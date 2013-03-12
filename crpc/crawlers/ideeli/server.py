@@ -76,6 +76,28 @@ class ideeliLogin(object):
 
         return ret.status_code
 
+    def fetch_product_page(self, url):
+        """.. :py:method::
+            fetch product page.
+            check whether the account is login, if not, login and fetch again
+        """
+        ret = req.get(url)
+
+        if 'https://www.ideeli.com/login' in ret.url: #login
+            self.login_account()
+            ret = req.get(url)
+        if 'https://www.ideeli.com/login' in ret.url: #login
+            self.login_account()
+            ret = req.get(url)
+        if ret.url == u'http://www.ideeli.com/events/latest':
+            ret = req.get(url)
+            if ret.url == u'http://www.ideeli.com/events/latest':
+                return -302
+        if ret.ok:
+            return ret.url, ret.content
+
+        return ret.status_code
+
 
 class Server(object):
     def __init__(self):
@@ -180,9 +202,9 @@ class Server(object):
             brand = d[1]['product_brand_name']
             title = d[1]['strapline']
             color = d[1]['color_name']
-            listprice = d[1]['offer_retail_price']
+            listprice = d[1]['offer_retail_price'].replace('$', '').replace(',', '').strip()
             price = str(d[1]['numeric_offer_price'])
-            price = price[:-2] + '.' + price[-2:]
+            price = (price[:-2] + '.' + price[-2:]).replace('$', '').replace(',', '').strip()
             returned = lxml.html.fromstring(d[1]['offer_return_policy']).text_content()
             shipping = d[1]['offer_shipping_window'].replace('<br />', ' ')
             sizes = d[1]['pretty_sizes']
@@ -211,10 +233,17 @@ class Server(object):
                 product.cats = categories
                 product.offer_id = offer_id
             else:
-                if soldout and product.soldout != True:
-                    product.soldout = True
-                    is_updated = True
+                if product.soldout != soldout:
+                    product.soldout = soldout
                     product.update_history.update({ 'soldout': datetime.utcnow() })
+                    is_updated = True
+                if product.listprice != listprice:
+                    product.listprice = listprice
+                    product.update_history.update({ 'listprice': datetime.utcnow() })
+                if product.price != price:
+                    product.price = price
+                    product.update_history.update({ 'price': datetime.utcnow() })
+
             if event_id not in product.event_id: product.event_id.append(event_id)
             product.list_update_time = datetime.utcnow()
             product.save()
@@ -238,14 +267,18 @@ class Server(object):
         else: self.net.check_signin()
 
         key = self.extract_product_id.match(url).group(1)
-        content = self.net.fetch_page( url )
-        if content is None or isinstance(content, int):
-            content = self.net.fetch_page( url )
-            if content is None or isinstance(content, int):
+        ret = self.net.fetch_product_page( url )
+        if ret == -302:
+            common_failed.send(sender=ctx, key='', url=url, reason='product page redirect home: {0}'.format(ret))
+            return
+
+        if ret is None or isinstance(ret, int):
+            ret = self.net.fetch_product_page( url )
+            if ret is None or isinstance(ret, int):
                 common_failed.send(sender=ctx, key='', url=url,
-                        reason='download product page failed: {0}'.format(content))
+                        reason='download product page failed: {0}'.format(ret))
                 return
-        tree = lxml.html.fromstring(content)
+        tree = lxml.html.fromstring(ret[1])
         nav = tree.cssselect('div#container > div#content > div#latest_container > div#latest > div.event > div.offer_container')[0]
         info = nav.cssselect('div#offer_sizes_colors > div.details_tabs_content > div.spec_on_sku')[0]
         list_info = []

@@ -34,25 +34,25 @@ def spout_obj(site, method):
         obj = m.Product.objects(Q(products_end__gt=datetime.utcnow()) | Q(products_end__exists=False)).timeout(False)
         print '{0} have {1} on sale event/category products.'.format(site, obj.count())
         for o in obj:
-            yield {'id': o.key, 'url': o.combine_url}
+            yield {'id': o.key, 'url': o.url()}
 
 #        if hasattr(m, 'Category'):
 #            obj = m.Product.objects(products_end__exists=False).timeout(False)
 #            print '{0} have {1} on sale category products.'.format(site, obj.count())
 #            for o in obj:
-#                yield {'id': o.key, 'url': o.combine_url}
+#                yield {'id': o.key, 'url': o.url()}
 
     elif method == 'check_offsale_product':
         obj = m.Product.objects(products_end__lt=datetime.utcnow()).timeout(False)
         print '{0} have {1} off sale event products.'.format(site, obj.count())
         for o in obj:
-            yield {'id': o.key, 'url': o.combine_url}
+            yield {'id': o.key, 'url': o.url()}
 
         if hasattr(m, 'Category'):
             obj = m.Product.objects(products_end__exists=False).timeout(False)
             print '{0} have {1} off sale category products.'.format(site, obj.count())
             for o in obj:
-                yield {'id': o.key, 'url': o.combine_url}
+                yield {'id': o.key, 'url': o.url()}
 
     elif method == 'check_onsale_event':
         if not hasattr(m, 'Event'):
@@ -61,7 +61,7 @@ def spout_obj(site, method):
         print '{0} have {1} on sale events.'.format(site, obj.count())
 
         for o in obj:
-            yield {'id': o.event_id, 'url': o.combine_url}
+            yield {'id': o.event_id, 'url': o.url()}
 
     elif method == 'check_offsale_event':
         if not hasattr(m, 'Event'):
@@ -70,7 +70,7 @@ def spout_obj(site, method):
         print '{0} have {1} off sale events.'.format(site, obj.count())
 
         for o in obj:
-            yield {'id': o.event_id, 'url': o.combine_url}
+            yield {'id': o.event_id, 'url': o.url()}
 
 
 def call_rpc(rpc, site, method, *args, **kwargs):
@@ -82,8 +82,8 @@ def call_rpc(rpc, site, method, *args, **kwargs):
 
 def checkout(site, method, concurrency=10):
     """ """
-    rpcs = get_rpcs()
-#    rpcs = get_rpcs([{'host_string':'root@127.0.0.1', 'port':8899}])
+#    rpcs = get_rpcs()
+    rpcs = get_rpcs([{'host_string':'root@127.0.0.1', 'port':8899}])
     pool = Pool(len(rpcs) * concurrency)
     ret = spout_obj(site, method)
     if ret is False:
@@ -96,6 +96,8 @@ def checkout(site, method, concurrency=10):
 
 if __name__ == '__main__':
 
+    checkout('ideeli', 'check_onsale_product')
+    exit()
 # call that can change the crpc/mastiff database
     checkout('onekingslane', 'check_onsale_event')
     checkout('onekingslane', 'check_onsale_product')
@@ -105,3 +107,12 @@ if __name__ == '__main__':
     checkout('bluefly', 'check_onsale_product')
 
     checkout('lot18', 'check_onsale_product')
+
+    checkout('gilt', 'check_onsale_product')
+
+    checkout('nomorerack', 'check_onsale_product')
+    checkout('nomorerack', 'check_offsale_product')
+
+    checkout('belleandclive', 'check_onsale_product')
+
+    checkout('venteprivee', 'check_onsale_product')

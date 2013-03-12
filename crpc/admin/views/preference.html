@@ -164,7 +164,7 @@
       dataType: 'json',
       data: {site: site, _xsrf:getCookie('_xsrf'), unset:field},
       success: function(data){
-        location.href = location.href;
+        window.location.href = window.location.href;
       }
     })
   }
@@ -193,7 +193,7 @@
         data: data,
         success: function(data){
           $('#input-modal').modal('hide');
-          location.href = location.href;
+          window.location.href = window.location.href;
         }
       });
     }

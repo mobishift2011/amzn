@@ -8,7 +8,7 @@ import slumber
 import lxml.html
 from datetime import datetime
 
-from server import ideeliLogin, req
+from server import ideeliLogin
 from models import Product
 from settings import MASTIFF_HOST
 

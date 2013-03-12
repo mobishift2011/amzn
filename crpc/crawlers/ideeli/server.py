@@ -76,6 +76,24 @@ class ideeliLogin(object):
 
         return ret.status_code
 
+    def fetch_product_page(self, url):
+        """.. :py:method::
+            fetch product page.
+            check whether the account is login, if not, login and fetch again
+        """
+        ret = req.get(url)
+
+        if 'https://www.ideeli.com/login' in ret.url: #login
+            self.login_account()
+            ret = req.get(url)
+        if ret.url == u'http://www.ideeli.com/events/latest':
+            ret = req.get(url)
+            if ret.url == u'http://www.ideeli.com/events/latest':
+                return -302
+        if ret.ok: return ret.content
+
+        return ret.status_code
+
 
 class Server(object):
     def __init__(self):

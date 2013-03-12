@@ -22,9 +22,9 @@ class CheckServer(object):
             print '\n\nideeli {0}, {1}\n\n'.format(id, url)
             return
 
-        cont = self.net.fetch_page(url)
+        cont = self.net.fetch_product_page(url)
         if isinstance(cont, int):
-            ret = self.net.fetch_page(url)
+            ret = self.net.fetch_product_page(url)
             if isinstance(cont, int):
                 print '\n\nideeli product[{0}] download error.\n\n'.format(url)
                 return
@@ -67,5 +67,4 @@ class CheckServer(object):
         pass
 
 if __name__ == '__main__':
-    CheckServer().check_onsale_product('3011542', 'http://www.ideeli.com/events/128378/offers/7091342/latest_view/3011542')
-#CheckServer().check_onsale_product('3050034', 'http://www.ideeli.com/events/128378/offers/7081882/latest_view/3050034')
+    CheckServer().check_onsale_product('3062910', 'http://www.ideeli.com/events/126130/offers/7101390/latest_view/3062910')

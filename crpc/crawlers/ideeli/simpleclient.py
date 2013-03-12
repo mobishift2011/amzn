@@ -33,23 +33,23 @@ class CheckServer(object):
         returl, cont = cont
         tree = lxml.html.fromstring(cont)
         try:
-            title = tree.cssselect('div#offer_price div.info div.name_container div.name span.product_name')[0].text_content()
+            title = tree.cssselect('div#offer_price div.info div.name_container div.name span.product_name')[0].text_content().encode('utf-8')
         except:
             self.net.login_account()
             cont = self.net.fetch_product_page(url)
             tree = lxml.html.fromstring(cont[1])
             try:
-                title = tree.cssselect('div#offer_price div.info div.name_container div.name span.product_name')[0].text_content()
+                title = tree.cssselect('div#offer_price div.info div.name_container div.name span.product_strapline')[0].text_content().encode('utf-8')
             except:
                 print '\n\n%s, %s \n\n' % (cont[0], url)
                 open('a.html', 'w').write(ret.content)
-        price = tree.cssselect('div#offer_price div.info div.name_container div.price_container span.price')[0].text_content().replace('$', '').strip()
+        price = tree.cssselect('div#offer_price div.info div.name_container div.price_container span.price')[0].text_content().replace('$', '').replace(',', '').strip()
         if not price:
             node = tree.cssselect('div#sizes_container_{0} div.sizes div.size_container'.format(id))[0]
-            price = node.get('data-type-price').replace('$', '').strip()
-            listprice = node.get('data-type-msrp').replace('$', '').strip()
+            price = node.get('data-type-price').replace('$', '').replace(',', '').strip()
+            listprice = node.get('data-type-msrp').replace('$', '').replace(',', '').strip()
         else:
-            listprice = tree.cssselect('div#offer_price div.info div.name_container div.price_container span.msrp_price')[0].text_content().replace('$', '').strip()
+            listprice = tree.cssselect('div#offer_price div.info div.name_container div.price_container span.msrp_price')[0].text_content().replace('$', '').replace(',', '').strip()
 
         sizes = []
         for ss in tree.cssselect('div#sizes_container_{0} div.sizes div.size_container'.format(id)):
@@ -74,12 +74,12 @@ class CheckServer(object):
 #                soldout = False
 #                break
 
-        if prd.price.replace('$', '').strip() != price:
-            print 'ideeli product[{0}] price error: {1}, {2}'.format(prd.combine_url, prd.price.replace('$', '').strip(), price)
-        if prd.listprice.replace('$', '').strip() != listprice:
-            print 'ideeli product[{0}] listprice error: {1}, {2}'.format(prd.combine_url, prd.listprice.replace('$', '').strip(), listprice)
-        if prd.title.lower() != title.lower():
-            print 'ideeli product[{0}] title error: {1}, {2}'.format(prd.combine_url, prd.title, title)
+        if prd.price.replace('$', '').replace(',', '').strip() != price:
+            print 'ideeli product[{0}] price error: {1}, {2}'.format(prd.combine_url, prd.price.replace('$', '').replace(',', '').strip(), price)
+        if prd.listprice.replace('$', '').replace(',', '').strip() != listprice:
+            print 'ideeli product[{0}] listprice error: {1}, {2}'.format(prd.combine_url, prd.listprice.replace('$', '').replace(',', '').strip(), listprice)
+        if prd.title.encode('utf-8').lower() != title.lower():
+            print 'ideeli product[{0}] title error: {1}, {2}'.format(prd.combine_url, prd.title.encode('utf-8'), title)
         if prd.soldout != soldout:
             print 'ideeli product[{0}] soldout error: {1}, {2}'.format(prd.combine_url, prd.soldout, soldout)
 

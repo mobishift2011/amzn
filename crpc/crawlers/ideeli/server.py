@@ -86,6 +86,9 @@ class ideeliLogin(object):
         if 'https://www.ideeli.com/login' in ret.url: #login
             self.login_account()
             ret = req.get(url)
+        if 'https://www.ideeli.com/login' in ret.url: #login
+            self.login_account()
+            ret = req.get(url)
         if ret.url == u'http://www.ideeli.com/events/latest':
             ret = req.get(url)
             if ret.url == u'http://www.ideeli.com/events/latest':

@@ -37,12 +37,11 @@ class CheckServer(object):
         except:
             self.net.login_account()
             cont = self.net.fetch_product_page(url)
-            tree = lxml.html.fromstring(cont[1])
-            try:
-                title = tree.cssselect('div#offer_price div.info div.name_container div.name span.product_strapline')[0].text_content().encode('utf-8')
-            except:
+            if cont[0] == 'https://www.ideeli.com/login':
                 print '\n\n%s, %s \n\n' % (cont[0], url)
-                open('a.html', 'w').write(ret.content)
+                return
+            tree = lxml.html.fromstring(cont[1])
+            title = tree.cssselect('div#offer_price div.info div.name_container div.name span.product_strapline')[0].text_content().encode('utf-8')
         price = tree.cssselect('div#offer_price div.info div.name_container div.price_container span.price')[0].text_content().replace('$', '').replace(',', '').strip()
         if not price:
             node = tree.cssselect('div#sizes_container_{0} div.sizes div.size_container'.format(id))[0]

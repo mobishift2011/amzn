@@ -90,7 +90,8 @@ class ideeliLogin(object):
             ret = req.get(url)
             if ret.url == u'http://www.ideeli.com/events/latest':
                 return -302
-        if ret.ok: return ret.content
+        if ret.ok:
+            return ret.url, ret.content
 
         return ret.status_code
 

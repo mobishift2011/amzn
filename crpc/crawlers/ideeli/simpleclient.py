@@ -30,18 +30,18 @@ class CheckServer(object):
                 print '\n\nideeli product[{0}] download error.\n\n'.format(url)
                 return
 
+        returl, cont = cont
         tree = lxml.html.fromstring(cont)
         try:
             title = tree.cssselect('div#offer_price div.info div.name_container div.name span.product_name')[0].text_content()
         except:
-            ret = req.get(url)
             self.net.login_account()
-            ret = req.get(url)
-            tree = lxml.html.fromstring(ret.content)
+            cont = self.net.fetch_product_page(url)
+            tree = lxml.html.fromstring(cont[1])
             try:
                 title = tree.cssselect('div#offer_price div.info div.name_container div.name span.product_name')[0].text_content()
             except:
-                print '\n\n%s, %s \n\n' % (ret.url, url)
+                print '\n\n%s, %s \n\n' % (cont[0], url)
                 open('a.html', 'w').write(ret.content)
         price = tree.cssselect('div#offer_price div.info div.name_container div.price_container span.price')[0].text_content().replace('$', '').strip()
         if not price:
@@ -54,7 +54,7 @@ class CheckServer(object):
         sizes = []
         for ss in tree.cssselect('div#sizes_container_{0} div.sizes div.size_container'.format(id)):
             sizes.append( ss.get('data-type-skuid') )
-        id1, id2 = self.getids.match(url).groups()
+        id1, id2 = self.getids.match(returl).groups()
         link = 'http://www.ideeli.com/events/{0}/offers/{1}/refresh_sale?force_cache_write=1'.format(id1, id2)
         ret = self.net.fetch_page(link)
         soldout = True
@@ -94,4 +94,4 @@ class CheckServer(object):
         pass
 
 if __name__ == '__main__':
-    CheckServer().check_onsale_product('2140150', 'http://www.ideeli.com/events/113762/offers/6122326/latest_view/2140150')
+    CheckServer().check_onsale_product('2968718', 'http://www.ideeli.com/events/110518/offers/5862198/latest_view/2968718')

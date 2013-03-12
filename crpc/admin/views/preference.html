@@ -1,0 +1,202 @@
+{% extends "layout.html" %}
+{% block content %}
+        <!-- content starts -->
+            <div>
+                <ul class="breadcrumb">
+                    <li>
+                        <a href="#">Home</a> <span class="divider">/</span>
+                    </li>
+                    <li>
+                        <a href="/sitepref/">Preference</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="row-fluid sortable">
+              <div class="box span3">
+                <div class="box-header well" data-original-title>
+                  <h2><i class="icon-user"></i> Score Multiplier</h2>
+                    <div class="box-icon">
+                      <a href="#" class="btn btn-minimize btn-round"><i class="icon-chevron-up"></i></a>
+                      <a href="#" class="btn btn-close btn-round"><i class="icon-remove"></i></a>
+                    </div>
+                </div>
+                <div class="box-content">
+                  <table class="table table-striped">
+                    <thead>
+                      <tr>
+                        <th>Site</th>
+                        <th>Value</th>
+                        <th>Control</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for p in prefs %}
+                      {% if 'score_multiplier' in p %}
+                      <tr>
+                        <td>{{ p.site }}</td>
+                        <td>{{ p.score_multiplier }}</td>
+                        <td>
+                          {% if p.site != 'ALL' %}
+                          <a id="delete-score-multiplier" href="#" title="Delete"><i class="icon icon-trash icon-color"></i></a>
+                          {% endif %}
+                          <a id="edit-score-multiplier" href="#" title="Edit"><i class="icon icon-edit icon-color"></i></a>
+                          <a id="add-score-multiplier" href="#" title="Add"><i class="icon icon-plus icon-color"></i></a>
+                        </td>
+                      </tr>
+                      {% endif %}
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+
+              <div class="box span4">
+                <div class="box-header well" data-original-title>
+                  <h2><i class="icon-user"></i> Discount Threshold Adjustment</h2>
+                    <div class="box-icon">
+                      <a href="#" class="btn btn-minimize btn-round"><i class="icon-chevron-up"></i></a>
+                      <a href="#" class="btn btn-close btn-round"><i class="icon-remove"></i></a>
+                    </div>
+                </div>
+                <div class="box-content">
+                  <table class="table table-striped">
+                    <thead>
+                      <tr>
+                        <th>Site</th>
+                        <th>Value</th>
+                        <th>Control</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for p in prefs %}
+                      {% if 'discount_threshold_adjustment' in p %}
+                      <tr>
+                        <td>{{ p.site }}</td>
+                        <td>{{ p.discount_threshold_adjustment }}</td>
+                        <td>
+                          {% if p.site != 'ALL' %}
+                          <a id="delete-discount-threshold-adjustment" href="#" title="Delete"><i class="icon icon-trash icon-color"></i></a>
+                          {% endif %}
+                          <a id="edit-discount-threshold-adjustment" href="#" title="Edit"><i class="icon icon-edit icon-color"></i></a>
+                          <a id="add-discount-threshold-adjustment" href="#" title="Add"><i class="icon icon-plus icon-color"></i></a>
+                        </td>
+                      </tr>
+                      {% endif %}
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+<div class="modal hide" id="input-modal">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal">×</button>
+    <h3 id="input-title">Preference</h3>
+  </div>
+  <div class="modal-body" id="input-body">
+    <form class="form-horizontal">
+      <fieldset>
+        <div class="control-group">
+          <label class="control-label">Site</label>
+          <div class="controls">
+            <input class="input-large" id="site" type="text" value="">
+          </div>
+        </div>
+        <div class="control-group">
+          <label class="control-label">Value</label>
+          <div class="controls">
+            <input class="input-large" id="value" type="text" value="">
+          </div>
+        </div>
+      </fieldset>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <a id="apply" href="#" class="btn btn-primary">Apply</a>
+    <a href="#" class="btn" data-dismiss="modal">Cancel</a>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block script %}
+<script>
+  function getCookie(name) {
+    var r = document.cookie.match("\\b" + name + "=([^;]*)\\b");
+    return r ? r[1] : undefined;
+  }
+
+  var method = null;
+  $('#add-score-multiplier').live('click', function(){
+    method = 'add-score-multiplier'
+    $('#input-title').text("Add Site's Score Multiplier");
+    $('#input-modal').modal('show');
+    $('#site').focus();
+  });
+  $('#add-discount-threshold-adjustment').live('click', function(){
+    method = 'add-discount-threshold-adjustment'
+    $('#input-title').text("Add Site's Discount Threshold Adjustment");
+    $('#input-modal').modal('show');
+    $('#site').focus();
+  });
+
+  $('#edit-score-multiplier').live('click', function(){
+    method = 'edit-score-multiplier'
+    $('#input-title').text("Edit Site's Score Multiplier");
+    $('#site').val($(this).parent().parent().children(':first').text());
+    $('#value').val($(this).parent().parent().children(':nth-child(2)').text());
+    $('#input-modal').modal('show');
+  });
+  $('#edit-discount-threshold-adjustment').live('click', function(){
+    method = 'edit-discount-threshold-adjustment'
+    $('#input-title').text("Edit Site's Discount Threshold Adjustment");
+    $('#site').val($(this).parent().parent().children(':first').text());
+    $('#value').val($(this).parent().parent().children(':nth-child(2)').text());
+    $('#input-modal').modal('show');
+  });
+
+  function unset(site, field){
+    $.ajax({
+      url: '/sitepref/unset.ajax',
+      type: 'POST', 
+      dataType: 'json',
+      data: {site: site, _xsrf:getCookie('_xsrf'), unset:field},
+      success: function(data){
+        window.location.href = window.location.href;
+      }
+    })
+  }
+
+  $('#delete-score-multiplier').live('click', function(){
+    unset($(this).parent().parent().children(':first').text(), 'score_multiplier');
+  });
+  $('#delete-discount-threshold-adjustment').live('click', function(){
+    unset($(this).parent().parent().children(':first').text(), 'discount_threshold_adjustment');
+  });
+  
+  $('#apply').live('click', function(){
+    var site = $('#site').val();
+    var value = $('#value').val();
+    var data = {};
+    if (method == 'add-score-multiplier' || method == 'edit-score-multiplier'){
+      data = {site:site, score_multiplier:value, _xsrf:getCookie('_xsrf')};
+    }else if (method == 'add-discount-threshold-adjustment' || method == 'edit-discount-threshold-adjustment') {
+      data = {site:site, discount_threshold_adjustment:value, _xsrf:getCookie('_xsrf')};
+    } 
+    if (site && value && data) {
+      $.ajax({
+        url: '/sitepref/update.ajax',
+        type: 'POST',
+        dataType: 'json',
+        data: data,
+        success: function(data){
+          $('#input-modal').modal('hide');
+          window.location.href = window.location.href;
+        }
+      });
+    }
+  });
+</script>
+{% endblock %}

@@ -5,6 +5,7 @@
 import re
 import json
 import lxml.html
+from datetime import datetime
 
 from server import ideeliLogin, req
 from models import Product
@@ -79,12 +80,18 @@ class CheckServer(object):
 
         if prd.price.replace('$', '').replace(',', '').strip() != price:
             print 'ideeli product[{0}] price error: {1}, {2}'.format(prd.combine_url, prd.price.replace('$', '').replace(',', '').strip(), price)
+            prd.price = price
+            prd.update_history.update({ 'price': datetime.utcnow() })
         if prd.listprice.replace('$', '').replace(',', '').strip() != listprice:
             print 'ideeli product[{0}] listprice error: {1}, {2}'.format(prd.combine_url, prd.listprice.replace('$', '').replace(',', '').strip(), listprice)
+            prd.listprice = listprice
+            prd.update_history.update({ 'listprice': datetime.utcnow() })
         if prd.title.encode('utf-8').lower() != title.lower():
             print 'ideeli product[{0}] title error: {1}, {2}'.format(prd.combine_url, prd.title.encode('utf-8'), title)
         if prd.soldout != soldout:
             print 'ideeli product[{0}] soldout error: {1}, {2}'.format(prd.combine_url, prd.soldout, soldout)
+            prd.soldout = soldout
+            prd.update_history.update({ 'soldout': datetime.utcnow() })
 
 
     def check_offsale_product(self, id, url):

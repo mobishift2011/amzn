@@ -25,7 +25,23 @@ class CheckServer(object):
             return
 
         tree = lxml.html.fromstring(cont)
-        tree.cssselect('')
+        node = tree.cssselect('section#pageheader div.row div.product-main')[0]
+        title = node.cssselect('div.page-header h3')[0].text_content().encode('utf-8')
+        info = node.cssselect('div.product-addtocart form#product_addtocart_form div#product-main-info')[0]
+        soldout = info.cssselect('div.availability') 
+        price = info.cssselect('div.product-prices div.product-prices-main div.price-box span.special-price')[0].text_content().replace('$', '').strip()
+        listprice = info.cssselect('div.product-prices div.product-prices-main div.product-price-was')[0].text_content().replace('Was', '').replace('$', '').strip()
+        print listprice, price
+
+        if prd.title.encode('utf-8').lower() != title.lower():
+            print 'totsy product[{0}] title error: {1} vs {2}'.format(url, prd.title.encode('utf-8'), title)
+        if prd.soldout != soldout:
+            print 'totsy product[{0}] soldout error: {1} vs {2}'.format(url, prd.soldout, soldout)
+        if prd.price.replace('$', '').strip() != price:
+            print 'totsy product[{0}] price error: {1} vs {2}'.format(url, prd.price.replace('$', '').strip(), price)
+        if prd.listprice.replace('$', '').strip() != listprice:
+            print 'totsy product[{0}] listprice error: {1} vs {2}'.format(url, prd.listprice.replace('$', '').strip(), listprice)
+
 
 
     def check_offsale_product(self, id, url):
@@ -38,4 +54,5 @@ class CheckServer(object):
         pass
 
 if __name__ == '__main__':
+    CheckServer().check_onsale_product('orthaheel-cecilia-952045', 'http://www.totsy.com/sales/orthaheel-dr-weil-by-orthaheel-8018/orthaheel-cecilia-952045.html')
     pass

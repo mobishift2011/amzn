@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 # Author: bishop Liu <miracle (at) gmail.com>
 
+import re
 import lxml.html
 from datetime import datetime
 
@@ -10,7 +11,7 @@ from server import fetch_product
 
 class CheckServer(object):
     def __init__(self):
-        pass
+        self.size = re.compile("var products_tmp = {([^}]*)};", re.M)
 
     def check_onsale_product(self, id, url):
         prd = Product.objects(key=id).first()
@@ -29,11 +30,12 @@ class CheckServer(object):
         listprice = pprice.cssselect('span.bare')
         listprice = listprice[0].text_content().replace('retail', '').replace('$', '').strip() if listprice else ''
         title = tree.cssselect('div.lastUnit > div.line > h4.pbs')[0].text_content().strip().encode('utf-8')
-        soldout = True if 'Sold Out' in tree.cssselect('#availCombo')[0].text_content().strip() else False
+        text = self.size.search(ret[0]).group(1)
+        soldout = False if "Available" in text or "Last 1 Left" in text or "In Member's Bag" in text else True
 
         if prd.price.replace('$', '').strip() != price:
             print 'modnique product[{0}] price error: {1}, {2}'.format(prd.combine_url, prd.price.replace('$', ''), price)
-        if prd.listprice.replace('$', '').strip() != listprice:
+        if listprice and prd.listprice.replace('$', '').strip() != listprice:
             print 'modnique product[{0}] listprice error: {1}, {2}'.format(prd.combine_url, prd.listprice.replace('$', ''), listprice)
         if prd.title.encode('utf-8').lower() != title.lower():
             print 'modnique product[{0}] title error: {1}, {2}'.format(prd.combine_url, prd.title.encode('utf-8'), title)
@@ -51,3 +53,5 @@ class CheckServer(object):
     def check_offsale_event(self, id, url):
         pass
 
+if __name__ == '__main__':
+    CheckServer().check_onsale_product('01513534', 'http://www.modnique.com/product/Our-Favorite-Silver-Jewelry-Styles/10399/Ladies-Necklace-Designed-In-925-Sterling-Silver/01513534/color/Silver/size/seeac/gseeac')

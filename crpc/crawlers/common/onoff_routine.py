@@ -82,8 +82,8 @@ def call_rpc(rpc, site, method, *args, **kwargs):
 
 def checkout(site, method, concurrency=10):
     """ """
-#    rpcs = get_rpcs()
-    rpcs = get_rpcs([{'host_string':'root@127.0.0.1', 'port':8899}])
+    rpcs = get_rpcs()
+#    rpcs = get_rpcs([{'host_string':'root@127.0.0.1', 'port':8899}])
     pool = Pool(len(rpcs) * concurrency)
     ret = spout_obj(site, method)
     if ret is False:
@@ -95,9 +95,6 @@ def checkout(site, method, concurrency=10):
 
 
 if __name__ == '__main__':
-
-    checkout('totsy', 'check_onsale_product')
-    exit()
 
 # call that can change the crpc/mastiff database
     checkout('onekingslane', 'check_onsale_event')
@@ -121,3 +118,6 @@ if __name__ == '__main__':
     checkout('ideeli', 'check_onsale_product')
 
     checkout('modnique', 'check_onsale_product')
+
+    checkout('totsy', 'check_onsale_product')
+

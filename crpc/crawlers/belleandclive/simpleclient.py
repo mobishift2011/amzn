@@ -2,11 +2,15 @@
 # -*- coding: utf-8 -*-
 # Author: bishop Liu <miracle (at) gmail.com>
 
+import slumber
 import lxml.html
 from datetime import datetime
 
 from server import belleandcliveLogin
 from models import Product, Event
+from settings import MASTIFF_HOST
+
+api = slumber.API(MASTIFF_HOST)
 
 class CheckServer(object):
     def __init__(self):
@@ -18,9 +22,9 @@ class CheckServer(object):
         utcnow = datetime.utcnow()
         var = api.product(_id).get()
         if 'ends_at' in var and var['ends_at'] > utcnow.isoformat():
-            api.product(_id).patch({ 'ends_at': utcnow.replace(minute=0, second=0, microsecond=0).isoformat() })
+            api.product(_id).patch({ 'ends_at': utcnow.isoformat() })
         if 'ends_at' not in var:
-            api.product(_id).patch({ 'ends_at': utcnow.replace(minute=0, second=0, microsecond=0).isoformat() })
+            api.product(_id).patch({ 'ends_at': utcnow.isoformat() })
 
     def check_onsale_product(self, id, url):
         prd = Product.objects(key=id).first()
@@ -30,9 +34,13 @@ class CheckServer(object):
 
         cont = self.net.fetch_product_page(url)
         if cont == -302:
-            print '\n\nbelleandclive product[{1}] sale end.'.format(id, url)
+            print '\n\nbelleandclive product[{1}] redirect, sale end.'.format(id, url)
             if prd.muri:
                 self.offsale_update(prd.muri)
+            if not prd.products_end or prd.products_end > datetime.utcnow():
+                prd.products_end = datetime.utcnow()
+                prd.update_history.update({ 'products_end': datetime.utcnow() })
+                prd.save()
             return
 
         elif cont is None or isinstance(cont, int):

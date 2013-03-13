@@ -3,15 +3,28 @@
 # Author: bishop Liu <miracle (at) gmail.com>
 
 import lxml.html
+import slumber
 from datetime import datetime
 
 from server import beyondtherackLogin
 from models import Product, Event
 
+from settings import MASTIFF_HOST
+api = slumber.API(MASTIFF_HOST)
+
 class CheckServer(object):
     def __init__(self):
         self.net = beyondtherackLogin()
         self.net.check_signin()
+
+    def offsale_update(self, muri):
+        _id = muri.rsplit('/', 2)[-2]
+        utcnow = datetime.utcnow()
+        var = api.product(_id).get()
+        if 'ends_at' in var and var['ends_at'] > utcnow.isoformat():
+            api.product(_id).patch({ 'ends_at': utcnow.isoformat() })
+        if 'ends_at' not in var:
+            api.product(_id).patch({ 'ends_at': utcnow.isoformat() })
 
     def check_onsale_product(self, id, url):
         prd = Product.objects(key=id).first()
@@ -22,11 +35,13 @@ class CheckServer(object):
         cont = self.net.fetch_product_page(url)
         if cont == -302:
             print '\n\nbeyondtherack product[{1}] sale end.'.format(id, url)
+            if prd.muri:
+                self.offsale_update(prd.muri)
             if not prd.products_end or prd.products_end > datetime.utcnow():
-                prd.products_end = datetime.utcnow().replace(minute=0, second=0, microsecond=0)
+                prd.products_end = datetime.utcnow()
                 prd.update_history.update({ 'products_end': datetime.utcnow() })
                 prd.save()
-                return
+            return
 
         elif cont is None or isinstance(cont, int):
             cont = self.net.fetch_product_page(url)

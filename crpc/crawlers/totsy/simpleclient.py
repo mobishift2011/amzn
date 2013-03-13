@@ -28,10 +28,9 @@ class CheckServer(object):
         node = tree.cssselect('section#pageheader div.row div.product-main')[0]
         title = node.cssselect('div.page-header h3')[0].text_content().encode('utf-8')
         info = node.cssselect('div.product-addtocart form#product_addtocart_form div#product-main-info')[0]
-        soldout = info.cssselect('div.availability') 
+        soldout = True if info.cssselect('div.availability') else False
         price = info.cssselect('div.product-prices div.product-prices-main div.price-box span.special-price')[0].text_content().replace('$', '').strip()
         listprice = info.cssselect('div.product-prices div.product-prices-main div.product-price-was')[0].text_content().replace('Was', '').replace('$', '').strip()
-        print listprice, price
 
         if prd.title.encode('utf-8').lower() != title.lower():
             print 'totsy product[{0}] title error: {1} vs {2}'.format(url, prd.title.encode('utf-8'), title)

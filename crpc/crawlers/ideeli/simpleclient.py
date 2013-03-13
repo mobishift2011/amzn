@@ -26,9 +26,9 @@ class CheckServer(object):
         utcnow = datetime.utcnow()
         var = api.product(_id).get()
         if 'ends_at' in var and var['ends_at'] > utcnow.isoformat():
-            api.product(_id).patch({ 'ends_at': utcnow.replace(minute=0, second=0, microsecond=0).isoformat() })
+            api.product(_id).patch({ 'ends_at': utcnow.isoformat() })
         if 'ends_at' not in var:
-            api.product(_id).patch({ 'ends_at': utcnow.replace(minute=0, second=0, microsecond=0).isoformat() })
+            api.product(_id).patch({ 'ends_at': utcnow.isoformat() })
 
 
     def check_onsale_product(self, id, url):
@@ -39,11 +39,15 @@ class CheckServer(object):
 
         cont = self.net.fetch_product_page(url)
         if cont == -302:
+            print '\n\nideeli product[{0}] redirect to homepage.\n\n'.format(url)
             if prd.muri:
                 self.offsale_update(prd.muri)
-            print '\n\nideeli product[{0}] redirect to homepage.\n\n'.format(url)
+            if not prd.products_end or prd.products_end > datetime.utcnow():
+                prd.products_end = datetime.utcnow()
+                prd.update_history.update({ 'products_end': datetime.utcnow() })
+                prd.save()
             return
-        if isinstance(cont, int):
+        elif isinstance(cont, int):
             cont = self.net.fetch_product_page(url)
             if isinstance(cont, int):
                 print '\n\nideeli product[{0}] download error.\n\n'.format(url)

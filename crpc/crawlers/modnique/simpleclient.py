@@ -22,9 +22,9 @@ class CheckServer(object):
         utcnow = datetime.utcnow()
         var = api.product(_id).get()
         if 'ends_at' in var and var['ends_at'] > utcnow.isoformat():
-            api.product(_id).patch({ 'ends_at': utcnow.replace(minute=0, second=0, microsecond=0).isoformat() })
+            api.product(_id).patch({ 'ends_at': utcnow.isoformat() })
         if 'ends_at' not in var:
-            api.product(_id).patch({ 'ends_at': utcnow.replace(minute=0, second=0, microsecond=0).isoformat() })
+            api.product(_id).patch({ 'ends_at': utcnow.isoformat() })
 
     def check_onsale_product(self, id, url):
         prd = Product.objects(key=id).first()
@@ -34,9 +34,13 @@ class CheckServer(object):
 
         ret = fetch_product(url)
         if ret[0] == -302:
+            print '\n\nmodnique product[{0}] redirect: -302\n\n'.format(url)
             if prd.muri:
                 self.offsale_update(prd.muri)
-            print '\n\nmodnique product[{0}] redirect: -302\n\n'.format(url)
+            if not prd.products_end or prd.products_end > datetime.utcnow():
+                prd.products_end = datetime.utcnow()
+                prd.update_history.update({ 'products_end': datetime.utcnow() })
+                prd.save()
             return
         elif isinstance(ret[0], int):
             print '\n\nmodnique download error: {0} , {1}\n\n'.format(ret[0], ret[1])

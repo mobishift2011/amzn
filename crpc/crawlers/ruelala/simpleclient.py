@@ -28,9 +28,9 @@ class CheckServer(object):
         utcnow = datetime.utcnow()
         var = api.product(_id).get()
         if 'ends_at' in var and var['ends_at'] > utcnow.isoformat():
-            api.product(_id).patch({ 'ends_at': utcnow.replace(minute=0, second=0, microsecond=0).isoformat() })
+            api.product(_id).patch({ 'ends_at': utcnow.isoformat() })
         if 'ends_at' not in var:
-            api.product(_id).patch({ 'ends_at': utcnow.replace(minute=0, second=0, microsecond=0).isoformat() })
+            api.product(_id).patch({ 'ends_at': utcnow.isoformat() })
 
     def check_onsale_product(self, id, url):
         prd = Product.objects(key=id).first()
@@ -42,10 +42,18 @@ class CheckServer(object):
         if ret.url == 'http://www.ruelala.com/event':
             if prd.muri:
                 self.offsale_update(prd.muri)
+            if not prd.products_end or prd.products_end > datetime.utcnow():
+                prd.products_end = datetime.utcnow()
+                prd.update_history.update({ 'products_end': datetime.utcnow() })
+                prd.save()
             return -302
         if ret.url == 'http://www.ruelala.com/common/errorGeneral':
             if prd.muri:
                 self.offsale_update(prd.muri)
+            if not prd.products_end or prd.products_end > datetime.utcnow():
+                prd.products_end = datetime.utcnow()
+                prd.update_history.update({ 'products_end': datetime.utcnow() })
+                prd.save()
             return -302
         cont = ret.content
         tree = lxml.html.fromstring(cont)

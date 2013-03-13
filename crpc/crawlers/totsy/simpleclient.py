@@ -2,11 +2,15 @@
 # -*- coding: utf-8 -*-
 # Author: bishop Liu <miracle (at) gmail.com>
 
+import slumber
 import lxml.html
 from datetime import datetime
 
 from server import totsyLogin
 from models import Product
+from settings import MASTIFF_HOST
+
+api = slumber.API(MASTIFF_HOST)
 
 class CheckServer(object):
     def __init__(self):

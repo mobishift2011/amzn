@@ -20,20 +20,21 @@ class CheckServer(object):
 
         ret = fetch_product(url)
         if isinstance(ret[0], int):
-            print 'modnique download error: {0} , {1}'.format(ret[0], ret[1])
+            print '\n\nmodnique download error: {0} , {1}\n\n'.format(ret[0], ret[1])
+            return
 
         tree = lxml.html.fromstring(ret[0])
         pprice = tree.cssselect('div.lastUnit > div.line form > div.mod > div.hd > div.media > div.bd')[0]
-        price = pprice.cssselect('span.price')[0].text_content()
+        price = pprice.cssselect('span.price')[0].text_content().replace('$', '')
         listprice = pprice.cssselect('span.bare')
-        listprice = listprice[0].text_content().replace('retail', '').strip() if listprice else ''
+        listprice = listprice[0].text_content().replace('retail', '').replace('$', '').strip() if listprice else ''
         title = tree.cssselect('div.lastUnit > div.line > h4.pbs')[0].text_content().strip().encode('utf-8')
         soldout = True if 'Sold Out' in tree.cssselect('#availCombo')[0].text_content().strip() else False
 
-        if prd.price != price:
-            print 'modnique product[{0}] price error: {1}, {2}'.format(prd.combine_url, prd.price, price)
-        if prd.listprice != listprice:
-            print 'modnique product[{0}] listprice error: {1}, {2}'.format(prd.combine_url, prd.listprice, listprice)
+        if prd.price.replace('$', '').strip() != price:
+            print 'modnique product[{0}] price error: {1}, {2}'.format(prd.combine_url, prd.price.replace('$', ''), price)
+        if prd.listprice.replace('$', '').strip() != listprice:
+            print 'modnique product[{0}] listprice error: {1}, {2}'.format(prd.combine_url, prd.listprice.replace('$', ''), listprice)
         if prd.title.encode('utf-8').lower() != title.lower():
             print 'modnique product[{0}] title error: {1}, {2}'.format(prd.combine_url, prd.title.encode('utf-8'), title)
         if prd.soldout != soldout:

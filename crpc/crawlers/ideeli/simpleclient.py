@@ -39,13 +39,13 @@ class CheckServer(object):
 
         cont = self.net.fetch_product_page(url)
         if cont == -302:
-            print '\n\nideeli product[{0}] redirect to homepage.\n\n'.format(url)
             if prd.muri:
                 self.offsale_update(prd.muri)
             if not prd.products_end or prd.products_end > datetime.utcnow():
                 prd.products_end = datetime.utcnow()
                 prd.update_history.update({ 'products_end': datetime.utcnow() })
                 prd.save()
+                print '\n\nideeli product[{0}] redirect, sale end.\n\n'.format(url)
             return
         elif isinstance(cont, int):
             cont = self.net.fetch_product_page(url)

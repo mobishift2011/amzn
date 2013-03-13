@@ -13,6 +13,15 @@ class CheckServer(object):
         self.net = totsyLogin()
         self.net.check_signin()
 
+    def offsale_update(self, muri):
+        _id = muri.rsplit('/', 2)[-2]
+        utcnow = datetime.utcnow()
+        var = api.product(_id).get()
+        if 'ends_at' in var and var['ends_at'] > utcnow.isoformat():
+            api.product(_id).patch({ 'ends_at': utcnow.isoformat() })
+        if 'ends_at' not in var:
+            api.product(_id).patch({ 'ends_at': utcnow.isoformat() })
+
     def check_onsale_product(self, id, url):
         prd = Product.objects(key=id).first()
         if prd is None:
@@ -20,7 +29,15 @@ class CheckServer(object):
             return
 
         cont = self.net.fetch_page(url)
-        if isinstance(cont, int):
+        if cont == 404:
+            if prd.muri:
+                self.offsale_update(prd.muri)
+            if not prd.products_end or prd.products_end > datetime.utcnow():
+                prd.products_end = datetime.utcnow()
+                prd.update_history.update({ 'products_end': datetime.utcnow() })
+                prd.save()
+            print '\n\ntotsy product[{0}] redirect, sale end.\n\n'.format(url)
+        elif isinstance(cont, int):
             print '\n\ntotsy product[{0}] download error: {1} \n\n'.format(url, cont)
             return
 

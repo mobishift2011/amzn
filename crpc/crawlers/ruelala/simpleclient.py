@@ -46,6 +46,7 @@ class CheckServer(object):
                 prd.products_end = datetime.utcnow()
                 prd.update_history.update({ 'products_end': datetime.utcnow() })
                 prd.save()
+                print '\n\nruelala product[{0}] redirect, sale end.\n\n'.format(url)
             return -302
         if ret.url == 'http://www.ruelala.com/common/errorGeneral':
             if prd.muri:
@@ -54,6 +55,7 @@ class CheckServer(object):
                 prd.products_end = datetime.utcnow()
                 prd.update_history.update({ 'products_end': datetime.utcnow() })
                 prd.save()
+                print '\n\nruelala product[{0}] redirect, sale end.\n\n'.format(url)
             return -302
         cont = ret.content
         tree = lxml.html.fromstring(cont)

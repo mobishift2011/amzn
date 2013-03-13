@@ -46,6 +46,7 @@ class CheckServer(object):
         if prd is None:
             print '\n\nonekingslane {0}, {1}\n\n'.format(id, url)
             return
+
         ret = self.s.get(url, headers=self.headers)
         if ret.url == u'https://www.onekingslane.com/':
             if prd.muri:
@@ -54,6 +55,7 @@ class CheckServer(object):
                 prd.products_end = datetime.utcnow()
                 prd.update_history.update({ 'products_end': datetime.utcnow() })
                 prd.save()
+                print '\n\nonekingslane product[{0}] redirect, sale end.\n\n'.format(url)
             return -302
         tree = lxml.html.fromstring(ret.content)
         already_end = True if tree.cssselect('#productOverview div.expired') else False
@@ -64,6 +66,7 @@ class CheckServer(object):
                 prd.products_end = datetime.utcnow()
                 prd.update_history.update({ 'products_end': datetime.utcnow() })
                 prd.save()
+                print '\n\nonekingslane product[{0}] redirect, sale end.\n\n'.format(url)
             return False
         try:
             title = tree.cssselect('#productOverview h1.serif')[0].text_content().strip()

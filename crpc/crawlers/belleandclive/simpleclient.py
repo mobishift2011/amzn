@@ -34,13 +34,13 @@ class CheckServer(object):
 
         cont = self.net.fetch_product_page(url)
         if cont == -302:
-            print '\n\nbelleandclive product[{1}] redirect, sale end.'.format(id, url)
             if prd.muri:
                 self.offsale_update(prd.muri)
             if not prd.products_end or prd.products_end > datetime.utcnow():
                 prd.products_end = datetime.utcnow()
                 prd.update_history.update({ 'products_end': datetime.utcnow() })
                 prd.save()
+                print '\n\nbelleandclive product[{0}] redirect, sale end.'.format(url)
             return
 
         elif cont is None or isinstance(cont, int):

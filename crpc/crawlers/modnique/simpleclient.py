@@ -34,13 +34,13 @@ class CheckServer(object):
 
         ret = fetch_product(url)
         if ret[0] == -302:
-            print '\n\nmodnique product[{0}] redirect: -302\n\n'.format(url)
             if prd.muri:
                 self.offsale_update(prd.muri)
             if not prd.products_end or prd.products_end > datetime.utcnow():
                 prd.products_end = datetime.utcnow()
                 prd.update_history.update({ 'products_end': datetime.utcnow() })
                 prd.save()
+                print '\n\nmodnique product[{0}] redirect, sale end\n\n'.format(url)
             return
         elif isinstance(ret[0], int):
             print '\n\nmodnique download error: {0} , {1}\n\n'.format(ret[0], ret[1])

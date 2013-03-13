@@ -268,9 +268,9 @@ class Server(object):
             link = link if link.startswith('http') else self.siteurl + link
             slug, key = self.extract_slug_product.match(link).groups()
 
-            price = node.cssselect('div.item_thumb2 > div > div.media > div.bd > p > span.price')[0].text_content().replace('modnique', '').strip()
+            price = node.cssselect('div.item_thumb2 > div > div.media > div.bd > p > span.price')[0].text_content().replace('modnique', '').replace('$', '').replace(',', '').strip()
             listprice = node.cssselect('div.item_thumb2 > div > div.media > div.bd > p > span.bare')
-            listprice = listprice[0].text_content().replace('retail', '').strip() if listprice else ''
+            listprice = listprice[0].text_content().replace('retail', '').replace('$', '').replace(',', '').strip() if listprice else ''
             soldout = True if node.cssselect('div.item_thumb2 > div.soldSticker') else False
 
             is_new, is_updated = False, False
@@ -381,9 +381,9 @@ class Server(object):
         image_urls, shipping, list_info, brand, returned = self.parse_product(tree)
         # nav = tree.cssselect('div > div.line > div.page > div.line')[0] # bgDark or bgShops
         pprice = tree.cssselect('div.lastUnit > div.line form > div.mod > div.hd > div.media > div.bd')[0]
-        price = pprice.cssselect('span.price')[0].text_content()
+        price = pprice.cssselect('span.price')[0].text_content().replace('$', '').replace(',', '').strip()
         listprice = pprice.cssselect('span.bare')
-        listprice = listprice[0].text_content().replace('retail', '').strip() if listprice else ''
+        listprice = listprice[0].text_content().replace('retail', '').replace('$', '').replace(',', '').strip() if listprice else ''
         title = tree.cssselect('div.lastUnit > div.line > h4.pbs')[0].text_content().strip()
 
         is_new, is_updated = False, False

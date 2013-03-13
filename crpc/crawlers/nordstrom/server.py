@@ -134,28 +134,28 @@ class Server(object):
                 is_new = True
                 product = Product(key=key)
 
-            if combine_url != product.combine_url:
+            if combine_url and combine_url != product.combine_url:
                 product.combine_url = combine_url
                 is_updated = True
 
-            if title != product.title:
+            if title and title != product.title:
                 product.title = title
                 is_updated = True
 
-            if price != product.price:
+            if price and price != product.price:
                 product.price = price
                 is_updated = True
 
-            if listprice != product.listprice:
+            if listprice and listprice != product.listprice:
                 product.listprice = listprice
                 is_updated = True
 
             if is_updated:
                 product.list_update_time = datetime.utcnow()
-
+            
             product.hit_time = datetime.utcnow()
             product.save()
-
+            
             print product.title
             print product.combine_url
             print product.listprice
@@ -269,7 +269,7 @@ class Server(object):
                     return
 
                 ready = True
-
+            
             product.updated = True
             product.full_update_time = datetime.utcnow()
             product.save()

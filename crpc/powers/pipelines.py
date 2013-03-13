@@ -425,9 +425,12 @@ class EventPipeline(object):
                     discount_set.add(discount)
 
                 # products_begin, products_end
+                if not self.event.events_begin:
+                    self.event.events_begin = datetime.utcnow()
+
                 if not product.products_begin or \
                     (self.event.events_begin and \
-                        product.products_begin > self.event.events_begin):
+                        product.products_begin < self.event.events_begin):
                             product.products_begin = self.event.events_begin
                             product.update_history['products_begin'] = datetime.utcnow()
 

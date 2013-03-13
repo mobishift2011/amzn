@@ -13,7 +13,21 @@ from settings import MONGODB_HOST
 DB = '6pm'
 connect(db=DB, alias=DB, host=MONGODB_HOST)
 
-from crawlers.common.models import LuxuryProduct
+from crawlers.common.models import BaseCategory, LuxuryProduct
+
+
+class Category(BaseCategory):
+    key = StringField(unique=True)
+    combine_url = StringField()
+    hit_time = DateTimeField()
+
+    meta = {
+        'db_alias': DB,
+    }
+
+    def url(self):
+        pass
+
 
 class Product(LuxuryProduct):
     deal_type = True

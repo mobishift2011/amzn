@@ -27,7 +27,25 @@ class Server(object):
         pass
 
     def crawl_category(self, ctx='', **kwargs):
-        pass
+        url = 'http://www.6pm.com/'
+        res = requests.get(url)
+        res.raise_for_status()
+        tree = lxml.html.fromstring(res.content)
+
+        TODAY_DEALS_node = tree.cssselect('div.imageFarm')[0]
+        category_nodes = TODAY_DEALS_node.cssselect('a')
+
+        for category_node in category_nodes:
+            href = category_node.get('href')
+            img_node = category_node.cssselect('img')[0]
+            key = img_node.get('class')
+
+            print href
+            print img_node
+            print key
+            print 
+
+
 
     def crawl_listing(self, url, ctx='', **kwargs):
         res = requests.get(url)
@@ -180,5 +198,6 @@ if __name__ == '__main__':
     # server.run()
 
     s = Server()
+    s.crawl_category()
     #s.crawl_listing(url='http://www.6pm.com/naturalizer-women-shoes/CK_XAVIBacABAeICAwoBGA.zso?zbfid=14779&s=isNew/desc/goLiveDate/desc/recentSalesStyle/desc/')
-    s.crawl_product('http://www.6pm.com/jessica-simpson-sleeveless-dress-white?zfcTest=mat%3A1')
+    # s.crawl_product('http://www.6pm.com/jessica-simpson-sleeveless-dress-white?zfcTest=mat%3A1')

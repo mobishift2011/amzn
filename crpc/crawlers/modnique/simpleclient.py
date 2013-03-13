@@ -53,8 +53,16 @@ class CheckServer(object):
 
         if prd.price.replace('$', '').replace(',', '').strip() != price:
             print 'modnique product[{0}] price error: {1}, {2}'.format(prd.combine_url, prd.price.replace('$', '').replace(',', '').strip(), price)
+            prd.price = price
+            prd.update_history.update({ 'price': datetime.utcnow() })
+            prd.save()
+
         if listprice and prd.listprice.replace('$', '').replace(',', '').strip() != listprice:
             print 'modnique product[{0}] listprice error: {1}, {2}'.format(prd.combine_url, prd.listprice.replace('$', '').replace(',', ''), listprice)
+            prd.listprice = listprice
+            prd.update_history.update({ 'listprice': datetime.utcnow() })
+            prd.save()
+
         if not prd.title:
             prd.title = title
             prd.save()
@@ -62,6 +70,9 @@ class CheckServer(object):
             print 'modnique product[{0}] title error: {1}, {2}'.format(prd.combine_url, prd.title.encode('utf-8'), title)
         if prd.soldout != soldout:
             print 'modnique product[{0}] soldout error: {1}, {2}'.format(prd.combine_url, prd.soldout, soldout)
+            prd.soldout = soldout
+            prd.update_history.update({ 'soldout': datetime.utcnow() })
+            prd.save()
 
 
 

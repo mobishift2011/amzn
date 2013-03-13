@@ -26,9 +26,9 @@ class CheckServer(object):
         utcnow = datetime.utcnow()
         var = api.product(_id).get()
         if 'ends_at' in var and var['ends_at'] > utcnow.isoformat():
-            api.product(_id).patch({ 'ends_at': utcnow.isoformat() })
+            api.product(_id).patch({ 'ends_at': utcnow.replace(minute=0, second=0, microsecond=0).isoformat() })
         if 'ends_at' not in var:
-            api.product(_id).patch({ 'ends_at': utcnow.isoformat() })
+            api.product(_id).patch({ 'ends_at': utcnow.replace(minute=0, second=0, microsecond=0).isoformat() })
 
 
     def check_onsale_product(self, id, url):

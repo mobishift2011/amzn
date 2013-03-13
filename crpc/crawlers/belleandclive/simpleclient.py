@@ -13,6 +13,15 @@ class CheckServer(object):
         self.net = belleandcliveLogin()
         self.net.check_signin()
 
+    def offsale_update(self, muri):
+        _id = muri.rsplit('/', 2)[-2]
+        utcnow = datetime.utcnow()
+        var = api.product(_id).get()
+        if 'ends_at' in var and var['ends_at'] > utcnow.isoformat():
+            api.product(_id).patch({ 'ends_at': utcnow.replace(minute=0, second=0, microsecond=0).isoformat() })
+        if 'ends_at' not in var:
+            api.product(_id).patch({ 'ends_at': utcnow.replace(minute=0, second=0, microsecond=0).isoformat() })
+
     def check_onsale_product(self, id, url):
         prd = Product.objects(key=id).first()
         if prd is None:
@@ -22,11 +31,9 @@ class CheckServer(object):
         cont = self.net.fetch_product_page(url)
         if cont == -302:
             print '\n\nbelleandclive product[{1}] sale end.'.format(id, url)
-            if not prd.products_end or prd.products_end > datetime.utcnow():
-                prd.products_end = datetime.utcnow().replace(minute=0, second=0, microsecond=0)
-                prd.update_history.update({ 'products_end': datetime.utcnow() })
-                prd.save()
-                return
+            if prd.muri:
+                self.offsale_update(prd.muri)
+            return
 
         elif cont is None or isinstance(cont, int):
             cont = self.net.fetch_product_page(url)

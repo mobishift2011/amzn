@@ -96,9 +96,8 @@ def checkout(site, method, concurrency=10):
 
 if __name__ == '__main__':
 
-    checkout('modnique', 'check_onsale_product')
-    exit()
     checkout('totsy', 'check_onsale_product')
+    exit()
 
 # call that can change the crpc/mastiff database
     checkout('onekingslane', 'check_onsale_event')
@@ -120,3 +119,5 @@ if __name__ == '__main__':
     checkout('venteprivee', 'check_onsale_product')
 
     checkout('ideeli', 'check_onsale_product')
+
+    checkout('modnique', 'check_onsale_product')

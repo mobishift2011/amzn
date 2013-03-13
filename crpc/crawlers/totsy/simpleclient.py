@@ -24,6 +24,9 @@ class CheckServer(object):
             print '\n\ntotsy product[{0}] download error: {1} \n\n'.format(url, cont)
             return
 
+        tree = lxml.html.fromstring(cont)
+        tree.cssselect('')
+
 
     def check_offsale_product(self, id, url):
         pass

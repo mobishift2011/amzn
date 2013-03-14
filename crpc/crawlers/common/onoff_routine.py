@@ -80,10 +80,9 @@ def call_rpc(rpc, site, method, *args, **kwargs):
         print 'RPC call error: {0}'.format(traceback.format_exc())
 
 
-def checkout(site, method, concurrency=10):
+def checkout(site, method, rpc, concurrency=10):
     """ """
-    rpcs = get_rpcs()
-#    rpcs = get_rpcs([{'host_string':'root@127.0.0.1', 'port':8899}])
+    rpcs = rpc if isinstance(rpc, list) else [rpc]
     pool = Pool(len(rpcs) * concurrency)
     ret = spout_obj(site, method)
     if ret is False:
@@ -96,28 +95,35 @@ def checkout(site, method, concurrency=10):
 
 if __name__ == '__main__':
 
+    from checkserver import CheckServer
+    # rpc = get_rpcs([{'host_string':'root@127.0.0.1', 'port':8899}])
+    # rpc = get_rpcs()
+    rpc = CheckServer()
+    checkout('totsy', 'check_onsale_product', rpc)
+    exit()
+
 # call that can change the crpc/mastiff database
-    checkout('onekingslane', 'check_onsale_event')
-    checkout('onekingslane', 'check_onsale_product')
+    checkout('onekingslane', 'check_onsale_event', rpc)
+    checkout('onekingslane', 'check_onsale_product', rpc)
 
-    checkout('ruelala', 'check_onsale_product')
+    checkout('ruelala', 'check_onsale_product', rpc)
 
-    checkout('bluefly', 'check_onsale_product')
+    checkout('bluefly', 'check_onsale_product', rpc)
 
-    checkout('lot18', 'check_onsale_product')
+    checkout('lot18', 'check_onsale_product', rpc)
 
-    checkout('gilt', 'check_onsale_product')
+    checkout('gilt', 'check_onsale_product', rpc)
 
-    checkout('nomorerack', 'check_onsale_product')
-    checkout('nomorerack', 'check_offsale_product')
+    checkout('nomorerack', 'check_onsale_product', rpc)
+    checkout('nomorerack', 'check_offsale_product', rpc)
 
-    checkout('belleandclive', 'check_onsale_product')
+    checkout('belleandclive', 'check_onsale_product', rpc)
 
-    checkout('venteprivee', 'check_onsale_product')
+    checkout('venteprivee', 'check_onsale_product', rpc)
 
-    checkout('ideeli', 'check_onsale_product')
+    checkout('ideeli', 'check_onsale_product', rpc)
 
-    checkout('modnique', 'check_onsale_product')
+    checkout('modnique', 'check_onsale_product', rpc)
 
-    checkout('totsy', 'check_onsale_product')
+    checkout('totsy', 'check_onsale_product', rpc)
 

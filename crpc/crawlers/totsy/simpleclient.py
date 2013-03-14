@@ -41,6 +41,7 @@ class CheckServer(object):
                 prd.update_history.update({ 'products_end': datetime.utcnow() })
                 prd.save()
             print '\n\ntotsy product[{0}] redirect, sale end.\n\n'.format(url)
+            return
         elif isinstance(cont, int):
             print '\n\ntotsy product[{0}] download error: {1} \n\n'.format(url, cont)
             return

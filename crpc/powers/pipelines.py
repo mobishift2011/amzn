@@ -287,6 +287,9 @@ class EventPipeline(object):
         return self.extract_title()
 
     def propagate_dept(self, depts, num_products):
+        if self.event.disallow_classification:
+            return
+
         dept_threshold = int(.1*num_products)
         favbuy_dept = list(self.event.favbuy_dept) \
             if self.event.favbuy_dept else []

@@ -1,9 +1,22 @@
 # -*- coding: utf-8 -*-
 from settings import MASTIFF_HOST
-from models import Brand
+from models import Brand, DealSchedule
 from powers.models import Brand as PowerBrand, Link
+
+from gevent import monkey; monkey.patch_all()
+import gevent
+from backends.monitor.ghub import GHub
+from backends.monitor.throttletask import can_task_run, task_completed, is_task_already_running
+from deals.routine import update, update_category, update_listing, update_product
+from helpers.rpc import get_rpcs
+from settings import CRAWLER_PEERS
+from functools import partial
+
+from bson.objectid import ObjectId
 import slumber
+import traceback
 from urllib import unquote
+from datetime import datetime
 
 def get_all_brands(db='catalogIndex'):
 	if db.lower() == "catalogindex":
@@ -86,3 +99,52 @@ def delete_link(key):
 	links = Link.objects(key=key)
 	links.delete()
 
+
+def execute(site, method):
+    """ execute CrawlerServer function for deals
+
+    """
+    if can_task_run(site, method):
+        job = gevent.spawn(globals()[method], site, get_rpcs(CRAWLER_PEERS), concurrency=10)
+        job.rawlink(partial(task_completed, site=site, method=method))
+        GHub().extend('tasks', [job])
+
+
+def delete_schedule(s):
+    try:
+        DealSchedule.objects.get(pk=s['pk']).delete()
+        return {'status':'ok','pk':s['pk']}
+    except Exception as e:
+        traceback.print_exc()
+        return {'status':'error','reason':repr(e)}
+
+def get_all_schedules():
+    ret = []
+    for s in DealSchedule.objects().order_by('site', 'method'):
+        ret.append({
+            'pk':                   str(s.pk),
+            'name':                 '{0}.{1}'.format(s.site, s.method),
+            'description':          s.description,
+            'crontab_arguments':    s.get_crontab_arguments(),
+            'enabled':              s.enabled,
+        })
+    return ret
+
+def update_schedule(d):
+    try:
+        crawler, method = d['name'].split('.')
+        minute, hour, dayofmonth, month, dayofweek = [ x for x in d['crontab_arguments'].split(" ") if x ]
+        description = d.get('description', u'这个人太懒了什么都没写')
+        enabled = d.get('enabled', False)
+        if d.get('pk'):
+            pk = ObjectId(d['pk'])
+            s = DealSchedule.objects.get(pk=pk)
+        else:
+            s = DealSchedule(site=crawler, method=method)
+        for name in ['description', 'enabled', 'minute', 'hour', 'dayofmonth', 'month', 'dayofweek']:
+            setattr(s, name, locals()[name])
+        s.save()
+        return {'status':'ok', 'pk': str(s.pk)}
+    except Exception as e:
+        traceback.print_exc()
+        return {'status':'error','reason':repr(e)}

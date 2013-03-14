@@ -224,6 +224,8 @@ class ProductPipeline(object):
 
     def clean(self):
         product = self.product
+        if product.disallow_classification:
+            return
 
         print 'start to clean product -> %s.%s' % (self.site, product.key)
 
@@ -285,6 +287,9 @@ class EventPipeline(object):
         return self.extract_title()
 
     def propagate_dept(self, depts, num_products):
+        if self.event.disallow_classification:
+            return
+
         dept_threshold = int(.1*num_products)
         favbuy_dept = list(self.event.favbuy_dept) \
             if self.event.favbuy_dept else []
@@ -425,9 +430,12 @@ class EventPipeline(object):
                     discount_set.add(discount)
 
                 # products_begin, products_end
+                if not self.event.events_begin:
+                    self.event.events_begin = datetime.utcnow()
+
                 if not product.products_begin or \
                     (self.event.events_begin and \
-                        product.products_begin > self.event.events_begin):
+                        product.products_begin < self.event.events_begin):
                             product.products_begin = self.event.events_begin
                             product.update_history['products_begin'] = datetime.utcnow()
 

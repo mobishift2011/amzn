@@ -9,6 +9,8 @@ resource.setrlimit(resource.RLIMIT_NOFILE, (4096, 4096))
 from datetime import datetime
 import collections
 
+from admin.views import execute as execute_deal
+
 from backends.monitor.executor import execute
 from backends.monitor.scheduler import Scheduler
 from backends.monitor.autoschedule import avoid_cold_start, auto_schedule
@@ -26,7 +28,9 @@ def execute_cmd(sender, **kwargs):
     site = kwargs.get('site')
     method = kwargs.get('method')
     logger.warning('site.method: {0}.{1}'.format(site, method))
-    execute(site, method)
+    exe = execute_deal if kwargs.get('command_type') == 'deal' \
+        else execute
+    exe(site, method)
 
 def wait(seconds=60):
     import time
@@ -56,7 +60,7 @@ def toggle_auto_scheduling(sender, **kwargs):
 # end binding
 
 gevent.spawn(Scheduler().run)
-gevent.spawn_later(5, toggle_auto_scheduling, 'webui', auto=True)
+# gevent.spawn_later(5, toggle_auto_scheduling, 'webui', auto=True)
 
 
 while True:

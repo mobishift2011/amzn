@@ -336,6 +336,9 @@ def classify_product_department(site, product, use_event_info=False, return_judg
     if site in ["bluefly", "ideeli", "nomorerack", "onekingslane"]:
         title = u" ".join(p.cats) + " " + title
 
+    if hasattr(p, 'dept'):
+        title = u" ".join(p.dept) + " " + title
+
     if site in ["lot18"]:
         for tag in p.tagline:
             if "white wine" in tag.lower():
@@ -509,9 +512,9 @@ def extract_pattern2():
             f.write('{0} -> {1}\n'.format(phrase.encode('utf-8'), counts))
 
 if __name__ == '__main__':
-    m = get_site_module('beyondtherack')
-    p = m.Product.objects.get(pk='COCTP400510FTP')
-    print classify_product_department('beyondtherack', p, return_judge=True)
+    m = get_site_module('nordstrom')
+    p = m.Product.objects.get(pk='3497113')
+    print classify_product_department('nordstrom', p, return_judge=True)
     exit(0)
     #extract_pattern2()
 

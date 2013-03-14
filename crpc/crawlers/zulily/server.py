@@ -21,10 +21,15 @@ import pytz
 
 from urllib import quote, unquote
 from datetime import datetime, timedelta
+from random import SystemRandom
 
 from models import *
 from crawlers.common.events import *
 from crawlers.common.stash import *
+
+
+
+alphabet = ['0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
 
 header = {
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
@@ -47,6 +52,7 @@ class zulilyLogin(object):
         """
         self.login_url = 'https://www.zulily.com/auth'
         self.badpage_url = re.compile('.*zulily.com/z/.*html')
+        self.rd = SystemRandom()
         self.data = {
             'login[username]': get_login_email('zulily'),
             'login[password]': login_passwd
@@ -54,6 +60,31 @@ class zulilyLogin(object):
         self.current_email = self.data['login[username]']
         # self.reg_check = re.compile(r'https://www.zulily.com/auth/create.*') # need to authentication
         self._signin = {}
+
+    def add_new_user():
+        """
+        Already signed up.
+        https://www.zulily.com/auth/?email=abcd1234%40gmail.com&firstname=first&lastname=last
+
+
+        Could not process your sign up. Please try again.
+        https://www.zulily.com/auth/create/?email=tty1tty1%40gmail.com&firstname=first&lastname=last
+        """
+        regist_url = 'https://www.zulily.com/auth/create/'
+        regist_data = {
+            'firstname': 'first',
+            'lastname': 'last',
+            'email': ''.join( self.rd.sample(alphabet, 10) ) + '@gmail.com',
+            'password': login_passwd,
+            'confirmation': login_passwd,
+        }
+        req.post(regist_url, data=regist_data)
+
+    def check_badpage(self, url):
+        if self.badpage_url.match(url):
+            self.logout_account()
+            self.current_email = get_login_email('zulily')
+            self.login_account()
 
     def login_account(self):
         """.. :py:method::

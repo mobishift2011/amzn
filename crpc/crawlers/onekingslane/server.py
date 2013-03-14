@@ -326,8 +326,8 @@ class Server(object):
             product.image_urls = [item.cssselect('a[href] > img')[0].get('src').replace('medium', 'fullzoom')]
             product.short_desc = item.cssselect('h6')[0].text_content()
             product.title = item.cssselect('h5 > a')[0].text_content().strip()
-            product.listprice = item.cssselect('ul > li.retail')[0].text_content().replace(',','').replace('Retail', '').strip()
-            product.price = item.cssselect('ul > li:nth-of-type(2)')[0].text_content().replace(',','').replace('Our Price', '').strip()
+            product.listprice = item.cssselect('ul > li.retail')[0].text_content().replace(',','').replace('Retail', '').replace('$', '').strip()
+            product.price = item.cssselect('ul > li:nth-of-type(2)')[0].text_content().replace(',','').replace('Our Price', '').replace('$', '').strip()
             if item.cssselect('em.sold'): product.soldout = True
             product.event_type = False
             product.updated = False
@@ -340,8 +340,8 @@ class Server(object):
                     product.soldout = True
                     is_updated = True
                     product.update_history.update({ 'soldout': datetime.utcnow() })
-            listprice = item.cssselect('ul > li.retail')[0].text_content().replace(',','').replace('Retail', '').strip()
-            price = item.cssselect('ul > li:nth-of-type(2)')[0].text_content().replace(',','').replace('Our Price', '').strip()
+            listprice = item.cssselect('ul > li.retail')[0].text_content().replace(',','').replace('Retail', '').replace('$', '').strip()
+            price = item.cssselect('ul > li:nth-of-type(2)')[0].text_content().replace(',','').replace('Our Price', '').replace('$', '').strip()
             if product.listprice != listprice:
                 product.listprice = listprice
                 product.update_history.update({ 'listprice': datetime.utcnow() })
@@ -420,11 +420,11 @@ class Server(object):
             product.image_urls = [image]
 
             if listprice:
-                product.listprice = listprice[0].text_content().replace(',','').replace('Retail', '').strip()
+                product.listprice = listprice[0].text_content().replace(',','').replace('Retail', '').replace('$', '').strip()
             if not price:
                 common_failed.send(sender=ctx, url=event_id + '/' + product_id, reason='price not resolve right')
                 return
-            product.price = price[0].text_content().replace(',','').replace('Our Price', '').strip()
+            product.price = price[0].text_content().replace(',','').replace('Our Price', '').replace('$', '').strip()
             if item.cssselect('a.sold-out'): product.soldout = True
             product.updated = False
             product.combine_url = 'https://www.onekingslane.com/product/{0}/{1}'.format(event_id, product_id)
@@ -442,12 +442,12 @@ class Server(object):
                 product.update_history.update({ 'combine_url': datetime.utcnow() })
 
             if listprice:
-                listprice = listprice[0].text_content().replace(',','').replace('Retail', '').strip()
+                listprice = listprice[0].text_content().replace(',','').replace('Retail', '').replace('$', '').strip()
                 if product.listprice != listprice:
                     product.listprice = listprice
                     product.update_history.update({ 'listprice': datetime.utcnow() })
             if price:
-                price = price[0].text_content().replace(',','').replace('Our Price', '').strip()
+                price = price[0].text_content().replace(',','').replace('Our Price', '').replace('$', '').strip()
                 if product.price != price:
                     product.price = price
                     product.update_history.update({ 'price': datetime.utcnow() })

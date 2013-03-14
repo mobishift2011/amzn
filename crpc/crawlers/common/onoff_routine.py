@@ -99,8 +99,6 @@ if __name__ == '__main__':
     # rpc = get_rpcs([{'host_string':'root@127.0.0.1', 'port':8899}])
     # rpc = get_rpcs()
     rpc = CheckServer()
-    checkout('totsy', 'check_onsale_product', rpc)
-    exit()
 
 # call that can change the crpc/mastiff database
     checkout('onekingslane', 'check_onsale_event', rpc)

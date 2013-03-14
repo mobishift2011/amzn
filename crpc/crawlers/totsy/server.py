@@ -239,8 +239,8 @@ class Server(object):
             key = self.from_url_get_product_key(link)
             pprice = node.cssselect('div.thumbnail > div.caption > div.price-wrap > div.price-box')[0]
             listprice = pprice.cssselect('p.old-price > span.price')
-            listprice = listprice[0].text_content().strip() if listprice else ''
-            price = pprice.cssselect('span[id^="product-price"]')[0].text_content().strip()
+            listprice = listprice[0].text_content().replace('$', '').strip() if listprice else ''
+            price = pprice.cssselect('span[id^="product-price"]')[0].text_content().replace('$', '').strip()
             soldout = True if node.cssselect('img.out-of-stock') else False
 
             is_new, is_updated = False, False
@@ -255,10 +255,16 @@ class Server(object):
                 product.price = price
                 product.soldout = soldout
             else:
-                if soldout and product.soldout != True:
-                    product.soldout = True
+                if product.soldout != soldout:
+                    product.soldout = soldout
                     is_updated = True
                     product.update_history.update({ 'soldout': datetime.utcnow() })
+                if product.price != price:
+                    product.price = price
+                    product.update_history.update({ 'price': datetime.utcnow() })
+                if product.listprice != listprice:
+                    product.listprice = listprice
+                    product.update_history.update({ 'listprice': datetime.utcnow() })
             if event_id not in product.event_id: product.event_id.append(event_id)
             product.list_update_time = datetime.utcnow()
             product.save()
@@ -291,19 +297,27 @@ class Server(object):
         nav = tree.cssselect('div#mainContent > section#pageheader > div.row')[0]
         soldout_price = nav.cssselect('div.product-main > div.product-addtocart div#product-main-info')[0]
         soldout = True if soldout_price.cssselect('div.availability') else False
+        price = soldout_price.cssselect('div.product-prices > div.product-prices-main > div.price-box > span.special-price')[0].text_content().replace('$', '').strip()
+        listprice = soldout_price.cssselect('div.product-prices > div.product-prices-main > div.product-price-was')[0].text_content().replace('Was', '').replace('$', '').strip()
         if is_new:
             product.title = nav.cssselect('div.product-main > div.page-header > h3')[0].text_content()
-            product.price = soldout_price.cssselect('div.product-prices > div.product-prices-main > div.price-box > span.special-price')[0].text_content()
-            product.listprice = soldout_price.cssselect('div.product-prices > div.product-prices-main > div.product-price-was')[0].text_content().replace('Was', '').strip()
+            product.price = price
+            product.listprice = listprice
             product.combine_url = url
             product.soldout = soldout
             product.updated = True
             ready = True
         else:
-            if soldout and product.soldout != True:
-                product.soldout = True
+            if product.soldout != soldout:
+                product.soldout = soldout
                 is_updated = True
                 product.update_history.update({ 'soldout': datetime.utcnow() })
+            if product.price != price:
+                product.price = price
+                product.update_history.update({ 'price': datetime.utcnow() })
+            if product.listprice != listprice:
+                product.listprice = listprice
+                product.update_history.update({ 'listprice': datetime.utcnow() })
             ready = False
         if event_id not in product.event_id: product.event_id.append(event_id)
         product.save()

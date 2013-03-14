@@ -224,6 +224,8 @@ class ProductPipeline(object):
 
     def clean(self):
         product = self.product
+        if product.disallow_classification:
+            return
 
         print 'start to clean product -> %s.%s' % (self.site, product.key)
 

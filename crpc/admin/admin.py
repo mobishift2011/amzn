@@ -299,6 +299,7 @@ class EditDataHandler(BaseHandler):
             e.sale_description = data['description']
             e.favbuy_tag = data['tags']
             e.departments = data['departments']
+            e.disallow_classification = True
             e.save()
         except Exception,e:
             message = e.message
@@ -347,6 +348,7 @@ class EditDataHandler(BaseHandler):
             p.brand = data['brand']
             p.tagline = data['tags']
             p.department_path = data['department_path']
+            p.disallow_classification = True
             p.save()
         except Exception,e:
             message = e.message

@@ -30,7 +30,7 @@ from crawlers.common.stash import *
 
 
 
-SLEEP = 60
+SLEEP = 10
 alphabet = ['0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
 
 header = {
@@ -91,7 +91,7 @@ class zulilyLogin(object):
             returl, email = self.create_new_account()
             times += 1
             if times >= 3:
-                time.sleep(SLEEP*10)
+                time.sleep(600)
                 times = 0
 
         self.conf.read( os.path.join(os.path.dirname(__file__), '../common/username.ini') )

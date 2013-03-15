@@ -1,6 +1,7 @@
 import requests
 import lxml.html
 import re
+import json
 import slumber
 from datetime import datetime
 
@@ -13,6 +14,7 @@ class CheckServer(object):
     def __init__(self):
         self.s = requests.session()
         self.login_url = 'http://www.ruelala.com/access/gate'
+        self.size_matrix = re.compile('Liberty.Common.mixin\((.*), Product\);')
         self.s.get(self.login_url)
         self.s.post('http://www.ruelala.com/access/formSetup', data={'userEmail':'','CmsPage':'/access/gate','formType':'signin'})
         self.data = {
@@ -57,6 +59,15 @@ class CheckServer(object):
                 prd.save()
                 print '\n\nruelala product[{0}] redirect, sale end.\n\n'.format(url)
             return -302
+        js = json.loads( self.size_matrix.search(ret.content).group(1) )
+        soldout = True
+        for size in js['sizeColorMatrix']:
+            if size['currentQty'] > 0:
+                soldout = False
+                break
+        if prd.soldout != soldout:
+            print 'ruelala product[{0}] soldout error: [{1}, {2}]'.format(prd.combine_url, prd.soldoout, soldout)
+
         cont = ret.content
         tree = lxml.html.fromstring(cont)
         try:
@@ -73,7 +84,6 @@ class CheckServer(object):
         except IndexError:
             print '\n\n ruelala product[{0}] listprice error. {1}'.format(prd.combine_url, ret.url)
         price = tree.cssselect('span#salePrice')[0].text_content().strip()
-        soldout = tree.cssselect('span#inventoryAvailable')
         if price != prd.price:
             print 'ruelala product[{0}] price error: [{1}, {2}]'.format(prd.combine_url, prd.price, price)
 

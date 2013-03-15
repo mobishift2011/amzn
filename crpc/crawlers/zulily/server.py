@@ -18,6 +18,7 @@ import time
 import zerorpc
 import lxml.html
 import pytz
+import ConfigParser
 
 from urllib import quote, unquote
 from datetime import datetime, timedelta
@@ -29,6 +30,7 @@ from crawlers.common.stash import *
 
 
 
+SLEEP = 60
 alphabet = ['0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
 
 header = {
@@ -53,6 +55,7 @@ class zulilyLogin(object):
         self.login_url = 'https://www.zulily.com/auth'
         self.badpage_url = re.compile('.*zulily.com/z/.*html')
         self.rd = SystemRandom()
+        self.conf = ConfigParser.ConfigParser()
         self.data = {
             'login[username]': get_login_email('zulily'),
             'login[password]': login_passwd
@@ -61,15 +64,7 @@ class zulilyLogin(object):
         # self.reg_check = re.compile(r'https://www.zulily.com/auth/create.*') # need to authentication
         self._signin = {}
 
-    def add_new_user():
-        """
-        Already signed up.
-        https://www.zulily.com/auth/?email=abcd1234%40gmail.com&firstname=first&lastname=last
-
-
-        Could not process your sign up. Please try again.
-        https://www.zulily.com/auth/create/?email=tty1tty1%40gmail.com&firstname=first&lastname=last
-        """
+    def create_new_account(self):
         regist_url = 'https://www.zulily.com/auth/create/'
         regist_data = {
             'firstname': 'first',
@@ -78,13 +73,41 @@ class zulilyLogin(object):
             'password': login_passwd,
             'confirmation': login_passwd,
         }
-        req.post(regist_url, data=regist_data)
+        ret = req.post(regist_url, data=regist_data)
+        return ret.url, regist_data['email']
 
-    def check_badpage(self, url):
+    def change_username(self):
+        """
+        Already signed up.
+        https://www.zulily.com/auth/?email=abcd1234%40gmail.com&firstname=first&lastname=last
+
+
+        Could not process your sign up. Please try again.
+        https://www.zulily.com/auth/create/?email=tty1tty1%40gmail.com&firstname=first&lastname=last
+        """
+        returl, email = self.create_new_account()
+        times = 0
+        while returl.startswith('https://www.zulily.com/auth/'):
+            returl, email = self.create_new_account()
+            times += 1
+            if times >= 3:
+                time.sleep(SLEEP*10)
+                times = 0
+
+        self.conf.read( os.path.join(os.path.dirname(__file__), '../common/username.ini') )
+        self.conf.set('username', DB, email)
+        self.conf.write(open(os.path.join(os.path.dirname(__file__), '../common/username.ini'), 'w'))
+        return email
+
+
+    def whether_itis_badpage(self, url):
         if self.badpage_url.match(url):
             self.logout_account()
-            self.current_email = get_login_email('zulily')
+            email = self.change_username()
+            self.current_email = email
             self.login_account()
+            return True
+        else: return False
 
     def login_account(self):
         """.. :py:method::
@@ -117,14 +140,10 @@ class zulilyLogin(object):
             check whether the account is login, if not, login and fetch again
         """
         ret = req.get(url)
+        time.sleep(SLEEP)
 
-        if self.badpage_url.match(ret.url):
-            self.current_email = get_login_email('zulily')
-            self.logout_account()
-            self.login_account()
+        if self.whether_itis_badpage(ret.url):
             ret = req.get(url)
-            if self.badpage_url.match(ret.url):
-                return -500
 
         if ret.url == u'http://www.zulily.com/oops-event':
             return -404
@@ -141,14 +160,10 @@ class zulilyLogin(object):
             check whether the account is login, if not, login and fetch again
         """
         ret = req.get(url)
+        time.sleep(SLEEP)
 
-        if self.badpage_url.match(ret.url):
-            self.current_email = get_login_email('zulily')
-            self.logout_account()
-            self.login_account()
+        if self.whether_itis_badpage(ret.url):
             ret = req.get(url)
-            if self.badpage_url.match(ret.url):
-                return -500
 
         if ret.url == u'http://www.zulily.com/oops-event':
             return -404
@@ -184,8 +199,8 @@ class Server(object):
         """.. :py:method::
             From top depts, get all the events
         """
-        if kwargs.get('login_email'): self.net.check_signin( kwargs.get('login_email') )
-        else: self.net.check_signin()
+#        if kwargs.get('login_email'): self.net.check_signin( kwargs.get('login_email') )
+#        else: self.net.check_signin()
 
         depts = ['girls', 'boys', 'women', 'baby-maternity', 'toys-playtime', 'home']
         debug_info.send(sender=DB + '.category.begin')
@@ -314,8 +329,8 @@ class Server(object):
 
         :param url: listing page url
         """
-        if kwargs.get('login_email'): self.net.check_signin( kwargs.get('login_email') )
-        else: self.net.check_signin()
+#        if kwargs.get('login_email'): self.net.check_signin( kwargs.get('login_email') )
+#        else: self.net.check_signin()
 
         event_id = self.extract_event_id.match(url).group(2)
         cont = self.net.fetch_listing_page(url)
@@ -477,8 +492,8 @@ class Server(object):
 
         :param url: product url
         """
-        if kwargs.get('login_email'): self.net.check_signin( kwargs.get('login_email') )
-        else: self.net.check_signin()
+#        if kwargs.get('login_email'): self.net.check_signin( kwargs.get('login_email') )
+#        else: self.net.check_signin()
 
         cont = self.net.fetch_page(url)
         if isinstance(cont, int):

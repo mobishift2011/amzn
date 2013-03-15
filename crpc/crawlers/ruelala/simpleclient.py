@@ -67,7 +67,7 @@ class CheckServer(object):
                 soldout = False
                 break
         if prd.soldout != soldout:
-            print 'ruelala product[{0}] soldout error: [{1}, {2}]'.format(prd.combine_url, prd.soldoout, soldout)
+            print 'ruelala product[{0}] soldout error: [{1}, {2}]'.format(prd.combine_url, prd.soldout, soldout)
 
         cont = ret.content
         tree = lxml.html.fromstring(cont)

@@ -266,6 +266,15 @@ def _inject_settings():
                     '''.format(ENV))
                     file_append('/srv/crpc/supervisord.conf', monitor_conf)
 
+                    offsale_conf = text_strip_margin('''
+                    |
+                    |[program:offsale]
+                    |directory = /srv/crpc
+                    |environment = PYTHONPATH=/srv/crpc, ENV={0}
+                    |command = python crawlers/common/onoff_routine.py
+                    '''.format(ENV))
+                    file_append('/srv/crpc/supervisord.conf', offsale_conf)
+
 def restart_crawler_server():
     env.hosts = CRAWLER_HOSTS
     execute(_restart_zero)

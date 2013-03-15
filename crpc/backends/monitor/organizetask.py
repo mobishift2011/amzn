@@ -12,6 +12,9 @@ from settings import MONGODB_HOST
 from backends.monitor.setting import UPCOMING_EVENTS_DETECT_INTERVAL, UPDATE_ALL_SITES_INTERVAL, NEW_ALL_SITES_INTERVAL
 from crawlers.common.stash import picked_crawlers
 
+picked_crawler = list(picked_crawlers)
+if 'zulily' in picked_crawler: picked_crawler.remove('zulily')
+
 smethod_time = collections.defaultdict(set)
 conn = pymongo.Connection(host=MONGODB_HOST)
 
@@ -21,7 +24,7 @@ def detect_upcoming_new_schedule():
     """
     while True:
         dbs = conn.database_names()
-        for crawler_name in picked_crawlers:
+        for crawler_name in picked_crawler:
             if crawler_name in dbs:
                 collections = conn[crawler_name].collection_names()
                 if 'event' in collections:
@@ -59,7 +62,7 @@ def arrange_new_schedule():
         This is the 'in case' schedule
     """
     while True:
-        crawlers = picked_crawlers
+        crawlers = picked_crawler
         one_interval = timedelta(seconds =  NEW_ALL_SITES_INTERVAL * 1.0 / len(crawlers) * 60)
         _utcnow = datetime.utcnow()
         for crawler in crawlers:
@@ -74,7 +77,7 @@ def arrange_update_schedule():
         update schedule, update sequence is always the same
     """
     while True:
-        crawlers = picked_crawlers
+        crawlers = picked_crawler
         one_interval = timedelta(seconds =  UPDATE_ALL_SITES_INTERVAL * 1.0 / len(crawlers) * 60)
         _utcnow = datetime.utcnow()
         for crawler in crawlers:

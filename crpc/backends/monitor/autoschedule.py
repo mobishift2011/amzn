@@ -34,7 +34,9 @@ def avoid_cold_start():
     # gevent need a 'block' to run spawn.Or we can say gevent will execute spawn until meet a 'block'
     gevent.sleep(1)
 
-    crawlers = picked_crawlers
+    crawlers = list(picked_crawlers)
+    if 'zulily' in crawlers:
+        crawlers.remove('zulily')
     for crawler_name in crawlers:
         execute(crawler_name, 'new_thrice')
 

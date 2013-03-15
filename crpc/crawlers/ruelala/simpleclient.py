@@ -80,7 +80,7 @@ class CheckServer(object):
 
         try:
             listprice = tree.cssselect('span#strikePrice')[0].text_content().strip()
-            if listprice != prd.listprice:
+            if listprice and listprice != prd.listprice:
                 print 'ruelala product[{0}] listprice error: [{1}, {2}]'.format(prd.combine_url, prd.listprice, listprice)
         except IndexError:
             print '\n\n ruelala product[{0}] listprice error. {1}'.format(prd.combine_url, ret.url)

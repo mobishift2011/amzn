@@ -477,8 +477,8 @@ class Server(object):
                     product.listprice = strike_price
                     is_updated = True
                     product.update_history.update({ 'price': datetime.utcnow(), 'listprice': datetime.utcnow() })
-                if soldout and product.soldout != True:
-                    product.soldout = True
+                if product.soldout != soldout:
+                    product.soldout = soldout
                     is_updated = True
                     product.update_history.update({ 'soldout': datetime.utcnow() })
                 if product.combine_url != link:

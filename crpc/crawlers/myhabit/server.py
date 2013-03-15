@@ -124,7 +124,7 @@ class Server(object):
         asin = product_data['asin']
         casin = product_data['cAsin']
         title = product_data['title'].encode('utf-8') # color is in title
-        image_urls = [product_data['image']] + product_data['altImages'] # one picture, altImages is []
+#        image_urls = [product_data['image']] + product_data['altImages'] # one picture, altImages is []
         if 'listPrice' in product_data:
             listprice = product_data['listPrice']['display'] # or 'amount', if isRange: True, don't know what 'amount' will be
         else: listprice = ''
@@ -149,7 +149,7 @@ class Server(object):
             product.combine_url = combine_url
             product.asin = asin
             product.title = title
-            product.image_urls = image_urls
+#            product.image_urls = image_urls
             product.listprice = listprice
             product.price = price
             product.sizes = sizes
@@ -179,6 +179,11 @@ class Server(object):
         r = req.get(url)
         data = re.compile(r'parse_asin_\w+\((.*)\);$').search(r.text).group(1)
         data = json.loads(data)
+
+        image_urls = []
+        for i in data['detailJSON']['main']['altviews']:
+            if i['zoomImage'] not in image_urls:
+                image_urls.append(i['zoomImage'])
 
         asin = data['detailJSON']['asin']
         summary = data['productDescription']['shortProdDesc']
@@ -211,6 +216,7 @@ class Server(object):
         product.shipping = 'FAST, FREE SHIPPING, FREE RETURN SHIPPING in the U.S.'
         product.returned = returned
         product.video = video
+        product.image_urls = image_urls
         product.full_update_time = datetime.utcnow()
 
         if product.updated == False:

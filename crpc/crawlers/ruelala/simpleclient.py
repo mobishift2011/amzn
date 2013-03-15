@@ -14,7 +14,7 @@ class CheckServer(object):
     def __init__(self):
         self.s = requests.session()
         self.login_url = 'http://www.ruelala.com/access/gate'
-        self.size_matrix = re.compile('Liberty.Common.mixin\((.*), Product\);')
+        self.size_matrix = re.compile('Liberty.Common.mixin\((.*), Product\);', re.M)
         self.s.get(self.login_url)
         self.s.post('http://www.ruelala.com/access/formSetup', data={'userEmail':'','CmsPage':'/access/gate','formType':'signin'})
         self.data = {
@@ -59,10 +59,11 @@ class CheckServer(object):
                 prd.save()
                 print '\n\nruelala product[{0}] redirect, sale end.\n\n'.format(url)
             return -302
-        js = json.loads( self.size_matrix.search(ret.content).group(1) )
+        size_matrix = self.size_matrix.search(ret.content).group(1)
+        js = json.loads(size_matrix)
         soldout = True
-        for size in js['sizeColorMatrix']:
-            if size['currentQty'] > 0:
+        for size, value in js['sizeColorMatrix'].iteritems():
+            if value['currentQty'] > 0:
                 soldout = False
                 break
         if prd.soldout != soldout:
@@ -107,4 +108,4 @@ class CheckServer(object):
         return 'ruelala_'+product_id, title+'_'+description
 
 if __name__ == '__main__':
-    CheckServer().check_onsale_product()
+    CheckServer().check_onsale_product('1111012412', 'https://www.ruelala.com/event/product/68760/1111012412/0/DEFAULT')

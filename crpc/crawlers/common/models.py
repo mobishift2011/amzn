@@ -76,6 +76,7 @@ class BaseEvent(Document, BaseDocumentSkeleton):
     soldout             = BooleanField(default=False)
     dept                = ListField(StringField())
     product_ids         = ListField(StringField())
+    disallow_classification =  BooleanField()
 
     # after setting urgent to False, you can't set it back
     # after event complete by crawler, urgent is False
@@ -141,6 +142,7 @@ class BaseProduct(Document):
     list_update_time    =   DateTimeField(default=datetime.utcnow)
     full_update_time    =   DateTimeField()
     update_history      =   DictField()
+    disallow_classification =  BooleanField()
 
     # dimension info
     category_key        =   ListField(StringField()) # like event_id, but in category

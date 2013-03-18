@@ -795,7 +795,7 @@ class MemberHandler(BaseHandler):
         offset, limit = int(offset), int(limit)
         user = self.get_argument('user', '')
 
-        data = api.useraction.get(user=user, order_by='-time')
+        data = api.useraction.get(user=user, order_by='-time', limit=limit)
         activities = data['objects']
         total_count = data['meta']['total_count']
         pagination = Pagination(1+offset/50, 50, total_count)

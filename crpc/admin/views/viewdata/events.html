@@ -31,6 +31,7 @@
         {% for e in events %}
         <div style="float: left; width: 250px; height: 500px;">
           <a target="_blank" href="{{e.original_url}}"><img src="{{ e.cover_image|imagesize('280x280') }}" style="width:240px; height:240px;"/><br /></a>
+          <b style="color:grey">@score</b> {{ e.score }}<br />
           <b style="color:grey">@site_key</b> {{ e.site_key }}<br />
           <b style="color:grey">@title</b> {{ e.title }}<br />
           <b style="color:grey">@departments</b> {{ e.departments }}<br />

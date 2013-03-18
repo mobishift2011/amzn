@@ -35,6 +35,7 @@
         <div style="float: left; width: 250px; height:500px;">
           <img src="{{ p.cover_image|imagesize('224x0') }}" /><br />
           {{ p.title }}<br />
+          <b style="color:grey">@score</b> {{ p.score }}<br />
           <b style="color:grey">@departments</b> {{ p.department_path }}<br />
           <b style="color:grey">@brand</b> {{ p.brand }}<br />
           <b style="color:grey">@tags(first 3)</b> {{ p.tags[:3] }}<br />

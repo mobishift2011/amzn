@@ -1,6 +1,7 @@
 import requests
 import lxml.html
 import re
+import json
 import slumber
 from datetime import datetime
 
@@ -13,6 +14,7 @@ class CheckServer(object):
     def __init__(self):
         self.s = requests.session()
         self.login_url = 'http://www.ruelala.com/access/gate'
+        self.size_matrix = re.compile('Liberty.Common.mixin\((.*), Product\);', re.M)
         self.s.get(self.login_url)
         self.s.post('http://www.ruelala.com/access/formSetup', data={'userEmail':'','CmsPage':'/access/gate','formType':'signin'})
         self.data = {
@@ -57,6 +59,19 @@ class CheckServer(object):
                 prd.save()
                 print '\n\nruelala product[{0}] redirect, sale end.\n\n'.format(url)
             return -302
+        size_matrix = self.size_matrix.search(ret.content).group(1)
+        js = json.loads(size_matrix)
+        soldout = True
+        for size, value in js['sizeColorMatrix'].iteritems():
+            if value['currentQty'] > 0:
+                soldout = False
+                break
+        if prd.soldout != soldout:
+            print 'ruelala product[{0}] soldout error: [{1}, {2}]'.format(prd.combine_url, prd.soldout, soldout)
+            prd.soldout = soldout
+            prd.update_history.update({ 'soldout': datetime.utcnow() })
+            prd.save()
+
         cont = ret.content
         tree = lxml.html.fromstring(cont)
         try:
@@ -68,12 +83,11 @@ class CheckServer(object):
 
         try:
             listprice = tree.cssselect('span#strikePrice')[0].text_content().strip()
-            if listprice != prd.listprice:
+            if listprice and listprice != prd.listprice:
                 print 'ruelala product[{0}] listprice error: [{1}, {2}]'.format(prd.combine_url, prd.listprice, listprice)
         except IndexError:
             print '\n\n ruelala product[{0}] listprice error. {1}'.format(prd.combine_url, ret.url)
         price = tree.cssselect('span#salePrice')[0].text_content().strip()
-        soldout = tree.cssselect('span#inventoryAvailable')
         if price != prd.price:
             print 'ruelala product[{0}] price error: [{1}, {2}]'.format(prd.combine_url, prd.price, price)
 
@@ -97,4 +111,4 @@ class CheckServer(object):
         return 'ruelala_'+product_id, title+'_'+description
 
 if __name__ == '__main__':
-    CheckServer().check_onsale_product()
+    CheckServer().check_onsale_product('1111012412', 'https://www.ruelala.com/event/product/68760/1111012412/0/DEFAULT')

@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 # Author: bishop Liu <miracle (at) gmail.com>
 
+import os
+import time
 import random
 import traceback
 from datetime import datetime
@@ -93,14 +95,13 @@ def checkout(site, method, rpc, concurrency=10):
     pool.join()
 
 
-if __name__ == '__main__':
-
+def offsale_schedule():
     from checkserver import CheckServer
+    rpc = CheckServer()
     # rpc = get_rpcs([{'host_string':'root@127.0.0.1', 'port':8899}])
     # rpc = get_rpcs()
-    rpc = CheckServer()
 
-# call that can change the crpc/mastiff database
+# call will change the crpc/mastiff database
     checkout('onekingslane', 'check_onsale_event', rpc)
     checkout('onekingslane', 'check_onsale_product', rpc)
 
@@ -124,4 +125,19 @@ if __name__ == '__main__':
     checkout('modnique', 'check_onsale_product', rpc)
 
     checkout('totsy', 'check_onsale_product', rpc)
+
+def control():
+    log_file = '/tmp/onoff_sale.log'
+    if os.path.isfile(log_file):
+        if time.time() - os.path.getctime(log_file) > 86400:
+            os.unlink(log_file)
+        else:
+            return
+    else:
+        offsale_schedule()
+
+if __name__ == '__main__':
+    while True:
+        control()
+        time.sleep(600)
 

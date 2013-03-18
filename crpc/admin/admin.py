@@ -270,7 +270,7 @@ class EditDataHandler(BaseHandler):
         data = {}
         data['title']       = self.get_argument('title')
         data['description'] = self.get_argument('description','')
-        data['tags']        = self.get_argument('tags').split(',')
+        data['tags']        = self.get_argument('tags','').split(',')
         data['departments']   = eval(self.get_argument('departments', '[]'))
         if self.get_argument('score'):
             try:
@@ -326,11 +326,11 @@ class EditDataHandler(BaseHandler):
         data = {}
         data['title']         = self.get_argument('title')
         data['details']       = self.get_argument('details')
-        data['tags']          = self.get_argument('tags') and self.get_argument('tags').split(',') or []
+        data['tags']          = self.get_argument('tags', '').split(',')
         data['brand']         = self.get_argument('brand', '')
         data['department_path']   = eval(self.get_argument('departments', '[]'))
         data['cover_image']   = eval(self.get_argument('cover_image', '{}'))
-        data['details']       = self.get_argument('details') and self.get_argument('details').split('\n') or []
+        data['details']       = self.get_argument('details', '').split('\n')
 
         # validate
         if data['brand']:

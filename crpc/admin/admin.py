@@ -782,10 +782,28 @@ class MemberHandler(BaseHandler):
     def get(self, path):
         if path == '':
             self.user_index()
+        elif path == 'recent_activity':
+            self.user_recent_activity()
 
     def post(self, path):
         if path == 'delete_user.ajax':
             self.delete_user()
+
+    def user_recent_activity(self):
+        limit = self.get_argument('limit', '50')
+        offset = self.get_argument('offset', '0')
+        offset, limit = int(offset), int(limit)
+        user = self.get_argument('user', '')
+
+        data = api.useraction.get(user=user, order_by='-time')
+        activities = data['objects']
+        total_count = data['meta']['total_count']
+        pagination = Pagination(1+offset/50, 50, total_count)
+
+        self.render('recent_activity.html',
+            activities = activities,
+            pagination = pagination
+        )
 
     def delete_user(self):
         username = self.get_argument('username')

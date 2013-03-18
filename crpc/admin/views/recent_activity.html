@@ -17,32 +17,21 @@
                         <tr>
                             <th>Avatar</th>
                             <th>Username/Email</th>
-                            <th>Display name</th>
-                            <th>Date Joined</th>
-                            <th>is_active</th>
-                            <th>SNS</th>
-                            <th>Signup From</th>
-                            <th>Control</th>
+                            <th>Activity</th>
+                            <th>Date</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for u in users %}
+                        {% for a in activities %}
                             <tr>
-                                {% if u.avatar_large %}
-                                <td><a href="{{u.avatar_large}}" target="_blank"><img src="{{u.avatar_large}}" style="width:32px;"/></a></td>
+                                {% if a.user.avatar_large %}
+                                <td><a href="{{a.user.avatar_large}}" target="_blank"><img src="{{a.user.avatar_large}}" style="width:32px;"/></a></td>
                                 {% else %}
                                 <td><i class="icon32 icon-user icon-orange"></i></td>
                                 {% endif %}
-                                <td>{{ u.username }}</td>
-                                <td>{{ u.screen_name }}</td>
-                                <td>{{ u.date_joined }}</td>
-                                <td>{{ u.is_active }}</td>
-                                <td> facebook: {{ u.facebook_id }}/ twitter: {{ u.twitter_id }}</td>
-                                <td> {{ u.signup_from }}</td>
-                                <td>
-                                    <a id="recent-activity" userid="{{u.id}}" title="View Recent Activities" class="btn btn-primary"><i class="icon-tasks icon-white"></i></a>
-                                    <a id="delete-user" username="{{u.username}}" title="Delete User" class="btn btn-danger"><i class="icon-trash icon-white"></i></a>
-                                </td>
+                                <td>{{ a.user.username }}</td>
+                                <td>{{ a.name }} : {{ a['values'] }}</td>
+                                <td>{{ a.time }}</td>
                             </tr>
                         {% endfor %}
                     </tbody>
@@ -79,39 +68,14 @@
         var r = document.cookie.match("\\b" + name + "=([^;]*)\\b");
         return r ? r[1] : undefined;
     }
-
-    $('#recent-activity').live('click', function(){
-        var userid = $(this).attr('userid');
-        location.href = '/member/recent_activity?user=' + userid; 
-    });
     
-    $('#delete-user').live('click', function(){
-        var del = confirm("are you sure to delete this user?");
-        if (del){
-            var username = $(this).attr('username');
-            var self = $(this);
-            $.ajax({
-                type: "POST",
-                dataType: "json", 
-                data: {username:username, _xsrf:getCookie('_xsrf')},
-                url: "/member/delete_user.ajax",
-                success: function(data){
-                    console.log(data);
-                    if (data['status'] == 'ok'){
-                        self.parent().parent().remove();
-                    }
-                }
-            }) 
-        }
-    });
-
   // make selection consistent with url
   var param = $.deparam(window.location.href.substr(window.location.href.indexOf('?')+1));
 
   $('a.pagination').live('click', function(){
     if ($(this).attr('page')) {
       param['offset'] = ($(this).attr('page')-1)*50;
-      var url = "/member/?" + $.param(param);
+      var url = "/member/recent_activity?" + $.param(param);
       window.location.href = url;
     }
   });

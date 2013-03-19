@@ -112,7 +112,7 @@ class Server(object):
         if kwargs.get('login_email'): self.net.check_signin( kwargs.get('login_email') )
         else: self.net.check_signin()
 
-        depts = ['women', 'men', 'home', ]
+        depts = ['women', 'shoes', 'home', ]
         for dept in depts:
             self.crawl_one_dept(dept, ctx)
 

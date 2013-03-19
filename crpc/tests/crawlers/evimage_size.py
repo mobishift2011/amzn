@@ -39,7 +39,16 @@ def download_img(img_url):
     if 'text/html' in r.headers.get('Content-Type', ''):
         return
     cs = StringIO(r.content)
-    img = Image.open(cs)
+
+    try:
+        img = Image.open(cs)
+    except IOError:
+        r = requests.get(img_url)
+        cs = StringIO(r.content)
+        try:
+            img = Image.open(cs)
+        except IOError:
+            return False
 
     return img.size
 

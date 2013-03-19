@@ -17,7 +17,7 @@ conn = pymongo.Connection(MONGODB_HOST)
 
 def statistics_image_size():
     for site in picked_crawlers:
-        print 'site: {0}\n'.format(site)
+        print 'site: {0}'.format(site)
         utcnow = datetime.utcnow()
         cnt = Counter()
         col = conn[site].collection_names()
@@ -30,6 +30,7 @@ def statistics_image_size():
                     if size:
                         cnt[size] += 1
             print cnt
+            print
 
 
 def download_img(img_url):

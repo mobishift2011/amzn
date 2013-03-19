@@ -132,8 +132,8 @@
                               <tr>
                                 <td>{{site}}</td>
                                 <td>{{count}}</td>
-                                {% if site in num_products_by_site and num_products_by_site[site] %}
-                                <td>{{ "{:,.2f}".format(100*count/num_products_by_site[site]) }} %</td>
+                                {% if site in num_view_products_by_site and num_view_products_by_site[site] %}
+                                <td>{{ "{:,.2f}".format(100*count/num_view_products_by_site[site]) }} %</td>
                                 {% endif %}
                               </tr>
                             {% endfor %}

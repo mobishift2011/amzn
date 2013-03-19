@@ -150,9 +150,7 @@ class IndexHandler(BaseHandler):
     @tornado.web.authenticated
     def get(self):
         from backends.matching.feature import sites
-        num_products_by_site = {}
-        for site in sites:
-            num_products_by_site[site] = api.product.get(site_key__startswith=site,limit=1)['meta']['total_count']
+        num_view_products_by_site = api.useraction.get(special='num_view_products_by_site')
         yesterday = (datetime.utcnow() - timedelta(days=1)).isoformat().replace('T', ' ')
         num_members = api.user.get(limit=1)['meta']['total_count']
         num_new_members = api.user.get(limit=1, date_joined__gt=yesterday)['meta']['total_count']
@@ -190,7 +188,7 @@ class IndexHandler(BaseHandler):
     
         self.render("index.html",
             utcnow = datetime.utcnow(),
-            num_products_by_site = num_products_by_site,
+            num_view_products_by_site = num_view_products_by_site,
             num_members = num_members,
             num_new_members = num_new_members,
             num_events = num_events,

@@ -4,6 +4,7 @@
 
 import requests
 import pymongo
+import itertools
 from datetime import datetime
 from PIL import Image
 from cStringIO import StringIO
@@ -22,7 +23,8 @@ def statistics_image_size():
         col = conn[site].collection_names()
         if 'event' in col:
             ev = conn[site].event.find({'events_begin': {'$gt': utcnow}, 'image_urls': {'$exists': True}}, fields=['image_urls'])
-            for e in ev:
+            ev2 = conn[site].event.find({'events_begin': {'$lt': utcnow}, 'events_end': {'$gt': utcnow}, 'image_urls': {'$exists': True}}, fields=['image_urls'])
+            for e in itertools.chain(ev, ev2):
                 for img in e['image_urls']:
                     size = download_img(img)
                     if size:

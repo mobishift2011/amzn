@@ -614,7 +614,7 @@ class MonitorHandler(BaseHandler):
 
 class CrawlerHandler(BaseHandler):
     @tornado.web.authenticated
-    def get(self, subpath):
+    def get(self, subpath, site):
         if not subpath:
             self.redirect('/crawler/tasks')
         if subpath == 'tasks':
@@ -627,6 +627,9 @@ class CrawlerHandler(BaseHandler):
             self.render('crawler/history.html')
         elif subpath == 'graph':
             self.render('crawler/graph.html')
+        elif subpath == 'site':
+            if site:
+                self.render("crawler/site.html", tasks = get_one_site_schedule(site))
 
 
 class DashboardHandler(BaseHandler):
@@ -898,9 +901,6 @@ class AjaxHandler(BaseHandler):
             self.content_type = 'application/json'
             self.write(json.dumps({'status':'failed'}))
 
-class SiteHandler(BaseHandler):
-    def get(self, site):
-        self.render("crawler/site.html", tasks = get_one_site_schedule(site))
 
 settings = {
     "debug": True,
@@ -916,7 +916,7 @@ application = tornado.web.Application([
     (r"/examples/(ui|form|chart|typography|gallery|table|calendar|grid|file-manager|tour|icon|error|login)/", ExampleHandler),
     (r"/login/", LoginHandler),
     (r"/logout/", LogoutHandler),
-    (r"/crawler/(.*)", CrawlerHandler),
+    (r"/crawler/(.*)/?(.*)", CrawlerHandler),
     (r"/monitor/", MonitorHandler),
     (r"/dashboard/(.*)", DashboardHandler),
     (r"/viewdata/(.*)", ViewDataHandler),
@@ -932,7 +932,6 @@ application = tornado.web.Application([
     (r"/member/(.*)", MemberHandler),
     (r"/sitepref/(.*)", PreferenceHandler),
     (r"/ajax/(.*)", AjaxHandler),
-    (r"/site/(.+)", SiteHandler),
     (r"/", IndexHandler),
     (r"/assets/(.*)", tornado.web.StaticFileHandler, dict(path=settings['static_path'])),
 ], **settings)

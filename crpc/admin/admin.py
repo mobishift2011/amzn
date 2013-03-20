@@ -900,7 +900,7 @@ class AjaxHandler(BaseHandler):
 
 class SiteHandler(BaseHandler):
     def get(self, site):
-        self.render("/crawler/site.html", tasks = get_one_site_schedule(site))
+        self.render("crawler/site.html", tasks = get_one_site_schedule(site))
 
 settings = {
     "debug": True,

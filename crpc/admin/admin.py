@@ -916,7 +916,7 @@ application = tornado.web.Application([
     (r"/examples/(ui|form|chart|typography|gallery|table|calendar|grid|file-manager|tour|icon|error|login)/", ExampleHandler),
     (r"/login/", LoginHandler),
     (r"/logout/", LogoutHandler),
-    (r"/crawler/(.*)/?(.*)", CrawlerHandler),
+    (r"/crawler/([^/]+)/?(.*)", CrawlerHandler),
     (r"/monitor/", MonitorHandler),
     (r"/dashboard/(.*)", DashboardHandler),
     (r"/viewdata/(.*)", ViewDataHandler),

@@ -618,15 +618,15 @@ class CrawlerHandler(BaseHandler):
         if not subpath:
             self.redirect('/crawler/tasks')
         if subpath == 'tasks':
-            self.render('tasks.html')
+            self.render('crawler/tasks.html')
         elif subpath == 'control':
-            self.render('control.html')
+            self.render('crawler/control.html')
         elif subpath == 'publish':
-            self.render('publish.html')
+            self.render('crawler/publish.html')
         elif subpath == 'history':
-            self.render('history.html')
+            self.render('crawler/history.html')
         elif subpath == 'graph':
-            self.render('graph.html')
+            self.render('crawler/graph.html')
 
 
 class DashboardHandler(BaseHandler):

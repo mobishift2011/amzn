@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import requests
 import lxml.html
 import re
@@ -13,6 +14,25 @@ class CheckServer(object):
         self.s = requests.session()
         self.headers = {}
     
+
+    def fetch_product_offsale_page(self, url):
+        try:
+            ret = req.get(url)
+        except:
+            # page not exist or timeout
+            ret = req.get(url)
+
+        # nomorerack will redirect to homepage automatically when this product is not exists.
+        if ret.url == u'http://nomorerack.com/' and ret.url[:-1] != url:
+            return -302
+        elif ret.url.startswith(u'http://nomorerack.com/events/view/'):
+            return -302
+        elif ret.url != url: # one product will change its url every day as daily deal
+            return -302
+
+        if ret.ok: return ret.content
+        else: return ret.status_code
+
 
     def check_onsale_product(self, id, url):
         prd = Product.objects(key=id).first()
@@ -60,7 +80,7 @@ class CheckServer(object):
             print '\n\nnomorerack {0}, {1}\n\n'.format(id, url)
             return
 
-        cont = fetch_product_page(url)
+        cont = self.fetch_product_offsale_page(url)
         if isinstance(cont, int):
             print '\nnomorerack off sale page[{0}] return: {1}\n'.format(url, cont)
             return

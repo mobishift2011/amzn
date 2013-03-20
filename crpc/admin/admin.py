@@ -611,8 +611,21 @@ class MonitorHandler(BaseHandler):
         self.render('monitor.html')
 
 class CrawlerHandler(BaseHandler):
-    def get(self):
-        self.render('crawler.html')
+    @tornado.web.authenticated
+    def get(self, subpath):
+        if not subpath:
+            self.redirect('/crawler/tasks')
+        if subpath == 'tasks':
+            self.render('tasks.html')
+        elif subpath == 'control':
+            self.render('control.html')
+        elif subpath == 'publish':
+            self.render('publish.html')
+        elif subpath == 'history':
+            self.render('history.html')
+        elif subpath == 'graph':
+            self.render('graph.html')
+
 
 class DashboardHandler(BaseHandler):
     def get(self, path):
@@ -897,7 +910,7 @@ application = tornado.web.Application([
     (r"/examples/(ui|form|chart|typography|gallery|table|calendar|grid|file-manager|tour|icon|error|login)/", ExampleHandler),
     (r"/login/", LoginHandler),
     (r"/logout/", LogoutHandler),
-    (r"/crawler/", CrawlerHandler),
+    (r"/crawler/(.*)", CrawlerHandler),
     (r"/monitor/", MonitorHandler),
     (r"/dashboard/(.*)", DashboardHandler),
     (r"/viewdata/(.*)", ViewDataHandler),

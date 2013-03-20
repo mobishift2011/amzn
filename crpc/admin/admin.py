@@ -14,12 +14,14 @@ from webassets.ext.jinja2 import AssetsExtension
 
 import os
 import json
+import threading
 from math import ceil
 from slumber import API
 from datetime import datetime, timedelta
 from mongoengine import Q
-
+from cStringIO import StringIO
 from collections import Counter
+from boto.cloudfront import CloudFrontConnection
 
 from crawlers.common.stash import picked_crawlers
 from backends.monitor.events import run_command
@@ -28,9 +30,9 @@ from views import get_all_links, post_link, delete_link
 from views import get_all_schedules, update_schedule, delete_schedule, execute as execute_deal
 from powers.tools import ImageTool, Image
 from powers.configs import AWS_ACCESS_KEY, AWS_SECRET_KEY
-from boto.cloudfront import CloudFrontConnection
-from StringIO import StringIO
-import threading
+
+from backends.webui.views import get_one_site_schedule
+
 DISTRIBUTIONID = 'E3QJD92P0IKIG2'
 
 def invalidate_cloudfront(key):
@@ -896,6 +898,10 @@ class AjaxHandler(BaseHandler):
             self.content_type = 'application/json'
             self.write(json.dumps({'status':'failed'}))
 
+class SiteHandler(BaseHandler):
+    def get(self, site):
+        self.render("/crawler/site.html", tasks = get_one_site_schedule(site))
+
 settings = {
     "debug": True,
     "static_path": STATIC_PATH,
@@ -926,6 +932,7 @@ application = tornado.web.Application([
     (r"/member/(.*)", MemberHandler),
     (r"/sitepref/(.*)", PreferenceHandler),
     (r"/ajax/(.*)", AjaxHandler),
+    (r"/site/(.+)", SiteHandler),
     (r"/", IndexHandler),
     (r"/assets/(.*)", tornado.web.StaticFileHandler, dict(path=settings['static_path'])),
 ], **settings)

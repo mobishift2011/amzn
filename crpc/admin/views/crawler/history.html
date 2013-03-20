@@ -1,0 +1,59 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<div id="main-content">
+  <ul class="breadcrumb">
+    <li>
+      <a href="/">Home</a> <span class="divider">/</span>
+    </li>
+    <li>
+      <a href="#">Crawler</a> <span class="divider">/</span>
+    </li>
+  </ul>
+
+  <div>
+    <ul class="nav nav-tabs">
+      <li name="crawler"> <a href="/crawler/tasks">Tasks</a> </li>
+      <li name="crawler"> <a href="/crawler/control">Control</a> </li>
+      <li name="crawler"> <a href="/crawler/publish">Publish</a> </li>
+      <li name="crawler"> <a href="/crawler/history">History</a> </li>
+      <li name="crawler"> <a href="/crawler/graph">Graph</a> </li>
+    </ul>
+  </div>
+
+  <div>
+    <a href="schedule/upcoming"><b>Upcoming</b></a>
+    <a href="schedule/ending">Ending</a><br /><br />
+    <a href="site/belleandclive">Belleandclive</a><br />
+    <a href="site/bluefly">Bluefly</a><br />
+    <a href="site/beyondtherack">Beyondtherack</a><br />
+    <a href="site/hautelook">Hautelook</a><br />
+    <a href="site/ideeli">Ideeli</a><br />
+    <a href="site/gilt">Gilt</a><br />
+    <a href="site/lot18">Lot18</a><br />
+    <a href="site/modnique">Modnique</a><br />
+    <a href="site/myhabit">Myhabit</a><br />
+    <a href="site/nomorerack">Nomorerack</a><br />
+    <a href="site/onekingslane">Onekingslane</a><br />
+    <a href="site/ruelala">Ruelala</a><br />
+    <a href="site/totsy">Totsy</a><br />
+    <a href="site/venteprivee">Venteprivee</a><br />
+    <a href="site/zulily">Zulily</a><br />
+  </div>
+
+</div><!--main-content-->
+
+<div class="modal hide fade" id="myModal">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal">×</button>
+    <h3>Settings</h3>
+  </div>
+  <div class="modal-body">
+    <p>Here settings can be configured...</p>
+  </div>
+  <div class="modal-footer">
+    <a href="#" class="btn" data-dismiss="modal">Close</a>
+    <a href="#" class="btn btn-primary">Save changes</a>
+  </div>
+</div>
+{% endblock %}

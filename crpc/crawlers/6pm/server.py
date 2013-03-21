@@ -271,6 +271,7 @@ class Server(object):
         print product.title
         print product.listprice
         print product.price
+        print product.shipping
         print is_new
         print is_updated
         print ready
@@ -297,10 +298,12 @@ if __name__ == '__main__':
     #     print category.combine_url; print
     #     s.crawl_listing(category.combine_url, **{'key': category.key})
 
-    for product in Product.objects():
+    for product in Product.objects(updated=False):
         print product.combine_url
         try:
             s.crawl_product(product.combine_url, **{'key': product.key})
+        except requests.exceptions.HTTPError:
+            continue
         except:
             print traceback.format_exc()
-        break
+            break

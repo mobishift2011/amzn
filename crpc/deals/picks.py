@@ -41,7 +41,7 @@ def pick_by_disfilter(product, threshold_adjustment=1):
 
     if product.favbuy_brand:
         filter_key = '%s.^_^.%s' % (product.favbuy_brand, '-'.join(product.favbuy_dept)) \
-            if product.favbuy_dept else '%s.^_^.ALL' % product.favbuy_brand
+            if product.favbuy_dept else ''#'%s.^_^.ALL' % product.favbuy_brand
 
         threhold = DSFILTER.get(filter_key, {}).get('medium', 0)
         discount = float(product.favbuy_price) / float(product.favbuy_listprice)

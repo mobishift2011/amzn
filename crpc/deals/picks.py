@@ -58,9 +58,11 @@ def pick_by_disfilter(product, threshold_adjustment=1):
 
 
 if __name__ == '__main__':
-    from crawlers.nordstrom.models import Product
+    import sys
+    site = sys.argv[1]
+    m = __import__('crawlers.%s.models' % site, fromlist=['Product']) 
     pick_list = []
-    products = Product.objects(dept__exists=True)
+    products = m.Product.objects(dept__exists=True)
     for product in products:
         p = Picker('nordstrom')
         if p.pick(product):

@@ -21,9 +21,7 @@ import re
 HOST = 'http://www.6pm.com'
 header = {
     'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-    'Accept-Charset':'GBK,utf-8;q=0.7,*;q=0.3',
     'Accept-Encoding':'gzip,deflate,sdch',
-    'Accept-Language':'zh-CN,zh;q=0.8',
     'Cache-Control':'max-age=0',
     'Connection':'keep-alive',
     'Host':'www.6pm.com',
@@ -66,6 +64,7 @@ class Server(object):
                 if not category:
                     is_new = True
                     category = Category(key=key)
+                    category.is_leaf = True
 
                 if set(cats).difference(category.cats):
                     category.cats = list(set(cats) | set(category.cats))

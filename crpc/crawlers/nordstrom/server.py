@@ -81,6 +81,7 @@ class Server(object):
                     if not category:
                         is_new = True
                         category = Category(key=key)
+                        category.is_leaf = True
 
                     if depts:
                         for dept in depts:

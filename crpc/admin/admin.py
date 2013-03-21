@@ -31,8 +31,9 @@ from views import get_all_schedules, update_schedule, delete_schedule, execute a
 from powers.tools import ImageTool, Image
 from powers.configs import AWS_ACCESS_KEY, AWS_SECRET_KEY
 
-from backends.webui.views import get_one_site_schedule
+from backends.webui.views import get_one_site_schedule, get_publish_report
 from backends.monitor.upcoming_ending_events_count import upcoming_events, ending_events
+from backends.monitor.publisher_report import wink
 
 DISTRIBUTIONID = 'E3QJD92P0IKIG2'
 
@@ -615,27 +616,50 @@ class MonitorHandler(BaseHandler):
 
 class CrawlerHandler(BaseHandler):
     @tornado.web.authenticated
-    def get(self, subpath, site):
+    def get(self, subpath, parameter):
         if not subpath:
             self.redirect('/crawler/tasks')
         if subpath == 'tasks':
             self.render('crawler/tasks.html')
         elif subpath == 'control':
             self.render('crawler/control.html')
-        elif subpath == 'publish':
-            self.render('crawler/publish.html')
-        elif subpath == 'history':
-            self.render('crawler/history.html')
         elif subpath == 'graph':
             self.render('crawler/graph.html')
 
+        elif subpath == 'publish':
+            if parameter == 'chkpub':
+                self.render('crawler/chkpub.html')
+            elif parameter == 'stats':
+                self.render('crawler/stats.html')
+            elif parameter == 'report':
+                _utcnow = datetime.utcnow()
+                if wink(_utcnow):
+                    ret = get_publish_report(_utcnow.replace(microsecond=0, second=0, minute=0, hour=9))
+                    ret.update( {'date': _utcnow.replace(microsecond=0, second=0, minute=0, hour=9)} )
+                    return self.render('crawler/report.html', ret)
+            else:
+                    return self.render('crawler/report.html', {'date': _utcnow.replace(microsecond=0, second=0, minute=0, hour=9),'event': [], 'product': []})
+
+            elif parameter == 'updatereport':
+                _utcnow = datetime.utcnow()
+                if wink(_utcnow, force=True):
+                    ret = get_publish_report(_utcnow.replace(microsecond=0, second=0, minute=0, hour=9))
+                    ret.update( {'date': _utcnow.replace(microsecond=0, second=0, minute=0, hour=9)} )
+                    return self.render('crawler/updatereport.html', ret)
+            else:
+                    return self.render('crawler/updatereport.html', {'date': _utcnow.replace(microsecond=0, second=0, minute=0, hour=9),'event': [], 'product': []})
+            else:
+                self.render('crawler/publish.html')
+
+        elif subpath == 'history':
+            self.render('crawler/history.html')
         elif subpath == 'site':
-            if site:
-                self.render("crawler/site.html", tasks = get_one_site_schedule(site)['tasks'])
+            if parameter:
+                self.render("crawler/site.html", tasks = get_one_site_schedule(parameter)['tasks'])
         elif subpath == 'schedule':
-            if site == 'upcoming':
+            if parameter == 'upcoming':
                 self.render("crawler/schedule.html", schedules = upcoming_events())
-            elif site == 'ending':
+            elif parameter == 'ending':
                 self.render("crawler/schedule.html", schedules = ending_events())
 
 

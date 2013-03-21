@@ -31,7 +31,7 @@ from functools import partial
 from mongoengine import Q
 
 from crawlers.common.events import pre_general_update, post_general_update, common_failed
-from crawlers.common.stash import get_login_email
+from crawlers.common.stash import get_login_email, deal_crawlers
 
 from powers.events import ready_for_batch
 
@@ -86,6 +86,8 @@ def spout_category(site, category):
         for p in range(1, min(pages+1,MAX_PAGE+1)):
             url = c.url().format(p)
             yield {'url': url}
+    elif site in deal_crawlers:
+        yield {'url': c.url(), 'key': c.key}
     else:
         yield {'url': c.url()}
 
@@ -104,6 +106,8 @@ def spout_product(site):
             yield { 'url': p.url(), 'ecost': p.key }
         elif site == 'myhabit':
             yield { 'url': p.url(), 'casin': p.key }
+        elif site in deal_crawlers:
+            yield {'url': c.url(), 'key': c.key}
         else:
             yield { 'url': p.url() }
 

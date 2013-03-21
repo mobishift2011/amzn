@@ -46,7 +46,7 @@ def pick_by_disfilter(product, threshold_adjustment=1):
         threhold = DSFILTER.get(filter_key, {}).get('medium', 0)
         discount = float(product.favbuy_price) / float(product.favbuy_listprice)
 
-        print discount, ' compared to threshold: %s * %s = %s', (threhold, threshold_adjustment, threhold * threshold_adjustment)
+        print discount, ' compared to threshold: %s * %s = %s' % (threhold, threshold_adjustment, threhold * threshold_adjustment)
         return discount < threhold * threshold_adjustment
 
     return False

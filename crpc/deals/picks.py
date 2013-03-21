@@ -59,12 +59,12 @@ def pick_by_disfilter(product, threshold_adjustment=1):
 
 if __name__ == '__main__':
     from crawlers.nordstrom.models import Product
-    # pick_list = []
-    # products = Product.objects(dept__exists=True)
-    # for product in products:
-    #     p = Picker('nordstrom')
-    #     if p.pick(product):
-    #         pick_list.append(product)
+    pick_list = []
+    products = Product.objects(dept__exists=True)
+    for product in products:
+        p = Picker('nordstrom')
+        if p.pick(product):
+            pick_list.append(product)
 
     # for product in pick_list:
     #     print product.key, product.title
@@ -73,4 +73,4 @@ if __name__ == '__main__':
     #     print float(product.favbuy_price) / float(product.favbuy_listprice)
     #     print product.combine_url, '\n'
 
-    # print products.count(), len(pick_list)
+    print products.count(), len(pick_list)

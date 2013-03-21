@@ -5,7 +5,7 @@ from backends.matching.extractor import Extractor
 from powers.brandapi import Extracter
 from powers.pipelines import parse_price, unescape
 import re, htmlentitydefs
-from titlecase import titlecase
+from powers.titlecase import titlecase
 from datetime import datetime
 
 from helpers.log import getlogger

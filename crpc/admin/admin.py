@@ -676,11 +676,11 @@ class CrawlerHandler(BaseHandler):
 
 
     @tornado.web.authenticated
-    def post(self):
+    def post(self, subpath, parameter):
         if subpath == 'publish':
             if parameter == 'report':
                 dat = self.get_argument('date')
-                print('[{0}], [{1}]'.format(dat, self.request.arguments))
+#                print('[{0}], [{1}]'.format(dat, self.request.arguments))
                 year, month, day = dat.split('-')
                 _thedate = datetime(int(year), int(month), int(day))
                 if wink(_thedate):

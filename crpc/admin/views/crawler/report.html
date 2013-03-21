@@ -23,7 +23,7 @@
 
 
   <form action="/crawler/publish/report" method="POST">
-    {% module xsrf_form_html() %}
+    {{ xsrf_form_html() }}
     <input type="date" name="date" value={{ date }}>
     <input type="submit" value="GO"><br />
     <output id="time"></output>

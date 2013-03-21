@@ -641,7 +641,10 @@ class CrawlerHandler(BaseHandler):
                                         event = ret['event'],
                                         product = ret['product'])
                 else:
-                    return self.render('crawler/report.html', {'date': _utcnow.replace(microsecond=0, second=0, minute=0, hour=9),'event': [], 'product': []})
+                    return self.render('crawler/report.html',
+                                        date = _utcnow.replace(microsecond=0, second=0, minute=0, hour=9),
+                                        event = [],
+                                        product = [])
 
             elif parameter == 'updatereport':
                 _utcnow = datetime.utcnow()
@@ -653,7 +656,10 @@ class CrawlerHandler(BaseHandler):
                                         event = ret['event'],
                                         product = ret['product'])
                 else:
-                    return self.render('crawler/updatereport.html', {'date': _utcnow.replace(microsecond=0, second=0, minute=0, hour=9),'event': [], 'product': []})
+                    return self.render('crawler/updatereport.html',
+                                        date = _utcnow.replace(microsecond=0, second=0, minute=0, hour=9),
+                                        event = [],
+                                        product = [])
             else:
                 self.render('crawler/publish.html')
 
@@ -667,6 +673,44 @@ class CrawlerHandler(BaseHandler):
                 self.render("crawler/schedule.html", schedules = upcoming_events())
             elif parameter == 'ending':
                 self.render("crawler/schedule.html", schedules = ending_events())
+
+
+    @tornado.web.authenticated
+    def post(self):
+        if subpath == 'publish':
+            if parameter == 'report':
+                dat = self.get_argument('date')
+                print('[{0}], [{1}]'.format(dat, self.request.arguments))
+                year, month, day = dat.split('-')
+                _thedate = datetime(int(year), int(month), int(day))
+                if wink(_thedate):
+                    ret = get_publish_report(_thedate.replace(hour=9))
+                    ret.update( {'date': _thedate.replace(hour=9)} )
+                    return self.render('crawler/report.html',
+                                        date = ret['date'],
+                                        event = ret['event'],
+                                        product = ret['product'])
+                else:
+                    return self.render('crawler/report.html',
+                                    date = _thedate.replace(hour=9),
+                                    event = [],
+                                    product = [])
+            elif parameter == 'updatereport':
+                dat = self.get_argument('date')
+                year, month, day = dat.split('-')
+                _thedate = datetime(int(year), int(month), int(day))
+                if wink(_thedate, force=True):
+                    ret = get_publish_report(_thedate.replace(hour=9))
+                    ret.update( {'date': _thedate.replace(hour=9)} )
+                    return self.render('crawler/updatereport.html',
+                                        date = ret['date'],
+                                        event = ret['event'],
+                                        product = ret['product'])
+                else:   
+                    return self.render('crawler/updatereport.html',
+                                    date = _thedate.replace(hour=9),
+                                    event = [],
+                                    product = [])
 
 
 class DashboardHandler(BaseHandler):

@@ -26,7 +26,7 @@ class Category(BaseCategory):
     }
 
     def url(self):
-        pass
+        return self.combine_url
 
 
 class Product(LuxuryProduct):

@@ -134,7 +134,11 @@ def control():
         else:
             return
     else:
-        offsale_schedule()
+        with open(log_file, 'w') as fd:
+            try:
+                offsale_schedule()
+            except:
+                fd.write(traceback.format_exc())
 
 if __name__ == '__main__':
     while True:

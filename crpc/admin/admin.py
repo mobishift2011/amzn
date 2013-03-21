@@ -32,6 +32,7 @@ from powers.tools import ImageTool, Image
 from powers.configs import AWS_ACCESS_KEY, AWS_SECRET_KEY
 
 from backends.webui.views import get_one_site_schedule
+from backends.monitor.upcoming_ending_events_count import upcoming_events, ending_events
 
 DISTRIBUTIONID = 'E3QJD92P0IKIG2'
 
@@ -627,9 +628,15 @@ class CrawlerHandler(BaseHandler):
             self.render('crawler/history.html')
         elif subpath == 'graph':
             self.render('crawler/graph.html')
+
         elif subpath == 'site':
             if site:
                 self.render("crawler/site.html", tasks = get_one_site_schedule(site)['tasks'])
+        elif subpath == 'schedule':
+            if site == 'upcoming':
+                self.render("crawler/schedule.html", schedules = upcoming_events())
+            elif site == 'ending':
+                self.render("crawler/schedule.html", {'schedules': ending_events()})
 
 
 class DashboardHandler(BaseHandler):

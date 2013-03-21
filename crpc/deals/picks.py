@@ -64,7 +64,7 @@ if __name__ == '__main__':
     pick_list = []
     products = m.Product.objects(dept__exists=True)
     for product in products:
-        p = Picker('nordstrom')
+        p = Picker(site)
         if p.pick(product):
             pick_list.append(product)
             print

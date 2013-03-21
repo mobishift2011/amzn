@@ -203,6 +203,11 @@ class Server(object):
             if is_updated:
                 product.list_update_time = datetime.utcnow()
             
+            # To pick the product which fit our needs, such as a certain discount, brand, dept etc.
+            selected = Picker(site='nordstrom').pick(product)
+            if not selected:
+                return
+
             product.hit_time = datetime.utcnow()
             product.save()
             
@@ -320,12 +325,6 @@ class Server(object):
 
         if is_updated:
             if not product.updated:
-                # To pick the product which fit our needs, such as a certain discount, brand, dept etc.
-                selected = Picker(site='nordstrom').pick(product)
-                if not selected:
-                    # product.delete()
-                    return
-
                 ready = True
             
             product.updated = True

@@ -107,7 +107,7 @@ def spout_product(site):
         elif site == 'myhabit':
             yield { 'url': p.url(), 'casin': p.key }
         elif site in deal_crawlers:
-            yield {'url': c.url(), 'key': c.key}
+            yield {'url': p.url(), 'key': p.key}
         else:
             yield { 'url': p.url() }
 

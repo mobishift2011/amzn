@@ -39,6 +39,13 @@ picked_crawlers = (
          'onekingslane',
          'hautelook', )
 
+deal_crawlers = (
+    'nordstrom',
+    '6pm',
+    'macys',
+)
+
+picked_crawlers = tuple(set(picked_crawlers) | set(deal_crawlers))
 
 login_email = {'bluefly': '2012luxurygoods@gmail.com',
                'ideeli': '2012luxurygoods@gmail.com',

@@ -40,13 +40,13 @@ def pick_by_disfilter(product, threshold_adjustment=1):
         return False
 
     if product.favbuy_brand:
-        filter_key = '%s.^_^.%s' % (product.favbuy_brand, product.favbuy_dept) \
+        filter_key = '%s.^_^.%s' % (product.favbuy_brand, '-'.join(product.favbuy_dept)) \
             if product.favbuy_dept else '%s.^_^.ALL' % product.favbuy_brand
 
         threhold = DSFILTER.get(filter_key, {}).get('medium', 0)
         discount = float(product.favbuy_price) / float(product.favbuy_listprice)
 
-        print discount, ' compared to threshold: %s * %s = %s', (threhold, threshold_adjustment, threhold * threshold_adjustment)
+        print discount, ' compared to threshold: %s * %s = %s \n' % (threhold, threshold_adjustment, threhold * threshold_adjustment)
         return discount < threhold * threshold_adjustment
 
     return False
@@ -58,13 +58,16 @@ def pick_by_disfilter(product, threshold_adjustment=1):
 
 
 if __name__ == '__main__':
-    from crawlers.nordstrom.models import Product
-    # pick_list = []
-    # products = Product.objects(dept__exists=True)
-    # for product in products:
-    #     p = Picker('nordstrom')
-    #     if p.pick(product):
-    #         pick_list.append(product)
+    import sys
+    site = sys.argv[1]
+    m = __import__('crawlers.%s.models' % site, fromlist=['Product']) 
+    pick_list = []
+    products = m.Product.objects(dept__exists=True)
+    for product in products:
+        p = Picker(site)
+        if p.pick(product):
+            pick_list.append(product)
+            print
 
     # for product in pick_list:
     #     print product.key, product.title
@@ -73,4 +76,4 @@ if __name__ == '__main__':
     #     print float(product.favbuy_price) / float(product.favbuy_listprice)
     #     print product.combine_url, '\n'
 
-    # print products.count(), len(pick_list)
+    print products.count(), len(pick_list)

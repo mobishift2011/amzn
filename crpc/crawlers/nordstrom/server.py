@@ -150,8 +150,8 @@ class Server(object):
                     no_discount_num += 1
                     if no_discount_num < 3:
                         continue
-                    common_failed.send(sender=ctx, url=url, \
-                        reason='listing product %s.%s cannot crawl price info -> %s / %s' % (key, title, price, listprice))
+                    # common_failed.send(sender=ctx, url=url, \
+                    #     reason='listing product %s.%s cannot crawl price info -> %s / %s' % (key, title, price, listprice))
                     return
 
                 combine_url = a_node.get('href')
@@ -203,6 +203,11 @@ class Server(object):
             if is_updated:
                 product.list_update_time = datetime.utcnow()
             
+            # To pick the product which fit our needs, such as a certain discount, brand, dept etc.
+            selected = Picker(site='nordstrom').pick(product)
+            if not selected:
+                continue
+
             product.hit_time = datetime.utcnow()
             product.save()
             
@@ -243,8 +248,8 @@ class Server(object):
         tree = lxml.html.fromstring(res.content)
 
         breadcrumbs_nodes = tree.cssselect('ul.breadcrumbs li a')
-        depts = [breadcrumbs_node.text.strip() for breadcrumbs_node in breadcrumbs_nodes[1:]] \
-            if len(breadcrumbs_nodes) > 1 else []
+        # depts = [breadcrumbs_node.text.strip() for breadcrumbs_node in breadcrumbs_nodes[1:]] \
+        #     if len(breadcrumbs_nodes) > 1 else []
 
         product_node = tree.cssselect('div.product-content')[0]
         
@@ -282,9 +287,9 @@ class Server(object):
         # update product
         is_new = False; is_updated = False; ready = False
 
-        if depts and set(depts).difference(product.dept or []):
-            product.dept = list(set(depts) | set(product.dept or []))
-            is_updated = True
+        # if depts and set(depts).difference(product.dept or []):
+        #     product.dept = list(set(depts) | set(product.dept or []))
+        #     is_updated = True
 
         if image_urls and image_urls != product.image_urls:
             product.image_urls = image_urls
@@ -320,12 +325,6 @@ class Server(object):
 
         if is_updated:
             if not product.updated:
-                # To pick the product which fit our needs, such as a certain discount, brand, dept etc.
-                selected = Picker(site='nordstrom').pick(product)
-                if not selected:
-                    # product.delete()
-                    return
-
                 ready = True
             
             product.updated = True

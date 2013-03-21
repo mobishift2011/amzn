@@ -40,7 +40,7 @@ def pick_by_disfilter(product, threshold_adjustment=1):
         return False
 
     if product.favbuy_brand:
-        filter_key = '%s.^_^.%s' % (product.favbuy_brand, product.favbuy_dept) \
+        filter_key = '%s.^_^.%s' % (product.favbuy_brand, '-'.join(product.favbuy_dept)) \
             if product.favbuy_dept else '%s.^_^.ALL' % product.favbuy_brand
 
         threhold = DSFILTER.get(filter_key, {}).get('medium', 0)

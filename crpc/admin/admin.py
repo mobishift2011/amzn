@@ -681,7 +681,7 @@ class CrawlerHandler(BaseHandler):
             if parameter == 'report':
                 dat = self.get_argument('date')
 #                print('[{0}], [{1}]'.format(dat, self.request.arguments))
-                year, month, day = dat.split('-')
+                month, day, year = dat.split('/')
                 _thedate = datetime(int(year), int(month), int(day))
                 if wink(_thedate):
                     ret = get_publish_report(_thedate.replace(hour=9))
@@ -697,7 +697,7 @@ class CrawlerHandler(BaseHandler):
                                     product = [])
             elif parameter == 'updatereport':
                 dat = self.get_argument('date')
-                year, month, day = dat.split('-')
+                month, day, year = dat.split('/')
                 _thedate = datetime(int(year), int(month), int(day))
                 if wink(_thedate, force=True):
                     ret = get_publish_report(_thedate.replace(hour=9))

@@ -24,7 +24,7 @@
 
   <form action="/crawler/publish/report" method="POST">
     {{ xsrf_form_html() }}
-    <input type="date" name="date" class="input-xlarge datepicker" value={{ date }}>
+    <input type="text" name="date" class="input-xlarge datepicker" value={{ date }}>
     <input type="submit" value="GO"><br />
     <output id="time"></output>
   </form>

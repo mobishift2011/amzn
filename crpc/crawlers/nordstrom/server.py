@@ -206,7 +206,7 @@ class Server(object):
             # To pick the product which fit our needs, such as a certain discount, brand, dept etc.
             selected = Picker(site='nordstrom').pick(product)
             if not selected:
-                return
+                continue
 
             product.hit_time = datetime.utcnow()
             product.save()

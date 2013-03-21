@@ -31,7 +31,9 @@ from views import get_all_schedules, update_schedule, delete_schedule, execute a
 from powers.tools import ImageTool, Image
 from powers.configs import AWS_ACCESS_KEY, AWS_SECRET_KEY
 
-from backends.webui.views import get_one_site_schedule
+from backends.webui.views import get_one_site_schedule, get_publish_report
+from backends.monitor.upcoming_ending_events_count import upcoming_events, ending_events
+from backends.monitor.publisher_report import wink
 
 DISTRIBUTIONID = 'E3QJD92P0IKIG2'
 
@@ -614,22 +616,101 @@ class MonitorHandler(BaseHandler):
 
 class CrawlerHandler(BaseHandler):
     @tornado.web.authenticated
-    def get(self, subpath, site):
+    def get(self, subpath, parameter):
         if not subpath:
             self.redirect('/crawler/tasks')
         if subpath == 'tasks':
             self.render('crawler/tasks.html')
         elif subpath == 'control':
             self.render('crawler/control.html')
-        elif subpath == 'publish':
-            self.render('crawler/publish.html')
-        elif subpath == 'history':
-            self.render('crawler/history.html')
         elif subpath == 'graph':
             self.render('crawler/graph.html')
+
+        elif subpath == 'publish':
+            if parameter == 'chkpub':
+                self.render('crawler/chkpub.html')
+            elif parameter == 'stats':
+                self.render('crawler/stats.html')
+            elif parameter == 'report':
+                _utcnow = datetime.utcnow()
+                if wink(_utcnow):
+                    ret = get_publish_report(_utcnow.replace(microsecond=0, second=0, minute=0, hour=9))
+                    ret.update( {'date': _utcnow.replace(microsecond=0, second=0, minute=0, hour=9)} )
+                    return self.render('crawler/report.html',
+                                        date = ret['date'],
+                                        event = ret['event'],
+                                        product = ret['product'])
+                else:
+                    return self.render('crawler/report.html',
+                                        date = _utcnow.replace(microsecond=0, second=0, minute=0, hour=9),
+                                        event = [],
+                                        product = [])
+
+            elif parameter == 'updatereport':
+                _utcnow = datetime.utcnow()
+                if wink(_utcnow, force=True):
+                    ret = get_publish_report(_utcnow.replace(microsecond=0, second=0, minute=0, hour=9))
+                    ret.update( {'date': _utcnow.replace(microsecond=0, second=0, minute=0, hour=9)} )
+                    return self.render('crawler/updatereport.html',
+                                        date = ret['date'],
+                                        event = ret['event'],
+                                        product = ret['product'])
+                else:
+                    return self.render('crawler/updatereport.html',
+                                        date = _utcnow.replace(microsecond=0, second=0, minute=0, hour=9),
+                                        event = [],
+                                        product = [])
+            else:
+                self.render('crawler/publish.html')
+
+        elif subpath == 'history':
+            self.render('crawler/history.html')
         elif subpath == 'site':
-            if site:
-                self.render("crawler/site.html", tasks = get_one_site_schedule(site))
+            if parameter:
+                self.render("crawler/site.html", tasks = get_one_site_schedule(parameter)['tasks'])
+        elif subpath == 'schedule':
+            if parameter == 'upcoming':
+                self.render("crawler/schedule.html", schedules = upcoming_events())
+            elif parameter == 'ending':
+                self.render("crawler/schedule.html", schedules = ending_events())
+
+
+    @tornado.web.authenticated
+    def post(self):
+        if subpath == 'publish':
+            if parameter == 'report':
+                dat = self.get_argument('date')
+                print('[{0}], [{1}]'.format(dat, self.request.arguments))
+                year, month, day = dat.split('-')
+                _thedate = datetime(int(year), int(month), int(day))
+                if wink(_thedate):
+                    ret = get_publish_report(_thedate.replace(hour=9))
+                    ret.update( {'date': _thedate.replace(hour=9)} )
+                    return self.render('crawler/report.html',
+                                        date = ret['date'],
+                                        event = ret['event'],
+                                        product = ret['product'])
+                else:
+                    return self.render('crawler/report.html',
+                                    date = _thedate.replace(hour=9),
+                                    event = [],
+                                    product = [])
+            elif parameter == 'updatereport':
+                dat = self.get_argument('date')
+                year, month, day = dat.split('-')
+                _thedate = datetime(int(year), int(month), int(day))
+                if wink(_thedate, force=True):
+                    ret = get_publish_report(_thedate.replace(hour=9))
+                    ret.update( {'date': _thedate.replace(hour=9)} )
+                    return self.render('crawler/updatereport.html',
+                                        date = ret['date'],
+                                        event = ret['event'],
+                                        product = ret['product'])
+                else:   
+                    return self.render('crawler/updatereport.html',
+                                    date = _thedate.replace(hour=9),
+                                    event = [],
+                                    product = [])
 
 
 class DashboardHandler(BaseHandler):
@@ -916,7 +997,7 @@ application = tornado.web.Application([
     (r"/examples/(ui|form|chart|typography|gallery|table|calendar|grid|file-manager|tour|icon|error|login)/", ExampleHandler),
     (r"/login/", LoginHandler),
     (r"/logout/", LogoutHandler),
-    (r"/crawler/([^/]+)/?(.*)", CrawlerHandler),
+    (r"/crawler/([^/]*)/?(.*)", CrawlerHandler),
     (r"/monitor/", MonitorHandler),
     (r"/dashboard/(.*)", DashboardHandler),
     (r"/viewdata/(.*)", ViewDataHandler),

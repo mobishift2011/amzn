@@ -636,7 +636,7 @@ class CrawlerHandler(BaseHandler):
             if site == 'upcoming':
                 self.render("crawler/schedule.html", schedules = upcoming_events())
             elif site == 'ending':
-                self.render("crawler/schedule.html", {'schedules': ending_events()})
+                self.render("crawler/schedule.html", schedules = ending_events())
 
 
 class DashboardHandler(BaseHandler):

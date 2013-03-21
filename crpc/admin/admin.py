@@ -637,7 +637,7 @@ class CrawlerHandler(BaseHandler):
                     ret = get_publish_report(_utcnow.replace(microsecond=0, second=0, minute=0, hour=9))
                     ret.update( {'date': _utcnow.replace(microsecond=0, second=0, minute=0, hour=9)} )
                     return self.render('crawler/report.html', ret)
-            else:
+                else:
                     return self.render('crawler/report.html', {'date': _utcnow.replace(microsecond=0, second=0, minute=0, hour=9),'event': [], 'product': []})
 
             elif parameter == 'updatereport':
@@ -646,7 +646,7 @@ class CrawlerHandler(BaseHandler):
                     ret = get_publish_report(_utcnow.replace(microsecond=0, second=0, minute=0, hour=9))
                     ret.update( {'date': _utcnow.replace(microsecond=0, second=0, minute=0, hour=9)} )
                     return self.render('crawler/updatereport.html', ret)
-            else:
+                else:
                     return self.render('crawler/updatereport.html', {'date': _utcnow.replace(microsecond=0, second=0, minute=0, hour=9),'event': [], 'product': []})
             else:
                 self.render('crawler/publish.html')

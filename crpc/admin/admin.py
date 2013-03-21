@@ -636,7 +636,10 @@ class CrawlerHandler(BaseHandler):
                 if wink(_utcnow):
                     ret = get_publish_report(_utcnow.replace(microsecond=0, second=0, minute=0, hour=9))
                     ret.update( {'date': _utcnow.replace(microsecond=0, second=0, minute=0, hour=9)} )
-                    return self.render('crawler/report.html', ret)
+                    return self.render('crawler/report.html',
+                                        date = ret['date'],
+                                        event = ret['event'],
+                                        product = ret['product'])
                 else:
                     return self.render('crawler/report.html', {'date': _utcnow.replace(microsecond=0, second=0, minute=0, hour=9),'event': [], 'product': []})
 
@@ -645,7 +648,10 @@ class CrawlerHandler(BaseHandler):
                 if wink(_utcnow, force=True):
                     ret = get_publish_report(_utcnow.replace(microsecond=0, second=0, minute=0, hour=9))
                     ret.update( {'date': _utcnow.replace(microsecond=0, second=0, minute=0, hour=9)} )
-                    return self.render('crawler/updatereport.html', ret)
+                    return self.render('crawler/updatereport.html',
+                                        date = ret['date'],
+                                        event = ret['event'],
+                                        product = ret['product'])
                 else:
                     return self.render('crawler/updatereport.html', {'date': _utcnow.replace(microsecond=0, second=0, minute=0, hour=9),'event': [], 'product': []})
             else:

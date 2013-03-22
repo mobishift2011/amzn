@@ -138,7 +138,8 @@ def get_publish_report(_thedate):
     prds = ProductReport.objects(today_date=_thedate)
     events = EventReport.objects(today_date=_thedate)
     return {'event': [e.to_json() for e in events],
-            'product': [p.to_json() for p in prds]}
+            'product': [p.to_json() for p in prds],
+            'date': _thedate}
 
 
 def import_brands(eb):

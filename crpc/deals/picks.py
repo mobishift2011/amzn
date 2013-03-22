@@ -51,7 +51,7 @@ def pick_by_disfilter(product, threshold_adjustment=1):
 
         print discount, ' compared to threshold: %s * %s = %s \n' % (threhold, threshold_adjustment, threhold * threshold_adjustment)
         # logger.debug('%s compared to threshold: %s * %s = %s \n' % (discount, threhold, threshold_adjustment, threhold * threshold_adjustment))
-        return discount < threhold * threshold_adjustment
+        return discount < (threhold * threshold_adjustment)
 
     return False
 

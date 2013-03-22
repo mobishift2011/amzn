@@ -19,7 +19,7 @@ def main(site):
     products = m.Product.objects()
 
     with open('status.txt', 'w') as f: 
-        f.write('url;price;listprice;disount;filter_key;medium;adjustrate;adjustment')
+        f.write('url;price;listprice;disount;filter_key;medium;adjustrate;adjustment\n')
         for product in products:
             title = product.title.encode('utf-8')
             combine_url = product.combine_url

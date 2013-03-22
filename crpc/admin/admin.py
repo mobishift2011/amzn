@@ -727,11 +727,6 @@ class DashboardHandler(BaseHandler):
             self.content_type = 'application/json'
             self.finish(json.dumps(['no content']))
 
-class TraceDataHandler(BaseHandler):
-    def get(self, site, key):
-        if not site:
-            self.render('tracedata.html')
-
 
 class ScheduleHandler(BaseHandler):
     @tornado.web.authenticated
@@ -1002,7 +997,6 @@ application = tornado.web.Application([
     (r"/dashboard/(.*)", DashboardHandler),
     (r"/viewdata/(.*)", ViewDataHandler),
     (r"/editdata/(.*)/(.*)/", EditDataHandler),
-    (r"/tracedata/?(.*)/?(.*)/?", TraceDataHandler),
     (r"/schedule/?(.*)/?", ScheduleHandler),
     (r"/affiliate/?(.*)/?", AffiliateHandler),
     (r"/brands/?(.*)", BrandsHandler),

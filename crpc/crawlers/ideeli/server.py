@@ -22,6 +22,7 @@ header = {
     'Accept-Encoding': 'gzip,deflate',
     'Host': 'www.ideeli.com',
     'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.22 (KHTML, like Gecko) Ubuntu Chromium/25.0.1364.160 Chrome/25.0.1364.160 Safari/537.22',
+    'X-Requested-With': 'XMLHttpRequest',
 }
 
 req = requests.Session(prefetch=True, timeout=25, config=config, headers=header)

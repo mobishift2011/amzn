@@ -10,7 +10,7 @@ logger = getlogger('picks', filename='/tmp/deals.log')
 
 DSFILTER = slumber.API(MASTIFF_HOST).dsfilter.get()
 SITEPREF = {}
-siteprefs = slumber.API('http://mastiff.favbuy.org:8001/api/v1').sitepref.get().get('objects', [])
+siteprefs = slumber.API(MASTIFF_HOST).sitepref.get().get('objects', [])
 for sitepref in siteprefs:
     if sitepref.get('site'):
         SITEPREF.setdefault(sitepref.get('site'), sitepref.get('discount_threshold_adjustment'))
@@ -22,7 +22,7 @@ def refresh_dsfilter(sender, **kwargs):
     global SITEPREF
     DSFILTER = slumber.API(MASTIFF_HOST).dsfilter.get()
     SITEPREF = {}
-    siteprefs = slumber.API('http://mastiff.favbuy.org:8001/api/v1').sitepref.get().get('objects', [])
+    siteprefs = slumber.API(MASTIFF_HOST).sitepref.get().get('objects', [])
     for sitepref in siteprefs:
         if sitepref.get('site'):
             SITEPREF.setdefault(sitepref.get('site'), sitepref.get('discount_threshold_adjustment'))

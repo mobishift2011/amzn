@@ -717,12 +717,7 @@ class CrawlerHandler(AsyncProcessMixIn):
                 month, day, year = dat.split('/')
                 _thedate = datetime(int(year), int(month), int(day))
                 if wink(_thedate):
-                    ret = get_publish_report(_thedate.replace(hour=9))
-                    ret.update( {'date': _thedate.replace(hour=9)} )
-                    return self.render('crawler/report.html',
-                                        date = ret['date'],
-                                        event = ret['event'],
-                                        product = ret['product'])
+                    self.run_background( get_publish_report, self.report, (_thedate.replace(hour=9),) )
                 else:
                     return self.render('crawler/report.html',
                                     date = _thedate.replace(hour=9),
@@ -733,12 +728,7 @@ class CrawlerHandler(AsyncProcessMixIn):
                 month, day, year = dat.split('/')
                 _thedate = datetime(int(year), int(month), int(day))
                 if wink(_thedate, force=True):
-                    ret = get_publish_report(_thedate.replace(hour=9))
-                    ret.update( {'date': _thedate.replace(hour=9)} )
-                    return self.render('crawler/updatereport.html',
-                                        date = ret['date'],
-                                        event = ret['event'],
-                                        product = ret['product'])
+                    self.run_background( get_publish_report, self.updatereport, (_thedate.replace(hour=9),) )
                 else:   
                     return self.render('crawler/updatereport.html',
                                     date = _thedate.replace(hour=9),
@@ -748,7 +738,6 @@ class CrawlerHandler(AsyncProcessMixIn):
 
     def report(self, ret):
         _utcnow = datetime.utcnow()
-        ret.update( {'date': _utcnow.replace(microsecond=0, second=0, minute=0, hour=9)} )
         return self.render('crawler/report.html',
                             date = ret['date'],
                             event = ret['event'],
@@ -756,7 +745,6 @@ class CrawlerHandler(AsyncProcessMixIn):
 
     def updatereport(self, ret):
         _utcnow = datetime.utcnow()
-        ret.update( {'date': _utcnow.replace(microsecond=0, second=0, minute=0, hour=9)} )
         return self.render('crawler/updatereport.html',
                             date = ret['date'],
                             event = ret['event'],

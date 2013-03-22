@@ -162,7 +162,6 @@ def today_publish_report():
         _utcnow = datetime.utcnow()
         if wink(_utcnow):
             ret = get_publish_report(_utcnow.replace(microsecond=0, second=0, minute=0, hour=9))
-            ret.update( {'date': _utcnow.replace(microsecond=0, second=0, minute=0, hour=9)} )
             return template('report.tpl', ret)
         else:
             return template('report.tpl', {'date': _utcnow.replace(microsecond=0, second=0, minute=0, hour=9),'event': [], 'product': []})
@@ -172,7 +171,6 @@ def today_publish_report():
         _thedate = datetime(int(year), int(month), int(day))
         if wink(_thedate):
             ret = get_publish_report(_thedate.replace(hour=9))
-            ret.update( {'date': _thedate.replace(hour=9)} )
             return template('report.tpl', ret)
         else:
             return template('report.tpl', {'date': _thedate.replace(hour=9),'event': [], 'product': []})

@@ -58,7 +58,7 @@ def pick_by_disfilter(product, threshold_adjustment=1):
         return discount < (threhold * threshold_adjustment)
     
     else:
-        blogger.warning('unextracted brand -> %s' % brand)
+        blogger.warning('unextracted brand -> %s' % product.brand)
 
     return False
 

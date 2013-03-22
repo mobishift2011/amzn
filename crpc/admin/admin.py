@@ -23,6 +23,7 @@ from mongoengine import Q
 from cStringIO import StringIO
 from collections import Counter
 from boto.cloudfront import CloudFrontConnection
+from multiprocessing.pool import ThreadPool
 
 from crawlers.common.stash import picked_crawlers
 from backends.monitor.events import run_command
@@ -37,6 +38,7 @@ from backends.monitor.upcoming_ending_events_count import upcoming_events, endin
 from backends.monitor.publisher_report import wink
 from backends.monitor.models import Stat
 
+_worker = ThreadPool(4)
 DISTRIBUTIONID = 'E3QJD92P0IKIG2'
 
 def invalidate_cloudfront(key):
@@ -155,33 +157,14 @@ class BaseHandler(tornado.web.RequestHandler):
 
 class AsyncProcessMixIn(BaseHandler):
     """
-    http://tornadogists.org/489093/
+    refer:  https://gist.github.com/methane/2185380
+            http://tornadogists.org/489093/
 
-    class SampleHandler(AsyncProcessMixIn):
-        @tornado.web.asynchronous
-        def get(self):
-            self.call_subprocess('ls /', self.on_ls)
-        
-        def on_ls(self, output, return_code):
-            self.write("return code is: %d" % (return_code,))
-            self.write("output is:\n%s" % (output.read(),)) # output is a file-like object returned by subprocess.Popen
-            
-            self.finish()
-    
     """
-    def call_subprocess(self, func, callback=None):
-        self.ioloop = tornado.ioloop.IOLoop.instance()
-        self.pipe = p = subprocess.Popen(func, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, close_fds=True)
-        self.ioloop.add_handler(p.stdout.fileno(), self.async_callback(self.on_subprocess_result, callback), self.ioloop.READ)
-    
-    def on_subprocess_result(self, callback, fd, result):
-        try:
-            if callback:
-                callback(self.pipe.stdout)
-        except Exception as e:
-            print(e.message)
-        finally:
-            self.ioloop.remove_handler(fd)
+    def run_background(self, func, callback, argc=(), kwargs={}):
+        def _callback(result):
+            tornado.ioloop.IOLoop.instance().add_callback(lambda: callback(result))
+        _worker.apply_async(func, argc, kwargs, _callback)
 
 
 class IndexHandler(BaseHandler):
@@ -668,12 +651,7 @@ class CrawlerHandler(AsyncProcessMixIn):
             elif parameter == 'report':
                 _utcnow = datetime.utcnow()
                 if wink(_utcnow):
-                    ret = get_publish_report(_utcnow.replace(microsecond=0, second=0, minute=0, hour=9))
-                    ret.update( {'date': _utcnow.replace(microsecond=0, second=0, minute=0, hour=9)} )
-                    return self.render('crawler/report.html',
-                                        date = ret['date'],
-                                        event = ret['event'],
-                                        product = ret['product'])
+                    self.run_background( get_publish_report, self.report, (_utcnow.replace(microsecond=0, second=0, minute=0, hour=9),) )
                 else:
                     return self.render('crawler/report.html',
                                         date = _utcnow.replace(microsecond=0, second=0, minute=0, hour=9),
@@ -683,12 +661,7 @@ class CrawlerHandler(AsyncProcessMixIn):
             elif parameter == 'updatereport':
                 _utcnow = datetime.utcnow()
                 if wink(_utcnow, force=True):
-                    ret = get_publish_report(_utcnow.replace(microsecond=0, second=0, minute=0, hour=9))
-                    ret.update( {'date': _utcnow.replace(microsecond=0, second=0, minute=0, hour=9)} )
-                    return self.render('crawler/updatereport.html',
-                                        date = ret['date'],
-                                        event = ret['event'],
-                                        product = ret['product'])
+                    self.run_background( get_publish_report, self.updatereport, (_utcnow.replace(microsecond=0, second=0, minute=0, hour=9),) )
                 else:
                     return self.render('crawler/updatereport.html',
                                         date = _utcnow.replace(microsecond=0, second=0, minute=0, hour=9),
@@ -773,21 +746,21 @@ class CrawlerHandler(AsyncProcessMixIn):
                                     product = [])
 
 
-    def report(callback):
+    def report(self, ret):
         _utcnow = datetime.utcnow()
-        if wink(_utcnow):
-            ret = get_publish_report(_utcnow.replace(microsecond=0, second=0, minute=0, hour=9))
-            ret.update( {'date': _utcnow.replace(microsecond=0, second=0, minute=0, hour=9)} )
-            return self.render('crawler/report.html',
-                                date = ret['date'],
-                                event = ret['event'],
-                                product = ret['product'])
-        else:
-            return self.render('crawler/report.html',
-                                date = _utcnow.replace(microsecond=0, second=0, minute=0, hour=9),
-                                event = [],
-                                product = [])
-        
+        ret.update( {'date': _utcnow.replace(microsecond=0, second=0, minute=0, hour=9)} )
+        return self.render('crawler/report.html',
+                            date = ret['date'],
+                            event = ret['event'],
+                            product = ret['product'])
+
+    def updatereport(self, ret):
+        _utcnow = datetime.utcnow()
+        ret.update( {'date': _utcnow.replace(microsecond=0, second=0, minute=0, hour=9)} )
+        return self.render('crawler/updatereport.html',
+                            date = ret['date'],
+                            event = ret['event'],
+                            product = ret['product'])
 
 class DashboardHandler(BaseHandler):
     def get(self, path):

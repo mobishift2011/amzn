@@ -102,7 +102,7 @@ class BaseEvent(Document, BaseDocumentSkeleton):
     meta = {
         "allow_inheritance": True,
         "collection": "event",
-        "indexes": ["urgent", "events_begin", "events_end", "soldout", "event_id", "is_leaf", "image_complete", "brand_complete", "propagation_complete"],
+        "indexes": ["urgent", "events_begin", "events_end", "soldout", "event_id", "is_leaf", "image_complete", "brand_complete", "propagation_complete", "create_time"],
     }
 
 
@@ -230,5 +230,5 @@ class LuxuryProduct(BaseProduct):
     favbuy_listprice    =   StringField()
     
     meta                = {
-        "indexes": ["soldout", "products_begin", "products_end", "event_id"],
+        "indexes": ["soldout", "products_begin", "products_end", "event_id", "create_time"],
     }

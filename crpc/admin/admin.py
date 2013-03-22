@@ -14,6 +14,7 @@ from webassets.ext.jinja2 import AssetsExtension
 
 import os
 import json
+import time
 import threading
 from math import ceil
 from slumber import API
@@ -34,6 +35,7 @@ from powers.configs import AWS_ACCESS_KEY, AWS_SECRET_KEY
 from backends.webui.views import get_one_site_schedule, get_publish_report
 from backends.monitor.upcoming_ending_events_count import upcoming_events, ending_events
 from backends.monitor.publisher_report import wink
+from backends.monitor.models import Stat
 
 DISTRIBUTIONID = 'E3QJD92P0IKIG2'
 
@@ -616,6 +618,7 @@ class MonitorHandler(BaseHandler):
 
 class CrawlerHandler(BaseHandler):
     @tornado.web.authenticated
+    @tornado.web.asynchronous
     def get(self, subpath, parameter):
         if not subpath:
             self.redirect('/crawler/tasks')
@@ -623,9 +626,8 @@ class CrawlerHandler(BaseHandler):
             self.render('crawler/tasks.html')
         elif subpath == 'control':
             self.render('crawler/control.html')
-        elif subpath == 'graph':
-            self.render('crawler/graph.html')
 
+        # publish
         elif subpath == 'publish':
             if parameter == 'chkpub':
                 self.render('crawler/chkpub.html')
@@ -663,6 +665,7 @@ class CrawlerHandler(BaseHandler):
             else:
                 self.render('crawler/publish.html')
 
+        # history
         elif subpath == 'history':
             self.render('crawler/history.html')
         elif subpath == 'site':
@@ -674,8 +677,33 @@ class CrawlerHandler(BaseHandler):
             elif parameter == 'ending':
                 self.render("crawler/schedule.html", schedules = ending_events())
 
+        # graph
+        elif subpath == 'graph':
+            if not parameter:
+                self.render('crawler/graph.html')
+            else:
+                doctype, site = parameter.split('_')
+                if doctype == 'event':
+                    stats = Stat.objects(site=site, doctype='event').order_by('interval')
+                    graphdata = []
+                    graphdata.append({'name':'crawled', 'data':[(int(time.mktime(s.interval.timetuple())*1000), s.crawl_num) for s in stats]})
+                    graphdata.append({'name':'image', 'data':[(int(time.mktime(s.interval.timetuple())*1000), s.image_num) for s in stats]})    
+                    graphdata.append({'name':'propagated', 'data':[(int(time.mktime(s.interval.timetuple())*1000), s.prop_num) for s in stats]})
+                    graphdata.append({'name':'published', 'data':[(int(time.mktime(s.interval.timetuple())*1000), s.publish_num) for s in stats]})
+                    return json.dumps(graphdata)
+                elif doctype == 'product':
+                    stats = Stat.objects(site=site, doctype='product').order_by('interval')
+                    graphdata = []
+                    graphdata.append({'name':'crawled', 'data':[(int(time.mktime(s.interval.timetuple())*1000), s.crawl_num) for s in stats]})
+                    graphdata.append({'name':'image', 'data':[(int(time.mktime(s.interval.timetuple())*1000), s.image_num) for s in stats]})
+                    graphdata.append({'name':'published', 'data':[(int(time.mktime(s.interval.timetuple())*1000), s.publish_num) for s in stats]})
+                    return json.dumps(graphdata)
+
+
+
 
     @tornado.web.authenticated
+    @tornado.web.asynchronous
     def post(self, subpath, parameter):
         if subpath == 'publish':
             if parameter == 'report':

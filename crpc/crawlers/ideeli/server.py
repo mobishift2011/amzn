@@ -17,8 +17,12 @@ from crawlers.common.events import common_saved, common_failed
 from crawlers.common.stash import *
 
 header = { 
+    'Accept': 'text/html, application/xhtml+xml, application/xml, text/javascript, text/xml, */*',
+    'Accept-Charset': 'UTF-8,*;q=0.5',
+    'Accept-Encoding': 'gzip,deflate',
     'Host': 'www.ideeli.com',
-    'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:16.0) Gecko/20100101 Firefox/16.0',
+    'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.22 (KHTML, like Gecko) Ubuntu Chromium/25.0.1364.160 Chrome/25.0.1364.160 Safari/537.22',
+    'X-Requested-With': 'XMLHttpRequest',
 }
 
 req = requests.Session(prefetch=True, timeout=25, config=config, headers=header)
@@ -126,6 +130,7 @@ class Server(object):
         if content is None or isinstance(content, int):
             common_failed.send(sender=ctx, key=dept, url=url,
                     reason='download this department failed: {0}'.format(content))
+            return
         tree = lxml.html.fromstring(content)
         nav = 'div#container > div#content > div#on_sale_today > div#{0}_channel'.format(dept)
         nav = tree.cssselect(nav)[0]

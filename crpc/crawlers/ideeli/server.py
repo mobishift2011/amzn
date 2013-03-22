@@ -17,7 +17,7 @@ from crawlers.common.events import common_saved, common_failed
 from crawlers.common.stash import *
 
 header = { 
-    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    'Accept': 'text/html, application/xhtml+xml, application/xml, text/javascript, text/xml, */*',
     'Accept-Charset': 'UTF-8,*;q=0.5',
     'Accept-Encoding': 'gzip,deflate',
     'Host': 'www.ideeli.com',

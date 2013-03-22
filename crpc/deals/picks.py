@@ -45,7 +45,7 @@ def pick_by_disfilter(product, threshold_adjustment=1):
 
     if product.favbuy_brand:
         if not DSFILTER.get('%s.^_^.ALL' % product.favbuy_brand):
-            blogger.warning('unrecognized brand of favbuy -> %s' % brand)
+            blogger.warning('unrecognized brand of favbuy -> %s' % product.favbuy_brand)
 
         filter_key = '%s.^_^.%s' % (product.favbuy_brand, '-'.join(product.favbuy_dept)) \
             if product.favbuy_dept else ''#'%s.^_^.ALL' % product.favbuy_brand

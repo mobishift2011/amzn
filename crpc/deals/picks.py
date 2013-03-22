@@ -5,9 +5,12 @@ from events import change_for_dsfilter
 from pipelines import ProductPipeline
 import slumber
 
+from helpers.log import getlogger
+logger = getlogger('picks', filename='/tmp/deals.log')
+
 DSFILTER = slumber.API(MASTIFF_HOST).dsfilter.get()
 SITEPREF = {}
-siteprefs = slumber.API('http://mastiff.favbuy.org:8001/api/v1').sitepref.get().get('objects', [])
+siteprefs = slumber.API(MASTIFF_HOST).sitepref.get().get('objects', [])
 for sitepref in siteprefs:
     if sitepref.get('site'):
         SITEPREF.setdefault(sitepref.get('site'), sitepref.get('discount_threshold_adjustment'))
@@ -19,7 +22,7 @@ def refresh_dsfilter(sender, **kwargs):
     global SITEPREF
     DSFILTER = slumber.API(MASTIFF_HOST).dsfilter.get()
     SITEPREF = {}
-    siteprefs = slumber.API('http://mastiff.favbuy.org:8001/api/v1').sitepref.get().get('objects', [])
+    siteprefs = slumber.API(MASTIFF_HOST).sitepref.get().get('objects', [])
     for sitepref in siteprefs:
         if sitepref.get('site'):
             SITEPREF.setdefault(sitepref.get('site'), sitepref.get('discount_threshold_adjustment'))
@@ -47,7 +50,8 @@ def pick_by_disfilter(product, threshold_adjustment=1):
         discount = float(product.favbuy_price) / float(product.favbuy_listprice)
 
         print discount, ' compared to threshold: %s * %s = %s \n' % (threhold, threshold_adjustment, threhold * threshold_adjustment)
-        return discount < threhold * threshold_adjustment
+        # logger.debug('%s compared to threshold: %s * %s = %s \n' % (discount, threhold, threshold_adjustment, threhold * threshold_adjustment))
+        return discount < (threhold * threshold_adjustment)
 
     return False
 

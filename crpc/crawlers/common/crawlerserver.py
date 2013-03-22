@@ -8,11 +8,14 @@ Provides a meta programmed integrated RPC call for all callers
 
 """
 from gevent import monkey; monkey.patch_all()
+import gevent
 from settings import CRAWLER_PORT, CRPC_ROOT, MONGODB_HOST
 from os import listdir
 from os.path import join, abspath, dirname, isdir
 from helpers import log
 from crawlers.common.stash import exclude_crawlers
+
+from deals.picks import DSFILTER, SITEPREF
         
 import lxml.html
 import requests
@@ -45,6 +48,21 @@ class CrawlerServer(object):
                 service = self.get_service(name)
                 if service:
                     self.crawlers[name] = service
+
+        gevent.spawn(self.refresh_global)
+
+    def  refresh_global(self):
+        while True:
+            gevent.sleep(60)
+
+            global DSFILTER
+            global SITEPREF
+            DSFILTER = slumber.API(MASTIFF_HOST).dsfilter.get()
+            SITEPREF = {}
+            siteprefs = slumber.API(MASTIFF_HOST).sitepref.get().get('objects', [])
+            for sitepref in siteprefs:
+                if sitepref.get('site'):
+                    SITEPREF.setdefault(sitepref.get('site'), sitepref.get('discount_threshold_adjustment'))
 
     def get_service(self, name):
         """ Given name of a crawler, determine whether there's valid service inside it 

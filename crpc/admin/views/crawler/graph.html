@@ -81,10 +81,10 @@
         plot('beyondtherack');
         
         function plot(site) {
-            $.getJSON('/graph/event/'+site, function(data) {
+            $.getJSON('/crawler/graph/event_'+site, function(data) {
                 createChart('graphevent',data)
             })
-            $.getJSON('/graph/product/'+site, function(data) {
+            $.getJSON('/crawler/graph/product_'+site, function(data) {
                 createChart('graphproduct',data)
             })
         };

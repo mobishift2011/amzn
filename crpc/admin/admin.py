@@ -14,6 +14,7 @@ from webassets.ext.jinja2 import AssetsExtension
 
 import os
 import json
+import time
 import threading
 from math import ceil
 from slumber import API
@@ -34,6 +35,7 @@ from powers.configs import AWS_ACCESS_KEY, AWS_SECRET_KEY
 from backends.webui.views import get_one_site_schedule, get_publish_report
 from backends.monitor.upcoming_ending_events_count import upcoming_events, ending_events
 from backends.monitor.publisher_report import wink
+from backends.monitor.models import Stat
 
 DISTRIBUTIONID = 'E3QJD92P0IKIG2'
 
@@ -149,6 +151,38 @@ class BaseHandler(tornado.web.RequestHandler):
             return self.jinja2_env.get_template(template_name).render(**kwargs)
         else:
             return tornado.web.RequestHandler.render_string(self, template_name, **kwargs) 
+
+
+class AsyncProcessMixIn(BaseHandler):
+    """
+    http://tornadogists.org/489093/
+
+    class SampleHandler(AsyncProcessMixIn):
+        @tornado.web.asynchronous
+        def get(self):
+            self.call_subprocess('ls /', self.on_ls)
+        
+        def on_ls(self, output, return_code):
+            self.write("return code is: %d" % (return_code,))
+            self.write("output is:\n%s" % (output.read(),)) # output is a file-like object returned by subprocess.Popen
+            
+            self.finish()
+    
+    """
+    def call_subprocess(self, func, callback=None):
+        self.ioloop = tornado.ioloop.IOLoop.instance()
+        self.pipe = p = subprocess.Popen(func, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, close_fds=True)
+        self.ioloop.add_handler(p.stdout.fileno(), self.async_callback(self.on_subprocess_result, callback), self.ioloop.READ)
+    
+    def on_subprocess_result(self, callback, fd, result):
+        try:
+            if callback:
+                callback(self.pipe.stdout)
+        except Exception as e:
+            print(e.message)
+        finally:
+            self.ioloop.remove_handler(fd)
+
 
 class IndexHandler(BaseHandler):
     @tornado.web.authenticated
@@ -614,8 +648,9 @@ class MonitorHandler(BaseHandler):
     def get(self):
         self.render('monitor.html')
 
-class CrawlerHandler(BaseHandler):
+class CrawlerHandler(AsyncProcessMixIn):
     @tornado.web.authenticated
+    @tornado.web.asynchronous
     def get(self, subpath, parameter):
         if not subpath:
             self.redirect('/crawler/tasks')
@@ -623,9 +658,8 @@ class CrawlerHandler(BaseHandler):
             self.render('crawler/tasks.html')
         elif subpath == 'control':
             self.render('crawler/control.html')
-        elif subpath == 'graph':
-            self.render('crawler/graph.html')
 
+        # publish
         elif subpath == 'publish':
             if parameter == 'chkpub':
                 self.render('crawler/chkpub.html')
@@ -663,6 +697,7 @@ class CrawlerHandler(BaseHandler):
             else:
                 self.render('crawler/publish.html')
 
+        # history
         elif subpath == 'history':
             self.render('crawler/history.html')
         elif subpath == 'site':
@@ -674,8 +709,33 @@ class CrawlerHandler(BaseHandler):
             elif parameter == 'ending':
                 self.render("crawler/schedule.html", schedules = ending_events())
 
+        # graph
+        elif subpath == 'graph':
+            if not parameter:
+                self.render('crawler/graph.html')
+            else:
+                doctype, site = parameter.split('_')
+                if doctype == 'event':
+                    stats = Stat.objects(site=site, doctype='event').order_by('interval')
+                    graphdata = []
+                    graphdata.append({'name':'crawled', 'data':[(int(time.mktime(s.interval.timetuple())*1000), s.crawl_num) for s in stats]})
+                    graphdata.append({'name':'image', 'data':[(int(time.mktime(s.interval.timetuple())*1000), s.image_num) for s in stats]})    
+                    graphdata.append({'name':'propagated', 'data':[(int(time.mktime(s.interval.timetuple())*1000), s.prop_num) for s in stats]})
+                    graphdata.append({'name':'published', 'data':[(int(time.mktime(s.interval.timetuple())*1000), s.publish_num) for s in stats]})
+                    return json.dumps(graphdata)
+                elif doctype == 'product':
+                    stats = Stat.objects(site=site, doctype='product').order_by('interval')
+                    graphdata = []
+                    graphdata.append({'name':'crawled', 'data':[(int(time.mktime(s.interval.timetuple())*1000), s.crawl_num) for s in stats]})
+                    graphdata.append({'name':'image', 'data':[(int(time.mktime(s.interval.timetuple())*1000), s.image_num) for s in stats]})
+                    graphdata.append({'name':'published', 'data':[(int(time.mktime(s.interval.timetuple())*1000), s.publish_num) for s in stats]})
+                    return json.dumps(graphdata)
+
+
+
 
     @tornado.web.authenticated
+    @tornado.web.asynchronous
     def post(self, subpath, parameter):
         if subpath == 'publish':
             if parameter == 'report':
@@ -712,6 +772,22 @@ class CrawlerHandler(BaseHandler):
                                     event = [],
                                     product = [])
 
+
+    def report(callback):
+        _utcnow = datetime.utcnow()
+        if wink(_utcnow):
+            ret = get_publish_report(_utcnow.replace(microsecond=0, second=0, minute=0, hour=9))
+            ret.update( {'date': _utcnow.replace(microsecond=0, second=0, minute=0, hour=9)} )
+            return self.render('crawler/report.html',
+                                date = ret['date'],
+                                event = ret['event'],
+                                product = ret['product'])
+        else:
+            return self.render('crawler/report.html',
+                                date = _utcnow.replace(microsecond=0, second=0, minute=0, hour=9),
+                                event = [],
+                                product = [])
+        
 
 class DashboardHandler(BaseHandler):
     def get(self, path):

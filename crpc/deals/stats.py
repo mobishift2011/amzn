@@ -27,7 +27,7 @@ def main(site):
             disount = float(product.favbuy_price) / float(product.favbuy_listprice)
             filter_key = '%s.^_^.%s' % (product.favbuy_brand, '-'.join(product.favbuy_dept))
             medium = DSFILTER[filter_key]
-            adjustrate = SITEPREF.get(self.site, SITEPREF.get('ALL')) or 1
+            adjustrate = SITEPREF.get(site, SITEPREF.get('ALL')) or 1
             adjustment = float(medium) * float(adjustrate)
             f.write('%s\r%s\r%s\r%s\r%s\r%s\r%s\r%s\n' % (title, price, listprice, disount, filter_key, medium, adjustrate, adjustment))
 

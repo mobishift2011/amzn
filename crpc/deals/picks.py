@@ -7,6 +7,7 @@ import slumber
 
 from helpers.log import getlogger
 logger = getlogger('picks', filename='/tmp/deals.log')
+blogger = getlogger('picks', filename='/tmp/pickbrands.log')
 
 DSFILTER = slumber.API(MASTIFF_HOST).dsfilter.get()
 SITEPREF = {}
@@ -43,6 +44,9 @@ def pick_by_disfilter(product, threshold_adjustment=1):
         return False
 
     if product.favbuy_brand:
+        if not DSFILTER.get('%s.^_^.ALL' % product.favbuy_brand):
+            blogger.warning('unrecognized brand of favbuy -> %s' % product.favbuy_brand)
+
         filter_key = '%s.^_^.%s' % (product.favbuy_brand, '-'.join(product.favbuy_dept)) \
             if product.favbuy_dept else ''#'%s.^_^.ALL' % product.favbuy_brand
 
@@ -52,6 +56,9 @@ def pick_by_disfilter(product, threshold_adjustment=1):
         print discount, ' compared to threshold: %s * %s = %s \n' % (threhold, threshold_adjustment, threhold * threshold_adjustment)
         # logger.debug('%s compared to threshold: %s * %s = %s \n' % (discount, threhold, threshold_adjustment, threhold * threshold_adjustment))
         return discount < (threhold * threshold_adjustment)
+    
+    else:
+        blogger.warning('unextracted brand -> %s' % product.brand)
 
     return False
 

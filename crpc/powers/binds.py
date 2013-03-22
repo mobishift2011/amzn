@@ -4,6 +4,7 @@ from gevent import monkey; monkey.patch_all()
 import gevent
 
 from crawlers.common.events import common_saved
+from crawlers.common.stash import deal_crawlers
 from powers.events import *
 from powers.routine import crawl_images, scan_images, propagate
 from settings import POWER_PEERS, TEXT_PEERS
@@ -70,6 +71,10 @@ def batch_text_extract(sender, **kwargs):
         return
     
     if method.startswith('update'):
+        ready_for_publish.send(None, **{'site': site})
+        return
+
+    if site in deal_crawlers:
         ready_for_publish.send(None, **{'site': site})
         return
 

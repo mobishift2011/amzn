@@ -19,7 +19,7 @@ def main(site):
     products = m.Product.objects()
 
     with open('status.txt', 'w') as f: 
-        f.write('url\rprice\rlistprice\rdisount\rfilter_key\rmedium\radjustrate\radjustment')
+        f.write('url;price;listprice;disount;filter_key;medium;adjustrate;adjustment')
         for product in products:
             title = product.title.encode('utf-8')
             combine_url = product.combine_url
@@ -30,7 +30,7 @@ def main(site):
             medium = DSFILTER[filter_key]['medium']
             adjustrate = SITEPREF.get(site, SITEPREF.get('ALL')) or 1
             adjustment = float(medium) * float(adjustrate)
-            f.write('%s\r%s\r%s\r%s\r%s\r%s\r%s\r%s\r\n' % (combine_url, price, listprice, disount, filter_key, medium, adjustrate, adjustment))
+            f.write('%s;%s;%s;%s;%s;%s;%s;%s\n' % (combine_url, price, listprice, disount, filter_key, medium, adjustrate, adjustment))
 
 
 

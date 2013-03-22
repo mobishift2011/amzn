@@ -618,6 +618,7 @@ class MonitorHandler(BaseHandler):
 
 class CrawlerHandler(BaseHandler):
     @tornado.web.authenticated
+    @tornado.web.asynchronous
     def get(self, subpath, parameter):
         if not subpath:
             self.redirect('/crawler/tasks')
@@ -690,7 +691,7 @@ class CrawlerHandler(BaseHandler):
                     graphdata.append({'name':'propagated', 'data':[(int(time.mktime(s.interval.timetuple())*1000), s.prop_num) for s in stats]})
                     graphdata.append({'name':'published', 'data':[(int(time.mktime(s.interval.timetuple())*1000), s.publish_num) for s in stats]})
                     return json.dumps(graphdata)
-                elif doctype = 'product':
+                elif doctype == 'product':
                     stats = Stat.objects(site=site, doctype='product').order_by('interval')
                     graphdata = []
                     graphdata.append({'name':'crawled', 'data':[(int(time.mktime(s.interval.timetuple())*1000), s.crawl_num) for s in stats]})
@@ -702,6 +703,7 @@ class CrawlerHandler(BaseHandler):
 
 
     @tornado.web.authenticated
+    @tornado.web.asynchronous
     def post(self, subpath, parameter):
         if subpath == 'publish':
             if parameter == 'report':

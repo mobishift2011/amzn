@@ -15,7 +15,7 @@ for sitepref in siteprefs:
 
 
 def main(site):
-    m = __import__('crawlers.%s.models' % site, fromlist=['Product']) )
+    m = __import__('crawlers.%s.models' % site, fromlist=['Product'] )
     products = m.Product.objects()
 
     with open('status.txt', 'r') as f: 

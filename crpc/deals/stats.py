@@ -29,7 +29,7 @@ def main(site):
             medium = DSFILTER[filter_key]['medium']
             adjustrate = SITEPREF.get(site, SITEPREF.get('ALL')) or 1
             adjustment = float(medium) * float(adjustrate)
-            f.write('%s\r%s\r%s\r%s\r%s\r%s\r%s\r%s\n' % ('', price, listprice, disount, filter_key, medium, adjustrate, adjustment))
+            f.write('%s\r%s\r%s\r%s\r%s\r%s\r%s\r%s\n' % (unicode(title), price, listprice, disount, filter_key, medium, adjustrate, adjustment))
 
 
 

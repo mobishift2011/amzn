@@ -55,14 +55,17 @@ class CrawlerServer(object):
         while True:
             gevent.sleep(60)
 
-            global DSFILTER
-            global SITEPREF
-            DSFILTER = slumber.API(MASTIFF_HOST).dsfilter.get()
-            SITEPREF = {}
-            siteprefs = slumber.API(MASTIFF_HOST).sitepref.get().get('objects', [])
-            for sitepref in siteprefs:
-                if sitepref.get('site'):
-                    SITEPREF.setdefault(sitepref.get('site'), sitepref.get('discount_threshold_adjustment'))
+            try:
+                global DSFILTER
+                global SITEPREF
+                DSFILTER = slumber.API(MASTIFF_HOST).dsfilter.get()
+                SITEPREF = {}
+                siteprefs = slumber.API(MASTIFF_HOST).sitepref.get().get('objects', [])
+                for sitepref in siteprefs:
+                    if sitepref.get('site'):
+                        SITEPREF.setdefault(sitepref.get('site'), sitepref.get('discount_threshold_adjustment'))
+            except:
+                pass
 
     def get_service(self, name):
         """ Given name of a crawler, determine whether there's valid service inside it 

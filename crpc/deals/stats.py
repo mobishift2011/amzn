@@ -22,9 +22,9 @@ def main(site):
         f.write('title\rprice\rlistprice\rdisount\rfilter_key\rmedium\radjustrate\radjustment')
         for product in products:
             title = product.title
-            price = product.price
-            listprice = product.listprice
-            disount = product.disount
+            price = product.favbuy_price
+            listprice = product.favbuy_listprice
+            disount = float(product.favbuy_price) / float(product.favbuy_listprice)
             filter_key = '%s.^_^.%s' % (product.favbuy_brand, '-'.join(product.favbuy_dept))
             medium = DSFILTER['filter_key']
             adjustrate = SITEPREF.get(self.site, SITEPREF.get('ALL')) or 1

@@ -152,6 +152,38 @@ class BaseHandler(tornado.web.RequestHandler):
         else:
             return tornado.web.RequestHandler.render_string(self, template_name, **kwargs) 
 
+
+class AsyncProcessMixIn(BaseHandler):
+    """
+    http://tornadogists.org/489093/
+
+    class SampleHandler(AsyncProcessMixIn):
+        @tornado.web.asynchronous
+        def get(self):
+            self.call_subprocess('ls /', self.on_ls)
+        
+        def on_ls(self, output, return_code):
+            self.write("return code is: %d" % (return_code,))
+            self.write("output is:\n%s" % (output.read(),)) # output is a file-like object returned by subprocess.Popen
+            
+            self.finish()
+    
+    """
+    def call_subprocess(self, func, callback=None):
+        self.ioloop = tornado.ioloop.IOLoop.instance()
+        self.pipe = p = subprocess.Popen(func, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, close_fds=True)
+        self.ioloop.add_handler(p.stdout.fileno(), self.async_callback(self.on_subprocess_result, callback), self.ioloop.READ)
+    
+    def on_subprocess_result(self, callback, fd, result):
+        try:
+            if callback:
+                callback(self.pipe.stdout)
+        except Exception as e:
+            print(e.message)
+        finally:
+            self.ioloop.remove_handler(fd)
+
+
 class IndexHandler(BaseHandler):
     @tornado.web.authenticated
     def get(self):
@@ -616,7 +648,7 @@ class MonitorHandler(BaseHandler):
     def get(self):
         self.render('monitor.html')
 
-class CrawlerHandler(BaseHandler):
+class CrawlerHandler(AsyncProcessMixIn):
     @tornado.web.authenticated
     @tornado.web.asynchronous
     def get(self, subpath, parameter):
@@ -740,6 +772,22 @@ class CrawlerHandler(BaseHandler):
                                     event = [],
                                     product = [])
 
+
+    def report(callback):
+        _utcnow = datetime.utcnow()
+        if wink(_utcnow):
+            ret = get_publish_report(_utcnow.replace(microsecond=0, second=0, minute=0, hour=9))
+            ret.update( {'date': _utcnow.replace(microsecond=0, second=0, minute=0, hour=9)} )
+            return self.render('crawler/report.html',
+                                date = ret['date'],
+                                event = ret['event'],
+                                product = ret['product'])
+        else:
+            return self.render('crawler/report.html',
+                                date = _utcnow.replace(microsecond=0, second=0, minute=0, hour=9),
+                                event = [],
+                                product = [])
+        
 
 class DashboardHandler(BaseHandler):
     def get(self, path):

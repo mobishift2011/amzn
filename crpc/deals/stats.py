@@ -21,7 +21,7 @@ def main(site):
     with open('status.txt', 'w') as f: 
         f.write('title\rprice\rlistprice\rdisount\rfilter_key\rmedium\radjustrate\radjustment')
         for product in products:
-            title = product.title
+            title = product.title.encode('utf-8')
             price = product.favbuy_price
             listprice = product.favbuy_listprice
             disount = float(product.favbuy_price) / float(product.favbuy_listprice)
@@ -29,7 +29,7 @@ def main(site):
             medium = DSFILTER[filter_key]['medium']
             adjustrate = SITEPREF.get(site, SITEPREF.get('ALL')) or 1
             adjustment = float(medium) * float(adjustrate)
-            f.write('%s\r%s\r%s\r%s\r%s\r%s\r%s\r%s\n' % (unicode(title), price, listprice, disount, filter_key, medium, adjustrate, adjustment))
+            f.write('%s\r%s\r%s\r%s\r%s\r%s\r%s\r%s\n' % (title, price, listprice, disount, filter_key, medium, adjustrate, adjustment))
 
 
 

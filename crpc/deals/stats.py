@@ -18,7 +18,7 @@ def main(site):
     m = __import__('crawlers.%s.models' % site, fromlist=['Product'] )
     products = m.Product.objects()
 
-    with open('status.txt', 'r') as f: 
+    with open('status.txt', 'w') as f: 
         f.write('title\rprice\rlistprice\rdisount\rfilter_key\rmedium\radjustrate\radjustment')
         for product in products:
             title = product.title

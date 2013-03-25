@@ -638,7 +638,12 @@ class CrawlerHandler(AsyncProcessMixIn):
         if not subpath:
             self.redirect('/crawler/tasks')
         if subpath == 'tasks':
-            self.render('crawler/tasks.html', **task_all_tasks())
+            if parameter == 'all':
+                return task_all_tasks()
+            elif parameter === 'update':
+                pass
+            else:
+                self.render('crawler/tasks.html')
         elif subpath == 'control':
             self.render('crawler/control.html')
 

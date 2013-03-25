@@ -185,6 +185,14 @@ class Server(object):
             if i['zoomImage'] not in image_urls:
                 image_urls.append(i['zoomImage'])
 
+        if not image_urls:
+            for i in data['detailJSON']['asins']:
+                if i['asin'] == casin:
+                    for j in i['altviews']:
+                        if j['zoomImage'] not in image_urls:
+                            image_urls.append(j['zoomImage'])
+                    break
+
         asin = data['detailJSON']['asin']
         summary = data['productDescription']['shortProdDesc']
         list_info = [i.replace('&quot;', '"').replace('&#39;', '\'') for i in data['productDescription']['bullets'][0]['bulletsList']]

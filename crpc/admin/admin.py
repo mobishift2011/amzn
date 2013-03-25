@@ -640,7 +640,7 @@ class CrawlerHandler(AsyncProcessMixIn):
         if subpath == 'tasks':
             if parameter == 'all':
                 return task_all_tasks()
-            elif parameter === 'update':
+            elif parameter == 'update':
                 pass
             else:
                 self.render('crawler/tasks.html')

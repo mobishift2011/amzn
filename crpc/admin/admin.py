@@ -33,7 +33,7 @@ from views import get_all_schedules, update_schedule, delete_schedule, execute a
 from powers.tools import ImageTool, Image
 from powers.configs import AWS_ACCESS_KEY, AWS_SECRET_KEY
 
-from backends.webui.views import get_one_site_schedule, get_publish_report, task_all_tasks
+from backends.webui.views import get_one_site_schedule, get_publish_report, task_all_tasks, task_updates
 from backends.monitor.upcoming_ending_events_count import upcoming_events, ending_events
 from backends.monitor.publisher_report import wink
 from backends.monitor.models import Stat
@@ -639,9 +639,12 @@ class CrawlerHandler(AsyncProcessMixIn):
             self.redirect('/crawler/tasks')
         if subpath == 'tasks':
             if parameter == 'all':
-                return task_all_tasks()
+                offset = self.get_argument('offset', 0)
+                limit = self.get_argument('limit', 50)
+                offset, limit = int(offset), int(limit)
+                return task_all_tasks(offset, limit)
             elif parameter == 'update':
-                pass
+                return task_updates()
             else:
                 self.render('crawler/tasks.html')
         elif subpath == 'control':

@@ -804,16 +804,12 @@ class AffiliateHandler(BaseHandler):
 
     @tornado.web.authenticated
     def post(self, key):
-        arguments = {
-            'site': self.get_argument('site'),
-            'affiliate': self.get_argument('affiliate'),
-            'tracking_url' : self.get_argument('tracking_url')
-        }
+        arguments = {k:v[0] for k,v in self.request.arguments.iteritems() if v}
 
         if key:
             arguments['key'] = key
             post_link(patch=True, **arguments)
-
+        
         post_link(**arguments)
         return self.render('affiliate.html', links=get_all_links(), sites=picked_crawlers)
 

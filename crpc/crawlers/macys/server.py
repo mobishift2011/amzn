@@ -159,6 +159,7 @@ class Server(object):
             if is_updated:
                 product.list_update_time = datetime.utcnow()
             
+            
             product.hit_time = datetime.utcnow()
             product.save()
 

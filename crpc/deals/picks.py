@@ -57,7 +57,6 @@ def pick_by_disfilter(product, threshold_adjustment=1, site=None):
 
 
 def monitor_brand(product, site):
-    'monitor brand~~~~~~~~~~~~~~~~~~~~~'
     if product.favbuy_brand:
         if DSFILTER.get('%s.^_^.ALL' % product.favbuy_brand):
             return
@@ -76,7 +75,7 @@ def monitor_brand(product, site):
 
     if site not in bm.site:
         bm.site.append(site)
-
+    
     bm.sample = product.combine_url
     self.done = False
     bm.updated_at = datetime.utcnow()

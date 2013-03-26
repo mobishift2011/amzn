@@ -19,19 +19,17 @@ from crawlers.common.models import BaseCategory, LuxuryProduct
 class Category(BaseCategory):
     key = StringField(unique=True)
     combine_url = StringField()
-    hit_time = DateTimeField()
 
     meta = {
         'db_alias': DB,
     }
 
     def url(self):
-        pass
+        return self.combine_url + '&viewall=true'
 
 
 class Product(LuxuryProduct):
     deal_type = True
-    hit_time = DateTimeField()
     
     meta = {
         "db_alias": DB,

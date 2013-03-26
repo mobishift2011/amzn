@@ -34,11 +34,18 @@ class Server(object):
     def __init__(self):
         self.siteurl = 'http://www1.macys.com'
 
+    def fetch_page(self, url):
+        ret = req.get(url)
+        if ret.ok: return ret.content
+        else: return ret.status_code
+
     def crawl_category(self, ctx='', **kwargs):
         site_map = 'http://www1.macys.com/cms/slp/2/Site-Index'
-        res = req.get(site_map)
-        res.raise_for_status()
-        tree = lxml.html.fromstring(res.content)
+        ret = self.fetch_page(site_map)
+        if isinstance(ret, int):
+            common_failed.send(sender=ctx, key='', url=site_map, reason='download sitemap return: {0}'.format(ret))
+            return
+        tree = lxml.html.fromstring(ret)
         dept_nodes = tree.cssselect('div#sitemap_wrapper div.sitelink_container')
         for dept_node in dept_nodes:
             dept = dept_node.cssselect('h2')[0].text.strip()
@@ -59,6 +66,7 @@ class Server(object):
                 if not category:
                     is_new = True
                     category = Category(key=key)
+                    category.is_leaf = True
 
                 if combine_url and combine_url != category.combine_url:
                     category.combine_url = combine_url
@@ -76,16 +84,18 @@ class Server(object):
 
 
     def crawl_listing(self, url, ctx='', **kwargs):
-        res = req.get(url)
-        res.raise_for_status()
-        tree = lxml.html.fromstring(res.content)
+        ret = self.fetch_page(url)
+        if isinstance(ret, int):
+            common_failed.send(sender=ctx, key='', url=url,
+                reason='download listing url error return: {0}'.format(ret))
+            return
+        tree = lxml.html.fromstring(ret)
         product_nodes = tree.cssselect('div#macysGlobalLayout div.thumbnails div.productThumbnail')
 
         for product_node in product_nodes:
             key = product_node.get('id')
             if not key:
                 common_failed.send(sender=ctx, url=url, reason='listing product has no key')
-                print 'failed'
                 continue
 
             try:
@@ -93,7 +103,6 @@ class Server(object):
                 title = href_node.xpath('text()')[-1].strip()
             except:
                 common_failed.send(sender=ctx, url=url, reason='listing product %s -> %s' % (key, traceback.format_exc()))
-                print 'title failed'
                 continue
 
             combine_url = href_node.get('href')
@@ -113,7 +122,6 @@ class Server(object):
             if price is None or listprice is None:
                 # common_failed.send(sender=ctx, url=url, \
                 #     reason='listing product %s.%s cannot crawl price info -> %s / %s' % (key, title, price, listprice))
-                print 'price failed'
                 continue
             price = price.replace('Sale', '').replace('Your Choice', '').replace('$', '').replace(',', '').strip()
             listprice = listprice.replace('Reg.', '').replace('$', '').replace(',', '').strip()
@@ -166,8 +174,12 @@ class Server(object):
 
 
     def crawl_product(self, url, ctx='', **kwargs):
-        res = req.get(url)
-        tree = lxml.html.fromstring(res.content)
+        ret = self.fetch_page(url)
+        if isinstance(ret, int):
+            common_failed.send(sender=ctx, key='', url=url,
+                reason='download product url error return: {0}'.format(ret))
+            return
+        tree = lxml.html.fromstring(ret)
         summary = tree.cssselect('div#longDescription')[0].text_content().strip()
         list_info = tree.cssselect('ul#bullets')[0].text_content().strip().split('\n')
         shipping = tree.cssselect('div#pdpshippingNreturn ul.prodInfoList')[0].text_content().strip()
@@ -212,16 +224,16 @@ if __name__ == '__main__':
     # server.run()
 
     s = Server()
-    # s.crawl_category()
-
-    s.crawl_listing('http://www1.macys.com/shop/womens-clothing/womens-swimwear?id=8699&viewall=true', key='8699')
-    # counter = 0
-    # categories = Category.objects()
-    # for category in categories:
-    #     counter += 1
-    #     print '~~~~~~~~~~', counter
-    #     print category.combine_url; print
-    #     s.crawl_listing(category.combine_url, **{'key': category.key})
-
-    # for product in Product.objects():
-    #     s.crawl_product(product.combine_url, **{'key': product.key})
+#    s.crawl_category()
+#
+#    s.crawl_listing('http://www1.macys.com/shop/womens-clothing/womens-swimwear?id=8699&viewall=true', key='8699')
+#    counter = 0
+#    categories = Category.objects()
+#    for category in categories:
+#         counter += 1
+#         print '~~~~~~~~~~', counter
+#         print category.combine_url; print
+#         s.crawl_listing(category.combine_url + '&viewall=true', **{'key': category.key})
+#
+#    for product in Product.objects():
+#        s.crawl_product(product.combine_url, **{'key': product.key})

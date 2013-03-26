@@ -182,6 +182,7 @@ class IndexHandler(BaseHandler):
         num_buys = api.useraction.get(limit=1, name='click buy')['meta']['total_count']
         num_new_buys = api.useraction.get(limit=1, time__gt=yesterday, name='click buy')['meta']['total_count']
         num_view_products = api.useraction.get(limit=1, name='view product')['meta']['total_count']
+        num_new_view_products_a = api.useraction.get(**{'limit':1, 'time__gt':yesterday, 'name':'view product','values.available':'true'})['meta']['total_count']
         num_new_view_products = api.useraction.get(limit=1, time__gt=yesterday, name='view product')['meta']['total_count']
         buys = api.useraction.get(limit=1000, name='click buy', order_by='-time', time__gt=yesterday)['objects']
         #buys = api.useraction.get(limit=1000, name='click buy', order_by='-time')['objects']
@@ -220,6 +221,7 @@ class IndexHandler(BaseHandler):
             num_new_buys = num_new_buys,
             num_view_products = num_view_products,
             num_new_view_products = num_new_view_products,
+            num_new_view_products_a = num_new_view_products_a,
             top_buys = top_buys,
             top_buy_sites = top_buy_sites
         )

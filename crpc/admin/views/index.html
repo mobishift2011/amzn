@@ -41,11 +41,11 @@
                     <span class="notification red">{{ num_new_buys }}</span>
                 </a>
 
-                <a data-rel="tooltip" title="{{ num_new_view_products }} 24-hour view products." class="well span2 top-block" href="#">
+                <a data-rel="tooltip" title="{{ num_new_view_products }} 24-hour view products, {{ num_new_view_products_a }} of them are buyable" class="well span2 top-block" href="#">
                     <span class="icon32 icon-color icon-arrowrefresh-e"></span>
                     <div>View Products</div>
                     <div>{{ num_view_products }}</div>
-                    <span class="notification red">{{ num_new_view_products }}</span>
+                    <span class="notification red">{{ num_new_view_products }}/{{ num_new_view_products_a }}</span>
                 </a>
 
                 <a data-rel="tooltip" title="{{ "{:,.2f}".format(100*num_new_buys/num_new_view_products if num_new_view_products else 0) }} % 24-hour conversion rate (click-buys/view-products)." class="well span2 top-block" href="#">

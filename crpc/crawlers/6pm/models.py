@@ -30,7 +30,6 @@ class Category(BaseCategory):
 
 
 class Product(LuxuryProduct):
-    deal_type = True
     hit_time = DateTimeField()
     
     meta = {

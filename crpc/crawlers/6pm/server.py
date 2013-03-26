@@ -117,6 +117,8 @@ class Server(object):
             if not product:
                 is_new = True
                 product = Product(key=key)
+                product.updated = False
+                product.event_type = False
 
             if title and title != product.title:
                 product.title = title

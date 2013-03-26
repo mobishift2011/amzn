@@ -174,6 +174,8 @@ class Server(object):
             if not product:
                 is_new = True
                 product = Product(key=key)
+                product.updated = False
+                product.event_type = False
 
             if combine_url and combine_url != product.combine_url:
                 product.combine_url = combine_url

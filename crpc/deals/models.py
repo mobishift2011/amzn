@@ -15,8 +15,8 @@ class BrandMonitor(Document):
     created_at     =   DateTimeField(default=datetime.now())
     
     meta = {
-        'indexes': ['title'],
-        'ordering': ['title']
+        'indexes': ['brand'],
+        'ordering': ['brand']
     }
         
     def __unicode__(self):
@@ -29,6 +29,6 @@ class BrandMonitor(Document):
             'site'                 :   self.site,
             'samples'          :   self.samples,
             'done'               :   self.done,
-            'updated_at'     :   str(self.updated_at)
+            'updated_at'     :   str(self.updated_at),
             'created_at'      :   str(self.created_at)
         }

@@ -35,8 +35,7 @@ class Picker(object):
         self.site = site
 
     def pick(self, product):
-        pp = ProductPipeline(self.site, product)
-        pp.clean()
+        ProductPipeline(self.site, product).clean()
         return pick_by_disfilter(product, SITEPREF.get(self.site, SITEPREF.get('ALL')) or 1, site=self.site)
 
 
@@ -58,6 +57,7 @@ def pick_by_disfilter(product, threshold_adjustment=1, site=None):
 
 
 def monitor_brand(product, site):
+    'monitor brand~~~~~~~~~~~~~~~~~~~~~'
     if product.favbuy_brand:
         if DSFILTER.get('%s.^_^.ALL' % product.favbuy_brand):
             return
@@ -77,10 +77,8 @@ def monitor_brand(product, site):
     if site not in bm.site:
         bm.site.append(site)
 
-    if self.done:
-        self.done = False
-    
     bm.sample = product.combine_url
+    self.done = False
     bm.updated_at = datetime.utcnow()
     bm.save()
 

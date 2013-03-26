@@ -29,8 +29,6 @@ class Category(BaseCategory):
 
 
 class Product(LuxuryProduct):
-    deal_type = True
-    
     meta = {
         "db_alias": DB,
     }

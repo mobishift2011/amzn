@@ -132,6 +132,7 @@ class Server(object):
                 is_new = True
                 product = Product(key=key)
                 product.updated = False
+                product.event_type = False
 
             if title and title != product.title:
                 product.title = title
@@ -150,6 +151,11 @@ class Server(object):
             if listprice and listprice != product.listprice:
                 product.listprice = listprice
                 is_updated = True
+
+            # To pick the product which fit our needs, such as a certain discount, brand, dept etc.
+            selected = Picker(site='macys').pick(product)
+            if not selected:
+                continue
 
             category = Category.objects(key=kwargs.get('key')).first()
             if not category:
@@ -180,6 +186,13 @@ class Server(object):
                 reason='download product url error return: {0}'.format(ret))
             return
         tree = lxml.html.fromstring(ret)
+        available = tree.cssselect('div#productDescription ul.similarItems li > span')
+        if available:
+            if 'unavailable' in available[0].text_content():
+                product = Product.objects(key=kwargs.get('key')).first()
+                if product: product.delete()
+                return
+
         summary = tree.cssselect('div#longDescription')[0].text_content().strip()
         list_info = tree.cssselect('ul#bullets')[0].text_content().strip().split('\n')
         shipping = tree.cssselect('div#pdpshippingNreturn ul.prodInfoList')[0].text_content().strip()

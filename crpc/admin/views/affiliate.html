@@ -32,7 +32,8 @@
                             <th>site</th>
                             <th>affiliate</th>
                             <th>tracking_url</th>
-                            <th>updated</th>
+                            <th>ended</th>
+                            <th>created</th>
                             <th>Actions</th>
                         </tr>
                     </thead>   
@@ -43,6 +44,7 @@
                         <td>{{ link['affiliate'] }}</td>
                         <td>{{ link['tracking_url'] }}</td>
                         <td>{{ link['updated_at'] }}</td>
+                        <td>{{ link['created_at'] }}</td>
                         <td class="center">
 <!--                             <a class="btn btn-success btn_view" href="#">
                                 <i class="icon-zoom-in icon-white"></i>
@@ -116,6 +118,12 @@
                             </div>
                         </div>
                         <div class="control-group">
+                            <label class="control-label" for="date01">End Date</label>
+                            <div class="controls">
+                                <input type="text" class="input-xlarge datepicker hasDatepicker" id="date01" name='updated_at'>
+                            </div>
+                        </div>
+                        <div class="control-group">
                             <label class="control-label" for="typeahead">tracking_url</label>
                             <div class="controls">
                                 <input type="text" class="span6 typeahead" name="tracking_url" data-provide="typeahead" data-items="4" data-source="[]">
@@ -181,12 +189,15 @@ $('.btn_delete_affiliate').click(function(e){
         type: 'DELETE',
         data: {_xsrf: getCookie("_xsrf")}, 
         success: function(response) {
-            if(response=='True'){
+            res = JSON.parse(response);
+            console.log(res);
+            console.log(res.status);
+            if(res.status){
                 notify(title+' deleted!');
                 tr.remove();
             }
             else{
-                notify(title+' delete failed!', {'type': 'error'});
+                notify(title+' deleted failed! \n'+res.message, {'type': 'error'});
             }
         }
     });

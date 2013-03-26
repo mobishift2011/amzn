@@ -154,6 +154,11 @@ class Server(object):
             if is_updated:
                 product.list_update_time = datetime.utcnow()
             
+            # To pick the product which fit our needs, such as a certain discount, brand, dept etc.
+            selected = Picker(site='6pm').pick(product)
+            if not selected:
+                continue
+
             product.hit_time = datetime.utcnow()
             product.save()
 
@@ -251,10 +256,6 @@ class Server(object):
 
         if is_updated:
             if not product.updated:
-                # To pick the product which fit our needs, such as a certain discount, brand, dept etc.
-                # selected = Picker(site='nordstrom').pick(product)
-                # if not selected:
-                #     return
                 ready = True
             
             product.updated = True
@@ -288,21 +289,21 @@ if __name__ == '__main__':
     s = Server()
     # s.crawl_category()
 
-    # counter = 0
-    # categories = Category.objects()
-    # for category in categories:
-    #     counter += 1
-    #     print '~~~~~~~~~~', counter
-    #     print category.cats
-    #     print category.combine_url; print
-    #     s.crawl_listing(category.combine_url, **{'key': category.key})
+    counter = 0
+    categories = Category.objects()
+    for category in categories:
+        counter += 1
+        print '~~~~~~~~~~', counter
+        print category.cats
+        print category.combine_url; print
+        s.crawl_listing(category.combine_url, **{'key': category.key})
 
-    for product in Product.objects(updated=False):
-        print product.combine_url
-        try:
-            s.crawl_product(product.combine_url, **{'key': product.key})
-        except requests.exceptions.HTTPError:
-            continue
-        except:
-            print traceback.format_exc()
-            break
+    # for product in Product.objects(updated=False):
+    #     print product.combine_url
+    #     try:
+    #         s.crawl_product(product.combine_url, **{'key': product.key})
+    #     except requests.exceptions.HTTPError:
+    #         continue
+    #     except:
+    #         print traceback.format_exc()
+    #         break

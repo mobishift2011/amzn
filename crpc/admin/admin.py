@@ -18,6 +18,7 @@ import time
 import threading
 from math import ceil
 from slumber import API
+import traceback
 from datetime import datetime, timedelta
 from mongoengine import Q
 from cStringIO import StringIO
@@ -813,22 +814,22 @@ class AffiliateHandler(BaseHandler):
 
     @tornado.web.authenticated
     def post(self, key):
-        arguments = {
-            'site': self.get_argument('site'),
-            'affiliate': self.get_argument('affiliate'),
-            'tracking_url' : self.get_argument('tracking_url')
-        }
+        arguments = {k:v[0] for k,v in self.request.arguments.iteritems() if v}
 
         if key:
             arguments['key'] = key
             post_link(patch=True, **arguments)
-
+        
         post_link(**arguments)
         return self.render('affiliate.html', links=get_all_links(), sites=picked_crawlers)
 
     @tornado.web.authenticated
     def delete(self, key):
-        print 'method delete'
+        try:
+            api.affiliate(key).delete()
+            self.write(json.dumps({'status': True, 'message': ''}));
+        except:
+            self.write(json.dumps({'status': False, 'message': '%s' % traceback.format_exc()}));
 
 class BrandsHandler(BaseHandler):
     def get(self, db):

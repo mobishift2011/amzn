@@ -52,11 +52,14 @@ class CheckServer(object):
         pass
 
 if __name__ == '__main__':
-    from crawlers.common.onoff_routine import spout_obj
-    import os, sys
-    
-    method = sys.argv[1] if len(sys.argv) > 1 else 'check_onsale_product'
-    pool = Pool(10)
-    for product in spout_obj(os.path.split(os.path.abspath(__file__+'/../'))[-1], method):
-        pool.spawn(CheckServer().getattr(method), product)
-    pool.join()
+    try:
+        from crawlers.common.onoff_routine import spout_obj
+        import os, sys
+
+        method = sys.argv[1] if len(sys.argv) > 1 else 'check_onsale_product'
+        pool = Pool(10)
+        for product in spout_obj(os.path.split(os.path.abspath(__file__+'/../'))[-1], method):
+            pool.spawn(CheckServer().getattr(method), product)
+        pool.join()
+    except:
+        print traceback.format_exc()

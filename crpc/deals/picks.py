@@ -5,6 +5,7 @@ from events import change_for_dsfilter
 from pipelines import ProductPipeline
 from models import BrandMonitor
 import slumber
+from datetime import datetime
 
 from helpers.log import getlogger
 logger = getlogger('picks', filename='/tmp/deals.log')

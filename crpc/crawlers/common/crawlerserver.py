@@ -53,7 +53,7 @@ class CrawlerServer(object):
 
     def  refresh_global(self):
         while True:
-            gevent.sleep(60)
+            gevent.sleep(3600)
 
             try:
                 global DSFILTER

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 # Author: bishop Liu <miracle (at) gmail.com>
 
+import itertools
 import lxml.html
 from datetime import datetime, timedelta
 
@@ -117,8 +118,9 @@ class Server(object):
             common_failed.send(sender=ctx, key='', url=url,
                     reason='download event page failed: {0}'.format(content))
         tree = lxml.html.fromstring(content)
-        nodes = tree.cssselect('div#stickywrap section#events-live ul.thumbnails > li.catalog-event')
-        for node in nodes:
+        nodes_live = tree.cssselect('div#stickywrap section#events-live ul.thumbnails > li.catalog-event')
+        nodes_ending = tree.cssselect('div#stickywrap section#events-ending ul.thumbnails > li.catalog-event')
+        for node in itertools.chain(nodes_live, nodes_ending):
             self.parse_event_node(node, ctx)
 
         upcoming_nodes = tree.cssselect('div#stickywrap section#events-upcoming > ul.thumbnails > li.catalog-event')
@@ -131,7 +133,7 @@ class Server(object):
         """
         link = node.cssselect('a.thumbnail')[0].get('href')
         event_id = self.extract_event_id.match(link).group(1)
-        sale_title = node.cssselect('a.thumbnail > hgroup')[0].text_content().strip()
+        sale_title = node.cssselect('a.thumbnail > span.event-link > img')[0].get('alt').strip()
         nav = node.cssselect('a.thumbnail > div.more > div.more-content > section.container > h6')
         dept, ages = [], []
         for n in nav:
@@ -174,7 +176,7 @@ class Server(object):
                         reason='download upcoming event page failed: {0}'.format(content))
                     return
             tree = lxml.html.fromstring(content)
-            nav = tree.cssselect('div#mainContent > section.event-landing > div.intro')[0]
+            nav = tree.cssselect('div#mainContent section.event-landing > div.intro')[0]
             img = nav.cssselect('div > div.category-image > img')
             sale_description = nav.cssselect('div.intro-content > p')[0].text_content().strip()
             if img:
@@ -231,7 +233,7 @@ class Server(object):
 
         product_ids = []
         tree = lxml.html.fromstring(ret)
-        nodes = tree.cssselect('div#mainContent > section.event-landing > div.row > div.event-products > ul.event_prod_grid > li')
+        nodes = tree.cssselect('div#mainContent section.event-landing > div.row > div.event-products > ul.event_prod_grid > li')
         for node in nodes:
             image = node.cssselect('div.thumbnail > a.product-image')[0]
             title = image.get('title')
@@ -275,7 +277,7 @@ class Server(object):
         if not event: event = Event(event_id=event_id)
         ready = None
         if not event.image_urls:
-            nav = tree.cssselect('div#mainContent > section.event-landing > div.intro')[0]
+            nav = tree.cssselect('div#mainContent section.event-landing > div.intro')[0]
             event.image_urls = [ nav.cssselect('div > div.category-image > img')[0].get('src') ]
             event.sale_description = nav.cssselect('div.intro-content > p')[0].text_content()
             ready = False
@@ -380,7 +382,7 @@ class Server(object):
         """.. :py:method::
             parse product detail page
         """
-        nav = tree.cssselect('div#mainContent > section#pageheader > div.row')[0]
+        nav = tree.cssselect('div#mainContent section > div.row')[0]
         image_urls = []
         imgs = nav.cssselect('div.product-media > div.more-views > ul.thumbnails > li > div.thumbnail')
         for img in imgs:

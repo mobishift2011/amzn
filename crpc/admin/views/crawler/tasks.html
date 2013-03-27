@@ -1,4 +1,4 @@
-{% extends "layout.html" %}
+{% extends "layout_ngapp.html" %}
 {% block content %}
 
 <script src="/assets/js/libs/tasks.js"></script>
@@ -40,15 +40,15 @@
       </thead>
       <tbody>
         <tr ng-repeat="task in tasks">
-          <td>{{ '{{' }} task.name {{ '{{' }}</td>
-          <td>{{ '{{' }} task.status {{ '{{' }}</td>
-          <td>{{ '{{' }} task.started_at {{ '{{' }}</td>
-          <td>{{ '{{' }} task.updated_at {{ '{{' }}</td>
-          <td>{{ '{{' }} task.ended_at {{ '{{' }}</td>
-          <td>{{ '{{' }} task.dones {{ '{{' }}</td>
-          <td>{{ '{{' }} task.updates {{ '{{' }}</td>
-          <td>{{ '{{' }} task.news {{ '{{' }}</td>
-          <td>{{ '{{' }} task.fails {{ '{{' }}</td>
+          <td>{{ '{{' }} task.name {{ '}}' }}</td>
+          <td>{{ '{{' }} task.status {{ '}}' }}</td>
+          <td>{{ '{{' }} task.started_at {{ '}}' }}</td>
+          <td>{{ '{{' }} task.updated_at {{ '}}' }}</td>
+          <td>{{ '{{' }} task.ended_at {{ '}}' }}</td>
+          <td>{{ '{{' }} task.dones {{ '}}' }}</td>
+          <td>{{ '{{' }} task.updates {{ '}}' }}</td>
+          <td>{{ '{{' }} task.news {{ '}}' }}</td>
+          <td>{{ '{{' }} task.fails {{ '}}' }}</td>
         </tr>
       </tbody>
     </table>    

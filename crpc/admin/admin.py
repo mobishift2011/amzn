@@ -884,8 +884,11 @@ from deals.models import BrandMonitor
 class BrandMonitorHandler(BaseHandler):
     @tornado.web.authenticated
     def get(self):
-        brands = BrandMonitor.objects()
-        self.render('brandmonitor.html', brands=[brand.to_json() for brand in brands])
+        bms = BrandMonitor.objects()
+        print ',,,,,,,,,,,,,,,,,: ', bms.count()
+        p = [brand.to_json() for brand in bms]
+        print '~~~~~~~~~~~~~~~~~: ', len(p)
+        self.render('brandmonitor.html', brands=[brand.to_json() for brand in bms])
 
 
 class PreferenceHandler(BaseHandler):

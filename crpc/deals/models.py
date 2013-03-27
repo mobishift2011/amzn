@@ -9,7 +9,7 @@ class BrandMonitor(Document):
     brand            =   StringField(unique=True)
     reason          =   StringField()
     site               =   ListField(StringField())
-    sample        =   StringField()
+    sample          =   StringField()
     done             =   BooleanField(default=False)
     updated_at    =   DateTimeField()
     created_at     =   DateTimeField(default=datetime.now())
@@ -27,7 +27,7 @@ class BrandMonitor(Document):
             'brand'              :   self.brand,
             'reason'            :   self.reason,
             'site'                 :   self.site,
-            'samples'          :   self.samples,
+            'sample'          :     self.sample,
             'done'               :   self.done,
             'updated_at'      :   str(self.updated_at),
             'created_at'       :   str(self.created_at)

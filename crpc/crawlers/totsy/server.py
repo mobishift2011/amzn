@@ -131,7 +131,7 @@ class Server(object):
         """
         link = node.cssselect('a.thumbnail')[0].get('href')
         event_id = self.extract_event_id.match(link).group(1)
-        sale_title = node.cssselect('a.thumbnail > hgroup')[0].text_content().strip()
+        sale_title = node.cssselect('a.thumbnail > span.event-link > img')[0].get('alt').strip()
         nav = node.cssselect('a.thumbnail > div.more > div.more-content > section.container > h6')
         dept, ages = [], []
         for n in nav:

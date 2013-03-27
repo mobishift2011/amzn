@@ -880,11 +880,10 @@ class PowerBrandHandler(BaseHandler):
         brand = update_brand_volumn(brand_title, int(arguments['global_searchs'][0]))
         self.render('brandpower.html', brand=brand)
 
-
+from deals.models import BrandMonitor
 class BrandMonitorHandler(BaseHandler):
     @tornado.web.authenticated
     def get(self):
-        from deals.models import BrandMonitor
         brands = BrandMonitor.objects()
         self.render('brandmonitor.html', brands=[brand.to_json() for brand in brands])
 

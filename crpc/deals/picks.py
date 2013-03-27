@@ -5,7 +5,7 @@ from events import change_for_dsfilter
 from pipelines import ProductPipeline
 from models import BrandMonitor
 import slumber
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from helpers.log import getlogger
 logger = getlogger('picks', filename='/tmp/deals.log')
@@ -37,7 +37,15 @@ class Picker(object):
 
     def pick(self, product):
         ProductPipeline(self.site, product).clean()
-        return pick_by_dsfilter(product, SITEPREF.get(self.site, SITEPREF.get('ALL')) or 1, site=self.site)
+        selected =  pick_by_dsfilter(product, SITEPREF.get(self.site, SITEPREF.get('ALL')) or 1, site=self.site)
+        
+        # if selected:
+        #     # To ensure the offsale product picked again not to be expired on the site.
+        #     if product.products_end and product.products_end < datetime.utcnow():
+        #         product.products_end = datetime.utcnow() + timedelta(days=2)
+        #         product.update_history['products_end'] = datetime.utcnow()
+
+        return selected
 
 
 def pick_by_dsfilter(product, threshold_adjustment=1, site=None):

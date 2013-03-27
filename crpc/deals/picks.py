@@ -39,11 +39,11 @@ class Picker(object):
         ProductPipeline(self.site, product).clean()
         selected =  pick_by_dsfilter(product, SITEPREF.get(self.site, SITEPREF.get('ALL')) or 1, site=self.site)
         
-        # if selected:
-        #     # To ensure the offsale product picked again not to be expired on the site.
-        #     if product.products_end and product.products_end < datetime.utcnow():
-        #         product.products_end = datetime.utcnow() + timedelta(days=2)
-        #         product.update_history['products_end'] = datetime.utcnow()
+        if selected:
+            # To ensure the offsale product picked again not to be expired on the site.
+            if product.products_end and product.products_end < datetime.utcnow():
+                product.products_end = datetime.utcnow() + timedelta(days=2)
+                product.update_history['products_end'] = datetime.utcnow()
 
         return selected
 

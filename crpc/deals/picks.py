@@ -5,6 +5,7 @@ from events import change_for_dsfilter
 from pipelines import ProductPipeline
 from models import BrandMonitor
 import slumber
+from datetime import datetime
 
 from helpers.log import getlogger
 logger = getlogger('picks', filename='/tmp/deals.log')
@@ -75,9 +76,9 @@ def monitor_brand(product, site):
 
     if site not in bm.site:
         bm.site.append(site)
-    
+
     bm.sample = product.combine_url
-    self.done = False
+    bm.done = False
     bm.updated_at = datetime.utcnow()
     bm.save()
 

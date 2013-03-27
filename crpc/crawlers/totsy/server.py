@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 # Author: bishop Liu <miracle (at) gmail.com>
 
+import itertools
 import lxml.html
 from datetime import datetime, timedelta
 
@@ -117,8 +118,9 @@ class Server(object):
             common_failed.send(sender=ctx, key='', url=url,
                     reason='download event page failed: {0}'.format(content))
         tree = lxml.html.fromstring(content)
-        nodes = tree.cssselect('div#stickywrap section#events-live ul.thumbnails > li.catalog-event')
-        for node in nodes:
+        nodes_live = tree.cssselect('div#stickywrap section#events-live ul.thumbnails > li.catalog-event')
+        nodes_ending = tree.cssselect('div#stickywrap section#events-ending ul.thumbnails > li.catalog-event')
+        for node in itertools.chain(nodes_live, nodes_ending):
             self.parse_event_node(node, ctx)
 
         upcoming_nodes = tree.cssselect('div#stickywrap section#events-upcoming > ul.thumbnails > li.catalog-event')
@@ -174,7 +176,7 @@ class Server(object):
                         reason='download upcoming event page failed: {0}'.format(content))
                     return
             tree = lxml.html.fromstring(content)
-            nav = tree.cssselect('div#mainContent > section.event-landing > div.intro')[0]
+            nav = tree.cssselect('div#mainContent section.event-landing > div.intro')[0]
             img = nav.cssselect('div > div.category-image > img')
             sale_description = nav.cssselect('div.intro-content > p')[0].text_content().strip()
             if img:

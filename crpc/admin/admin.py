@@ -879,6 +879,14 @@ class PowerBrandHandler(BaseHandler):
         self.render('brandpower.html', brand=brand)
 
 
+class BrandMonitorHandler(BaseHandler):
+    @tornado.web.authenticated
+    def get(self):
+        from deals.models import BrandMonitor
+        brands = BrandMonitor.objects()
+        self.render('brandmonitor.html', brands=[brand.to_json() for brand in brands])
+
+
 class PreferenceHandler(BaseHandler):
     def get(self, path):
         if path == '':
@@ -1049,6 +1057,7 @@ application = tornado.web.Application([
     (r"/affiliate/?(.*)/?", AffiliateHandler),
     (r"/brands/?(.*)", BrandsHandler),
     (r"/brand/power/(.*)", PowerBrandHandler),
+    (r"/brand/deal/monitor", BrandMonitorHandler),
     (r"/brand/?(.*)", BrandHandler),
     (r"/feedback/(.*)", FeedbackHandler),
     (r"/email/(.*)", EmailHandler),

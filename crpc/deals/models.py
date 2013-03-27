@@ -24,11 +24,11 @@ class BrandMonitor(Document):
 
     def to_json(self):
         return {
-            'title'                :   self.title,
+            'brand'              :   self.brand,
             'reason'            :   self.reason,
             'site'                 :   self.site,
             'samples'          :   self.samples,
             'done'               :   self.done,
-            'updated_at'     :   str(self.updated_at),
-            'created_at'      :   str(self.created_at)
+            'updated_at'      :   str(self.updated_at),
+            'created_at'       :   str(self.created_at)
         }

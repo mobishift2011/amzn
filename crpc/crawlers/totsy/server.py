@@ -302,7 +302,7 @@ class Server(object):
         price = soldout_price.cssselect('div.product-prices > div.product-prices-main > div.price-box > span.special-price')[0].text_content().replace('$', '').strip()
         listprice = soldout_price.cssselect('div.product-prices > div.product-prices-main > div.product-price-was')[0].text_content().replace('Was', '').replace('$', '').strip()
         if is_new:
-            product.title = nav.cssselect('div.product-main > div.page-header > h3')[0].text_content()
+            product.title = nav.cssselect('div.product-main > div.product-header > h3')[0].text_content().strip()
             product.price = price
             product.listprice = listprice
             product.combine_url = url

@@ -296,7 +296,7 @@ class Server(object):
         tree = lxml.html.fromstring(content)
 
         is_new, is_updated, product = self.save_product_detail(key, *self.parse_product(tree))
-        nav = tree.cssselect('div#mainContent > section#pageheader > div.row')[0]
+        nav = tree.cssselect('div#mainContent section > div.row')[0]
         soldout_price = nav.cssselect('div.product-main > div.product-addtocart div#product-main-info')[0]
         soldout = True if soldout_price.cssselect('div.availability') else False
         price = soldout_price.cssselect('div.product-prices > div.product-prices-main > div.price-box > span.special-price')[0].text_content().replace('$', '').strip()

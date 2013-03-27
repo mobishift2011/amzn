@@ -233,7 +233,7 @@ class Server(object):
 
         product_ids = []
         tree = lxml.html.fromstring(ret)
-        nodes = tree.cssselect('div#mainContent > section.event-landing > div.row > div.event-products > ul.event_prod_grid > li')
+        nodes = tree.cssselect('div#mainContent section.event-landing > div.row > div.event-products > ul.event_prod_grid > li')
         for node in nodes:
             image = node.cssselect('div.thumbnail > a.product-image')[0]
             title = image.get('title')
@@ -277,7 +277,7 @@ class Server(object):
         if not event: event = Event(event_id=event_id)
         ready = None
         if not event.image_urls:
-            nav = tree.cssselect('div#mainContent > section.event-landing > div.intro')[0]
+            nav = tree.cssselect('div#mainContent section.event-landing > div.intro')[0]
             event.image_urls = [ nav.cssselect('div > div.category-image > img')[0].get('src') ]
             event.sale_description = nav.cssselect('div.intro-content > p')[0].text_content()
             ready = False

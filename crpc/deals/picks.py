@@ -37,10 +37,10 @@ class Picker(object):
 
     def pick(self, product):
         ProductPipeline(self.site, product).clean()
-        return pick_by_disfilter(product, SITEPREF.get(self.site, SITEPREF.get('ALL')) or 1, site=self.site)
+        return pick_by_dsfilter(product, SITEPREF.get(self.site, SITEPREF.get('ALL')) or 1, site=self.site)
 
 
-def pick_by_disfilter(product, threshold_adjustment=1, site=None):
+def pick_by_dsfilter(product, threshold_adjustment=1, site=None):
     if not product.favbuy_price or not product.favbuy_listprice:
         return False
 
@@ -83,7 +83,7 @@ def monitor_brand(product, site):
     bm.save()
 
 # Strategy = {
-#   'default': [pick_by_disfilter],
+#   'default': [],
 # }
 
 

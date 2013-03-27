@@ -116,7 +116,8 @@ class Server(object):
                 if  price_node.get('class') and 'priceSale' in price_node.get('class'):
                     price = price_node.xpath('text()')[-1].strip()
                 else:
-                    listprice = price_node.text.strip() if price_node.text else listprice
+                    if listprice is None:
+                        listprice = price_node.text.strip() if price_node.text else listprice
 
             # eliminate products of no discount
             if price is None or listprice is None:

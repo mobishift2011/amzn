@@ -5,6 +5,7 @@
 #  [1] - if XXXX in a title; we can determine the main department of it
 #  [2] - if XXXX in a title; we can determine the sub department of it
 # The XXXX is tested in a brute-force; longest first way
+[0] Pearl River Set -> Home; Furniture & Lighting
 [0] Pendants -> Jewelry & Watches; Pendants
 [0] Necklaces -> Jewelry & Watches; Necklaces
 [0] Pendant Necklace -> Jewelry & Watches; Necklaces

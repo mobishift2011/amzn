@@ -511,6 +511,7 @@ class ViewDataHandler(BaseHandler):
         limit  = kwargs.get('limit', '20')
         kwargs['offset'] = int(offset)
         kwargs['limit']  = int(limit)
+        kwargs['visible_all'] = 1
 
         try:
             result = api.product.get(**kwargs)
@@ -542,6 +543,7 @@ class ViewDataHandler(BaseHandler):
         limit = kwargs.get('limit', '20')
         kwargs['offset'] = int(offset)
         kwargs['limit'] = int(limit)
+        kwargs['visible_all'] = 1
 
         try:
             result = api.event.get(**kwargs)

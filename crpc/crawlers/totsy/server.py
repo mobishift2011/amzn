@@ -382,7 +382,7 @@ class Server(object):
         """.. :py:method::
             parse product detail page
         """
-        nav = tree.cssselect('div#mainContent > section#pageheader > div.row')[0]
+        nav = tree.cssselect('div#mainContent section > div.row')[0]
         image_urls = []
         imgs = nav.cssselect('div.product-media > div.more-views > ul.thumbnails > li > div.thumbnail')
         for img in imgs:

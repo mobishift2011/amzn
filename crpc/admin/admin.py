@@ -905,8 +905,15 @@ class DealHandler(BaseHandler):
                 SITEPREF.setdefault(sitepref.get('site'), sitepref.get('discount_threshold_adjustment'))
 
         site = self.get_argument('site')
+        offset = int(self.get_argument('offset', '0'))
+        limit = int(self.get_argument('limit', '100'))
         m = __import__('crawlers.%s.models' % site, fromlist=['Product'])
-        products = m.Product.objects()[0:10]
+
+        objects = m.Product.objects
+        total_count = objects().count()
+        pagination = Pagination(offset/limit+1, limit, total_count)
+
+        products = objects()[offset*limit: (offset+1)*limit]
         res = [{
             'title': product.title.encode('utf-8'),
             'image': product.image_urls[0] if product.image_urls else '',
@@ -917,7 +924,7 @@ class DealHandler(BaseHandler):
             'medium' : DSFILTER['%s.^_^.%s' % \
             (product.favbuy_brand, '-'.join(product.favbuy_dept))]['medium']
         } for product in products]
-        self.render('deals.html', products=res)
+        self.render('deals.html', products=res, pagination=pagination)
 
 
 class PreferenceHandler(BaseHandler):

@@ -85,6 +85,8 @@ class Server(object):
                     reason="download listing page error: {0}".format(ret))
         tree = lxml.html.fromstring(ret)
         nodes = tree.cssselect('div.mainCon div.ProductListWrap div.thisResultItem')
+        category = Category.objects(key=kwargs.get('key')).first()
+
         for node in nodes:
             brand = node.cssselect('div.listInfoBox div.listBrand span.itemName')[0].text_content().strip()
             title = node.cssselect('div.listInfoBox div.listModel span.itemModel')[0].text_content().strip()

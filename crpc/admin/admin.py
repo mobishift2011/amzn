@@ -906,7 +906,7 @@ class DealHandler(BaseHandler):
 
         site = self.get_argument('site')
         m = __import__('crawlers.%s.models' % site, fromlist=['Product'])
-        products = m.Product.objects()
+        products = m.Product.objects()[0:10]
         res = [{
             'title': product.title.encode('utf-8'),
             'image': product.image_urls[0] if product.image_urls else '',

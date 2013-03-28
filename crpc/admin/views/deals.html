@@ -23,47 +23,46 @@
                     <a href="#" class="btn btn-close btn-round"><i class="icon-remove"></i></a>
                 </div>
             </div>
+            <div class="container">
+                {% for product in products %}
+                <div style="float:left; width:250px; height:500px;">
+                    <img src="{{ product['image'] }}" style="width:240px; height:240px;"/><br />
+                    <b style="color:black">{{ product['title'] }}</b> <br />
+                    <b style="color:grey">{{ product['brand'] }}</b> <br />
+                    <b style="color:grey">{{ product['dept'] }}</b> <br />
+                    <b style="color:black">{{ price }} / {{ listprice }}</b> <br />
+                    <b style="color:black">{{ medium }}</b> <br />
+                </div>
+                {% endfor %}
+            </div>
+
             <div class="box-content">
                 <table class="table table-striped table-bordered bootstrap-datatable datatable">
                     <thead>
                         <tr>
                             <th>title</th>
                             <th>image</th>
-                            <th>brand</th>
-                            <th>dept</th>
                             <th>price</th>
                             <th>listprice</th>
+                            <th>brand</th>
+                            <th>dept</th>
                             <th>medium discount</th>
                         </tr>
                     </thead>   
                   <tbody>
-                    {% for product in products %}
+                    {% for product in [] %}
                     <tr >
                         <td>{{ product['title'] }}</td>
                         <td>{{ product['image'] }}</td>
-                        <td>{{ product['brand'] }}</td>
-                        <td>{{ product['dept'] }}</td>
                         <td>{{ product['price'] }}</td>
                         <td>{{ product['listprice'] }}</td>
+                        <td>{{ product['brand'] }}</td>
+                        <td>{{ product['dept'] }}</td>
                         <td>{{ product['medium'] }}</td>
                     </tr>
                     {% endfor %}
                   </tbody>
-                </table>
-                <p class="pull-right">
-<!--                     <a class="btn btn-success" href="#">
-                        <i class="icon-zoom-in icon-white"></i>  
-                        View                                            
-                    </a> -->
-                    <a class="btn btn-info" href="#">
-                        <i class="icon-edit icon-white"></i>  
-                        Edit                                            
-                    </a>
-                    <a class="btn btn-danger" href="#">
-                        <i class="icon-trash icon-white"></i> 
-                        Delete
-                    </a>
-                </p>            
+                </table>         
             </div>
         </div><!--/span-->
 

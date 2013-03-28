@@ -90,7 +90,7 @@ def spout_category(site, category):
         pages = (c.num - 1) / c.pagesize
         for p in xrange(1, pages+1):
             url = '{0}?items={1}?page={2}'.format(c.url(), c.pagesize, p)
-            yield {'url': url}
+            yield {'url': url, 'key': c.key}
     elif site in deal_crawlers:
         yield {'url': c.url(), 'key': c.key}
     else:

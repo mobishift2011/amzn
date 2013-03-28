@@ -891,6 +891,35 @@ class BrandMonitorHandler(BaseHandler):
         self.render('brandmonitor.html', brands=[brand.to_json() for brand in bms])
 
 
+class DealHandler(BaseHandler):
+    @tornado.web.authenticated
+    def get(self):
+        import sys
+        reload(sys)
+        sys.setdefaultencoding('utf-8')
+        DSFILTER = API(MASTIFF_HOST).dsfilter.get()
+        SITEPREF = {}
+        siteprefs = API(MASTIFF_HOST).sitepref.get().get('objects', [])
+        for sitepref in siteprefs:
+            if sitepref.get('site'):
+                SITEPREF.setdefault(sitepref.get('site'), sitepref.get('discount_threshold_adjustment'))
+
+        site = self.get_argument('site')
+        m = __import__('crawlers.%s.models' % site, fromlist=['Product'])
+        products = m.Product.objects()
+        res = [{
+            'title': product.title.encode('utf-8'),
+            'image': product.image_urls[0] if product.image_urls else '',
+            'brand': product.favbuy_brand,
+            'price': product.favbuy_price,
+            'listprice': product.favbuy_listprice,
+            'dept': '-'.join(product.favbuy_dept),
+            'medium' : DSFILTER['%s.^_^.%s' % \
+            (product.favbuy_brand, '-'.join(product.favbuy_dept))]['medium']
+        } for product in products]
+        self.render('deals.html', products=res)
+
+
 class PreferenceHandler(BaseHandler):
     def get(self, path):
         if path == '':
@@ -1062,6 +1091,7 @@ application = tornado.web.Application([
     (r"/brands/?(.*)", BrandsHandler),
     (r"/brand/power/(.*)", PowerBrandHandler),
     (r"/brand/deal/monitor", BrandMonitorHandler),
+    (r"/deal/", DealHandler),
     (r"/brand/?(.*)", BrandHandler),
     (r"/feedback/(.*)", FeedbackHandler),
     (r"/email/(.*)", EmailHandler),

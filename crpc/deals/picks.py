@@ -5,7 +5,7 @@ from events import change_for_dsfilter
 from pipelines import ProductPipeline
 from models import BrandMonitor
 import slumber
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from helpers.log import getlogger
 logger = getlogger('picks', filename='/tmp/deals.log')
@@ -35,13 +35,30 @@ class Picker(object):
     def __init__(self, site=None):
         self.site = site
 
-    def pick(self, product):
+    def pick(self, product, discount=None):
         ProductPipeline(self.site, product).clean()
-        return pick_by_disfilter(product, SITEPREF.get(self.site, SITEPREF.get('ALL')) or 1, site=self.site)
+        selected =  pick_by_dsfilter(product, discount, SITEPREF.get(self.site, SITEPREF.get('ALL')) or 1, site=self.site)
+
+        for fn_name in Strategy.get(self.site, []):
+            if not selected: break
+            try:
+                fn = globals()[fn_name]
+                if hasattr(fn, '__call__'):
+                   selected = fn(product)
+            except KeyError:
+                continue
+
+        if selected:
+            # To ensure the offsale product picked again not to be expired on the site.
+            if product.products_end and product.products_end < datetime.utcnow():
+                product.products_end = datetime.utcnow() + timedelta(days=2)
+                product.update_history['products_end'] = datetime.utcnow()
+
+        return selected
 
 
-def pick_by_disfilter(product, threshold_adjustment=1, site=None):
-    if not product.favbuy_price or not product.favbuy_listprice:
+def pick_by_dsfilter(product, discount=None, threshold_adjustment=1, site=None):
+    if not discount and (not product.favbuy_price or not product.favbuy_listprice):
         return False
 
     monitor_brand(product, site)
@@ -50,11 +67,19 @@ def pick_by_disfilter(product, threshold_adjustment=1, site=None):
 
     filter_key = '%s.^_^.%s' % (product.favbuy_brand, '-'.join(product.favbuy_dept))
     threhold = DSFILTER.get(filter_key, {}).get('medium', 0)
-    discount = float(product.favbuy_price) / float(product.favbuy_listprice)
+    if not discount:
+        discount = float(product.favbuy_price) / float(product.favbuy_listprice)
 
     print discount, ' compared to threshold: %s * %s = %s \n' % (threhold, threshold_adjustment, threhold * threshold_adjustment)
     # logger.debug('%s compared to threshold: %s * %s = %s \n' % (discount, threhold, threshold_adjustment, threhold * threshold_adjustment))
     return discount < (threhold * threshold_adjustment)
+
+
+def pick_by_price(product):
+     filter_key = '%s.^_^.%s' % (product.favbuy_brand, '-'.join(product.favbuy_dept))
+     price_threhold = DSFILTER.get(filter_key, {}).get('medium_price', float(product.favbuy_price))
+     listprice_threhold = DSFILTER.get(filter_key, {}).get('medium_listprice', float(product.favbuy_listprice))
+     return float(product.favbuy_price) > price_threhold or float(product.favbuy_listprice) > listprice_threhold
 
 
 def monitor_brand(product, site):
@@ -82,9 +107,10 @@ def monitor_brand(product, site):
     bm.updated_at = datetime.utcnow()
     bm.save()
 
-# Strategy = {
-#   'default': [pick_by_disfilter],
-# }
+
+Strategy = {
+    '6pm': ['pick_by_price'],
+}
 
 
 if __name__ == '__main__':

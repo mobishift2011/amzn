@@ -19,7 +19,7 @@ def main(site):
     products = m.Product.objects()
 
     with open('status.txt', 'w') as f: 
-        f.write('url;price;listprice;disount;filter_key;medium;adjustrate;adjustment\n')
+        f.write('url;price;listprice;disount;filter_key;medium-price;medium-listprice;medium;adjustrate;adjustment\n')
         for product in products:
             title = product.title.encode('utf-8')
             combine_url = product.combine_url
@@ -29,12 +29,14 @@ def main(site):
             filter_key = '%s.^_^.%s' % (product.favbuy_brand, '-'.join(product.favbuy_dept))
             if not DSFILTER.get(filter_key): continue
             medium = DSFILTER[filter_key]['medium']
+            medium_price = DSFILTER[filter_key]['medium_price']
+            medium_listprice = DSFILTER[filter_key]['medium_listprice']
             adjustrate = SITEPREF.get(site, SITEPREF.get('ALL')) or 1
             adjustment = float(medium) * float(adjustrate)
             try:
-                f.write('%s;%s;%s;%s;%s;%s;%s;%s\n' % (combine_url.encode('utf-8'), price, listprice, disount, filter_key, medium, adjustrate, adjustment))
+                f.write('%s;%s;%s;%s;%s;%s;%s;%s;%s;%s\n' % (combine_url.encode('utf-8'), price, listprice, disount, filter_key, medium_price, medium_listprice, medium, adjustrate, adjustment))
             except UnicodeEncodeError:
-                print combine_url.encode('utf-8'), price, listprice, disount, filter_key, medium, adjustrate, adjustment
+                print combine_url.encode('utf-8'), price, listprice, disount, filter_key, medium_price, medium_listprice, medium, adjustrate, adjustment
                 print
 
 

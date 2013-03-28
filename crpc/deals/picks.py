@@ -35,9 +35,9 @@ class Picker(object):
     def __init__(self, site=None):
         self.site = site
 
-    def pick(self, product):
+    def pick(self, product, discount=None):
         ProductPipeline(self.site, product).clean()
-        selected =  pick_by_dsfilter(product, SITEPREF.get(self.site, SITEPREF.get('ALL')) or 1, site=self.site)
+        selected =  pick_by_dsfilter(product, discount, SITEPREF.get(self.site, SITEPREF.get('ALL')) or 1, site=self.site)
 
         for fn_name in Strategy.get(self.site, []):
             if not selected: break
@@ -57,8 +57,8 @@ class Picker(object):
         return selected
 
 
-def pick_by_dsfilter(product, threshold_adjustment=1, site=None):
-    if not product.favbuy_price or not product.favbuy_listprice:
+def pick_by_dsfilter(product, discount=None, threshold_adjustment=1, site=None):
+    if not discount and (not product.favbuy_price or not product.favbuy_listprice):
         return False
 
     monitor_brand(product, site)
@@ -67,7 +67,8 @@ def pick_by_dsfilter(product, threshold_adjustment=1, site=None):
 
     filter_key = '%s.^_^.%s' % (product.favbuy_brand, '-'.join(product.favbuy_dept))
     threhold = DSFILTER.get(filter_key, {}).get('medium', 0)
-    discount = float(product.favbuy_price) / float(product.favbuy_listprice)
+    if not discount:
+        discount = float(product.favbuy_price) / float(product.favbuy_listprice)
 
     print discount, ' compared to threshold: %s * %s = %s \n' % (threhold, threshold_adjustment, threhold * threshold_adjustment)
     # logger.debug('%s compared to threshold: %s * %s = %s \n' % (discount, threhold, threshold_adjustment, threhold * threshold_adjustment))

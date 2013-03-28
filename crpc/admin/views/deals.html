@@ -26,8 +26,11 @@
             <div class="container">
                 {% for product in products %}
                 <div style="float:left; width:250px; height:500px;">
-                    <img src="{{ product['image'] }}" style="width:240px; height:240px;"/><br />
-                    <b style="color:black">{{ product['title'] }}</b>(<b style="color:grey">{{ product['brand'] }}</b>)<br />
+                    <a href="{{ product['combine_url'] }}">
+                        <img src="{{ product['image'] }}" style="width:240px; height:240px;"/><br />
+                        <b style="color:black">{{ product['title'] }}</b>
+                    </a>
+                    <b style="color:grey">{{ product['brand'] }}</b><br />
                     <b style="color:grey">{{ product['dept'] }}</b> <br />
                     <b style="color:black">{{ product['price'] }} / {{ product['listprice'] }}</b> <br />
                     <b style="color:black">{{ product['medium'] }}</b> <br />
@@ -64,5 +67,20 @@
 
 {% block script %}
 <script>
+  // make selection consistent with url
+  var param = $.deparam(window.location.href.substr(window.location.href.indexOf('?')+1));
+  site = param.site
+  alert(site)
+
+  // pagination
+  $('a.pagination').live('click', function(){
+    if ($(this).attr('page')) {
+      var param = {};
+      param['site'] = site;
+      param['offset'] = ($(this).attr('page')-1)*100;
+      var url = "/deal/?" + $.param(param);
+      window.location.href = url;
+    }
+  });
 </script>
 {% endblock %}

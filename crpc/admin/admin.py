@@ -915,7 +915,8 @@ class DealHandler(BaseHandler):
 
         products = objects()[offset*limit: (offset+1)*limit]
         res = [{
-            'title': product.title.encode('utf-8'),
+            'title': product.title,
+            'combine_url': product.combine_url,
             'image': product.image_urls[0] if product.image_urls else '',
             'brand': product.favbuy_brand,
             'price': product.favbuy_price,

@@ -28,7 +28,7 @@ envs = {
         'USE_INDEX': '',
         'MONGODB_HOST': '127.0.0.1',
         'REDIS_HOST': '127.0.0.1',
-        'MASTIFF_HOST': "http://localhost:8001/api/v1"
+        'MASTIFF_HOST': "http://192.168.2.108:8001/api/v1"
     },
     'OFFICE': {
         'CRAWLER_PEERS': [

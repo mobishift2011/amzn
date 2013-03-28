@@ -26,6 +26,8 @@ class Server(object):
 
     def fetch_page(self, url):
         ret = req.get(url)
+        if ret.url.startswith('http://www.ebags.com/error/unknown'):
+            return -404
         if ret.ok: return ret.content
         else: return ret.status
 
@@ -53,6 +55,7 @@ class Server(object):
                 common_failed.send(sender=ctx, key=key, url=link,
                         reason='download category page error: {0}'.format(ret))
             tree = lxml.html.fromstring(ret)
+            print key, link
             list_node = tree.cssselect('#lnkSeeAllDepartment')[0]
             num = list_node.cssselect('span')[0].text_content().strip()
             num = int( re.compile('\((\d+)\)').match(num).group(1) )
@@ -186,5 +189,7 @@ class Server(object):
 
 if __name__ == '__main__':
     ss = Server()
-    ss.crawl_listing('http://www.ebags.com/category/luggage?items=144?page=1')
+    ss.crawl_category()
+
+#ss.crawl_listing('http://www.ebags.com/category/luggage?items=144?page=1')
 

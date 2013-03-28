@@ -906,14 +906,14 @@ class DealHandler(BaseHandler):
 
         site = self.get_argument('site')
         offset = int(self.get_argument('offset', '0'))
-        limit = int(self.get_argument('limit', '100'))
+        limit = int(self.get_argument('limit', '40'))
         m = __import__('crawlers.%s.models' % site, fromlist=['Product'])
 
         objects = m.Product.objects
         total_count = objects().count()
         pagination = Pagination(offset/limit+1, limit, total_count)
 
-        products = objects()[offset*limit: (offset+1)*limit]
+        products = objects()[offset:(offset+limit)]
         res = [{
             'title': product.title,
             'combine_url': product.combine_url,

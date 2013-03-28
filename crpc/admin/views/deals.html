@@ -32,7 +32,7 @@
                     </a>
                     <b style="color:grey">{{ product['brand'] }}</b><br />
                     <b style="color:grey">{{ product['dept'] }}</b> <br />
-                    <b style="color:black">{{ product['price'] }} / {{ product['listprice'] }}</b> ({{ float(product['price']) / float(product['listprice'])}})<br />
+                    <b style="color:black">{{ product['price'] }} / {{ product['listprice'] }}</b> ({{ product['discount'] }})<br />
                     <b style="color:black">{{ product['medium'] }}</b> <br />
                 </div>
                 {% endfor %}

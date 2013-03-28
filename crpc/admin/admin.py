@@ -897,6 +897,13 @@ class DealHandler(BaseHandler):
         import sys
         reload(sys)
         sys.setdefaultencoding('utf-8')
+        DSFILTER = slumber.API(MASTIFF_HOST).dsfilter.get()
+        SITEPREF = {}
+        siteprefs = slumber.API(MASTIFF_HOST).sitepref.get().get('objects', [])
+        for sitepref in siteprefs:
+            if sitepref.get('site'):
+                SITEPREF.setdefault(sitepref.get('site'), sitepref.get('discount_threshold_adjustment'))
+
         site = self.get_argument('site')
         m = __import__('crawlers.%s.models' % site, fromlist=['Product'])
         products = m.Product.objects()
@@ -905,7 +912,9 @@ class DealHandler(BaseHandler):
             'brand': product.favbuy_brand,
             'price': product.favbuy_price,
             'listprice': product.favbuy_listprice,
-            'deps': '-'.join(product.favbuy_dept),
+            'dept': '-'.join(product.favbuy_dept),
+            'medium' : DSFILTER['%s.^_^.%s' % \
+            (product.favbuy_brand, '-'.join(product.favbuy_dept))]['medium']
         } for product in products]
         self.render('deals.html', products=res)
 

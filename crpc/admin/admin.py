@@ -894,6 +894,8 @@ class BrandMonitorHandler(BaseHandler):
 class DealHandler(BaseHandler):
     @tornado.web.authenticated
     def get(self):
+        reload(sys)
+        sys.setdefaultencoding('utf-8')
         site = self.get_argument('site')
         m = __import__('crawlers.%s.models' % site, fromlist=['Product'])
         products = m.Product.objects()

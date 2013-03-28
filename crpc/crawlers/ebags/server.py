@@ -36,6 +36,7 @@ class Server(object):
         if isinstance(ret, int):
             common_failed.send(sender=ctx, key='', url=self.siteurl,
                     reason='download home page failed: {0}'.format(ret))
+            return
         tree = lxml.html.fromstring(ret)
         nodes = tree.cssselect('div#main div#navWrap ul#navCon > li')
         k_link = {}
@@ -54,6 +55,7 @@ class Server(object):
             if isinstance(ret, int):
                 common_failed.send(sender=ctx, key=key, url=link,
                         reason='download category page error: {0}'.format(ret))
+                continue
             tree = lxml.html.fromstring(ret)
             list_node = tree.cssselect('#lnkSeeAllDepartment')[0]
             num = list_node.cssselect('span')[0].text_content().strip()
@@ -82,6 +84,7 @@ class Server(object):
         if isinstance(ret, int):
             common_failed.send(sender='ctx', key='', url=url,
                     reason="download listing page error: {0}".format(ret))
+            return
         tree = lxml.html.fromstring(ret)
         nodes = tree.cssselect('div.mainCon div.ProductListWrap div.thisResultItem')
         category = Category.objects(key=kwargs.get('key')).first()
@@ -160,7 +163,7 @@ class Server(object):
             summary.append( li.text_content().strip() )
         summary = '\n'.join(summary)
 
-        image = tree.cssselect('div#divHeroImage img')[0].get('src')
+        image = t.cssselect('div#divHeroImage img')[0].get('src')
         image = image if image.startswith('http') else 'http:' + image
         link, hei, wid = re.compile('(.+\?).*&hei=(\d+)&wid=(\d+).*').match(image).groups()
         hei, wid = int(hei)*3, int(wid)*3

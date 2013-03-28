@@ -899,13 +899,13 @@ class DealHandler(BaseHandler):
         products = m.Product.objects()
         res = [{
             'title': product.title.encode('utf-8'),
-            'combine_url': product.combine_url,
+            'brand': product.favbuy_brand,
             'price': product.favbuy_price,
             'listprice': product.favbuy_listprice,
-            'deps': '-'.join(product.favbuy_dept),
+            'dept': '-'.join(product.favbuy_dept),
         } for product in products]
-        print len(res)
-        # self.render('deals.html', products=res)
+
+        self.render('deals.html', products=res)
 
 
 class PreferenceHandler(BaseHandler):

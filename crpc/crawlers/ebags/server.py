@@ -171,7 +171,7 @@ class Server(object):
         image_urls = [img]
 
         is_new = is_updated = False
-        Product = Product.objects(key=key).first()
+        product = Product.objects(key=key).first()
         if not product:
             is_new = True
             product = Product(key=key)

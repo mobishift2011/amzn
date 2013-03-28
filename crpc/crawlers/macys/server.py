@@ -10,7 +10,7 @@ This is the server part of zeroRPC module. Call by client automatically, run on 
 """
 from crawlers.common.stash import *
 from crawlers.common.events import common_saved, common_failed
-from models import Category, Product
+from models import *
 from deals.picks import Picker
 
 import lxml.html
@@ -92,6 +92,11 @@ class Server(object):
         tree = lxml.html.fromstring(ret)
         product_nodes = tree.cssselect('div#macysGlobalLayout div.thumbnails div.productThumbnail')
 
+        category = Category.objects(key=kwargs.get('key')).first()
+        if not category:
+            common_failed.send(sender=ctx, url=url, reason='category %s not found in db' % kwargs.get('key'))
+            return
+
         for product_node in product_nodes:
             key = product_node.get('id')
             if not key:
@@ -154,13 +159,8 @@ class Server(object):
                 is_updated = True
 
             # To pick the product which fit our needs, such as a certain discount, brand, dept etc.
-            selected = Picker(site='macys').pick(product)
+            selected = Picker(site=DB).pick(product)
             if not selected:
-                continue
-
-            category = Category.objects(key=kwargs.get('key')).first()
-            if not category:
-                common_failed.send(sender=ctx, url=url, reason='category %s not found in db' % kwargs.get('key'))
                 continue
 
             if category.cats and set(category.cats).difference(product.dept):

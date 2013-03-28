@@ -894,6 +894,7 @@ class BrandMonitorHandler(BaseHandler):
 class DealHandler(BaseHandler):
     @tornado.web.authenticated
     def get(self):
+        import sys
         reload(sys)
         sys.setdefaultencoding('utf-8')
         site = self.get_argument('site')

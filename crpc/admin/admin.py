@@ -895,7 +895,7 @@ class DealHandler(BaseHandler):
     @tornado.web.authenticated
     def get(self):
         site = self.get_argument('site')
-        m = __import__('crawlers.%s.models' % site, fromlist['Product'])
+        m = __import__('crawlers.%s.models' % site, fromlist=['Product'])
         products = m.Product.objects()
         res = [{
             'title': product.title.encode('utf-8'),
@@ -1079,7 +1079,7 @@ application = tornado.web.Application([
     (r"/brands/?(.*)", BrandsHandler),
     (r"/brand/power/(.*)", PowerBrandHandler),
     (r"/brand/deal/monitor", BrandMonitorHandler),
-    (r"/brand/deal/", DealHandler),
+    (r"/deal/", DealHandler),
     (r"/brand/?(.*)", BrandHandler),
     (r"/feedback/(.*)", FeedbackHandler),
     (r"/email/(.*)", EmailHandler),

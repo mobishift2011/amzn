@@ -897,9 +897,9 @@ class DealHandler(BaseHandler):
         import sys
         reload(sys)
         sys.setdefaultencoding('utf-8')
-        DSFILTER = slumber.API(MASTIFF_HOST).dsfilter.get()
+        DSFILTER = API(MASTIFF_HOST).dsfilter.get()
         SITEPREF = {}
-        siteprefs = slumber.API(MASTIFF_HOST).sitepref.get().get('objects', [])
+        siteprefs = API(MASTIFF_HOST).sitepref.get().get('objects', [])
         for sitepref in siteprefs:
             if sitepref.get('site'):
                 SITEPREF.setdefault(sitepref.get('site'), sitepref.get('discount_threshold_adjustment'))

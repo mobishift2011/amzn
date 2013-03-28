@@ -193,5 +193,5 @@ class Server(object):
 
 if __name__ == '__main__':
     ss = Server()
-    ss.crawl_listing('http://www.ebags.com/category/luggage?items=144?page=1')
+    ss.crawl_listing('http://www.ebags.com/category/backpacks?items=144?page=3')
 

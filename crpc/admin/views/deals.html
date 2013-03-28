@@ -69,14 +69,14 @@
 <script>
   // make selection consistent with url
   var param = $.deparam(window.location.href.substr(window.location.href.indexOf('?')+1));
-  alert(param);
-  console.log(param);
+  site = param.site
+  alert(site)
 
   // pagination
   $('a.pagination').live('click', function(){
     if ($(this).attr('page')) {
-      var param = {}
-      param['site'] = 
+      var param = {};
+      param['site'] = site;
       param['offset'] = ($(this).attr('page')-1)*100;
       var url = "/deal/?" + $.param(param);
       window.location.href = url;

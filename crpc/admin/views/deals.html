@@ -69,13 +69,15 @@
 <script>
   // make selection consistent with url
   var param = $.deparam(window.location.href.substr(window.location.href.indexOf('?')+1));
+  alert(param);
 
   // pagination
   $('a.pagination').live('click', function(){
     if ($(this).attr('page')) {
       var param = {}
-      param['offset'] = ($(this).attr('page')-1)*80;
-      var url = "/viewdata/recommend?" + $.param(param);
+      param['site'] = 
+      param['offset'] = ($(this).attr('page')-1)*100;
+      var url = "/deal/?" + $.param(param);
       window.location.href = url;
     }
   });

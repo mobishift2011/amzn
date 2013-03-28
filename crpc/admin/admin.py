@@ -922,7 +922,7 @@ class DealHandler(BaseHandler):
             'price': product.favbuy_price,
             'listprice': product.favbuy_listprice,
             'dept': '-'.join(product.favbuy_dept),
-            'discount': float(product.favbuy_price) / loat(product.favbuy_listprice)
+            'discount': float(product.favbuy_price) / loat(product.favbuy_listprice),
             'medium' : DSFILTER['%s.^_^.%s' % \
             (product.favbuy_brand, '-'.join(product.favbuy_dept))]['medium']
         } for product in products]

@@ -909,6 +909,7 @@ class DealHandler(BaseHandler):
         products = m.Product.objects()
         res = [{
             'title': product.title.encode('utf-8'),
+            'image': product.image_urls[0] if product.image_urls else '',
             'brand': product.favbuy_brand,
             'price': product.favbuy_price,
             'listprice': product.favbuy_listprice,

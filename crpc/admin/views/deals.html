@@ -28,6 +28,7 @@
                     <thead>
                         <tr>
                             <th>title</th>
+                            <th>image</th>
                             <th>brand</th>
                             <th>dept</th>
                             <th>price</th>
@@ -39,11 +40,12 @@
                     {% for product in products %}
                     <tr >
                         <td>{{ product['title'] }}</td>
+                        <td>{{ product['image'] }}</td>
                         <td>{{ product['brand'] }}</td>
                         <td>{{ product['dept'] }}</td>
                         <td>{{ product['price'] }}</td>
                         <td>{{ product['listprice'] }}</td>
-                        <td>{{ product['discount'] }}</td>
+                        <td>{{ product['medium'] }}</td>
                     </tr>
                     {% endfor %}
                   </tbody>

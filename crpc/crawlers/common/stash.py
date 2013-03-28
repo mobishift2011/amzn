@@ -70,7 +70,7 @@ def get_login_email(site):
     configFile.read( os.path.join(os.path.dirname(__file__), 'username.ini') )
     try:
         email = random.choice( [i.strip() for i in configFile.get('username', site).split(',')] )
-    except NoOptionError:
+    except ConfigParser.NoOptionError:
         return ''
     return email
 

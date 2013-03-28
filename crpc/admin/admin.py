@@ -900,8 +900,8 @@ class DealHandler(BaseHandler):
         res = [{
             'title': product.title.encode('utf-8'),
             'brand': product.favbuy_brand,
-            'price': product.favbuy_price,
-            'listprice': product.favbuy_listprice,
+            'price': float(product.favbuy_price),
+            'listprice': float(product.favbuy_listprice),
             'dept': '-'.join(product.favbuy_dept),
         } for product in products]
 

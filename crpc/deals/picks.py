@@ -38,7 +38,16 @@ class Picker(object):
     def pick(self, product):
         ProductPipeline(self.site, product).clean()
         selected =  pick_by_dsfilter(product, SITEPREF.get(self.site, SITEPREF.get('ALL')) or 1, site=self.site)
-        
+
+        for fn_name in Strategy.get(self.site, []):
+            if not selected: break
+            try:
+                fn = globals()[fn_name]
+                if hasattr(fn, '__call__'):
+                   selected = fn(product)
+            except KeyError:
+                continue
+
         if selected:
             # To ensure the offsale product picked again not to be expired on the site.
             if product.products_end and product.products_end < datetime.utcnow():
@@ -63,6 +72,13 @@ def pick_by_dsfilter(product, threshold_adjustment=1, site=None):
     print discount, ' compared to threshold: %s * %s = %s \n' % (threhold, threshold_adjustment, threhold * threshold_adjustment)
     # logger.debug('%s compared to threshold: %s * %s = %s \n' % (discount, threhold, threshold_adjustment, threhold * threshold_adjustment))
     return discount < (threhold * threshold_adjustment)
+
+
+def pick_by_price(product):
+     filter_key = '%s.^_^.%s' % (product.favbuy_brand, '-'.join(product.favbuy_dept))
+     price_threhold = DSFILTER.get(filter_key, {}).get('medium_price', float(product.favbuy_price))
+     listprice_threhold = DSFILTER.get(filter_key, {}).get('medium_listprice', float(product.favbuy_listprice))
+     return float(product.favbuy_price) > price_threhold or float(product.favbuy_listprice) > listprice_threhold
 
 
 def monitor_brand(product, site):
@@ -90,9 +106,10 @@ def monitor_brand(product, site):
     bm.updated_at = datetime.utcnow()
     bm.save()
 
-# Strategy = {
-#   'default': [],
-# }
+
+Strategy = {
+    '6pm': ['pick_by_price'],
+}
 
 
 if __name__ == '__main__':

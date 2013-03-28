@@ -900,21 +900,13 @@ class DealHandler(BaseHandler):
         site = self.get_argument('site')
         m = __import__('crawlers.%s.models' % site, fromlist=['Product'])
         products = m.Product.objects()
-        res = []
-        for product in products:
-            try:
-                res.append({
-                    'title': product.title.encode('utf-8'),
-                    'brand': product.favbuy_brand,
-                    'price': product.favbuy_price,
-                    'listprice': product.favbuy_listprice,
-                    'dept': '-'.join(product.favbuy_dept),
-                })
-            except UnicodeDecodeError:
-                print product.title, product.favbuy_brand, product.favbuy_price, product.favbuy_listprice.encode('utf-8')
-                print traceback.format_exc()
-
-        print '~~~~~~~~~~~', len(product)
+        res = [{
+            'title': product.title.encode('utf-8'),
+            'brand': product.favbuy_brand,
+            'price': product.favbuy_price,
+            'listprice': product.favbuy_listprice,
+            'deps': '-'.join(product.favbuy_dept),
+        } for product in products]
         self.render('deals.html', products=res)
 
 

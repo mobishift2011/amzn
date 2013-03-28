@@ -109,7 +109,7 @@ def monitor_brand(product, site):
 
 
 Strategy = {
-    '6pm': ['pick_by_price'],
+    #'6pm': ['pick_by_price'],
 }
 
 

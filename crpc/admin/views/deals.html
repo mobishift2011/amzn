@@ -69,8 +69,7 @@
 <script>
   // make selection consistent with url
   var param = $.deparam(window.location.href.substr(window.location.href.indexOf('?')+1));
-  site = param.site
-  alert(site)
+  site = param.site;
 
   // pagination
   $('a.pagination').live('click', function(){

@@ -913,7 +913,7 @@ class DealHandler(BaseHandler):
         total_count = objects().count()
         pagination = Pagination(offset/limit+1, limit, total_count)
 
-        products = objects()[offset*limit: (offset+1)*limit]
+        products = objects()[offset:(offset+limit)]
         res = [{
             'title': product.title,
             'combine_url': product.combine_url,

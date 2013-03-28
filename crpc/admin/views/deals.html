@@ -76,7 +76,7 @@
     if ($(this).attr('page')) {
       var param = {};
       param['site'] = site;
-      param['offset'] = ($(this).attr('page')-1)*100;
+      param['offset'] = ($(this).attr('page')-1)*40;
       var url = "/deal/?" + $.param(param);
       window.location.href = url;
     }

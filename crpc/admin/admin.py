@@ -891,6 +891,22 @@ class BrandMonitorHandler(BaseHandler):
         self.render('brandmonitor.html', brands=[brand.to_json() for brand in bms])
 
 
+class DealHandler(BaseHandler):
+    @tornado.web.authenticated
+    def get(self):
+        m = __import__('crawlers.%s.models' % site, fromlist['Product'])
+        products = m.Product.objects()
+        res = [{
+            'title': product.title.encode('utf-8'),
+            'combine_url': product.combine_url,
+            'price': product.favbuy_price,
+            'listprice': product.favbuy_listprice,
+            'deps': '-'.join(product.favbuy_dept),
+        } for product in products]
+        print len(res)
+        # self.render('deals.html', products=res)
+
+
 class PreferenceHandler(BaseHandler):
     def get(self, path):
         if path == '':
@@ -1062,6 +1078,7 @@ application = tornado.web.Application([
     (r"/brands/?(.*)", BrandsHandler),
     (r"/brand/power/(.*)", PowerBrandHandler),
     (r"/brand/deal/monitor", BrandMonitorHandler),
+    (r"/brand/deal/", DealHandler),
     (r"/brand/?(.*)", BrandHandler),
     (r"/feedback/(.*)", FeedbackHandler),
     (r"/email/(.*)", EmailHandler),

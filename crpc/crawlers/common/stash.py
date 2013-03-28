@@ -67,7 +67,10 @@ login_email = {'bluefly': '2012luxurygoods@gmail.com',
 configFile = ConfigParser.ConfigParser()
 def get_login_email(site):
     configFile.read( os.path.join(os.path.dirname(__file__), 'username.ini') )
-    email = random.choice( [i.strip() for i in configFile.get('username', site).split(',')] )
+    try:
+        email = random.choice( [i.strip() for i in configFile.get('username', site).split(',')] )
+    except NoOptionError:
+        return ''
     return email
 
 login_passwd = 'abcd1234'

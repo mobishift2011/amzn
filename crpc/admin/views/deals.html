@@ -28,11 +28,11 @@
                 <div style="float:left; width:250px; height:500px;">
                     <a href="{{ product['combine_url'] }}">
                         <img src="{{ product['image'] }}" style="width:240px; height:240px;"/><br />
-                        <b style="color:black">{{ product['title'] }}</b>
+                        <b style="color:black">{{ product['title'] }}</b> <br />
                     </a>
                     <b style="color:grey">{{ product['brand'] }}</b><br />
                     <b style="color:grey">{{ product['dept'] }}</b> <br />
-                    <b style="color:black">{{ product['price'] }} / {{ product['listprice'] }}</b> <br />
+                    <b style="color:black">{{ product['price'] }} / {{ product['listprice'] }}</b> ({{ float(product['price']) / float(product['listprice'])}})<br />
                     <b style="color:black">{{ product['medium'] }}</b> <br />
                 </div>
                 {% endfor %}

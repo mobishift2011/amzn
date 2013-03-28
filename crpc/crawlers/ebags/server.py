@@ -26,6 +26,8 @@ class Server(object):
 
     def fetch_page(self, url):
         ret = req.get(url)
+        if ret.url.startswith('http://www.ebags.com/error/unknown'):
+            return -404
         if ret.ok: return ret.content
         else: return ret.status
 

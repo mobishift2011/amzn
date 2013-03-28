@@ -911,7 +911,7 @@ class DealHandler(BaseHandler):
                 print product.title, product.favbuy_brand, product.favbuy_price, product.favbuy_listprice.encode('utf-8')
                 print traceback.format_exc()
 
-        print len(res)
+        print '~~~~~~~~~~~', len(product)
         self.render('deals.html', products=res)
 
 

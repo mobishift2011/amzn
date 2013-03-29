@@ -894,6 +894,10 @@ class BrandMonitorHandler(BaseHandler):
 class DealHandler(BaseHandler):
     @tornado.web.authenticated
     def get(self):
+        site = self.get_argument('site')
+        if not site:
+            self.render('deals.html', products=[], site='')
+
         import sys
         reload(sys)
         sys.setdefaultencoding('utf-8')
@@ -904,10 +908,13 @@ class DealHandler(BaseHandler):
             if sitepref.get('site'):
                 SITEPREF.setdefault(sitepref.get('site'), sitepref.get('discount_threshold_adjustment'))
 
-        site = self.get_argument('site')
         offset = int(self.get_argument('offset', '0'))
         limit = int(self.get_argument('limit', '40'))
-        m = __import__('crawlers.%s.models' % site, fromlist=['Product'])
+        try:
+            m = __import__('crawlers.%s.models' % site, fromlist=['Product'])
+        except ImportError:
+            self.render('deals.html', products=[], site='')
+
 
         objects = m.Product.objects
         total_count = objects().count()
@@ -923,10 +930,10 @@ class DealHandler(BaseHandler):
             'listprice': product.favbuy_listprice,
             'dept': '-'.join(product.favbuy_dept),
             'discount': float(product.favbuy_price) / float(product.favbuy_listprice) if product.favbuy_listprice else '',
-            'medium' : DSFILTER['%s.^_^.%s' % \
-            (product.favbuy_brand, '-'.join(product.favbuy_dept))]['medium']
+            'medium' : DSFILTER.get('%s.^_^.%s' % \
+            (product.favbuy_brand, '-'.join(product.favbuy_dept)), {}).get('medium', 0)
         } for product in products]
-        self.render('deals.html', products=res, pagination=pagination)
+        self.render('deals.html', products=res, pagination=pagination, site=site)
 
 
 class PreferenceHandler(BaseHandler):
@@ -1100,7 +1107,7 @@ application = tornado.web.Application([
     (r"/brands/?(.*)", BrandsHandler),
     (r"/brand/power/(.*)", PowerBrandHandler),
     (r"/brand/deal/monitor", BrandMonitorHandler),
-    (r"/deal/", DealHandler),
+    (r"/deal/?", DealHandler),
     (r"/brand/?(.*)", BrandHandler),
     (r"/feedback/(.*)", FeedbackHandler),
     (r"/email/(.*)", EmailHandler),

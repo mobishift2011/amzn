@@ -192,4 +192,5 @@ def extract_product(site, concurrency=3):
 
 
 if __name__ == '__main__':
-    pass
+    import sys
+    extract_product(sys.argv[1]) 

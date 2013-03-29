@@ -54,7 +54,7 @@ class Server(object):
             for subdept_node in subdept_nodes:
                 sub_dept = subdept_node.text.strip()
                 if sub_dept == 'Shop All ' + dept:
-                    self.crawl_clearance(dept, subdept_node.get('href'), ctx)
+                    self.crawl_clearance(dept, subdept_node.get('href').strip(), ctx)
                     continue
                 combine_url = subdept_node.get('href')
                 id_match = re.search(r'id=(\d+)', combine_url)
@@ -277,7 +277,7 @@ if __name__ == '__main__':
     # server.run()
 
     s = Server()
-#    s.crawl_category()
+    s.crawl_category()
 #
 #    s.crawl_listing('http://www1.macys.com/shop/womens-clothing/womens-swimwear?id=8699&viewall=true', key='8699')
 #    counter = 0

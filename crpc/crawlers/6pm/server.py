@@ -215,9 +215,9 @@ class Server(object):
         stage_node = theater_node.cssselect('div#productStage')[0]
 
         # original display/large image of the product
-        image_nodes = stage_node.cssselect('div#productImages > ul > li img')
+        image_nodes = stage_node.cssselect('div#productImages > ul > li a')
         for image_node in image_nodes:
-            thumbnail_url = image_node.get('src')
+            thumbnail_url = image_node.get('href')
             image_url = re.sub('_THUMBNAILS', '', thumbnail_url)
 
             if image_url not in product.image_urls:

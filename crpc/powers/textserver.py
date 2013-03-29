@@ -7,6 +7,7 @@ from settings import TEXT_PORT, CRPC_ROOT
 from backends.matching.extractor import Extractor
 from brandapi import Extracter
 from pipelines import EventPipeline, ProductPipeline
+from deals.pipelines import ProductPipeline as DealProductPipeline
 from backends.monitor.models import Stat
 
 from powers.events import brand_refresh
@@ -48,7 +49,7 @@ class TextServer(object):
         if not product:
             logger.warning('process product not exists -> {0}'.format(kwargs))
 
-        pp = ProductPipeline(site, product)
+        pp = DealProductPipeline(site, product) if kwargs.get('product_type') == 'deal' else ProductPipeline(site, product)
         if pp.clean():
             product.save()
 

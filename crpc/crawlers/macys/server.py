@@ -88,6 +88,7 @@ class Server(object):
             if brand.cssselect('span') and 'brands' in brand.cssselect('span')[0].text_content().lower():
                 for b in brand.cssselect('ul.nav_cat_sub_3 li a'):
                     combine_url = b.get('href')
+                    if combine_url.startswith('javascript'): continue
                     id_match = re.search(r'id=(\d+)', combine_url)
                     url_id = '_'+id_match.groups()[0] if id_match else ''
                     cats = [dept, b.text_content()]

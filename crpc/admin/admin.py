@@ -930,8 +930,8 @@ class DealHandler(BaseHandler):
             'listprice': product.favbuy_listprice,
             'dept': '-'.join(product.favbuy_dept),
             'discount': float(product.favbuy_price) / float(product.favbuy_listprice) if product.favbuy_listprice else '',
-            'medium' : DSFILTER['%s.^_^.%s' % \
-            (product.favbuy_brand, '-'.join(product.favbuy_dept))]['medium']
+            'medium' : DSFILTER.get('%s.^_^.%s' % \
+            (product.favbuy_brand, '-'.join(product.favbuy_dept)), {}).get('medium', 0)
         } for product in products]
         self.render('deals.html', products=res, pagination=pagination, site=site)
 

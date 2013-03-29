@@ -129,6 +129,9 @@ class Server(object):
                 product.combine_url = link
                 product.update_history.update({ 'combine_url': datetime.utcnow() })
                 is_updated = True
+            if discount and discount != product.discount:
+                product.discount = discount
+                is_updated = True
 
             selected = Picker(site=DB).pick(product, discount)
             if not selected:
@@ -194,7 +197,5 @@ class Server(object):
 
 if __name__ == '__main__':
     ss = Server()
-    ss.crawl_category()
-
-#ss.crawl_listing('http://www.ebags.com/category/luggage?items=144?page=1')
+    ss.crawl_listing('http://www.ebags.com/category/kids-and-baby?items=144?page=2')
 

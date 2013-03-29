@@ -20,6 +20,8 @@ class Category(BaseCategory):
         return self.combine_url
 
 class Product(LuxuryProduct):
+    discount = FloatField()
+
     meta = {
         'db_alias': DB,
     }

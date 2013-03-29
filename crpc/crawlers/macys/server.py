@@ -54,7 +54,7 @@ class Server(object):
             for subdept_node in subdept_nodes:
                 sub_dept = subdept_node.text.strip()
                 if sub_dept == 'Shop All ' + dept:
-                    self.crawl_clearance(dept, subdept_node.get('href'), ctx)
+                    self.crawl_clearance(dept, subdept_node.get('href').strip(), ctx)
                     continue
                 combine_url = subdept_node.get('href')
                 id_match = re.search(r'id=(\d+)', combine_url)
@@ -62,27 +62,7 @@ class Server(object):
                 cats = [dept, sub_dept]
                 key = '_'.join(cats) + url_id
 
-                is_new = False; is_updated = False
-                category = Category.objects(key=key).first()
-
-                if not category:
-                    is_new = True
-                    category = Category(key=key)
-                    category.is_leaf = True
-
-                if combine_url and combine_url != category.combine_url:
-                    category.combine_url = combine_url
-                    is_updated = True
-
-                if set(cats).difference(category.cats):
-                    category.cats = list(set(cats) | set(category.cats))
-                    is_updated = True
-
-                category.update_time = datetime.utcnow()
-                category.save()
-
-                common_saved.send(sender=ctx, obj_type='Category', key=category.key, url=category.combine_url, \
-                    is_new=is_new, is_updated=((not is_new) and is_updated) )
+                self.save_category(key, combine_url, cats, ctx)
 
 
     def crawl_clearance(self, dept, url, ctx):
@@ -100,28 +80,47 @@ class Server(object):
             cats = [dept, 'clearance']
             key = '_'.join(cats) + url_id
 
-            is_new = False; is_updated = False
-            category = Category.objects(key=key).first()
+            self.save_category(key, combine_url, cats, ctx)
 
-            if not category:
-                is_new = True
-                category = Category(key=key)
-                category.is_leaf = True
 
-            if combine_url and combine_url != category.combine_url:
-                category.combine_url = combine_url
-                is_updated = True
+        brands_nodes = tree.cssselect('div#localNavigationContainer ul.nav_cat_sub_2 li.nav_cat_item_bold')
+        for brand in brands_nodes:
+            if brand.cssselect('span') and 'brands' in brand.cssselect('span')[0].text_content().lower():
+                for b in brand.cssselect('ul.nav_cat_sub_3 li a'):
+                    combine_url = b.get('href')
+                    if combine_url.startswith('javascript'): continue
+                    id_match = re.search(r'id=(\d+)', combine_url)
+                    url_id = '_'+id_match.groups()[0] if id_match else ''
+                    cats = [dept, b.text_content()]
+                    key = '_'.join(cats) + url_id
 
-            if set(cats).difference(category.cats):
-                category.cats = list(set(cats) | set(category.cats))
-                is_updated = True
+                    self.save_category(key, combine_url, cats, ctx)
 
-            category.update_time = datetime.utcnow()
-            category.save()
-
-            common_saved.send(sender=ctx, obj_type='Category', key=category.key, url=category.combine_url, \
-                is_new=is_new, is_updated=((not is_new) and is_updated) )
         
+
+    def save_category(self, key, combine_url, cats, ctx):
+        is_new = False; is_updated = False
+        category = Category.objects(key=key).first()
+
+        if not category:
+            is_new = True
+            category = Category(key=key)
+            category.is_leaf = True
+
+        if combine_url and combine_url != category.combine_url:
+            category.combine_url = combine_url
+            is_updated = True
+
+        if set(cats).difference(category.cats):
+            category.cats = list(set(cats) | set(category.cats))
+            is_updated = True
+
+        category.update_time = datetime.utcnow()
+        category.save()
+
+        common_saved.send(sender=ctx, obj_type='Category', key=category.key, url=category.combine_url, \
+            is_new=is_new, is_updated=((not is_new) and is_updated) )
+
 
     def crawl_listing(self, url, ctx='', **kwargs):
         ret = self.fetch_page(url)
@@ -278,7 +277,7 @@ if __name__ == '__main__':
     # server.run()
 
     s = Server()
-#    s.crawl_category()
+    s.crawl_category()
 #
 #    s.crawl_listing('http://www1.macys.com/shop/womens-clothing/womens-swimwear?id=8699&viewall=true', key='8699')
 #    counter = 0

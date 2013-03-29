@@ -896,7 +896,7 @@ class DealHandler(BaseHandler):
     def get(self):
         site = self.get_argument('site')
         if not site:
-            self.render('deals.html', products=[])
+            self.render('deals.html', products=[], site='')
 
         import sys
         reload(sys)
@@ -913,7 +913,7 @@ class DealHandler(BaseHandler):
         try:
             m = __import__('crawlers.%s.models' % site, fromlist=['Product'])
         except ImportError:
-            self.render('deals.html', products=[])
+            self.render('deals.html', products=[], site='')
 
 
         objects = m.Product.objects

@@ -891,6 +891,7 @@ class BrandMonitorHandler(BaseHandler):
         self.render('brandmonitor.html', brands=[brand.to_json() for brand in bms])
 
 
+DSFILTER = API(MASTIFF_HOST).dsfilter.get()
 class DealHandler(BaseHandler):
     @tornado.web.authenticated
     def get(self):
@@ -901,13 +902,7 @@ class DealHandler(BaseHandler):
         import sys
         reload(sys)
         sys.setdefaultencoding('utf-8')
-        DSFILTER = API(MASTIFF_HOST).dsfilter.get()
-        SITEPREF = {}
-        siteprefs = API(MASTIFF_HOST).sitepref.get().get('objects', [])
-        for sitepref in siteprefs:
-            if sitepref.get('site'):
-                SITEPREF.setdefault(sitepref.get('site'), sitepref.get('discount_threshold_adjustment'))
-
+        
         offset = int(self.get_argument('offset', '0'))
         limit = int(self.get_argument('limit', '40'))
         try:

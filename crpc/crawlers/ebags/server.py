@@ -57,7 +57,6 @@ class Server(object):
                         reason='download category page error: {0}'.format(ret))
                 continue
             tree = lxml.html.fromstring(ret)
-            print key, link
             list_node = tree.cssselect('#lnkSeeAllDepartment')[0]
             num = list_node.cssselect('span')[0].text_content().strip()
             num = int( re.compile('\((\d+)\)').match(num).group(1) )
@@ -71,9 +70,9 @@ class Server(object):
                 is_new = True
                 category = Category(key=key)
                 category.is_leaf = True
-                category.combine_url = link
                 category.cats = [key]
                 category.pagesize = 144
+            category.combine_url = link
             category.num = num
             category.update_time = datetime.utcnow()
             category.save()

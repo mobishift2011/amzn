@@ -95,6 +95,8 @@ class Server(object):
             title = node.cssselect('div.listInfoBox div.listModel span.itemModel')[0].text_content().strip()
             link = node.cssselect('div.listInfoBox div.listModel a')[0].get('href')
             link = link if link.startswith('http') else self.siteurl + link
+            if link == 'http://www.ebags.com':
+                continue
             key = self.get_product_id.match(link).group(1)
             price = node.cssselect('div.listInfoBox div.listPriceBox span.listPrice')[0].text_content().replace('$', '').strip()
             discount = ''
@@ -197,5 +199,5 @@ class Server(object):
 
 if __name__ == '__main__':
     ss = Server()
-    ss.crawl_listing('http://www.ebags.com/category/kids-and-baby?items=144?page=2')
+    ss.crawl_listing('http://www.ebags.com/category/sport-bags?items=144?page=10')
 

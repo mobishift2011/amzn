@@ -42,7 +42,6 @@ picked_crawlers = (
 deal_crawlers = (
     'nordstrom',
     '6pm',
-    'macys',
     'ebags',
 )
 

@@ -29,7 +29,7 @@ class Server(object):
                 link = link if link.startswith('http') else self.siteurl + link
                 self.save_category('designers', link, [dept], ctx)
                 continue
-            if dept = 'Sale':
+            if dept == 'Sale':
                 link = node.cssselect('a')[0].get('href')
                 link = link if link.startswith('http') else self.siteurl + link
                 key = link.rsplit('/', 1)[-1].split('.')[0]

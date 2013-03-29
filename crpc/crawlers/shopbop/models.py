@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # Author: bishop Liu <miracle (at) gmail.com>
 
-from mongonengine import *
+from mongoengine import *
 from settings import MONGODB_HOST
 DB = 'shopbop'
 connect(db=DB, alias=DB, host=MONGODB_HOST)

@@ -54,7 +54,7 @@ class Server(object):
             for subdept_node in subdept_nodes:
                 sub_dept = subdept_node.text.strip()
                 if sub_dept == 'Shop All ' + dept:
-                    self.crawl_clearance(dept, subdept_node.get('href'))
+                    self.crawl_clearance(dept, subdept_node.get('href'), ctx)
                     continue
                 combine_url = subdept_node.get('href')
                 id_match = re.search(r'id=(\d+)', combine_url)
@@ -85,7 +85,7 @@ class Server(object):
                     is_new=is_new, is_updated=((not is_new) and is_updated) )
 
 
-    def crawl_clearance(self, dept, url):
+    def crawl_clearance(self, dept, url, ctx):
         ret = self.fetch_page(url)
         if isinstance(ret, int):
             common_failed.send(sender=ctx, key='', url=url,

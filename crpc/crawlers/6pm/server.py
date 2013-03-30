@@ -85,6 +85,11 @@ class Server(object):
         res.raise_for_status()
         tree = lxml.html.fromstring(res.content)
 
+        category = Category.objects(key=kwargs.get('key')).first()
+        if not category:
+            common_failed.send(sender=ctx, url=url, reason='category %s not found in db' % kwargs.get('key'))
+            return
+
         product_nodes = tree.cssselect('div#searchResults a')
         for product_node in product_nodes:
             price = None; listprice = None
@@ -139,11 +144,6 @@ class Server(object):
             if listprice and listprice != product.listprice:
                 product.listprice = listprice
                 is_updated = True
-
-            category = Category.objects(key=kwargs.get('key')).first()
-            if not category:
-                common_failed.send(sender=ctx, url=url, reason='category %s not found in db' % kwargs.get('key'))
-                continue
 
             if category.cats and set(category.cats).difference(product.dept):
                 product.dept = list(set(category.cats) | set(product.dept or []))
@@ -215,9 +215,9 @@ class Server(object):
         stage_node = theater_node.cssselect('div#productStage')[0]
 
         # original display/large image of the product
-        image_nodes = stage_node.cssselect('div#productImages > ul > li img')
+        image_nodes = stage_node.cssselect('div#productImages > ul > li a')
         for image_node in image_nodes:
-            thumbnail_url = image_node.get('src')
+            thumbnail_url = image_node.get('href')
             image_url = re.sub('_THUMBNAILS', '', thumbnail_url)
 
             if image_url not in product.image_urls:

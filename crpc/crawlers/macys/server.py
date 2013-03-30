@@ -10,7 +10,7 @@ This is the server part of zeroRPC module. Call by client automatically, run on 
 """
 from crawlers.common.stash import *
 from crawlers.common.events import common_saved, common_failed
-from models import Category, Product
+from models import *
 from deals.picks import Picker
 
 import lxml.html
@@ -53,34 +53,73 @@ class Server(object):
             subdept_nodes = dept_node.cssselect('a')
             for subdept_node in subdept_nodes:
                 sub_dept = subdept_node.text.strip()
-                if sub_dept == 'Shop All ' + dept: continue
+                if sub_dept == 'Shop All ' + dept:
+                    self.crawl_clearance(dept, subdept_node.get('href').strip(), ctx)
+                    continue
                 combine_url = subdept_node.get('href')
                 id_match = re.search(r'id=(\d+)', combine_url)
                 url_id = '_'+id_match.groups()[0] if id_match else ''
                 cats = [dept, sub_dept]
                 key = '_'.join(cats) + url_id
 
-                is_new = False; is_updated = False
-                category = Category.objects(key=key).first()
+                self.save_category(key, combine_url, cats, ctx)
 
-                if not category:
-                    is_new = True
-                    category = Category(key=key)
-                    category.is_leaf = True
 
-                if combine_url and combine_url != category.combine_url:
-                    category.combine_url = combine_url
-                    is_updated = True
+    def crawl_clearance(self, dept, url, ctx):
+        ret = self.fetch_page(url)
+        if isinstance(ret, int):
+            common_failed.send(sender=ctx, key='', url=url,
+                reason='download category clearance url error return: {0}'.format(ret))
+            return
+        tree = lxml.html.fromstring(ret)
+        clearance = tree.cssselect('div#localNavigationContainer ul.nav_cat_sub_2 li.nav_cat_item_hilite')
+        if clearance:
+            combine_url = clearance[-1].cssselect('a')[0].get('href')
+            id_match = re.search(r'id=(\d+)', combine_url)
+            url_id = '_'+id_match.groups()[0] if id_match else ''
+            cats = [dept, 'clearance']
+            key = '_'.join(cats) + url_id
 
-                if set(cats).difference(category.cats):
-                    category.cats = list(set(cats) | set(category.cats))
-                    is_updated = True
+            self.save_category(key, combine_url, cats, ctx)
 
-                category.update_time = datetime.utcnow()
-                category.save()
 
-                common_saved.send(sender=ctx, obj_type='Category', key=category.key, url=category.combine_url, \
-                    is_new=is_new, is_updated=((not is_new) and is_updated) )
+        brands_nodes = tree.cssselect('div#localNavigationContainer ul.nav_cat_sub_2 li.nav_cat_item_bold')
+        for brand in brands_nodes:
+            if brand.cssselect('span') and 'brands' in brand.cssselect('span')[0].text_content().lower():
+                for b in brand.cssselect('ul.nav_cat_sub_3 li a'):
+                    combine_url = b.get('href')
+                    if combine_url.startswith('javascript'): continue
+                    id_match = re.search(r'id=(\d+)', combine_url)
+                    url_id = '_'+id_match.groups()[0] if id_match else ''
+                    cats = [dept, b.text_content()]
+                    key = '_'.join(cats) + url_id
+
+                    self.save_category(key, combine_url, cats, ctx)
+
+        
+
+    def save_category(self, key, combine_url, cats, ctx):
+        is_new = False; is_updated = False
+        category = Category.objects(key=key).first()
+
+        if not category:
+            is_new = True
+            category = Category(key=key)
+            category.is_leaf = True
+
+        if combine_url and combine_url != category.combine_url:
+            category.combine_url = combine_url
+            is_updated = True
+
+        if set(cats).difference(category.cats):
+            category.cats = list(set(cats) | set(category.cats))
+            is_updated = True
+
+        category.update_time = datetime.utcnow()
+        category.save()
+
+        common_saved.send(sender=ctx, obj_type='Category', key=category.key, url=category.combine_url, \
+            is_new=is_new, is_updated=((not is_new) and is_updated) )
 
 
     def crawl_listing(self, url, ctx='', **kwargs):
@@ -91,6 +130,11 @@ class Server(object):
             return
         tree = lxml.html.fromstring(ret)
         product_nodes = tree.cssselect('div#macysGlobalLayout div.thumbnails div.productThumbnail')
+
+        category = Category.objects(key=kwargs.get('key')).first()
+        if not category:
+            common_failed.send(sender=ctx, url=url, reason='category %s not found in db' % kwargs.get('key'))
+            return
 
         for product_node in product_nodes:
             key = product_node.get('id')
@@ -116,7 +160,8 @@ class Server(object):
                 if  price_node.get('class') and 'priceSale' in price_node.get('class'):
                     price = price_node.xpath('text()')[-1].strip()
                 else:
-                    listprice = price_node.text.strip() if price_node.text else listprice
+                    if listprice is None:
+                        listprice = price_node.text.strip() if price_node.text else listprice
 
             # eliminate products of no discount
             if price is None or listprice is None:
@@ -153,13 +198,8 @@ class Server(object):
                 is_updated = True
 
             # To pick the product which fit our needs, such as a certain discount, brand, dept etc.
-            selected = Picker(site='macys').pick(product)
+            selected = Picker(site=DB).pick(product)
             if not selected:
-                continue
-
-            category = Category.objects(key=kwargs.get('key')).first()
-            if not category:
-                common_failed.send(sender=ctx, url=url, reason='category %s not found in db' % kwargs.get('key'))
                 continue
 
             if category.cats and set(category.cats).difference(product.dept):
@@ -237,7 +277,7 @@ if __name__ == '__main__':
     # server.run()
 
     s = Server()
-#    s.crawl_category()
+    s.crawl_category()
 #
 #    s.crawl_listing('http://www1.macys.com/shop/womens-clothing/womens-swimwear?id=8699&viewall=true', key='8699')
 #    counter = 0

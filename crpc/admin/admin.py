@@ -884,8 +884,51 @@ from deals.models import BrandMonitor
 class BrandMonitorHandler(BaseHandler):
     @tornado.web.authenticated
     def get(self):
-        brands = BrandMonitor.objects()
-        self.render('brandmonitor.html', brands=[brand.to_json() for brand in brands])
+        bms = BrandMonitor.objects()
+        print ',,,,,,,,,,,,,,,,,: ', bms.count()
+        p = [brand.to_json() for brand in bms]
+        print '~~~~~~~~~~~~~~~~~: ', len(p)
+        self.render('brandmonitor.html', brands=[brand.to_json() for brand in bms])
+
+
+DSFILTER = API(MASTIFF_HOST).dsfilter.get()
+class DealHandler(BaseHandler):
+    @tornado.web.authenticated
+    def get(self):
+        site = self.get_argument('site')
+        if not site:
+            self.render('deals.html', products=[], site='')
+
+        import sys
+        reload(sys)
+        sys.setdefaultencoding('utf-8')
+        
+        offset = int(self.get_argument('offset', '0'))
+        limit = int(self.get_argument('limit', '40'))
+        try:
+            m = __import__('crawlers.%s.models' % site, fromlist=['Product'])
+        except ImportError:
+            self.render('deals.html', products=[], site='')
+
+
+        objects = m.Product.objects
+        total_count = objects().count()
+        pagination = Pagination(offset/limit+1, limit, total_count)
+
+        products = objects()[offset:(offset+limit)]
+        res = [{
+            'title': product.title,
+            'combine_url': product.combine_url,
+            'image': product.image_urls[0] if product.image_urls else '',
+            'brand': product.favbuy_brand,
+            'price': product.favbuy_price,
+            'listprice': product.favbuy_listprice,
+            'dept': '-'.join(product.favbuy_dept),
+            'discount': float(product.favbuy_price) / float(product.favbuy_listprice) if product.favbuy_listprice else '',
+            'medium' : DSFILTER.get('%s.^_^.%s' % \
+            (product.favbuy_brand, '-'.join(product.favbuy_dept)), {}).get('medium', 0)
+        } for product in products]
+        self.render('deals.html', products=res, pagination=pagination, site=site)
 
 
 class PreferenceHandler(BaseHandler):
@@ -1059,6 +1102,7 @@ application = tornado.web.Application([
     (r"/brands/?(.*)", BrandsHandler),
     (r"/brand/power/(.*)", PowerBrandHandler),
     (r"/brand/deal/monitor", BrandMonitorHandler),
+    (r"/deal/?", DealHandler),
     (r"/brand/?(.*)", BrandHandler),
     (r"/feedback/(.*)", FeedbackHandler),
     (r"/email/(.*)", EmailHandler),

@@ -17,6 +17,10 @@ import traceback
 import gevent.pool
 process_image_pool = gevent.pool.Pool(500)
 
+try:
+    from deals.routine import clean_product
+except ImportError:
+    logger.error(traceback.format_exc())
 
 @common_saved.bind
 def single_image_crawling(sender, **kwargs):
@@ -75,6 +79,7 @@ def batch_text_extract(sender, **kwargs):
         return
 
     if site in deal_crawlers:
+        clean_product(site)
         ready_for_publish.send(None, **{'site': site})
         return
 

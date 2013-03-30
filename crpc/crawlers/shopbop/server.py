@@ -20,8 +20,10 @@ class Server(object):
         self.siteurl = 'http://www.shopbop.com/'
 
     def crawl_category(self, ctx='', **kwargs):
-        ret = req.get(self.siteurl).content
-        top_nodes = ret.cssselect('ul#navList li.navCategory')
+        ret = req.get(self.siteurl)
+        print ret.ok
+        tree = lxml.html.fromstring(ret.content)
+        top_nodes = tree.cssselect('ul#navList li.navCategory')
         for node in top_nodes:
             dept = node.cssselect('a')[0].text_content().strip()
             if dept == 'Designers':

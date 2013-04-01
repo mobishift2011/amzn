@@ -7,8 +7,13 @@ from datetime import datetime
 
 from models import *
 from crawlers.common.stash import *
+from crawlers.common.events import common_failed, common_saved
 
 header = {
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    'Accept-Charset': 'UTF-8,*;q=0.5',
+    'Accept-Encoding': 'gzip,deflate,sdch',
+    'Accept-Language': 'zh-CN,en-US;q=0.8,en;q=0.6',
     'Host': 'www.shopbop.com',
     'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.22 (KHTML, like Gecko) Ubuntu Chromium/25.0.1364.160 Chrome/25.0.1364.160 Safari/537.22',
 }
@@ -19,9 +24,20 @@ class Server(object):
     def __init__(self):
         self.siteurl = 'http://www.shopbop.com/'
 
+    def fetch_page(self, url):
+        ret = req.get(self.siteurl)
+        if ret.ok: return ret.content
+        else: return ret.status_code
+
     def crawl_category(self, ctx='', **kwargs):
-        ret = req.get(self.siteurl).content
-        top_nodes = ret.cssselect('ul#navList li.navCategory')
+        ret = self.fetch_page(self.siteurl)
+        if isinstance(ret, int):
+            common_failed.send(sender=ctx, key='', url=self.siteurl,
+                    reasone='download home page error: {0}'.format(ret))
+            print ret, '--'
+            return
+        tree = lxml.html.fromstring(ret)
+        top_nodes = tree.cssselect('ul#navList li.navCategory')
         for node in top_nodes:
             dept = node.cssselect('a')[0].text_content().strip()
             if dept == 'Designers':
@@ -63,3 +79,7 @@ class Server(object):
 
     def crawl_product(self, url, ctx='', **kwargs):
         pass
+
+if __name__ == '__main__':
+    ss = Server()
+    ss.crawl_category()

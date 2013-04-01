@@ -51,6 +51,21 @@ class Server(object):
                 num = self.crawl_number_in_listing(link)
                 self.save_category('sale', link, num, [dept], ctx)
                 continue
+            if dept == 'Boutiques':
+                for sub in node.cssselect('ul.submenu li.menuItem a'):
+                link = sub.get('href')
+                link = link if link.startswith('http') else self.siteurl + link
+                sub_dept = sub.text_content().strip()
+
+                tr = lxml.html.fromstring(link)
+                for atag in tr.cssselect('div#leftNavigation ul.leftNavCategory li.leftNavCategoryLi ul.leftNavSubcategory li a'):
+                    link = atag.get('href')
+                    link = link if link.startswith('http') else self.siteurl + link
+                    sub_sub_dept = atag.text_content().strip()
+                    key = link.rsplit('/', 1)[-1].split('.')[0]
+                    num = self.crawl_number_in_listing(link)
+                    self.save_category(key, link, num, [dept, sub_dept, sub_sub_dept], ctx)
+
 
             sub_nodes = node.cssselect('ul.submenu li.menuItem a')
             for sub in sub_nodes:

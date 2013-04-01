@@ -89,6 +89,7 @@ class Server(object):
         return num
 
     def crawl_listing(self, url, ctx='', **kwargs):
+        category = Category.objects(key=kwargs.get('key')).first()
         ret = self.fetch_page(url)
         if isinstance(ret, int):
             common_failed.send(sender=ctx, key='', url=url,
@@ -104,6 +105,37 @@ class Server(object):
             link = prd.cssselect('a.productDetailLink')
             link = link if link.startswith('http') else self.siteurl + link
             image = prd.cssselect('a.productDetailLink img.image')[0].get('src')
+            combine_url, key = re.compile('(.+v=1/(\d+).htm).*').match(link).groups()
+
+            is_new = is_updated = False
+            product = Product.objects(key=key).first()
+            if not product:
+                is_new = True
+                product = Product(key=key)
+                product.event_type = False
+                product.updated = False
+                product.brand = brand
+
+            if title and title != product.title:
+                product.title = title
+                product.update_history.update({ 'title': datetime.utcnow() })
+                is_updated = True
+            if price and price != product.price:
+                product.price = price
+                product.update_history.update({ 'price': datetime.utcnow() })
+            if combine_url and combine_url != product.combine_url:
+                product.combine_url = combine_url
+                product.update_history.update({ 'combine_url': datetime.utcnow() })
+
+            if category.key not in product.category_key:
+                product.category_key.append(category.key)
+                is_updated = True
+            if is_updated:
+                product.list_update_time = datetime.utcnow()
+            product.save()
+            common_saved.send(sender=ctx, obj_type='Product', key=product.key, url=product.combine_url,
+                    is_new=is_new, is_updated=((not is_new) and is_updated) )
+
 
 
     def crawl_product(self, url, ctx='', **kwargs):

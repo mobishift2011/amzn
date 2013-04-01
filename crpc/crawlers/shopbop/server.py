@@ -22,7 +22,7 @@ req = requests.Session(prefetch=True, timeout=30, config=config, headers=header)
 
 class Server(object):
     def __init__(self):
-        self.siteurl = 'http://www.shopbop.com/'
+        self.siteurl = 'http://www.shopbop.com'
 
     def fetch_page(self, url):
         ret = req.get(self.siteurl)

@@ -78,11 +78,12 @@ class Server(object):
 
 
     def crawl_number_in_listing(self, url):
-        ret = self.fetch_page(url)
-        if isinstance(ret, int):
-            common_failed.send(sender=ctx, key='', url=url,
-                    reasone='download listing page error: {0}'.format(ret))
-            return
+#        ret = self.fetch_page(url)
+#        if isinstance(ret, int):
+#            common_failed.send(sender=ctx, key='', url=url,
+#                    reasone='download listing page error: {0}'.format(ret))
+#            return
+        ret = requests.get(url, headers=header).content
         tree = lxml.html.fromstring(ret)
         num = tree.cssselect('div#searchResultCount')[0].strip()
         num = int( re.compile('(\d+).*').match(num).group(1) )

@@ -125,7 +125,8 @@ class Server(object):
         if not product_nodes:
             self.crawl_listing_of_no_leaf(tree, ctx=ctx, **kwargs)
             return
-
+        
+        category = Category.objects(key=kwargs.get('key')).first()
         no_discount_num = 0 # sometimes no discount product occurs between the  discount ones ordered by sale.
         for product_node in product_nodes:
             key = product_node.get('data-style-id')
@@ -193,7 +194,6 @@ class Server(object):
                 product.listprice = listprice
                 is_updated = True
 
-            category = Category.objects(key=kwargs.get('key')).first()
             if category.cats and set(category.cats).difference(product.dept):
                 product.dept = list(set(category.cats) | set(product.dept or []))
                 is_updated = True

@@ -140,7 +140,8 @@ class Publisher:
             # republish published products that are associated with the newly published event (event URI field
             # needs to be updated)
             for prod in m.Product.objects(publish_time__exists=True, event_id=ev.event_id):
-                self.publish_product(prod, upd=True, fields=['events'])
+                # self.publish_product(prod, upd=True, fields=['events'])
+                self.publish_product(prod, upd=True)
         elif self.should_publish_event_newly_onshelf(ev):
             self.publish_event(ev, upd=True)
         elif ev.publish_time:

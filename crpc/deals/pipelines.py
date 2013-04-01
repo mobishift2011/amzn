@@ -130,7 +130,7 @@ class ProductPipeline(object):
     def clean(self):
         product = self.product
 
-        print 'start to clean product -> %s.%s' % (self.site, product.key)
+        print 'start to clean deal product -> %s.%s' % (self.site, product.key)
 
         text_list = []
         text_list.append(product.title or u'')
@@ -144,6 +144,8 @@ class ProductPipeline(object):
         self.extract_tag(text_list)
         self.extract_dept(text_list)
         self.extract_price()
+
+        return True
 
 
 ProductPipeline.EXTRACTER = EXTRACTER

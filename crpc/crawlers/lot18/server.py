@@ -208,6 +208,10 @@ class Server(object):
         imgs = nav.cssselect('div.container-product-review > span.product-review-additional > div.product-detail-thumb > img')
         for img in imgs:
             image_urls.append( 'http:' + img.get('src') )
+        if not image_urls:
+            imgs = nav.cssselect('div.container-product-detail div.product-detail img.img-product-detail')
+            for img in imgs:
+                image_urls.append( 'http:' + img.get('src') )
 
         is_new, is_updated = False, False
         product = Product.objects(key=url.rsplit('/', 1)[-1]).first()

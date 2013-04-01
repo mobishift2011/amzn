@@ -70,9 +70,9 @@ class Server(object):
                 is_new = True
                 category = Category(key=key)
                 category.is_leaf = True
-                category.combine_url = link
                 category.cats = [key]
                 category.pagesize = 144
+            category.combine_url = link
             category.num = num
             category.update_time = datetime.utcnow()
             category.save()
@@ -80,6 +80,7 @@ class Server(object):
 
 
     def crawl_listing(self, url, ctx='', **kwargs):
+        category = Category.objects(key=kwargs.get('key')).first()
         ret = self.fetch_page(url)
         if isinstance(ret, int):
             common_failed.send(sender='ctx', key='', url=url,
@@ -87,13 +88,25 @@ class Server(object):
             return
         tree = lxml.html.fromstring(ret)
         nodes = tree.cssselect('div.mainCon div.ProductListWrap div.thisResultItem')
-        category = Category.objects(key=kwargs.get('key')).first()
 
         for node in nodes:
-            brand = node.cssselect('div.listInfoBox div.listBrand span.itemName')[0].text_content().strip()
+            try:
+                brand = node.cssselect('div.listInfoBox div.listBrand span.itemName')[0].text_content().strip()
+            except:
+                ret = self.fetch_page(url)
+                tree = lxml.html.fromstring(ret)
+                nodes = tree.cssselect('div.mainCon div.ProductListWrap div.thisResultItem')
+
+        for node in nodes:
+            try:
+                brand = node.cssselect('div.listInfoBox div.listBrand span.itemName')[0].text_content().strip()
+            except:
+                continue
             title = node.cssselect('div.listInfoBox div.listModel span.itemModel')[0].text_content().strip()
             link = node.cssselect('div.listInfoBox div.listModel a')[0].get('href')
             link = link if link.startswith('http') else self.siteurl + link
+            if link == 'http://www.ebags.com':
+                continue
             key = self.get_product_id.match(link).group(1)
             price = node.cssselect('div.listInfoBox div.listPriceBox span.listPrice')[0].text_content().replace('$', '').strip()
             discount = ''
@@ -127,6 +140,9 @@ class Server(object):
             if link and link != product.combine_url:
                 product.combine_url = link
                 product.update_history.update({ 'combine_url': datetime.utcnow() })
+                is_updated = True
+            if discount and discount != product.discount:
+                product.discount = discount
                 is_updated = True
 
             selected = Picker(site=DB).pick(product, discount)
@@ -193,5 +209,5 @@ class Server(object):
 
 if __name__ == '__main__':
     ss = Server()
-    ss.crawl_listing('http://www.ebags.com/category/backpacks?items=144?page=3')
+    ss.crawl_listing('http://www.ebags.com/category/wallets-and-accessories?items=144?page=14')
 

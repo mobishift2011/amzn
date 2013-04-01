@@ -4,7 +4,7 @@
 
 from mongoengine import *
 from settings import MONGODB_HOST
-DB = 'ebags'
+DB = 'shopbop'
 connect(db=DB, alias=DB, host=MONGODB_HOST)
 
 from crawlers.common.models import BaseCategory, LuxuryProduct
@@ -20,8 +20,6 @@ class Category(BaseCategory):
         return self.combine_url
 
 class Product(LuxuryProduct):
-    discount = FloatField()
-
     meta = {
         'db_alias': DB,
     }

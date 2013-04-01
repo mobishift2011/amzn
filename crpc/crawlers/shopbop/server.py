@@ -66,6 +66,8 @@ class Server(object):
                         num = self.crawl_number_in_listing(link)
                         self.save_category(key, link, num, [dept, sub_dept, sub_sub_dept], ctx)
                 continue
+            if dept == 'Lookbooks':
+                break
 
             sub_nodes = node.cssselect('ul.submenu li.menuItem a')
             for sub in sub_nodes:

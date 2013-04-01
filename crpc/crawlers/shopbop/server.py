@@ -85,7 +85,7 @@ class Server(object):
 #            return
         ret = requests.get(url, headers=header).content
         tree = lxml.html.fromstring(ret)
-        num = tree.cssselect('div#searchResultCount')[0].strip()
+        num = tree.cssselect('div#searchResultCount')[0].text_content().strip()
         num = int( re.compile('(\d+).*').match(num).group(1) )
         return num
 

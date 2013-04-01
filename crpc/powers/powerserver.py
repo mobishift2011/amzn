@@ -11,7 +11,7 @@ from powers.events import *
 from imglib import trim, scale
 from backends.monitor.models import Stat
 
-from crawlers.common.stash import exclude_crawlers
+from crawlers.common.stash import picked_crawlers
 from os import listdir
 from os.path import join, isdir
 from datetime import datetime
@@ -26,10 +26,12 @@ class PowerServer(object):
         self.__s3conn = S3Connection(AWS_ACCESS_KEY, AWS_SECRET_KEY)
         self.__m = {}
 
-        for name in listdir(join(CRPC_ROOT, "crawlers")):
-            path = join(CRPC_ROOT, "crawlers", name)
-            if name not in exclude_crawlers and isdir(path):
-                self.__m[name] = __import__("crawlers."+name+'.models', fromlist=['Event', 'Product'])
+        # for name in listdir(join(CRPC_ROOT, "crawlers")):
+        #     path = join(CRPC_ROOT, "crawlers", name)
+        #     if name not in exclude_crawlers and isdir(path):
+        #         self.__m[name] = __import__("crawlers."+name+'.models', fromlist=['Event', 'Product'])
+        for name in picked_crawlers:
+            self.__m[name] = __import__("crawlers."+name+'.models', fromlist=['Event', 'Product'])
 
     def process_image(self, args=(), kwargs={}):
         logger.debug('Image Server Accept -> {0} {1}'.format(args, kwargs))

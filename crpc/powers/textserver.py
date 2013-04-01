@@ -11,7 +11,7 @@ from deals.pipelines import ProductPipeline as DealProductPipeline
 from backends.monitor.models import Stat
 
 from powers.events import brand_refresh
-from crawlers.common.stash import exclude_crawlers
+from crawlers.common.stash import picked_crawlers
 from datetime import datetime
 from os import listdir
 from os.path import join, isdir
@@ -33,10 +33,13 @@ class TextServer(object):
 
         self.__m = {}
         
-        for name in listdir(join(CRPC_ROOT, "crawlers")):
-            path = join(CRPC_ROOT, "crawlers", name)
-            if name not in exclude_crawlers and isdir(path):
-                self.__m[name] = __import__("crawlers."+name+'.models', fromlist=['Event', 'Product'])
+        # for name in listdir(join(CRPC_ROOT, "crawlers")):
+        #     path = join(CRPC_ROOT, "crawlers", name)
+        #     if name not in exclude_crawlers and isdir(path):
+        #         self.__m[name] = __import__("crawlers."+name+'.models', fromlist=['Event', 'Product'])
+
+        for name in picked_crawlers:
+            self.__m[name] = __import__("crawlers."+name+'.models', fromlist=['Event', 'Product'])
     
     def process_product(self, args=(), kwargs=()):
         site = kwargs.get('site')

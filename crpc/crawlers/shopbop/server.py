@@ -65,7 +65,7 @@ class Server(object):
                         key = link.rsplit('/', 1)[-1].split('.')[0]
                         num = self.crawl_number_in_listing(link)
                         self.save_category(key, link, num, [dept, sub_dept, sub_sub_dept], ctx)
-
+                continue
 
             sub_nodes = node.cssselect('ul.submenu li.menuItem a')
             for sub in sub_nodes:

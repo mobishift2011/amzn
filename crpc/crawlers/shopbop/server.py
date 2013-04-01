@@ -34,7 +34,6 @@ class Server(object):
         if isinstance(ret, int):
             common_failed.send(sender=ctx, key='', url=self.siteurl,
                     reasone='download home page error: {0}'.format(ret))
-            print ret, '--'
             return
         tree = lxml.html.fromstring(ret)
         top_nodes = tree.cssselect('ul#navList li.navCategory')
@@ -43,13 +42,14 @@ class Server(object):
             if dept == 'Designers':
                 link = node.cssselect('a')[0].get('href')
                 link = link if link.startswith('http') else self.siteurl + link
-                self.save_category('designers', link, [dept], ctx)
+                self.save_category('designers', link, None, [dept], ctx)
                 continue
             if dept == 'Sale':
                 link = node.cssselect('a')[0].get('href')
                 link = link if link.startswith('http') else self.siteurl + link
                 key = link.rsplit('/', 1)[-1].split('.')[0]
-                self.save_category('sale', link, [dept], ctx)
+                num = self.crawl_number_in_listing(link)
+                self.save_category('sale', link, num, [dept], ctx)
                 continue
 
             sub_nodes = node.cssselect('ul.submenu li.menuItem a')
@@ -58,27 +58,62 @@ class Server(object):
                 link = link if link.startswith('http') else self.siteurl + link
                 sub_dept = sub.text_content().strip()
                 key = link.rsplit('/', 1)[-1].split('.')[0]
-                self.save_category(key, link, [dept, sub_dept], ctx)
+                num = self.crawl_number_in_listing(link)
+                self.save_category(key, link, num, [dept, sub_dept], ctx)
 
 
-    def save_category(self, key, combine_url, cats, ctx):
+    def save_category(self, key, combine_url, num, cats, ctx):
         is_new = is_updated = False
         category = Category.objects(key=key).first()
         if not category:
             is_new = True
             category = Category(key=key)
             category.is_leaf = True
+            category.pagesize = 100
+        category.num = num
         category.cats = cats
         category.combine_url = combine_url
         category.save()
         common_saved.send(sender=ctx, obj_type='Category', key=key, url=combine_url, is_new=is_new, is_updated=is_updated)
 
 
+    def crawl_number_in_listing(self, url):
+        ret = self.fetch_page(url)
+        if isinstance(ret, int):
+            common_failed.send(sender=ctx, key='', url=url,
+                    reasone='download listing page error: {0}'.format(ret))
+            return
+        tree = lxml.html.fromstring(ret)
+        num = tree.cssselect('div#searchResultCount')[0].strip()
+        num = int( re.compile('(\d+).*').match(num).group(1) )
+        return num
+
     def crawl_listing(self, url, ctx='', **kwargs):
-        pass
+        ret = self.fetch_page(url)
+        if isinstance(ret, int):
+            common_failed.send(sender=ctx, key='', url=url,
+                    reasone='download listing page error: {0}'.format(ret))
+            return
+        tree = lxml.html.fromstring(ret)
+        for prd in tree.cssselect('table#productTable tr td div#productContainer'):
+            price = prd.cssselect('div.productInfo span.salePrice')
+            if not price:
+                continue
+            brand = prd.cssselect('div.productInfo div.productBrand')[0].text_content().strip()
+            title = prd.cssselect('div.productInfo div.productTitle')[0].text_content().strip()
+            link = prd.cssselect('a.productDetailLink')
+            link = link if link.startswith('http') else self.siteurl + link
+            image = prd.cssselect('a.productDetailLink img.image')[0].get('src')
+
 
     def crawl_product(self, url, ctx='', **kwargs):
-        pass
+        ret = self.fetch_page(url)
+        if isinstance(ret, int):
+            common_failed.send(sender=ctx, key='', url=url,
+                    reasone='download product page error: {0}'.format(ret))
+            return
+        tree = lxml.html.fromstring(ret)
+        tree.cssselect('')
 
 if __name__ == '__main__':
     ss = Server()

@@ -81,7 +81,7 @@ def _setup_packages():
     sudo("pip install scipy")
     sudo("pip install scikit-learn pattern")
     sudo("pip install ez_setup")
-    sudo("pip install https://github.com/SiteSupport/gevent/tarball/master")
+    sudo("pip install https://github.com/surfly/gevent/tarball/master")
     sudo("pip install zerorpc lxml requests pymongo mongoengine redis redisco pytz Pillow titlecase mock selenium blinker cssselect boto python-dateutil virtualenvwrapper slumber esmre django supervisor")
     sudo("pip install pymongo==2.4.1")
 

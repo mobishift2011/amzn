@@ -247,7 +247,9 @@ class Server(object):
             event, is_new, is_updated = self.get_or_create_event(event_id)
 
             if dept not in event.dept: event.dept.append(dept)
-            if image_url not in event.image_urls: event.image_urls.append(image_url)
+            if image_url not in event.image_urls:
+                event.image_urls.insert(0, image_url)
+                event.update_history.update({ 'image_urls': datetime.utcnow() })
             event.update_time = datetime.utcnow()
             event.save()
             common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)

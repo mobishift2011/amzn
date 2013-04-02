@@ -499,9 +499,9 @@ class Server(object):
 
         tree = self.download_page_get_correct_tree(link, key, 'download \'home\' upcoming event page error', ctx)
         timer = tree.cssselect('div.page-container > div.content-container > section.page-details > div.layout-background > div.layout-wrapper > div.layout-container > section.sale-details > div.sale-time')[0]
-        _begin = timer.get('data-timer-start')
+        _begin = timer.get('data-gilt-dom-time-frame-time-start')
         events_begin = datetime.utcfromtimestamp(float(_begin[:10]))
-        _end = timer.get('data-timer-end') # 1356714000000
+        _end = timer.get('data-gilt-dom-time-frame-time-end') # 1356714000000
         events_end = datetime.utcfromtimestamp(float(_end[:10]))
         bottom_node = timer = tree.cssselect('div.page-container > div.content-container > section.content > div > div.position > section.module > div.elements-container > article.element')[0]
         image = bottom_node.cssselect('figure > span > img')[0].get('src')

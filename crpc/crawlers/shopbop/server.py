@@ -41,14 +41,15 @@ class Server(object):
         for node in top_nodes:
             dept = node.cssselect('a')[0].text_content().strip()
             if dept == 'Designers':
+                continue
                 link = node.cssselect('a')[0].get('href')
                 link = link if link.startswith('http') else self.siteurl + link
 
-                ret = self.fetch_page(link)
+                ret = requests.get(link, headers=header).content
                 tr = lxml.html.fromstring(ret)
                 for br in tr.cssselect('div[id^="column"] div.brandGrouping a.designerLink'):
                     href = br.get('href')
-                    href = href if href.startswith('http') else self.siteurl + link
+                    href = href if href.startswith('http') else self.siteurl + href
                     key = br.text_content().strip()
                     num = self.crawl_number_in_listing(href)
                     self.save_category(key, href, num, [dept, key], ctx)
@@ -66,7 +67,7 @@ class Server(object):
                     link = link if link.startswith('http') else self.siteurl + link
                     sub_dept = sub.text_content().strip()
 
-                    ret = self.fetch_page(link)
+                    ret = requests.get(link, headers=header).content
                     tr = lxml.html.fromstring(ret)
                     for atag in tr.cssselect('div#leftNavigation ul.leftNavCategory li.leftNavCategoryLi ul.leftNavSubcategory li a'):
                         link = atag.get('href')
@@ -118,7 +119,7 @@ class Server(object):
 
     def crawl_listing(self, url, ctx='', **kwargs):
         category = Category.objects(key=kwargs.get('key')).first()
-        ret = self.fetch_page(url)
+        ret = requests.get(url, headers=header).content
         if isinstance(ret, int):
             common_failed.send(sender=ctx, key='', url=url,
                     reasone='download listing page error: {0}'.format(ret))
@@ -132,11 +133,11 @@ class Server(object):
                 price = price[0].text_content().replace(',', '').replace('$', '').strip()
             brand = prd.cssselect('div.productInfo div.productBrand')[0].text_content().strip()
             title = prd.cssselect('div.productInfo div.productTitle')[0].text_content().strip()
-            link = prd.cssselect('a.productDetailLink')
+            link = prd.cssselect('a.productDetailLink')[0].get('href')
             link = link if link.startswith('http') else self.siteurl + link
-            image = prd.cssselect('a.productDetailLink img.image')[0].get('src')
+            # image = prd.cssselect('a.productDetailLink img.image')[0].get('src')
             combine_url, key = re.compile('(.+v=1/(\d+).htm).*').match(link).groups()
-            listprice, summary, shipping, image_urls = self.crawl_detail(link)
+            listprice, summary, shipping, image_urls = self.crawl_detail(combine_url)
 
             is_new = is_updated = False
             product = Product.objects(key=key).first()
@@ -182,15 +183,16 @@ class Server(object):
                     is_new=is_new, is_updated=((not is_new) and is_updated), ready=ready)
 
     def crawl_detail(self, url):
-        ret = self.fetch_page(url)
+        ret = requests.get(url, headers=header).content
         if isinstance(ret, int):
             common_failed.send(sender=ctx, key='', url=url,
                     reasone='download product page error: {0}'.format(ret))
             return
         tree = lxml.html.fromstring(ret)
-        listprice = tree.cssselect('div#productPrices div.priceBlock div.originalRetailPrice')[0].replace(',', '').replace('$', '').strip()
+        listprice = tree.cssselect('div#productPrices div.priceBlock span.originalRetailPrice')[0].text_content().replace(',', '').replace('$', '').strip()
         summary = tree.cssselect('div#longDescriptionContainer')[0].text_content()
         shipping = tree.cssselect('div#freeDeliveriesContainer')[0].text_content()
+        image_urls = []
         for i in tree.cssselect('ul#thumbnailList li.thumbnailListItem img.thumbImages'):
             img = i.get('src')
             img = ''.join( re.compile('(.*)_\d+x\d+(.*)').match(img).groups() )
@@ -205,4 +207,6 @@ class Server(object):
 
 if __name__ == '__main__':
     ss = Server()
+    ss.crawl_listing('http://www.shopbop.com/sale-70-percent-off/br/v=1/2534374302029887.htm')
+    exit()
     ss.crawl_category()

@@ -30,6 +30,7 @@ class CheckServer(object):
         pass
 
     def check_onsale_product(self, id, url):
+        print url
         product = Product.objects(key=id).first()
 
         if product is None:
@@ -38,7 +39,7 @@ class CheckServer(object):
 
         request_count = 1
         while True:
-            res = requests.get(product.combine_url)
+            res = requests.get(product.combine_url, params={'zfcTest': 'mat:1'})
             if res.status_code == 404:
                 if request_count < 4:
                     request_count += 1 
@@ -53,6 +54,7 @@ class CheckServer(object):
 
         if tree.cssselect('div.searchNone'):
             offsale_update(product)
+            return
 
         price_node = tree.cssselect('div#theater div#productForm form#prForm ul li#priceSlot')[0]
         listprice = price_node.cssselect('.oldPrice')[0].text.strip()

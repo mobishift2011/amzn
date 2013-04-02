@@ -133,7 +133,6 @@ class Server(object):
             product.event_type = False
             product.page_num = page_num
             product.title = prd['title']
-            # product.image_urls = ['http:' + prd['images']['large'], 'http:' + prd['images']['xlarge']]
             product.bottle_count = bottle_count
             product.listprice = listprice
             product.price = prd['prices']['price']
@@ -154,6 +153,8 @@ class Server(object):
             if float(product.price) != float(prd['prices']['price']):
                 product.price = prd['prices']['price']
                 product.update_history.update({ 'price': datetime.utcnow() })
+            if not product.image_urls:
+                product.image_urls = ['http:' + prd['images']['large'], 'http:' + prd['images']['xlarge']]
 
         if prd['type'] not in product.cats: product.cats.append(prd['type'])
         _utcnow = datetime.utcnow()

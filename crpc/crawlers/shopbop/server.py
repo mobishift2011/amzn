@@ -139,7 +139,7 @@ class Server(object):
             # image = prd.cssselect('a.productDetailLink img.image')[0].get('src')
             combine_url, key = re.compile('(.+v=1/(\d+).htm).*').match(link).groups()
             detail = self.crawl_detail(combine_url)
-            if detailf is None:
+            if detail is None:
                 continue
             listprice, summary, shipping, image_urls = detail
 

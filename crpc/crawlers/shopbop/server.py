@@ -137,7 +137,10 @@ class Server(object):
             link = link if link.startswith('http') else self.siteurl + link
             # image = prd.cssselect('a.productDetailLink img.image')[0].get('src')
             combine_url, key = re.compile('(.+v=1/(\d+).htm).*').match(link).groups()
-            listprice, summary, shipping, image_urls = self.crawl_detail(combine_url)
+            detail = self.crawl_detail(combine_url)
+            if detailf is None:
+                continue
+            listprice, summary, shipping, image_urls = detail
 
             is_new = is_updated = False
             product = Product.objects(key=key).first()
@@ -189,7 +192,11 @@ class Server(object):
                     reasone='download product page error: {0}'.format(ret))
             return
         tree = lxml.html.fromstring(ret)
-        listprice = tree.cssselect('div#productPrices div.priceBlock span.originalRetailPrice')[0].text_content().replace(',', '').replace('$', '').strip()
+        listprice = tree.cssselect('div#productPrices div.priceBlock span.originalRetailPrice')
+        if not listprice:
+            return
+        else:
+            listprice = listprice[0].text_content().replace(',', '').replace('$', '').strip()
         summary = tree.cssselect('div#longDescriptionContainer')[0].text_content()
         shipping = tree.cssselect('div#freeDeliveriesContainer')[0].text_content()
         image_urls = []
@@ -207,6 +214,6 @@ class Server(object):
 
 if __name__ == '__main__':
     ss = Server()
-    ss.crawl_listing('http://www.shopbop.com/sale-70-percent-off/br/v=1/2534374302029887.htm')
+    ss.crawl_listing('http://www.shopbop.com/whats-new/br/v=1/2534374302029428.htm?baseIndex=500&all')
     exit()
     ss.crawl_category()

@@ -43,7 +43,15 @@ class Server(object):
             if dept == 'Designers':
                 link = node.cssselect('a')[0].get('href')
                 link = link if link.startswith('http') else self.siteurl + link
-                self.save_category('designers', link, None, [dept], ctx)
+
+                ret = self.fetch_page(link)
+                tr = lxml.html.fromstring(ret)
+                for br in tr.cssselect('div[id^="column"] div.brandGrouping a.designerLink'):
+                    href = br.get('href')
+                    href = href if href.startswith('http') else self.siteurl + link
+                    key = br.text_content().strip()
+                    num = self.crawl_number_in_listing(href)
+                    self.save_category(key, href, num, [dept, key], ctx)
                 continue
             if dept == 'Sale':
                 link = node.cssselect('a')[0].get('href')
@@ -58,7 +66,8 @@ class Server(object):
                     link = link if link.startswith('http') else self.siteurl + link
                     sub_dept = sub.text_content().strip()
 
-                    tr = lxml.html.fromstring(link)
+                    ret = self.fetch_page(link)
+                    tr = lxml.html.fromstring(ret)
                     for atag in tr.cssselect('div#leftNavigation ul.leftNavCategory li.leftNavCategoryLi ul.leftNavSubcategory li a'):
                         link = atag.get('href')
                         link = link if link.startswith('http') else self.siteurl + link

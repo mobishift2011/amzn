@@ -6,7 +6,7 @@ from datetime import datetime
 connect(db='deal', host=MONGODB_HOST)
 
 class BrandMonitor(Document):
-    brand            =   StringField(unique=True)
+    brand            =   StringField()
     reason          =   StringField()
     site               =   ListField(StringField())
     sample          =   StringField()

@@ -527,9 +527,9 @@ class Server(object):
 
         if '/home/sale' in url or '/sale/home' in url: # home
             timer = tree.cssselect('div.page-container > div.content-container > section.page-details > div.layout-background > div.layout-wrapper > div.layout-container > section.sale-details > div.sale-time')[0]
-            _begin = timer.get('data-timer-start')
+            _begin = timer.get('data-gilt-dom-time-frame-time-start')
             events_begin = datetime.utcfromtimestamp(float(_begin[:10]))
-            _end = timer.get('data-timer-end')
+            _end = timer.get('data-gilt-dom-time-frame-time-end')
             events_end = datetime.utcfromtimestamp(float(_end[:10]))
             bottom_node = tree.cssselect('div.page-container > div.content-container > div.content-area-wrapper > section.content > div.position > section.module > div.elements-container > article.element')[0]
             image = bottom_node.cssselect('figure.element-media > span.media > img')[0].get('src')

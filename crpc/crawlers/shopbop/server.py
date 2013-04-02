@@ -118,6 +118,8 @@ class Server(object):
             price = prd.cssselect('div.productInfo span.salePrice')
             if not price:
                 continue
+            else:
+                price = price[0].text_content().replace(',', '').replace('$', '').strip()
             brand = prd.cssselect('div.productInfo div.productBrand')[0].text_content().strip()
             title = prd.cssselect('div.productInfo div.productTitle')[0].text_content().strip()
             link = prd.cssselect('a.productDetailLink')
@@ -163,7 +165,9 @@ class Server(object):
                     reasone='download product page error: {0}'.format(ret))
             return
         tree = lxml.html.fromstring(ret)
-        tree.cssselect('')
+        listprice = tree.cssselect('div#productPrices div.priceBlock div.originalRetailPrice')[0].replace(',', '').replace('$', '').strip()
+        summary = tree.cssselect('div#longDescriptionContainer')[0].text_content()
+        tree.cssselect('div#freeDeliveriesContainer')
 
 if __name__ == '__main__':
     ss = Server()

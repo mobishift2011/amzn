@@ -74,6 +74,7 @@ class Server(object):
                         link = link if link.startswith('http') else self.siteurl + link
                         sub_sub_dept = atag.text_content().strip()
                         key = link.rsplit('/', 1)[-1].split('.')[0]
+                        if not key.isdigit(): continue
                         num = self.crawl_number_in_listing(link)
                         self.save_category(key, link, num, [dept, sub_dept, sub_sub_dept], ctx)
                 continue
@@ -214,6 +215,4 @@ class Server(object):
 
 if __name__ == '__main__':
     ss = Server()
-    ss.crawl_listing('http://www.shopbop.com/whats-new/br/v=1/2534374302029428.htm?baseIndex=500&all')
-    exit()
     ss.crawl_category()

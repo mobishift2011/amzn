@@ -31,7 +31,7 @@ class Publisher:
 
     ALL_PRODUCT_PUBLISH_FIELDS = ["combine_url", "events", "favbuy_price", "favbuy_listprice", "soldout",
                                 "color", "title", "summary", "list_info", "image_path", "favbuy_tag", "favbuy_brand", "favbuy_dept",
-                                "returned", "shipping", "products_begin", "products_end" ]
+                                "returned", "shipping", "products_begin", "products_end", "second_hand" ]
 
     def get_module(self, site):
         return self.m[site]
@@ -352,7 +352,9 @@ class Publisher:
                     if pb: pdata["starts_at"] = pb.isoformat()
                 elif f=="products_end": 
                     pe = obj_getattr(prod, 'products_end', None)
-                    if pe: pdata["ends_at"] = pe.isoformat()                               
+                    if pe: pdata["ends_at"] = pe.isoformat()
+                elif f == 'second_hand':
+                    pdata['second_hand'] = obj_getattr(prod, 'second_hand', False)
             if not upd:
                 pdata["site_key"] = site+'_'+prod.key
             if upd and not pdata: return

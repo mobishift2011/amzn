@@ -54,8 +54,8 @@ class ProductPipeline(object):
     def __init__(self, site, product):
         self.site = site
         self.product = product
-        self.__extracter = ProductPipeline.extracter
-        self.__extractor = ProductPipeline.extractor
+        self.__extracter = ProductPipeline.extracter if hasattr(ProductPipeline, 'extracter') else None
+        self.__extractor = ProductPipeline.extractor if hasattr(ProductPipeline, 'extractor') else None
 
     def extract_text(self):
         """
@@ -213,6 +213,44 @@ class ProductPipeline(object):
 
         return
 
+    def extract_secondhand(self, text_list):
+        site = self.site
+        product = self.product
+        second_hand = False; updated = False
+
+        text = '\n'.join(text_list).lower()
+        filter_set = [
+            'Antique',
+            'Pre-owned',
+            'Previously owned',
+            'Final sale item',
+            'Archive product',
+        ]
+
+        for  filter_key in filter_set:
+            key = filter_key.lower() 
+            if key in text:
+                second_hand = True
+                break
+            # elif product.shipping and key in product.shipping.lower():
+            #     second_hand = True
+            #     break
+            # elif product.returned and key in product.returned.lower():
+            #     second_hand = True
+            #     break
+
+        # if product.returned:
+        #     pattern = r'non?[-|\s]*returnable[/|\s]+non?[-|\s]*returns'
+        #     if re.search(pattern, product.returned):
+        #         second_hand = True
+        
+        if second_hand != product.second_hand:
+            product.second_hand = second_hand
+            product.update_history['second_hand'] = datetime.utcnow()
+            updated = True
+
+        return updated
+
     def update_events(self):
         """
         To fix the bug that the publisher will ignore the new event added to a product.
@@ -270,6 +308,9 @@ class ProductPipeline(object):
             updated = True
 
         if self.update_events():
+            updated = True
+
+        if self.extract_secondhand(text_list):
             updated = True
 
         return updated

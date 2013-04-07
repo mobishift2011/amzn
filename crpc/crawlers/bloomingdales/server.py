@@ -88,7 +88,53 @@ class Server(object):
     def crawl_listing(self, url, ctx='', **kwargs):
         ret = self.fetch_page(url)
         tree = lxml.html.fromstring(ret)
-        tree.cssselect('')
+        count = tree.cssselect('div#breadcrumbs span.productCount')
+        count = int( count[0].text_content().strip() ) if count else 0
+        pages = (count - 1) // 96 + 1
+        for i in tree.cssselect('div#se_localContentContainerNarrow div.productThumbnail'):
+            price = i.cssselect('div.se_result_image div.prices div.priceSale span.priceSale')
+            if not price:
+                continue
+            else:
+                price = price[0].text_content().replace('Sale', '').replace('$', '').replace(',', '').strip()
+            listprice = i.cssselect('div.se_result_image div.prices div.priceSale span.priceBig')
+            if not listprice:
+                continue
+            else:
+                listprice = listprice[0].text_content().replace('$', '').repalce(',', '').strip()
+            link = i.cssselect('div.se_result_image div.shortDescription a[href]')[0].get('href')
+            link = link if link.startswith('http') else self.siteurl + link
+            key = re.compile('.*ID=(\d+)').match(link).group(1)
+            title = i.cssselect('div.se_result_image div.shortDescription a[href]')[0].text_content().strip()
+
+            is_new = is_updated = False
+            product = Product.objects(key=key).first()
+            if not product:
+                is_new = True
+                product = Product(key=key)
+                product.event_type = False
+                product.updated = False
+
+            if title != product.title:
+                product.title = title
+                is_updated = True
+                product.update_history.update({ 'title': datetime.utcnow() })
+            if price != product.price:
+                product.price = price
+                is_updated = True
+                product.update_history.update({ 'price': datetime.utcnow() })
+            if listprice != product.listprice:
+                product.listprice = listprice
+                is_updated = True
+                product.update_history.update({ 'listprice': datetime.utcnow() })
+            if link != product.combine_url:
+                product.combine_url = link
+                is_updated = True
+                product.update_history.update({ 'combine_url': datetime.utcnow() })
+
+
+        for i in xrange(2, count):
+            pass
 
     def crawl_product(self, url, ctx='', **kwargs):
         pass

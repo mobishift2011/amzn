@@ -124,7 +124,7 @@ class ProductPipeline(object):
             product.update_history['favbuy_listprice'] = datetime.utcnow()
 
         logger.debug('product price extract {0}/{1} -> {2}/{3}'.format( \
-            product.price, product.listprice, product.favbuy_price, product.favbuy_listprice))
+            product.price.encode('utf-8'), product.listprice.encode('utf-8'), product.favbuy_price, product.favbuy_listprice))
         return favbuy_price or listprice
 
     def clean(self):

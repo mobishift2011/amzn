@@ -142,7 +142,7 @@ class Server(object):
 
             # To pick the product which fit our needs, such as a certain discount, brand, dept etc.
             selected = Picker(site='ashford').pick(product) if product.updated \
-                else self.crawl_detail(product, is_new= is_new, is_updated=is_updated)
+                else self.crawl_detail(ctx, is_new, is_updated, product)
             if not selected:
                 continue
 
@@ -164,7 +164,7 @@ class Server(object):
             kwargs['category'] = category
             self.crawl_listing(url=next_page, ctx=ctx, **kwargs)
 
-    def crawl_detail(self, product, is_new=False, is_updated=False):
+    def crawl_detail(self, ctx, is_new, is_updated, product):
         res = requests.get(product.combine_url)
         res.raise_for_status()
         tree = lxml.html.fromstring(res.content)
@@ -209,7 +209,7 @@ class Server(object):
 
             trs = listinfo.cssselect('tbody tr')
             for tr in trs:
-                detail = None
+                detail = ''
                 th = tr.cssselect('th')
                 td = tr.cssselect('td') 
                 if th and th[0].text:
@@ -224,7 +224,7 @@ class Server(object):
 
         # # returned = '\n'.join(info_node.cssselect('div#prod_5')[0].xpath('.//text()'))
         # update product
-        is_new = False; is_updated = False; ready = False
+        ready = False
 
         if title and not product.title:
             product.title = title

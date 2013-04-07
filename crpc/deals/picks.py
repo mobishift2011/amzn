@@ -11,9 +11,19 @@ from helpers.log import getlogger
 logger = getlogger('picks', filename='/tmp/deals.log')
 blogger = getlogger('picks', filename='/tmp/pickbrands.log')
 
-DSFILTER = slumber.API(MASTIFF_HOST).dsfilter.get()
+try:
+    DSFILTER = slumber.API(MASTIFF_HOST).dsfilter.get()
+except requests.exceptions.ConnectionError:
+    logger.error('dsfilter loaded error from mastiff -> {0}'.format(traceback.format_exc()))
+    DSFILTER = {}
+
+try:
+    siteprefs = slumber.API(MASTIFF_HOST).sitepref.get().get('objects', [])
+except requests.exceptions.ConnectionError:
+    logger.error('sitepref loaded error from mastiff -> {0}'.format(traceback.format_exc()))
+    siteprefs = {}
+
 SITEPREF = {}
-siteprefs = slumber.API(MASTIFF_HOST).sitepref.get().get('objects', [])
 for sitepref in siteprefs:
     if sitepref.get('site'):
         SITEPREF.setdefault(sitepref.get('site'), sitepref.get('discount_threshold_adjustment'))

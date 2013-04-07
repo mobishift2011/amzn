@@ -28,7 +28,7 @@ header = {
     'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.22 (KHTML, like Gecko) Chrome/25.0.1364.172 Safari/537.22',
     'X-Requested-With': 'XMLHttpRequest',
 }
-req = requests.Session(prefetch=True, timeout=25, config=config, headers=header)
+req = requests.Session(prefetch=True, timeout=30, config=config, headers=header)
 
 class Server(object):
     def __init__(self):

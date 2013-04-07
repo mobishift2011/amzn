@@ -169,3 +169,18 @@ def time_convert(time_str, time_format, timezone='PT'):
     endtime = pt.localize(datetime.strptime(tinfo, time_format))
     return endtime.astimezone(pytz.utc)
 
+def time_convert_std(time_str, time_format, timezone='PT'):
+    """.. :py:method::
+
+    :param time_str: u'2013 SAT OCT 20 9 AM'
+    :param time_format: '%Y %a %b %d %I %p'
+    :rtype: datetime type utc time
+    """
+    if timezone == 'PT' or timezone == 'PST' or timezone == 'PDT':
+        pt = pytz.timezone('US/Pacific')
+    elif timezone == 'ET' or timezone == 'EST' or timezone == 'EDT':
+        pt = pytz.timezone('US/Eastern')
+
+    endtime = pt.localize(datetime.strptime(time_str, time_format))
+    return endtime.astimezone(pytz.utc)
+

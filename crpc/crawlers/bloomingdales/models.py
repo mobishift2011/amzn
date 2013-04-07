@@ -1,20 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Author: Ethan <ethan@favbuy.com>
-"""
-crawlers.macys.models
-~~~~~~~~~~~~~~~~~~~~~~
-
-Implements Product for macys
-"""
+# Author: bishop Liu <miracle (at) gmail.com>
 
 from mongoengine import *
 from settings import MONGODB_HOST
-DB = 'macys'
+DB = 'bloomingdales'
 connect(db=DB, alias=DB, host=MONGODB_HOST)
 
 from crawlers.common.models import BaseCategory, LuxuryProduct
-
 
 class Category(BaseCategory):
     key = StringField(unique=True)
@@ -22,15 +15,12 @@ class Category(BaseCategory):
     meta = {
         'db_alias': DB,
     }
-
     def url(self):
-        return self.combine_url + '&viewall=true'
-
+        return self.combine_url
 
 class Product(LuxuryProduct):
     meta = {
-        "db_alias": DB,
+        'db_alias': DB,
     }
-    
     def url(self):
         return self.combine_url

@@ -85,8 +85,6 @@ class giltLogin(object):
         ret = req.get(url)
         if 'http://www.gilt.com/brand/' in ret.url or 'http://www.gilt.com/style/' in ret.url:
             return -302
-        if 'product/' not in ret.url:
-            return -302
         if ret.ok: return ret.content
         return ret.status_code
 

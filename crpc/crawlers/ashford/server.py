@@ -189,7 +189,7 @@ class Server(object):
         res.raise_for_status()
         tree = lxml.html.fromstring(res.content)
 
-        title = tree.cssselect('div#product_details div#product_info h1')[0].xpath('.//text()')[-1].strip()
+        title = tree.cssselect('div#product_info h1')[0].xpath('.//text()')[-1].strip()
         if title and not product.title:
             product.title = title
             is_updated = True

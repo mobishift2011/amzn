@@ -194,8 +194,7 @@ class Server(object):
                 is_updated = True
 
         shipping_node = tree.cssselect('div#dynamic_messaging em.msg2 a')
-        if shipping_node:
-            shipping = ' '.join(shipping_node[0].xpath('.//text()'))
+        shipping = ' '.join(shipping_node[0].xpath('.//text()')) if shipping_node else None
 
         info_node = tree.cssselect('div#info_tabs')[0]
         list_info = []

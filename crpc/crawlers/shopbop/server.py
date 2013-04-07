@@ -145,12 +145,15 @@ class Server(object):
             if price and price != product.price:
                 product.price = price
                 product.update_history.update({ 'price': datetime.utcnow() })
+                is_updated = True
             if listprice and listprice != product.listprice:
                 product.listprice = listprice
                 product.update_history.update({ 'listprice': datetime.utcnow() })
+                is_updated = True
             if combine_url and combine_url != product.combine_url:
                 product.combine_url = combine_url
                 product.update_history.update({ 'combine_url': datetime.utcnow() })
+                is_updated = True
 
             selected = Picker(site=DB).pick(product)
             if not selected:

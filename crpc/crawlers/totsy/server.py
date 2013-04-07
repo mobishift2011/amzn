@@ -144,7 +144,8 @@ class Server(object):
                 for d in n.getnext().text_content().split('\n'):
                     if d.strip(): ages.append(d.strip())
         text = node.cssselect('a.thumbnail p.counter')[0].get('data-enddate')# 'December 23, 2012, 8:00:00' the timezone when you regist
-        utc_events_end = datetime.strptime(text, '%B %d, %Y, %X') - timedelta(hours=8) # -8 hours, set beijing to utc
+        _end = time_convert_std(text, '%B %d, %Y, %X', 'ET')
+        utc_events_end = datetime(_end.year, _end.month, _end.day, _end.hour, _end.minute)
 
         event, is_new, is_updated = self.get_or_create_event(event_id, link, sale_title)
         [event.dept.append(d) for d in dept if d not in event.dept]
@@ -164,7 +165,8 @@ class Server(object):
         event_id = self.extract_event_id.match(link).group(1)
         sale_title = node.cssselect('div.thumbnail > hgroup a')[0].text_content()
         text = node.cssselect('div.thumbnail p.counter')[0].get('data-enddate')# 'December 23, 2012, 8:00:00' the timezone when you regist
-        utc_events_begin = datetime.strptime(text, '%B %d, %Y, %X') - timedelta(hours=8) # -8 hours, set beijing to utc
+        _begin = time_convert_std(text, '%B %d, %Y, %X', 'ET')
+        utc_events_begin = datetime(_begin.year, _begin.month, _begin.day, _begin.hour, _begin.minute)
 
         event, is_new, is_updated = self.get_or_create_event(event_id, link, sale_title)
         if is_new:
@@ -422,4 +424,6 @@ class Server(object):
 
 
 if __name__ == '__main__':
+    ss = Server()
+    ss.crawl_category()
     Server().crawl_product('http://www.totsy.com/sales/last-chance-youth-footwear/girls-burlap-slip-on.html')

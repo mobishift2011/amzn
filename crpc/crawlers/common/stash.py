@@ -20,7 +20,7 @@ from settings import CRPC_ROOT
 
 __lock = Semaphore(1)
 
-exclude_crawlers = ['common', 'amazon', 'newegg', 'ecost', 'bhphotovideo', 'bestbuy', 'dickssport', 'overstock', 'cabelas']
+exclude_crawlers = ['common', 'amazon', 'newegg', 'ecost', 'bhphotovideo', 'bestbuy', 'dickssport', 'overstock', 'cabelas', 'shopbop', 'macys', 'bloomingdales']
 # for auto-scheduler. bluefly, beyondtherack, nomorerack, zulily should better not be schedule together
 picked_crawlers = (
          'belleandclive',
@@ -169,5 +169,20 @@ def time_convert(time_str, time_format, timezone='PT'):
 
     tinfo = time_str + str(pt.normalize(datetime.now(tz=pt)).year)
     endtime = pt.localize(datetime.strptime(tinfo, time_format))
+    return endtime.astimezone(pytz.utc)
+
+def time_convert_std(time_str, time_format, timezone='PT'):
+    """.. :py:method::
+
+    :param time_str: u'2013 SAT OCT 20 9 AM'
+    :param time_format: '%Y %a %b %d %I %p'
+    :rtype: datetime type utc time
+    """
+    if timezone == 'PT' or timezone == 'PST' or timezone == 'PDT':
+        pt = pytz.timezone('US/Pacific')
+    elif timezone == 'ET' or timezone == 'EST' or timezone == 'EDT':
+        pt = pytz.timezone('US/Eastern')
+
+    endtime = pt.localize(datetime.strptime(time_str, time_format))
     return endtime.astimezone(pytz.utc)
 

@@ -86,7 +86,9 @@ class Server(object):
         common_saved.send(sender=ctx, obj_type='Category', key=key, url=url, is_new=is_new, is_updated=is_updated)
 
     def crawl_listing(self, url, ctx='', **kwargs):
-        pass
+        ret = self.fetch_page(url)
+        tree = lxml.html.fromstring(ret)
+        tree.cssselect('')
 
     def crawl_product(self, url, ctx='', **kwargs):
         pass

@@ -45,6 +45,18 @@ class Server(object):
             if not match:
                 combine_url = '%s%s' % (HOST, combine_url)
 
+            r = requests.get(combine_url)
+            r.raise_for_status()
+            t = lxml.html.fromstring(r.content)
+            pagesize_node = None
+            link_nodes = t.cssselect('div.atg_store_filter ul.atg_store_pager li')
+            for link_node in link_nodes:
+                if link_node.get('class') and 'nextLink' in link_node.get('class'):
+                    break
+                pagesize_node = link_node
+
+            pagesize = int(pagesize_node.cssselect('a')[0].text.strip()) if pagesize_node else 1
+
             is_new = False; is_updated = False
             category = Category.objects(key=key).first()
 
@@ -57,10 +69,14 @@ class Server(object):
                 category.combine_url = combine_url
                 is_updated = True
 
+            if pagesize and pagesize != category.pagesize:
+                category.pagesize = pagesize
+                is_updated = True
+
             category.hit_time = datetime.utcnow()
             category.save()
             
-            print category.key; print category.cats; print category.combine_url; print is_new; print is_updated; print;
+            print category.key; print category.cats; print category.pagesize; print category.combine_url; print is_new; print is_updated; print;
 
             common_saved.send(sender=ctx, obj_type='Category', key=category.key, url=category.combine_url, \
                 is_new=is_new, is_updated=((not is_new) and is_updated) )
@@ -141,8 +157,12 @@ class Server(object):
                 is_updated = True
 
             # To pick the product which fit our needs, such as a certain discount, brand, dept etc.
-            selected = Picker(site='ashford').pick(product) if product.updated \
-                else self.crawl_detail(ctx, is_new, is_updated, product)
+            try:
+                selected = Picker(site='ashford').pick(product) if product.updated \
+                    else self.crawl_detail(ctx, is_new, is_updated, product)
+            except:
+                common_failed.send(sender=ctx, url=product.combine_url, reason=traceback.format_exc())
+                continue
             if not selected:
                 continue
 
@@ -153,23 +173,23 @@ class Server(object):
             product.save()
 
         # Go to the next page to keep on crawling.
-        next_link_node = tree.cssselect('div.atg_store_filter ul.atg_store_pager li.nextLink')
-        if next_link_node:
-            next_page = next_link_node[0].cssselect('a')[0].get('href')
-            match = re.search(r'https?://.+', next_page)
-            if not match:
-                next_page = '%s%s' % (HOST, next_page)
+        # next_link_node = tree.cssselect('div.atg_store_filter ul.atg_store_pager li.nextLink')
+        # if next_link_node:
+        #     next_page = next_link_node[0].cssselect('a')[0].get('href')
+        #     match = re.search(r'https?://.+', next_page)
+        #     if not match:
+        #         next_page = '%s%s' % (HOST, next_page)
 
-            print next_page
-            kwargs['category'] = category
-            self.crawl_listing(url=next_page, ctx=ctx, **kwargs)
+        #     print next_page
+        #     kwargs['category'] = category
+        #     self.crawl_listing(url=next_page, ctx=ctx, **kwargs)
 
     def crawl_detail(self, ctx, is_new, is_updated, product):
         res = requests.get(product.combine_url)
         res.raise_for_status()
         tree = lxml.html.fromstring(res.content)
 
-        title = tree.cssselect('div#product_details div#product_info h1')[0].xpath('.//text()')[-1].strip()
+        title = tree.cssselect('div#product_info h1')[0].xpath('.//text()')[-1].strip()
         if title and not product.title:
             product.title = title
             is_updated = True
@@ -194,8 +214,7 @@ class Server(object):
                 is_updated = True
 
         shipping_node = tree.cssselect('div#dynamic_messaging em.msg2 a')
-        if shipping_node:
-            shipping = ' '.join(shipping_node[0].xpath('.//text()'))
+        shipping = ' '.join(shipping_node[0].xpath('.//text()')) if shipping_node else None
 
         info_node = tree.cssselect('div#info_tabs')[0]
         list_info = []
@@ -266,9 +285,9 @@ if __name__ == '__main__':
     # server.run()
 
     s = Server()
-    # s.crawl_category()
+    s.crawl_category()
 
-    categories = Category.objects()
-    for category in categories:
-        print category.combine_url
-        s.crawl_listing(url=category.combine_url, **{'key': category.key})
+    # categories = Category.objects()
+    # for category in categories:
+    #     print category.combine_url
+    #     s.crawl_listing(url=category.combine_url, **{'key': category.key})

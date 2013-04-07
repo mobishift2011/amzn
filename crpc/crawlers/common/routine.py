@@ -96,6 +96,10 @@ def spout_category(site, category):
         for p in xrange(pages):
             page_url = '{0}?baseIndex={1}&all'.format(c.url(), p * c.pagesize)
             yield {'url': page_url, 'key': c.key}
+    elif site == 'ashford':
+        for p in xrange(c.pagesize):
+            page_url = '{0}?q_pageNum={1}'.format(c.url(), p+1)
+            yield {'url': page_url, 'key': c.key}
     elif site in deal_crawlers:
         yield {'url': c.url(), 'key': c.key}
     else:

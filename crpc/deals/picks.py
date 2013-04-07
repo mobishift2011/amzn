@@ -93,12 +93,16 @@ def pick_by_price(product):
 
 
 def monitor_brand(product, site):
+    to_save = False
+
     if product.favbuy_brand:
         if DSFILTER.get('%s.^_^.ALL' % product.favbuy_brand):
             return
         bm = BrandMonitor.objects(brand=product.favbuy_brand).first()
         if not bm:
             bm = BrandMonitor(brand=product.favbuy_brand)
+            bm.done = False
+            to_save = True
         bm.reason = 'unrecognized in dsfilter'
 
     else:
@@ -107,15 +111,24 @@ def monitor_brand(product, site):
         bm = BrandMonitor.objects(brand=product.brand).first()
         if not bm:
             bm = BrandMonitor(brand=product.brand)
+            bm.done = False
+            to_save = True
         bm.reason = 'unextracted'
+
+    if bm.done:
+        return
 
     if site not in bm.site:
         bm.site.append(site)
+        to_save = True
 
-    bm.sample = product.combine_url
-    bm.done = False
-    bm.updated_at = datetime.utcnow()
-    bm.save()
+    if not bm.updated_at or (datetime.utcnow() - bm.updated_at) > timedelta(days=7):
+        bm.sample = product.combine_url
+        to_save = True
+
+    if to_save:
+        bm.updated_at = datetime.utcnow()
+        bm.save()
 
 
 Strategy = {

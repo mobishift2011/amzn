@@ -235,7 +235,7 @@ class Server(object):
 
         product_ids = []
         tree = lxml.html.fromstring(ret)
-        nodes = tree.cssselect('div#mainContent section.event-landing > div.row > div.event-products > ul.event_prod_grid > li')
+        nodes = tree.cssselect('div#mainContent section.event-landing div.event_prod_grid > ul.thumbnails > li')
         for node in nodes:
             image = node.cssselect('div.thumbnail > a.product-image')[0]
             title = image.get('title')
@@ -425,5 +425,7 @@ class Server(object):
 
 if __name__ == '__main__':
     ss = Server()
+    ss.crawl_listing('http://www.totsy.com/sales/calvin-klein-kids-pjs-undies-8685.html')
+    exit()
     ss.crawl_category()
-    Server().crawl_product('http://www.totsy.com/sales/last-chance-youth-footwear/girls-burlap-slip-on.html')
+#    Server().crawl_product('http://www.totsy.com/sales/last-chance-youth-footwear/girls-burlap-slip-on.html')

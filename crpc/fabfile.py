@@ -460,7 +460,7 @@ def _runbg(cmd, sockname="dtach"):
 
 def _start_monitor():
     from settings import CRPC_ROOT
-    local("ulimit -n 4096 && cd {0}/backends/monitor && dtach -n /tmp/crpcscheduler.sock python run.py".format(CRPC_ROOT))
+    local("cd {0}/backends/monitor && dtach -n /tmp/crpcscheduler.sock python run.py".format(CRPC_ROOT))
     local("cd {0}/backends/webui && dtach -n /tmp/crpcwebui.sock python main.py".format(CRPC_ROOT))
 
 def _stop_monitor():

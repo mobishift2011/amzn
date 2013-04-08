@@ -154,6 +154,16 @@ class Server(object):
             if not match:
                 combine_url = '%s%s' % (self.siteurl, combine_url)
 
+            discount = product_node.cssselect('div.badgeJSON')[0].text_content()
+            if discount and discount[1:-1]:
+                js = json.loads(discount[1:-1])
+                off = re.compile('[^\d]*(\d+)%').match( js['BADGE_TEXT']['HEADER'] )
+                if off:
+                    discount = int( off.group(1) ) / 100.0
+                else: discount = 0
+            else:
+                discount = 0
+
             price = None; listprice = None
             price_nodes = product_node.cssselect('div.prices span')
             for price_node in price_nodes:
@@ -170,6 +180,12 @@ class Server(object):
                 continue
             price = price.replace('Sale', '').replace('Your Choice', '').replace('$', '').replace(',', '').strip()
             listprice = listprice.replace('Reg.', '').replace('$', '').replace(',', '').strip()
+
+            if '-' in price:
+                price = price.split('-')[0]
+            if '-' in listprice:
+                listprice = listprice.split('-')[0]
+            discount = ( int(price) - int(price) * discount ) / int(listprice)
 
             is_new = False; is_updated = False
             product = Product.objects(key=key).first()
@@ -198,9 +214,14 @@ class Server(object):
                 is_updated = True
 
             # To pick the product which fit our needs, such as a certain discount, brand, dept etc.
-            selected = Picker(site=DB).pick(product)
-            if not selected:
-                continue
+            if discount:
+                selected = Picker(site=DB).pick(product, discount)
+                if not selected:
+                    continue
+            else:
+                selected = Picker(site=DB).pick(product)
+                if not selected:
+                    continue
 
             if category.cats and set(category.cats).difference(product.dept):
                 product.dept = list(set(category.cats) | set(product.dept or []))

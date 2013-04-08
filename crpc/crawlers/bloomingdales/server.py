@@ -181,7 +181,7 @@ class Server(object):
                 is_new=is_new, is_updated=((not is_new) and is_updated) )
 
 
-    def crawl_designers_listing(self, tree, category_key, ctx)
+    def crawl_designers_listing(self, tree, category_key, ctx):
         for i in tree.cssselect('div#se_localContentContainerNarrow div.productThumbnail'):
             price = i.cssselect('div.se_result_image div.prices div.priceSale span.priceSale')
             if not price:

@@ -3,7 +3,7 @@
 # Author: Ethan <ethan@favbuy.com>
 
 """
-crawlers.6pm.server
+crawlers.ashford.server
 ~~~~~~~~~~~~~~~~~~~
 
 This is the server part of zeroRPC module. Call by client automatically, run on many differen ec2 instances.

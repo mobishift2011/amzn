@@ -198,7 +198,7 @@ class Server(object):
             key = self.extract_product_key.match(link).group(1)
             title = i.cssselect('div.se_result_image div.shortDescription a[href]')[0].text_content().strip()
 
-            self.save_product_to_db(key, link, title, price, listprice, category.key, ctx)
+            self.save_product_to_db(key, link, title, price, listprice, category_key, ctx)
 
     def crawl_product(self, url, ctx='', **kwargs):
         ret = fetch_page(url)

@@ -95,7 +95,7 @@ class Server(object):
         ret = self.fetch_page(url)
         tree = lxml.html.fromstring(ret)
         if url.endswith('resultsPerPage=96'):
-            self.crawl_designers_listing(tree, category.key)
+            self.crawl_designers_listing(tree, category.key, ctx)
             return
         count = tree.cssselect('div#breadcrumbs span.productCount')
         count = int( count[0].text_content().strip() ) if count else 0
@@ -139,9 +139,9 @@ class Server(object):
                 key = self.extract_product_key.match(link).group(1)
                 title = desc.text_content().strip()
 
-                self.save_product_to_db(key, link, title, price, listprice, category.key)
+                self.save_product_to_db(key, link, title, price, listprice, category.key, ctx)
 
-    def save_product_to_db(self, key, link, title, price, listprice, category_key):
+    def save_product_to_db(self, key, link, title, price, listprice, category_key, ctx):
         is_new = is_updated = False
         product = Product.objects(key=key).first()
         if not product:
@@ -198,7 +198,7 @@ class Server(object):
             key = self.extract_product_key.match(link).group(1)
             title = i.cssselect('div.se_result_image div.shortDescription a[href]')[0].text_content().strip()
 
-            self.save_product_to_db(key, link, title, price, listprice, category.key)
+            self.save_product_to_db(key, link, title, price, listprice, category.key, ctx)
 
     def crawl_product(self, url, ctx='', **kwargs):
         ret = fetch_page(url)

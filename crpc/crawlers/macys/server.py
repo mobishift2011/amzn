@@ -154,7 +154,9 @@ class Server(object):
             if not match:
                 combine_url = '%s%s' % (self.siteurl, combine_url)
 
-            discount = product_node.cssselect('div.badgeJSON')[0].text_content()
+            discount = product_node.cssselect('div.badgeJSON')
+            if discount:
+                discount = discount[0].text_content()
             if discount and discount[1:-1]:
                 js = json.loads(discount[1:-1])
                 off = re.compile('[^\d]*(\d+)%').match( js['BADGE_TEXT']['HEADER'] )

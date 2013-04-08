@@ -10,6 +10,8 @@ from datetime import datetime
 from models import *
 from crawlers.common.stash import *
 from crawlers.common.events import common_saved
+from deals.picks import Picker
+
 
 req = requests.Session(prefetch=True, timeout=30, config=config, headers=headers)
 

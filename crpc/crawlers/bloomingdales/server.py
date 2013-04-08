@@ -88,9 +88,16 @@ class Server(object):
     def crawl_listing(self, url, ctx='', **kwargs):
         ret = self.fetch_page(url)
         tree = lxml.html.fromstring(ret)
+        if url.endswith('resultsPerPage=96'):
+            self.crawl_designers_listing(tree)
+            return
         count = tree.cssselect('div#breadcrumbs span.productCount')
         count = int( count[0].text_content().strip() ) if count else 0
         pages = (count - 1) // 96 + 1
+        for i in xrange(2, count):
+            pass
+
+    def crawl_designers_listing(self, tree, ctx)
         for i in tree.cssselect('div#se_localContentContainerNarrow div.productThumbnail'):
             price = i.cssselect('div.se_result_image div.prices div.priceSale span.priceSale')
             if not price:
@@ -133,8 +140,6 @@ class Server(object):
                 product.update_history.update({ 'combine_url': datetime.utcnow() })
 
 
-        for i in xrange(2, count):
-            pass
 
     def crawl_product(self, url, ctx='', **kwargs):
         pass

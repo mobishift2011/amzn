@@ -54,8 +54,8 @@ class ProductPipeline(object):
     def __init__(self, site, product):
         self.site = site
         self.product = product
-        self.__extracter = ProductPipeline.extracter
-        self.__extractor = ProductPipeline.extractor
+        self.__extracter = ProductPipeline.extracter if hasattr(ProductPipeline, 'extracter') else None
+        self.__extractor = ProductPipeline.extractor if hasattr(ProductPipeline, 'extractor') else None
 
     def extract_text(self):
         """
@@ -160,29 +160,40 @@ class ProductPipeline(object):
 
     def extract_price(self):
         product = self.product
+        is_updated = False
         favbuy_price = None
         listprice = None
 
-        update_history = product.update_history or {}
-
-        if not product.favbuy_price or not float(product.favbuy_price) \
-            or ( update_history.get('favbuy_price') and update_history.get('price') \
-                and update_history.get('favbuy_price') < update_history.get('price') ):
-            favbuy_price = parse_price(product.price)
+        favbuy_price = parse_price(product.price)
+        if favbuy_price and str(favbuy_price) != product.favbuy_price:
             product.favbuy_price = str(favbuy_price)
             product.update_history['favbuy_price'] = datetime.utcnow()
+            is_updated = True
 
-        if not product.favbuy_listprice or not float(product.favbuy_listprice) \
-            or ( update_history.get('favbuy_listprice') and update_history.get('listprice') \
-                and update_history.get('favbuy_listprice') < update_history.get('listprice') ):
-            listprice = parse_price(product.listprice) or product.favbuy_price
+
+        listprice = parse_price(product.listprice) or product.favbuy_price
+        if listprice and str(listprice) != product.favbuy_listprice:
             product.favbuy_listprice = str(listprice)
             product.update_history['favbuy_listprice'] = datetime.utcnow()
+            is_updated = True
+        # if not product.favbuy_price or not float(product.favbuy_price) \
+        #     or ( update_history.get('favbuy_price') and update_history.get('price') \
+        #         and update_history.get('favbuy_price') < update_history.get('price') ):
+        #     favbuy_price = parse_price(product.price)
+        #     product.favbuy_price = str(favbuy_price)
+        #     product.update_history['favbuy_price'] = datetime.utcnow()
+
+        # if not product.favbuy_listprice or not float(product.favbuy_listprice) \
+        #     or ( update_history.get('favbuy_listprice') and update_history.get('listprice') \
+        #         and update_history.get('favbuy_listprice') < update_history.get('listprice') ):
+        #     listprice = parse_price(product.listprice) or product.favbuy_price
+        #     product.favbuy_listprice = str(listprice)
+        #     product.update_history['favbuy_listprice'] = datetime.utcnow()
 
         logger.debug('product price extract {0}/{1} -> {2}/{3}'.format( \
             product.price, product.listprice, product.favbuy_price, product.favbuy_listprice))
-        return favbuy_price or listprice
-
+        return is_updated
+    
     def extract_url(self):
         site = self.site
         product = self.product
@@ -202,6 +213,44 @@ class ProductPipeline(object):
             logger.warning('product extract url failed -> {0}.{1}'.format(site, product.key))
 
         return
+
+    def extract_secondhand(self, text_list):
+        site = self.site
+        product = self.product
+        second_hand = False; updated = False
+
+        text = '\n'.join(text_list).lower()
+        filter_set = [
+            'Antique',
+            'Pre-owned',
+            'Previously owned',
+            'Final sale item',
+            'Archive product',
+        ]
+
+        for  filter_key in filter_set:
+            key = filter_key.lower() 
+            if key in text:
+                second_hand = True
+                break
+            # elif product.shipping and key in product.shipping.lower():
+            #     second_hand = True
+            #     break
+            # elif product.returned and key in product.returned.lower():
+            #     second_hand = True
+            #     break
+
+        # if product.returned:
+        #     pattern = r'non?[-|\s]*returnable[/|\s]+non?[-|\s]*returns'
+        #     if re.search(pattern, product.returned):
+        #         second_hand = True
+        
+        if second_hand != product.second_hand:
+            product.second_hand = second_hand
+            product.update_history['second_hand'] = datetime.utcnow()
+            updated = True
+
+        return updated
 
     def update_events(self):
         """
@@ -260,6 +309,9 @@ class ProductPipeline(object):
             updated = True
 
         if self.update_events():
+            updated = True
+
+        if self.extract_secondhand(text_list):
             updated = True
 
         return updated

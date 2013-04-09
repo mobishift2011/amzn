@@ -13,7 +13,7 @@ from settings import CRAWLER_PORT, CRPC_ROOT, MONGODB_HOST
 from os import listdir
 from os.path import join, abspath, dirname, isdir
 from helpers import log
-from crawlers.common.stash import exclude_crawlers
+from crawlers.common.stash import exclude_crawlers, picked_crawlers
 
 from deals.picks import DSFILTER, SITEPREF
         
@@ -42,12 +42,16 @@ class CrawlerServer(object):
     def __init__(self):
         self.logger = log.getlogger("crawlers.common.rpcserver.CrawlerServer")
         self.crawlers = {}
-        for name in listdir(join(CRPC_ROOT, "crawlers")):
-            path = join(CRPC_ROOT, "crawlers", name)
-            if name not in exclude_crawlers and isdir(path):
-                service = self.get_service(name)
-                if service:
-                    self.crawlers[name] = service
+        # for name in listdir(join(CRPC_ROOT, "crawlers")):
+        #     path = join(CRPC_ROOT, "crawlers", name)
+        #     if name not in exclude_crawlers and isdir(path):
+        #         service = self.get_service(name)
+        #         if service:
+        #             self.crawlers[name] = service
+        for name in picked_crawlers:
+            service = self.get_service(name)
+            if service:
+                self.crawlers[name] = service
 
         gevent.spawn(self.refresh_global)
 

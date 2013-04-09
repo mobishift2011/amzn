@@ -166,6 +166,7 @@ class BaseProduct(Document):
     shipping            =   StringField()
     available           =   StringField()
     short_desc          =   StringField()
+    second_hand       =   BooleanField(default=False)
 
     # reviews
     num_reviews         =   StringField()

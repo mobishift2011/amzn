@@ -95,6 +95,10 @@ class Server(object):
     def crawl_listing(self, url, ctx='', **kwargs):
         category = Category.objects(key=kwargs.get('key')).first()
         ret = self.fetch_page(url)
+        if isinstance(ret, int):
+            common_failed.send(sender=ctx, key='', url=url, 
+                    reason='download listing page failed: {0}'.format(ret))
+
         tree = lxml.html.fromstring(ret)
         if url.endswith('resultsPerPage=96'):
             self.crawl_designers_listing(tree, category.key, ctx)

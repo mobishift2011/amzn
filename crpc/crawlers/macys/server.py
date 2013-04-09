@@ -159,11 +159,13 @@ class Server(object):
             if discount:
                 discount = discount[0].text_content()
             if discount and discount.startswith('[') and discount[1:-1]:
-                js = json.loads(discount[1:-1])
-                off = re.compile('[^\d]*(\d+)%').match( js['BADGE_TEXT']['HEADER'] )
-                if off:
-                    discount = int( off.group(1) ) / 100.0
-                else: discount = 0
+                try:
+                    js = json.loads(discount[1:-1])
+                    off = re.compile('[^\d]*(\d+)%').match( js['BADGE_TEXT']['HEADER'] )
+                    if off: discount = int( off.group(1) ) / 100.0
+                    else: discount = 0
+                except ValueError:
+                    discount = 0
             else:
                 discount = 0
 

@@ -113,7 +113,7 @@ class Server(object):
             if not listprice:
                 continue
             else:
-                listprice = listprice[0].text_content().replace('$', '').repalce(',', '').strip()
+                listprice = listprice[0].text_content().replace('$', '').replace(',', '').strip()
             desc = i.cssselect('div.shortDescription a')[0]
             link = desc.get('href')
             link = link if link.startswith('http') else self.siteurl + link

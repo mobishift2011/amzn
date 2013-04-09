@@ -164,7 +164,7 @@ class Server(object):
                     off = re.compile('[^\d]*(\d+)%').match( js['BADGE_TEXT']['HEADER'] )
                     if off: discount = int( off.group(1) ) / 100.0
                     else: discount = 0
-                except ValueError:
+                except:
                     discount = 0
             else:
                 discount = 0

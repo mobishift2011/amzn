@@ -180,14 +180,14 @@ class Server(object):
                 # common_failed.send(sender=ctx, url=url, \
                 #     reason='listing product %s.%s cannot crawl price info -> %s / %s' % (key, title, price, listprice))
                 continue
-            price = price.replace('Sale', '').replace('Your Choice', '').replace('$', '').replace(',', '').strip()
-            listprice = listprice.replace('Reg.', '').replace('$', '').replace(',', '').strip()
+            price = price.replace('Sale', '').replace('Your Choice', '').replace('Now', '').replace('$', '').replace(',', '').strip()
+            listprice = listprice.replace('Reg.', '').replace('Orig.', '').replace('$', '').replace(',', '').strip()
 
             if '-' in price:
                 price = price.split('-')[0]
             if '-' in listprice:
                 listprice = listprice.split('-')[0]
-            discount = ( int(price) - int(price) * discount ) / int(listprice)
+            discount = ( float(price) - float(price) * discount ) / float(listprice)
 
             is_new = False; is_updated = False
             product = Product.objects(key=key).first()

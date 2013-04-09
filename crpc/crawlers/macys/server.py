@@ -158,7 +158,7 @@ class Server(object):
             discount = product_node.cssselect('div.badgeJSON')
             if discount:
                 discount = discount[0].text_content()
-            if discount and discount[1:-1]:
+            if discount and discount.startswith('[') and discount[1:-1]:
                 js = json.loads(discount[1:-1])
                 off = re.compile('[^\d]*(\d+)%').match( js['BADGE_TEXT']['HEADER'] )
                 if off:

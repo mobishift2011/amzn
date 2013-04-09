@@ -98,6 +98,7 @@ class Server(object):
         if isinstance(ret, int):
             common_failed.send(sender=ctx, key='', url=url, 
                     reason='download listing page failed: {0}'.format(ret))
+            return
 
         tree = lxml.html.fromstring(ret)
         if url.endswith('resultsPerPage=96'):

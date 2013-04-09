@@ -13,6 +13,7 @@ from crawlers.common.events import common_saved, common_failed
 from models import *
 from deals.picks import Picker
 
+import json
 import lxml.html
 import traceback
 import re
@@ -180,7 +181,9 @@ class Server(object):
                 # common_failed.send(sender=ctx, url=url, \
                 #     reason='listing product %s.%s cannot crawl price info -> %s / %s' % (key, title, price, listprice))
                 continue
+            price = re.compile('[^\d]*(\d+\.?\d*)').match(price).group(1)
             price = price.replace('Sale', '').replace('Your Choice', '').replace('Now', '').replace('$', '').replace(',', '').strip()
+            listprice = re.compile('[^\d]*(\d+\.?\d*)').match(listprice).group(1)
             listprice = listprice.replace('Reg.', '').replace('Orig.', '').replace('$', '').replace(',', '').strip()
 
             if '-' in price:

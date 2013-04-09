@@ -119,7 +119,7 @@ class Server(object):
             link = link if link.startswith('http') else self.siteurl + link
             key = self.extract_product_key.match(link).group(1)
             title = desc.text_content().strip()
-            self.save_product_to_db(key, link, title, price, listprice, category.key)
+            self.save_product_to_db(key, link, title, price, listprice, category.key, ctx)
 
         for j in xrange(2, pages+1):
             ret = self.fetch_page('{0}&pageIndex={1}'.format(url, j))

@@ -215,7 +215,7 @@ class Server(object):
         image_urls.append( img )
 
         is_new = is_updated = False
-        product = Product.objects(key=key).first()
+        product = Product.objects(key=kwargs.get('key')).first()
         if not product:
             is_new = True
             product = Product(key=key)

@@ -208,6 +208,7 @@ class IndexHandler(BaseHandler):
                 top_buys[p['id']]['product'] = p
 
         top_buys = sorted(top_buys.items(), key=lambda x:x[1]['count'], reverse=True)
+        zero_buy_count = [i for i in picked_crawlers if i not in top_buy_sites.keys()]
     
         self.render("index.html",
             utcnow = datetime.utcnow(),
@@ -224,7 +225,8 @@ class IndexHandler(BaseHandler):
             num_new_view_products = num_new_view_products,
             num_new_view_products_a = num_new_view_products_a,
             top_buys = top_buys,
-            top_buy_sites = top_buy_sites
+            top_buy_sites = top_buy_sites,
+            zero_buy_sites = zero_buy_count
         )
 
 class ExampleHandler(BaseHandler):

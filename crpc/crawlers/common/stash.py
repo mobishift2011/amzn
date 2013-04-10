@@ -43,10 +43,10 @@ deal_crawlers = (
     'nordstrom',
     '6pm',
     'ebags',
-    # 'shopbop',
+    'shopbop',
     'ashford',
-    # 'macys',
-    # 'bloomingdales',
+#    'macys',
+#    'bloomingdales',
 )
 
 picked_crawlers = tuple(set(picked_crawlers) | set(deal_crawlers))

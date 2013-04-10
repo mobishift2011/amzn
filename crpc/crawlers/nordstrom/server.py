@@ -47,64 +47,58 @@ class Server(object):
         res = requests.get(HOST)
         res.raise_for_status()
         tree = lxml.html.fromstring(res.content)
-        primary_dept_nodes = tree.cssselect('ul#menu li.tab')
+        primary_dept_nodes = tree.cssselect('nav#primary-nav > ul li.tab')
 
         for primary_dept_node in primary_dept_nodes:
-            primary_dept = primary_dept_node.cssselect('a div')[0].text.strip()
+            primary_dept = primary_dept_node.cssselect('h2 a span')[0].text
             if primary_dept.lower() == 'brands':
                 continue
 
             sub_dept = None
-            sub_dept_nodes = primary_dept_node.cssselect('div.menu ul li')
+            sub_dept_nodes = primary_dept_node.cssselect('div.nav-category div.nav-category-column ul li a')
             for sub_dept_node in sub_dept_nodes:
-                if sub_dept_node.get('class') and 'sub-heading' in sub_dept_node.get('class'):
-                    sub_dept = sub_dept_node.xpath('.//text()')[0].strip() if sub_dept_node.cssselect('a') else None
-                    continue
+                sub_dept = sub_dept_node.text
+                combine_url = sub_dept_node.get('href')
+                key = combine_url.split('/')[-1]
 
-                href_nodes = sub_dept_node.cssselect('a')
-                for href_node in href_nodes:
-                    href = href_node.get('href')
-                    key = re.search(r'(https?://shop.nordstrom.com)?/?([^\?]+)\?.*', href).groups()[1].replace('/', '_')
-                    match = re.search(r'https?://.+', href)
-                    if not match:
-                        href = '%s%s' % (HOST, href)
+                match = re.search(r'https?://.+', combine_url)
+                if not match:
+                    combine_url = '%s%s' % (HOST, combine_url)
 
-                    title = href_node.text
-                    depts = [primary_dept]
-                    if sub_dept:
-                        depts.append(sub_dept)
-                    depts.append(title)
+                is_new = False; is_updated = False
+                category = Category.objects(key=key).first()
 
-                    is_new = False; is_updated = False
-                    category = Category.objects(key=key).first()
+                if not category:
+                    is_new = True
+                    category = Category(key=key)
+                    category.is_leaf = True
 
-                    if not category:
-                        is_new = True
-                        category = Category(key=key)
-                        category.is_leaf = True
+                if primary_dept not in category.cats:
+                    category.cats.append(primary_dept)
+                    is_updated = True
 
-                    if depts:
-                        for dept in depts:
-                            if dept not in category.cats:
-                                category.cats.append(dept)
-                                is_updated = True
+                if sub_dept not in category.cats:
+                    category.cats.append(sub_dept)
+                    is_updated = True
 
-                    if href and ((category.combine_url and href.split('?')[0] != category.combine_url.split('?')[0]) \
-                        or not category.combine_url):
-                            category.combine_url = href
-                            is_updated = True
+                if combine_url and ((category.combine_url and combine_url.split('?')[0] != category.combine_url.split('?')[0]) \
+                    or not category.combine_url):
+                        category.combine_url = combine_url
+                        is_updated = True
 
-                    category.hit_time = datetime.utcnow()
-                    category.save()
-                    
-                    common_saved.send(sender=ctx, obj_type='Category', key=category.key, url=category.combine_url, \
-                        is_new=is_new, is_updated=((not is_new) and is_updated) )
+                category.hit_time = datetime.utcnow()
+                category.save()
+
+                common_saved.send(sender=ctx, obj_type='Category', key=category.key, url=category.combine_url, \
+                    is_new=is_new, is_updated=((not is_new) and is_updated) )
+
+                # print category.key; print category.cats; print category.combine_url; print is_new; print is_updated; print
 
     def crawl_listing(self, url, ctx='', **kwargs):
         if url.startswith('http://blogs.nordstrom.com'):
             return
         try:
-            res = requests.get(url + '&sort=sale')
+            res = requests.get(url, params={'sort': 'sale'})
         except requests.exceptions.ConnectionError:
             return
 
@@ -131,7 +125,7 @@ class Server(object):
         for product_node in product_nodes:
             key = product_node.get('data-style-id')
             if not key:
-                common_failed.send(sender=ctx, url=url, reason='listing product has no key')
+                common_failed.send(sender=ctx, url=url, reason='listing product has no data-style-id')
                 continue
 
             try:
@@ -248,13 +242,8 @@ class Server(object):
         res = requests.get(url)
         res.raise_for_status()
         tree = lxml.html.fromstring(res.content)
-
-        breadcrumbs_nodes = tree.cssselect('ul.breadcrumbs li a')
-        # depts = [breadcrumbs_node.text.strip() for breadcrumbs_node in breadcrumbs_nodes[1:]] \
-        #     if len(breadcrumbs_nodes) > 1 else []
-
-        product_node = tree.cssselect('div.product-content')[0]
         
+        product_node = tree.cssselect('div.product-content')[0]
         thumbnail_nodes = product_node.cssselect('ul.thumbnails li.fashion-photo img')
         image_urls = [re.sub('Mini', 'Large', thumbnail_node.get('src')) for thumbnail_node in thumbnail_nodes]
 
@@ -276,7 +265,7 @@ class Server(object):
         shipping = None; returns = None
         ship_and_ret_node = product_node.cssselect('div.shippingDisplay .description')
         if  ship_and_ret_node:
-            shipping = ship_and_ret_node[0].text.strip()
+            shipping = ship_and_ret_node[0].text.strip() if ship_and_ret_node[0].text else ''
             returns = shipping
 
         list_info = []
@@ -289,7 +278,7 @@ class Server(object):
         # update product
         is_new = False; is_updated = False; ready = False
 
-        # if depts and set(depts).difference(product.dept or []):
+        # if depts and set(depts).difference(proct('ul.thumbnails li.fashion-photo img')
         #     product.dept = list(set(depts) | set(product.dept or []))
         #     is_updated = True
 
@@ -357,7 +346,7 @@ if __name__ == '__main__':
     # server.run()
 
     s = Server()
-    s.crawl_category()
+    # s.crawl_category()
 
     counter = 0
     categories = Category.objects()

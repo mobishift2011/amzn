@@ -20,7 +20,7 @@ import traceback
 import re
 from datetime import datetime
 
-ADJUSTMENT = 1.0
+ADJUSTMENT = 0.8
 
 header = {
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',

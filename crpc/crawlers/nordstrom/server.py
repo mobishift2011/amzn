@@ -123,9 +123,12 @@ class Server(object):
         category = Category.objects(key=kwargs.get('key')).first()
         no_discount_num = 0 # sometimes no discount product occurs between the  discount ones ordered by sale.
         for product_node in product_nodes:
+            if not product_node.get('id'):
+                continue
+
             key = product_node.get('data-style-id')
             if not key:
-                common_failed.send(sender=ctx, url=url, reason='listing product has no data-style-id -> {0}'.format(product_node.cssselect('div.info a')[0].text))
+                common_failed.send(sender=ctx, url=url, reason='listing product has no data-style-id')
                 continue
 
             try:

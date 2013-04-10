@@ -125,7 +125,7 @@ class Server(object):
         for product_node in product_nodes:
             key = product_node.get('data-style-id')
             if not key:
-                common_failed.send(sender=ctx, url=url, reason='listing product has no data-style-id')
+                common_failed.send(sender=ctx, url=url, reason='listing product has no data-style-id -> {0}'.format(product_node.cssselect('div.info a')[0].text))
                 continue
 
             try:
@@ -242,8 +242,12 @@ class Server(object):
         res = requests.get(url)
         res.raise_for_status()
         tree = lxml.html.fromstring(res.content)
-        
-        product_node = tree.cssselect('div.product-content')[0]
+
+        product_node = tree.cssselect('div.product-content')
+        if not product_node:
+            product_node = tree.cssselect('div.OutfitPage')
+
+        product_node = product_node[0]
         thumbnail_nodes = product_node.cssselect('ul.thumbnails li.fashion-photo img')
         image_urls = [re.sub('Mini', 'Large', thumbnail_node.get('src')) for thumbnail_node in thumbnail_nodes]
 

@@ -9,13 +9,16 @@ from datetime import datetime
 
 from models import *
 from crawlers.common.stash import *
-from crawlers.common.events import common_saved
+from crawlers.common.events import common_saved, common_failed
+from deals.picks import Picker
+
 
 req = requests.Session(prefetch=True, timeout=30, config=config, headers=headers)
 
 class Server(object):
     def __init__(self):
         self.siteurl = 'http://www.bloomingdales.com'
+        self.extract_product_key = re.compile('.*ID=(\d+)')
 
     def fetch_page(self, url):
         ret = req.get(url)
@@ -61,7 +64,9 @@ class Server(object):
             sub_dept = nav.cssselect('div.gn_left_nav_top')[0].text_content().strip()
             if sub_dept == 'FASHION INDEX':
                 continue
-            if sub_dept == 'Sale':
+            elif sub_dept == 'All Designers':
+                continue
+            elif sub_dept == 'Sale':
                 link = nav.cssselect('div.gn_left_nav_top a.gn_left_nav_sale')[0].get('href')
                 self.save_category_db([dept, sub_dept], dept + '_' + sub_dept, link, ctx)
             else:
@@ -85,19 +90,105 @@ class Server(object):
         category.save()
         common_saved.send(sender=ctx, obj_type='Category', key=key, url=url, is_new=is_new, is_updated=is_updated)
 
+
+
     def crawl_listing(self, url, ctx='', **kwargs):
+        category = Category.objects(key=kwargs.get('key')).first()
         ret = self.fetch_page(url)
+        if isinstance(ret, int):
+            common_failed.send(sender=ctx, key='', url=url, 
+                    reason='download listing page failed: {0}'.format(ret))
+            return
+
         tree = lxml.html.fromstring(ret)
         if url.endswith('resultsPerPage=96'):
-            self.crawl_designers_listing(tree)
+            self.crawl_designers_listing(tree, category.key, ctx)
             return
         count = tree.cssselect('div#breadcrumbs span.productCount')
         count = int( count[0].text_content().strip() ) if count else 0
         pages = (count - 1) // 96 + 1
-        for i in xrange(2, count):
-            pass
 
-    def crawl_designers_listing(self, tree, ctx)
+        for i in tree.cssselect('div#macysGlobalLayout div#thumbnails div.productThumbnail'):
+            price = i.cssselect('div.prices div.priceSale span.priceSale')
+            if not price:
+                continue
+            else:
+                price = price[0].text_content().replace('Sale', '').replace('$', '').replace(',', '').strip()
+            listprice = i.cssselect('div.prices div.priceSale span.priceBig')
+            if not listprice:
+                continue
+            else:
+                listprice = listprice[0].text_content().replace('$', '').replace(',', '').strip()
+            desc = i.cssselect('div.shortDescription a')[0]
+            link = desc.get('href')
+            link = link if link.startswith('http') else self.siteurl + link
+            key = self.extract_product_key.match(link).group(1)
+            title = desc.text_content().strip()
+            self.save_product_to_db(key, link, title, price, listprice, category.key, ctx)
+
+        for j in xrange(2, pages+1):
+            ret = self.fetch_page('{0}&pageIndex={1}'.format(url, j))
+            tree = lxml.html.fromstring(ret)
+            for i in tree.cssselect('div#macysGlobalLayout div#thumbnails div.productThumbnail'):
+                price = i.cssselect('div.prices div.priceSale span.priceSale')
+                if not price:
+                    continue
+                else:
+                    price = price[0].text_content().replace('Sale', '').replace('$', '').replace(',', '').strip()
+                listprice = i.cssselect('div.prices div.priceSale span.priceBig')
+                if not listprice:
+                    continue
+                else:
+                    listprice = listprice[0].text_content().replace('$', '').replace(',', '').strip()
+                desc = i.cssselect('div.shortDescription a')[0]
+                link = desc.get('href')
+                link = link if link.startswith('http') else self.siteurl + link
+                key = self.extract_product_key.match(link).group(1)
+                title = desc.text_content().strip()
+
+                self.save_product_to_db(key, link, title, price, listprice, category.key, ctx)
+
+    def save_product_to_db(self, key, link, title, price, listprice, category_key, ctx):
+        is_new = is_updated = False
+        product = Product.objects(key=key).first()
+        if not product:
+            is_new = True
+            product = Product(key=key)
+            product.event_type = False
+            product.updated = False
+
+        if title != product.title:
+            product.title = title
+            is_updated = True
+            product.update_history.update({ 'title': datetime.utcnow() })
+        if price != product.price:
+            product.price = price
+            is_updated = True
+            product.update_history.update({ 'price': datetime.utcnow() })
+        if listprice != product.listprice:
+            product.listprice = listprice
+            is_updated = True
+            product.update_history.update({ 'listprice': datetime.utcnow() })
+        if link != product.combine_url:
+            product.combine_url = link
+            is_updated = True
+            product.update_history.update({ 'combine_url': datetime.utcnow() })
+
+        selected = Picker(site=DB).pick(product)
+        if not selected:
+            return
+
+        if category_key not in product.category_key:
+            product.category_key.append(category_key)
+            is_updated = True
+        if is_updated:
+            product.list_update_time = datetime.utcnow()
+        product.save()
+        common_saved.send(sender=ctx, obj_type='Product', key=product.key, url=product.combine_url,
+                is_new=is_new, is_updated=((not is_new) and is_updated) )
+
+
+    def crawl_designers_listing(self, tree, category_key, ctx):
         for i in tree.cssselect('div#se_localContentContainerNarrow div.productThumbnail'):
             price = i.cssselect('div.se_result_image div.prices div.priceSale span.priceSale')
             if not price:
@@ -108,41 +199,44 @@ class Server(object):
             if not listprice:
                 continue
             else:
-                listprice = listprice[0].text_content().replace('$', '').repalce(',', '').strip()
+                listprice = listprice[0].text_content().replace('$', '').replace(',', '').strip()
             link = i.cssselect('div.se_result_image div.shortDescription a[href]')[0].get('href')
             link = link if link.startswith('http') else self.siteurl + link
-            key = re.compile('.*ID=(\d+)').match(link).group(1)
+            key = self.extract_product_key.match(link).group(1)
             title = i.cssselect('div.se_result_image div.shortDescription a[href]')[0].text_content().strip()
 
-            is_new = is_updated = False
-            product = Product.objects(key=key).first()
-            if not product:
-                is_new = True
-                product = Product(key=key)
-                product.event_type = False
-                product.updated = False
-
-            if title != product.title:
-                product.title = title
-                is_updated = True
-                product.update_history.update({ 'title': datetime.utcnow() })
-            if price != product.price:
-                product.price = price
-                is_updated = True
-                product.update_history.update({ 'price': datetime.utcnow() })
-            if listprice != product.listprice:
-                product.listprice = listprice
-                is_updated = True
-                product.update_history.update({ 'listprice': datetime.utcnow() })
-            if link != product.combine_url:
-                product.combine_url = link
-                is_updated = True
-                product.update_history.update({ 'combine_url': datetime.utcnow() })
-
-
+            self.save_product_to_db(key, link, title, price, listprice, category_key, ctx)
 
     def crawl_product(self, url, ctx='', **kwargs):
-        pass
+        ret = fetch_page(url)
+        tree = lxml.html.fromstring(ret)
+        summary = tree.cssselect('div#pdp_tabs_body_left div.pdp_longDescription')[0].text_content()
+        list_info = []
+        for li in tree.cssselect('div#pdp_tabs_body_left ul li#productDetailsBulletText'):
+            list_info.append( li.text_content().strip() )
+        image_urls = []
+        img = tree.cssselect('img#mainProductImageZoom')[0].get('src')
+        wid = re.compile('.*wid=(\d+)').match(img).group(1)
+        image_urls.append( img )
+
+        is_new = is_updated = False
+        product = Product.objects(key=kwargs.get('key')).first()
+        if not product:
+            is_new = True
+            product = Product(key=key)
+            product.event_type = False
+
+        product.summary = summary
+        product.image_urls = image_urls
+        product.full_update_time = datetime.utcnow()
+        product.updated = True
+        product.save()
+        ready = True
+        common_saved.send(sender=ctx, obj_type='Product', key=product.key, url=product.combine_url,
+                is_new=is_new, is_updated=((not is_new) and is_updated), ready=ready)
+
+
+
 
 if __name__ == '__main__':
     ss = Server()

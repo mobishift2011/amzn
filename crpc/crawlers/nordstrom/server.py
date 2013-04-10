@@ -213,13 +213,13 @@ class Server(object):
             product.hit_time = datetime.utcnow()
             product.save()
             
-            print product.title
-            print product.combine_url
-            print product.listprice
-            print product.price
-            print is_new
-            print is_updated
-            print
+            # print product.title
+            # print product.combine_url
+            # print product.listprice
+            # print product.price
+            # print is_new
+            # print is_updated
+            # print
 
             common_saved.send(sender=ctx, obj_type='Product', key=product.key, url=product.combine_url, \
                 is_new=is_new, is_updated=((not is_new) and is_updated) )
@@ -336,17 +336,17 @@ class Server(object):
         common_saved.send(sender=ctx, obj_type='Product', key=product.key, url=product.combine_url, \
             is_new=is_new, is_updated=((not is_new) and is_updated), ready=ready)
 
-        print product.dept
-        print product.image_urls
-        print product.brand
-        print product.title
-        print product.listprice
-        print product.price
-        print is_new
-        print is_updated
-        print ready
-        print product.updated
-        print
+        # print product.dept
+        # print product.image_urls
+        # print product.brand
+        # print product.title
+        # print product.listprice
+        # print product.price
+        # print is_new
+        # print is_updated
+        # print ready
+        # print product.updated
+        # print
 
 
 if __name__ == '__main__':

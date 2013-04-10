@@ -221,7 +221,7 @@ class ProductPipeline(object):
 
         text = '\n'.join(text_list).lower()
         filter_set = [
-            'Antique',
+            # 'Antique',
             'Pre-owned',
             'Previously owned',
             'Final sale item',

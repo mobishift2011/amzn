@@ -12,7 +12,7 @@ import traceback
 
 logger = getlogger('brandsync', filename='/tmp/brandsync.log')
 
-def sync2power(host="http://crpc.favbuy.org:1317/brand/"):
+def sync2power(host="http://localhost:1317/brand/"):
 	"""Brand of catalogIndex sync to the one of power"""
 	brands = EditBrand.objects(is_delete=False)
 	logger.debug('Total edit brands to sync {0}: {1}'.format(host, len(brands)))

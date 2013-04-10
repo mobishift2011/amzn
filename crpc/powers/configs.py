@@ -132,5 +132,11 @@ IMAGE_SIZE = {
             'background-color': '#e5e5e5',
             'thumbnail-policy': 'crop'
 		},
+		{
+			'width': 548,
+			'height': 320,
+            'background-color': '#e5e5e5',
+            'thumbnail-policy': 'crop'
+		},
 	)
 }

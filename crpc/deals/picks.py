@@ -61,7 +61,7 @@ class Picker(object):
         if selected:
             # To ensure the offsale product picked again not to be expired on the site.
             if product.products_end and product.products_end < datetime.utcnow():
-                product.products_end = datetime.utcnow() + timedelta(days=2)
+                product.products_end = datetime.utcnow() + timedelta(days=3)
                 product.update_history['products_end'] = datetime.utcnow()
 
         return selected

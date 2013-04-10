@@ -12,12 +12,15 @@ from crawlers.common.stash import *
 from crawlers.common.events import common_saved, common_failed
 from models import *
 from deals.picks import Picker
+from deals.pipelines import ProductPipeline
 
 import json
 import lxml.html
 import traceback
 import re
 from datetime import datetime
+
+ADJUSTMENT = 0.7
 
 header = {
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
@@ -220,6 +223,15 @@ class Server(object):
                 product.listprice = listprice
                 is_updated = True
 
+            # extract favbuy_dept
+            ProductPipeline(DB, product).clean()
+            flag = None
+            for dept in product.favbuy_dept:
+                if 'home' in dept.lower():
+                    flag = True
+            if flag is True:
+                discount = discount / ADJUSTMENT
+                
             # To pick the product which fit our needs, such as a certain discount, brand, dept etc.
             if discount:
                 selected = Picker(site=DB).pick(product, discount)

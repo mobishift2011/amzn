@@ -91,6 +91,15 @@ class CheckServer(object):
         if price != prd.price:
             print 'ruelala product[{0}] price error: [{1}, {2}]'.format(prd.combine_url, prd.price, price)
 
+        list_info = []
+        for li in tree.cssselect('section#productContainer section#info ul li'):
+            list_info.append(li.text_content())
+        if list_info:
+            prd.list_info = list_info
+            prd.update_history.update({ 'list_info': datetime.utcnow() })
+            prd.save()
+
+
     def check_offsale_product(self, id, url):
         pass
 

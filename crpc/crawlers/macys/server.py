@@ -12,11 +12,15 @@ from crawlers.common.stash import *
 from crawlers.common.events import common_saved, common_failed
 from models import *
 from deals.picks import Picker
+from deals.pipelines import ProductPipeline
 
+import json
 import lxml.html
 import traceback
 import re
 from datetime import datetime
+
+ADJUSTMENT = 0.7
 
 header = {
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
@@ -29,19 +33,19 @@ header = {
     'X-Requested-With': 'XMLHttpRequest',
 }
 req = requests.Session(prefetch=True, timeout=30, config=config, headers=header)
+def fetch_macys_page(self, url):
+    ret = req.get(url)
+    if ret.ok: return ret.content
+    else: return ret.status_code
+
 
 class Server(object):
     def __init__(self):
         self.siteurl = 'http://www1.macys.com'
 
-    def fetch_page(self, url):
-        ret = req.get(url)
-        if ret.ok: return ret.content
-        else: return ret.status_code
-
     def crawl_category(self, ctx='', **kwargs):
         site_map = 'http://www1.macys.com/cms/slp/2/Site-Index'
-        ret = self.fetch_page(site_map)
+        ret = fetch_macys_page(site_map)
         if isinstance(ret, int):
             common_failed.send(sender=ctx, key='', url=site_map, reason='download sitemap return: {0}'.format(ret))
             return
@@ -66,7 +70,7 @@ class Server(object):
 
 
     def crawl_clearance(self, dept, url, ctx):
-        ret = self.fetch_page(url)
+        ret = fetch_macys_page(url)
         if isinstance(ret, int):
             common_failed.send(sender=ctx, key='', url=url,
                 reason='download category clearance url error return: {0}'.format(ret))
@@ -123,7 +127,7 @@ class Server(object):
 
 
     def crawl_listing(self, url, ctx='', **kwargs):
-        ret = self.fetch_page(url)
+        ret = fetch_macys_page(url)
         if isinstance(ret, int):
             common_failed.send(sender=ctx, key='', url=url,
                 reason='download listing url error return: {0}'.format(ret))
@@ -154,6 +158,20 @@ class Server(object):
             if not match:
                 combine_url = '%s%s' % (self.siteurl, combine_url)
 
+            discount = product_node.cssselect('div.badgeJSON')
+            if discount:
+                discount = discount[0].text_content()
+            if discount and discount.startswith('[') and discount[1:-1]:
+                try:
+                    js = json.loads(discount[1:-1])
+                    off = re.compile('[^\d]*(\d+)%').match( js['BADGE_TEXT']['HEADER'] )
+                    if off: discount = int( off.group(1) ) / 100.0
+                    else: discount = 0
+                except:
+                    discount = 0
+            else:
+                discount = 0
+
             price = None; listprice = None
             price_nodes = product_node.cssselect('div.prices span')
             for price_node in price_nodes:
@@ -168,8 +186,16 @@ class Server(object):
                 # common_failed.send(sender=ctx, url=url, \
                 #     reason='listing product %s.%s cannot crawl price info -> %s / %s' % (key, title, price, listprice))
                 continue
-            price = price.replace('Sale', '').replace('Your Choice', '').replace('$', '').replace(',', '').strip()
-            listprice = listprice.replace('Reg.', '').replace('$', '').replace(',', '').strip()
+            price = re.compile('[^\d]*(\d+\.?\d*)').match(price).group(1)
+            price = price.replace('Sale', '').replace('Your Choice', '').replace('Now', '').replace('$', '').replace(',', '').strip()
+            listprice = re.compile('[^\d]*(\d+\.?\d*)').match(listprice).group(1)
+            listprice = listprice.replace('Reg.', '').replace('Orig.', '').replace('$', '').replace(',', '').strip()
+
+            if '-' in price:
+                price = price.split('-')[0]
+            if '-' in listprice:
+                listprice = listprice.split('-')[0]
+            discount = ( float(price) - float(price) * discount ) / float(listprice)
 
             is_new = False; is_updated = False
             product = Product.objects(key=key).first()
@@ -197,10 +223,24 @@ class Server(object):
                 product.listprice = listprice
                 is_updated = True
 
+            # extract favbuy_dept
+            ProductPipeline(DB, product).clean()
+            flag = None
+            for dept in product.favbuy_dept:
+                if 'home' in dept.lower():
+                    flag = True
+            if flag is True:
+                discount = discount / ADJUSTMENT
+                
             # To pick the product which fit our needs, such as a certain discount, brand, dept etc.
-            selected = Picker(site=DB).pick(product)
-            if not selected:
-                continue
+            if discount:
+                selected = Picker(site=DB).pick(product, discount)
+                if not selected:
+                    continue
+            else:
+                selected = Picker(site=DB).pick(product)
+                if not selected:
+                    continue
 
             if category.cats and set(category.cats).difference(product.dept):
                 product.dept = list(set(category.cats) | set(product.dept or []))
@@ -220,7 +260,7 @@ class Server(object):
 
 
     def crawl_product(self, url, ctx='', **kwargs):
-        ret = self.fetch_page(url)
+        ret = fetch_macys_page(url)
         if isinstance(ret, int):
             common_failed.send(sender=ctx, key='', url=url,
                 reason='download product url error return: {0}'.format(ret))

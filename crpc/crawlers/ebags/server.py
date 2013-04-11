@@ -209,5 +209,7 @@ class Server(object):
 
 if __name__ == '__main__':
     ss = Server()
+    ss.crawl_category()
+    exit()
     ss.crawl_listing('http://www.ebags.com/category/wallets-and-accessories?items=144?page=14')
 

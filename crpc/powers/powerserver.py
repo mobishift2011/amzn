@@ -49,7 +49,10 @@ class PowerServer(object):
         elif model == 'Product':
             instance = self.__m[site].Product.objects(key=key).first()
 
-        if instance and instance.image_complete == False:
+        update_flag = bool( instance.update_history.get('image_urls') and instance.update_history.get('image_path') and \
+                instance.update_history.get('image_urls') > instance.update_history.get('image_path') )
+
+        if instance and ( instance.image_complete == False or update_flag):
             logger.info('To crawl image of {0}'.format(sender))
             it = ImageTool(connection=self.__s3conn)
             try:
@@ -60,7 +63,7 @@ class PowerServer(object):
 
             if it.image_complete:
                 instance.reload()
-                if instance.image_complete:
+                if instance.image_complete and not update_flag:
                     return
                 instance.image_path = it.image_path
                 instance.image_complete = bool(instance.image_path)

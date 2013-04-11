@@ -123,7 +123,7 @@
                             <thead>
                               <tr>
                                 <th>site</th>
-                                <th>buy count</th>
+                                <th>buys/views</th>
                                 <th>conversion rate</th>
                               </tr>
                             </thead>
@@ -131,7 +131,7 @@
                             {% for site, count in top_buy_sites.most_common() %}
                               <tr>
                                 <td>{{site}}</td>
-                                <td>{{count}}</td>
+                                <td>{{count}}/{{num_view_products_by_site.get(site, 0)}}</td>
                                 {% if site in num_view_products_by_site and num_view_products_by_site[site] %}
                                 <td>{{ "{:,.2f}".format(100*count/num_view_products_by_site[site]) }} %</td>
                                 {% endif %}
@@ -140,7 +140,7 @@
                             {% for site in zero_buy_sites %}
                               <tr>
                                 <td>{{site}}</td>
-                                <td>0</td>
+                                <td>0/{{num_view_products_by_site.get(site, 0)}}</td>
                                 <td>0</td>
                               </tr>
                             {% endfor %}

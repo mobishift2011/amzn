@@ -33,7 +33,7 @@ header = {
     'X-Requested-With': 'XMLHttpRequest',
 }
 req = requests.Session(prefetch=True, timeout=30, config=config, headers=header)
-def fetch_macys_page(self, url):
+def fetch_macys_page(url):
     ret = req.get(url)
     if ret.ok: return ret.content
     else: return ret.status_code

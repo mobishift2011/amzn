@@ -33,19 +33,19 @@ header = {
     'X-Requested-With': 'XMLHttpRequest',
 }
 req = requests.Session(prefetch=True, timeout=30, config=config, headers=header)
+def fetch_macys_page(self, url):
+    ret = req.get(url)
+    if ret.ok: return ret.content
+    else: return ret.status_code
+
 
 class Server(object):
     def __init__(self):
         self.siteurl = 'http://www1.macys.com'
 
-    def fetch_page(self, url):
-        ret = req.get(url)
-        if ret.ok: return ret.content
-        else: return ret.status_code
-
     def crawl_category(self, ctx='', **kwargs):
         site_map = 'http://www1.macys.com/cms/slp/2/Site-Index'
-        ret = self.fetch_page(site_map)
+        ret = fetch_macys_page(site_map)
         if isinstance(ret, int):
             common_failed.send(sender=ctx, key='', url=site_map, reason='download sitemap return: {0}'.format(ret))
             return
@@ -70,7 +70,7 @@ class Server(object):
 
 
     def crawl_clearance(self, dept, url, ctx):
-        ret = self.fetch_page(url)
+        ret = fetch_macys_page(url)
         if isinstance(ret, int):
             common_failed.send(sender=ctx, key='', url=url,
                 reason='download category clearance url error return: {0}'.format(ret))
@@ -127,7 +127,7 @@ class Server(object):
 
 
     def crawl_listing(self, url, ctx='', **kwargs):
-        ret = self.fetch_page(url)
+        ret = fetch_macys_page(url)
         if isinstance(ret, int):
             common_failed.send(sender=ctx, key='', url=url,
                 reason='download listing url error return: {0}'.format(ret))
@@ -260,7 +260,7 @@ class Server(object):
 
 
     def crawl_product(self, url, ctx='', **kwargs):
-        ret = self.fetch_page(url)
+        ret = fetch_macys_page(url)
         if isinstance(ret, int):
             common_failed.send(sender=ctx, key='', url=url,
                 reason='download product url error return: {0}'.format(ret))

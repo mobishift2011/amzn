@@ -95,6 +95,12 @@ class Server(object):
         category.save()
         common_saved.send(sender=ctx, obj_type='Category', key=key, url=url, is_new=is_new, is_updated=is_updated)
 
+    def is_special_dept(self, url):
+        if '/search/h/sale/de/designer' in url:
+            return True
+        if '/search/h/best-of-the-best/de/designer' in url:
+            return True
+        return False
 
     def crawl_listing(self, url, ctx='', **kwargs):
         category = Category.objects(key=kwargs.get('key')).first()
@@ -135,9 +141,11 @@ class Server(object):
                     discount = discount / 100.0
                     break
 
-            # the sale, all through
-            if not discount and '/search/h/sale' not in url:
-                continue
+            # the designer sale, all through
+            if not discount:
+                if not self.is_special_dept(url):
+                    continue
+
             shipping = 'free shipping' if node.cssselect('div.listInfoBox div.freeShippingDisplay') else ''
 
             is_new = is_updated = False
@@ -167,8 +175,8 @@ class Server(object):
                 product.discount = discount
                 is_updated = True
 
-            # the sale, all through
-            if '/search/h/sale' not in url:
+            # the designer sale, all through
+            if not self.is_special_dept(url):
                 selected = Picker(site=DB).pick(product, discount)
                 if not selected:
                     continue

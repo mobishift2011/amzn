@@ -14,6 +14,7 @@ import sys
 from os import listdir
 from os.path import join, isdir
 from crawlers.common.stash import exclude_crawlers
+import traceback
 
 class Publisher:
     def __init__(self):
@@ -311,7 +312,7 @@ class Publisher:
             ev.publish_time = datetime.utcnow(); ev.save()
         except Exception as e:
             self.logger.error(e)
-            self.logger.error("publishing event %s:%s failed", obj_to_site(ev), ev.event_id)
+            self.logger.error("publishing event %s:%s failed -> %s", obj_to_site(ev), ev.event_id, traceback.format_exc())
     
     def publish_product(self, prod, upd=False, fields=[]):
         '''

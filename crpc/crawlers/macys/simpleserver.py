@@ -47,8 +47,6 @@ class CheckServer(object):
         prd.save()
 
 
-
-
     def check_offsale_product(self, id, url):
         pass
 

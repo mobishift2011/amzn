@@ -133,7 +133,7 @@ class Server(object):
             if link == 'http://www.ebags.com':
                 continue
             key = self.get_product_id.match(link).group(1)
-            price = node.cssselect('div.listInfoBox div.listPriceBox span.listPrice')[0].text_content().replace('$', '').strip()
+            price = node.cssselect('div.listInfoBox div.listPriceBox span.listPrice')[0].text_content().replace('$', '').replace(',', '').strip()
             discount = ''
             for i in node.xpath('./div[@class="listInfoBox"]/div[@class="listPriceBox"]//text()'):
                 if i.strip() and '%' in i:
@@ -201,7 +201,7 @@ class Server(object):
             return
         key = self.get_product_id.match(url).group(1)
         t = lxml.html.fromstring(ret)
-        listprice = t.cssselect('div#divStrikeThroughPrice')[0].text_content().replace('$', '').strip()
+        listprice = t.cssselect('div#divStrikeThroughPrice')[0].text_content().replace('$', '').replace(',', '').strip()
         list_info, summary = [], []
         for l in t.cssselect('#model-overview-tab div.tab-leftcontent-container div.product-spec-line'):
             a = l.cssselect('div.left')[0].text_content().strip()

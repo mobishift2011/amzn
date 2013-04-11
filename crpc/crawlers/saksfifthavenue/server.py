@@ -36,9 +36,7 @@ class Server(object):
         res.raise_for_status()
         tree = lxml.html.fromstring(res.content)
         primary_cat_nodes = tree.cssselect('div.nav ul.menu li.menu-column')
-
-        new = []
-        upd = []
+        
         for primary_cat_node in primary_cat_nodes:
             primary_cat = primary_cat_node.cssselect('a.menu-column-link')[0].text.strip()
             if primary_cat and 'designer' in primary_cat.lower():
@@ -74,16 +72,8 @@ class Server(object):
                 
                 # print category.key; print category.cats; print category.combine_url; print is_new; print is_updated; print
 
-                if is_new:
-                    new.append(category)
-                if is_updated:
-                    upd.append(category)
-
                 common_saved.send(sender=ctx, obj_type='Category', key=category.key, url=category.combine_url, \
                     is_new=is_new, is_updated=((not is_new) and is_updated) )
-            
-            print; print
-        print len(new), len(upd)
 
     def crawl_listing(self, url, ctx='', **kwargs):
         res = requests.get(url, params={'Ns': 'P_sale_flag|1'})

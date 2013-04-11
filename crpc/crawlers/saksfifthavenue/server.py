@@ -102,11 +102,11 @@ class Server(object):
             if price_node:
                 price = ''.join(price_node[0].xpath('.//text()')).strip()
 
-            if price is None or listprice is None:
-                no_discount_num += 1
-                if no_discount_num < 3:
-                    continue
-                return
+            # if price is None or listprice is None:
+            #     no_discount_num += 1
+            #     if no_discount_num < 3:
+            #         continue
+            #     return
             no_discount_num = 0
 
             brand = info_node.cssselect('p span.product-designer-name')[0].text.strip()
@@ -155,9 +155,9 @@ class Server(object):
                 product.list_update_time = datetime.utcnow()
             
             # To pick the product which fit our needs, such as a certain discount, brand, dept etc.
-            selected = Picker(site='saksfifthavenue').pick(product)
-            if not selected:
-                continue
+            # selected = Picker(site='saksfifthavenue').pick(product)
+            # if not selected:
+            #     continue
 
             product.hit_time = datetime.utcnow()
             product.save()

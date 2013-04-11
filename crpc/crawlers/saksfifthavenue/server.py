@@ -32,6 +32,7 @@ req = requests.Session(config=config, headers=header)
 class Server(object):
     def crawl_category(self, ctx='', **kwargs):
         res = requests.get(HOST)
+        product = Product.objects(key=key).first()
         res.raise_for_status()
         tree = lxml.html.fromstring(res.content)
         primary_cat_nodes = tree.cssselect('div.nav ul.menu li.menu-column')
@@ -134,6 +135,7 @@ class Server(object):
             if title and title != product.title:
                 product.title = title
                 is_updated = True
+                product.update_history['title'] = datetime.utcnow()
 
             if brand and brand != product.brand:
                 product.brand = brand
@@ -142,6 +144,7 @@ class Server(object):
             if combine_url and combine_url != product.combine_url:
                 product.combine_url = combine_url
                 is_updated = True
+                product.update_history['combine_url'] = datetime.utcnow()
 
             if price and price != product.price:
                 product.price = price
@@ -202,19 +205,22 @@ class Server(object):
         res.raise_for_status()
         tree = lxml.html.fromstring(res.content)
 
-        info_node = tree.cssselect('div.pdp-item-container > table > tbody > tr > td')[0]
+        image_nodes = tree.cssselect('object#_productViewer_inner a img')
+        image_urls = [image_node.get('src') for image_node in image_nodes if image_node.get('src')]
+
+        info_node = tree.cssselect('div.pdp-item-container > table > tr > td')[0]
         brand = info_node.cssselect('h1.boldBlackText12')[0].text.strip()
         title = info_node.cssselect('h2.boldBlackText12')[0].text.strip()
-        list_info_node = info_node.cssselect('div.productCopy-container table tbody tr td')
-        if list_info_node:
-            list_info = list_info_node[0].xpath('.//text()')
+        list_info_node = info_node.cssselect('div.productCopy-container table tr td span#api_prod_copy1')[0]
+        list_info = [li.text.strip() for li in list_info_node.cssselect('ul li')]
 
         # update product
         is_new = False; is_updated = False; ready = False
 
-        # if image_urls and image_urls != product.image_urls:
-        #     product.image_urls = image_urls
-        #     is_updated = True
+        if image_urls and image_urls != product.image_urls:
+            product.image_urls = image_urls
+            is_updated = True
+            product.update_history['image_urls'] = datetime.utcnow()
 
         if brand and not product.brand:
             product.brand = brand
@@ -223,6 +229,7 @@ class Server(object):
         if title and not product.title:
             product.title = title
             is_updated = True
+            product.update_history['title'] = datetime.utcnow()
 
         if list_info and list_info != product.list_info:
             product.list_info = list_info
@@ -243,6 +250,7 @@ class Server(object):
         print product.image_urls
         print product.brand
         print product.title
+        print list_info
         # print product.listprice
         # print product.price
         print is_new

@@ -32,11 +32,10 @@ req = requests.Session(config=config, headers=header)
 class Server(object):
     def crawl_category(self, ctx='', **kwargs):
         res = requests.get(HOST)
-        product = Product.objects(key=key).first()
         res.raise_for_status()
         tree = lxml.html.fromstring(res.content)
         primary_cat_nodes = tree.cssselect('div.nav ul.menu li.menu-column')
-        
+
         for primary_cat_node in primary_cat_nodes:
             primary_cat = primary_cat_node.cssselect('a.menu-column-link')[0].text.strip()
             if primary_cat and 'designer' in primary_cat.lower():
@@ -103,11 +102,11 @@ class Server(object):
             if price_node:
                 price = ''.join(price_node[0].xpath('.//text()')).strip()
 
-            if price is None or listprice is None:
-                no_discount_num += 1
-                if no_discount_num < 3:
-                    continue
-                return
+            # if price is None or listprice is None:
+            #     no_discount_num += 1
+            #     if no_discount_num < 3:
+            #         continue
+            #     return
             no_discount_num = 0
 
             brand = info_node.cssselect('p span.product-designer-name')[0].text.strip()
@@ -156,9 +155,9 @@ class Server(object):
                 product.list_update_time = datetime.utcnow()
             
             # To pick the product which fit our needs, such as a certain discount, brand, dept etc.
-            selected = Picker(site='saksfifthavenue').pick(product)
-            if not selected:
-                continue
+            # selected = Picker(site='saksfifthavenue').pick(product)
+            # if not selected:
+            #     continue
 
             product.hit_time = datetime.utcnow()
             product.save()
@@ -259,13 +258,14 @@ if __name__ == '__main__':
     # server.run()
 
     s = Server()
-    # s.crawl_category()
+    s.crawl_category()
 
-    # categories = Category.objects()
-    # for category in categories:
-    #     print category.combine_url
-    #     s.crawl_listing(url=category.combine_url, **{'key': category.key})
-    #     print
+    categories = Category.objects()
+    for category in categories:
+        print category.combine_url
+        s.crawl_listing(url=category.combine_url, **{'key': category.key})
+        print
+        break
 
     for product in Product.objects():
         print product.combine_url

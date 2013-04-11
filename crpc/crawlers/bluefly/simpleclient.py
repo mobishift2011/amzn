@@ -59,6 +59,14 @@ class CheckServer(object):
         if title.lower() != prd.title.lower():
             print 'bluefly product[{0}] title error: {1} vs {2}'.format(url, prd.title.encode('utf-8'), title.encode('utf-8'))
 
+        list_info = []
+        for li in tree.cssselect('section#main-product-detail div.product-info div.product-info-tabs div.product-detail-list ul.property-list li'):
+            list_info.append(li.text_content().strip().replace('\n', ''))
+        if list_info:
+            prd.list_info = list_info
+            prd.update_history.update({ 'list_info': datetime.utcnow() })
+            prd.save()
+
     def check_offsale_product(self, id, url):
         pass
 

@@ -45,7 +45,7 @@ deal_crawlers = (
     'ebags',
     'shopbop',
     'ashford',
-#    'macys',
+    'macys',
 #    'bloomingdales',
 )
 

@@ -61,7 +61,7 @@ class Server(object):
             num = list_node.cssselect('span')[0].text_content().strip()
             num = int( re.compile('\((\d+)\)').match(num).group(1) )
             link = list_node.get('href')
-            if 'category' not in link: continue
+#            /search/: sale, designer; /brand/ebags
             link = link if link.startswith('http') else self.siteurl + link
 
             is_new = is_updated = False
@@ -96,6 +96,8 @@ class Server(object):
                 ret = self.fetch_page(url)
                 tree = lxml.html.fromstring(ret)
                 nodes = tree.cssselect('div.mainCon div.ProductListWrap div.thisResultItem')
+            finally:
+                break
 
         for node in nodes:
             try:
@@ -110,12 +112,15 @@ class Server(object):
             key = self.get_product_id.match(link).group(1)
             price = node.cssselect('div.listInfoBox div.listPriceBox span.listPrice')[0].text_content().replace('$', '').strip()
             discount = ''
-            for i in node.xpath('./div[@class="listInfoBox"]/div[@class="listPriceBox"]/text()'):
+            for i in node.xpath('./div[@class="listInfoBox"]/div[@class="listPriceBox"]//text()'):
                 if i.strip() and '%' in i:
-                    discount = i.strip()
-            if not discount: continue
-            discount = 100 - int( re.compile('[^\d]*(\d+)%.*').match(discount).group(1) )
-            discount = discount / 100.0
+                    discount = 100 - int( re.compile('[^\d]*(\d+)%.*').match(i.strip()).group(1) )
+                    discount = discount / 100.0
+                    break
+
+            # the sale, all through
+            if not discount and '/search/h/sale' not in url:
+                continue
             shipping = 'free shipping' if node.cssselect('div.listInfoBox div.freeShippingDisplay') else ''
 
             is_new = is_updated = False
@@ -145,9 +150,11 @@ class Server(object):
                 product.discount = discount
                 is_updated = True
 
-            selected = Picker(site=DB).pick(product, discount)
-            if not selected:
-                continue
+            # the sale, all through
+            if '/search/h/sale' not in url:
+                selected = Picker(site=DB).pick(product, discount)
+                if not selected:
+                    continue
 
             if category.key not in product.category_key:
                 product.category_key.append(category.key)
@@ -209,7 +216,5 @@ class Server(object):
 
 if __name__ == '__main__':
     ss = Server()
-    ss.crawl_category()
-    exit()
-    ss.crawl_listing('http://www.ebags.com/category/wallets-and-accessories?items=144?page=14')
+    ss.crawl_listing('http://www.ebags.com/search/h/sale?items=96?items=144?page=1')
 

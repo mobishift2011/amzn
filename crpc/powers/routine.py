@@ -42,23 +42,28 @@ def spout_images(site, doctype):
     m = get_site_module(site)
     docdict = {
         'event': {
-            'kwargs': {'image_complete':False},
             'key': 'event_id',
             'name': 'Event',
          }, 
         'product': {
-            'kwargs': {'updated':True, 'image_complete':False},
             'key': 'key',
             'name': 'Product',
-        }, 
+        },
     }
     
-    docparam = docdict[doctype.lower()]
     try:
-        instances = getattr(m, docparam['name']).objects(**docparam['kwargs']).timeout(False)
+        now = datetime.utcnow()
+        if doctype.lower() == 'event':
+            instances = m.Event.objects(Q(events_end__gt=now) | \
+                Q(events_end__exists=False)).timeout(False)
+        elif doctype.lower() == 'product':
+            instances = m.Product.objects( \
+                (Q(products_begin__lte=now) | Q(products_begin__exists=False)) & \
+                    (Q(products_end__gt=now) | Q(products_end__exists=False))).timeout(False)
     except AttributeError:
         instances = []
 
+    docparam = docdict[doctype.lower()]
     for instance in instances:
         yield {
             'site': site,

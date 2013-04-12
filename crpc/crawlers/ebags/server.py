@@ -22,6 +22,7 @@ req = requests.Session(prefetch=True, timeout=30, config=config, headers=header)
 class Server(object):
     def __init__(self):
         self.siteurl = 'http://www.ebags.com'
+        self.extract_num = re.compile('\((\d+)\)')
         self.get_product_id = re.compile('.*productid=(\d+)')
 
     def fetch_page(self, url):
@@ -59,25 +60,47 @@ class Server(object):
             tree = lxml.html.fromstring(ret)
             list_node = tree.cssselect('#lnkSeeAllDepartment')[0]
             num = list_node.cssselect('span')[0].text_content().strip()
-            num = int( re.compile('\((\d+)\)').match(num).group(1) )
+            num = int( self.extract_num.match(num).group(1) )
             link = list_node.get('href')
-            if 'category' not in link: continue
             link = link if link.startswith('http') else self.siteurl + link
 
-            is_new = is_updated = False
-            category = Category.objects(key=key).first()
-            if not category:
-                is_new = True
-                category = Category(key=key)
-                category.is_leaf = True
-                category.cats = [key]
-                category.pagesize = 144
-            category.combine_url = link
-            category.num = num
-            category.update_time = datetime.utcnow()
-            category.save()
-            common_saved.send(sender=ctx, obj_type='Category', key=key, url=link, is_new=is_new, is_updated=is_updated)
+            self.save_category_to_db(key, num, link, ctx)
 
+            # /search/: sale, designer; /brand/ebags
+            if key == 'designer-handbags':
+                for node in tree.cssselect('div.mainCon div.deptLeftColumn div.refinementCon ul.popularRefinementsList li a.tabnavlink'):
+                    sub_link = node.get('href')
+                    sub_link = sub_link if sub_link.startswith('http') else self.siteurl + sub_link
+                    sub_key = re.compile('.*/search/h/(.+)/de/designer').match(sub_link).group(1)
+                    sub_num = node.cssselect('span.recordCount')[0].text_content().strip()
+                    sub_num = int( self.extract_num.match(sub_num).group(1) )
+                    if sub_key == 'sale':
+                        self.save_category_to_db(key+'_'+sub_key, sub_num, sub_link, ctx)
+                    elif sub_key == 'best-of-the-best':
+                        self.save_category_to_db(key+'_'+sub_key, sub_num, sub_link, ctx)
+
+
+    def save_category_to_db(self, key, num, url, ctx):
+        is_new = is_updated = False
+        category = Category.objects(key=key).first()
+        if not category:
+            is_new = True
+            category = Category(key=key)
+            category.is_leaf = True
+            category.cats = [key]
+            category.pagesize = 144
+        category.combine_url = url
+        category.num = num
+        category.update_time = datetime.utcnow()
+        category.save()
+        common_saved.send(sender=ctx, obj_type='Category', key=key, url=url, is_new=is_new, is_updated=is_updated)
+
+    def is_special_dept(self, url):
+        if '/search/h/sale/de/designer' in url:
+            return True
+        if '/search/h/best-of-the-best/de/designer' in url:
+            return True
+        return False
 
     def crawl_listing(self, url, ctx='', **kwargs):
         category = Category.objects(key=kwargs.get('key')).first()
@@ -96,6 +119,8 @@ class Server(object):
                 ret = self.fetch_page(url)
                 tree = lxml.html.fromstring(ret)
                 nodes = tree.cssselect('div.mainCon div.ProductListWrap div.thisResultItem')
+            finally:
+                break
 
         for node in nodes:
             try:
@@ -108,14 +133,19 @@ class Server(object):
             if link == 'http://www.ebags.com':
                 continue
             key = self.get_product_id.match(link).group(1)
-            price = node.cssselect('div.listInfoBox div.listPriceBox span.listPrice')[0].text_content().replace('$', '').strip()
+            price = node.cssselect('div.listInfoBox div.listPriceBox span.listPrice')[0].text_content().replace('$', '').replace(',', '').strip()
             discount = ''
-            for i in node.xpath('./div[@class="listInfoBox"]/div[@class="listPriceBox"]/text()'):
+            for i in node.xpath('./div[@class="listInfoBox"]/div[@class="listPriceBox"]//text()'):
                 if i.strip() and '%' in i:
-                    discount = i.strip()
-            if not discount: continue
-            discount = 100 - int( re.compile('[^\d]*(\d+)%.*').match(discount).group(1) )
-            discount = discount / 100.0
+                    discount = 100 - int( re.compile('[^\d]*(\d+)%.*').match(i.strip()).group(1) )
+                    discount = discount / 100.0
+                    break
+
+            # the designer sale, all through
+            if not discount:
+                if not self.is_special_dept(url):
+                    continue
+
             shipping = 'free shipping' if node.cssselect('div.listInfoBox div.freeShippingDisplay') else ''
 
             is_new = is_updated = False
@@ -145,9 +175,11 @@ class Server(object):
                 product.discount = discount
                 is_updated = True
 
-            selected = Picker(site=DB).pick(product, discount)
-            if not selected:
-                continue
+            # the designer sale, all through
+            if not self.is_special_dept(url):
+                selected = Picker(site=DB).pick(product, discount)
+                if not selected:
+                    continue
 
             if category.key not in product.category_key:
                 product.category_key.append(category.key)
@@ -169,7 +201,7 @@ class Server(object):
             return
         key = self.get_product_id.match(url).group(1)
         t = lxml.html.fromstring(ret)
-        listprice = t.cssselect('div#divStrikeThroughPrice')[0].text_content().replace('$', '').strip()
+        listprice = t.cssselect('div#divStrikeThroughPrice')[0].text_content().replace('$', '').replace(',', '').strip()
         list_info, summary = [], []
         for l in t.cssselect('#model-overview-tab div.tab-leftcontent-container div.product-spec-line'):
             a = l.cssselect('div.left')[0].text_content().strip()
@@ -211,5 +243,5 @@ if __name__ == '__main__':
     ss = Server()
     ss.crawl_category()
     exit()
-    ss.crawl_listing('http://www.ebags.com/category/wallets-and-accessories?items=144?page=14')
+    ss.crawl_listing('http://www.ebags.com/search/h/sale?items=96?items=144?page=1')
 

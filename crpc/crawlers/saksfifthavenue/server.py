@@ -36,8 +36,6 @@ class Server(object):
         tree = lxml.html.fromstring(res.content)
         primary_cat_nodes = tree.cssselect('div.nav ul.menu li.menu-column')
 
-        new = []
-        upd = []
         for primary_cat_node in primary_cat_nodes:
             primary_cat = primary_cat_node.cssselect('a.menu-column-link')[0].text.strip()
             if primary_cat and 'designer' in primary_cat.lower():
@@ -73,16 +71,8 @@ class Server(object):
                 
                 # print category.key; print category.cats; print category.combine_url; print is_new; print is_updated; print
 
-                if is_new:
-                    new.append(category)
-                if is_updated:
-                    upd.append(category)
-
                 common_saved.send(sender=ctx, obj_type='Category', key=category.key, url=category.combine_url, \
                     is_new=is_new, is_updated=((not is_new) and is_updated) )
-            
-            print; print
-        print len(new), len(upd)
 
     def crawl_listing(self, url, ctx='', **kwargs):
         res = requests.get(url, params={'Ns': 'P_sale_flag|1'})
@@ -112,11 +102,11 @@ class Server(object):
             if price_node:
                 price = ''.join(price_node[0].xpath('.//text()')).strip()
 
-            if price is None or listprice is None:
-                no_discount_num += 1
-                if no_discount_num < 3:
-                    continue
-                return
+            # if price is None or listprice is None:
+            #     no_discount_num += 1
+            #     if no_discount_num < 3:
+            #         continue
+            #     return
             no_discount_num = 0
 
             brand = info_node.cssselect('p span.product-designer-name')[0].text.strip()
@@ -134,6 +124,7 @@ class Server(object):
             if title and title != product.title:
                 product.title = title
                 is_updated = True
+                product.update_history['title'] = datetime.utcnow()
 
             if brand and brand != product.brand:
                 product.brand = brand
@@ -142,6 +133,7 @@ class Server(object):
             if combine_url and combine_url != product.combine_url:
                 product.combine_url = combine_url
                 is_updated = True
+                product.update_history['combine_url'] = datetime.utcnow()
 
             if price and price != product.price:
                 product.price = price
@@ -163,9 +155,9 @@ class Server(object):
                 product.list_update_time = datetime.utcnow()
             
             # To pick the product which fit our needs, such as a certain discount, brand, dept etc.
-            selected = Picker(site='saksfifthavenue').pick(product)
-            if not selected:
-                continue
+            # selected = Picker(site='saksfifthavenue').pick(product)
+            # if not selected:
+            #     continue
 
             product.hit_time = datetime.utcnow()
             product.save()
@@ -202,19 +194,22 @@ class Server(object):
         res.raise_for_status()
         tree = lxml.html.fromstring(res.content)
 
-        info_node = tree.cssselect('div.pdp-item-container > table > tbody > tr > td')[0]
+        image_nodes = tree.cssselect('object#_productViewer_inner a img')
+        image_urls = [image_node.get('src') for image_node in image_nodes if image_node.get('src')]
+
+        info_node = tree.cssselect('div.pdp-item-container > table > tr > td')[0]
         brand = info_node.cssselect('h1.boldBlackText12')[0].text.strip()
         title = info_node.cssselect('h2.boldBlackText12')[0].text.strip()
-        list_info_node = info_node.cssselect('div.productCopy-container table tbody tr td')
-        if list_info_node:
-            list_info = list_info_node[0].xpath('.//text()')
+        list_info_node = info_node.cssselect('div.productCopy-container table tr td span#api_prod_copy1')[0]
+        list_info = [li.text.strip() for li in list_info_node.cssselect('ul li')]
 
         # update product
         is_new = False; is_updated = False; ready = False
 
-        # if image_urls and image_urls != product.image_urls:
-        #     product.image_urls = image_urls
-        #     is_updated = True
+        if image_urls and image_urls != product.image_urls:
+            product.image_urls = image_urls
+            is_updated = True
+            product.update_history['image_urls'] = datetime.utcnow()
 
         if brand and not product.brand:
             product.brand = brand
@@ -223,6 +218,7 @@ class Server(object):
         if title and not product.title:
             product.title = title
             is_updated = True
+            product.update_history['title'] = datetime.utcnow()
 
         if list_info and list_info != product.list_info:
             product.list_info = list_info
@@ -243,6 +239,7 @@ class Server(object):
         print product.image_urls
         print product.brand
         print product.title
+        print list_info
         # print product.listprice
         # print product.price
         print is_new
@@ -261,13 +258,14 @@ if __name__ == '__main__':
     # server.run()
 
     s = Server()
-    # s.crawl_category()
+    s.crawl_category()
 
-    # categories = Category.objects()
-    # for category in categories:
-    #     print category.combine_url
-    #     s.crawl_listing(url=category.combine_url, **{'key': category.key})
-    #     print
+    categories = Category.objects()
+    for category in categories:
+        print category.combine_url
+        s.crawl_listing(url=category.combine_url, **{'key': category.key})
+        print
+        break
 
     for product in Product.objects():
         print product.combine_url

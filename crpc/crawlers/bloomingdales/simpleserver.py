@@ -13,27 +13,25 @@ class CheckServer(object):
 
     def fetch_page(self, url):
         ret = req.get(url)
-        if ret.url.startswith('http://www.ebags.com/error/unknown'):
-            return -404
         if ret.ok: return ret.content
         else: return ret.status
 
     def check_onsale_product(self, id, url):
         prd = Product.objects(key=id).first()
         if prd is None:
-            print '\n\nebags {0}, {1}\n\n'.format(id, url)
+            print '\n\nblooming dales {0}, {1}\n\n'.format(id, url)
             return
 
         ret = self.fetch_page(url)
         if isinstance(ret, int):
-            print("\n\nebags download product page error: {0}".format(url))
+            print("\n\nbloomingdales download product page error: {0}".format(url))
             return
 
         tree = lxml.html.fromstring(ret)
-        listprice = tree.cssselect('div#divStrikeThroughPrice')
-        if listprice:
-            listprice = listprice[0].text_content().replace('$', '').replace(',', '').strip()
-        price = tree.cssselect('h2#h2FinalPrice')[0].text_content().replace('$', '').replace(',', '').strip()
+        price_node = tree.cssselect('div#PriceDisplay div.priceSale')
+        price = price_node.cssselect('span.priceSale')[0].text_content().replace(',', '').replace('$', '').strip()
+        listprice = price_node.cssselect('span.priceBig')[0].text_content().replace(',', '').replace('$', '').strip()
+
         if listprice and prd.listprice != listprice:
             prd.listprice = listprice
             prd.update_history.update({ 'listprice': datetime.utcnow() })

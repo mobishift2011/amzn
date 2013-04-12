@@ -5,6 +5,8 @@ from events import change_for_dsfilter
 from pipelines import ProductPipeline
 from models import BrandMonitor
 import slumber
+import requests
+import traceback
 from datetime import datetime, timedelta
 
 from helpers.log import getlogger

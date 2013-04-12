@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 
 from settings import MONGODB_HOST
 from backends.monitor.setting import UPCOMING_EVENTS_DETECT_INTERVAL, UPDATE_ALL_SITES_INTERVAL, NEW_ALL_SITES_INTERVAL, DEALS_SITES_INTERVAL
-from crawlers.common.stash import luxury_crawlers
+from crawlers.common.stash import luxury_crawlers, deal_crawlers
 
 luxury_crawler = list(luxury_crawlers)
 if 'zulily' in luxury_crawler: luxury_crawler.remove('zulily')
@@ -90,7 +90,7 @@ def arrange_update_schedule():
 
 def arrange_deals_schedule():
     while True:
-        crawlers = luxury_crawler
+        crawlers = deal_crawlers
         one_interval = timedelta(seconds =  DEALS_SITES_INTERVAL * 1.0 / len(crawlers) * 60)
         _utcnow = datetime.utcnow()
 

@@ -66,6 +66,7 @@ gevent.spawn_later(5, toggle_auto_scheduling, 'webui', auto=True)
 while True:
     try:
         auto_schedule()
+        auto_schedule_deals()
         gevent.sleep(60 - datetime.utcnow().second)
     except Exception as e:
         with open('/tmp/schedule.log', 'a') as fd:

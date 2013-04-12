@@ -16,6 +16,7 @@ luxury_crawler = list(luxury_crawlers)
 if 'zulily' in luxury_crawler: luxury_crawler.remove('zulily')
 
 smethod_time = collections.defaultdict(set)
+deals_method_time = collections.defaultdict(set)
 conn = pymongo.Connection(host=MONGODB_HOST)
 
 def detect_upcoming_new_schedule():
@@ -86,3 +87,16 @@ def arrange_update_schedule():
 
         gevent.sleep(UPDATE_ALL_SITES_INTERVAL * 60)
 
+
+def arrange_deals_schedule():
+    while True:
+        crawlers = luxury_crawler
+        one_interval = timedelta(seconds =  DEALS_SITES_INTERVAL * 1.0 / len(crawlers) * 60)
+        _utcnow = datetime.utcnow()
+
+        for crawler in crawlers:
+            deals_method_time['{0}.new'.format(crawler)].add(_utcnow)
+            _utcnow += one_interval
+            deals_method_time['{0}.update'.format(crawler)].add(_utcnow - one_interval//2)
+            
+        gevent.sleep(DEALS_SITES_INTERVAL * 60)

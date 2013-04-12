@@ -13,7 +13,6 @@ from powers.models import Brand
 from powers.events import brand_refresh
 from settings import CRPC_ROOT
 from crawlers.common.stash import exclude_crawlers
-#from crawlers.common.stash import picked_crawlers
 from backends.monitor.models import ProductReport, EventReport
 
 

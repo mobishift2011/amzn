@@ -6,14 +6,14 @@ import pymongo
 import collections
 from datetime import datetime
 from settings import MONGODB_HOST
-from crawlers.common.stash import picked_crawlers
+from crawlers.common.stash import luxury_crawlers
 
 connection = pymongo.Connection(MONGODB_HOST)
 
 def upcoming_events(data=collections.defaultdict(dict)):
     if 'upcoming' not in data: data['upcoming'] = {}
     dbs = connection.database_names()
-    for crawler in picked_crawlers:
+    for crawler in luxury_crawlers:
         if crawler in dbs:
             col = connection[crawler].collection_names()
             if 'event' in col:
@@ -29,7 +29,7 @@ def upcoming_events(data=collections.defaultdict(dict)):
 def ending_events(data=collections.defaultdict(dict)):
     if 'ending' not in data: data['ending'] = {}
     dbs = connection.database_names()
-    for crawler in picked_crawlers:
+    for crawler in luxury_crawlers:
         if crawler in dbs:
             col = connection[crawler].collection_names()
             if 'event' in col:

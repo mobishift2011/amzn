@@ -13,7 +13,7 @@ from admin.views import execute as execute_deal
 
 from backends.monitor.executor import execute
 from backends.monitor.scheduler import Scheduler
-from backends.monitor.autoschedule import avoid_cold_start, auto_schedule
+from backends.monitor.autoschedule import avoid_cold_start, auto_schedule, auto_schedule_deals
 from backends.monitor.events import run_command # spawn listener to listen webui signal
 from backends.monitor.events import auto_scheduling # manual evoking schedules
 from backends.monitor.ghub import GHub
@@ -66,6 +66,7 @@ gevent.spawn_later(5, toggle_auto_scheduling, 'webui', auto=True)
 while True:
     try:
         auto_schedule()
+        auto_schedule_deals()
         gevent.sleep(60 - datetime.utcnow().second)
     except Exception as e:
         with open('/tmp/schedule.log', 'a') as fd:

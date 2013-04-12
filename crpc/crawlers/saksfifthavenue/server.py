@@ -102,14 +102,16 @@ class Server(object):
             if price_node:
                 price = ''.join(price_node[0].xpath('.//text()')).strip()
 
-            # if price is None or listprice is None:
-            #     no_discount_num += 1
-            #     if no_discount_num < 3:
-            #         continue
-            #     return
+            if price is None or listprice is None:
+                no_discount_num += 1
+                if no_discount_num < 3:
+                    continue
+                return
             no_discount_num = 0
 
-            brand = info_node.cssselect('p span.product-designer-name')[0].text.strip()
+            brand = info_node.cssselect('p span.product-designer-name')[0].text
+            if brand:
+                brand = brand.strip()
             title = info_node.cssselect('p.product-description')[0].text.strip()
             combine_url = info_node.get('href')
 
@@ -155,9 +157,9 @@ class Server(object):
                 product.list_update_time = datetime.utcnow()
             
             # To pick the product which fit our needs, such as a certain discount, brand, dept etc.
-            # selected = Picker(site='saksfifthavenue').pick(product)
-            # if not selected:
-            #     continue
+            selected = Picker(site='saksfifthavenue').pick(product)
+            if not selected:
+                continue
 
             product.hit_time = datetime.utcnow()
             product.save()
@@ -193,13 +195,27 @@ class Server(object):
         res = requests.get(url)
         res.raise_for_status()
         tree = lxml.html.fromstring(res.content)
+        
+        image_urls = []
+        pid = key.split('-')[-1]
+        pic_modes = ('_ASTL', '', '_A1')
 
-        image_nodes = tree.cssselect('object#_productViewer_inner a img')
-        image_urls = [image_node.get('src') for image_node in image_nodes if image_node.get('src')]
+        for pic_mode in pic_modes:
+            image_url = 'http://s7d9.scene7.com/is/image/saks/{0}{1}?scl=1'.format(pid, pic_mode)
+            image_res = requests.get(image_url)
+            try:
+                image_res.raise_for_status()
+                if image_url not in image_urls:
+                    image_urls.append(image_url)
+            except:
+                continue
 
         info_node = tree.cssselect('div.pdp-item-container > table > tr > td')[0]
         brand = info_node.cssselect('h1.boldBlackText12')[0].text.strip()
-        title = info_node.cssselect('h2.boldBlackText12')[0].text.strip()
+        try:
+            title = info_node.cssselect('h2.boldBlackText12')[0].text.strip()
+        except UnicodeDecodeError:
+            title = None
         list_info_node = info_node.cssselect('div.productCopy-container table tr td span#api_prod_copy1')[0]
         list_info = [li.text.strip() for li in list_info_node.cssselect('ul li')]
 
@@ -235,13 +251,11 @@ class Server(object):
         common_saved.send(sender=ctx, obj_type='Product', key=product.key, url=product.combine_url, \
             is_new=is_new, is_updated=((not is_new) and is_updated), ready=ready)
 
-        # print product.dept
+        print product.dept
         print product.image_urls
         print product.brand
         print product.title
         print list_info
-        # print product.listprice
-        # print product.price
         print is_new
         print is_updated
         print ready
@@ -258,14 +272,14 @@ if __name__ == '__main__':
     # server.run()
 
     s = Server()
-    s.crawl_category()
+    # s.crawl_category()
 
-    categories = Category.objects()
-    for category in categories:
-        print category.combine_url
-        s.crawl_listing(url=category.combine_url, **{'key': category.key})
-        print
-        break
+    # categories = Category.objects()
+    # for category in categories:
+    #     print category.combine_url
+    #     s.crawl_listing(url=category.combine_url, **{'key': category.key})
+    #     print
+    #     break
 
     for product in Product.objects():
         print product.combine_url

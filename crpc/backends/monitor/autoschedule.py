@@ -4,7 +4,7 @@ from gevent import monkey; monkey.patch_all()
 import gevent
 
 from datetime import datetime, timedelta
-from crawlers.common.stash import picked_crawlers
+from crawlers.common.stash import luxury_crawlers
 
 from backends.monitor.throttletask import can_task_run, task_completed, is_task_already_running
 from backends.monitor.organizetask import detect_upcoming_new_schedule, arrange_new_schedule, arrange_update_schedule, smethod_time
@@ -34,7 +34,7 @@ def avoid_cold_start():
     # gevent need a 'block' to run spawn.Or we can say gevent will execute spawn until meet a 'block'
     gevent.sleep(1)
 
-    crawlers = list(picked_crawlers)
+    crawlers = list(luxury_crawlers)
     if 'zulily' in crawlers:
         crawlers.remove('zulily')
     for crawler_name in crawlers:

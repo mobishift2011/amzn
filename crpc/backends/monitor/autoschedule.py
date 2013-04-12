@@ -88,7 +88,7 @@ def auto_schedule_deals():
                     execute(site, method)
                     deals_method_time[k].remove(run_time)
                 elif method == 'update':
-                    if not is_task_already_running(site, 'new')
+                    if not is_task_already_running(site, 'new'):
                         execute(site, method)
                         deals_method_time[k].remove(run_time)
             else: break

@@ -78,6 +78,7 @@ def auto_schedule():
 
 
 def auto_schedule_deals():
+    autoscheduler_logger.debug(deals_method_time)
     _utcnow = datetime.utcnow()
 
     for k, v in deals_method_time.iteritems():

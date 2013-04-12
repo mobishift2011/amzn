@@ -9,7 +9,7 @@ import collections
 from datetime import datetime, timedelta
 
 from settings import MONGODB_HOST
-from backends.monitor.setting import UPCOMING_EVENTS_DETECT_INTERVAL, UPDATE_ALL_SITES_INTERVAL, NEW_ALL_SITES_INTERVAL
+from backends.monitor.setting import UPCOMING_EVENTS_DETECT_INTERVAL, UPDATE_ALL_SITES_INTERVAL, NEW_ALL_SITES_INTERVAL, DEALS_SITES_INTERVAL
 from crawlers.common.stash import luxury_crawlers
 
 luxury_crawler = list(luxury_crawlers)

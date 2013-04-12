@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from crawlers.common.stash import luxury_crawlers
 
 from backends.monitor.throttletask import can_task_run, task_completed, is_task_already_running
-from backends.monitor.organizetask import detect_upcoming_new_schedule, arrange_new_schedule, arrange_update_schedule, smethod_time
+from backends.monitor.organizetask import detect_upcoming_new_schedule, arrange_new_schedule, arrange_update_schedule, smethod_time, arrange_deals_schedule, deals_method_time
 from backends.monitor.setting import SCHEDULE_STATE
 from backends.monitor.executor import execute
 from backends.monitor.ghub import GHub
@@ -29,8 +29,9 @@ def avoid_cold_start():
     j1 = gevent.spawn(detect_upcoming_new_schedule)
     j2 = gevent.spawn(arrange_new_schedule)
     j3 = gevent.spawn(arrange_update_schedule)
+    j4 = gevent.spawn(arrange_deals_schedule)
 
-    GHub().extend('acs', [j1, j2, j3])
+    GHub().extend('acs', [j1, j2, j3, j4])
     # gevent need a 'block' to run spawn.Or we can say gevent will execute spawn until meet a 'block'
     gevent.sleep(1)
 
@@ -74,3 +75,22 @@ def auto_schedule():
                     smethod_time[k].remove(run_time)
             else: break
 
+
+
+def auto_schedule_deals():
+    autoscheduler_logger.debug(deals_method_time)
+    _utcnow = datetime.utcnow()
+
+    for k, v in deals_method_time.iteritems():
+        site, method = k.split('.')
+        for run_time in sorted(v):
+            if run_time <= _utcnow:
+                if method == 'new':
+                    execute(site, method)
+                    deals_method_time[k].remove(run_time)
+                elif method == 'update':
+                    if not is_task_already_running(site, 'new'):
+                        execute(site, method)
+                        deals_method_time[k].remove(run_time)
+            else: break
+            

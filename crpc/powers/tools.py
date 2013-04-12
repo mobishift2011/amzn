@@ -146,7 +146,7 @@ class ImageTool:
         Returns None
         """
         self.__key.key = key
-        self.__key.set_contents_from_file(image, headers={'Content-Type':'image/jpeg'})
+        self.__key.set_contents_from_file(image, headers={'Content-Type':'image/jpeg', 'Cache-Control':'max-age=31536000, public'})
         # self.__key.make_public()
 
     def thumbnail_and_upload(self, doctype, image, s3key, exist_keys):

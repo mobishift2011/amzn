@@ -65,6 +65,11 @@ def spout_images(site, doctype):
 
     docparam = docdict[doctype.lower()]
     for instance in instances:
+        update_flag = bool( instance.update_history.get('image_urls') and instance.update_history.get('image_path') and \
+                instance.update_history.get('image_urls') > instance.update_history.get('image_path') )
+        if instance.image_complete and not update_flag:
+            continue
+        
         yield {
             'site': site,
             'doctype': doctype,

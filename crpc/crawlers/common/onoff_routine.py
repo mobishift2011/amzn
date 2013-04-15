@@ -140,6 +140,9 @@ def control():
         with open(log_file, 'w') as fd:
             try:
                 offsale_schedule()
+
+                from powers.script import secondhand_filter
+                secondhand_filter.filter()
             except:
                 fd.write(traceback.format_exc())
 

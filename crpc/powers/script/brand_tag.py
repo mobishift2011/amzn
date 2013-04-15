@@ -5,8 +5,6 @@ from powers.models import Brand
 from mongoengine import Q
 from helpers.log import getlogger
 import slumber
-import json
-import requests
 from datetime import datetime
 import traceback
 
@@ -15,9 +13,14 @@ brands = Brand.objects()
 brand_dict = {(brand.title_edit or brand.title): [] for brand in brands}
 print 'total brands: ', len(brands), ' , ',  'dict size: ', len(brand_dict.items())
 
+api = slumber.API(MASTIFF_HOST)
 
-def sync2mastiff():
-    pass
+
+def sync2mastiff(brand, tag):
+    query = api.brand.get(name=brand)
+    if query['objects']:
+        brand_id = query['objects'][0]['id']
+        api.brand(brand_id).patch({'tag': tag})
 
 
 def main():
@@ -34,6 +37,7 @@ def main():
     for k, v in brand_dict.iteritems():
         if v:
             print k, ' : ', v
+        sync2mastiff(k, v)
 
     print 'now dict size: ', len(brand_dict.items())
 

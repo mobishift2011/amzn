@@ -26,14 +26,16 @@ def main():
         products = m.Product.objects( Q(products_end__gt=datetime.utcnow()) | Q(products_end__exists=False) )
         print 'site: {0}, products: {1}'.format(site, products.count())
         for product in products:
-            tags = brand_dict.get(product.favbuy_brand)
-            if tags:
-                brand_dict[product.favbuy_brand] = list[set(product.favbuy_tag) | set(tags)]
-    
-    print 'now dict size: ', len(brand_dict.items())
+            if product.favbuy_brand:
+                tags = brand_dict.get(product.favbuy_brand)
+                if tags is not None:
+                    brand_dict[product.favbuy_brand] = list(set(product.favbuy_tag) | set(tags))
+
     for k, v in brand_dict.iteritems():
         if v:
-            print v
+            print k, ' : ', v
+
+    print 'now dict size: ', len(brand_dict.items())
 
 
 if __name__ == '__main__':

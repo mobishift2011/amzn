@@ -57,18 +57,21 @@ def spout_images(site, doctype):
             instances = m.Event.objects(Q(events_end__gt=now) | \
                 Q(events_end__exists=False)).timeout(False)
         elif doctype.lower() == 'product':
-            instances = m.Product.objects( \
-                (Q(products_begin__lte=now) | Q(products_begin__exists=False)) & \
-                    (Q(products_end__gt=now) | Q(products_end__exists=False))).timeout(False)
+            instances = m.Product.objects.where(" (this.image_complete == false) || \
+                    ( (this.products_begin == undefined || this.products_begin <= ISODate()) && (this.products_end == undefined || this.products_end >= ISODate()) && (this.update_history.image_urls != undefined && this.update_history.image_path != undefined && this.update_history.image_urls > this.update_history.image_path) ) ").timeout(False)
+
+#            instances = m.Product.objects( \
+#                (Q(products_begin__lte=now) | Q(products_begin__exists=False)) & \
+#                    (Q(products_end__gt=now) | Q(products_end__exists=False))).timeout(False)
     except AttributeError:
         instances = []
 
     docparam = docdict[doctype.lower()]
     for instance in instances:
-        update_flag = bool( instance.update_history.get('image_urls') and instance.update_history.get('image_path') and \
-                instance.update_history.get('image_urls') > instance.update_history.get('image_path') )
-        if instance.image_complete and not update_flag:
-            continue
+#        update_flag = bool( instance.update_history.get('image_urls') and instance.update_history.get('image_path') and \
+#                instance.update_history.get('image_urls') > instance.update_history.get('image_path') )
+#        if instance.image_complete and not update_flag:
+#            continue
         
         yield {
             'site': site,

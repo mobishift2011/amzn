@@ -194,7 +194,9 @@ class Server(object):
             if event.events_end != events_end:
                 event.update_history.update({ 'events_end': datetime.utcnow() })
                 event.events_end = events_end
-            event.image_urls = image_urls
+            if image_urls != event.image_urls:
+                event.image_urls = image_urls
+                event.update_history.update({ 'image_urls': datetime.utcnow() })
             event.update_time = datetime.utcnow()
             event.save()
             common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)

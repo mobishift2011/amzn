@@ -13,7 +13,7 @@ import traceback
 
 brands = Brand.objects()
 brand_dict = {(brand.title_edit or brand.title): [] for brand in brands}
-print len(brands)
+print 'total brands: ', len(brands), ' , ',  'dict size: ', len(brand_dict.items())
 
 
 def sync2mastiff():
@@ -21,7 +21,6 @@ def sync2mastiff():
 
 
 def main():
-    m = None
     for site in picked_crawlers:
         m = __import__("crawlers."+site+'.models', fromlist=['Product'])
         products = m.Product.objects( Q(products_end__gt=datetime.utcnow()) | Q(products_end__exists=False) )
@@ -30,8 +29,11 @@ def main():
             tags = brand_dict.get(product.favbuy_brand)
             if tags:
                 brand_dict[product.favbuy_brand] = list[set(product.favbuy_tag) | set(tags)]
-
-    print brand_dict
+    
+    print 'now dict size: ', len(brand_dict.items())
+    for k, v in brand_dict.iteritems():
+        if v:
+            print v
 
 
 if __name__ == '__main__':

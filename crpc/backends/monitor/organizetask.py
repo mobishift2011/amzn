@@ -97,6 +97,6 @@ def arrange_deals_schedule():
         for crawler in crawlers:
             deals_method_time['{0}.new'.format(crawler)].add(_utcnow)
             _utcnow += one_interval
-            deals_method_time['{0}.update'.format(crawler)].add(_utcnow - one_interval//2)
+            deals_method_time['{0}.update'.format(crawler)].add(_utcnow + one_interval//2)
             
         gevent.sleep(DEALS_SITES_INTERVAL * 60)

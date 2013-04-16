@@ -92,7 +92,7 @@ class Server(object):
     def __init__(self):
         self.siteurl = 'http://www.gilt.com'
         self.net = giltLogin()
-        self.extract_hero_image = re.compile('background:url\((.*)\)')
+        self.extract_hero_image = re.compile('background-image:url\((.*)\)')
 
     def crawl_category(self, ctx='', **kwargs):
         """.. :py:method::
@@ -149,12 +149,12 @@ class Server(object):
         """.. :py:method::
         """
         # hero event
-        # sale_title = tree.cssselect('div#sticky-nav > div.sticky-nav-container > ul.tabs > li.sales > div > div.bg_container > div.column > ul > li > a')[0].text_content().strip()
-        img = tree.cssselect('section#main > div.hero-container > section.hero')[0]
+        link = tree.cssselect('section.main a.sale-link')[0]
+        img = link.cssselect('section.hero')[0]
         image = self.extract_hero_image.search(img.get('style')).group(1)
         image = image if image.startswith('http:') else 'http:' + image
-        link = img.cssselect('a.sale-header-link')[0]
-        sale_title = link.text_content()
+        sale_title = img.cssselect('header.sale-header h1.sale-name')[0].text_content().strip().encode('utf-8')
+
         link = link.get('href')
         link = link if link.startswith('http') else self.siteurl + link
         if link.rsplit('/', 1)[-1] == 'ss':
@@ -171,7 +171,7 @@ class Server(object):
 
 
         # on sale events
-        nodes = tree.cssselect('section#main > div.sales-container > section.new-sales > article.sale')
+        nodes = tree.cssselect('section.main section.sales-container section.new-sales article.sale a.sale-link')
         for node in nodes:
             ret = self.parse_one_node(node, dept, ctx)
             if ret is None: continue
@@ -180,7 +180,7 @@ class Server(object):
             common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
 
         # ending soon
-        nodes = tree.cssselect('section#main > div.sales-container > section.sales-ending-soon > article.sale')
+        nodes = tree.cssselect('section.main section.ending-soon article.sale a.sale-link')
         for node in nodes:
             ret = self.parse_one_node(node, dept, ctx)
             if ret is None: continue
@@ -190,14 +190,14 @@ class Server(object):
 
         # starting later. When today's upcoming on sale, this column disappear for a while
         # this label not exist anymore, instead of starting tomorrow
-        nodes = tree.cssselect('section#main > div.sales-container > section.sales-starting-later > article.sale')
+        nodes = tree.cssselect('section.main section.starting-later-today article.sale a.sale-link')
         for node in nodes:
             ret = self.parse_one_node(node, dept, ctx, upcoming=True)
             if ret is None: continue
             event, is_new, is_updated = ret
 
-            begins = node.cssselect('header > hgroup > h3 > span')[0].get('data-gilt-date')
-            events_begin = datetime.strptime(begins[:begins.index('+')], '%m/%d/%Y %H:%M ')
+            begins = node.cssselect('header.sale-header h3.sale-time span')[0].get('data-gilt-date')
+            events_begin = datetime.strptime(begins[:begins.index('+')], '%a, %d %b %Y %H:%M:%S ')
             if event.events_begin != events_begin:
                 event.events_begin = events_begin
                 event.update_history.update({ 'events_begin': datetime.utcnow() })
@@ -218,7 +218,7 @@ class Server(object):
             common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
 
         # starting tomorrow
-        nodes = tree.cssselect('section#main > div.bottom-calendar-sales-container > section.calendar-sales > div.calendar-sales-container > div.calendar-sales > article.sale')
+        nodes = tree.cssselect('section.main > div.bottom-calendar-sales-container > section.calendar-sales > div.calendar-sales-container > div.calendar-sales > article.sale a.sale-link')
         for node in nodes:
             ret = self.parse_one_node(node, dept, ctx, upcoming=True)
             if ret is None: continue
@@ -242,7 +242,7 @@ class Server(object):
             common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
 
         # upcoming
-        nodes = tree.cssselect('section#main > div.sales-container > div.sales-promos > section.calendar-sales > div.tab_content > div.scroll-container > article.sale')
+        nodes = tree.cssselect('section.main > div.sales-container > div.sales-promos > section.calendar-sales > div.tab_content > div.scroll-container > article.sale a.sale-link')
         for node in nodes:
             event, is_new, is_updated = self.parse_one_node(node, dept, ctx, upcoming=True)
             image, sale_title, sale_description, events_begin = self.get_picture_description(event.combine_url, ctx)
@@ -267,16 +267,15 @@ class Server(object):
 
     def parse_one_node(self, node, dept, ctx, upcoming=False):
         """.. :py:method::
-            parse one event node
         """
-        link = node.xpath('./a')[0].get('href')
+        link = node.get('href')
         link = link if link.startswith('http') else self.siteurl + link
         if self.siteurl not in link: # women have www.giltcity.com and www.jetsetter.com
             return
-        sale_title = node.xpath('./a/img')[0].get('alt').strip()
-        image = node.xpath('./a/img/@src')
-        if image: # type lxml.etree._ElementStringResult
-            image = str(image[0]) if image[0].startswith('http:') else 'http:' + image[0]
+        sale_title = node.cssselect('header.sale-header h1.sale-name')[0].text_content().strip().encode('utf-8')
+        image = node.cssselect('figure img')[0].get('src')
+        image = image if image.startswith('http:') else 'http:' + image
+
         if link.rsplit('/', 1)[-1] == 'ss':
             event_id = link.rsplit('/', 2)[-2]
             is_leaf = False
@@ -362,7 +361,7 @@ class Server(object):
             group_title = group.cssselect('h2.row_group_title')[0].text_content().strip()
             nodes = group.cssselect('ul.sales > li.brand_square')
             for node in nodes:
-                ret = self.parse_one_node(node, dept, ctx)
+                ret = self.parse_one_leaf_node(node, dept, ctx)
                 if ret is None: continue
                 event, is_new, is_updated = ret
                 if is_new:
@@ -370,6 +369,31 @@ class Server(object):
                     if group_title: event.group_title = group_title
                 event.save()
                 common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
+
+
+    def parse_one_leaf_node(self, node, dept, ctx):
+        """.. :py:method::
+            parse one event node
+        """
+        link = node.xpath('./a')[0].get('href')
+        link = link if link.startswith('http') else self.siteurl + link
+        if self.siteurl not in link: # women have www.giltcity.com and www.jetsetter.com
+            return
+        sale_title = node.xpath('./a/img')[0].get('alt').strip()
+        image = node.xpath('./a/img/@src')
+        if image: # type lxml.etree._ElementStringResult
+            image = str(image[0]) if image[0].startswith('http:') else 'http:' + image[0]
+        if link.rsplit('/', 1)[-1] == 'ss':
+            event_id = link.rsplit('/', 2)[-2]
+            is_leaf = False
+        else:
+            event_id = link.rsplit('/', 1)[-1]
+            is_leaf = True
+
+        if is_leaf is False:
+            self.get_child_event(event_id, link, dept, ctx)
+        event, is_new, is_updated = self.get_or_create_event(event_id, link, dept, sale_title, image, is_leaf)
+        return event, is_new, is_updated
 
 
     def gilt_time(self, data_gilt_time):
@@ -390,17 +414,23 @@ class Server(object):
         url = 'http://www.gilt.com/home/sale'
         tree = self.download_page_get_correct_tree(url, dept, 'download \'home\' error', ctx)
 
-        nav = tree.cssselect('div.content-container > section.content > div.holds-position-2 > div.position')[0]
         # hero 'div.elements-container > article.element'
-        hero = nav.cssselect('section.module-full > div.elements-container > article.element-hero')[0]
-        event, is_new, is_updated = self.parse_one_home_node(hero, dept, ctx)
-        sale_title = hero.cssselect('div.hero-center-wrapper > div.hero-center-container > div.hero-editorial > header.element-header > hgroup > .headline')[0].text_content().strip()
-        event.sale_title = sale_title
-        event.save()
-        common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
+        hero = tree.cssselect('section.main a.sale-link')[0]
+        link = hero.get('href')
+        link = link if link.startswith('http') else self.siteurl + link
+        if self.siteurl in link: # have www.giltcity.com and www.jetsetter.com
+            img = hero.cssselect('section.hero')[0]
+            image = self.extract_hero_image.search(img.get('style')).group(1)
+            image = image if image.startswith('http:') else 'http:' + image
+            sale_title = img.cssselect('header.sale-header h1.sale-name')[0].text_content().strip().encode('utf-8')
+            ret = self.get_or_create_event(link.rsplit('/', 1)[-1], link, dept, sale_title, image, is_leaf=True)
+            if ret is not None:
+                event, is_new, is_updated = ret
+                event.save()
+                common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
 
         # on sale
-        nodes = nav.cssselect('section.module-sale-mosaic > div.elements-container > article.element')
+        nodes = tree.cssselect('section.main div.sales-container section.new-sales article.sale a.sale-link')
         for node in nodes:
             ret = self.parse_one_home_node(node, dept, ctx)
             if ret is not None:
@@ -409,10 +439,10 @@ class Server(object):
                 common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
 
         # start later today & ending soon, sometimes ending soon is disappeared
-        for sale_small in nav.cssselect('section.module-additional-sale-mosaic'):
-            headline = sale_small.cssselect('header.module-header > hgroup h1.headline')[0].text_content().strip()
+        for sale_small in tree.cssselect('section.main section.additional-sales'):
+            headline = sale_small.cssselect('header.section-header h1.section-title')[0].text_content().strip()
             if 'Starting Later Today' == headline:
-                nodes = sale_small.cssselect('div.elements-container > article.element')
+                nodes = sale_small.cssselect('article.sale a.sale-link')
                 for node in nodes:
                     ret = self.parse_one_home_node(node, dept, ctx)
                     if ret is not None:
@@ -432,7 +462,7 @@ class Server(object):
                     event.save()
                     common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
             elif 'Ending Soon' == headline:
-                nodes = sale_small.cssselect('div.elements-container > article.element')
+                nodes = sale_small.cssselect('article.sale a.sale-link')
                 for node in nodes:
                     ret = self.parse_one_home_node(node, dept, ctx)
                     if ret is not None:
@@ -441,7 +471,7 @@ class Server(object):
                         common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
 
         # upcoming
-        nodes = nav.cssselect('section.module-sidebar-mosaic > div.elements-container > article.element-cms-default > ul.nav > li.nav-item > div.nav-dropdown > section.nav-section > ul > li.nav-topic')
+        nodes = tree.cssselect('section.module-sidebar-mosaic > div.elements-container > article.element-cms-default > ul.nav > li.nav-item > div.nav-dropdown > section.nav-section > ul > li.nav-topic')
         for node in nodes:
             self.parse_one_home_upcoming_node(node, dept, ctx)
 
@@ -449,13 +479,12 @@ class Server(object):
     def parse_one_home_node(self, node, dept, ctx):
         """.. :py:method::
         """
-        bottom_node = node.cssselect('figure > span > a')[0]
-        link = bottom_node.get('href')
+        link = node.get('href')
         link = link if link.startswith('http') else self.siteurl + link
         if self.siteurl in link: # have www.giltcity.com and www.jetsetter.com
-            image = bottom_node.cssselect('img')[0].get('src')
+            sale_title = node.cssselect('header.sale-header h1.sale-name')[0].text_content().strip().encode('utf-8')
+            image = node.cssselect('figure img')[0].get('src')
             image = image if image.startswith('http:') else 'http:' + image
-            sale_title = bottom_node.cssselect('img')[0].get('alt')
 
             event, is_new, is_updated = self.get_or_create_event(link.rsplit('/', 1)[-1], link, dept, sale_title, image, is_leaf=True)
             return event, is_new, is_updated
@@ -472,14 +501,14 @@ class Server(object):
             sale_title = node.cssselect('span.topic-label > a')[0].text_content()
             event, is_new, is_updated = self.get_or_create_event(link.rsplit('/', 1)[-1], link, dept, sale_title, image='', is_leaf=True)
 
-            if not event.sale_description:
-                events_begin, events_end, image, sale_description = self.get_home_future_events_begin_end(link, link.rsplit('/', 1)[-1], ctx)
-                if event.events_begin != events_begin:
-                    event.events_begin = events_begin
-                    event.update_history.update({ 'events_begin': datetime.utcnow() })
-                if event.events_end != events_end:
-                    event.events_end = events_end
-                    event.update_history.update({ 'events_end': datetime.utcnow() })
+            events_begin, events_end, image, sale_description = self.get_home_future_events_begin_end(link, link.rsplit('/', 1)[-1], ctx)
+            if event.events_begin != events_begin:
+                event.events_begin = events_begin
+                event.update_history.update({ 'events_begin': datetime.utcnow() })
+            if event.events_end != events_end:
+                event.events_end = events_end
+                event.update_history.update({ 'events_end': datetime.utcnow() })
+            if not sale_description:
                 event.image_urls = image if isinstance(image, list) else [image]
                 event.sale_description = sale_description
             event.save()
@@ -501,10 +530,11 @@ class Server(object):
         events_begin = datetime.utcfromtimestamp(float(_begin[:10]))
         _end = timer.get('data-gilt-dom-time-frame-time-end') # 1356714000000
         events_end = datetime.utcfromtimestamp(float(_end[:10]))
-        bottom_node = timer = tree.cssselect('div.page-container > div.content-container > section.content > div > div.position > section.module > div.elements-container > article.element')[0]
+
+        bottom_node = tree.cssselect('div.page-container > div.content-container > section.content > div > div.position > section.module > div.elements-container > article.element')[0]
         image = bottom_node.cssselect('figure > span > img')[0].get('src')
         image = image if image.startswith('http:') else 'http:' + image
-        sale_description = bottom_node.cssselect('div.sharable-editorial > header.element-header > div.element-content')[0].text_content().strip()
+        sale_description = bottom_node.cssselect('div.sharable-editorial > header.element-header > div.element-content')[0].text_content().strip().encode('utf-8')
         return events_begin, events_end, image, sale_description
 
 
@@ -839,4 +869,6 @@ class Server(object):
 
 if __name__ == '__main__':
     server = Server()
+    server.crawl_category()
+    exit()
     server.crawl_listing('http://www.gilt.com/home/sale/candle-blowout-7052')

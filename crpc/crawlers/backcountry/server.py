@@ -126,14 +126,31 @@ class Server(object):
     def crawl_product(self, url, ctx='', **kwargs):
         url = url.replace('www.backcountry.com', 'm.backcountry.com')
         ret = req.get(url)
-        tree = lxml.html.fromstring(ret.content)
+        tree = lxml.html.fromstring(ret.text)
         summary = tree.cssselect('article.product section.description div.bd')[0].text_content().strip()
-        tree.cssselect('article.product section.details div.bd dl.specs')[0].text_content()
+        list_info = tree.cssselect('article.product section.details div.bd dl.specs')[0].text_content().replace(':\n',':').split('\n')
+        list_info = [i.strip() for i in list_info if i.strip()]
+        image = tree.cssselect('article.product p.media-photo a.media-zoom')[0].get('href')
+        image_urls = [image]
+
+        is_new = is_updated = False
+        product = Product.objects(key=key).first()
+        if not product:
+            is_new = True
+            product = Product(key=key)
+            product.event_type = False
+
+        product.summary = summary
+        product.list_info = list_info
+        product.image_urls = image_urls
+        product.full_update_time = datetime.utcnow()
+        product.save()
+        common_saved.send(sender=ctx, obj_type='Product', key=product.key, url=url, is_new=is_new, is_updated=is_updated, ready=ready)
 
 
 if __name__ == '__main__':
     ss = Server()
-    ss.crawl_product('http://www.backcountry.com/salewa-alp-trainer-gtx-hiking-boot-mens')
+    ss.crawl_product('http://m.backcountry.com/evolv-defy-climbing-shoe-2009')
     exit()
 
     ss.crawl_category()

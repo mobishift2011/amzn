@@ -154,6 +154,11 @@ class Server(object):
         product.summary = summary
         product.list_info = list_info
         product.image_urls = image_urls
+
+        if product.updated == False:
+            product.updated = True
+            ready = True
+        else: ready = False
         product.full_update_time = datetime.utcnow()
         product.save()
         common_saved.send(sender=ctx, obj_type='Product', key=product.key, url=url, is_new=is_new, is_updated=is_updated, ready=ready)

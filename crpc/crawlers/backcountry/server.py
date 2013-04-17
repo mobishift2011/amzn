@@ -11,6 +11,7 @@ from models import *
 from crawlers.common.stash import *
 from crawlers.common.events import common_saved, common_failed
 from deals.picks import Picker
+from powers.pipelines import unescape
 
 req = requests.Session(prefetch=True, timeout=30, config=config, headers=headers)
 
@@ -80,7 +81,8 @@ class Server(object):
         for i in xrange(page):
             link = 'http://m.backcountry.com/store/group/ajax/get_results.html?cat={0}&offset={1}&subcat={2}'.format(cat, i, subcat)
             ret = req.get(link)
-            js = json.loads(ret.text)
+            js = json.loads( unescape(ret.text) )
+#open('a.html', 'w').write(ret.text)
             for prd in js['products']:
                 brand = prd['brand_name']
                 listprice = prd['full_price'].replace('$', '').replace(',', '')
@@ -166,3 +168,5 @@ class Server(object):
 
 if __name__ == '__main__':
     ss = Server()
+#ss.crawl_category()
+    ss.crawl_listing('http://m.backcountry.com/mens-cycling-jerseys')

@@ -53,16 +53,17 @@ class Server(object):
                         is_new = True
                         category = Category(key=key)
                         category.is_leaf = True
-                        if category.combine_url != url:
-                            category.combine_url = url 
-                            is_updated = True
-                            if set(cats).difference(category.cats):   
-                                category.cats = cats
 
-                            category.update_time = datetime.utcnow()
-                            category.save()
-                            common_saved.send(sender=ctx, obj_type='Category', key=category.key, url=category.combine_url, \
-                                                is_new=is_new, is_updated=((not is_new) and is_updated) )
+                    if category.combine_url != url:
+                        category.combine_url = url 
+                        is_updated = True
+                    if set(cats).difference(category.cats):   
+                        category.cats = cats
+
+                    category.update_time = datetime.utcnow()
+                    category.save()
+                    common_saved.send(sender=ctx, obj_type='Category', key=category.key, url=category.combine_url, \
+                                        is_new=is_new, is_updated=((not is_new) and is_updated) )
 
     def crawl_listing(self, url, ctx='', **kwargs):
 

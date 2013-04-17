@@ -142,6 +142,7 @@ class Server(object):
         image = tree.cssselect('article.product p.media-photo a.media-zoom')[0].get('href')
         image_urls = [image]
 
+        key = url.rsplit('/', 1)[-1]
         is_new = is_updated = False
         product = Product.objects(key=key).first()
         if not product:

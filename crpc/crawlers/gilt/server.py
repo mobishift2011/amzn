@@ -307,7 +307,6 @@ class Server(object):
             event = Event(event_id=event_id)
             event.urgent = True
             event.combine_url = link
-            event.sale_title = sale_title
             if image:
                 event.image_urls.append(image)
             event.is_leaf = is_leaf
@@ -319,6 +318,8 @@ class Server(object):
                 event.dept = ['children']
             elif '/home/sale' in link or '/sale/home' in link:
                 event.dept = ['home']
+        if event.sale_title != sale_title:
+            event.sale_title = sale_title
         event.update_time = datetime.utcnow()
         return event, is_new, is_updated
 
@@ -450,7 +451,10 @@ class Server(object):
                     else: continue
 
                     if not event.sale_description:
-                        events_begin, events_end, image, sale_description = self.get_home_future_events_begin_end(event.combine_url, event.event_id, ctx)
+                        ret = self.get_home_future_events_begin_end(event.combine_url, event.event_id, ctx)
+                        if ret is None:
+                            continue
+                        events_begin, events_end, image, sale_description = ret
                         if event.events_begin != events_begin:
                             event.events_begin = events_begin
                             event.update_history.update({ 'events_begin': datetime.utcnow() })
@@ -521,7 +525,10 @@ class Server(object):
         :param key: event id or department
         """
         if '/sale/children' in link or '/sale/women' in link or '/sale/men' in link:
-            image, sale_title, sale_description, events_begin = self.get_picture_description(link, ctx)
+            ret = self.get_picture_description(link, ctx)
+            if ret is None:
+                return
+            image, sale_title, sale_description, events_begin = ret
             return events_begin, None, image, sale_description
 
         tree = self.download_page_get_correct_tree(link, key, 'download \'home\' upcoming event page error', ctx)

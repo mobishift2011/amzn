@@ -217,10 +217,12 @@ class Server(object):
 
             if price and price != product.price:
                 product.price = price
+                product.update_history.update({ 'price': datetime.utcnow() })
                 is_updated = True
 
             if listprice and listprice != product.listprice:
                 product.listprice = listprice
+                product.update_history.update({ 'listprice': datetime.utcnow() })
                 is_updated = True
 
             # extract favbuy_dept

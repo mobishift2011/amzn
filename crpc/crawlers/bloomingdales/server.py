@@ -223,7 +223,7 @@ class Server(object):
         product = Product.objects(key=kwargs.get('key')).first()
         if not product:
             is_new = True
-            product = Product(key=key)
+            product = Product(key=kwargs.get('key'))
             product.event_type = False
 
         product.summary = summary

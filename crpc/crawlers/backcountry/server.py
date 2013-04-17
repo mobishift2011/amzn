@@ -65,6 +65,10 @@ class Server(object):
                                                 is_new=is_new, is_updated=((not is_new) and is_updated) )
 
     def crawl_listing(self, url, ctx='', **kwargs):
+
+        category_key = url.rsplit('/', 1)[-1]
+        category = Category.objects(key=category_key).first()
+
         ret = req.get(url)
         tree = lxml.html.fromstring(ret.content)
         num = int( tree.cssselect('span#prod_total')[0].text_content() )
@@ -75,7 +79,7 @@ class Server(object):
         for i in xrange(page):
             link = 'http://m.backcountry.com/store/group/ajax/get_results.html?cat={0}&offset={1}&subcat={2}'.format(cat, i, subcat)
             ret = req.get(link)
-            js = json.loads(ret.content)
+            js = json.loads(ret.text)
             for prd in js['products']:
                 brand = prd['brand_name']
                 listprice = prd['full_price'].replace('$', '').replace(',', '')
@@ -116,6 +120,10 @@ class Server(object):
                 if not selected:                                                                                
                     continue
 
+                if category.key not in product.category_key:
+                    product.category_key.append(category.key)
+                    is_updated = True
+
                 if is_updated:
                     product.list_update_time = datetime.utcnow()
 
@@ -151,7 +159,3 @@ class Server(object):
 
 if __name__ == '__main__':
     ss = Server()
-    ss.crawl_product('http://m.backcountry.com/evolv-defy-climbing-shoe-2009')
-    exit()
-
-    ss.crawl_category()

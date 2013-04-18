@@ -201,7 +201,7 @@ class IndexHandler(BaseHandler):
         list_products = []
         for i in range((len(pids)-1)/100+1):
             pidsi = pids[i*100:i*100+100]
-            list_products.extend( api.product.get(limit=1000, _id__in=','.join(pidsi))['objects'] )
+            list_products.extend( api.product.get(limit=1000, visible_all=1, _id__in=','.join(pidsi))['objects'] )
         for p in list_products:
             top_buy_sites[ p['site_key'].split('_', 1)[0] ] += c_top_buys[ p['id'] ]
             if p['id'] in top_buys:

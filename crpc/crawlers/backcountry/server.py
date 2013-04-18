@@ -81,8 +81,10 @@ class Server(object):
         for i in xrange(page):
             link = 'http://m.backcountry.com/store/group/ajax/get_results.html?cat={0}&offset={1}&subcat={2}'.format(cat, i, subcat)
             ret = req.get(link)
-            js = json.loads( unescape(ret.text) )
-#open('a.html', 'w').write(ret.text)
+            try:
+                js = json.loads( unescape(ret.content) )
+            except:
+                js = json.loads( unescape(ret.content).replace('\t', '') )
             for prd in js['products']:
                 brand = prd['brand_name']
                 listprice = prd['full_price'].replace('$', '').replace(',', '')

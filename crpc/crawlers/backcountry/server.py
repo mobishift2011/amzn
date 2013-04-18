@@ -81,10 +81,17 @@ class Server(object):
         for i in xrange(page):
             link = 'http://m.backcountry.com/store/group/ajax/get_results.html?cat={0}&offset={1}&subcat={2}'.format(cat, i, subcat)
             ret = req.get(link)
-            try:
-                js = json.loads( unescape(ret.content) )
-            except:
-                js = json.loads( unescape(ret.content).replace('\t', '') )
+#            try:
+            js = json.loads(ret.content.decode('utf-8', 'ignore'))
+#            except Exception as e:
+#                print e.message
+#                try:
+#                    js = unescape( json.loads(ret.content.replace('\t', '').decode('utf-8', 'ignore')) )
+#                except Exception as e:
+#                    print e.message,
+#                    print link
+#                    open('a.html','w').write(ret.content.decode('utf-8', 'ignore'))
+#                    exit()
             for prd in js['products']:
                 brand = prd['brand_name']
                 listprice = prd['full_price'].replace('$', '').replace(',', '')
@@ -92,7 +99,7 @@ class Server(object):
                     continue
                 price = prd['lowest_price'].replace('$', '').replace(',', '')
                 combine_url = prd['url']
-                title = prd['title']
+                title = unescape( prd['title'] )
                 key = combine_url.rsplit('/', 1)[-1]
 
                 is_new = is_updated = False
@@ -171,4 +178,4 @@ class Server(object):
 if __name__ == '__main__':
     ss = Server()
 #ss.crawl_category()
-    ss.crawl_listing('http://m.backcountry.com/mens-cycling-jerseys')
+    ss.crawl_listing('http://m.backcountry.com/womens-cycling-jerseys')

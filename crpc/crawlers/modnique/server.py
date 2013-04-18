@@ -287,8 +287,8 @@ class Server(object):
                 product.price = price
                 product.soldout = soldout
             else:
-                if product.soldout != True:
-                    product.soldout = True
+                if product.soldout != soldout:
+                    product.soldout = soldout
                     is_updated = True
                     product.update_history.update({ 'soldout': datetime.utcnow() })
                 if product.combine_url != link:

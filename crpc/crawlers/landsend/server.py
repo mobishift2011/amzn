@@ -12,6 +12,7 @@ from crawlers.common.stash import *
 from crawlers.common.events import common_saved, common_failed
 from models import Category, Product
 from deals.picks import Picker
+from powers.pipelines import parse_price
 import requests
 import lxml.html
 import traceback
@@ -27,27 +28,33 @@ header = {
     'User-Agent':'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.22 (KHTML, like Gecko) Chrome/25.0.1364.172 Safari/537.22'
 }
 HOST = 'http://%s' % header['Host']
+CANVAS_HOST = 'http://canvas.landsend.com'
 req = requests.Session(config=config, headers=header)
+THREHOLD_DISCOUNT = 0.5
 
 class Server(object):
-    def crawl_category(self, ctx='', **kwargs):
-        res = requests.get(HOST)
+    def crawl_canvas_category(self, ctx='', **kwargs):
+        url = CANVAS_HOST + '/canvas/'
+        res = requests.get(url)
         res.raise_for_status()
         tree = lxml.html.fromstring(res.content)
-        primary_cat_nodes = tree.cssselect('div.tab-navigation ul.departments li.first-level-item')
+        primary_cat_nodes = tree.cssselect('div#tab-navigation div.navigation-container ul.first-level-menu li')
 
         for primary_cat_node in primary_cat_nodes:
-            primary_cat = primary_cat_node.cssselect('h2 a')
+            sub_cat_nodes = primary_cat_node.cssselect('ul.second-level-menu > li > a')
+            if not sub_cat_nodes:
+                continue
+
+            primary_cat = primary_cat_node.cssselect('a span')
             if primary_cat:
                 primary_cat = primary_cat[0].text
             else:
                 continue
-
-            sub_cat_nodes = primary_cat_node.cssselect('ul.second-level-menu li.second-level-item a.second-level-link')
+            
             for sub_cat_node in sub_cat_nodes:
                 sub_cat = sub_cat_node.text
                 combine_url = sub_cat_node.get('href')
-                pattern = r'https?://{0}/([^?]+)\??'.format(header['Host'])
+                pattern = r'https?://.+\.landsend\.com/([^?]+)\??'
                 match = re.search(pattern, combine_url)
                 key = match.groups()[0].replace('/', '_') if match else None
 
@@ -75,6 +82,52 @@ class Server(object):
 
                 print category.key; print category.cats; print category.combine_url; print is_new; print is_updated; print
 
+    def crawl_category(self, ctx='', **kwargs):
+        self.crawl_canvas_category(ctx=ctx, **kwargs)
+        # res = requests.get(HOST)
+        # res.raise_for_status()
+        # tree = lxml.html.fromstring(res.content)
+        # primary_cat_nodes = tree.cssselect('div.tab-navigation ul.departments li.first-level-item')
+
+        # for primary_cat_node in primary_cat_nodes:
+        #     primary_cat = primary_cat_node.cssselect('h2 a')
+        #     if primary_cat:
+        #         primary_cat = primary_cat[0].text
+        #     else:
+        #         continue
+
+        #     sub_cat_nodes = primary_cat_node.cssselect('ul.second-level-menu li.second-level-item a.second-level-link')
+        #     for sub_cat_node in sub_cat_nodes:
+        #         sub_cat = sub_cat_node.text
+        #         combine_url = sub_cat_node.get('href')
+        #         pattern = r'https?://{0}/([^?]+)\??'.format(header['Host'])
+        #         match = re.search(pattern, combine_url)
+        #         key = match.groups()[0].replace('/', '_') if match else None
+
+        #         is_new = False; is_updated = False
+        #         category = Category.objects(key=key).first()
+
+        #         if not category:
+        #             is_new = True
+        #             category = Category(key=key)
+        #             category.is_leaf = True
+
+        #         if primary_cat and primary_cat not in category.cats:
+        #             category.cats.append(primary_cat)
+        #             is_updated = True
+
+        #         if combine_url and combine_url != category.combine_url:
+        #             category.combine_url = combine_url
+        #             is_updated = True
+
+        #         category.hit_time = datetime.utcnow()
+        #         category.save()
+
+        #         common_saved.send(sender=ctx, obj_type='Category', key=category.key, url=category.combine_url, \
+        #             is_new=is_new, is_updated=((not is_new) and is_updated) )
+
+        #         print category.key; print category.cats; print category.combine_url; print is_new; print is_updated; print
+
     def crawl_listing(self, url, ctx='', **kwargs):
         category = Category.objects(key=kwargs.get('key')).first()
         if not category:
@@ -85,7 +138,8 @@ class Server(object):
         res = requests.get(url)
         res.raise_for_status()
         tree = lxml.html.fromstring(res.content)
-        product_nodes = tree.cssselect('div#products ul li.product')
+        container_node = tree.cssselect('div#products')[0]
+        product_nodes = container_node.cssselect('ul li.product')
 
         for product_node in product_nodes:
             price_node = product_node.cssselect('div.product-price')
@@ -96,19 +150,27 @@ class Server(object):
             if price is None or listprice is None:
                 continue
 
+            favbuy_price = parse_price(price)
+            favbuy_listprice = parse_price(listprice)
+            if not favbuy_price or not favbuy_listprice:
+                continue
+            discount = 1.0 * favbuy_price / favbuy_listprice
+            if discount >= THREHOLD_DISCOUNT:
+                continue
+
             key = product_node.get('data-product-number')
             title_node = product_node.cssselect('.product-name a')
             if title_node:
                 title = title_node[0].text.strip() if title_node[0].text else title_node[0].text
                 href = title_node[0].get('href')
                 match = re.search(r'https?://.+', href)
-                combine_url = href if match else '{0}{1}'.format(HOST, href)
+                combine_url = href if match else '{0}{1}'.format(CANVAS_HOST, href)
 
             is_new = False; is_updated = False
             product = Product.objects(key=key).first()
             if not product:
                 is_new = True
-                product = Product(key=key)
+                product = Product(key=key, brand="Lands' End Canvas")
                 product.updated = False
                 product.event_type = False
 
@@ -142,9 +204,11 @@ class Server(object):
                 product.list_update_time = datetime.utcnow()
             
             # To pick the product which fit our needs, such as a certain discount, brand, dept etc.
-            selected = Picker(site='landsend').pick(product)
-            if not selected:
-                continue
+            # selected = Picker(site='landsend').pick(product)
+            # if not selected:
+            #     continue
+            product.favbuy_price = str(favbuy_price)
+            product.favbuy_listprice = str(favbuy_listprice)
 
             product.hit_time = datetime.utcnow()
             product.save()
@@ -152,7 +216,7 @@ class Server(object):
             common_saved.send(sender=ctx, obj_type='Product', key=product.key, url=product.combine_url, \
                 is_new=is_new, is_updated=((not is_new) and is_updated) )
 
-            # print product.brand; print product.title; print product.combine_url; print product.listprice, ' / ', product.price; print is_new; print is_updated; print
+            print product.brand; print product.title; print product.combine_url; print product.listprice, ' / ', product.price; print is_new; print is_updated; print
 
         # Go to the next page to keep on crawling.
         next_page = None
@@ -161,7 +225,7 @@ class Server(object):
         if page_node:
             href = page_node[0].get('href')
             match = re.search(r'https?://.+', href)
-            next_page = href if match else '{0}{1}'.format(HOST, href)
+            next_page = href if match else '{0}{1}'.format(CANVAS_HOST, href)
 
         if next_page:
             print next_page
@@ -207,8 +271,9 @@ class Server(object):
 
         p_nodes = info_node.cssselect('ul.noindent + p')
         for p_node in p_nodes:
-            if p_node.text:
-                list_info.append(p_node.text.strip())
+            extra_infos = p_node.xpath('.//text()')
+            for extra_info in extra_infos :
+                list_info.append(extra_info.strip())
 
         # update product
         is_new = False; is_updated = False; ready = False
@@ -244,13 +309,12 @@ if __name__ == '__main__':
     # server.run()
 
     s = Server()
-    # s.crawl_category()
+    s.crawl_category()
 
     categories = Category.objects()
     for category in categories:
         print category.combine_url
         s.crawl_listing(url=category.combine_url, **{'key': category.key})
-        break
 
     for product in Product.objects():
         print product.combine_url

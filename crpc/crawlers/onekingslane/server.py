@@ -478,10 +478,10 @@ class Server(object):
         :param url: porduct url need to crawl
         """
         product_id = url.split('/')[-1]
-        node = tree.cssselect('body > div#wrapper > div#okl-content > div#okl-product')[0]
-        vintage = node.cssselect('form#productOverview > dl.vintage')[0]
-        era = vintage.cssselect('dd:first-of-type')
-        condition = vintage.cssselect('dd:nth-of-type(2)')
+        node = tree.cssselect('div#wrapper div#okl-content')[0]
+#        vintage = node.cssselect('form#productOverview > dl.vintage')[0]
+#        era = vintage.cssselect('dd:first-of-type')
+#        condition = vintage.cssselect('dd:nth-of-type(2)')
         seller = node.cssselect('div#productDescription > div#okl-vmf-vendor')
         list_info = node.cssselect('div#productDetails > dl:first-of-type')[0].xpath('.//text()')
 
@@ -499,8 +499,8 @@ class Server(object):
             category_path.insert(0, 'home') # 'home > lighting > light'
             product.cats.append( ' > '.join(category_path) )
 
-        if era: product.era = era[0].text_content()
-        if condition: product.condition = condition[0].text_content()
+#        if era: product.era = era[0].text_content()
+#        if condition: product.condition = condition[0].text_content()
         img = node.cssselect('div#productDescription > div#altImages')
         if img:
             for i in img[0].cssselect('img.altImage'):
@@ -586,7 +586,7 @@ class Server(object):
         
 
 if __name__ == '__main__':
-    Server().crawl_listing('https://www.onekingslane.com/sales/21132')
+    Server().crawl_product('https://www.onekingslane.com/vintage-market-finds/product/1190018')
     server = zerorpc.Server(Server())
     server.bind("tcp://0.0.0.0:{0}".format(CRAWLER_PORT))
     server.run()

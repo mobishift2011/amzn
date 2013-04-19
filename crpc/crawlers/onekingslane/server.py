@@ -13,7 +13,6 @@ import sys
 import time
 import zerorpc
 import lxml.html
-import itertools
 import pytz
 
 from datetime import datetime, timedelta
@@ -122,7 +121,7 @@ class Server(object):
     def __init__(self):
         self.siteurl = 'https://www.onekingslane.com'
         self.upcoming_url = 'https://www.onekingslane.com/calendar'
-        self.category_url = 'https://www.onekingslane.com/vintage-market-finds'
+        self.category_url = 'https://www.onekingslane.com/vintage-market-finds/todaysarrivals'
         self.net = onekingslaneLogin()
         self.extract_eventid = re.compile('https://www.onekingslane.com/sales/(\d+)')
         self.extract_large_img = re.compile('(.*\?)\$.*\$')
@@ -157,7 +156,7 @@ class Server(object):
             l = node.cssselect('a[href]')[0].get('href')
             link = l if l.startswith('http') else self.siteurl + l
             event_id = self.extract_eventid.match(link).group(1)
-            img = node.cssselect('div.eventStatus > a > img[src]')[0].get('src')
+            img = node.cssselect('div.eventStatus img[src]')[0].get('src')
             image = self.extract_large_img.match(img).group(1) + '$mp_hero_standard$'
 
             event, is_new = Event.objects.get_or_create(event_id=event_id)
@@ -232,9 +231,8 @@ class Server(object):
         """
         cont = self.net.fetch_page(self.category_url)
         tree = lxml.html.fromstring(cont)
-        today = tree.cssselect('div#wrapper > div#okl-content > div#okl-vmf-landing-hd > ul > li.product > a.trackVmfProduct')
-        nodes = tree.cssselect('div#wrapper > div#okl-content > div#okl-vmf-landing-bd > ul > li > h4 > a')
-        for node in itertools.chain(today, nodes):
+        today = tree.cssselect('div#wrapper div#okl-content div#okl-vmf-category-carousel-hd div.carousel-container ul li a')
+        for node in today:
             link = node.get('href')
             dept = node.text_content()
             if not dept: dept = link.split('/')[-1]

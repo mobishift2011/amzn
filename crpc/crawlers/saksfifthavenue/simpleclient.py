@@ -21,7 +21,7 @@ api = slumber.API(MASTIFF_HOST)
 def offsale_update(product):
     utcnow = datetime.utcnow()
     if product.muri:
-        api.product(product.muri.split("/")[-2]).patch({'ends_at': utcnow.isoformat()});
+        api.product(product.muri.split("/")[-2]).patch({'ends_at': utcnow.isoformat()})
     product.products_end = utcnow
     product.save()
 
@@ -30,37 +30,31 @@ class CheckServer(object):
         pass
 
     def check_onsale_product(self, id, url):
-        print url
         product = Product.objects(key=id).first()
 
         if product is None:
-            print '\n\n6pm has no product -> {0}, {1}\n\n'.format(id, url)
+            print '\n\nsaksfifthavenue has no product -> {0}, {1}\n\n'.format(id, url)
             return
 
-        request_count = 1
-        while True:
-            res = requests.get(product.combine_url, params={'zfcTest': 'mat:1'})
-            if res.status_code == 404:
-                if request_count < 4:
-                    request_count += 1 
-                    continue
-                print '404 not found -> %s' % product.combine_url
-                offsale_update(product)
-                print 'product {0} is unavailable now, muri: {1} -> {2}'.format(product.key, product.muri, product.combine_url)
-                return
-            else:
-                res.raise_for_status()
-            tree = lxml.html.fromstring(res.content)
-            break
+        res = requests.get(product.combine_url)
+        res.raise_for_status()
+        tree = lxml.html.fromstring(res.content)
 
-        if tree.cssselect('div.searchNone'):
+        product_node = tree.cssselect('div.pdp-item-container')
+        if not product_node:
             offsale_update(product)
             print 'product {0} is unavailable now, muri: {1} -> {2}'.format(product.key, product.muri, product.combine_url)
             return
 
-        price_node = tree.cssselect('div#theater div#productForm form#prForm ul li#priceSlot')[0]
-        listprice = price_node.cssselect('.oldPrice')[0].text.strip()
-        price = price_node.cssselect('.price')[0].text.strip()
+        listprice_node = product_node[0].cssselect('.product-price')
+        listprice = listprice_node[0].text if listprice_node else None
+        price_node = product_node[0].cssselect('.product-sale-price')
+        price = price_node[0].text if price_node else None
+
+        if not price or not listprice:
+            offsale_update(product)
+            print 'product {0} is unavailable for the price, muri: {1} -> {2}'.format(product.key, product.muri, product.combine_url)
+            return
 
         # update product
         if price and price != product.price:
@@ -70,7 +64,7 @@ class CheckServer(object):
             product.listprice = listprice
 
         # To pick the product which fit our needs, such as a certain discount, brand, dept etc.
-        selected = Picker(site='6pm').pick(product)
+        selected = Picker(site='saksfifthavenue').pick(product)
         if not selected:
             offsale_update(product)
             print 'product {0} is not selected now, muri: {1} -> {2}'.format(product.key, product.muri, product.combine_url)

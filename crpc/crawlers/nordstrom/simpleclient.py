@@ -7,6 +7,7 @@ import gevent
 from settings import MASTIFF_HOST
 from crawlers.common.stash import *
 from models import Category, Product
+from deals.picks import Picker
 from mongoengine import Q
 import slumber
 import requests
@@ -19,7 +20,8 @@ api = slumber.API(MASTIFF_HOST)
 
 def offsale_update(product):
     utcnow = datetime.utcnow()
-    print api.product(product.muri.split("/")[-2]).patch({'ends_at': utcnow.isoformat()}); print
+    if product.muri:
+        api.product(product.muri.split("/")[-2]).patch({'ends_at': utcnow.isoformat()})
     product.products_end = utcnow
     product.save()
 
@@ -40,6 +42,36 @@ class CheckServer(object):
 
         if tree.cssselect('div#unavailableStyleMessage'):
             offsale_update(product)
+            print 'product {0} is unavailable now, muri: {1} -> {2}'.format(product.key, product.muri, product.combine_url)
+            return
+
+        listprice = None; price = None
+        price_nodes = tree.cssselect('div#itemNumberPrice ul.itemNumberPriceRow li.price span.price')
+        for price_node in price_nodes:
+            if 'regular' in price_node.get('class'):
+                listprice = price_node.text.strip()
+            if 'sale' in price_node.get('class'):
+                price = price_node.text.strip()
+
+        # update product
+        if price and price != product.price:
+            product.price = price
+
+        if listprice and listprice != product.listprice:
+            product.listprice = listprice
+
+        # To pick the product which fit our needs, such as a certain discount, brand, dept etc.
+        selected = Picker(site='nordstrom').pick(product)
+        if not selected:
+            offsale_update(product)
+            print 'product {0} is not selected now, muri: {1} -> {2}'.format(product.key, product.muri, product.combine_url)
+            return
+
+        update_history = product.update_history or {}
+        if product.publish_time and ((update_history.get('favbuy_price') and update_history.get('favbuy_price') > product.publish_time)
+            or (update_history.get('favbuy_listprice') and update_history.get('favbuy_listprice') > product.publish_time)): 
+            product.save()
+            print 'product {0} price changed, muri: {1} -> {2}'.format(product.key, product.muri, product.combine_url)
 
 
     def check_offsale_product(self, id, url):

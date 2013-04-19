@@ -77,7 +77,6 @@ def spout_images(site, doctype):
             'site': site,
             'doctype': doctype,
             docparam['key']: getattr(instance, docparam['key']),
-            'image_urls': instance.image_urls,
         }
 
 
@@ -159,14 +158,12 @@ def crawl_images(site, doctype, key, *args, **kwargs):
         if event and not event.image_complete:
             newargs.__setitem__('site', site)
             newargs.__setitem__('event_id', event.event_id)
-            newargs.__setitem__('image_urls', event.image_urls)
             newargs.__setitem__('doctype', 'event')
     elif model == 'Product':
         product = m.Product.objects.get(key=key)
         if product and not product.image_complete:
             newargs.__setitem__('site', site)
             newargs.__setitem__('key', product.key)
-            newargs.__setitem__('image_urls', product.image_urls)
             newargs.__setitem__('doctype', 'product')
 
     if newargs:

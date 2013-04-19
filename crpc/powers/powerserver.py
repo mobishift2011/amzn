@@ -15,6 +15,7 @@ from crawlers.common.stash import picked_crawlers
 from os import listdir
 from os.path import join, isdir
 from datetime import datetime
+import time
 
 from helpers.log import getlogger
 logger = getlogger('powerserver', filename='/tmp/powerserver.log')
@@ -37,7 +38,7 @@ class PowerServer(object):
         logger.debug('Image Server Accept -> {0} {1}'.format(args, kwargs))
         return self._process_image(*args, **kwargs)
     
-    def _process_image(self, site, doctype, image_urls,  **kwargs):
+    def _process_image(self, site, doctype,  **kwargs):
         """ doctype is either ``event`` or ``product`` """
         key = kwargs.get('event_id', kwargs.get('key'))
         model = doctype.capitalize()
@@ -55,8 +56,10 @@ class PowerServer(object):
         if instance and ( instance.image_complete == False or update_flag):
             logger.info('To crawl image of {0}'.format(sender))
             it = ImageTool(connection=self.__s3conn)
+            pict_timeline = int(time.mktime(instance.update_history['image_urls'].timetuple())) \
+                if instance.update_history and instance.update_history.get('image_urls') else 0
             try:
-                it.crawl(image_urls, site, model, key, thumb=True)
+                it.crawl(instance.image_urls, site, model, key, pict_timeline, thumb=True)
             except Exception, e:
                 logger.error('crawling image of {0} exception: {1}'.format(sender, str(e)))
                 return

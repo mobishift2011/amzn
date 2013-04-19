@@ -127,7 +127,9 @@ def offsale_schedule():
     checkout('totsy', 'check_onsale_product', rpc)
 
     checkout('nordstrom', 'check_onsale_product', rpc)
-    # checkout('6pm', 'check_onsale_product', rpc)
+    checkout('6pm', 'check_onsale_product', rpc)
+    checkout('ashford', 'check_onsale_product', rpc)
+    checkout('saksfifthavenue', 'check_onsale_product', rpc)
 
 def control():
     log_file = '/tmp/onoff_sale.log'

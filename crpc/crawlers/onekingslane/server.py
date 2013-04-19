@@ -236,7 +236,7 @@ class Server(object):
             link = node.get('href')
             dept = node.text_content()
             if not dept: dept = link.split('/')[-1]
-            category_key = re.compile(r'.*/vintage-market-finds/(.*)').match(link).group(1)
+            category_key = re.compile(r'.*/vintage-market-finds/(.*)\?').match(link).group(1)
 
             is_new, is_updated = False, False
             category = Category.objects(key=category_key).first()
@@ -290,7 +290,7 @@ class Server(object):
 
         if not category.sale_description:
             category.sale_description = tree.cssselect('div#wrapper > div#okl-content > div#okl-vmf-category-carousel-hd > h3+p')[0].text_content()
-        items = tree.cssselect('div#wrapper > div#okl-content > div#okl-vmf-product-list > ul.products > li.trackVmfProduct')
+        items = tree.cssselect('div#wrapper > div#okl-content > div#okl-vmf-product-list > ul.products > li[id^="productId_"]')
         category.num = len(items)
 
         if category_key == 'todaysarrivals':
@@ -361,8 +361,8 @@ class Server(object):
 
         :param tree: listing page url's lxml tree
         """
-        path = tree.cssselect('div#wrapper > div#okl-content > div.sales-event')[0]
-        items = path.cssselect('div#okl-product > ul.products > li[id^="product-tile-"]')
+        path = tree.cssselect('div#okl-content > div.sales-event')[0]
+        items = tree.cssselect('div#okl-product ul.products > li[id^="product-tile-"]')
         event_id = self.extract_eventid.match(url).group(1)
         event, is_new = Event.objects.get_or_create(event_id=event_id)
         if not event.sale_description:
@@ -586,6 +586,7 @@ class Server(object):
         
 
 if __name__ == '__main__':
+    Server().crawl_listing('https://www.onekingslane.com/sales/21132')
     server = zerorpc.Server(Server())
     server.bind("tcp://0.0.0.0:{0}".format(CRAWLER_PORT))
     server.run()

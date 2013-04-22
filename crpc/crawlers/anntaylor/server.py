@@ -107,7 +107,7 @@ class Server(object):
 
             selected = Picker(site=DB).pick(product)
             if not selected:
-                return
+                continue
 
             if category_key not in product.category_key:
                 product.category_key.append(category_key)

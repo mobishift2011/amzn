@@ -70,13 +70,13 @@ class Server(object):
             title = desc.cssselect('div.messaging')[0].text_content().strip()
             off_sale = desc.cssselect('div.messaging p.POS')
             off_sale = off_sale[0].text_content().strip() if off_sale else ''
-            title = title.replace(off_sale, '')
+            title = title.replace(off_sale, '').strip()
 
             if not off_sale and price == listprice:
                 continue
             discount = re.compile('[^\d]*(\d+)%').match(off_sale)
             discount = float( discount.group(1) ) if discount else 0
-            price = (100.0 -  discount) / 100.0 * price
+            price = (100 -  discount) / 100.0 * float(price)
 
             link = re.compile('([^\?]+)').match(link).group(1)
             key = link.rsplit('/', 1)[-1]
@@ -92,8 +92,8 @@ class Server(object):
                 product.title = title
                 is_updated = True
                 product.update_history.update({ 'title': datetime.utcnow() })
-            if price != product.price:
-                product.price = price
+            if str(price) != product.price:
+                product.price = str(price)
                 is_updated = True
                 product.update_history.update({ 'price': datetime.utcnow() })
             if listprice != product.listprice:
@@ -164,4 +164,4 @@ class Server(object):
 
 if __name__ == '__main__':
     ss = Server()
-    ss.crawl_listing('http://www.anntaylor.com/ann/sale/AT-Sale-Dresses/cata000047')
+    ss.crawl_listing('http://www.anntaylor.com/ann/cat/AT-Weddings-Events/AT-Cocktail-Dresses/cata000036')

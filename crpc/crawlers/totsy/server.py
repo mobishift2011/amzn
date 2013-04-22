@@ -224,7 +224,10 @@ class Server(object):
         if kwargs.get('login_email'): self.net.check_signin( kwargs.get('login_email') )
         else: self.net.check_signin()
 
-        event_id = self.extract_event_id.match(url).group(1)
+        if 'view/id' in url:
+            event_id = re.compile('.*catalog/category/view/id/(\d+)').match(url).group(1)
+        else:
+            event_id = self.extract_event_id.match(url).group(1)
         ret = self.net.fetch_listing_page(url, event_id)
         if isinstance(ret, tuple):
             self.crawl_event_is_product(event_id, ret[0], ret[1], ret[2], ctx)

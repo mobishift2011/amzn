@@ -144,7 +144,11 @@ class Server(object):
         profileid = re.compile('.*profileId=(\d+)&').match(image).group(1)
         image_urls = []
         image = 'http://richmedia.channeladvisor.com/ViewerDelivery/productXmlService?profileid={0}&itemid={1}'.format(profileid, key)
-        t = lxml.html.fromstring( requests.get(image).content )
+        try:
+            img = requests.get(image)
+            t = lxml.html.fromstring(img.content)
+        except:
+            common_failed.send(sender=ctx, key=img.status_code, url=image, reason=img.content)
         for img in t.xpath('//image[@type="source"]'):
             image_urls.append( img.get('path') )
 

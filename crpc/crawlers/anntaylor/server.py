@@ -142,7 +142,6 @@ class Server(object):
         for img in t.xpath('//image[@type="source"]'):
             image_urls.append( img.get('path') )
 
-        print image_urls
         is_new = is_updated = False
         product = Product.objects(key=key).first()
         if not product:

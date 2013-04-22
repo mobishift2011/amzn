@@ -54,7 +54,7 @@ class Server(object):
         self.crawl_listing_page(url, 1, ctx)
 
 
-    def crawl_listing_page(self, url, page_num=1, ctx):
+    def crawl_listing_page(self, url, page_num, ctx):
         category_key = url.rsplit('/', 1)[-1]
         ret = requests.get(url + '?gridSize=sm&goToPage={0}'.format(page_num))
         tree = lxml.html.fromstring(ret.content)

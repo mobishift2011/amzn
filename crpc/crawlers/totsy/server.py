@@ -132,7 +132,10 @@ class Server(object):
             parse every event node
         """
         link = node.cssselect('a.thumbnail')[0].get('href')
-        event_id = self.extract_event_id.match(link).group(1)
+        if 'view/id' in link:
+            event_id = re.compile('.*catalog/category/view/id/(\d+)').match(link).group(1)
+        else:
+            event_id = self.extract_event_id.match(link).group(1)
         sale_title = node.cssselect('a.thumbnail > span.event-link > img')[0].get('alt').strip()
         nav = node.cssselect('a.thumbnail > div.more > div.more-content > section.container > h6')
         dept, ages = [], []
@@ -425,7 +428,4 @@ class Server(object):
 
 if __name__ == '__main__':
     ss = Server()
-    ss.crawl_listing('http://www.totsy.com/sales/calvin-klein-kids-pjs-undies-8685.html')
-    exit()
     ss.crawl_category()
-#    Server().crawl_product('http://www.totsy.com/sales/last-chance-youth-footwear/girls-burlap-slip-on.html')

@@ -65,7 +65,7 @@ class Server(object):
             desc = node.cssselect('div.overlay div.fg div.description')[0]
             price = desc.cssselect('div.price p.sale')[0].text_content().replace('$', '').replace(',', '').strip()
             listprice = desc.cssselect('div.price p.was')
-            listprice = listprice[0].text_content().replace('was', '').replace('$', '').replace(',', '').strip() if listprice else price
+            listprice = listprice[0].text_content().replace('was', '').replace('Was', '').replace('$', '').replace(',', '').strip() if listprice else price
 
             title = desc.cssselect('div.messaging')[0].text_content().strip()
             off_sale = desc.cssselect('div.messaging p.POS')
@@ -164,4 +164,4 @@ class Server(object):
 
 if __name__ == '__main__':
     ss = Server()
-    ss.crawl_product('http://www.anntaylor.com/ann/product/ANN-Must-Have-Outfits/AAP1004M/Diagonal-Stripe-Camp-Shirt/299323')
+    ss.crawl_listing('http://www.anntaylor.com/ann/sale/AT-Sale-Dresses/cata000047')

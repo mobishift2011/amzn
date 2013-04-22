@@ -127,6 +127,9 @@ class Server(object):
 
     def crawl_product(self, url, ctx='', **kwargs):
         ret = requests.get(url)
+        if not ret.ok:
+            common_failed.send(sender=ctx, key='', url=url, reason='download error return: {0}'.format(ret.status_code))
+            return
         tree = lxml.html.fromstring(ret.content)
         node = tree.cssselect('div#main-bd-inner div.grid div.info-product div.g-productInfo')[0]
         summary = node.cssselect('div.description')[0].text_content().strip()
@@ -164,4 +167,4 @@ class Server(object):
 
 if __name__ == '__main__':
     ss = Server()
-    ss.crawl_listing('http://www.anntaylor.com/ann/cat/AT-Weddings-Events/AT-Cocktail-Dresses/cata000036')
+    ss.crawl_product('http://www.anntaylor.com/ann/product/AT-Petites/AT-Petite-Skirts/Petite-Madison-Skirt/303437')

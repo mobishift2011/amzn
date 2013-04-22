@@ -8,7 +8,7 @@ import lxml.html
 from datetime import datetime
 
 from models import *
-from crawlers.common.events import common_saved
+from crawlers.common.events import common_saved, common_failed
 from deals.picks import Picker
 
 class Server(object):

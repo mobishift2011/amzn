@@ -492,8 +492,33 @@ class Server(object):
             image_urls.append( img.get('src').replace('small', 'large') )
         return list_info, summary, shipping, returned, image_urls
 
+    def check(self):
+        count = 0
+        old = ''
+        content = self.net.fetch_page('http://www.beyondtherack.com/event/calendar')
+        tree = lxml.html.fromstring(content)
+        upcoming_data = json.loads( re.compile('var event_data *= *({.*});').search(content).group(1) )
+        upcomings = tree.cssselect('div.pageframe table.upcomingEvents > tbody > tr > td.data-row > div.item')
+        for up in upcomings:
+            event_id = up.get('data-event')
+            sale_title = up.text_content().strip()
+            if event_id == '34271':
+                image_urls = upcoming_data[event_id]['images'].values()
+                image = image_urls[0]
+                if image != old:
+                    old = image
+                    open('{0}.jpg'.format(count), 'w').write(requests.get(old).content)
+                    open('a.log', 'a').write('{0}   {1}   {2}'.format(old, count, datetime.utcnow() ))
+                    count += 1
+
 
 if __name__ == '__main__':
+    ss = Server()
+    import time
+    while True:
+        ss.check()
+        time.sleep(500)
+    exit()
     import zerorpc
     from settings import CRAWLER_PORT
     server = zerorpc.Server(Server())

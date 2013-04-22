@@ -56,7 +56,7 @@ class Server(object):
 
     def crawl_listing_page(self, url, page_num, ctx):
         category_key = url.rsplit('/', 1)[-1]
-        ret = requests.get(url + '?gridSize=sm&goToPage={0}'.format(page_num))
+        ret = requests.get(url)
         tree = lxml.html.fromstring(ret.content)
         for node in tree.cssselect('div#main-bd-inner div.products div.grid div.gu div.product'):
             link = node.cssselect('div.overlay a.clickthrough')[0].get('href')
@@ -118,10 +118,13 @@ class Server(object):
             common_saved.send(sender=ctx, obj_type='Product', key=product.key, url=product.combine_url,
                     is_new=is_new, is_updated=((not is_new) and is_updated) )
 
-        if tree.cssselect('div#ProductToolbarTemplate ul.tools li.paginateGrid ol.pages a.next'):
+        next_url = tree.cssselect('div#ProductToolbarTemplate ul.tools li.paginateGrid ol.pages a.next')
+        if next_url:
             if page_num > 20:
                 return
-            self.crawl_listing_page(url, page_num+1, ctx)
+            next_url = next_url[0].get('href')
+            next_url = next_url if next_url.startswith('http') else self.siteurl + next_url
+            self.crawl_listing_page(next_url, page_num+1, ctx)
        
 
 
@@ -167,4 +170,4 @@ class Server(object):
 
 if __name__ == '__main__':
     ss = Server()
-    ss.crawl_product('http://www.anntaylor.com/ann/product/AT-Petites/AT-Petite-Skirts/Petite-Madison-Skirt/303437')
+    ss.crawl_listing('http://www.anntaylor.com/ann/cat/AT-Apparel/AT-Sweaters/cata000011')

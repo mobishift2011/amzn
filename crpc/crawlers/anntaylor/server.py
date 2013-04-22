@@ -121,7 +121,7 @@ class Server(object):
         if tree.cssselect('div#ProductToolbarTemplate ul.tools li.paginateGrid ol.pages a.next'):
             if page_num > 20:
                 return
-            self.crawl_listing_page(url, page_num+1)
+            self.crawl_listing_page(url, page_num+1, ctx)
        
 
 

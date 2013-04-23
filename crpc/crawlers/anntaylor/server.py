@@ -61,6 +61,7 @@ class Server(object):
         for node in tree.cssselect('div#main-bd-inner div.products div.grid div.gu div.product'):
             link = node.cssselect('div.overlay a.clickthrough')[0].get('href')
             link = link if link.startswith('http') else self.siteurl + link
+            link = link.split(';jsessionid=')[0]
 
             desc = node.cssselect('div.overlay div.fg div.description')[0]
             price = desc.cssselect('div.price p.sale')[0].text_content().replace('$', '').replace(',', '').strip()
@@ -80,7 +81,6 @@ class Server(object):
 
             link = re.compile('([^\?]+)').match(link).group(1)
             key = link.rsplit('/', 1)[-1]
-            key = key.split(';')[0]
             is_new = is_updated = False
             product = Product.objects(key=key).first()
             if not product:
@@ -135,6 +135,9 @@ class Server(object):
             common_failed.send(sender=ctx, key='', url=url, reason='download error return: {0}'.format(ret.status_code))
             return
         tree = lxml.html.fromstring(ret.content)
+        if not tree.cssselect('div.paginateDetail'):
+            common_failed.send(sender=ctx, key='', url=url, reason='page error, no content')
+            return
         node = tree.cssselect('div#main-bd-inner div.grid div.info-product div.g-productInfo')[0]
         summary = node.cssselect('div.description')[0].text_content().strip()
         list_info = node.xpath('.//div[@class="details"]//text()')
@@ -148,10 +151,10 @@ class Server(object):
         try:
             img = requests.get(image)
             t = lxml.html.fromstring(img.content)
+            for img in t.xpath('//image[@type="source"]'):
+                image_urls.append( img.get('path') )
         except:
             common_failed.send(sender=ctx, key=img.status_code, url=image, reason=img.content)
-        for img in t.xpath('//image[@type="source"]'):
-            image_urls.append( img.get('path') )
 
         is_new = is_updated = False
         product = Product.objects(key=key).first()

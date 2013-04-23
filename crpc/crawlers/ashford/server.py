@@ -171,6 +171,9 @@ class Server(object):
 
             product.hit_time = datetime.utcnow()
             product.save()
+            
+            common_saved.send(sender=ctx, obj_type='Product', key=product.key, url=product.combine_url, \
+                is_new=is_new, is_updated=((not is_new) and is_updated), ready=(product.ready if hasattr(product, 'ready') else False))
 
         # Go to the next page to keep on crawling.
         # next_link_node = tree.cssselect('div.atg_store_filter ul.atg_store_pager li.nextLink')
@@ -268,8 +271,7 @@ class Server(object):
             product.updated = True
             product.full_update_time = datetime.utcnow()
 
-        common_saved.send(sender=ctx, obj_type='Product', key=product.key, url=product.combine_url, \
-            is_new=is_new, is_updated=((not is_new) and is_updated), ready=ready)
+        product.ready = ready
 
         return True
 

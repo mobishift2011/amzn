@@ -67,7 +67,7 @@ class ProductPipeline(object):
         # This filter changes all title words to Title Caps,
         # and attempts to be clever about uncapitalizing SMALL words like a/an/the in the input.
         if product.title:
-            product.title = titlecase(product.title)
+            product.title = titlecase(re.sub("&#?\w+;", " ", product.title))
 
         # Clean the html tag.
         pattern = r'<[^>]*>'

@@ -9,7 +9,7 @@ from datetime import datetime
 
 from models import *
 from crawlers.common.events import common_saved, common_failed
-DISCOUNT = 0.5
+DISCOUNT = 0.4
 
 class Server(object):
     def __init__(self):

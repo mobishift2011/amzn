@@ -249,9 +249,16 @@ class Server(object):
             event, is_new, is_updated = self.get_or_create_event(event_id)
 
             if dept not in event.dept: event.dept.append(dept)
+
             if image_url not in event.image_urls:
                 event.image_urls.insert(0, image_url)
                 event.update_history.update({ 'image_urls': datetime.utcnow() })
+
+            if not event.update_history.image_urls:
+                event.update_history.update({ 'image_urls': datetime.utcnow() })
+            elif event.events_begin > datetime.utcnow() and event.events_begin > event.update_history.image_urls:
+                event.update_history.update({ 'image_urls': datetime.utcnow() })
+
             event.update_time = datetime.utcnow()
             event.save()
             common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
@@ -492,9 +499,8 @@ class Server(object):
             image_urls.append( img.get('src').replace('small', 'large') )
         return list_info, summary, shipping, returned, image_urls
 
-    def check(self):
+    def check(self, old):
         count = 0
-        old = ''
         content = self.net.fetch_page('http://www.beyondtherack.com/event/calendar')
         tree = lxml.html.fromstring(content)
         upcoming_data = json.loads( re.compile('var event_data *= *({.*});').search(content).group(1) )
@@ -508,15 +514,18 @@ class Server(object):
                 if image != old:
                     old = image
                     open('{0}.jpg'.format(count), 'w').write(requests.get(old).content)
-                    open('a.log', 'a').write('{0}   {1}   {2}'.format(old, count, datetime.utcnow() ))
+                    open('a.log', 'a').write('{0}   {1}   {2}\n'.format(old, count, datetime.utcnow() ))
                     count += 1
+                    return old
+        return old
 
 
 if __name__ == '__main__':
     ss = Server()
     import time
+    image = ''
     while True:
-        ss.check()
+        image = ss.check(image)
         time.sleep(500)
     exit()
     import zerorpc

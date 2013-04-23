@@ -165,7 +165,10 @@ class Server(object):
             parse every upcoming event node
         """
         link = node.cssselect('div.thumbnail > a.event-link')[0].get('href')
-        event_id = self.extract_event_id.match(link).group(1)
+        if 'view/id' in link:
+            event_id = re.compile('.*catalog/category/view/id/(\d+)').match(link).group(1)
+        else:
+            event_id = self.extract_event_id.match(link).group(1)
         sale_title = node.cssselect('div.thumbnail > hgroup a')[0].text_content()
         text = node.cssselect('div.thumbnail p.counter')[0].get('data-enddate')# 'December 23, 2012, 8:00:00' the timezone when you regist
         _begin = time_convert_std(text, '%B %d, %Y, %X', 'ET')

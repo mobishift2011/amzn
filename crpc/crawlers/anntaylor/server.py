@@ -80,6 +80,7 @@ class Server(object):
 
             link = re.compile('([^\?]+)').match(link).group(1)
             key = link.rsplit('/', 1)[-1]
+            key = key.split(';')[0]
             is_new = is_updated = False
             product = Product.objects(key=key).first()
             if not product:

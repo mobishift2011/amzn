@@ -9,7 +9,7 @@ from datetime import datetime
 
 from models import *
 from crawlers.common.events import common_saved, common_failed
-from deals.picks import Picker
+DISCOUNT = 0.5
 
 class Server(object):
     def __init__(self):
@@ -79,13 +79,16 @@ class Server(object):
             discount = float( discount.group(1) ) if discount else 0
             price = (100 -  discount) / 100.0 * float(price)
 
+            if price / float(listprice) > DISCOUNT:
+                continue
+
             link = re.compile('([^\?]+)').match(link).group(1)
             key = link.rsplit('/', 1)[-1]
             is_new = is_updated = False
             product = Product.objects(key=key).first()
             if not product:
                 is_new = True
-                product = Product(key=key)
+                product = Product(key=key, brand="ann taylor")
                 product.event_type = False
                 product.updated = False
 
@@ -105,10 +108,6 @@ class Server(object):
                 product.combine_url = link
                 is_updated = True
                 product.update_history.update({ 'combine_url': datetime.utcnow() })
-
-            selected = Picker(site=DB).pick(product)
-            if not selected:
-                continue
 
             if category_key not in product.category_key:
                 product.category_key.append(category_key)
@@ -160,7 +159,7 @@ class Server(object):
         product = Product.objects(key=key).first()
         if not product:
             is_new = True
-            product = Product(key=key)
+            product = Product(key=key, brand="ann taylor")
             product.event_type = False
 
         product.summary = summary

@@ -193,6 +193,9 @@ class Server(object):
         tree = lxml.html.fromstring(res.content)
 
         title = tree.cssselect('div#product_info h1')[0].xpath('.//text()')[-1].strip()
+        if title:
+            title = re.sub(u'\xa0', ' ', title)
+
         if title and not product.title:
             product.title = title
             is_updated = True
@@ -247,10 +250,6 @@ class Server(object):
         # # returned = '\n'.join(info_node.cssselect('div#prod_5')[0].xpath('.//text()'))
         # update product
         ready = False
-
-        if title and not product.title:
-            product.title = title
-            is_updated = True
 
         if shipping and shipping != product.shipping:
             product.shipping = shipping

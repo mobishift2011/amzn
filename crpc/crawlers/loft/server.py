@@ -31,7 +31,7 @@ header = {
 HOST = 'http://%s' % header['Host']
 req = requests.Session(config=config, headers=header)
 
-THREHOLD_DISCOUNT = 1.0
+THREHOLD_DISCOUNT = 0.5
 
 class Server(object):
     def crawl_category(self, ctx='', **kwargs):

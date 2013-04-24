@@ -133,8 +133,8 @@ IMAGE_SIZE = {
             'thumbnail-policy': 'crop'
 		},
 		{
-			'width': 548,
-			'height': 320,
+			'width': 320,
+			'height': 548,
             'background-color': '#e5e5e5',
             'thumbnail-policy': 'crop'
 		},

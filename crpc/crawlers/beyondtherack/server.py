@@ -256,7 +256,10 @@ class Server(object):
 
             if 'image_urls' not in event.update_history.keys():
                 event.update_history.update({ 'image_urls': datetime.utcnow() })
-            elif event.events_begin > datetime.utcnow() and event.events_begin > event.update_history['image_urls']:
+            elif not event.events_begin:
+                event.events_begin = datetime.utcnow()
+                event.update_history.update({ 'image_urls': datetime.utcnow() })
+            elif event.events_begin < datetime.utcnow() and event.events_begin > event.update_history['image_urls']:
                 event.update_history.update({ 'image_urls': datetime.utcnow() })
 
             event.update_time = datetime.utcnow()

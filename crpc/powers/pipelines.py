@@ -372,6 +372,21 @@ class EventPipeline(object):
 
         return updated
 
+    def clear_discount(self):
+        updated = False
+
+        if self.event.highest_discount:
+            self.event.highest_discount = None
+            self.event.update_history['highest_discount'] = datetime.utcnow()
+            updated = True
+
+        if self.event.lowest_discount:
+            self.event.lowest_discount = None
+            self.event.update_history['lowest_discount'] = datetime.utcnow()
+            updated = True
+
+        return updated
+
     def propagate(self, products=[]):
         """
         * Data structure for event title.

@@ -13,7 +13,7 @@ from models import *
 
 
 siteurl = 'http://slickdeals.net'
-pool = Pool(50)
+pool = Pool(10)
 
 def crawl_several_month():
     tree = crawl_deals()

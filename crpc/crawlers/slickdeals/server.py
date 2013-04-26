@@ -68,8 +68,14 @@ def find_original_url(url):
     ret = requests.get(url)
     tree = lxml.html.fromstring(ret.content)
     link = tree.cssselect('div#maincontent div.content div.pd_img a.buynow')[0].get('href')
-    original_url = requests.get(link).url
-    print original_url 
+    jump = requests.get(link)
+    if jump.url == link:
+        t = lxml.html.fromstring(jump.content)
+        original_url = t.cssselect('a[href]')[0].get('href')
+    else:
+        original_url = jump.url
+
+    print original_url
     if 'www.eastbay.com' in original_url and 'linkshare' in original_url:
         original_url = re.compile('.*url=(.*)$').match(original_url).group(1)
         original_url = urllib.unquote(original_url)

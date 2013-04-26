@@ -27,6 +27,9 @@ def get_site_module(site):
         for crawler in picked_crawlers:
             get_site_module.mod[crawler] = __import__('crawlers.'+ crawler +'.models', fromlist=['Category', 'Event', 'Product'])
     
+    if site not in get_site_module.mod:
+        get_site_module.mod[site] = __import__('crawlers.'+ site +'.models', fromlist=['Category', 'Event', 'Product'])
+    
     return get_site_module.mod[site]
 
 
@@ -128,14 +131,6 @@ def spout_propagate_events(site, complete=False):
 def scan_images(site, doctype, concurrency=3):
     """ If one site is already been scanning, not scan it this time
     """
-    if not hasattr(scan_images, 'run_flag'):
-        setattr(scan_images, 'run_flag', {})
-
-    if site in scan_images.run_flag and scan_images.run_flag[site] == True:
-        return
-    elif site not in scan_images.run_flag or scan_images.run_flag[site] == False:
-        scan_images.run_flag[site] = True
-
     try:
         rpcs = get_rpcs(POWER_PEERS)
         pool = Pool(len(rpcs)*concurrency)
@@ -145,8 +140,6 @@ def scan_images(site, doctype, concurrency=3):
         pool.join()
     except Exception as e:
         logger.error('scan images {0}.{1} error: {2}'.format(site, doctype, traceback.format_exc()))
-    finally:
-        scan_images.run_flag[site] = False
 
 
 def crawl_images(site, doctype, key, *args, **kwargs):

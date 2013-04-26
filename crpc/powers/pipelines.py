@@ -176,22 +176,7 @@ class ProductPipeline(object):
             product.favbuy_listprice = str(listprice)
             product.update_history['favbuy_listprice'] = datetime.utcnow()
             is_updated = True
-        # if not product.favbuy_price or not float(product.favbuy_price) \
-        #     or ( update_history.get('favbuy_price') and update_history.get('price') \
-        #         and update_history.get('favbuy_price') < update_history.get('price') ):
-        #     favbuy_price = parse_price(product.price)
-        #     product.favbuy_price = str(favbuy_price)
-        #     product.update_history['favbuy_price'] = datetime.utcnow()
-
-        # if not product.favbuy_listprice or not float(product.favbuy_listprice) \
-        #     or ( update_history.get('favbuy_listprice') and update_history.get('listprice') \
-        #         and update_history.get('favbuy_listprice') < update_history.get('listprice') ):
-        #     listprice = parse_price(product.listprice) or product.favbuy_price
-        #     product.favbuy_listprice = str(listprice)
-        #     product.update_history['favbuy_listprice'] = datetime.utcnow()
-
-        logger.debug('product price extract {0}/{1} -> {2}/{3}'.format( \
-            product.price, product.listprice, product.favbuy_price, product.favbuy_listprice))
+        
         return is_updated
     
     def extract_url(self):

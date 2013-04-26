@@ -7,6 +7,7 @@ import urllib
 import lxml.html
 import requests
 from gevent.pool import Pool
+from collections import Counter
 
 from models import *
 
@@ -37,8 +38,8 @@ def crawl_deals():
 def parse_one_product(node):
     title = node.cssselect('span.dealblocktext h3')[0].text.strip()
     image_url = node.cssselect('span.dealblockimg img')[0].get('href')
-    price = node.cssselect('span.dealblocktext h3 b')[0].text
-    price = price.replace('$', '').replace(',', '') if price else ''
+    price = node.cssselect('span.dealblocktext h3 b')
+    price = price[0].text.replace('$', '').replace(',', '').strip() if price else ''
     shipping = node.cssselect('span.dealblocktext h3 b em')
     shipping = shipping[0].text_content().strip() if shipping else ''
 
@@ -73,6 +74,17 @@ def find_original_url(url):
         original_url = re.compile('.*url=(.*)$').match(original_url).group(1)
         original_url = urllib.unquote(original_url)
     return original_url
+
+def statistics_source_site():
+    cnt = Counter()
+    for d in Deal.objects().timeout(False):
+        try:
+            site = re.compile('https?://(.*?)/').match(d.original_url).group(1)
+            cnt[site] += 1
+        except:
+            print d.original_url
+    print cnt.most_common()
+
 
 if __name__ == '__main__':
     crawl_several_month()

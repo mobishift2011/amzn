@@ -17,6 +17,7 @@ class Deal(Document):
     image_url = StringField()
     original_url = StringField()
     shipping = StringField()
+    expired = BooleanField()
 
     meta = {
         'db_alias': DB,

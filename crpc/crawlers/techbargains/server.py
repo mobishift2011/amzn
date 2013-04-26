@@ -51,7 +51,7 @@ def parse_one_product(node):
         link = link if link.startswith('http') else siteurl + link
         key = re.compile('.*clkSubId=(\w+)&').match(link).group(1)
     except:
-        print title,
+        print title
         print link
         return
 

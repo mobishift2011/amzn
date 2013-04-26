@@ -51,6 +51,7 @@ deal_crawlers = (
     'landsend',
     'backcountry',
     'anntaylor',
+    'loft',
 )
 
 picked_crawlers = tuple(set(luxury_crawlers) | set(deal_crawlers))

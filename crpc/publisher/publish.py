@@ -285,9 +285,9 @@ class Publisher:
                 elif f=="image_path": ev_data['cover_image'] = ev['image_path'][0] if ev['image_path'] else {}
                 elif f=="highest_discount": 
                     try:
-                        ev_data['highest_discount'] = ev['highest_discount'][:ev['highest_discount'].find('.')+3]
+                        ev_data['highest_discount'] = ev['highest_discount'][:ev['highest_discount'].find('.')+3] if ev['highest_discount'] else None
                     except:
-                        pass
+                        print traceback.format_exc()
                 elif f=="soldout": ev_data['sold_out'] = m.Product.objects(event_id=ev.event_id, soldout=False).count()==0
                 elif f=="favbuy_tag": ev_data['tags'] = ev.favbuy_tag
                 elif f=="favbuy_brand": ev_data['brands'] = ev.favbuy_brand

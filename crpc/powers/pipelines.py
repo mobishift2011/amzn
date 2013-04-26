@@ -67,7 +67,7 @@ class ProductPipeline(object):
         # This filter changes all title words to Title Caps,
         # and attempts to be clever about uncapitalizing SMALL words like a/an/the in the input.
         if product.title:
-            product.title = titlecase(product.title)
+            product.title = titlecase(re.sub("&#?\w+;", " ", product.title))
 
         # Clean the html tag.
         pattern = r'<[^>]*>'
@@ -368,6 +368,21 @@ class EventPipeline(object):
         if highest_discount != self.event.highest_discount:
             self.event.highest_discount = highest_discount
             self.event.update_history['highest_discount'] = datetime.utcnow()
+            updated = True
+
+        return updated
+
+    def clear_discount(self):
+        updated = False
+
+        if self.event.highest_discount:
+            self.event.highest_discount = None
+            self.event.update_history['highest_discount'] = datetime.utcnow()
+            updated = True
+
+        if self.event.lowest_discount:
+            self.event.lowest_discount = None
+            self.event.update_history['lowest_discount'] = datetime.utcnow()
             updated = True
 
         return updated

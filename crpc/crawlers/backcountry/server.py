@@ -60,6 +60,7 @@ class Server(object):
                         is_updated = True
                     if set(cats).difference(category.cats):   
                         category.cats = cats
+                        is_updated = True
 
                     category.update_time = datetime.utcnow()
                     category.save()

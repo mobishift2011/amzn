@@ -218,7 +218,7 @@ class Server(object):
             common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
 
         # starting tomorrow
-        nodes = tree.cssselect('section.main > div.bottom-calendar-sales-container > section.calendar-sales > div.calendar-sales-container > div.calendar-sales > article.sale a.sale-link')
+        nodes = tree.cssselect('section.main section.sales-calendar-block div.sales-calendar-container section.sales-calendar article.sale a.sale-link')
         for node in nodes:
             ret = self.parse_one_node(node, dept, ctx, upcoming=True)
             if ret is None: continue
@@ -244,7 +244,9 @@ class Server(object):
         # upcoming
         nodes = tree.cssselect('section.main > div.sales-container > div.sales-promos > section.calendar-sales > div.tab_content > div.scroll-container > article.sale a.sale-link')
         for node in nodes:
-            event, is_new, is_updated = self.parse_one_node(node, dept, ctx, upcoming=True)
+            ret = self.parse_one_node(node, dept, ctx, upcoming=True)
+            if ret is None: continue
+            event, is_new, is_updated = ret
             image, sale_title, sale_description, events_begin = self.get_picture_description(event.combine_url, ctx)
             if not event.sale_description:
                 event.image_urls = image
@@ -272,6 +274,9 @@ class Server(object):
         link = link if link.startswith('http') else self.siteurl + link
         if self.siteurl not in link: # women have www.giltcity.com and www.jetsetter.com
             return
+        if '/home/sale' in link or '/sale/home' in link:
+            return
+
         sale_title = node.cssselect('header.sale-header h1.sale-name')[0].text_content().strip().encode('utf-8')
         image = node.cssselect('figure img')[0].get('src')
         image = image if image.startswith('http:') else 'http:' + image
@@ -318,7 +323,7 @@ class Server(object):
                 event.dept = ['children']
             elif '/home/sale' in link or '/sale/home' in link:
                 event.dept = ['home']
-        if event.sale_title != sale_title:
+        if not event.sale_title or event.sale_title.encode('utf-8') != sale_title:
             event.sale_title = sale_title
         event.update_time = datetime.utcnow()
         return event, is_new, is_updated
@@ -360,7 +365,7 @@ class Server(object):
         groups = tree.cssselect('div#main div.ss-col-wrapper > div.ss-col-wide > div.row_group')
         for group in groups:
             group_title = group.cssselect('h2.row_group_title')[0].text_content().strip()
-            nodes = group.cssselect('ul.sales > li.brand_square')
+            nodes = group.cssselect('ul.sales > li[class^="brand_"]') # brand_square, brand_wide
             for node in nodes:
                 ret = self.parse_one_leaf_node(node, dept, ctx)
                 if ret is None: continue

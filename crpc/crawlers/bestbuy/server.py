@@ -23,6 +23,7 @@ from urllib import quote, unquote
 from datetime import datetime, timedelta
 
 from settings import *
+DB = 'bestbuy'
 
 s = requests.Session()
 
@@ -42,7 +43,8 @@ categories = {'TV & Home Theater': 'http://www.bestbuy.com/site/Electronics/TV-V
 
 class Server:
     def __init__(self):
-        self.conn = conn_mongo.conn_mongo(DB, DB_HOST)
+        self.siteurl = 'http://www.bestbuy.com'
+        self.conn = conn_mongo.conn_mongo(DB, MONGODB_HOST)
         self.product = self.conn.get_product_col('product')
         self.conn.index_unique(self.product, 'sku')
         self.logger_category = log.init('bestbuy_category', 'bestbuy_category.txt')
@@ -62,7 +64,7 @@ class Server:
         for top_category, url in categories.items():
             self.conn.set_update_flag(top_category)
             self.queue.put(([top_category], url))
-        self.cycle_crawl_category(TIMEOUT)
+        self.cycle_crawl_category()
         log.log_print('Close bestbuy category cralwer.', self.logger_category, logging.INFO)
 
     def cycle_crawl_category(self, timeover=60):
@@ -89,15 +91,12 @@ class Server:
 
         for item in items:
             category_link = item.get('href')
-            if category_link:
-                url = 'http://www.bestbuy.com' + category_link
-            else:
-                url = ''
+            url = self.siteurl + category_link if category_link else ''
 
             category = item.text.strip('\n')
             # trap "Household Insulation":
             # http://www.amazon.com/s/ref=sr_ex_n_1?rh=n%3A228013%2Cn%3A!468240%2Cn%3A551240%2Cn%3A495346&bbn=495346&ie=UTF8&qid=1344909516
-            if category_list_path[-1] == category:
+            if category in category_list_path:
                 continue
 
             cats = category_list_path + [category]
@@ -391,6 +390,8 @@ class Server:
 
 
 if __name__ == '__main__':
+    Server().crawl_category()
+    exit()
     server = zerorpc.Server(Server())
     server.bind("tcp://0.0.0.0:{0}".format(CRAWLER_PORT))
     server.run()

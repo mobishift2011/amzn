@@ -71,7 +71,12 @@ class TextServer(object):
 
         # For uppcoming events, do nothing with propagation but something with text processing.
         if event.events_begin and event.events_begin > datetime.utcnow():
+            updated = False
             if p.extract_text():
+                updated = True
+            if p.clear_discount():
+                updated = True
+            if updated:
                 event.save()
             return
 

@@ -59,12 +59,10 @@ class Server(object):
                 if primary_cat not in category.cats:
                     category.cats.append(primary_cat)
                     is_updated = True
-                    if not is_new: print 'cat: ', category.cats; print category.combine_url
 
                 if combine_url and combine_url != category.combine_url:
                     category.combine_url = combine_url
                     is_updated = True
-                    if not is_new: print 'url: ', category.combine_url
 
                 category.hit_time = datetime.utcnow()
                 category.save()

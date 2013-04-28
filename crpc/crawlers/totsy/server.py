@@ -132,7 +132,10 @@ class Server(object):
             parse every event node
         """
         link = node.cssselect('a.thumbnail')[0].get('href')
-        event_id = self.extract_event_id.match(link).group(1)
+        if 'view/id' in link:
+            event_id = re.compile('.*catalog/category/view/id/(\d+)').match(link).group(1)
+        else:
+            event_id = self.extract_event_id.match(link).group(1)
         sale_title = node.cssselect('a.thumbnail > span.event-link > img')[0].get('alt').strip()
         nav = node.cssselect('a.thumbnail > div.more > div.more-content > section.container > h6')
         dept, ages = [], []
@@ -162,7 +165,10 @@ class Server(object):
             parse every upcoming event node
         """
         link = node.cssselect('div.thumbnail > a.event-link')[0].get('href')
-        event_id = self.extract_event_id.match(link).group(1)
+        if 'view/id' in link:
+            event_id = re.compile('.*catalog/category/view/id/(\d+)').match(link).group(1)
+        else:
+            event_id = self.extract_event_id.match(link).group(1)
         sale_title = node.cssselect('div.thumbnail > hgroup a')[0].text_content()
         text = node.cssselect('div.thumbnail p.counter')[0].get('data-enddate')# 'December 23, 2012, 8:00:00' the timezone when you regist
         _begin = time_convert_std(text, '%B %d, %Y, %X', 'ET')
@@ -221,7 +227,10 @@ class Server(object):
         if kwargs.get('login_email'): self.net.check_signin( kwargs.get('login_email') )
         else: self.net.check_signin()
 
-        event_id = self.extract_event_id.match(url).group(1)
+        if 'view/id' in url:
+            event_id = re.compile('.*catalog/category/view/id/(\d+)').match(url).group(1)
+        else:
+            event_id = self.extract_event_id.match(url).group(1)
         ret = self.net.fetch_listing_page(url, event_id)
         if isinstance(ret, tuple):
             self.crawl_event_is_product(event_id, ret[0], ret[1], ret[2], ctx)
@@ -425,7 +434,4 @@ class Server(object):
 
 if __name__ == '__main__':
     ss = Server()
-    ss.crawl_listing('http://www.totsy.com/sales/calvin-klein-kids-pjs-undies-8685.html')
-    exit()
     ss.crawl_category()
-#    Server().crawl_product('http://www.totsy.com/sales/last-chance-youth-footwear/girls-burlap-slip-on.html')

@@ -67,7 +67,7 @@ class ProductPipeline(object):
         # This filter changes all title words to Title Caps,
         # and attempts to be clever about uncapitalizing SMALL words like a/an/the in the input.
         if product.title:
-            product.title = titlecase(product.title)
+            product.title = titlecase(re.sub("&#?\w+;", " ", product.title))
 
         # Clean the html tag.
         pattern = r'<[^>]*>'
@@ -176,22 +176,7 @@ class ProductPipeline(object):
             product.favbuy_listprice = str(listprice)
             product.update_history['favbuy_listprice'] = datetime.utcnow()
             is_updated = True
-        # if not product.favbuy_price or not float(product.favbuy_price) \
-        #     or ( update_history.get('favbuy_price') and update_history.get('price') \
-        #         and update_history.get('favbuy_price') < update_history.get('price') ):
-        #     favbuy_price = parse_price(product.price)
-        #     product.favbuy_price = str(favbuy_price)
-        #     product.update_history['favbuy_price'] = datetime.utcnow()
-
-        # if not product.favbuy_listprice or not float(product.favbuy_listprice) \
-        #     or ( update_history.get('favbuy_listprice') and update_history.get('listprice') \
-        #         and update_history.get('favbuy_listprice') < update_history.get('listprice') ):
-        #     listprice = parse_price(product.listprice) or product.favbuy_price
-        #     product.favbuy_listprice = str(listprice)
-        #     product.update_history['favbuy_listprice'] = datetime.utcnow()
-
-        logger.debug('product price extract {0}/{1} -> {2}/{3}'.format( \
-            product.price, product.listprice, product.favbuy_price, product.favbuy_listprice))
+        
         return is_updated
     
     def extract_url(self):
@@ -368,6 +353,21 @@ class EventPipeline(object):
         if highest_discount != self.event.highest_discount:
             self.event.highest_discount = highest_discount
             self.event.update_history['highest_discount'] = datetime.utcnow()
+            updated = True
+
+        return updated
+
+    def clear_discount(self):
+        updated = False
+
+        if self.event.highest_discount:
+            self.event.highest_discount = None
+            self.event.update_history['highest_discount'] = datetime.utcnow()
+            updated = True
+
+        if self.event.lowest_discount:
+            self.event.lowest_discount = None
+            self.event.update_history['lowest_discount'] = datetime.utcnow()
             updated = True
 
         return updated

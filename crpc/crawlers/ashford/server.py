@@ -171,6 +171,9 @@ class Server(object):
 
             product.hit_time = datetime.utcnow()
             product.save()
+            
+            common_saved.send(sender=ctx, obj_type='Product', key=product.key, url=product.combine_url, \
+                is_new=is_new, is_updated=((not is_new) and is_updated), ready=(product.ready if hasattr(product, 'ready') else False))
 
         # Go to the next page to keep on crawling.
         # next_link_node = tree.cssselect('div.atg_store_filter ul.atg_store_pager li.nextLink')
@@ -190,6 +193,9 @@ class Server(object):
         tree = lxml.html.fromstring(res.content)
 
         title = tree.cssselect('div#product_info h1')[0].xpath('.//text()')[-1].strip()
+        if title:
+            title = re.sub(u'\xa0', ' ', title)
+
         if title and not product.title:
             product.title = title
             is_updated = True
@@ -245,10 +251,6 @@ class Server(object):
         # update product
         ready = False
 
-        if title and not product.title:
-            product.title = title
-            is_updated = True
-
         if shipping and shipping != product.shipping:
             product.shipping = shipping
             is_updated = True
@@ -268,8 +270,7 @@ class Server(object):
             product.updated = True
             product.full_update_time = datetime.utcnow()
 
-        common_saved.send(sender=ctx, obj_type='Product', key=product.key, url=product.combine_url, \
-            is_new=is_new, is_updated=((not is_new) and is_updated), ready=ready)
+        product.ready = ready
 
         return True
 

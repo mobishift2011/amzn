@@ -4,7 +4,7 @@ from powers.configs import BRAND_EXTRACT
 from backends.matching.extractor import Extractor
 from powers.brandapi import Extracter
 from powers.pipelines import parse_price, unescape
-import re, htmlentitydefs
+import re
 from powers.titlecase import titlecase
 from datetime import datetime
 
@@ -30,8 +30,8 @@ class ProductPipeline(object):
         # This filter changes all title words to Title Caps,
         # and attempts to be clever about uncapitalizing SMALL words like a/an/the in the input.
         if product.title:
-            product.title = titlecase(unescape(product.title))
-
+            product.title = titlecase(re.sub("&#?\w+;", " ", product.title))
+        
         # Clean the html tag.
         pattern = r'<[^>]*>'
 

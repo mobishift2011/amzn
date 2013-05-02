@@ -131,12 +131,9 @@ class ProductPipeline(object):
 
         return
 
-    def extract_dept(self, text_list):
+    def extract_dept(self):
         site = self.site
         product = self.product
-
-        if product.dept_complete:
-            return
 
         # I don't know where to add this statement, \
         # just ensure that it'll be executed once when the product is crawled at the first time.
@@ -146,15 +143,14 @@ class ProductPipeline(object):
             pass
 
         favbuy_dept = classify_product_department(site, product)
-        product.favbuy_dept = favbuy_dept
         product.dept_complete = True # bool(favbuy_dept)
-
-        if product.dept_complete:
+        if favbuy_dept and favbuy_dept != product.favbuy_dept:
+            product.favbuy_dept = favbuy_dept
             product.update_history['favbuy_dept'] = datetime.utcnow()
-            logger.info('product dept extracted -> {0}.{1} {2}'.format(site, product.key, product.favbuy_dept))
+            logger.info(u'product dept extracted -> {0}.{1} {2}'.format(site, product.key, product.favbuy_dept))
             return product.favbuy_dept
         else:
-            logger.error('product dept extract failed -> {0}.{1}'.format(site, product.key))
+            logger.error(u'product dept extract failed -> {0}.{1}'.format(site, product.key))
 
         return
 
@@ -176,7 +172,22 @@ class ProductPipeline(object):
             product.favbuy_listprice = str(listprice)
             product.update_history['favbuy_listprice'] = datetime.utcnow()
             is_updated = True
-        
+        # if not product.favbuy_price or not float(product.favbuy_price) \
+        #     or ( update_history.get('favbuy_price') and update_history.get('price') \
+        #         and update_history.get('favbuy_price') < update_history.get('price') ):
+        #     favbuy_price = parse_price(product.price)
+        #     product.favbuy_price = str(favbuy_price)
+        #     product.update_history['favbuy_price'] = datetime.utcnow()
+
+        # if not product.favbuy_listprice or not float(product.favbuy_listprice) \
+        #     or ( update_history.get('favbuy_listprice') and update_history.get('listprice') \
+        #         and update_history.get('favbuy_listprice') < update_history.get('listprice') ):
+        #     listprice = parse_price(product.listprice) or product.favbuy_price
+        #     product.favbuy_listprice = str(listprice)
+        #     product.update_history['favbuy_listprice'] = datetime.utcnow()
+
+        logger.debug(u'product price extract {0}/{1} -> {2}/{3}'.format( \
+            product.price, product.listprice, product.favbuy_price, product.favbuy_listprice))
         return is_updated
     
     def extract_url(self):
@@ -249,7 +260,7 @@ class ProductPipeline(object):
         if self.extract_tag(text_list):
             updated = True
 
-        if self.extract_dept(text_list):
+        if self.extract_dept():
             updated = True
 
         if self.extract_price():

@@ -39,7 +39,7 @@ def parse_one_product(node):
     title = node.cssselect('span.dealblocktext h3')[0].text.strip()
     image_url = node.cssselect('span.dealblockimg img')[0].get('href')
     price = node.cssselect('span.dealblocktext h3 b')
-    price = price[0].text.replace('$', '').replace(',', '').strip() if price else ''
+    price = price[0].text_content().replace('$', '').replace(',', '').strip() if price else ''
     shipping = node.cssselect('span.dealblocktext h3 b em')
     shipping = shipping[0].text_content().strip() if shipping else ''
 
@@ -93,6 +93,7 @@ def statistics_source_site():
 
 
 if __name__ == '__main__':
-    crawl_several_month()
+    statistics_source_site()
     exit()
+    crawl_several_month()
     crawl_deals()

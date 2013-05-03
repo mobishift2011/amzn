@@ -382,7 +382,8 @@ class Server(object):
                     reason='download product url error, {0}'.format(content))
             return
         tree = lxml.html.fromstring(content[0])
-        key = re.compile('.*itemid=([^&]+).*').match(content[1]).group(1)
+        slug, key = self.extract_slug_product.match(content[1]).groups()
+        # key = re.compile('.*itemid=([^&]+).*').match(content[1]).group(1)
 
         image_urls, shipping, list_info, brand, returned = self.parse_product(tree)
         # nav = tree.cssselect('div > div.line > div.page > div.line')[0] # bgDark or bgShops

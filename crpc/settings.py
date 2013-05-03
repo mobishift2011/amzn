@@ -100,8 +100,8 @@ envs = {
             {'host_string':'root@ec2-54-245-182-122.us-west-2.compute.amazonaws.com', 'port':1238},
         ],
         'USE_INDEX': '',
-        'MONGODB_HOST': '10.254.9.183',
-        'REDIS_HOST': '10.254.9.183',
+        'MONGODB_HOST': '10.166.1.41',
+        'REDIS_HOST': '10.166.1.41',
         'MASTIFF_HOST': "http://integrate.favbuy.org:8001/api/v1"
     },
 }

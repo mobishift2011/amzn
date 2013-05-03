@@ -779,9 +779,9 @@ class Server(object):
         else: self.net.check_signin()
 
         key = url.rsplit('/', 1)[-1]
-        tree, cc = self.download_product_page_get_correct_tree(url, url.rsplit('/', 1)[-1], 'download product page error', ctx)
+        tree = self.download_product_page_get_correct_tree(url, url.rsplit('/', 1)[-1], 'download product page error', ctx)
         if tree is None:
-            tree, cc = self.download_product_page_get_correct_tree(url, url.rsplit('/', 1)[-1], 'download product page twice error', ctx)
+            tree = self.download_product_page_get_correct_tree(url, url.rsplit('/', 1)[-1], 'download product page twice error', ctx)
         if tree is None: return
 
         if '/home/sale' in url or '/sale/home' in url: # home
@@ -919,7 +919,7 @@ class Server(object):
                 common_failed.send(sender=ctx, key=key, url=url,
                         reason='{0}: {1}'.format(warning, cont))
                 return
-        return self.get_correct_tree(cont), cont
+        return self.get_correct_tree(cont)
 
 
 if __name__ == '__main__':

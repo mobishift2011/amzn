@@ -54,7 +54,8 @@ class Publisher:
                     self._try_publish_event(ev, skip_products=True)
 
         # try look for both unpublished products and products published but requiring update
-        for prod in m.Product.objects:
+        three_days_ago = datetime.utcnow() - timedelta(days=3)
+        for prod in m.Product.objects(list_update_time__gt=three_days_ago).order_by('-list_update_time'):
             if self.should_publish_product(prod, chk_ev=True):
                 self.publish_product(prod)
             elif self.should_publish_product_upd(prod):

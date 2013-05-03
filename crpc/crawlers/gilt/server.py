@@ -37,7 +37,7 @@ class giltLogin(object):
         self.data['email'] = self.current_email
         _now = int(time.time())
         _before = _now - 11
-        auth_url = 'https://www.gilt.com/login/auth?callback=jQuery17206991992753464729_{0}&email={1}&password={2}&remember_me=on&_={3}'.format(_before*1000 + 450, self.data['email'], self.data['password'], _now*1000 + 739)
+        auth_url = 'https://www.gilt.com/login/auth?callback=jQuery17202631507865153253_{0}&email={1}&password={2}&remember_me=on&_={3}'.format(_before*1000 + 450, self.data['email'], self.data['password'], _now*1000 + 739)
         req.get(auth_url)
 
         req.post('https://www.gilt.com/login/redirect', data=self.data)
@@ -84,6 +84,8 @@ class giltLogin(object):
         """
         ret = req.get(url)
         if 'http://www.gilt.com/brand/' in ret.url or 'http://www.gilt.com/style/' in ret.url:
+            return -302
+        if ret.url == 'http://www.gilt.com/home/sales':
             return -302
         if ret.ok: return ret.content
         return ret.status_code
@@ -809,35 +811,56 @@ class Server(object):
                 image_urls.append(image)
             color, sizes = None, None
         else: # women, men, children
-            nav = tree.cssselect('section#main section#product-detail > article.product')[0]
-            text = nav.cssselect('div.summary')[0]
-            shipping = text.cssselect('div.details > dl.delivery > dd.delivery-window')
-            shipping = 'Estimated Delivery: ' + shipping[0].text_content().strip().replace('\n', ' ') if shipping else ''
-            returned = text.cssselect('div.details > dl.return-policy > dd')
-            returned = returned[0].text_content().strip() if returned else ''
-            list_info = []
-            for desc in text.cssselect('div.structured-description > section.fragment'):
-                desc_title = desc.cssselect('header.structure-title > h1')[0].text_content()
-                if desc_title == 'Description':
-                    for i in desc.cssselect('header.structure-title')[0].xpath('./following-sibling::*'):
-                        list_info.append( i.text_content() )
-                elif desc_title == 'Use and Care':
-                    list_info.append( desc.text_content().replace('Use and Care', '').strip() )
-                # elif desc_title == 'At a Glance':
-                #     desc.text_content().replace('At a Glance', '').strip()
-                # elif desc_title == 'Designer':
-                #     desc.text_content().replace('Designer', '').strip()
-            sizes = []
-            for i in text.cssselect('form.sku-selection > div[data-gilt-attribute-name=Size] > ul.sku-attribute-values > li[data-gilt-value-name]'):
-                sizes.append(i.get('data-gilt-value-name'))
-            color = text.cssselect('form.sku-selection > div[data-gilt-attribute-name=Color] > dl.attribute-label > dd.selected-attribute-value')
-            color = color[0].text_content().strip() if color else ''
+            try:
+                nav = tree.cssselect('section#main section#product-detail > article.product')[0]
+                text = nav.cssselect('div.summary')[0]
+                shipping = text.cssselect('div.details > dl.delivery > dd.delivery-window')
+                shipping = 'Estimated Delivery: ' + shipping[0].text_content().strip().replace('\n', ' ') if shipping else ''
+                returned = text.cssselect('div.details > dl.return-policy > dd')
+                returned = returned[0].text_content().strip() if returned else ''
+                list_info = []
+                for desc in text.cssselect('div.structured-description > section.fragment'):
+                    desc_title = desc.cssselect('header.structure-title > h1')[0].text_content()
+                    if desc_title == 'Description':
+                        for i in desc.cssselect('header.structure-title')[0].xpath('./following-sibling::*'):
+                            list_info.append( i.text_content() )
+                    elif desc_title == 'Use and Care':
+                        list_info.append( desc.text_content().replace('Use and Care', '').strip() )
+                    # elif desc_title == 'At a Glance':
+                    #     desc.text_content().replace('At a Glance', '').strip()
+                    # elif desc_title == 'Designer':
+                    #     desc.text_content().replace('Designer', '').strip()
+                sizes = []
+                for i in text.cssselect('form.sku-selection > div[data-gilt-attribute-name=Size] > ul.sku-attribute-values > li[data-gilt-value-name]'):
+                    sizes.append(i.get('data-gilt-value-name'))
+                color = text.cssselect('form.sku-selection > div[data-gilt-attribute-name=Color] > dl.attribute-label > dd.selected-attribute-value')
+                color = color[0].text_content().strip() if color else ''
 
-            image_urls = []
-            for img in nav.cssselect('div.photos > ul.photo-selection > li.photo > img'):
-                image = img.get('src').rsplit('/', 1)[0] + '/lg.jpg'
-                image = image if image.startswith('http:') else 'http:' + image
-                image_urls.append(image)
+                image_urls = []
+                for img in nav.cssselect('div.photos > ul.photo-selection > li.photo > img'):
+                    image = img.get('src').rsplit('/', 1)[0] + '/lg.jpg'
+                    image = image if image.startswith('http:') else 'http:' + image
+                    image_urls.append(image)
+            except IndexError:
+                nav = tree.cssselect('section#details')[0]
+                text = nav.cssselect('section.summary')[0]
+                shipping = text.cssselect('section.fulfillment div.estimated-delivery')
+                shipping = shipping[0].text_content().strip().replace('\n', ' ') if shipping else ''
+                returned = text.cssselect('section.fulfillment div.return-policy')
+                returned = returned[0].text_content().strip() if returned else ''
+                list_info = []
+                for i in nav.cssselect('#description section.content-container section.tab-content ul li'):
+                    list_info.append( i.text_content().strip() )
+                for i in nav.cssselect('#description section.content-container section.tab-content p'):
+                    list_info.append( i.text_content().strip() )
+
+                sizes, color = None, None
+                image_urls = []
+                for img in nav.cssselect('#photos ul.photo-selection > li > img'):
+                    image = img.get('src').rsplit('/', 1)[0] + '/lg.jpg'
+                    image = image if image.startswith('http:') else 'http:' + image
+                    image_urls.append(image)
+
 
         is_new, is_updated = False, False
         product = Product.objects(key=key).first()
@@ -881,6 +904,6 @@ class Server(object):
 
 if __name__ == '__main__':
     server = Server()
-    server.crawl_category()
+    server.crawl_product('http://www.gilt.com/home/sale/outdoor-681413/1010238275-koverton-serene-barstool-set-of-2')
     exit()
-    server.crawl_listing('http://www.gilt.com/home/sale/candle-blowout-7052')
+    server.crawl_product('http://www.gilt.com/sale/women/helmut-lang-4469/product/1000949706-helmut-by-helmut-lang-drape-front-ribbed-cardigan')

@@ -779,36 +779,56 @@ class Server(object):
         else: self.net.check_signin()
 
         key = url.rsplit('/', 1)[-1]
-        tree = self.download_product_page_get_correct_tree(url, url.rsplit('/', 1)[-1], 'download product page error', ctx)
+        tree, cc = self.download_product_page_get_correct_tree(url, url.rsplit('/', 1)[-1], 'download product page error', ctx)
         if tree is None:
-            tree = self.download_product_page_get_correct_tree(url, url.rsplit('/', 1)[-1], 'download product page twice error', ctx)
+            tree, cc = self.download_product_page_get_correct_tree(url, url.rsplit('/', 1)[-1], 'download product page twice error', ctx)
         if tree is None: return
 
         if '/home/sale' in url or '/sale/home' in url: # home
-            nav = tree.cssselect('div.page-container > div.content-container > section.content > div.layout-container > div.positions > div.position-2 > section.module > div.elements-container > article.element-product')[0]
-            text = nav.cssselect('section.product-details')[0]
-            shipping = 'Extended Delivery Timeline: ' + text.cssselect('div.delivery-estimate')[0].text_content().strip().replace('\n', ' ')
-            returned = text.cssselect('div.return-policy')[0].text_content().strip()
-            list_info = []
-            detail = text.cssselect('section.product-description > div#PRODUCT_DETAILS')[0]
-            lis = detail.xpath('.//li')
-            if not lis: # make sure not miss 'ul'
-                for i in detail.iterchildren():
-                    list_info.append(i.text_content())
-            else: # use 'li' and 'p' to fill list_info
-                for i in lis:
-                    list_info.append(i.text_content())
-                for i in detail.xpath('p'):
-                    list_info.append(i.text_content())
-            use_care = text.cssselect('section.product-description > div#USE_AND_CARE')
-            if use_care:
-                list_info.append( use_care[0].text_content().strip() )
+            try:
+                nav = tree.cssselect('div.page-container > div.content-container > section.content > div.layout-container > div.positions > div.position-2 > section.module > div.elements-container > article.element-product')[0]
+                text = nav.cssselect('section.product-details')[0]
+                shipping = 'Extended Delivery Timeline: ' + text.cssselect('div.delivery-estimate')[0].text_content().strip().replace('\n', ' ')
+                returned = text.cssselect('div.return-policy')[0].text_content().strip()
+                list_info = []
+                detail = text.cssselect('section.product-description > div#PRODUCT_DETAILS')[0]
+                lis = detail.xpath('.//li')
+                if not lis: # make sure not miss 'ul'
+                    for i in detail.iterchildren():
+                        list_info.append(i.text_content())
+                else: # use 'li' and 'p' to fill list_info
+                    for i in lis:
+                        list_info.append(i.text_content())
+                    for i in detail.xpath('p'):
+                        list_info.append(i.text_content())
+                use_care = text.cssselect('section.product-description > div#USE_AND_CARE')
+                if use_care:
+                    list_info.append( use_care[0].text_content().strip() )
 
-            image_urls = []
-            for img in nav.cssselect('section.product-image > ul.photo-selection > li.photo > img'):
-                image = img.get('src').rsplit('/', 1)[0] + '/lg.jpg'
-                image = image if image.startswith('http:') else 'http:' + image
-                image_urls.append(image)
+                image_urls = []
+                for img in nav.cssselect('section.product-image > ul.photo-selection > li.photo > img'):
+                    image = img.get('src').rsplit('/', 1)[0] + '/lg.jpg'
+                    image = image if image.startswith('http:') else 'http:' + image
+                    image_urls.append(image)
+            except IndexError:
+                nav = tree.cssselect('section#details')[0]
+                text = nav.cssselect('section.summary')[0]
+                shipping = text.cssselect('section.fulfillment div.estimated-delivery')
+                shipping = shipping[0].text_content().strip().replace('\n', ' ') if shipping else ''
+                returned = text.cssselect('section.fulfillment div.return-policy')
+                returned = returned[0].text_content().strip() if returned else ''
+                list_info = []
+                for i in nav.cssselect('#description section.content-container section.tab-content ul li'):
+                    list_info.append( i.text_content().strip() )
+                for i in nav.cssselect('#description section.content-container section.tab-content p'):
+                    list_info.append( i.text_content().strip() )
+
+                image_urls = []
+                for img in nav.cssselect('#photos ul.photo-selection > li > img'):
+                    image = img.get('src').rsplit('/', 1)[0] + '/lg.jpg'
+                    image = image if image.startswith('http:') else 'http:' + image
+                    image_urls.append(image)
+
             color, sizes = None, None
         else: # women, men, children
             try:
@@ -854,12 +874,12 @@ class Server(object):
                 for i in nav.cssselect('#description section.content-container section.tab-content p'):
                     list_info.append( i.text_content().strip() )
 
-                sizes, color = None, None
                 image_urls = []
                 for img in nav.cssselect('#photos ul.photo-selection > li > img'):
                     image = img.get('src').rsplit('/', 1)[0] + '/lg.jpg'
                     image = image if image.startswith('http:') else 'http:' + image
                     image_urls.append(image)
+                sizes, color = None, None
 
 
         is_new, is_updated = False, False
@@ -899,7 +919,7 @@ class Server(object):
                 common_failed.send(sender=ctx, key=key, url=url,
                         reason='{0}: {1}'.format(warning, cont))
                 return
-        return self.get_correct_tree(cont)
+        return self.get_correct_tree(cont), cont
 
 
 if __name__ == '__main__':

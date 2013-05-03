@@ -809,7 +809,7 @@ class Server(object):
                 image_urls.append(image)
             color, sizes = None, None
         else: # women, men, children
-            nav = tree.cssselect('section#main > section#product-detail > article.product')[0]
+            nav = tree.cssselect('section#main section#product-detail > article.product')[0]
             text = nav.cssselect('div.summary')[0]
             shipping = text.cssselect('div.details > dl.delivery > dd.delivery-window')
             shipping = 'Estimated Delivery: ' + shipping[0].text_content().strip().replace('\n', ' ') if shipping else ''

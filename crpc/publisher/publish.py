@@ -3,7 +3,7 @@ from gevent import monkey; monkey.patch_all()
 from crawlers.common.events import common_saved
 from crawlers.common.routine import get_site_module
 from powers.events import image_crawled, ready_for_publish
-from backends.monitor.models import Stat
+#from backends.monitor.models import Stat
 from settings import CRPC_ROOT
 from mysettings import MINIMUM_PRODUCTS_READY, MASTIFF_ENDPOINT
 from helpers import log
@@ -307,8 +307,8 @@ class Publisher:
                 self.logger.debug("published event %s:%s, resource_id=%s", site, ev.event_id, ev_resource['id'])
             
                 # For monitoring publish flow stat
-                interval = datetime.utcnow().replace(second=0, microsecond=0)
-                Stat.objects(site=site, doctype='event', interval=interval).update(inc__publish_num=1, upsert=True)
+                # interval = datetime.utcnow().replace(second=0, microsecond=0)
+                # Stat.objects(site=site, doctype='event', interval=interval).update(inc__publish_num=1, upsert=True)
 
             ev.publish_time = datetime.utcnow(); ev.save()
         except Exception as e:
@@ -371,8 +371,8 @@ class Publisher:
                 self.logger.debug("published product %s:%s, resource_id=%s", site, prod.key, r['id'])
                 
                 # For monitoring publish flow stat
-                interval = datetime.utcnow().replace(second=0, microsecond=0)
-                Stat.objects(site=site, doctype='product', interval=interval).update(inc__publish_num=1, upsert=True)
+                # interval = datetime.utcnow().replace(second=0, microsecond=0)
+                # Stat.objects(site=site, doctype='product', interval=interval).update(inc__publish_num=1, upsert=True)
             
             prod.publish_time = datetime.utcnow(); prod.save()
             

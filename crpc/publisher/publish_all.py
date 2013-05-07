@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 
 from crawlers.common.routine import get_site_module
 from crawlers.common.stash import exclude_crawlers
-from settings import MASTIFF_HOST, MONGODB_HOST
+from settings import MASTIFF_HOST, MONGODB_HOST, CRPC_ROOT
 
 
 class Publisher:
@@ -22,7 +22,7 @@ class Publisher:
                                 "color", "title", "summary", "list_info", "image_path", "favbuy_tag", "favbuy_brand", "favbuy_dept",
                                 "returned", "shipping", "products_begin", "products_end", "second_hand" ]
     def __init__(self):
-        self.mapi = slumber.API(MASTIFF_ENDPOINT)
+        self.mapi = slumber.API(MASTIFF_HOST)
         self.m = {}
 
         for name in listdir(join(CRPC_ROOT, "crawlers")):

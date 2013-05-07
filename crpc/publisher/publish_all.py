@@ -4,13 +4,14 @@
 
 import sys
 import slumber
+import traceback
 from os import listdir
 from os.path import join, isdir
-import traceback
+from datetime import datetime, timedelta
 
 from crawlers.common.routine import get_site_module
 from crawlers.common.stash import exclude_crawlers
-from settings import MASTIFF_HOST
+from settings import MASTIFF_HOST, MONGODB_HOST
 
 
 class Publisher:
@@ -32,24 +33,12 @@ class Publisher:
     def get_module(self, site):
         return self.m[site]
 
-    def obj_to_module(obj):
-        '''find the corresponding Python module associated with the object.
-        '''
-        return sys.modules[obj.__module__]
 
-    def obj_to_site(obj):
-        '''obj is either an event object or product object.
+    def get_ev_uris(self, prod):
+        '''return a list of Mastiff URLs corresponding to the events associated with the product.
         '''
-        return obj.__module__.split('.')[1]  # 'crawlers.gilt.models'
-    
-    def obj_getattr(obj, attr, defval):
-        '''get attribute value associated with an object. If not found, return a default value.
-        '''
-        if not hasattr(obj, attr):
-            return defval
-        else:
-            val = getattr(obj, attr)
-            return val if val else defval
+        m = obj_to_module(prod)
+        return [ev.muri for ev in [m.Event.objects.get(event_id=evid) for evid in prod.event_id] if ev.muri]
 
     def publish_event(self, ev, fields=[]):
         '''publish event data to the mastiff service.
@@ -129,8 +118,7 @@ class Publisher:
                     if pe: pdata["ends_at"] = pe.isoformat()
                 elif f == 'second_hand':
                     pdata['second_hand'] = obj_getattr(prod, 'second_hand', False)
-            if not upd:
-                pdata["site_key"] = site+'_'+prod.key
+            pdata["site_key"] = site+'_'+prod.key
             if not pdata: return
 
             r = self.mapi.product.post(pdata)
@@ -138,3 +126,43 @@ class Publisher:
                 
             prod.publish_time = datetime.utcnow()
             prod.save()
+
+
+def obj_to_module(obj):
+    '''find the corresponding Python module associated with the object.
+    '''
+    return sys.modules[obj.__module__]
+
+def obj_to_site(obj):
+    '''obj is either an event object or product object.
+    '''
+    return obj.__module__.split('.')[1]  # 'crawlers.gilt.models'
+
+def obj_getattr(obj, attr, defval):
+    '''get attribute value associated with an object. If not found, return a default value.
+    '''
+    if not hasattr(obj, attr):
+        return defval
+    else:
+        val = getattr(obj, attr)
+        return val if val else defval
+
+if __name__ == '__main__':
+    from crawlers.common.stash import picked_crawlers
+    import pymongo
+    conn = pymongo.Connection(MONGODB_HOST)
+    dbs = conn.database_names()
+    for crawler in picked_crawlers:
+        col = conn[crawler].collection_names()
+        if 'event' in col:
+            conn[crawler].event.remove({'create_time': {'$lt': datetime.utcnow() - timedelta(days=30)}})
+        conn[crawler].product.remove({'create_time': {'$lt': datetime.utcnow() - timedelta(days=30)}})
+
+    p = Publisher()
+    for site in picked_crawlers:
+        m = p.get_module(site)
+        for ev in m.Event.objects:
+            p.publish_event(ev)
+        for prd in m.Product.objects:
+            p.publish_product(prd)
+

@@ -159,8 +159,9 @@ if __name__ == '__main__':
     p = Publisher()
     for site in picked_crawlers:
         m = p.get_module(site)
-        for ev in m.Event.objects:
-            p.publish_event(ev)
+        if hasattr(m, 'Event'):
+            for ev in m.Event.objects:
+                p.publish_event(ev)
         for prd in m.Product.objects:
             p.publish_product(prd)
 

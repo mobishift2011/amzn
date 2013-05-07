@@ -38,7 +38,15 @@ class Publisher:
         '''return a list of Mastiff URLs corresponding to the events associated with the product.
         '''
         m = obj_to_module(prod)
-        return [ev.muri for ev in [m.Event.objects.get(event_id=evid) for evid in prod.event_id] if ev.muri]
+        ret = []
+
+        for evid in prod.event_id:
+            evs = m.Event.objects(event_id=evid)
+            if evs:
+                for ev in evs:
+                    if ev.muri:
+                        ret.append( ev.muri )
+           
 
     def publish_event(self, ev, fields=[]):
         '''publish event data to the mastiff service.

@@ -158,15 +158,21 @@ def obj_getattr(obj, attr, defval):
         return val if val else defval
 
 if __name__ == '__main__':
+    # mongodump -h crpc.favbuy.org -o /tmp
+    # mongorestore --drop /tmp/dump
     from crawlers.common.stash import picked_crawlers
     import pymongo
-    conn = pymongo.Connection(MONGODB_HOST)
+    conn = pymongo.MongoClient(MONGODB_HOST)
     dbs = conn.database_names()
     for crawler in picked_crawlers:
         col = conn[crawler].collection_names()
         if 'event' in col:
             conn[crawler].event.remove({'create_time': {'$lt': datetime.utcnow() - timedelta(days=30)}})
         conn[crawler].product.remove({'create_time': {'$lt': datetime.utcnow() - timedelta(days=30)}})
+
+    client = pymongo.MongoClient(MASTIFF_HOST)
+    client.mastiff.event.drop()
+    client.mastiff.product.drop()
 
     p = Publisher()
     for site in picked_crawlers:

@@ -48,37 +48,36 @@ class Publisher:
             "onshelf": event is recently put on shelf, therefore multiple fields such as soldout, dept
             need to be published.
         '''
-        try:
-            m = obj_to_module(ev)
-            site = obj_to_site(ev)
-            fields = self.ALL_EVENT_PUBLISH_FIELDS
+        m = obj_to_module(ev)
+        site = obj_to_site(ev)
+        fields = self.ALL_EVENT_PUBLISH_FIELDS
 
-            ev_data = {}
-            for f in fields:
-                if f=="sale_title": ev_data['title'] = obj_getattr(ev, 'sale_title', '')
-                elif f=="sale_description": ev_data['description'] = obj_getattr(ev, 'sale_description', '')
-                elif f=="events_end":
-                    ret = obj_getattr(ev, 'events_end', '')
-                    if ret: ev_data['ends_at'] = ret.isoformat()
-                    else: ev_data['ends_at'] = ret
-                elif f=="events_begin": ev_data['starts_at'] = obj_getattr(ev, 'events_begin', datetime.utcnow()).isoformat()
-                elif f=="image_path": ev_data['cover_image'] = ev['image_path'][0] if ev['image_path'] else {}
-                elif f=="highest_discount": 
-                    try:
-                        ev_data['highest_discount'] = ev['highest_discount'][:ev['highest_discount'].find('.')+3] if ev['highest_discount'] else None
-                    except:
-                        print traceback.format_exc()
-                elif f=="soldout": ev_data['sold_out'] = m.Product.objects(event_id=ev.event_id, soldout=False).count()==0
-                elif f=="favbuy_tag": ev_data['tags'] = ev.favbuy_tag
-                elif f=="favbuy_brand": ev_data['brands'] = ev.favbuy_brand
-                elif f=="favbuy_dept": ev_data['departments'] = ev.favbuy_dept
-            ev_data['site_key'] = site+'_'+ev.event_id
-            if not ev_data: return         
+        ev_data = {}
+        for f in fields:
+            if f=="sale_title": ev_data['title'] = obj_getattr(ev, 'sale_title', '')
+            elif f=="sale_description": ev_data['description'] = obj_getattr(ev, 'sale_description', '')
+            elif f=="events_end":
+                ret = obj_getattr(ev, 'events_end', '')
+                if ret: ev_data['ends_at'] = ret.isoformat()
+                else: ev_data['ends_at'] = ret
+            elif f=="events_begin": ev_data['starts_at'] = obj_getattr(ev, 'events_begin', datetime.utcnow()).isoformat()
+            elif f=="image_path": ev_data['cover_image'] = ev['image_path'][0] if ev['image_path'] else {}
+            elif f=="highest_discount": 
+                try:
+                    ev_data['highest_discount'] = ev['highest_discount'][:ev['highest_discount'].find('.')+3] if ev['highest_discount'] else None
+                except:
+                    print traceback.format_exc()
+            elif f=="soldout": ev_data['sold_out'] = m.Product.objects(event_id=ev.event_id, soldout=False).count()==0
+            elif f=="favbuy_tag": ev_data['tags'] = ev.favbuy_tag
+            elif f=="favbuy_brand": ev_data['brands'] = ev.favbuy_brand
+            elif f=="favbuy_dept": ev_data['departments'] = ev.favbuy_dept
+        ev_data['site_key'] = site+'_'+ev.event_id
+        if not ev_data: return         
 
-            ev_resource = self.mapi.event.post(ev_data)
-            ev.muri = ev_resource['resource_uri']; 
-            ev.publish_time = datetime.utcnow()
-            ev.save()
+        ev_resource = self.mapi.event.post(ev_data)
+        ev.muri = ev_resource['resource_uri']; 
+        ev.publish_time = datetime.utcnow()
+        ev.save()
 
     def publish_product(self, prod, fields=[]):
         '''
@@ -86,46 +85,45 @@ class Publisher:
 
         :param prod: product object.
         '''
-        try:
-            site = obj_to_site(prod)
-            fields = self.ALL_PRODUCT_PUBLISH_FIELDS
+        site = obj_to_site(prod)
+        fields = self.ALL_PRODUCT_PUBLISH_FIELDS
 
-            pdata = {}
-            for f in fields:
-                # if f=="favbuy_url": pdata["original_url"] = prod.favbuy_url if prod.url_complete else prod.combine_url
-                if f=="combine_url": pdata["original_url"] = prod.combine_url
-                elif f=="events": pdata["events"] = self.get_ev_uris(prod)
-                elif f=="favbuy_price": pdata["our_price"] = float(obj_getattr(prod, 'favbuy_price', 0))
-                elif f=="favbuy_listprice": pdata["list_price"] = float(obj_getattr(prod, 'favbuy_listprice', 0))
-                elif f=="soldout": pdata["sold_out"] = prod.soldout
-                elif f=="color": pdata["colors"] = [prod['color']] if 'color' in prod and prod['color'] else []
-                elif f=="title": pdata["title"] = prod.title
-                elif f=="summary": pdata["info"] = prod.summary
-                elif f=="list_info": pdata["details"] = obj_getattr(prod, 'list_info', [])
-                elif f=="image_path": 
-                    pdata["cover_image"] = prod.image_path[0] if prod.image_path else {}
-                    pdata["images"] = obj_getattr(prod, 'image_path', [])
-                elif f=="favbuy_brand": pdata["brand"] = obj_getattr(prod, 'favbuy_brand','')
-                elif f=='favbuy_tag': pdata["tags"] = obj_getattr(prod, 'favbuy_tag', [])
-                elif f=='favbuy_dept': pdata["department_path"] = obj_getattr(prod, 'favbuy_dept', [])
-                elif f=="returned": pdata["return_policy"] = obj_getattr(prod, 'returned', '')
-                elif f=="shipping": pdata["shipping_policy"] = obj_getattr(prod, 'shipping', '')
-                elif f=="products_begin": 
-                    pb = obj_getattr(prod, 'products_begin', None)
-                    if pb: pdata["starts_at"] = pb.isoformat()
-                elif f=="products_end": 
-                    pe = obj_getattr(prod, 'products_end', None)
-                    if pe: pdata["ends_at"] = pe.isoformat()
-                elif f == 'second_hand':
-                    pdata['second_hand'] = obj_getattr(prod, 'second_hand', False)
-            pdata["site_key"] = site+'_'+prod.key
-            if not pdata: return
+        pdata = {}
+        for f in fields:
+            # if f=="favbuy_url": pdata["original_url"] = prod.favbuy_url if prod.url_complete else prod.combine_url
+            if f=="combine_url": pdata["original_url"] = prod.combine_url
+            elif f=="events": pdata["events"] = self.get_ev_uris(prod)
+            elif f=="favbuy_price": pdata["our_price"] = float(obj_getattr(prod, 'favbuy_price', 0))
+            elif f=="favbuy_listprice": pdata["list_price"] = float(obj_getattr(prod, 'favbuy_listprice', 0))
+            elif f=="soldout": pdata["sold_out"] = prod.soldout
+            elif f=="color": pdata["colors"] = [prod['color']] if 'color' in prod and prod['color'] else []
+            elif f=="title": pdata["title"] = prod.title
+            elif f=="summary": pdata["info"] = prod.summary
+            elif f=="list_info": pdata["details"] = obj_getattr(prod, 'list_info', [])
+            elif f=="image_path": 
+                pdata["cover_image"] = prod.image_path[0] if prod.image_path else {}
+                pdata["images"] = obj_getattr(prod, 'image_path', [])
+            elif f=="favbuy_brand": pdata["brand"] = obj_getattr(prod, 'favbuy_brand','')
+            elif f=='favbuy_tag': pdata["tags"] = obj_getattr(prod, 'favbuy_tag', [])
+            elif f=='favbuy_dept': pdata["department_path"] = obj_getattr(prod, 'favbuy_dept', [])
+            elif f=="returned": pdata["return_policy"] = obj_getattr(prod, 'returned', '')
+            elif f=="shipping": pdata["shipping_policy"] = obj_getattr(prod, 'shipping', '')
+            elif f=="products_begin": 
+                pb = obj_getattr(prod, 'products_begin', None)
+                if pb: pdata["starts_at"] = pb.isoformat()
+            elif f=="products_end": 
+                pe = obj_getattr(prod, 'products_end', None)
+                if pe: pdata["ends_at"] = pe.isoformat()
+            elif f == 'second_hand':
+                pdata['second_hand'] = obj_getattr(prod, 'second_hand', False)
+        pdata["site_key"] = site+'_'+prod.key
+        if not pdata: return
 
-            r = self.mapi.product.post(pdata)
-            prod.muri = r['resource_uri']; 
-                
-            prod.publish_time = datetime.utcnow()
-            prod.save()
+        r = self.mapi.product.post(pdata)
+        prod.muri = r['resource_uri']; 
+            
+        prod.publish_time = datetime.utcnow()
+        prod.save()
 
 
 def obj_to_module(obj):

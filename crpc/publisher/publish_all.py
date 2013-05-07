@@ -46,6 +46,7 @@ class Publisher:
                 for ev in evs:
                     if ev.muri:
                         ret.append( ev.muri )
+        return ret
            
 
     def publish_event(self, ev, fields=[]):
@@ -100,7 +101,10 @@ class Publisher:
         for f in fields:
             # if f=="favbuy_url": pdata["original_url"] = prod.favbuy_url if prod.url_complete else prod.combine_url
             if f=="combine_url": pdata["original_url"] = prod.combine_url
-            elif f=="events": pdata["events"] = self.get_ev_uris(prod)
+            elif f=="events":
+                ret = self.get_ev_uris(prod)
+                if not ret: continue
+                pdata["events"] = ret
             elif f=="favbuy_price": pdata["our_price"] = float(obj_getattr(prod, 'favbuy_price', 0))
             elif f=="favbuy_listprice": pdata["list_price"] = float(obj_getattr(prod, 'favbuy_listprice', 0))
             elif f=="soldout": pdata["sold_out"] = prod.soldout

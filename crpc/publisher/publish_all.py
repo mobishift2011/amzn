@@ -162,6 +162,7 @@ if __name__ == '__main__':
     # mongorestore --drop /tmp/dump
     from crawlers.common.stash import picked_crawlers
     import pymongo
+    import os
     conn = pymongo.MongoClient(MONGODB_HOST)
     dbs = conn.database_names()
     for crawler in picked_crawlers:
@@ -173,6 +174,7 @@ if __name__ == '__main__':
     client = pymongo.MongoClient(MASTIFF_HOST)
     client.mastiff.event.drop()
     client.mastiff.product.drop()
+    os.system("curl -XDELETE http://localhost:9200/mastiff")
 
     p = Publisher()
     for site in picked_crawlers:

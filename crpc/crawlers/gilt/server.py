@@ -83,7 +83,9 @@ class giltLogin(object):
             women will redirect to this product's brand page if it is off sale
         """
         ret = req.get(url)
-        if 'http://www.gilt.com/brand/' in ret.url or 'http://www.gilt.com/style/' in ret.url:
+#        if 'http://www.gilt.com/brand/' in ret.url:
+#            return -302
+        if 'http://www.gilt.com/style/' in ret.url:
             return -302
         if ret.url == 'http://www.gilt.com/home/sales':
             return -302

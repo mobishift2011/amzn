@@ -92,21 +92,20 @@ class ProductPipeline(object):
 
         return
 
-    def extract_dept(self, text_list):
+    def extract_dept(self):
         site = self.site
         product = self.product
 
         favbuy_dept = classify_product_department(site, product)
-        product.dept_complete = bool(favbuy_dept)
 
-        if product.dept_complete:
-            if favbuy_dept != product.favbuy_dept:
-                product.favbuy_dept = favbuy_dept
-                product.update_history['favbuy_dept'] = datetime.utcnow()
-                logger.info('product dept extracted -> {0}.{1} {2}'.format(site, product.key, product.favbuy_dept))
-                return product.favbuy_dept
+        if favbuy_dept and favbuy_dept != product.favbuy_dept:
+            product.favbuy_dept = favbuy_dept
+            product.update_history['favbuy_dept'] = datetime.utcnow()
+            product.dept_complete = True
+            logger.info(u'product dept extracted -> {0}.{1} {2}'.format(site, product.key, product.favbuy_dept))
+            return product.favbuy_dept
         else:
-            logger.error('product dept extract failed -> {0}.{1}'.format(site, product.key))
+            logger.error(u'product dept extract failed -> {0}.{1}'.format(site, product.key))
 
         return
 
@@ -140,7 +139,7 @@ class ProductPipeline(object):
         self.extract_text()
         self.extract_brand()
         self.extract_tag(text_list)
-        self.extract_dept(text_list)
+        self.extract_dept()
         self.extract_price()
 
         return True

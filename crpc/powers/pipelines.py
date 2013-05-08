@@ -131,12 +131,9 @@ class ProductPipeline(object):
 
         return
 
-    def extract_dept(self, text_list):
+    def extract_dept(self):
         site = self.site
         product = self.product
-
-        if product.dept_complete:
-            return
 
         # I don't know where to add this statement, \
         # just ensure that it'll be executed once when the product is crawled at the first time.
@@ -146,15 +143,14 @@ class ProductPipeline(object):
             pass
 
         favbuy_dept = classify_product_department(site, product)
-        product.favbuy_dept = favbuy_dept
         product.dept_complete = True # bool(favbuy_dept)
-
-        if product.dept_complete:
+        if favbuy_dept and favbuy_dept != product.favbuy_dept:
+            product.favbuy_dept = favbuy_dept
             product.update_history['favbuy_dept'] = datetime.utcnow()
-            logger.info('product dept extracted -> {0}.{1} {2}'.format(site, product.key, product.favbuy_dept))
+            logger.info(u'product dept extracted -> {0}.{1} {2}'.format(site, product.key, product.favbuy_dept))
             return product.favbuy_dept
         else:
-            logger.error('product dept extract failed -> {0}.{1}'.format(site, product.key))
+            logger.error(u'product dept extract failed -> {0}.{1}'.format(site, product.key))
 
         return
 
@@ -176,7 +172,22 @@ class ProductPipeline(object):
             product.favbuy_listprice = str(listprice)
             product.update_history['favbuy_listprice'] = datetime.utcnow()
             is_updated = True
-        
+        # if not product.favbuy_price or not float(product.favbuy_price) \
+        #     or ( update_history.get('favbuy_price') and update_history.get('price') \
+        #         and update_history.get('favbuy_price') < update_history.get('price') ):
+        #     favbuy_price = parse_price(product.price)
+        #     product.favbuy_price = str(favbuy_price)
+        #     product.update_history['favbuy_price'] = datetime.utcnow()
+
+        # if not product.favbuy_listprice or not float(product.favbuy_listprice) \
+        #     or ( update_history.get('favbuy_listprice') and update_history.get('listprice') \
+        #         and update_history.get('favbuy_listprice') < update_history.get('listprice') ):
+        #     listprice = parse_price(product.listprice) or product.favbuy_price
+        #     product.favbuy_listprice = str(listprice)
+        #     product.update_history['favbuy_listprice'] = datetime.utcnow()
+
+        logger.debug(u'product price extract {0}/{1} -> {2}/{3}'.format( \
+            product.price, product.listprice, product.favbuy_price, product.favbuy_listprice))
         return is_updated
     
     def extract_url(self):
@@ -249,7 +260,7 @@ class ProductPipeline(object):
         if self.extract_tag(text_list):
             updated = True
 
-        if self.extract_dept(text_list):
+        if self.extract_dept():
             updated = True
 
         if self.extract_price():
@@ -293,7 +304,43 @@ class EventPipeline(object):
         for k, v in depts.items():
             if v >= dept_threshold:
                 favbuy_dept.extend(list(k))
-        favbuy_dept = list(set(favbuy_dept))
+
+        # If the tilte definitely refer to a certain gender, get rid of the oppsite classification in the favbuy_dept.
+        keywords = (
+            (
+                (
+                    ('women', 'men'),
+                    ('woman', 'man'),
+                    ('her', 'him'),
+                    ('hers', 'his'),
+                    ('she', 'he'),
+                    ('female', 'male'),
+                ),
+                ('Women', 'Men'),
+            ),
+            (
+                (
+                    ('men', 'women'),
+                    ('man', 'woman'),
+                    ('him', 'her'),
+                    ('his', 'hers'),
+                    ('he', 'she'),
+                    ('male', 'female'),
+                ),
+                ('Men', 'Women'),
+            ),
+        )
+        if self.event.sale_title and favbuy_dept:
+            title_words =self.event.sale_title.lower().split()
+            for keyword in keywords:
+                title_keywords, dept_keywords = keyword
+                should_dept, should_not_dept = dept_keywords
+                for should_title, should_not_title in title_keywords:
+                    if should_title in title_words and should_not_title not in title_words and should_not_dept in favbuy_dept:
+                        favbuy_dept_set = set(favbuy_dept)
+                        favbuy_dept_set.remove(should_not_dept)
+                        favbuy_dept_set.add(should_dept)
+                        favbuy_dept = list(favbuy_dept_set)
 
         if favbuy_dept != self.event.favbuy_dept:
             self.event.favbuy_dept = favbuy_dept

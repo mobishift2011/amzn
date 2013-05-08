@@ -225,7 +225,8 @@ class Server(object):
                 is_updated = True
 
         # description list infos of the product
-        li_infos = stage_node.cssselect('div#prdInfo > div#prdInfoText > div.description ul')[0].xpath('.//text()')
+        li_infos = stage_node.cssselect('div#prdInfo > div#prdInfoText > div.description ul')[0]
+        li_infos = lxml.html.fromstring(re.sub('</?sup>|</?sub>', '', lxml.html.tostring(li_infos))).xpath('.//text()')
         list_info = [li_info.replace('\n', '') for li_info in li_infos if li_info != '\n']
 
         # original and sale price of the product

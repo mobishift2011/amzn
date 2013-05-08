@@ -304,7 +304,43 @@ class EventPipeline(object):
         for k, v in depts.items():
             if v >= dept_threshold:
                 favbuy_dept.extend(list(k))
-        favbuy_dept = list(set(favbuy_dept))
+
+        # If the tilte definitely refer to a certain gender, get rid of the oppsite classification in the favbuy_dept.
+        keywords = (
+            (
+                (
+                    ('women', 'men'),
+                    ('woman', 'man'),
+                    ('her', 'him'),
+                    ('hers', 'his'),
+                    ('she', 'he'),
+                    ('female', 'male'),
+                ),
+                ('Women', 'Men'),
+            ),
+            (
+                (
+                    ('men', 'women'),
+                    ('man', 'woman'),
+                    ('him', 'her'),
+                    ('his', 'hers'),
+                    ('he', 'she'),
+                    ('male', 'female'),
+                ),
+                ('Men', 'Women'),
+            ),
+        )
+        if self.event.sale_title and favbuy_dept:
+            title_words =self.event.sale_title.lower().split()
+            for keyword in keywords:
+                title_keywords, dept_keywords = keyword
+                should_dept, should_not_dept = dept_keywords
+                for should_title, should_not_title in title_keywords:
+                    if should_title in title_words and should_not_title not in title_words and should_not_dept in favbuy_dept:
+                        favbuy_dept_set = set(favbuy_dept)
+                        favbuy_dept_set.remove(should_not_dept)
+                        favbuy_dept_set.add(should_dept)
+                        favbuy_dept = list(favbuy_dept_set)
 
         if favbuy_dept != self.event.favbuy_dept:
             self.event.favbuy_dept = favbuy_dept

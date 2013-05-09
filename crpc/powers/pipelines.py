@@ -305,6 +305,8 @@ class EventPipeline(object):
             if v >= dept_threshold:
                 favbuy_dept.extend(list(k))
 
+        favbuy_dept = list(set(favbuy_dept))
+
         # If the tilte definitely refer to a certain gender, get rid of the oppsite classification in the favbuy_dept.
         keywords = (
             (

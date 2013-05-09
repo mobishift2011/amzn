@@ -28,11 +28,14 @@ class CheckServer(object):
             return
 
         tree = lxml.html.fromstring(ret)
+
         for price_node in tree.cssselect('div#productPrices div.priceBlock'):
             if price_node.cssselect('span.salePrice'):
                 price = price_node.cssselect('span.salePrice')[0].text_content().replace(',', '').replace('$', '').strip()
             elif price_node.cssselect('span.originalRetailPrice'):
                 listprice = price_node.cssselect('span.originalRetailPrice')[0].text_content().replace(',', '').replace('$', '').strip()
+
+        soldout = True if tree.cssselect('div#productInformation img#soldOutImage') else False
 
         if listprice and prd.listprice != listprice:
             prd.listprice = listprice
@@ -40,6 +43,9 @@ class CheckServer(object):
         if prd.price != price:
             prd.price = price
             prd.update_history.update({ 'price': datetime.utcnow() })
+        if prd.soldout != soldout:
+            prd.soldout = soldout
+            prd.update_history.update({ 'soldout': datetime.utcnow() })
         prd.save()
 
 
@@ -54,5 +60,5 @@ class CheckServer(object):
 
 
 if __name__ == '__main__':
-    pass
+    check_onsale_product('845524441951543', 'http://www.shopbop.com/maya-ballet-flat-rag-bone/vp/v=1/845524441951543.htm')
 

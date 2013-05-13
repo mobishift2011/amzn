@@ -58,7 +58,7 @@ def thumbnail(instance, doctype):
         print
 
     if updated:
-        print 'update ', doctype, instance.key if doctype == 'Product' else instance.event_id
+        print 'updating ', doctype, instance.key if doctype == 'Product' else instance.event_id
         instance.save()
 
     return updated

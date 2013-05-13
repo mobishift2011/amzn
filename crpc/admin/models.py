@@ -12,12 +12,14 @@ connect(db='admin', host=MONGODB_HOST)
 class Brand(Document):
     title           =   StringField(unique=True)
     title_edit      =   StringField()
+    title_cn        = StringField(default=u'')
     title_checked   =   BooleanField(default=False)
     alias           =   ListField(StringField(), default=list())
     keywords        =   StringField(default='')
     url             =   StringField(default='')
     url_checked     =   BooleanField(default=False)
     blurb           =   StringField(default='')
+    blurb_cn      =   StringField(default=u'')
     icon            =   StringField()
     images          =   ListField(StringField())   
     level           =   IntField(default=0) # luxrious or not 
@@ -37,12 +39,14 @@ class Brand(Document):
         return {
             'title'           :   self.title,
             'title_edit'      :   self.title_edit,
+            'title_cn'         :    self.title_cn,
             'title_checked'   :   self.title_checked,
             'alias'           :   self.alias,
             'keywords'        :   self.keywords,
             'url'             :   self.url,
             'url_checked'     :   self.url_checked,
             'blurb'           :   self.blurb,
+            'blurb_cn'      :   self.blurb_cn,
             'icon'            :   self.icon,
             'images'          :   self.images,
             'level'           :   self.level,

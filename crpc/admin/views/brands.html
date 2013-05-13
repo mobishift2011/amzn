@@ -30,6 +30,7 @@
                         <tr>
                             <th>title</th>
                             <th>title edit</th>
+                            <th>chinese title</th>
                             <th>title checked</th>
                             <th>level</th>
                             <th>delete</th>
@@ -45,6 +46,7 @@
                     <tr title="{{ brand['title'] }}">
                         <td>{{ brand['title'] }}</td>
                         <td>{% if brand['title_edit'] %}{{ brand['title_edit'] }}{% endif %}</td>
+                        <td>{{ brand['title_cn'] }}</td>
                         <td>
                             {% if brand['title_checked'] %}
                             <i class="icon-ok"></i>
@@ -147,6 +149,7 @@
                         <tr>
                             <th>title</th>
                             <th>title edit</th>
+                            <th>chinese title</th>
                             <th>global searchs</th>
                             <th>Actions</th>
                         </tr>
@@ -156,6 +159,7 @@
                     <tr title="{{ brand['title'] }}">
                         <td>{{ brand['title'] }}</td>
                         <td>{% if brand['title_edit'] %}{{ brand['title_edit'] }}{% endif %}</td>
+                        <td>{{ brand['title_cn'] }}</td>
                         <td>{{ brand['global_searchs'] }}
                         </td>
                        

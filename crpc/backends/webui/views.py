@@ -144,12 +144,14 @@ def get_publish_report(_thedate):
 def import_brands(eb):
     brand = Brand.objects(title=eb['title']).update(
         set__title_edit = eb['title_edit'],
+        set__title_cn = eb['title_cn'],
         set__title_checked = eb['title_checked'],
         set__alias = eb['alias'],
         set__keywords = eb['keywords'],
         set__url = eb['url'],
         set__url_checked = eb['url_checked'],
         set__blurb = eb['blurb'],
+        set__blurb_cn = eb['blurb_cn'],
         set__images = eb['images'],
         set__level = eb['level'],
         set__dept = eb['dept'],

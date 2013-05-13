@@ -78,6 +78,7 @@ class ProductPipeline(object):
 
         if product.shipping:
             product.shipping = re.sub(pattern, ' ',  product.shipping)
+            product.shipping = re.sub('\t+', ' ', product.shipping)
 
         if product.returned:
             product.returned = re.sub(pattern, ' ', product.returned)

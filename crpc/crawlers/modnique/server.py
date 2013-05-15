@@ -254,6 +254,21 @@ class Server(object):
 
         product_ids = []
         tree = lxml.html.fromstring(content)
+
+        event = Event.objects(event_id=event_id).first()
+        if not event: event = Event(event_id=event_id)
+
+        end = tree.cssselect('div#event_header div.page div.media ul.imgExt li.mts')
+        ends = end[0].text_content().strip().lower() if end else ''
+        if 'has ended' in ends:
+            if not event.events_end:
+                event.events_end = datetime.utcnow()
+                event.update_history.update({ 'events_end': datetime.utcnow() })
+                event.product_ids = []
+                event.update_time = datetime.utcnow()
+                event.save()
+                return
+
         nodes = tree.cssselect('div.line > div.page > div#items > ul#products > li.product')
         for node in nodes:
             js = json.loads(node.get('data-json'))
@@ -306,8 +321,6 @@ class Server(object):
             common_saved.send(sender=ctx, obj_type='Product', key=key, url=link, is_new=is_new, is_updated=is_updated)
             product_ids.append(key)
 
-        event = Event.objects(event_id=event_id).first()
-        if not event: event = Event(event_id=event_id)
         if event.urgent == True:
             event.urgent = False
             ready = True

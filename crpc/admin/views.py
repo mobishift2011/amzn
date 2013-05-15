@@ -24,6 +24,7 @@ def get_all_brands(db='catalogIndex'):
 		brands = [{
 			'title': brand.title,
 			'title_edit': brand.title_edit,
+			'title_cn': brand.title_cn,
 			'global_searchs': brand.global_searchs,
 		} for brand in PowerBrand.objects()]
 	return brands

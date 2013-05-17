@@ -5,6 +5,7 @@
 import sys
 import slumber
 import traceback
+import os
 from os import listdir
 from os.path import join, isdir
 from datetime import datetime, timedelta
@@ -159,7 +160,6 @@ def obj_getattr(obj, attr, defval):
 
 if __name__ == '__main__':
     from sh import ssh, rsync
-    import os
     ssh("root@crpc.favbuy.org", "rm -rf /tmp/dumpp; mongodump -o /tmp/dumpp/")
     os.system("rm -rf /tmp/dumpp/")
     rsync("-avze", "ssh", "root@crpc.favbuy.org:/tmp/dumpp/", "/tmp/dumpp/")
@@ -175,7 +175,7 @@ if __name__ == '__main__':
             conn[crawler].event.remove({'create_time': {'$lt': datetime.utcnow() - timedelta(days=30)}})
         conn[crawler].product.remove({'create_time': {'$lt': datetime.utcnow() - timedelta(days=30)}})
 
-    client = pymongo.MongoClient(MASTIFF_HOST)
+    client = pymongo.MongoClient("integrate.favbuy.org")
     client.mastiff.event.drop()
     client.mastiff.product.drop()
     os.system("curl -XDELETE http://localhost:9200/mastiff")

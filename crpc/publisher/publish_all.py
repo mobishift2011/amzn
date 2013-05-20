@@ -164,6 +164,7 @@ if __name__ == '__main__':
     os.system("rm -rf /tmp/dumpp/")
     rsync("-avze", "ssh", "root@crpc.favbuy.org:/tmp/dumpp/", "/tmp/dumpp/")
     os.system("mongorestore --drop /tmp/dumpp")
+    print 'dump crawler db ok.'
 
     from crawlers.common.stash import picked_crawlers
     import pymongo
@@ -174,11 +175,13 @@ if __name__ == '__main__':
         if 'event' in col:
             conn[crawler].event.remove({'create_time': {'$lt': datetime.utcnow() - timedelta(days=30)}})
         conn[crawler].product.remove({'create_time': {'$lt': datetime.utcnow() - timedelta(days=30)}})
+    print 'delete old data'
 
     client = pymongo.MongoClient("integrate.favbuy.org")
     client.mastiff.event.drop()
     client.mastiff.product.drop()
     os.system("curl -XDELETE http://localhost:9200/mastiff")
+    print 'delete mastiff data'
 
     p = Publisher()
     for site in picked_crawlers:
@@ -188,4 +191,4 @@ if __name__ == '__main__':
                 p.publish_event(ev)
         for prd in m.Product.objects:
             p.publish_product(prd)
-
+    print 'publish mastiff data ok'

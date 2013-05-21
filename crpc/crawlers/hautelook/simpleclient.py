@@ -78,9 +78,13 @@ class CheckServer(object):
 
         if price:
             if price != prd.price:
+                prd.price = price
+                prd.update_history.update({ 'price': datetime.utcnow() })
                 print 'hautelook product[{0}] price error: {1} vs {2}'.format(prd.combine_url, prd.price, price)
         if listprice:
             if listprice != prd.listprice:
+                prd.listprice = listprice
+                prd.update_history.update({ 'listprice': datetime.utcnow() })
                 print 'hautelook product[{0}] listprice error: {1} vs {2}'.format(prd.combine_url, prd.listprice, listprice)
 
     def check_offsale_product(self, id, url):

@@ -160,7 +160,7 @@ def obj_getattr(obj, attr, defval):
 
 if __name__ == '__main__':
     from sh import ssh, rsync
-    ssh("root@crpc.favbuy.org", "rm -rf /tmp/dumpp; mongodump -o /tmp/dumpp/")
+#    ssh("root@crpc.favbuy.org", "rm -rf /tmp/dumpp; mongodump -o /tmp/dumpp/")
     os.system("rm -rf /tmp/dumpp/")
     rsync("-avze", "ssh", "root@crpc.favbuy.org:/tmp/dumpp/", "/tmp/dumpp/")
     os.system("mongorestore --drop /tmp/dumpp")
@@ -180,7 +180,7 @@ if __name__ == '__main__':
     client = pymongo.MongoClient("integrate.favbuy.org")
     client.mastiff.event.drop()
     client.mastiff.product.drop()
-    os.system("curl -XDELETE http://localhost:9200/mastiff")
+    os.system("curl -XDELETE http://integrate.favbuy.org:9200/mastiff")
     print 'delete mastiff data'
 
     p = Publisher()

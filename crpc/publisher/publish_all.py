@@ -190,10 +190,11 @@ if __name__ == '__main__':
 
     print 'delete old data'
 
-    client = pymongo.MongoClient("integrate.favbuy.org")
+    monhost = MASTIFF_HOST.split('//')[-1].split(':')[0]
+    client = pymongo.MongoClient(monhost)
     client.mastiff.event.drop()
     client.mastiff.product.drop()
-    os.system("curl -XDELETE http://integrate.favbuy.org:9200/mastiff")
+    os.system("curl -XDELETE http://{0}:9200/mastiff".format(monhost))
     print 'delete mastiff data'
 
     p = Publisher()

@@ -179,12 +179,22 @@ if __name__ == '__main__':
         if 'event' in col:
             conn[crawler].event.remove({'create_time': {'$lt': datetime.utcnow() - timedelta(days=30)}})
         conn[crawler].product.remove({'create_time': {'$lt': datetime.utcnow() - timedelta(days=30)}})
+
+        ll = []
+        for pr in conn[crawler].product.find({}, {'event_id': 1}):
+            for evid in pr['event_id']:
+                if conn[crawler].event.find({event_id: evid}).count() == 0:
+                    ll.append(pr)
+        for pr in ll:
+            conn[crawler].product.remove(pr)
+
     print 'delete old data'
 
-    client = pymongo.MongoClient("integrate.favbuy.org")
+    monhost = MASTIFF_HOST.split('//')[-1].split(':')[0]
+    client = pymongo.MongoClient(monhost)
     client.mastiff.event.drop()
     client.mastiff.product.drop()
-    os.system("curl -XDELETE http://integrate.favbuy.org:9200/mastiff")
+    os.system("curl -XDELETE http://{0}:9200/mastiff".format(monhost))
     print 'delete mastiff data'
 
     p = Publisher()

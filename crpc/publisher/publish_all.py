@@ -182,6 +182,8 @@ if __name__ == '__main__':
 
         ll = []
         for pr in conn[crawler].product.find({}, {'event_id': 1}):
+            if 'event_id' not in pr:
+                continue
             for evid in pr['event_id']:
                 if conn[crawler].event.find({'event_id': evid}).count() == 0:
                     ll.append(pr)

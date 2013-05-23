@@ -183,7 +183,7 @@ if __name__ == '__main__':
         ll = []
         for pr in conn[crawler].product.find({}, {'event_id': 1}):
             for evid in pr['event_id']:
-                if conn[crawler].event.find({event_id: evid}).count() == 0:
+                if conn[crawler].event.find({'event_id': evid}).count() == 0:
                     ll.append(pr)
         for pr in ll:
             conn[crawler].product.remove(pr)

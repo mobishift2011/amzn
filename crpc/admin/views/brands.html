@@ -25,7 +25,7 @@
                 </div>
             </div>
             <div class="box-content">
-                <table class="table table-striped table-bordered bootstrap-datatable datatable">
+                <table class="table table-striped table-bordered bootstrap-datatable ">
                     <thead>
                         <tr>
                             <th>title</th>
@@ -101,6 +101,30 @@
                     {% endfor %}
                   </tbody>
                 </table>
+                {% if pagination %}
+                <div class="pagination pagination-centered">
+                  <ul>
+                    {% if pagination.has_prev %}
+                    <li><a class="pagination" page="{{pagination.page-1}}" href="#">Prev</a></li>
+                    {% endif %}
+                    {% for page in pagination.iter_pages() %}
+                    {% if page %}
+                      {% if page == pagination.page %}
+                        <li class="active"><a class="pagination" page="" href="#">{{page}}</a></li>
+                      {% else %}
+                        <li><a class="pagination" page="{{page}}" href="#">{{page}}</a></li>
+                      {% endif %}
+                    {% else %}
+                      <li><a class="pagination" page="" href="#">...</a></li>
+                    {% endif %}
+                    {% endfor %}
+                    {% if pagination.has_next %}
+                    <li><a class="pagination" page="{{pagination.page+1}}" href="#">Next</a></li>
+                    {% endif %}
+                  </ul>
+                </div>  
+                {% endif %}
+
                 <p class="pull-right">
                     <a class="btn btn-success" href="#">
                         <i class="icon-zoom-in icon-white"></i>  
@@ -271,6 +295,18 @@ $('.btn_edit_power').click(function(e){
         var url = "/brand/power/" + encodeURIComponent($(this).attr('title'));
         window.open(url);
 });
+
+
+  // pagination
+  $('a.pagination').live('click', function(){
+    if ($(this).attr('page')) {
+      var param = {};
+      param['limit'] = 100;
+      param['offset'] = $(this).attr('page');
+      var url = "/brands/?" + $.param(param);
+      window.location.href = url;
+    }
+  });
 
 </script>
 {% endblock %}

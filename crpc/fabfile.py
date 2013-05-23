@@ -320,7 +320,7 @@ def _restart_zero():
     puts(green("Restarting Zero Servers"))
     with settings(warn_only=True):
         run('killall supervisord')
-        run('sleep 1')
+        run('sleep 3')
         run('cd /srv/crpc && ulimit -n 8192 && supervisord -c supervisord.conf -l /tmp/supervisord.log')
 
 def deploy():

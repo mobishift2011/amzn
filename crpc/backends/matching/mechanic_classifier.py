@@ -511,17 +511,50 @@ def extract_pattern2():
         for phrase, counts in wc.most_common():
             f.write('{0} -> {1}\n'.format(phrase.encode('utf-8'), counts))
 
+def guess_event_dept(site, event):
+    results = []
+    if event.dept:
+        results = [ e.lower().replace('beauty', 'Beauty & Health').replace('children', 'kids').capitalize() for e in event.dept ]
+    elif site == 'beyondtherack':
+        results = ['Home']
+      
+    if 'Designer' in results:
+        results.remove('Designer')
+        
+    if hasattr(event, 'sale_title') and event.sale_title:
+        patwomen = set(["women's", "she's", "woman", "womans", "women", "pumps", "her", "she"])
+        patmen = set(["man", "men", "men's", "he's", "his", "him"])
+        patkids = set(["kids'", "kids", "toys", "baby"])
+        pathome = set(["beds", "art", "house", "rugs", "lighting", "duvet", "towel", "sheet", "furniture", "home"])
+        patwatches = set(["watches", "jewelry", "diamonds"])
+        patbags = set(["bags", "handbags"])
+        words = set(re.split(r'[ -:]', event.sale_title.strip().lower()))
+        if words & patwomen:
+            results.append('Women')
+        if words & patmen:
+            results.append('Men')
+        if words & patkids:
+            results.append('Kids')
+        if words & pathome:
+            results.append('Home')
+        if words & patwatches:
+            results.append('Jewelry & Watches')
+        if words & patbags:
+            results.append('Bags')
+        return list(set(results))
+
 if __name__ == '__main__':
-    m = get_site_module('nordstrom')
-    p = m.Product.objects.get(pk='3497113')
-    print classify_product_department('nordstrom', p, return_judge=True)
-    exit(0)
-    #extract_pattern2()
+    from datetime import datetime
+    from crawlers.common.stash import luxury_crawlers
+    from collections import Counter
+    from pprint import pprint
+    counter = Counter()
+    for site in luxury_crawlers:
+        m = get_site_module(site)
+        if not hasattr(m, 'Event'):
+            continue
+        for e in m.Event.objects(events_begin__gt=datetime.utcnow()):
+            c = guess_event_dept(site, e)
+            counter[ tuple(c) ] += 1 
 
-    from feature import sites
-    for site in sites:
-        extract_pattern(site)
-
-    #test_product()
-    #for rule in load_rules()['0']:
-    #    print rule[0]
+    pprint(counter.most_common())

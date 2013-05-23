@@ -159,9 +159,10 @@ def obj_getattr(obj, attr, defval):
         return val if val else defval
 
 if __name__ == '__main__':
+    import pymongo
     from sh import ssh, rsync
     from crawlers.common.stash import picked_crawlers
-#    ssh("root@crpc.favbuy.org", "rm -rf /tmp/dumpp; mongodump -o /tmp/dumpp/")
+    ssh("root@crpc.favbuy.org", "rm -rf /tmp/dumpp; mongodump -o /tmp/dumpp/")
     ssh("root@crpc.favbuy.org", "rm -rf /tmp/dumpp")
     for site in picked_crawlers:
         ssh("root@crpc.favbuy.org", "mongodump -d {0} -o /tmp/dumpp/".format(site))
@@ -171,7 +172,6 @@ if __name__ == '__main__':
     os.system("mongorestore --drop /tmp/dumpp")
     print 'dump crawler db ok.'
 
-    import pymongo
     conn = pymongo.MongoClient(MONGODB_HOST)
     dbs = conn.database_names()
     for crawler in picked_crawlers:

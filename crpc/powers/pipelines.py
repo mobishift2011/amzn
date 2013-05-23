@@ -2,7 +2,7 @@
 from gevent import monkey; monkey.patch_all()
 import gevent
 from affiliate import Affiliate
-from backends.matching.mechanic_classifier import classify_product_department
+from backends.matching.mechanic_classifier import classify_product_department, guess_event_dept
 from powers.configs import BRAND_EXTRACT
 import re, htmlentitydefs
 from titlecase import titlecase
@@ -443,6 +443,12 @@ class EventPipeline(object):
         counter = 0
         num_products = len(self.event.product_ids) if self.event.product_ids else len(products)
         if num_products == 0:
+            # we should also include dept for upcoming events
+            try:
+                self.event.favbuy_dept = guess_event_dept(self.site, self.event)
+                self.event.save()
+            except:
+                pass
             return
 
         print 'start to propogate event -> %s.%s, product amount: %s' % \

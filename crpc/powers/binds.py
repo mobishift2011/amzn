@@ -17,6 +17,19 @@ import traceback
 import gevent.pool
 process_image_pool = gevent.pool.Pool(500)
 
+def get_site_module(site):
+    if not hasattr(get_site_module, 'mod'):
+        setattr(get_site_module, 'mod', {})
+
+    if not get_site_module.mod:
+        for crawler in picked_crawlers:
+            get_site_module.mod[crawler] = __import__('crawlers.'+ crawler +'.models', fromlist=['Category', 'Event', 'Product'])
+    
+    if site not in get_site_module.mod:
+        get_site_module.mod[site] = __import__('crawlers.'+ site +'.models', fromlist=['Category', 'Event', 'Product'])
+    
+    return get_site_module.mod[site]
+
 try:
     from deals.routine import clean_product
 except ImportError:
@@ -67,11 +80,23 @@ def batch_image_crawling(sender, **kwargs):
 
 @ready_for_batch.bind
 def batch_text_extract(sender, **kwargs):
+    from datetime import datetime
+    utcnow = datetime.utcnow()
     logger.info('batch text extract listens: {0} -> {1}'.format(sender, kwargs.items()))
     site, method, dummy = sender.split('.')
     doctype = kwargs.get('doctype') or ''
 
-    if doctype.capitalize() != 'Product':
+    if doctype.capitalize() == 'Event':
+        # if there's an upcoming event in a site, try recognize the departments
+        m = get_site_module[site]
+        if hasattr(m, 'Event'):
+            for event in m.Event.objects(events_begin__gt=utcnow, favbuy_dept=[]):
+                try:
+                    event.favbuy_dept = guess_event_dept(self.site, self.event)
+                    event.save()
+                except:
+                    pass
+    elif doctype.capitalize() != 'Product':
         return
     
     if method.startswith('update'):

@@ -8,7 +8,7 @@ from backends.matching.mechanic_classifier import classify_product_department, g
 from crawlers.common.events import common_saved
 from crawlers.common.stash import deal_crawlers
 from powers.events import *
-from powers.routine import crawl_images, scan_images, propagate
+from powers.routine import crawl_images, scan_images, propagate, get_site_module
 from settings import POWER_PEERS, TEXT_PEERS
 
 from helpers.rpc import get_rpcs
@@ -18,19 +18,6 @@ logger = getlogger("powersignals", '/tmp/powersignals.log')
 import traceback
 import gevent.pool
 process_image_pool = gevent.pool.Pool(500)
-
-def get_site_module(site):
-    if not hasattr(get_site_module, 'mod'):
-        setattr(get_site_module, 'mod', {})
-
-    if not get_site_module.mod:
-        for crawler in picked_crawlers:
-            get_site_module.mod[crawler] = __import__('crawlers.'+ crawler +'.models', fromlist=['Category', 'Event', 'Product'])
-    
-    if site not in get_site_module.mod:
-        get_site_module.mod[site] = __import__('crawlers.'+ site +'.models', fromlist=['Category', 'Event', 'Product'])
-    
-    return get_site_module.mod[site]
 
 try:
     from deals.routine import clean_product
@@ -90,13 +77,15 @@ def batch_text_extract(sender, **kwargs):
 
     if doctype.capitalize() == 'Event':
         # if there's an upcoming event in a site, try recognize the departments
-        m = get_site_module[site]
+        m = get_site_module(site)
         if hasattr(m, 'Event'):
             for event in m.Event.objects(events_begin__gt=utcnow, favbuy_dept=[]):
                 try:
-                    event.favbuy_dept = guess_event_dept(self.site, self.event)
+                    event.favbuy_dept = guess_event_dept(site, event)
                     event.save()
                 except:
+                    import traceback
+                    traceback.print_exc()
                     pass
     elif doctype.capitalize() != 'Product':
         return
@@ -130,4 +119,4 @@ def batch_text_extract(sender, **kwargs):
 
 
 if __name__ == '__main__':
-    pass
+    batch_text_extract('myhabit.update_listing.haha', doctype='Event')

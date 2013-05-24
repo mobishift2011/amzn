@@ -514,7 +514,7 @@ def extract_pattern2():
 def guess_event_dept(site, event):
     results = []
     if event.dept:
-        results = [ e.lower().capitalize().replace('Beauty', 'Beauty & Health').replace('Children', 'Kids').replace('Electronics','Home').replace("Women's aduro", "Women") for e in event.dept ]
+        results = [ e.lower().capitalize().replace('Beauty', 'Beauty & Health').replace('Children', 'Kids & Baby').replace('Electronics','Home').replace("Women's aduro", "Women") for e in event.dept ]
     elif site == 'beyondtherack':
         results = ['Home']
       
@@ -534,7 +534,7 @@ def guess_event_dept(site, event):
         if words & patmen:
             results.append('Men')
         if words & patkids:
-            results.append('Kids')
+            results.append('Kids & Baby')
         if words & pathome:
             results.append('Home')
         if words & patwatches:

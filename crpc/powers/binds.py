@@ -3,6 +3,8 @@
 from gevent import monkey; monkey.patch_all()
 import gevent
 
+from backends.matching.mechanic_classifier import classify_product_department, guess_event_dept
+
 from crawlers.common.events import common_saved
 from crawlers.common.stash import deal_crawlers
 from powers.events import *

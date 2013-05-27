@@ -1,22 +1,23 @@
 # -*- coding: utf-8 -*-
 from admin.models import Brand
 
-def output():
-	brands = Brand.objects(is_delete=False)
+def main():
+    with open('/home/ethan/bt.csv', 'r') as f:
+        line = f.readline()
+        while line:
+            line = f.readline()
+            if line:
+                title_en, title_cn = line.split(',')
+                brand = Brand.objects(title_edit=title_en, is_delete=False).first()
+                if not brand:
+                    brand = Brand.objects(title=title_en, is_delete=False).first()
 
-	with open('brand_output.txt', 'w') as f:
-		for brand in brands:
-			name = brand.title_edit or brand.title
-			url = 'yes' if brand.url else 'no'
-			desc = 'yes' if brand.blurb else 'no'
-			if '\n' in url:
-				print url
-			if '\n' in desc:
-				print desc
-			f.write('{0}\t{1}\t{2}\t{3}\n'.format(
-				name.encode('utf-8'), brand.level, url, desc
-			))
+                if not brand:
+                    print u'no brand {} in db'.format(title_en)
+                    continue
 
+                brand.title_cn = title_cn
+                brand.save()
 
 if __name__ == '__main__':
-	output()
+    main()

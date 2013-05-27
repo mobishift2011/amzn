@@ -837,8 +837,13 @@ class AffiliateHandler(BaseHandler):
 
 class BrandsHandler(BaseHandler):
     def get(self, db):
-        brands = get_all_brands(db) if db else get_all_brands()
-        data = {}
+        page = int(self.get_argument('offset', '1'))
+        limit = int(self.get_argument('limit', '100'))
+
+        brands, total = get_all_brands(db, page=page, limit=limit) if db else get_all_brands(page=page, limit=limit)
+        pagination = Pagination(page, limit, total)
+        data = {'pagination': pagination}
+
         if db:
             data[db+'_brands'] = brands
         else:

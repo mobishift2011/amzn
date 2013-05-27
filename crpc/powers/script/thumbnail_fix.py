@@ -7,6 +7,7 @@ from powers.configs import *
 from powers.routine import get_site_module
 from powers.tools import ImageTool
 from optparse import OptionParser
+import requests
 import slumber
 import os, sys
 import traceback
@@ -39,7 +40,16 @@ def thumbnail(instance, doctype):
             
             if not image:
                 print 'downloading: ', url
-                image = it.download(url)
+                MAX_RETRIES = 3
+                for i in xrange(MAX_RETRIES):
+                    try:
+                        image = it.download(url)
+                        break
+                    except requests.exceptions.ConnectionError:
+                        if i >= 2:
+                            print traceback.format_exc()
+                            return False
+                        continue
 
             print [width, height], 'not in, begin to thumbnail...'
             
@@ -56,11 +66,7 @@ def thumbnail(instance, doctype):
             print im_key
 
         print
-
-    if updated:
-        print 'updating ', doctype, instance.key if doctype == 'Product' else instance.event_id
-        instance.save()
-
+    
     return updated
 
 def main(sites=[], doctype='Product'):
@@ -69,7 +75,7 @@ def main(sites=[], doctype='Product'):
     for site in sites:
         m = get_site_module(site)
         try:
-            instances = getattr(m, doctype).objects()
+            instances = getattr(m, doctype).objects().timeout(False)
         except AttributeError:
             print traceback.format_exc()
             continue
@@ -82,6 +88,9 @@ def main(sites=[], doctype='Product'):
                     params = {'cover_image': instance.image_path[0], 'images': instance.image_path} \
                         if doctype == 'Product' else {'cover_image': instance.image_path[0]}
                     getattr(api, doctype.lower())(instance.muri.split("/")[-2]).patch(params)
+
+                    print 'updating ', doctype, instance.key if doctype == 'Product' else instance.event_id
+                    instance.save()
             print
 
         print; print

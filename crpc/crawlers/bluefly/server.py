@@ -366,7 +366,10 @@ class Server(object):
                 product.combine_url = combine_url
                 product.update_history.update({ 'combine_url': datetime.utcnow() })
 
-        if listprice and listprice != product.listprice:
+        if not listprice:
+            if product.listprice:
+                product.listprice = None
+        elif listprice and listprice != product.listprice:
             product.listprice = listprice
             product.update_history.update({ 'listprice': datetime.utcnow() })
         if price and price != product.price:

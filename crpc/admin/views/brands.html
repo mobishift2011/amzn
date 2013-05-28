@@ -1,6 +1,10 @@
 {% extends "layout.html" %}
 {% block content %}
 
+                <form action="/brand/search/" method="post">{{ xsrf_form_html()|safe }}
+                    <input type="text" name="q" placeholder="search..."/>
+                    <input type="submit" value='search'>
+                </form>
 {% if brands %}
 <div class="row-fluid">
     <div>

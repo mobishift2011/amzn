@@ -12,6 +12,7 @@ from settings import CRAWLER_PEERS
 from functools import partial
 
 from bson.objectid import ObjectId
+from mongoengine import Q
 import slumber
 import traceback
 from urllib import unquote
@@ -29,6 +30,10 @@ def get_all_brands(db='catalogIndex', page=1, limit=100):
         } for brand in PowerBrand.objects()], PowerBrand.objects().count()
     
     return brands
+
+def search_brands(q):
+    brands = Brand.objects( Q(title__icontains=q)|Q(title_edit__icontains=q)|Q(title_cn__icontains=q) )
+    return [brand.to_json() for brand in brands]
 
 def get_brand(title, db):
     if not db:

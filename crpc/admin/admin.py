@@ -28,7 +28,7 @@ from multiprocessing.pool import ThreadPool
 
 from crawlers.common.stash import picked_crawlers
 from backends.monitor.events import run_command
-from views import get_all_brands, get_brand, update_brand, delete_brand, update_brand_volumn
+from views import get_all_brands, get_brand, update_brand, delete_brand, update_brand_volumn, search_brands
 from views import get_all_links, post_link, delete_link
 from views import get_all_schedules, update_schedule, delete_schedule, execute as execute_deal
 from powers.tools import ImageTool, Image
@@ -851,6 +851,14 @@ class BrandsHandler(BaseHandler):
         print data.keys()
         self.render('brands.html', **data)
 
+class BrandSearchHandler(BaseHandler):
+    @tornado.web.authenticated
+    def post(self):
+        query = self.get_argument('q')
+        brands = search_brands(query) if query else []
+        self.render('brands.html', brands=brands)
+
+
 class BrandHandler(BaseHandler):
     @tornado.web.authenticated
     def get(self, brand_title):
@@ -1110,6 +1118,7 @@ application = tornado.web.Application([
     (r"/brand/power/(.*)", PowerBrandHandler),
     (r"/brand/deal/monitor", BrandMonitorHandler),
     (r"/deal/?", DealHandler),
+    (r"/brand/search/", BrandSearchHandler),
     (r"/brand/?(.*)", BrandHandler),
     (r"/feedback/(.*)", FeedbackHandler),
     (r"/email/(.*)", EmailHandler),

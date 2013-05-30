@@ -1,0 +1,149 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<div id="main-content">
+  <ul class="breadcrumb">
+    <li>
+      <a href="/">Home</a> <span class="divider">/</span>
+    </li>
+    <li>
+      <a href="/blog/listing/">Blog</a>
+    </li>
+  </ul>
+
+  <div>
+<script type="text/javascript">
+function copy (str)
+{
+    //for IE ONLY!
+    window.clipboardData.setData('Text',str);
+}
+
+</script>
+  {% if message %}
+    {{ message }}
+  {% else %}
+          <table class="table">
+              <tr>
+                  <td>id</td>
+                  <td>{{ r.id }}  <a href="/blog/edit/{{ r.id }}/">edit</a></td>
+              </tr>
+              <tr>
+                  <td>favbuy url</td>
+                  <td><input type="text" value="http://www.favbuy.com/blog/weixin/{{ r.id }}/"> <a id="copy" onclick='copy('x');>copy</a></td>
+              </tr>
+
+              <tr>
+                  <td>subject</td>
+                  <td>{{ r.title}}</td>
+              </tr>
+              <tr>
+                  <td>content</td>
+                  <td>{{ r.content }}</td>
+              </tr>
+              <tr>
+                  <td>created at</td>
+                  <td>{{ r.created_at }}</td>
+              </tr>
+
+          </table>
+      </div>  
+  {% endif %}
+</div><!--main-content-->
+  
+      
+<div class="modal hide fade" id="myModal">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal">×</button>
+    <h3>Settings</h3>
+  </div>
+  <div class="modal-body">
+    <p>Here settings can be configured...</p>
+  </div>
+  <div class="modal-footer">
+    <a href="#" class="btn" data-dismiss="modal">Close</a>
+    <a href="#" class="btn btn-primary">Save changes</a>
+  </div>
+</div>
+
+<div class="modal hide fade" id="reason-modal">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal">×</button>
+    <h3>Classification Reason</h3>
+  </div>
+  <div class="modal-body" id="reason-body">
+  </div>
+  <div class="modal-footer">
+    <a href="#" class="btn" data-dismiss="modal">Close</a>
+  </div>
+</div>
+
+<div class="modal hide fade" id="edit-modal">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal">x</button>
+    <h3>Reclassify All Departments</h3>
+  </div>
+  <div class="modal-body" id="edit-body">
+    Depts: (e.g. ['Women', 'Shoes']) <input type="text" id="edit-input" class="input-large" value=""/>
+  </div>
+  <div class="modal-footer">
+    <a href="#" class="btn btn-primary" id="edit-save">Save</a>
+    <a href="#" class="btn" data-dismiss="modal">Close</a>
+</div>
+
+{% endblock %}
+
+{% block script %}
+<script>
+  // make nav css correct
+  $('li[name=viewdata]').each(function(){
+    var link = $(this).find(">:first-child").attr('href');
+    if (window.location.href.indexOf(link) != -1){
+      $(this).addClass('active');
+    }
+  });
+
+  // make selection consistent with url
+  var param = $.deparam(window.location.href.substr(window.location.href.indexOf('?')+1));
+
+  // pagination
+  $('a.pagination').live('click', function(){
+    if ($(this).attr('page')) {
+      param['offset'] = ($(this).attr('page')-1)*20;
+      var url = "/viewdata/products?" + $.param(param);
+      window.location.href = url;
+    }
+  });
+
+  $('#searchtitle').click(function(){
+    var url = "/viewdata/products?"+ $.param({'title__icontains':$('#searchinput').val().replace(')','\\)').replace('(','\\(')});
+    window.location.href = url;
+  });
+
+  // reason
+  $('[name=reason]').live('click', function(){
+    var site_key = $(this).attr('site_key');
+    var s = site_key.split('_');
+    var site = s[0]
+    var key = s[1]
+    $.get('/viewdata/classification_reason.ajax', $.param({site:site,key:key}), function(data){
+        $('#reason-body').html(data);
+        $('#reason-modal').modal();
+    });
+  });
+
+  // reclassify all
+  $('#editall').live('click', function(){
+    $('#edit-modal').modal();
+  });
+
+  $('#edit-save').live('click', function(){
+    var value = $('#edit-input').val();
+    param['departments'] = value;
+    $.get('/viewdata/reclassify_all.ajax', param, function(data){
+        $('#edit-modal').modal('hide');
+        window.location.href = window.location.href;
+    });
+  });
+</script>
+{% endblock %}

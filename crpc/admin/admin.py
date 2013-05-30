@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from hashlib import md5
 from gevent import monkey; monkey.patch_all()
 import tornado.ioloop
 import tornado.web
@@ -25,9 +26,10 @@ from crawlers.common.stash import picked_crawlers
 from views import get_all_brands, get_brand, update_brand, delete_brand, update_brand_volumn
 from views import get_all_links, post_link, delete_link
 from powers.tools import ImageTool, Image
-from powers.configs import AWS_ACCESS_KEY, AWS_SECRET_KEY
+from powers.configs import AWS_ACCESS_KEY, AWS_SECRET_KEY,S3_IMAGE_BUCKET
 from boto.cloudfront import CloudFrontConnection
 from StringIO import StringIO
+from PIL import Image,ImageOps
 import threading
 DISTRIBUTIONID = 'E3QJD92P0IKIG2'
 
@@ -604,6 +606,86 @@ class EmailHandler(BaseHandler):
         r = api.email(id).get()
         return self.render('email/detail.html',r=r)
 
+class BlogHandler(BaseHandler):
+
+    def get(self,name=None):
+        print 'name',name
+        if name == 'add/':
+            return self.render_edit()
+        elif name.startswith('listing'):
+            page = int(self.get_argument('page', 1))
+            limit = 20
+            offset = (page-1)*limit
+            res = api.blog.get(limit=limit,offset=offset,order_by='-created_at')
+            total_count =  res['meta']['total_count']
+            pagination = Pagination(page, limit, total_count)
+            return self.render('blog/list.html',results=res['objects'],pagination=pagination)
+        elif name.startswith('detail'):
+            id = name.split('/')[1]
+            return self.render_detail(id)
+        elif name.startswith('edit'):
+            id = name.split('/')[1]
+            return self.render_edit(id)
+
+    def render_detail(self,id):
+        r = api.blog(id).get()
+        return self.render('blog/detail.html',r=r)
+
+    def render_edit(self,id=None):
+        r = False
+        if id:
+            r = api.blog(id).get()
+        xsrf_token = self.xsrf_token
+        print 'token',xsrf_token
+        return self.render('blog/edit.html',r=r,xsrf_token=self.xsrf_token)
+
+    def post(self,name=None):
+        """ create a new blog """
+        print 'post',name
+        data = {}
+        keys = ['title','content']
+        for key in keys:
+            data[key]  = self.get_argument(key)
+        
+        if name == 'add/':
+            # create new blog
+            r = api.blog.post(data)
+            print 'r',r
+            id = r['id']
+
+        elif name == 'upload/':
+            return self.upload_handle()
+        elif name.startswith('edit/'):
+            id = name.split('/')[1]
+            # edit a blog
+            r = api.blog(id).patch(data)
+
+        return self.redirect('/blog/detail/{0}/'.format(id))
+
+    def upload_handle(self):
+        response= {'error':1,'message':'test'}
+        self.content_type = 'application/json'
+
+        content = self.request.files['imgFile'][0]['body']
+        it = ImageTool()
+        key = 'blog/{0}.jpg'.format(md5(content).hexdigest())
+        try:
+            im = Image.open(StringIO(content))
+            fileobj = StringIO()
+            im.save(fileobj, 'jpeg', quality=100)
+            fileobj.seek(0)
+            it.upload2s3(fileobj, key)
+            invalidate_cloudfront(key)
+            url = 'https://s3.amazonaws.com/{0}/{1}'.format(S3_IMAGE_BUCKET,key)
+        except Exception,e:
+            response['message'] = e.message
+            pass
+        else:
+            response = {'error':0,'url':url}
+
+        self.write(json.dumps(response))
+        return
+
 class MonitorHandler(BaseHandler):
     def get(self):
         self.render('monitor.html')
@@ -693,7 +775,6 @@ class BrandHandler(BaseHandler):
     def delete(self, brand_title):
         self.write(str(delete_brand(brand_title)))
 
-
 class PowerBrandHandler(BaseHandler):
     @tornado.web.authenticated
     def get(self, brand_title):
@@ -705,7 +786,6 @@ class PowerBrandHandler(BaseHandler):
         arguments = self.request.arguments
         brand = update_brand_volumn(brand_title, int(arguments['global_searchs'][0]))
         self.render('brandpower.html', brand=brand)
-
 
 class MemberHandler(BaseHandler):
     def get(self, path):
@@ -822,6 +902,7 @@ application = tornado.web.Application([
     (r"/brand/?(.*)", BrandHandler),
     (r"/feedback/(.*)", FeedbackHandler),
     (r"/email/(.*)", EmailHandler),
+    (r"/blog/(.*)", BlogHandler),
     (r"/member/(.*)", MemberHandler),
     (r"/ajax/(.*)", AjaxHandler),
     (r"/", IndexHandler),

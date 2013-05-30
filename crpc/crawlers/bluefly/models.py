@@ -30,6 +30,7 @@ class Product(LuxuryProduct):
     return_policy       = StringField()
     color               = StringField()
     event_type          = BooleanField(default=False)
+    price_history       = ListField()
 
 
     meta  =   {

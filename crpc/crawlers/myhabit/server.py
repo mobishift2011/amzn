@@ -124,7 +124,7 @@ class Server(object):
         asin = product_data['asin']
         casin = product_data['cAsin']
         title = product_data['title'].encode('utf-8') # color is in title
-        image_urls = [product_data['image']] + product_data['altImages'] # one picture, altImages is []
+#        image_urls = [product_data['image']] + product_data['altImages'] # one picture, altImages is []
         if 'listPrice' in product_data:
             listprice = product_data['listPrice']['display'] # or 'amount', if isRange: True, don't know what 'amount' will be
         else: listprice = ''
@@ -139,16 +139,17 @@ class Server(object):
             soldout = True
         else: soldout = False
         jslink = prefix_url + asins[asin]['url'] if asin in asins else ''
+        combine_url = 'http://www.myhabit.com/homepage#page=d&sale={0}&asin={1}&cAsin={2}'.format(event_id, asin, casin)
 
         is_new, is_updated = False, False
         product = Product.objects(key=casin).first()
         if not product:
             is_new = True
             product = Product(key=casin)
-            product.combine_url = 'http://www.myhabit.com/homepage#page=d&sale={0}&asin={1}&cAsin={2}'.format(event_id, asin, casin)
+            product.combine_url = combine_url
             product.asin = asin
             product.title = title
-            product.image_urls = image_urls
+#            product.image_urls = image_urls
             product.listprice = listprice
             product.price = price
             product.sizes = sizes
@@ -162,6 +163,16 @@ class Server(object):
             if product.title != title:
                 product.title = title
                 product.update_history.update({ 'title': datetime.utcnow() })
+            if product.combine_url != combine_url:
+                product.combine_url = combine_url
+                product.update_history.update({ 'combine_url': datetime.utcnow() })
+            if product.listprice != listprice:
+                product.listprice = listprice
+                product.update_history.update({ 'listprice': datetime.utcnow() })
+            if product.price != price:
+                product.price = price
+                product.update_history.update({ 'price': datetime.utcnow() })
+
         if event_id not in product.event_id: product.event_id.append(event_id)
         product.jslink = jslink
         product.list_update_time = datetime.utcnow()
@@ -174,6 +185,19 @@ class Server(object):
         r = req.get(url)
         data = re.compile(r'parse_asin_\w+\((.*)\);$').search(r.text).group(1)
         data = json.loads(data)
+
+        image_urls = []
+        for i in data['detailJSON']['main']['altviews']:
+            if i['zoomImage'] not in image_urls:
+                image_urls.append(i['zoomImage'])
+
+        if not image_urls:
+            for i in data['detailJSON']['asins']:
+                if i['asin'] == casin:
+                    for j in i['altviews']:
+                        if j['zoomImage'] not in image_urls:
+                            image_urls.append(j['zoomImage'])
+                    break
 
         asin = data['detailJSON']['asin']
         summary = data['productDescription']['shortProdDesc']
@@ -206,6 +230,7 @@ class Server(object):
         product.shipping = 'FAST, FREE SHIPPING, FREE RETURN SHIPPING in the U.S.'
         product.returned = returned
         product.video = video
+        product.image_urls = image_urls
         product.full_update_time = datetime.utcnow()
 
         if product.updated == False:

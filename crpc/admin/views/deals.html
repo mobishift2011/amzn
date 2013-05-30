@@ -1,0 +1,92 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<div class="row-fluid">
+    <div>
+        <ul class="breadcrumb">
+            <li>
+                <a href="/">Home</a> <span class="divider">/</span>
+            </li>
+            <li>
+                <a href="/deal/">Deals</a>
+            </li>
+        </ul>
+    </div>
+
+    <div>
+      <form method='get'>
+        <p><input type='text' name='site'>&nbsp;<input type='submit' value='site'></p>
+      </form>
+    </div>
+    <div class="row-fluid sortable">        
+        <div class="box span12">
+            <div class="box-header well" data-original-title>
+                <h2> {{ site }} </h2>
+                <div class="box-icon">
+                    <a href="#" id="toggle-fullscreen" class="btn btn-setting btn-round"><i class="icon-fullscreen"></i></a>
+                    <a href="#" class="btn btn-minimize btn-round"><i class="icon-chevron-up"></i></a>
+                    <a href="#" class="btn btn-close btn-round"><i class="icon-remove"></i></a>
+                </div>
+            </div>
+            <div class="container">
+                {% for product in products %}
+                <div style="float:left; width:250px; height:500px;">
+                    <a href="{{ product['combine_url'] }}">
+                        <img src="{{ product['image'] }}" style="width:240px; height:240px;"/><br />
+                        <b style="color:black">{{ product['title'] }}</b> <br />
+                    </a>
+                    <b style="color:grey">{{ product['brand'] }}</b><br />
+                    <b style="color:grey">{{ product['dept'] }}</b> <br />
+                    <b style="color:black">{{ product['price'] }} / {{ product['listprice'] }}</b> ({{ product['discount'] }})<br />
+                    <b style="color:black">{{ product['medium'] }}</b> <br />
+                </div>
+                {% endfor %}
+            </div>
+            {% if pagination %}
+            <div class="pagination pagination-centered">
+              <ul>
+                {% if pagination.has_prev %}
+                <li><a class="pagination" page="{{pagination.page-1}}" href="#">Prev</a></li>
+                {% endif %}
+                {% for page in pagination.iter_pages() %}
+                {% if page %}
+                  {% if page == pagination.page %}
+                    <li class="active"><a class="pagination" page="" href="#">{{page}}</a></li>
+                  {% else %}
+                    <li><a class="pagination" page="{{page}}" href="#">{{page}}</a></li>
+                  {% endif %}
+                {% else %}
+                  <li><a class="pagination" page="" href="#">...</a></li>
+                {% endif %}
+                {% endfor %}
+                {% if pagination.has_next %}
+                <li><a class="pagination" page="{{pagination.page+1}}" href="#">Next</a></li>
+                {% endif %}
+              </ul>
+            </div>  
+            {% endif %}
+        </div><!--/span-->
+
+    </div><!--/row-->
+</div>
+
+{% endblock %}
+
+{% block script %}
+<script>
+  // make selection consistent with url
+  var param = $.deparam(window.location.href.substr(window.location.href.indexOf('?')+1));
+  site = param.site;
+
+  // pagination
+  $('a.pagination').live('click', function(){
+    if ($(this).attr('page')) {
+      var param = {};
+      param['site'] = site;
+      param['offset'] = ($(this).attr('page')-1)*40;
+      var url = "/deal/?" + $.param(param);
+      window.location.href = url;
+    }
+  });
+</script>
+{% endblock %}

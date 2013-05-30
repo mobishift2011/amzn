@@ -3,9 +3,12 @@
 from gevent import monkey; monkey.patch_all()
 import gevent
 
+from backends.matching.mechanic_classifier import classify_product_department, guess_event_dept
+
 from crawlers.common.events import common_saved
+from crawlers.common.stash import deal_crawlers
 from powers.events import *
-from powers.routine import crawl_images, scan_images, propagate
+from powers.routine import crawl_images, scan_images, propagate, get_site_module
 from settings import POWER_PEERS, TEXT_PEERS
 
 from helpers.rpc import get_rpcs
@@ -16,6 +19,10 @@ import traceback
 import gevent.pool
 process_image_pool = gevent.pool.Pool(500)
 
+try:
+    from deals.routine import clean_product
+except ImportError:
+    logger.error(traceback.format_exc())
 
 @common_saved.bind
 def single_image_crawling(sender, **kwargs):
@@ -62,14 +69,33 @@ def batch_image_crawling(sender, **kwargs):
 
 @ready_for_batch.bind
 def batch_text_extract(sender, **kwargs):
+    from datetime import datetime
+    utcnow = datetime.utcnow()
     logger.info('batch text extract listens: {0} -> {1}'.format(sender, kwargs.items()))
     site, method, dummy = sender.split('.')
     doctype = kwargs.get('doctype') or ''
 
-    if doctype.capitalize() != 'Product':
+    if doctype.capitalize() == 'Event':
+        # if there's an upcoming event in a site, try recognize the departments
+        m = get_site_module(site)
+        if hasattr(m, 'Event'):
+            for event in m.Event.objects(events_begin__gt=utcnow, favbuy_dept=[]):
+                try:
+                    event.favbuy_dept = guess_event_dept(site, event)
+                    event.save()
+                except:
+                    import traceback
+                    traceback.print_exc()
+                    pass
+    elif doctype.capitalize() != 'Product':
         return
     
     if method.startswith('update'):
+        ready_for_publish.send(None, **{'site': site})
+        return
+
+    if site in deal_crawlers:
+        clean_product(site)
         ready_for_publish.send(None, **{'site': site})
         return
 
@@ -93,4 +119,4 @@ def batch_text_extract(sender, **kwargs):
 
 
 if __name__ == '__main__':
-    pass
+    batch_text_extract('myhabit.update_listing.haha', doctype='Event')

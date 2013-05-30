@@ -89,6 +89,21 @@ class belleandcliveLogin(object):
 
         return ret.status_code
 
+    def fetch_product_page(self, url):
+        """.. :py:method::
+            fetch product page.
+            check whether the account is login, if not, login and fetch again
+        """
+        ret = req.get(url)
+
+        if 'http://www.belleandclive.com/member' in ret.url: #login
+            self.login_account()
+            ret = req.get(url)
+        if 'http://www.belleandclive.com/browse/sales/current.jsp' in ret.url:
+            return -302
+        if ret.ok: return ret.content
+
+        return ret.status_code
 
 class Server(object):
     def __init__(self):
@@ -214,7 +229,8 @@ class Server(object):
             sizes = [size.text_content() for size in node.cssselect('div.sale-description > div.size-collection > b.indiv-size')]
             listprice = node.cssselect('div.price-wrapper > p.price > span.linethrough')
             listprice = listprice[0].text_content().strip() if listprice else ''
-            price = node.cssselect('div.price-wrapper > p.price')[0].text_content().replace('Retail:', '').replace(listprice, '').strip()
+            price = node.cssselect('div.price-wrapper > p.price')[0].text_content().replace('Retail:', '').replace(listprice, '').replace('$', '').replace(',', '').strip()
+            listprice = listprice.replace('$', '').replace(',', '').strip() if listprice else ''
             soldout = True if node.cssselect('div.soldout-wrapper') else False
 
             is_new, is_updated = False, False
@@ -231,10 +247,20 @@ class Server(object):
                 product.price = price
                 product.soldout = soldout
             else:
-                if soldout and product.soldout != True:
-                    product.soldout = True
+                if product.soldout != soldout:
+                    product.soldout = soldout
                     is_updated = True
                     product.update_history.update({ 'soldout': datetime.utcnow() })
+                if product.listprice != listprice:
+                    product.listprice = listprice
+                    product.update_history.update({ 'listprice': datetime.utcnow() })
+                if product.price != price:
+                    product.price = price
+                    product.update_history.update({ 'price': datetime.utcnow() })
+                if product.combine_url != link:
+                    product.combine_url = link
+                    product.update_history.update({ 'combine_url': datetime.utcnow() })
+
             if event_id not in product.event_id: product.event_id.append(event_id)
             product.list_update_time = datetime.utcnow()
             product.save()

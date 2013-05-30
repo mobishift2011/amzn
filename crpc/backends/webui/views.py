@@ -13,7 +13,6 @@ from powers.models import Brand
 from powers.events import brand_refresh
 from settings import CRPC_ROOT
 from crawlers.common.stash import exclude_crawlers
-#from crawlers.common.stash import picked_crawlers
 from backends.monitor.models import ProductReport, EventReport
 
 
@@ -138,19 +137,23 @@ def get_publish_report(_thedate):
     prds = ProductReport.objects(today_date=_thedate)
     events = EventReport.objects(today_date=_thedate)
     return {'event': [e.to_json() for e in events],
-            'product': [p.to_json() for p in prds]}
+            'product': [p.to_json() for p in prds],
+            'date': _thedate}
 
 
 def import_brands(eb):
     brand = Brand.objects(title=eb['title']).update(
         set__title_edit = eb['title_edit'],
+        set__title_cn = eb['title_cn'],
         set__title_checked = eb['title_checked'],
         set__alias = eb['alias'],
         set__keywords = eb['keywords'],
         set__url = eb['url'],
         set__url_checked = eb['url_checked'],
         set__blurb = eb['blurb'],
+        set__blurb_cn = eb['blurb_cn'],
         set__images = eb['images'],
+        set__icon = eb['icon'],
         set__level = eb['level'],
         set__dept = eb['dept'],
         set__is_delete = eb['is_delete'],

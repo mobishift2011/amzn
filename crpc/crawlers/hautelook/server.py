@@ -204,6 +204,8 @@ class Server(object):
             color = '' if info['color'].lower() == 'no color' else info['color']
             scarcity = reduce(lambda x, y: x+y, (size['size']['remaining'] for size in info['sizes']))
             scarcity = str(scarcity)
+            combine_url = 'http://www.hautelook.com/product/{0}'.format(key)
+
             product, is_new = Product.objects.get_or_create(pk=key)
             is_updated = False
             if is_new:
@@ -212,7 +214,7 @@ class Server(object):
                 product.updated = False
                 product.scarcity = scarcity
                 if scarcity == '0': product.soldout = True
-                product.combine_url = 'http://www.hautelook.com/product/{0}'.format(key)
+                product.combine_url = combine_url
             else:
                 if product.scarcity != scarcity:
                     product.scarcity = scarcity
@@ -220,10 +222,13 @@ class Server(object):
                         product.soldout = True
                         is_updated = True
                         product.update_history.update({ 'soldout': datetime.utcnow() })
+                if product.combine_url != combine_url:
+                    product.combine_url = combine_url
+                    product.update_history.update({ 'combine_url': datetime.utcnow() })
                 if event_id not in product.event_id: product.event_id.append(event_id)
             product.list_update_time = datetime.utcnow()
             product.save()
-            common_saved.send(sender=ctx, obj_type='Product', key=key, url=url, is_new=is_new, is_updated=is_updated)
+            common_saved.send(sender=ctx, obj_type='Product', key=key, url=combine_url, is_new=is_new, is_updated=is_updated)
             product_ids.append(key)
 
         if event.urgent == True:

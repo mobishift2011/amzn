@@ -32,4 +32,5 @@ class Product(LuxuryProduct):
     }
 
     def url(self):
-        return 'http://www.ruelala.com/event/product/{0}/{1}/1/DEFAULT'.format(self.event_id[0], self.key)
+        return self.combine_url
+        # return 'http://www.ruelala.com/event/product/{0}/{1}/1/DEFAULT'.format(self.event_id[0], self.key)

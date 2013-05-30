@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 # Author: bishop Liu <miracle (at) gmail.com>
 
+import itertools
 import lxml.html
 from datetime import datetime, timedelta
 
@@ -117,8 +118,9 @@ class Server(object):
             common_failed.send(sender=ctx, key='', url=url,
                     reason='download event page failed: {0}'.format(content))
         tree = lxml.html.fromstring(content)
-        nodes = tree.cssselect('div#stickywrap section#events-live ul.thumbnails > li.catalog-event')
-        for node in nodes:
+        nodes_live = tree.cssselect('div#stickywrap section#events-live ul.thumbnails > li.catalog-event')
+        nodes_ending = tree.cssselect('div#stickywrap section#events-ending ul.thumbnails > li.catalog-event')
+        for node in itertools.chain(nodes_live, nodes_ending):
             self.parse_event_node(node, ctx)
 
         upcoming_nodes = tree.cssselect('div#stickywrap section#events-upcoming > ul.thumbnails > li.catalog-event')
@@ -130,8 +132,11 @@ class Server(object):
             parse every event node
         """
         link = node.cssselect('a.thumbnail')[0].get('href')
-        event_id = self.extract_event_id.match(link).group(1)
-        sale_title = node.cssselect('a.thumbnail > hgroup')[0].text_content().strip()
+        if 'view/id' in link:
+            event_id = re.compile('.*catalog/category/view/id/(\d+)').match(link).group(1)
+        else:
+            event_id = self.extract_event_id.match(link).group(1)
+        sale_title = node.cssselect('a.thumbnail > span.event-link > img')[0].get('alt').strip()
         nav = node.cssselect('a.thumbnail > div.more > div.more-content > section.container > h6')
         dept, ages = [], []
         for n in nav:
@@ -142,7 +147,8 @@ class Server(object):
                 for d in n.getnext().text_content().split('\n'):
                     if d.strip(): ages.append(d.strip())
         text = node.cssselect('a.thumbnail p.counter')[0].get('data-enddate')# 'December 23, 2012, 8:00:00' the timezone when you regist
-        utc_events_end = datetime.strptime(text, '%B %d, %Y, %X') - timedelta(hours=8) # -8 hours, set beijing to utc
+        _end = time_convert_std(text, '%B %d, %Y, %X', 'ET')
+        utc_events_end = datetime(_end.year, _end.month, _end.day, _end.hour, _end.minute)
 
         event, is_new, is_updated = self.get_or_create_event(event_id, link, sale_title)
         [event.dept.append(d) for d in dept if d not in event.dept]
@@ -159,10 +165,14 @@ class Server(object):
             parse every upcoming event node
         """
         link = node.cssselect('div.thumbnail > a.event-link')[0].get('href')
-        event_id = self.extract_event_id.match(link).group(1)
+        if 'view/id' in link:
+            event_id = re.compile('.*catalog/category/view/id/(\d+)').match(link).group(1)
+        else:
+            event_id = self.extract_event_id.match(link).group(1)
         sale_title = node.cssselect('div.thumbnail > hgroup a')[0].text_content()
         text = node.cssselect('div.thumbnail p.counter')[0].get('data-enddate')# 'December 23, 2012, 8:00:00' the timezone when you regist
-        utc_events_begin = datetime.strptime(text, '%B %d, %Y, %X') - timedelta(hours=8) # -8 hours, set beijing to utc
+        _begin = time_convert_std(text, '%B %d, %Y, %X', 'ET')
+        utc_events_begin = datetime(_begin.year, _begin.month, _begin.day, _begin.hour, _begin.minute)
 
         event, is_new, is_updated = self.get_or_create_event(event_id, link, sale_title)
         if is_new:
@@ -174,7 +184,7 @@ class Server(object):
                         reason='download upcoming event page failed: {0}'.format(content))
                     return
             tree = lxml.html.fromstring(content)
-            nav = tree.cssselect('div#mainContent > section.event-landing > div.intro')[0]
+            nav = tree.cssselect('div#mainContent section.event-landing > div.intro')[0]
             img = nav.cssselect('div > div.category-image > img')
             sale_description = nav.cssselect('div.intro-content > p')[0].text_content().strip()
             if img:
@@ -217,7 +227,10 @@ class Server(object):
         if kwargs.get('login_email'): self.net.check_signin( kwargs.get('login_email') )
         else: self.net.check_signin()
 
-        event_id = self.extract_event_id.match(url).group(1)
+        if 'view/id' in url:
+            event_id = re.compile('.*catalog/category/view/id/(\d+)').match(url).group(1)
+        else:
+            event_id = self.extract_event_id.match(url).group(1)
         ret = self.net.fetch_listing_page(url, event_id)
         if isinstance(ret, tuple):
             self.crawl_event_is_product(event_id, ret[0], ret[1], ret[2], ctx)
@@ -231,7 +244,7 @@ class Server(object):
 
         product_ids = []
         tree = lxml.html.fromstring(ret)
-        nodes = tree.cssselect('div#mainContent > section.event-landing > div.row > div.event-products > ul.event_prod_grid > li')
+        nodes = tree.cssselect('div#mainContent section.event-landing div.event_prod_grid > ul.thumbnails > li')
         for node in nodes:
             image = node.cssselect('div.thumbnail > a.product-image')[0]
             title = image.get('title')
@@ -239,8 +252,8 @@ class Server(object):
             key = self.from_url_get_product_key(link)
             pprice = node.cssselect('div.thumbnail > div.caption > div.price-wrap > div.price-box')[0]
             listprice = pprice.cssselect('p.old-price > span.price')
-            listprice = listprice[0].text_content().strip() if listprice else ''
-            price = pprice.cssselect('span[id^="product-price"]')[0].text_content().strip()
+            listprice = listprice[0].text_content().replace('$', '').strip() if listprice else ''
+            price = pprice.cssselect('span[id^="product-price"]')[0].text_content().replace('$', '').strip()
             soldout = True if node.cssselect('img.out-of-stock') else False
 
             is_new, is_updated = False, False
@@ -255,10 +268,16 @@ class Server(object):
                 product.price = price
                 product.soldout = soldout
             else:
-                if soldout and product.soldout != True:
-                    product.soldout = True
+                if product.soldout != soldout:
+                    product.soldout = soldout
                     is_updated = True
                     product.update_history.update({ 'soldout': datetime.utcnow() })
+                if product.price != price:
+                    product.price = price
+                    product.update_history.update({ 'price': datetime.utcnow() })
+                if product.listprice != listprice:
+                    product.listprice = listprice
+                    product.update_history.update({ 'listprice': datetime.utcnow() })
             if event_id not in product.event_id: product.event_id.append(event_id)
             product.list_update_time = datetime.utcnow()
             product.save()
@@ -269,7 +288,7 @@ class Server(object):
         if not event: event = Event(event_id=event_id)
         ready = None
         if not event.image_urls:
-            nav = tree.cssselect('div#mainContent > section.event-landing > div.intro')[0]
+            nav = tree.cssselect('div#mainContent section.event-landing > div.intro')[0]
             event.image_urls = [ nav.cssselect('div > div.category-image > img')[0].get('src') ]
             event.sale_description = nav.cssselect('div.intro-content > p')[0].text_content()
             ready = False
@@ -288,22 +307,30 @@ class Server(object):
         tree = lxml.html.fromstring(content)
 
         is_new, is_updated, product = self.save_product_detail(key, *self.parse_product(tree))
-        nav = tree.cssselect('div#mainContent > section#pageheader > div.row')[0]
+        nav = tree.cssselect('div#mainContent section > div.row')[0]
         soldout_price = nav.cssselect('div.product-main > div.product-addtocart div#product-main-info')[0]
         soldout = True if soldout_price.cssselect('div.availability') else False
+        price = soldout_price.cssselect('div.product-prices > div.product-prices-main > div.price-box > span.special-price')[0].text_content().replace('$', '').strip()
+        listprice = soldout_price.cssselect('div.product-prices > div.product-prices-main > div.product-price-was')[0].text_content().replace('Was', '').replace('$', '').strip()
         if is_new:
-            product.title = nav.cssselect('div.product-main > div.page-header > h3')[0].text_content()
-            product.price = soldout_price.cssselect('div.product-prices > div.product-prices-main > div.price-box > span.special-price')[0].text_content()
-            product.listprice = soldout_price.cssselect('div.product-prices > div.product-prices-main > div.product-price-was')[0].text_content().replace('Was', '').strip()
+            product.title = nav.cssselect('div.product-main > div.product-header > h3')[0].text_content().strip()
+            product.price = price
+            product.listprice = listprice
             product.combine_url = url
             product.soldout = soldout
             product.updated = True
             ready = True
         else:
-            if soldout and product.soldout != True:
-                product.soldout = True
+            if product.soldout != soldout:
+                product.soldout = soldout
                 is_updated = True
                 product.update_history.update({ 'soldout': datetime.utcnow() })
+            if product.price != price:
+                product.price = price
+                product.update_history.update({ 'price': datetime.utcnow() })
+            if product.listprice != listprice:
+                product.listprice = listprice
+                product.update_history.update({ 'listprice': datetime.utcnow() })
             ready = False
         if event_id not in product.event_id: product.event_id.append(event_id)
         product.save()
@@ -366,7 +393,7 @@ class Server(object):
         """.. :py:method::
             parse product detail page
         """
-        nav = tree.cssselect('div#mainContent > section#pageheader > div.row')[0]
+        nav = tree.cssselect('div#mainContent section > div.row')[0]
         image_urls = []
         imgs = nav.cssselect('div.product-media > div.more-views > ul.thumbnails > li > div.thumbnail')
         for img in imgs:
@@ -406,4 +433,5 @@ class Server(object):
 
 
 if __name__ == '__main__':
-    Server().crawl_product('http://www.totsy.com/sales/last-chance-youth-footwear/girls-burlap-slip-on.html')
+    ss = Server()
+    ss.crawl_category()

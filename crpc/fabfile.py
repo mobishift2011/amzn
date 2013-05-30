@@ -81,7 +81,7 @@ def _setup_packages():
     sudo("pip install scipy")
     sudo("pip install scikit-learn pattern")
     sudo("pip install ez_setup")
-    sudo("pip install https://github.com/SiteSupport/gevent/tarball/master")
+    sudo("pip install https://github.com/surfly/gevent/tarball/master")
     sudo("pip install zerorpc lxml requests pymongo mongoengine redis redisco pytz Pillow titlecase mock selenium blinker cssselect boto python-dateutil virtualenvwrapper slumber esmre django supervisor")
     sudo("pip install pymongo==2.4.1")
 
@@ -266,6 +266,15 @@ def _inject_settings():
                     '''.format(ENV))
                     file_append('/srv/crpc/supervisord.conf', monitor_conf)
 
+                    offsale_conf = text_strip_margin('''
+                    |
+                    |[program:offsale]
+                    |directory = /srv/crpc
+                    |environment = PYTHONPATH=/srv/crpc, ENV={0}
+                    |command = python crawlers/common/onoff_routine.py
+                    '''.format(ENV))
+                    file_append('/srv/crpc/supervisord.conf', offsale_conf)
+
 def restart_crawler_server():
     env.hosts = CRAWLER_HOSTS
     execute(_restart_zero)
@@ -311,7 +320,7 @@ def _restart_zero():
     puts(green("Restarting Zero Servers"))
     with settings(warn_only=True):
         run('killall supervisord')
-        run('sleep 1')
+        run('sleep 3')
         run('cd /srv/crpc && ulimit -n 8192 && supervisord -c supervisord.conf -l /tmp/supervisord.log')
 
 def deploy():
@@ -451,7 +460,7 @@ def _runbg(cmd, sockname="dtach"):
 
 def _start_monitor():
     from settings import CRPC_ROOT
-    local("ulimit -n 4096 && cd {0}/backends/monitor && dtach -n /tmp/crpcscheduler.sock python run.py".format(CRPC_ROOT))
+    local("cd {0}/backends/monitor && dtach -n /tmp/crpcscheduler.sock python run.py".format(CRPC_ROOT))
     local("cd {0}/backends/webui && dtach -n /tmp/crpcwebui.sock python main.py".format(CRPC_ROOT))
 
 def _stop_monitor():

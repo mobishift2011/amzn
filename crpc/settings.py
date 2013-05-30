@@ -28,7 +28,7 @@ envs = {
         'USE_INDEX': '',
         'MONGODB_HOST': '127.0.0.1',
         'REDIS_HOST': '127.0.0.1',
-        'MASTIFF_HOST': "http://localhost:8001/api/v1"
+        'MASTIFF_HOST': "http://192.168.2.108:8001/api/v1"
     },
     'OFFICE': {
         'CRAWLER_PEERS': [
@@ -78,26 +78,26 @@ envs = {
             {'host_string':'root@crawler2.favbuy.org', 'port':12345},
         ],
         'USE_INDEX': '',
-        'MONGODB_HOST': '10.166.7.56', 
-        'REDIS_HOST': '10.166.7.56',
+        'MONGODB_HOST': '10.166.1.73', 
+        'REDIS_HOST': '10.166.1.73',
         'MASTIFF_HOST': "http://mastiff.favbuy.org:8001/api/v1"
     },
     'INTEGRATE': {
         'CRAWLER_PEERS': [
-            {'host_string':'root@ec2-54-245-154-123.us-west-2.compute.amazonaws.com', 'port':1234},
-            {'host_string':'root@ec2-54-245-154-123.us-west-2.compute.amazonaws.com', 'port':12344},
-            {'host_string':'root@ec2-50-112-65-243.us-west-2.compute.amazonaws.com', 'port':1235},
-            {'host_string':'root@ec2-50-112-65-243.us-west-2.compute.amazonaws.com', 'port':12355},
+            {'host_string':'root@ec2-107-20-114-86.compute-1.amazonaws.com', 'port':1234},
+            {'host_string':'root@ec2-107-20-114-86.compute-1.amazonaws.com', 'port':12344},
+            {'host_string':'root@ec2-107-22-106-19.compute-1.amazonaws.com', 'port':1235},
+            {'host_string':'root@ec2-107-22-106-19.compute-1.amazonaws.com', 'port':12355},
         ],
         'POWER_PEERS': [
-            {'host_string':'root@ec2-54-245-150-181.us-west-2.compute.amazonaws.com', 'port':1230},
-            {'host_string':'root@ec2-54-245-150-181.us-west-2.compute.amazonaws.com', 'port':1231},
-            {'host_string':'root@ec2-54-245-22-46.us-west-2.compute.amazonaws.com', 'port':1232},
-            {'host_string':'root@ec2-54-245-22-46.us-west-2.compute.amazonaws.com', 'port':1233},
+            {'host_string':'root@ec2-54-234-194-127.compute-1.amazonaws.com', 'port':1230},
+            {'host_string':'root@ec2-54-234-194-127.compute-1.amazonaws.com', 'port':1231},
+            {'host_string':'root@ec2-54-224-213-219.compute-1.amazonaws.com', 'port':1232},
+            {'host_string':'root@ec2-54-224-213-219.compute-1.amazonaws.com', 'port':1233},
         ],
         'TEXT_PEERS': [
-            {'host_string':'root@ec2-54-245-154-123.us-west-2.compute.amazonaws.com', 'port':1237},
-            {'host_string':'root@ec2-50-112-65-243.us-west-2.compute.amazonaws.com', 'port':1238},
+            {'host_string':'root@ec2-107-20-114-86.compute-1.amazonaws.com', 'port':1237},
+            {'host_string':'root@ec2-107-22-106-19.compute-1.amazonaws.com', 'port':1238},
         ],
         'USE_INDEX': '',
         'MONGODB_HOST': '10.254.9.183',

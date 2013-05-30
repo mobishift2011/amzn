@@ -1,0 +1,70 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<div id="main-content">
+  <ul class="breadcrumb">
+    <li>
+      <a href="/">Home</a> <span class="divider">/</span>
+    </li>
+    <li>
+      <a href="#">Crawler</a> <span class="divider">/</span>
+    </li>
+  </ul>
+
+  <div>
+    <ul class="nav nav-tabs">
+      <li name="crawler"> <a href="/crawler/tasks">Tasks</a> </li>
+      <li name="crawler"> <a href="/crawler/control">Control</a> </li>
+      <li name="crawler"> <a href="/crawler/publish">Publish</a> </li>
+      <li name="crawler"> <a href="/crawler/history">History</a> </li>
+      <li name="crawler"> <a href="/crawler/graph">Graph</a> </li>
+    </ul>
+  </div>
+
+  <table border="1" bordercolor="#000000" cellspacing="0" style="border-collapse:collapse">
+    <thead>
+        <tr>
+            <th>Task</th>
+            <th>Status</th>
+            <th>Started At</th>
+            <th>Updated At</th>
+            <th>Ended At</th>
+            <th>Dones</th>
+            <th>Updates</th>
+            <th>News</th>
+            <th>Fails</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for task in tasks %}
+        <tr>
+            <td>{{ task['name'] }}</td>
+            <td>{{ task['status'] }}</td>
+            <td>{{ task['started_at'] }}</td>
+            <td>{{ task['updated_at'] }}</td>
+            <td>{{ task['ended_at']}}</td>
+            <td align="right">{{ task['dones'] }}</td>
+            <td align="right">{{ task['updates'] }}</td>
+            <td align="right">{{ task['news'] }}</td>
+            <td align="right">{{ task['fails'] }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+</div><!--main-content-->
+
+<div class="modal hide fade" id="myModal">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal">×</button>
+    <h3>Settings</h3>
+  </div>
+  <div class="modal-body">
+    <p>Here settings can be configured...</p>
+  </div>
+  <div class="modal-footer">
+    <a href="#" class="btn" data-dismiss="modal">Close</a>
+    <a href="#" class="btn btn-primary">Save changes</a>
+  </div>
+</div>
+{% endblock %}

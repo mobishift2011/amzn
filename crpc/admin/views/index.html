@@ -41,11 +41,11 @@
                     <span class="notification red">{{ num_new_buys }}</span>
                 </a>
 
-                <a data-rel="tooltip" title="{{ num_new_view_products }} 24-hour view products." class="well span2 top-block" href="#">
+                <a data-rel="tooltip" title="{{ num_new_view_products }} 24-hour view products, {{ num_new_view_products_a }} of them are buyable" class="well span2 top-block" href="#">
                     <span class="icon32 icon-color icon-arrowrefresh-e"></span>
                     <div>View Products</div>
                     <div>{{ num_view_products }}</div>
-                    <span class="notification red">{{ num_new_view_products }}</span>
+                    <span class="notification red">{{ num_new_view_products }}/{{ num_new_view_products_a }}</span>
                 </a>
 
                 <a data-rel="tooltip" title="{{ "{:,.2f}".format(100*num_new_buys/num_new_view_products if num_new_view_products else 0) }} % 24-hour conversion rate (click-buys/view-products)." class="well span2 top-block" href="#">
@@ -123,18 +123,25 @@
                             <thead>
                               <tr>
                                 <th>site</th>
-                                <th>buy count</th>
-                                <th>buy/total ratio</th>
+                                <th>buys/views</th>
+                                <th>conversion rate</th>
                               </tr>
                             </thead>
                             <tbody>     
                             {% for site, count in top_buy_sites.most_common() %}
                               <tr>
                                 <td>{{site}}</td>
-                                <td>{{count}}</td>
-                                {% if site in num_products_by_site and num_products_by_site[site] %}
-                                <td>{{ "{:,.2f}".format(100*count/num_products_by_site[site]) }} %</td>
+                                <td>{{count}}/{{num_view_products_by_site.get(site, 0)}}</td>
+                                {% if site in num_view_products_by_site and num_view_products_by_site[site] %}
+                                <td>{{ "{:,.2f}".format(100*count/num_view_products_by_site[site]) }} %</td>
                                 {% endif %}
+                              </tr>
+                            {% endfor %}
+                            {% for site in zero_buy_sites %}
+                              <tr>
+                                <td>{{site}}</td>
+                                <td>0/{{num_view_products_by_site.get(site, 0)}}</td>
+                                <td>0</td>
                               </tr>
                             {% endfor %}
                             </tbody>

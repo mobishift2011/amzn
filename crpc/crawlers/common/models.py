@@ -76,6 +76,7 @@ class BaseEvent(Document, BaseDocumentSkeleton):
     soldout             = BooleanField(default=False)
     dept                = ListField(StringField())
     product_ids         = ListField(StringField())
+    disallow_classification =  BooleanField()
 
     # after setting urgent to False, you can't set it back
     # after event complete by crawler, urgent is False
@@ -101,7 +102,7 @@ class BaseEvent(Document, BaseDocumentSkeleton):
     meta = {
         "allow_inheritance": True,
         "collection": "event",
-        "indexes": ["urgent", "events_begin", "events_end", "soldout", "event_id", "is_leaf", "image_complete", "brand_complete", "propagation_complete"],
+        "indexes": ["urgent", "events_begin", "events_end", "soldout", "event_id", "is_leaf", "image_complete", "brand_complete", "propagation_complete", "create_time"],
     }
 
 
@@ -141,6 +142,7 @@ class BaseProduct(Document):
     list_update_time    =   DateTimeField(default=datetime.utcnow)
     full_update_time    =   DateTimeField()
     update_history      =   DictField()
+    disallow_classification =  BooleanField()
 
     # dimension info
     category_key        =   ListField(StringField()) # like event_id, but in category
@@ -164,6 +166,7 @@ class BaseProduct(Document):
     shipping            =   StringField()
     available           =   StringField()
     short_desc          =   StringField()
+    second_hand       =   BooleanField(default=False)
 
     # reviews
     num_reviews         =   StringField()
@@ -228,5 +231,5 @@ class LuxuryProduct(BaseProduct):
     favbuy_listprice    =   StringField()
     
     meta                = {
-        "indexes": ["soldout", "products_begin", "products_end", "event_id"],
+        "indexes": ["soldout", "products_begin", "products_end", "event_id", "create_time"],
     }

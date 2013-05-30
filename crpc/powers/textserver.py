@@ -7,10 +7,11 @@ from settings import TEXT_PORT, CRPC_ROOT
 from backends.matching.extractor import Extractor
 from brandapi import Extracter
 from pipelines import EventPipeline, ProductPipeline
+from deals.pipelines import ProductPipeline as DealProductPipeline
 from backends.monitor.models import Stat
 
 from powers.events import brand_refresh
-from crawlers.common.stash import exclude_crawlers
+from crawlers.common.stash import picked_crawlers
 from datetime import datetime
 from os import listdir
 from os.path import join, isdir
@@ -32,10 +33,13 @@ class TextServer(object):
 
         self.__m = {}
         
-        for name in listdir(join(CRPC_ROOT, "crawlers")):
-            path = join(CRPC_ROOT, "crawlers", name)
-            if name not in exclude_crawlers and isdir(path):
-                self.__m[name] = __import__("crawlers."+name+'.models', fromlist=['Event', 'Product'])
+        # for name in listdir(join(CRPC_ROOT, "crawlers")):
+        #     path = join(CRPC_ROOT, "crawlers", name)
+        #     if name not in exclude_crawlers and isdir(path):
+        #         self.__m[name] = __import__("crawlers."+name+'.models', fromlist=['Event', 'Product'])
+
+        for name in picked_crawlers:
+            self.__m[name] = __import__("crawlers."+name+'.models', fromlist=['Event', 'Product'])
     
     def process_product(self, args=(), kwargs=()):
         site = kwargs.get('site')
@@ -48,7 +52,7 @@ class TextServer(object):
         if not product:
             logger.warning('process product not exists -> {0}'.format(kwargs))
 
-        pp = ProductPipeline(site, product)
+        pp = DealProductPipeline(site, product) if kwargs.get('product_type') == 'deal' else ProductPipeline(site, product)
         if pp.clean():
             product.save()
 
@@ -67,7 +71,12 @@ class TextServer(object):
 
         # For uppcoming events, do nothing with propagation but something with text processing.
         if event.events_begin and event.events_begin > datetime.utcnow():
+            updated = False
             if p.extract_text():
+                updated = True
+            if p.clear_discount():
+                updated = True
+            if updated:
                 event.save()
             return
 

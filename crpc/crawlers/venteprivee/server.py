@@ -10,17 +10,16 @@ Created on 2012-11-16
 @author: ethan
 '''
 
-from crawlers.common.events import *
-from crawlers.common.crawllog import debug_info
-from crawlers.common.stash import *
-from models import *
-
 import time
 import pytz
 import random
 import lxml.html
 import zerorpc
 from datetime import datetime
+
+from models import *
+from crawlers.common.events import *
+from crawlers.common.stash import *
 
 req = requests.Session(prefetch=True, timeout=30, config=config, headers=headers)
 

@@ -1,0 +1,84 @@
+{% extends "layout.html" %}
+{% block content %}
+        <!-- content starts -->
+            <div>
+                <ul class="breadcrumb">
+                    <li>
+                        <a href="#">Home</a> <span class="divider">/</span>
+                    </li>
+                    <li>
+                        <a href="/member/">Members</a>
+                    </li>
+                </ul>
+            </div>
+            <div>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Avatar</th>
+                            <th>Username/Email</th>
+                            <th>Activity</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for a in activities %}
+                            <tr>
+                                {% if a.user.avatar_large %}
+                                <td><a href="{{a.user.avatar_large}}" target="_blank"><img src="{{a.user.avatar_large}}" style="width:32px;"/></a></td>
+                                {% else %}
+                                <td><i class="icon32 icon-user icon-orange"></i></td>
+                                {% endif %}
+                                <td>{{ a.user.username }}</td>
+                                <td>{{ a.name }} : {{ a['values'] }}</td>
+                                <td>{{ a.time }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+    <div class="pagination pagination-centered">
+      <ul>
+        {% if pagination.has_prev %}
+        <li><a class="pagination" page="{{pagination.page-1}}" href="#">Prev</a></li>
+        {% endif %}
+        {% for page in pagination.iter_pages() %}
+        {% if page %}
+          {% if page == pagination.page %}
+            <li class="active"><a class="pagination" page="" href="#">{{page}}</a></li>
+          {% else %}
+            <li><a class="pagination" page="{{page}}" href="#">{{page}}</a></li>
+          {% endif %}
+        {% else %}
+          <li><a class="pagination" page="" href="#">...</a></li>
+        {% endif %}
+        {% endfor %}
+        {% if pagination.has_next %}
+        <li><a class="pagination" page="{{pagination.page+1}}" href="#">Next</a></li>
+        {% endif %}
+      </ul>
+    </div>   
+                  
+{% endblock %}
+
+{% block script %}
+<script>
+    function getCookie(name) {
+        var r = document.cookie.match("\\b" + name + "=([^;]*)\\b");
+        return r ? r[1] : undefined;
+    }
+    
+  // make selection consistent with url
+  var param = $.deparam(window.location.href.substr(window.location.href.indexOf('?')+1));
+
+  $('a.pagination').live('click', function(){
+    if ($(this).attr('page')) {
+      param['offset'] = ($(this).attr('page')-1)*50;
+      var url = "/member/recent_activity?" + $.param(param);
+      window.location.href = url;
+    }
+  });
+
+</script>
+{% endblock %}

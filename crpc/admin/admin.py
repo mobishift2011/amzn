@@ -15,22 +15,37 @@ from webassets.ext.jinja2 import AssetsExtension
 
 import os
 import json
+import time
+import threading
 from math import ceil
 from slumber import API
+import traceback
 from datetime import datetime, timedelta
 from mongoengine import Q
-
+from cStringIO import StringIO
 from collections import Counter
+from boto.cloudfront import CloudFrontConnection
+from multiprocessing.pool import ThreadPool
 
 from crawlers.common.stash import picked_crawlers
-from views import get_all_brands, get_brand, update_brand, delete_brand, update_brand_volumn
+from backends.monitor.events import run_command
+from views import get_all_brands, get_brand, update_brand, delete_brand, update_brand_volumn, search_brands
 from views import get_all_links, post_link, delete_link
+from views import get_all_schedules, update_schedule, delete_schedule, execute as execute_deal
 from powers.tools import ImageTool, Image
 from powers.configs import AWS_ACCESS_KEY, AWS_SECRET_KEY,S3_IMAGE_BUCKET
 from boto.cloudfront import CloudFrontConnection
 from StringIO import StringIO
 from PIL import Image,ImageOps
 import threading
+from powers.configs import AWS_ACCESS_KEY, AWS_SECRET_KEY
+
+from backends.webui.views import get_one_site_schedule, get_publish_report, task_all_tasks, task_updates
+from backends.monitor.upcoming_ending_events_count import upcoming_events, ending_events
+from backends.monitor.publisher_report import wink
+from backends.monitor.models import Stat
+
+_worker = ThreadPool(4)
 DISTRIBUTIONID = 'E3QJD92P0IKIG2'
 
 def invalidate_cloudfront(key):
@@ -146,13 +161,24 @@ class BaseHandler(tornado.web.RequestHandler):
         else:
             return tornado.web.RequestHandler.render_string(self, template_name, **kwargs) 
 
+
+class AsyncProcessMixIn(BaseHandler):
+    """
+    refer:  https://gist.github.com/methane/2185380
+            http://tornadogists.org/489093/
+
+    """
+    def run_background(self, func, callback, argc=(), kwargs={}):
+        def _callback(result):
+            tornado.ioloop.IOLoop.instance().add_callback(lambda: callback(result))
+        _worker.apply_async(func, argc, kwargs, _callback)
+
+
 class IndexHandler(BaseHandler):
     @tornado.web.authenticated
     def get(self):
         from backends.matching.feature import sites
-        num_products_by_site = {}
-        for site in sites:
-            num_products_by_site[site] = api.product.get(site_key__startswith=site,limit=1)['meta']['total_count']
+        num_view_products_by_site = api.useraction.get(special='num_view_products_by_site')
         yesterday = (datetime.utcnow() - timedelta(days=1)).isoformat().replace('T', ' ')
         num_members = api.user.get(limit=1)['meta']['total_count']
         num_new_members = api.user.get(limit=1, date_joined__gt=yesterday)['meta']['total_count']
@@ -163,6 +189,7 @@ class IndexHandler(BaseHandler):
         num_buys = api.useraction.get(limit=1, name='click buy')['meta']['total_count']
         num_new_buys = api.useraction.get(limit=1, time__gt=yesterday, name='click buy')['meta']['total_count']
         num_view_products = api.useraction.get(limit=1, name='view product')['meta']['total_count']
+        num_new_view_products_a = api.useraction.get(**{'limit':1, 'time__gt':yesterday, 'name':'view product','values.available':'true'})['meta']['total_count']
         num_new_view_products = api.useraction.get(limit=1, time__gt=yesterday, name='view product')['meta']['total_count']
         buys = api.useraction.get(limit=1000, name='click buy', order_by='-time', time__gt=yesterday)['objects']
         #buys = api.useraction.get(limit=1000, name='click buy', order_by='-time')['objects']
@@ -180,17 +207,18 @@ class IndexHandler(BaseHandler):
         list_products = []
         for i in range((len(pids)-1)/100+1):
             pidsi = pids[i*100:i*100+100]
-            list_products.extend( api.product.get(limit=1000, _id__in=','.join(pidsi))['objects'] )
+            list_products.extend( api.product.get(limit=1000, visible_all=1, _id__in=','.join(pidsi))['objects'] )
         for p in list_products:
             top_buy_sites[ p['site_key'].split('_', 1)[0] ] += c_top_buys[ p['id'] ]
             if p['id'] in top_buys:
                 top_buys[p['id']]['product'] = p
 
         top_buys = sorted(top_buys.items(), key=lambda x:x[1]['count'], reverse=True)
+        zero_buy_count = [i for i in picked_crawlers if i not in top_buy_sites.keys()]
     
         self.render("index.html",
             utcnow = datetime.utcnow(),
-            num_products_by_site = num_products_by_site,
+            num_view_products_by_site = num_view_products_by_site,
             num_members = num_members,
             num_new_members = num_new_members,
             num_events = num_events,
@@ -201,8 +229,10 @@ class IndexHandler(BaseHandler):
             num_new_buys = num_new_buys,
             num_view_products = num_view_products,
             num_new_view_products = num_new_view_products,
+            num_new_view_products_a = num_new_view_products_a,
             top_buys = top_buys,
-            top_buy_sites = top_buy_sites
+            top_buy_sites = top_buy_sites,
+            zero_buy_sites = zero_buy_count
         )
 
 class ExampleHandler(BaseHandler):
@@ -270,7 +300,7 @@ class EditDataHandler(BaseHandler):
         data = {}
         data['title']       = self.get_argument('title')
         data['description'] = self.get_argument('description','')
-        data['tags']        = self.get_argument('tags').split(',')
+        data['tags']        = self.get_argument('tags','').split(',')
         data['departments']   = eval(self.get_argument('departments', '[]'))
         if self.get_argument('score'):
             try:
@@ -299,6 +329,7 @@ class EditDataHandler(BaseHandler):
             e.sale_description = data['description']
             e.favbuy_tag = data['tags']
             e.departments = data['departments']
+            e.disallow_classification = True
             e.save()
         except Exception,e:
             message = e.message
@@ -325,11 +356,11 @@ class EditDataHandler(BaseHandler):
         data = {}
         data['title']         = self.get_argument('title')
         data['details']       = self.get_argument('details')
-        data['tags']          = self.get_argument('tags') and self.get_argument('tags').split(',') or []
+        data['tags']          = self.get_argument('tags', '').split(',')
         data['brand']         = self.get_argument('brand', '')
         data['department_path']   = eval(self.get_argument('departments', '[]'))
         data['cover_image']   = eval(self.get_argument('cover_image', '{}'))
-        data['details']       = self.get_argument('details') and self.get_argument('details').split('\n') or []
+        data['details']       = self.get_argument('details', '').split('\n')
 
         # validate
         if data['brand']:
@@ -347,6 +378,7 @@ class EditDataHandler(BaseHandler):
             p.brand = data['brand']
             p.tagline = data['tags']
             p.department_path = data['department_path']
+            p.disallow_classification = True
             p.save()
         except Exception,e:
             message = e.message
@@ -488,6 +520,7 @@ class ViewDataHandler(BaseHandler):
         limit  = kwargs.get('limit', '20')
         kwargs['offset'] = int(offset)
         kwargs['limit']  = int(limit)
+        kwargs['visible_all'] = 1
 
         try:
             result = api.product.get(**kwargs)
@@ -519,6 +552,7 @@ class ViewDataHandler(BaseHandler):
         limit = kwargs.get('limit', '20')
         kwargs['offset'] = int(offset)
         kwargs['limit'] = int(limit)
+        kwargs['visible_all'] = 1
 
         try:
             result = api.event.get(**kwargs)
@@ -690,9 +724,132 @@ class MonitorHandler(BaseHandler):
     def get(self):
         self.render('monitor.html')
 
-class CrawlerHandler(BaseHandler):
-    def get(self):
-        self.render('crawler.html')
+class CrawlerHandler(AsyncProcessMixIn):
+    @tornado.web.authenticated
+    @tornado.web.asynchronous
+    def get(self, subpath, parameter):
+        if not subpath:
+            self.redirect('/crawler/tasks')
+        if subpath == 'tasks':
+            if parameter == 'all':
+                offset = self.get_argument('offset', 0)
+                limit = self.get_argument('limit', 50)
+                offset, limit = int(offset), int(limit)
+                return task_all_tasks(offset, limit)
+            elif parameter == 'update':
+                return task_updates()
+            else:
+                self.render('crawler/tasks.html')
+        elif subpath == 'control':
+            self.render('crawler/control.html')
+
+        # publish
+        elif subpath == 'publish':
+            if parameter == 'chkpub':
+                self.render('crawler/chkpub.html')
+            elif parameter == 'stats':
+                self.render('crawler/stats.html')
+            elif parameter == 'report':
+                _utcnow = datetime.utcnow()
+                if wink(_utcnow):
+                    self.run_background( get_publish_report, self.report, (_utcnow.replace(microsecond=0, second=0, minute=0, hour=9),) )
+                else:
+                    return self.render('crawler/report.html',
+                                        date = _utcnow.replace(microsecond=0, second=0, minute=0, hour=9),
+                                        event = [],
+                                        product = [])
+
+            elif parameter == 'updatereport':
+                _utcnow = datetime.utcnow()
+                if wink(_utcnow, force=True):
+                    self.run_background( get_publish_report, self.updatereport, (_utcnow.replace(microsecond=0, second=0, minute=0, hour=9),) )
+                else:
+                    return self.render('crawler/updatereport.html',
+                                        date = _utcnow.replace(microsecond=0, second=0, minute=0, hour=9),
+                                        event = [],
+                                        product = [])
+            else:
+                self.render('crawler/publish.html')
+
+        # history
+        elif subpath == 'history':
+            self.render('crawler/history.html')
+        elif subpath == 'site':
+            if parameter:
+                self.render("crawler/site.html", tasks = get_one_site_schedule(parameter)['tasks'])
+        elif subpath == 'schedule':
+            if parameter == 'upcoming':
+                self.render("crawler/schedule.html", schedules = upcoming_events())
+            elif parameter == 'ending':
+                self.render("crawler/schedule.html", schedules = ending_events())
+
+        # graph
+        elif subpath == 'graph':
+            if not parameter:
+                self.render('crawler/graph.html')
+            else:
+                doctype, site = parameter.split('_')
+                if doctype == 'event':
+                    stats = Stat.objects(site=site, doctype='event').order_by('interval')
+                    graphdata = []
+                    graphdata.append({'name':'crawled', 'data':[(int(time.mktime(s.interval.timetuple())*1000), s.crawl_num) for s in stats]})
+                    graphdata.append({'name':'image', 'data':[(int(time.mktime(s.interval.timetuple())*1000), s.image_num) for s in stats]})    
+                    graphdata.append({'name':'propagated', 'data':[(int(time.mktime(s.interval.timetuple())*1000), s.prop_num) for s in stats]})
+                    graphdata.append({'name':'published', 'data':[(int(time.mktime(s.interval.timetuple())*1000), s.publish_num) for s in stats]})
+                    return json.dumps(graphdata)
+                elif doctype == 'product':
+                    stats = Stat.objects(site=site, doctype='product').order_by('interval')
+                    graphdata = []
+                    graphdata.append({'name':'crawled', 'data':[(int(time.mktime(s.interval.timetuple())*1000), s.crawl_num) for s in stats]})
+                    graphdata.append({'name':'image', 'data':[(int(time.mktime(s.interval.timetuple())*1000), s.image_num) for s in stats]})
+                    graphdata.append({'name':'published', 'data':[(int(time.mktime(s.interval.timetuple())*1000), s.publish_num) for s in stats]})
+                    return json.dumps(graphdata)
+
+
+
+
+    @tornado.web.authenticated
+    @tornado.web.asynchronous
+    def post(self, subpath, parameter):
+        if subpath == 'publish':
+            if parameter == 'report':
+                dat = self.get_argument('date')
+#                print('[{0}], [{1}]'.format(dat, self.request.arguments))
+                month, day, year = dat.split('/')
+                _thedate = datetime(int(year), int(month), int(day))
+                if wink(_thedate):
+                    self.run_background( get_publish_report, self.report, (_thedate.replace(hour=9),) )
+                else:
+                    return self.render('crawler/report.html',
+                                    date = _thedate.replace(hour=9),
+                                    event = [],
+                                    product = [])
+            elif parameter == 'updatereport':
+                dat = self.get_argument('date')
+                month, day, year = dat.split('/')
+                _thedate = datetime(int(year), int(month), int(day))
+                if wink(_thedate, force=True):
+                    self.run_background( get_publish_report, self.updatereport, (_thedate.replace(hour=9),) )
+                else:   
+                    return self.render('crawler/updatereport.html',
+                                    date = _thedate.replace(hour=9),
+                                    event = [],
+                                    product = [])
+
+
+    def report(self, ret):
+        _utcnow = datetime.utcnow()
+        return self.render('crawler/report.html',
+                            date = ret['date'],
+                            event = ret['event'],
+                            product = ret['product'])
+
+    def updatereport(self, ret):
+        _utcnow = datetime.utcnow()
+        return self.render('crawler/updatereport.html',
+                            date = ret['date'],
+                            event = ret['event'],
+                            product = ret['product'])
 
 class DashboardHandler(BaseHandler):
     def get(self, path):
@@ -708,10 +865,33 @@ class DashboardHandler(BaseHandler):
             self.content_type = 'application/json'
             self.finish(json.dumps(['no content']))
 
-class TraceDataHandler(BaseHandler):
-    def get(self, site, key):
-        if not site:
-            self.render('tracedata.html')
+
+class ScheduleHandler(BaseHandler):
+    @tornado.web.authenticated
+    def get(self, key):
+        if not key:
+            s = get_all_schedules()
+            self.render('schedule.html', schedules=s)
+    @tornado.web.authenticated
+    def post(self, key):
+        d = {k:v[0] for k,v in self.request.arguments.iteritems() if v}
+
+        if key == 'run':
+            method = d['method']
+            site = d['site']
+            run_command.send('admin', site=site, method=method, command_type='deal')
+            return self.write(json.dumps({'status':'ok'}))
+
+        r = update_schedule(d)
+        return self.write(json.dumps(r))
+
+    @tornado.web.authenticated
+    def delete(self, key):
+        d = {k:v[0] for k,v in self.request.arguments.iteritems() if v}
+        d.update({'pk': key})
+        r = delete_schedule(d)
+        return self.write(json.dumps(r))
+
 
 class AffiliateHandler(BaseHandler):
     @tornado.web.authenticated
@@ -724,33 +904,46 @@ class AffiliateHandler(BaseHandler):
 
     @tornado.web.authenticated
     def post(self, key):
-        arguments = {
-            'site': self.get_argument('site'),
-            'affiliate': self.get_argument('affiliate'),
-            'tracking_url' : self.get_argument('tracking_url')
-        }
+        arguments = {k:v[0] for k,v in self.request.arguments.iteritems() if v}
 
         if key:
             arguments['key'] = key
             post_link(patch=True, **arguments)
-
+        
         post_link(**arguments)
         return self.render('affiliate.html', links=get_all_links(), sites=picked_crawlers)
 
     @tornado.web.authenticated
     def delete(self, key):
-        print 'method delete'
+        try:
+            api.affiliate(key).delete()
+            self.write(json.dumps({'status': True, 'message': ''}));
+        except:
+            self.write(json.dumps({'status': False, 'message': '%s' % traceback.format_exc()}));
 
 class BrandsHandler(BaseHandler):
     def get(self, db):
-        brands = get_all_brands(db) if db else get_all_brands()
-        data = {}
+        page = int(self.get_argument('offset', '1'))
+        limit = int(self.get_argument('limit', '100'))
+
+        brands, total = get_all_brands(db, page=page, limit=limit) if db else get_all_brands(page=page, limit=limit)
+        pagination = Pagination(page, limit, total)
+        data = {'pagination': pagination}
+
         if db:
             data[db+'_brands'] = brands
         else:
             data['brands'] = brands
         print data.keys()
         self.render('brands.html', **data)
+
+class BrandSearchHandler(BaseHandler):
+    @tornado.web.authenticated
+    def post(self):
+        query = self.get_argument('q')
+        brands = search_brands(query) if query else []
+        self.render('brands.html', brands=brands)
+
 
 class BrandHandler(BaseHandler):
     @tornado.web.authenticated
@@ -787,14 +980,121 @@ class PowerBrandHandler(BaseHandler):
         brand = update_brand_volumn(brand_title, int(arguments['global_searchs'][0]))
         self.render('brandpower.html', brand=brand)
 
+from deals.models import BrandMonitor
+class BrandMonitorHandler(BaseHandler):
+    @tornado.web.authenticated
+    def get(self):
+        bms = BrandMonitor.objects()
+        print ',,,,,,,,,,,,,,,,,: ', bms.count()
+        p = [brand.to_json() for brand in bms]
+        print '~~~~~~~~~~~~~~~~~: ', len(p)
+        self.render('brandmonitor.html', brands=[brand.to_json() for brand in bms])
+
+
+DSFILTER = API(MASTIFF_HOST).dsfilter.get()
+class DealHandler(BaseHandler):
+    @tornado.web.authenticated
+    def get(self):
+        site = self.get_argument('site')
+        if not site:
+            self.render('deals.html', products=[], site='')
+
+        import sys
+        reload(sys)
+        sys.setdefaultencoding('utf-8')
+        
+        offset = int(self.get_argument('offset', '0'))
+        limit = int(self.get_argument('limit', '40'))
+        try:
+            m = __import__('crawlers.%s.models' % site, fromlist=['Product'])
+        except ImportError:
+            self.render('deals.html', products=[], site='')
+
+
+        objects = m.Product.objects
+        total_count = objects().count()
+        pagination = Pagination(offset/limit+1, limit, total_count)
+
+        products = objects()[offset:(offset+limit)]
+        res = [{
+            'title': product.title,
+            'combine_url': product.combine_url,
+            'image': product.image_urls[0] if product.image_urls else '',
+            'brand': product.favbuy_brand,
+            'price': product.favbuy_price,
+            'listprice': product.favbuy_listprice,
+            'dept': '-'.join(product.favbuy_dept),
+            'discount': float(product.favbuy_price) / float(product.favbuy_listprice) if product.favbuy_listprice else '',
+            'medium' : DSFILTER.get('%s.^_^.%s' % \
+            (product.favbuy_brand, '-'.join(product.favbuy_dept)), {}).get('medium', 0)
+        } for product in products]
+        self.render('deals.html', products=res, pagination=pagination, site=site)
+
+class PreferenceHandler(BaseHandler):
+    def get(self, path):
+        if path == '':
+            self.pref_index()
+    
+    def post(self, path):
+        if path == 'update.ajax':
+            self.pref_update()
+        elif path == 'unset.ajax':
+            self.pref_unset()
+
+    def pref_unset(self):
+        self.content_type = 'application/json'
+        try:
+            site = self.get_argument('site')
+            field = self.get_argument('unset')
+            api.sitepref(site).post({'$unset':{field:1}}) 
+        except Exception, e:
+            self.write(json.dumps({'status':'failed', 'reason':e.message}))
+        else:
+            self.write(json.dumps({'status':'ok'})) 
+
+    def pref_index(self):
+        try:
+            prefs = api.sitepref().get()['objects']
+        except:
+            prefs = []
+        self.render('preference.html', prefs=prefs)
+
+    def pref_update(self):
+        self.content_type = 'application/json'
+        try:
+            d = { k: v[-1] for k, v in self.request.arguments.iteritems() }
+            api.sitepref(d['site']).post(d)
+        except Exception, e:
+            self.write(json.dumps({'status':'failed', 'reason':e.message}))
+        else:
+            self.write(json.dumps({'status':'ok'})) 
+
 class MemberHandler(BaseHandler):
     def get(self, path):
         if path == '':
             self.user_index()
+        elif path == 'recent_activity':
+            self.user_recent_activity()
 
     def post(self, path):
         if path == 'delete_user.ajax':
             self.delete_user()
+
+    def user_recent_activity(self):
+        limit = self.get_argument('limit', '50')
+        offset = self.get_argument('offset', '0')
+        offset, limit = int(offset), int(limit)
+        user = self.get_argument('user', '')
+
+        data = api.useraction.get(user=user, order_by='-time', limit=limit)
+        activities = data['objects']
+        total_count = data['meta']['total_count']
+        pagination = Pagination(1+offset/50, 50, total_count)
+
+        self.render('recent_activity.html',
+            activities = activities,
+            pagination = pagination
+        )
 
     def delete_user(self):
         username = self.get_argument('username')
@@ -876,6 +1176,7 @@ class AjaxHandler(BaseHandler):
             self.content_type = 'application/json'
             self.write(json.dumps({'status':'failed'}))
 
+
 settings = {
     "debug": True,
     "static_path": STATIC_PATH,
@@ -890,20 +1191,24 @@ application = tornado.web.Application([
     (r"/examples/(ui|form|chart|typography|gallery|table|calendar|grid|file-manager|tour|icon|error|login)/", ExampleHandler),
     (r"/login/", LoginHandler),
     (r"/logout/", LogoutHandler),
-    (r"/crawler/", CrawlerHandler),
+    (r"/crawler/([^/]*)/?(.*)", CrawlerHandler),
     (r"/monitor/", MonitorHandler),
     (r"/dashboard/(.*)", DashboardHandler),
     (r"/viewdata/(.*)", ViewDataHandler),
     (r"/editdata/(.*)/(.*)/", EditDataHandler),
-    (r"/tracedata/?(.*)/?(.*)/?", TraceDataHandler),
+    (r"/schedule/?(.*)/?", ScheduleHandler),
     (r"/affiliate/?(.*)/?", AffiliateHandler),
     (r"/brands/?(.*)", BrandsHandler),
     (r"/brand/power/(.*)", PowerBrandHandler),
+    (r"/brand/deal/monitor", BrandMonitorHandler),
+    (r"/deal/?", DealHandler),
+    (r"/brand/search/", BrandSearchHandler),
     (r"/brand/?(.*)", BrandHandler),
     (r"/feedback/(.*)", FeedbackHandler),
     (r"/email/(.*)", EmailHandler),
     (r"/blog/(.*)", BlogHandler),
     (r"/member/(.*)", MemberHandler),
+    (r"/sitepref/(.*)", PreferenceHandler),
     (r"/ajax/(.*)", AjaxHandler),
     (r"/", IndexHandler),
     (r"/assets/(.*)", tornado.web.StaticFileHandler, dict(path=settings['static_path'])),

@@ -106,7 +106,7 @@ class beyondtherackLogin(object):
             self.login_account()
             ret = req.get(url)
         if ret.ok and ret.url == 'http://www.beyondtherack.com/event/calendar':
-            return -1
+            return -302
         elif ret.ok:
             return ret.content
 
@@ -194,7 +194,9 @@ class Server(object):
             if event.events_end != events_end:
                 event.update_history.update({ 'events_end': datetime.utcnow() })
                 event.events_end = events_end
-            event.image_urls = image_urls
+            if image_urls != event.image_urls:
+                event.image_urls = image_urls
+                event.update_history.update({ 'image_urls': datetime.utcnow() })
             event.update_time = datetime.utcnow()
             event.save()
             common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
@@ -247,7 +249,19 @@ class Server(object):
             event, is_new, is_updated = self.get_or_create_event(event_id)
 
             if dept not in event.dept: event.dept.append(dept)
-            if image_url not in event.image_urls: event.image_urls.append(image_url)
+
+            if image_url not in event.image_urls:
+                event.image_urls.insert(0, image_url)
+                event.update_history.update({ 'image_urls': datetime.utcnow() })
+
+            if 'image_urls' not in event.update_history.keys():
+                event.update_history.update({ 'image_urls': datetime.utcnow() })
+            elif not event.events_begin:
+                event.events_begin = datetime.utcnow()
+                event.update_history.update({ 'image_urls': datetime.utcnow() })
+            elif event.events_begin + timedelta(minutes=10) < datetime.utcnow() and event.events_begin + timedelta(minutes=1) > event.update_history['image_urls']:
+                event.update_history.update({ 'image_urls': datetime.utcnow() })
+
             event.update_time = datetime.utcnow()
             event.save()
             common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
@@ -327,6 +341,7 @@ class Server(object):
         sizes = []
         for size in size_nodes:
             sizes.append( size.text_content().strip() )
+        combine_url = 'http://www.beyondtherack.com/event/sku/{0}/{1}'.format(event_id, key)
 
         is_new, is_updated = False, False
         product = Product.objects(key=key).first()
@@ -334,7 +349,7 @@ class Server(object):
             is_new = True
             product = Product(key=key)
             product.updated = False
-            product.combine_url = 'http://www.beyondtherack.com/event/sku/{0}/{1}'.format(event_id, key)
+            product.combine_url = combine_url
             product.soldout = soldout
             product.brand = brand
             product.title = title
@@ -346,7 +361,16 @@ class Server(object):
                 product.soldout = soldout
                 is_updated = True
                 product.update_history.update({ 'soldout': datetime.utcnow() })
+            if product.combine_url != combine_url:
+                product.combine_url = combine_url
+                product.update_history.update({ 'combine_url': datetime.utcnow() })
             if not product.title: product.title = title
+            if product.price != price:
+                product.price = price
+                product.update_history.update({ 'price': datetime.utcnow() })
+            if product.listprice != listprice:
+                product.listprice = listprice
+                product.update_history.update({ 'listprice': datetime.utcnow() })
         if event_id not in product.event_id: product.event_id.append(event_id)
         product.list_update_time = datetime.utcnow()
         product.save()
@@ -430,7 +454,7 @@ class Server(object):
 
         key = url.rsplit('/', 1)[-1]
         content = self.net.fetch_product_page(url)
-        if content == -1:
+        if content == -302:
             common_failed.send(sender=ctx, key=key, url=url, reason='download product redirect to homepage')
             return
         if content is None or isinstance(content, int):
@@ -484,8 +508,35 @@ class Server(object):
             image_urls.append( img.get('src').replace('small', 'large') )
         return list_info, summary, shipping, returned, image_urls
 
+    def check(self, old):
+        count = 0
+        content = self.net.fetch_page('http://www.beyondtherack.com/event/calendar')
+        tree = lxml.html.fromstring(content)
+        upcoming_data = json.loads( re.compile('var event_data *= *({.*});').search(content).group(1) )
+        upcomings = tree.cssselect('div.pageframe table.upcomingEvents > tbody > tr > td.data-row > div.item')
+        for up in upcomings:
+            event_id = up.get('data-event')
+            sale_title = up.text_content().strip()
+            if event_id == '34271':
+                image_urls = upcoming_data[event_id]['images'].values()
+                image = image_urls[0]
+                if image != old:
+                    old = image
+                    open('{0}.jpg'.format(count), 'w').write(requests.get(old).content)
+                    open('a.log', 'a').write('{0}   {1}   {2}\n'.format(old, count, datetime.utcnow() ))
+                    count += 1
+                    return old
+        return old
+
 
 if __name__ == '__main__':
+    ss = Server()
+    import time
+    image = ''
+    while True:
+        image = ss.check(image)
+        time.sleep(500)
+    exit()
     import zerorpc
     from settings import CRAWLER_PORT
     server = zerorpc.Server(Server())

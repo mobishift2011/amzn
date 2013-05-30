@@ -8,6 +8,7 @@ This is the server part of zeroRPC module. Call by client automatically, run on 
 from gevent import monkey; monkey.patch_all()
 import lxml.html
 from datetime import datetime, timedelta
+import itertools
 
 from models import *
 from crawlers.common.stash import *
@@ -38,19 +39,21 @@ class Server(object):
         shoes_url = 'http://www.bluefly.com/a/shoes'
         handbags_accessories_url = 'http://www.bluefly.com/a/handbags-accessories'
         jewelry_url = 'http://www.bluefly.com/a/jewelry-shop'
+        beauty_url = 'http://www.bluefly.com/a/beauty-fragrance'
         men_url = 'http://www.bluefly.com/a/men-clothing-shoes-accessories'
         sale_url = 'http://www.bluefly.com/a/designer-sale'
         kids_url = 'http://www.bluefly.com/Designer-Kids/_/N-v2wq/list.fly'
         new_url = 'http://www.bluefly.com/New-Arrivals/_/N-1aaqZapsz/newarrivals.fly'
 
-        self.crawl_women_or_shoes_category('women', women_url, ctx)
-        self.crawl_women_or_shoes_category('shoes', shoes_url, ctx)
-        self.crawl_handbag_accessories_category('handbags&accessories', handbags_accessories_url, ctx)
-        self.crawl_jewelry_or_men_category('jewelry', jewelry_url, ctx)
-        self.crawl_jewelry_or_men_category('men', men_url, ctx)
-        self.crawl_sale_category('sale', sale_url, ctx)
+        self.crawl_women_shoes_handbags_category('women', women_url, ctx)
+        self.crawl_women_shoes_handbags_category('shoes', shoes_url, ctx)
+        self.crawl_women_shoes_handbags_category('handbags&accessories', handbags_accessories_url, ctx)
+        self.crawl_jewelry_category('jewelry', jewelry_url, ctx)
+        self.crawl_women_shoes_handbags_category('beauty', beauty_url, ctx)
+        self.crawl_women_shoes_handbags_category('men', men_url, ctx)
         self.crawl_kids_category('kids', kids_url, ctx)
         self.crawl_newarrivals_category('new', new_url, ctx)
+        self.crawl_sale_category('sale', sale_url, ctx)
 
         # add some more products, like La Perla
         self.save_category_to_db('http://www.bluefly.com/Designer-Beauty-Fragrance/_/N-nd52/list.fly',
@@ -91,16 +94,24 @@ class Server(object):
         tree = lxml.html.fromstring(content)
         return tree
 
-    def crawl_women_or_shoes_category(self, category, url, ctx):
+    def crawl_women_shoes_handbags_category(self, category, url, ctx):
         tree = self.download_category_return_xmltree(category, url, ctx)
         if tree is None: return
-        navigation = tree.xpath('//div[@id="lnavi"]/div[@id="leftDeptColumn"]/div[@id="deptLeftnavContainer"]/h3[text()="categories"]')[0]
-        nodes = navigation.xpath('./following-sibling::ul[@id="deptLeftnavList"]/li[@class="new-link-test"]/following-sibling::li')
-        for i in range(len(nodes) - 2): # sale not need, crawl it separately. all already contains
-            directory = nodes[i].xpath('.//text()')[0]
-            link = nodes[i].xpath('./a/@href')[0]
+        navigation = tree.cssselect('div#leftDeptColumn div.dept-nav-section')[0]
+        node1 = navigation.cssselect('ul li a')
+        navigation = tree.cssselect('div#leftDeptColumn div.dept-nav-section')[-1]
+        node2 = navigation.cssselect('ul li a')
+        for i in itertools.chain(node1, node2):
+            directory = i.text_content().strip()
+            if directory == 'Best of Sale':
+                continue
+            link = i.get('href')
+            if 'newarrivals.fly' in link:
+                continue
             link = link if link.startswith('http') else self.siteurl + link
-            slug, key = self.extract_slug_key_of_listingurl.match(link).groups()
+            m = self.extract_slug_key_of_listingurl.match(link)
+            if not m: continue
+            slug, key = m.groups()
             cats = [category, directory]
             self.save_category_to_db(url, key, slug, cats, ctx)
 
@@ -122,23 +133,20 @@ class Server(object):
                 self.save_category_to_db(url, key, slug, cats, ctx)
 
 
-    def crawl_jewelry_or_men_category(self, category, url, ctx):
+    def crawl_jewelry_category(self, category, url, ctx):
         tree = self.download_category_return_xmltree(category, url, ctx)
         if tree is None: return
-        navigation = tree.xpath('//div[@id="lnavi"]/div[@id="leftDeptColumn"]/div[@id="deptLeftnavContainer"]/h3[text()="categories"]')[0]
-        parts = navigation.xpath('./following-sibling::ul[@id="deptLeftnavList"]')
-        for part in parts:
-            sub_category = part.xpath('./preceding-sibling::h2[1]/a/text()')[0]
-            if sub_category == "Men's Sale":
+        navigation = tree.cssselect('div#leftDeptColumn div.dept-nav-section')[0]
+        node = navigation.cssselect('ul li a')
+        for i in node:
+            directory = i.text_content().strip()
+            link = i.get('href')
+            if 'newarrivals.fly' in link:
                 continue
-            nodes = part.xpath('./li')
-            for node in nodes:
-                directory = node.xpath('.//text()')[0]
-                link = node.xpath('./a/@href')[0]
-                link = link if link.startswith('http') else self.siteurl + link
-                slug, key = self.extract_slug_key_of_listingurl.match(link).groups()
-                cats = [category, sub_category, directory]
-                self.save_category_to_db(url, key, slug, cats, ctx)
+            link = link if link.startswith('http') else self.siteurl + link
+            slug, key = self.extract_slug_key_of_listingurl.match(link).groups()
+            cats = [category, directory]
+            self.save_category_to_db(url, key, slug, cats, ctx)
 
 
     def crawl_sale_category(self, category, url, ctx):
@@ -147,13 +155,19 @@ class Server(object):
         """
         tree = self.download_category_return_xmltree(category, url, ctx)
         if tree is None: return
-        navigation = tree.xpath('//div[@id="lnavi"]/div[@id="leftDeptColumn"]/div[@id="deptLeftnavContainer"]/h3[text()="categories"]')[0]
-        nodes = navigation.xpath('./following-sibling::h2')
-        for i in range(len(nodes) - 1):
-            directory = nodes[i].xpath('.//text()')[0]
-            link = nodes[i].xpath('./a/@href')[0]
+        navigation = tree.cssselect('div#leftDeptColumn div.dept-nav-section')[0]
+        node1 = navigation.cssselect('ul li a')
+        navigation = tree.cssselect('div#leftDeptColumn div.dept-nav-section')[1]
+        node2 = navigation.cssselect('ul li a')
+        for i in itertools.chain(node1, node2):
+            directory = i.text_content().strip()
+            link = i.get('href')
+            if 'newarrivals.fly' in link:
+                continue
             link = link if link.startswith('http') else self.siteurl + link
-            slug, key = self.extract_slug_key_of_listingurl.match(link).groups()
+            m = self.extract_slug_key_of_listingurl.match(link)
+            if not m: continue
+            slug, key = m.groups()
             cats = [category, directory]
             self.save_category_to_db(url, key, slug, cats, ctx)
 
@@ -208,7 +222,7 @@ class Server(object):
         content = fetch_page(url)
         if content is None: content = fetch_page(url)
         if content is None or isinstance(content, int):
-            common_failed.send(sender=ctx, key=key, url=url,
+            common_failed.send(sender=ctx, key='', url=url,
                     reason='download error listing or {0} return'.format(content))
             return
         tree = lxml.html.fromstring(content)
@@ -315,7 +329,7 @@ class Server(object):
         if not price: price = prd.cssselect('div.layoutChanger > div.listProductPrices div.priceReduced > span.priceReducedvalue')
         if not price: price = prd.cssselect('div.layoutChanger > div.listProductPrices div.priceClearance > span.priceClearancevalue')
         if price:
-            price = price[0].text_content().strip()
+            price = price[0].text_content().replace('$', '').replace(',', '').strip()
 #        else:
 #            common_failed.send(sender=ctx, key=category_key, url=link,
 #                    reason='This product have no price.page_num: {0}'.format(page_num))
@@ -323,12 +337,13 @@ class Server(object):
         slug, key = self.extract_product_slug_key.match(link).groups()
         soldout = True if prd.cssselect('div.stockMessage div.listOutOfStock') else False
         brand = prd.cssselect('div.layoutChanger > div.listBrand > a')[0].text_content().strip()
-        title = prd.cssselect('div.layoutChanger > div.listLineMargin > div.productShortName')[0].text_content().strip()
+        title = prd.cssselect('div.layoutChanger > div.listLineMargin > div.productShortName')[0].text_content().strip().encode('utf-8')
         listprice = prd.cssselect('div.layoutChanger > div.listProductPrices > div.priceRetail > span.priceRetailvalue')
-        listprice = listprice[0].text_content().strip() if listprice else ''
+        listprice = listprice[0].text_content().replace('$', '').replace(',', '').strip() if listprice else ''
         
         rating = prd.cssselect('div.layoutChanger > div.product-detail-rating > img')
         rating = rating[0].get('alt') if rating else ''
+        combine_url = '{0}/slug/p/{1}/detail.fly'.format(self.siteurl, key)
 
         is_new, is_updated = False, False
         product = Product.objects(key=key).first()
@@ -336,7 +351,7 @@ class Server(object):
             is_new = True
             product = Product(key=key)
             product.updated = False
-            product.combine_url = '{0}/slug/p/{1}/detail.fly'.format(self.siteurl, key)
+            product.combine_url = combine_url
             product.slug = slug
             product.soldout = soldout
             product.brand = brand
@@ -347,8 +362,19 @@ class Server(object):
                 product.soldout = soldout
                 is_updated = True
                 product.update_history.update({ 'soldout': datetime.utcnow() })
-        if listprice and not product.listprice: product.listprice = listprice
-        if price and not product.price: product.price = price
+            if product.combine_url != combine_url:
+                product.combine_url = combine_url
+                product.update_history.update({ 'combine_url': datetime.utcnow() })
+
+        if not listprice:
+            if product.listprice:
+                product.listprice = None
+        elif listprice and listprice != product.listprice:
+            product.listprice = listprice
+            product.update_history.update({ 'listprice': datetime.utcnow() })
+        if price and price != product.price:
+            product.price = price
+            product.update_history.update({ 'price': datetime.utcnow() })
         if category_key not in product.category_key: product.category_key.append(category_key)
         if category_path and category_path not in product.cats: product.cats.append(category_path)
         product.list_update_time = datetime.utcnow()
@@ -419,9 +445,9 @@ class Server(object):
         if not product.price:
             prices = detail.cssselect('div.product-info > div.product-prices > div.product-price')
             if prices:
-                product.price = prices[0].cssselect('span[itemprop=price]')[0].text_content().strip()
+                product.price = prices[0].cssselect('span[itemprop=price]')[0].text_content().replace('$', '').replace('(FINAL SALE)', '').replace(',', '').strip()
                 if not product.listprice:
-                    product.listprice = prices[0].cssselect('span.retail-price')[0].text_content().replace('retail :', '').strip()
+                    product.listprice = prices[0].cssselect('span.retail-price')[0].text_content().replace('retail :', '').replace('$', '').replace(',', '').strip()
 
         product.image_urls = image_urls
         product.color = color
@@ -451,6 +477,9 @@ class Server(object):
 
 
 if __name__ == '__main__':
+    Server().crawl_category()
+    exit()
+    import zerorpc
     server = zerorpc.Server(Server())
     server.bind("tcp://0.0.0.0:{0}".format(CRAWLER_PORT))
     server.run()

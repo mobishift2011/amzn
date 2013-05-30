@@ -36,24 +36,37 @@ class CheckServer(object):
         _id = muri.rsplit('/', 2)[-2]
         utcnow = datetime.utcnow()
         var = api.product(_id).get()
-        if var['ends_at'] > utcnow:
-            api.product(_id).patch({ 'ends_at': utcnow })
+        if 'ends_at' in var and var['ends_at'] > utcnow.isoformat():
+            api.product(_id).patch({ 'ends_at': utcnow.isoformat() })
+        if 'ends_at' not in var:
+            api.product(_id).patch({ 'ends_at': utcnow.isoformat() })
 
     def check_onsale_product(self, id, url):
         prd = Product.objects(key=id).first()
         if prd is None:
             print '\n\nonekingslane {0}, {1}\n\n'.format(id, url)
             return
+
         ret = self.s.get(url, headers=self.headers)
         if ret.url == u'https://www.onekingslane.com/':
             if prd.muri:
                 self.offsale_update(prd.muri)
+            if not prd.products_end or prd.products_end > datetime.utcnow():
+                prd.products_end = datetime.utcnow()
+                prd.update_history.update({ 'products_end': datetime.utcnow() })
+                prd.save()
+                print '\n\nonekingslane product[{0}] redirect, sale end.\n\n'.format(url)
             return -302
         tree = lxml.html.fromstring(ret.content)
         already_end = True if tree.cssselect('#productOverview div.expired') else False
         if already_end:
             if prd.muri:
                 self.offsale_update(prd.muri)
+            if not prd.products_end or prd.products_end > datetime.utcnow():
+                prd.products_end = datetime.utcnow()
+                prd.update_history.update({ 'products_end': datetime.utcnow() })
+                prd.save()
+                print '\n\nonekingslane product[{0}] redirect, sale end.\n\n'.format(url)
             return False
         try:
             title = tree.cssselect('#productOverview h1.serif')[0].text_content().strip()
@@ -63,7 +76,7 @@ class CheckServer(object):
                 prd.save()
             else:
                 if prd.title.lower() != title.lower():
-                    print 'onekingslane product[{0}] title error: [{1}, {2}]'.format(prd.combine_url, title.encode('utf-8'), prd.title.encode('utf-8'))
+                    print 'onekingslane product[{0}] title error: [{1}, {2}]'.format(prd.combine_url, prd.title.encode('utf-8'), title.encode('utf-8'))
         except IndexError:
             print '\n\nonekingslane product[{0}] title label can not get it.\n\n'.format(url)
         except AttributeError:
@@ -86,14 +99,14 @@ class CheckServer(object):
         listprice = tree.cssselect('p#msrpLabel')[0].text_content().replace('Retail', '').replace('Estimated Market Value', '').strip()
         if '-' not in price:
             if float( price.replace('$', '').replace(',', '') ) != float( prd.price.replace('Our Price', '').replace('$', '').replace(',', '') ):
-                print 'onekingslane product[{0}] price error: {1} vs {2}'.format(prd.combine_url, price, prd.price)
+                print 'onekingslane product[{0}] price error: {1} vs {2}'.format(prd.combine_url, prd.price, price)
         if '-' not in listprice and listprice:
             if float( listprice.replace('$', '').replace(',', '') ) != float( prd.listprice.replace('$', '').replace(',', '') ):
-                print 'onekingslane product[{0}] listprice error: {1} vs {2}'.format(prd.combine_url, listprice, prd.listprice)
+                print 'onekingslane product[{0}] listprice error: {1} vs {2}'.format(prd.combine_url, prd.listprice, listprice)
 
         soldout = True if tree.cssselect('.sold-out') else False
         if soldout !=  prd.soldout:
-            print 'onekingslane product[{0}] soldout error: {1} vs {2}'.format(prd.combine_url, soldout, prd.soldout)
+            print 'onekingslane product[{0}] soldout error: {1} vs {2}'.format(prd.combine_url, prd.soldout, soldout)
 
         return True
 
@@ -115,9 +128,23 @@ class CheckServer(object):
         text = tree.cssselect('div#okl-content div.sales-event')[0].get('class')
         if 'ended' in text:
             return True
-        if 'started' in text:
+        elif 'started' in text:
             return False
 
+
+    def check_onsale_event(self, id, url):
+        ev = Event.objects(event_id=id).first()
+        ret = self.s.get(url, headers=self.headers)
+        tree = lxml.html.fromstring(ret.content)
+        text = tree.cssselect('div#okl-content div.sales-event')[0].get('class')
+        if 'ended' in text:
+            utcnow = datetime.utcnow()
+            if not ev.events_end or ev.events_end > utcnow:
+                ev.events_end = utcnow.replace(minute=0, second=0, microsecond=0)
+                ev.update_history.update({ 'events_end': utcnow })
+                ev.save()
+        elif 'started' in text:
+            return True
 
     def test_product(self, testurl):
         ret = self.s.get(testurl, headers=self.headers)

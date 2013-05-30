@@ -31,7 +31,7 @@ from functools import partial
 from mongoengine import Q
 
 from crawlers.common.events import pre_general_update, post_general_update, common_failed
-from crawlers.common.stash import get_login_email
+from crawlers.common.stash import get_login_email, deal_crawlers
 
 from powers.events import ready_for_batch
 
@@ -86,6 +86,22 @@ def spout_category(site, category):
         for p in range(1, min(pages+1,MAX_PAGE+1)):
             url = c.url().format(p)
             yield {'url': url}
+    elif site == 'ebags':
+        pages = (c.num - 1) / c.pagesize
+        for p in xrange(1, pages+1):
+            url = '{0}?items={1}?page={2}'.format(c.url(), c.pagesize, p)
+            yield {'url': url, 'key': c.key}
+    elif site == 'shopbop':
+        pages = (c.num - 1) // c.pagesize + 1
+        for p in xrange(pages):
+            page_url = '{0}?baseIndex={1}&all'.format(c.url(), p * c.pagesize)
+            yield {'url': page_url, 'key': c.key}
+    elif site == 'ashford':
+        for p in xrange(c.pagesize):
+            page_url = '{0}?q_pageNum={1}'.format(c.url(), p+1)
+            yield {'url': page_url, 'key': c.key}
+    elif site in deal_crawlers:
+        yield {'url': c.url(), 'key': c.key}
     else:
         yield {'url': c.url()}
 
@@ -104,6 +120,8 @@ def spout_product(site):
             yield { 'url': p.url(), 'ecost': p.key }
         elif site == 'myhabit':
             yield { 'url': p.url(), 'casin': p.key }
+        elif site in deal_crawlers:
+            yield {'url': p.url(), 'key': p.key}
         else:
             yield { 'url': p.url() }
 

@@ -79,7 +79,7 @@ class ImageTool:
     def image_path(self):
         return self.__image_path
   
-    def crawl(self, image_urls=[], site='', doctype='', key='', thumb=False):
+    def crawl(self, image_urls=[], site='', doctype='', key='', timeline=0, thumb=False):
         """ process all the image stuff """
         if len(image_urls) == 0:
             self.__image_complete = True
@@ -89,7 +89,7 @@ class ImageTool:
             imglogger.debug("processing {0}".format(image_url))
             path, filename = os.path.split(image_url)
             index = image_urls.index(image_url)
-            image_name = '%s_%s' % (md5(filename).hexdigest(), index)
+            image_name = '%s_%s_%s' % (md5(filename).hexdigest(), index, timeline)
 
             self.__key.key = os.path.join(site, doctype, key, image_name)
             image_content = None
@@ -146,7 +146,7 @@ class ImageTool:
         Returns None
         """
         self.__key.key = key
-        self.__key.set_contents_from_file(image, headers={'Content-Type':'image/jpeg'})
+        self.__key.set_contents_from_file(image, headers={'Content-Type':'image/jpeg', 'Cache-Control':'max-age=31536000, public'})
         # self.__key.make_public()
 
     def thumbnail_and_upload(self, doctype, image, s3key, exist_keys):

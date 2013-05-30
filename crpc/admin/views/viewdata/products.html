@@ -35,11 +35,12 @@
         <div style="float: left; width: 250px; height:500px;">
           <img src="{{ p.cover_image|imagesize('224x0') }}" /><br />
           {{ p.title }}<br />
+          <b style="color:grey">@score</b> {{ p.score }}<br />
           <b style="color:grey">@departments</b> {{ p.department_path }}<br />
           <b style="color:grey">@brand</b> {{ p.brand }}<br />
           <b style="color:grey">@tags(first 3)</b> {{ p.tags[:3] }}<br />
           <b style="color:grey">@prices </b> {{ p.our_price }} / {{ p.list_price }} <br />
-          <a target="_blank"  href="http://favbuy.com/product/{{ p.id }}/"><i class="icon icon-yellow icon-extlink"></i>Go to Product</a><br />
+          <a target="_blank"  href="http://www.favbuy.com/product/{{ p.id }}/"><i class="icon icon-yellow icon-extlink"></i>Go to Product</a><br />
           <a href="/editdata/product/{{ p.id }}/"><i class="icon icon-edit icon-blue"></i>Edit Product</a><br />
           <a href="#" name="reason" site_key="{{p.site_key}}"><i class="icon icon-red icon-search"></i>clf-reason</a>
         </div>                                

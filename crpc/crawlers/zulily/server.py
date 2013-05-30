@@ -18,13 +18,20 @@ import time
 import zerorpc
 import lxml.html
 import pytz
+import ConfigParser
 
 from urllib import quote, unquote
 from datetime import datetime, timedelta
+from random import SystemRandom
 
 from models import *
 from crawlers.common.events import *
 from crawlers.common.stash import *
+
+
+
+SLEEP = 2
+alphabet = ['0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
 
 header = {
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
@@ -33,7 +40,7 @@ header = {
     'Accept-Language': 'zh-CN,en-US;q=0.8,en;q=0.6',
     'Host': 'www.zulily.com',
     'Referer': 'http://www.zulily.com/',
-    'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.17 (KHTML, like Gecko) Ubuntu Chromium/24.0.1312.56 Chrome/24.0.1312.56 Safari/537.17',
+    'User-Agent': 'Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm)',
 }
 req = requests.Session(prefetch=True, timeout=30, config=config, headers=header)
 
@@ -47,13 +54,60 @@ class zulilyLogin(object):
         """
         self.login_url = 'https://www.zulily.com/auth'
         self.badpage_url = re.compile('.*zulily.com/z/.*html')
+        self.rd = SystemRandom()
+        self.conf = ConfigParser.ConfigParser()
         self.data = {
-            'login[username]': login_email[DB],
+            'login[username]': get_login_email('zulily'),
             'login[password]': login_passwd
         }
-        self.current_email = login_email[DB]
+        self.current_email = self.data['login[username]']
         # self.reg_check = re.compile(r'https://www.zulily.com/auth/create.*') # need to authentication
         self._signin = {}
+
+    def create_new_account(self):
+        regist_url = 'https://www.zulily.com/auth/create/'
+        regist_data = {
+            'firstname': 'first',
+            'lastname': 'last',
+            'email': ''.join( self.rd.sample(alphabet, 10) ) + '@gmail.com',
+            'password': login_passwd,
+            'confirmation': login_passwd,
+        }
+        ret = req.post(regist_url, data=regist_data)
+        return ret.url, regist_data['email']
+
+    def change_username(self):
+        """
+        Already signed up.
+        https://www.zulily.com/auth/?email=abcd1234%40gmail.com&firstname=first&lastname=last
+
+
+        Could not process your sign up. Please try again.
+        https://www.zulily.com/auth/create/?email=tty1tty1%40gmail.com&firstname=first&lastname=last
+        """
+        returl, email = self.create_new_account()
+        times = 0
+        while returl.startswith('https://www.zulily.com/auth/'):
+            returl, email = self.create_new_account()
+            times += 1
+            if times >= 3:
+                time.sleep(600)
+                times = 0
+
+        self.conf.read( os.path.join(os.path.dirname(__file__), '../common/username.ini') )
+        self.conf.set('username', DB, email)
+        self.conf.write(open(os.path.join(os.path.dirname(__file__), '../common/username.ini'), 'w'))
+        return email
+
+
+    def whether_itis_badpage(self, url):
+        if self.badpage_url.match(url):
+            self.logout_account()
+            email = self.change_username()
+            self.current_email = email
+            self.login_account()
+            return True
+        else: return False
 
     def login_account(self):
         """.. :py:method::
@@ -86,14 +140,10 @@ class zulilyLogin(object):
             check whether the account is login, if not, login and fetch again
         """
         ret = req.get(url)
+        time.sleep(SLEEP)
 
-        if self.badpage_url.match(ret.url):
-            self.current_email = get_login_email('zulily')
-            self.logout_account()
-            self.login_account()
+        if self.whether_itis_badpage(ret.url):
             ret = req.get(url)
-            if self.badpage_url.match(ret.url):
-                return -500
 
         if ret.url == u'http://www.zulily.com/oops-event':
             return -404
@@ -110,14 +160,10 @@ class zulilyLogin(object):
             check whether the account is login, if not, login and fetch again
         """
         ret = req.get(url)
+        time.sleep(SLEEP)
 
-        if self.badpage_url.match(ret.url):
-            self.current_email = get_login_email('zulily')
-            self.logout_account()
-            self.login_account()
+        if self.whether_itis_badpage(ret.url):
             ret = req.get(url)
-            if self.badpage_url.match(ret.url):
-                return -500
 
         if ret.url == u'http://www.zulily.com/oops-event':
             return -404
@@ -153,8 +199,8 @@ class Server(object):
         """.. :py:method::
             From top depts, get all the events
         """
-        if kwargs.get('login_email'): self.net.check_signin( kwargs.get('login_email') )
-        else: self.net.check_signin()
+#        if kwargs.get('login_email'): self.net.check_signin( kwargs.get('login_email') )
+#        else: self.net.check_signin()
 
         depts = ['girls', 'boys', 'women', 'baby-maternity', 'toys-playtime', 'home']
         debug_info.send(sender=DB + '.category.begin')
@@ -283,8 +329,8 @@ class Server(object):
 
         :param url: listing page url
         """
-        if kwargs.get('login_email'): self.net.check_signin( kwargs.get('login_email') )
-        else: self.net.check_signin()
+#        if kwargs.get('login_email'): self.net.check_signin( kwargs.get('login_email') )
+#        else: self.net.check_signin()
 
         event_id = self.extract_event_id.match(url).group(2)
         cont = self.net.fetch_listing_page(url)
@@ -446,8 +492,8 @@ class Server(object):
 
         :param url: product url
         """
-        if kwargs.get('login_email'): self.net.check_signin( kwargs.get('login_email') )
-        else: self.net.check_signin()
+#        if kwargs.get('login_email'): self.net.check_signin( kwargs.get('login_email') )
+#        else: self.net.check_signin()
 
         cont = self.net.fetch_page(url)
         if isinstance(cont, int):

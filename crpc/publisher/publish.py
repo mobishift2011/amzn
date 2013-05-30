@@ -3,7 +3,7 @@ from gevent import monkey; monkey.patch_all()
 from crawlers.common.events import common_saved
 from crawlers.common.routine import get_site_module
 from powers.events import image_crawled, ready_for_publish
-from backends.monitor.models import Stat
+#from backends.monitor.models import Stat
 from settings import CRPC_ROOT
 from mysettings import MINIMUM_PRODUCTS_READY, MASTIFF_ENDPOINT
 from helpers import log
@@ -14,6 +14,7 @@ import sys
 from os import listdir
 from os.path import join, isdir
 from crawlers.common.stash import exclude_crawlers
+import traceback
 
 class Publisher:
     def __init__(self):
@@ -31,7 +32,7 @@ class Publisher:
 
     ALL_PRODUCT_PUBLISH_FIELDS = ["combine_url", "events", "favbuy_price", "favbuy_listprice", "soldout",
                                 "color", "title", "summary", "list_info", "image_path", "favbuy_tag", "favbuy_brand", "favbuy_dept",
-                                "returned", "shipping", "products_begin", "products_end" ]
+                                "returned", "shipping", "products_begin", "products_end", "second_hand" ]
 
     def get_module(self, site):
         return self.m[site]
@@ -53,7 +54,8 @@ class Publisher:
                     self._try_publish_event(ev, skip_products=True)
 
         # try look for both unpublished products and products published but requiring update
-        for prod in m.Product.objects:
+        three_days_ago = datetime.utcnow() - timedelta(days=3)
+        for prod in m.Product.objects(list_update_time__gt=three_days_ago).order_by('-list_update_time'):
             if self.should_publish_product(prod, chk_ev=True):
                 self.publish_product(prod)
             elif self.should_publish_product_upd(prod):
@@ -140,7 +142,8 @@ class Publisher:
             # republish published products that are associated with the newly published event (event URI field
             # needs to be updated)
             for prod in m.Product.objects(publish_time__exists=True, event_id=ev.event_id):
-                self.publish_product(prod, upd=True, fields=['events'])
+                # self.publish_product(prod, upd=True, fields=['events'])
+                self.publish_product(prod, upd=True)
         elif self.should_publish_event_newly_onshelf(ev):
             self.publish_event(ev, upd=True)
         elif ev.publish_time:
@@ -283,9 +286,9 @@ class Publisher:
                 elif f=="image_path": ev_data['cover_image'] = ev['image_path'][0] if ev['image_path'] else {}
                 elif f=="highest_discount": 
                     try:
-                        ev_data['highest_discount'] = ev['highest_discount'][:ev['highest_discount'].find('.')+3]
+                        ev_data['highest_discount'] = ev['highest_discount'][:ev['highest_discount'].find('.')+3] if ev['highest_discount'] else None
                     except:
-                        pass
+                        print traceback.format_exc()
                 elif f=="soldout": ev_data['sold_out'] = m.Product.objects(event_id=ev.event_id, soldout=False).count()==0
                 elif f=="favbuy_tag": ev_data['tags'] = ev.favbuy_tag
                 elif f=="favbuy_brand": ev_data['brands'] = ev.favbuy_brand
@@ -304,13 +307,13 @@ class Publisher:
                 self.logger.debug("published event %s:%s, resource_id=%s", site, ev.event_id, ev_resource['id'])
             
                 # For monitoring publish flow stat
-                interval = datetime.utcnow().replace(second=0, microsecond=0)
-                Stat.objects(site=site, doctype='event', interval=interval).update(inc__publish_num=1, upsert=True)
+                # interval = datetime.utcnow().replace(second=0, microsecond=0)
+                # Stat.objects(site=site, doctype='event', interval=interval).update(inc__publish_num=1, upsert=True)
 
             ev.publish_time = datetime.utcnow(); ev.save()
         except Exception as e:
             self.logger.error(e)
-            self.logger.error("publishing event %s:%s failed", obj_to_site(ev), ev.event_id)
+            self.logger.error("publishing event %s:%s failed -> %s", obj_to_site(ev), ev.event_id, traceback.format_exc())
     
     def publish_product(self, prod, upd=False, fields=[]):
         '''
@@ -351,7 +354,9 @@ class Publisher:
                     if pb: pdata["starts_at"] = pb.isoformat()
                 elif f=="products_end": 
                     pe = obj_getattr(prod, 'products_end', None)
-                    if pe: pdata["ends_at"] = pe.isoformat()                               
+                    if pe: pdata["ends_at"] = pe.isoformat()
+                elif f == 'second_hand':
+                    pdata['second_hand'] = obj_getattr(prod, 'second_hand', False)
             if not upd:
                 pdata["site_key"] = site+'_'+prod.key
             if upd and not pdata: return
@@ -366,8 +371,8 @@ class Publisher:
                 self.logger.debug("published product %s:%s, resource_id=%s", site, prod.key, r['id'])
                 
                 # For monitoring publish flow stat
-                interval = datetime.utcnow().replace(second=0, microsecond=0)
-                Stat.objects(site=site, doctype='product', interval=interval).update(inc__publish_num=1, upsert=True)
+                # interval = datetime.utcnow().replace(second=0, microsecond=0)
+                # Stat.objects(site=site, doctype='product', interval=interval).update(inc__publish_num=1, upsert=True)
             
             prod.publish_time = datetime.utcnow(); prod.save()
             

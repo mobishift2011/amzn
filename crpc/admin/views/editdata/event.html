@@ -26,7 +26,11 @@
           <label class="control-label" for="typeahead">Cover Image</label>
           <div class="controls" id='coverimage'>
                 <img src="{{ event.cover_image|imagesize('280x280') }}"/>
-                <button id="recrop" class="btn btn-primary" onclick="javascript:void(0)">ReCrop</button>
+                <button id="recrop_280x280" class="btn btn-primary" onclick="javascript:void(0)">ReCrop 280x280</button>
+          </div>
+          <div class="controls" id='coverimage'>
+                <img src="{{ event.cover_image|imagesize('244x200') }}"/>
+                <button id="recrop_244x200" class="btn btn-primary" onclick="javascript:void(0)">ReCrop 244x200</button>
           </div>
         </div>
 
@@ -142,19 +146,21 @@
 {% block script %}
 <script>
     var jcrop_api;
-    jQuery(function($){
+    function cropbox(ratio){
+      jQuery(function($){
         $('#cropbox').Jcrop({
-            setSelect: [0, 0, 400, 400],
+            setSelect: [0, 0, 400, 400/ratio],
             boxWidth: 470,
             boxHeight: 240,
             bgOpacity: .6,
             onChange: updateCoords,
             onSelect: updateCoords,
-            aspectRatio: 1
+            aspectRatio: ratio
         }, function(){
             jcrop_api = this;
         });
-    });
+      });
+    }
 
     function updateCoords(c)
     {
@@ -164,8 +170,19 @@
         $('#h').val(c.h);
     };
 
-    $('#recrop').live('click', function(e){
+    $('#recrop_280x280').live('click', function(e){
         e.preventDefault(); 
+        $('#target_width').val('280');
+        $('#target_height').val('280');
+        cropbox(1);
+        $('#cropimage').modal();
+    });
+    
+    $('#recrop_244x200').live('click', function(e){
+        e.preventDefault(); 
+        $('#target_width').val('244');
+        $('#target_height').val('200');
+        cropbox(244/200);
         $('#cropimage').modal();
     });
     

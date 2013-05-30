@@ -15,19 +15,19 @@ import time
 def run(site, rpc):
     begin = time.time()
 
-    new_category(site, rpc)
+    new_category(site, rpc, concurrency=1)
     category_cost = time.time() - begin
     print '\n\n--++ category {0} ++--\n\n'.format(category_cost)
 
-    new_listing(site, rpc)
+    new_listing(site, rpc, concurrency=1)
     list_cost = time.time() - begin
     print '\n\n--++ listing {0} ++--\n\n'.format(list_cost)
 
-    new_product(site, rpc)
+    new_product(site, rpc, concurrency=1)
     product_cost = time.time() - begin
     print '\n\n--++ product {0} ++--\n\n'.format(product_cost)
 
-    update_listing(site, rpc)
+#    update_listing(site, rpc, concurrency=1)
 
 if __name__ == '__main__':
     rpc = CrawlerServer()

@@ -40,7 +40,8 @@
                                 <td> facebook: {{ u.facebook_id }}/ twitter: {{ u.twitter_id }}</td>
                                 <td> {{ u.signup_from }}</td>
                                 <td>
-                                    <a id="delete-user" username="{{u.username}}" class="btn btn-danger"><i class="icon-trash icon-white"></i></a>
+                                    <a id="recent-activity" userid="{{u.id}}" title="View Recent Activities" class="btn btn-primary"><i class="icon-tasks icon-white"></i></a>
+                                    <a id="delete-user" username="{{u.username}}" title="Delete User" class="btn btn-danger"><i class="icon-trash icon-white"></i></a>
                                 </td>
                             </tr>
                         {% endfor %}
@@ -78,6 +79,11 @@
         var r = document.cookie.match("\\b" + name + "=([^;]*)\\b");
         return r ? r[1] : undefined;
     }
+
+    $('#recent-activity').live('click', function(){
+        var userid = $(this).attr('userid');
+        location.href = '/member/recent_activity?user=' + userid; 
+    });
     
     $('#delete-user').live('click', function(){
         var del = confirm("are you sure to delete this user?");

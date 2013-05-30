@@ -4,14 +4,16 @@ from gevent import monkey; monkey.patch_all()
 import gevent
 
 import resource
-resource.setrlimit(resource.RLIMIT_NOFILE, (4096, 4096))
+resource.setrlimit(resource.RLIMIT_NOFILE, (8192, 8192))
 
 from datetime import datetime
 import collections
 
+from admin.views import execute as execute_deal
+
 from backends.monitor.executor import execute
 from backends.monitor.scheduler import Scheduler
-from backends.monitor.autoschedule import avoid_cold_start, auto_schedule
+from backends.monitor.autoschedule import avoid_cold_start, auto_schedule, auto_schedule_deals
 from backends.monitor.events import run_command # spawn listener to listen webui signal
 from backends.monitor.events import auto_scheduling # manual evoking schedules
 from backends.monitor.ghub import GHub
@@ -26,7 +28,9 @@ def execute_cmd(sender, **kwargs):
     site = kwargs.get('site')
     method = kwargs.get('method')
     logger.warning('site.method: {0}.{1}'.format(site, method))
-    execute(site, method)
+    exe = execute_deal if kwargs.get('command_type') == 'deal' \
+        else execute
+    exe(site, method)
 
 def wait(seconds=60):
     import time
@@ -62,6 +66,7 @@ gevent.spawn_later(5, toggle_auto_scheduling, 'webui', auto=True)
 while True:
     try:
         auto_schedule()
+        auto_schedule_deals()
         gevent.sleep(60 - datetime.utcnow().second)
     except Exception as e:
         with open('/tmp/schedule.log', 'a') as fd:

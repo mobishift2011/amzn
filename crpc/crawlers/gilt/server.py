@@ -37,7 +37,7 @@ class giltLogin(object):
         self.data['email'] = self.current_email
         _now = int(time.time())
         _before = _now - 11
-        auth_url = 'https://www.gilt.com/login/auth?callback=jQuery17206991992753464729_{0}&email={1}&password={2}&remember_me=on&_={3}'.format(_before*1000 + 450, self.data['email'], self.data['password'], _now*1000 + 739)
+        auth_url = 'https://www.gilt.com/login/auth?callback=jQuery17202631507865153253_{0}&email={1}&password={2}&remember_me=on&_={3}'.format(_before*1000 + 450, self.data['email'], self.data['password'], _now*1000 + 739)
         req.get(auth_url)
 
         req.post('https://www.gilt.com/login/redirect', data=self.data)
@@ -71,7 +71,7 @@ class giltLogin(object):
         ret = req.get(url)
         if ret.url == 'http://www.gilt.com/':
             return -302
-        if ret.url == 'http://www.gilt.com/sale/women' or ret.url == 'http://www.gilt.com/sale/men' or 'http://www.gilt.com/brand/' in ret.url:
+        if ret.url == 'http://www.gilt.com/sale/women' or ret.url == 'http://www.gilt.com/sale/men' or ret.url == 'http://www.gilt.com/sale/children' or 'http://www.gilt.com/brand/' in ret.url or 'http://www.gilt.com/apps/iphone' in ret.url:
             return -302
         if ret.ok: return ret.content
         return ret.status_code
@@ -83,7 +83,11 @@ class giltLogin(object):
             women will redirect to this product's brand page if it is off sale
         """
         ret = req.get(url)
-        if 'http://www.gilt.com/brand/' in ret.url or 'http://www.gilt.com/style/' in ret.url:
+#        if 'http://www.gilt.com/brand/' in ret.url:
+#            return -302
+        if 'http://www.gilt.com/style/' in ret.url:
+            return -302
+        if ret.url == 'http://www.gilt.com/home/sales':
             return -302
         if ret.ok: return ret.content
         return ret.status_code
@@ -92,7 +96,7 @@ class Server(object):
     def __init__(self):
         self.siteurl = 'http://www.gilt.com'
         self.net = giltLogin()
-        self.extract_hero_image = re.compile('background:url\((.*)\)')
+        self.extract_hero_image = re.compile('background-image:url\((.*)\)')
 
     def crawl_category(self, ctx='', **kwargs):
         """.. :py:method::
@@ -149,12 +153,12 @@ class Server(object):
         """.. :py:method::
         """
         # hero event
-        # sale_title = tree.cssselect('div#sticky-nav > div.sticky-nav-container > ul.tabs > li.sales > div > div.bg_container > div.column > ul > li > a')[0].text_content().strip()
-        img = tree.cssselect('section#main > div.hero-container > section.hero')[0]
+        link = tree.cssselect('section.main a.sale-link')[0]
+        img = link.cssselect('section.hero')[0]
         image = self.extract_hero_image.search(img.get('style')).group(1)
         image = image if image.startswith('http:') else 'http:' + image
-        link = img.cssselect('a.sale-header-link')[0]
-        sale_title = link.text_content()
+        sale_title = img.cssselect('header.sale-header h1.sale-name')[0].text_content().strip().encode('utf-8')
+
         link = link.get('href')
         link = link if link.startswith('http') else self.siteurl + link
         if link.rsplit('/', 1)[-1] == 'ss':
@@ -171,7 +175,7 @@ class Server(object):
 
 
         # on sale events
-        nodes = tree.cssselect('section#main > div.sales-container > section.new-sales > article.sale')
+        nodes = tree.cssselect('section.main section.sales-container section.new-sales article.sale a.sale-link')
         for node in nodes:
             ret = self.parse_one_node(node, dept, ctx)
             if ret is None: continue
@@ -180,7 +184,7 @@ class Server(object):
             common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
 
         # ending soon
-        nodes = tree.cssselect('section#main > div.sales-container > section.sales-ending-soon > article.sale')
+        nodes = tree.cssselect('section.main section.ending-soon article.sale a.sale-link')
         for node in nodes:
             ret = self.parse_one_node(node, dept, ctx)
             if ret is None: continue
@@ -190,14 +194,14 @@ class Server(object):
 
         # starting later. When today's upcoming on sale, this column disappear for a while
         # this label not exist anymore, instead of starting tomorrow
-        nodes = tree.cssselect('section#main > div.sales-container > section.sales-starting-later > article.sale')
+        nodes = tree.cssselect('section.main section.starting-later-today article.sale a.sale-link')
         for node in nodes:
             ret = self.parse_one_node(node, dept, ctx, upcoming=True)
             if ret is None: continue
             event, is_new, is_updated = ret
 
-            begins = node.cssselect('header > hgroup > h3 > span')[0].get('data-gilt-date')
-            events_begin = datetime.strptime(begins[:begins.index('+')], '%m/%d/%Y %H:%M ')
+            begins = node.cssselect('header.sale-header h3.sale-time span')[0].get('data-gilt-date')
+            events_begin = datetime.strptime(begins[:begins.index('+')], '%a, %d %b %Y %H:%M:%S ')
             if event.events_begin != events_begin:
                 event.events_begin = events_begin
                 event.update_history.update({ 'events_begin': datetime.utcnow() })
@@ -218,7 +222,7 @@ class Server(object):
             common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
 
         # starting tomorrow
-        nodes = tree.cssselect('section#main > div.bottom-calendar-sales-container > section.calendar-sales > div.calendar-sales-container > div.calendar-sales > article.sale')
+        nodes = tree.cssselect('section.main section.sales-calendar-block div.sales-calendar-container section.sales-calendar article.sale a.sale-link')
         for node in nodes:
             ret = self.parse_one_node(node, dept, ctx, upcoming=True)
             if ret is None: continue
@@ -242,9 +246,11 @@ class Server(object):
             common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
 
         # upcoming
-        nodes = tree.cssselect('section#main > div.sales-container > div.sales-promos > section.calendar-sales > div.tab_content > div.scroll-container > article.sale')
+        nodes = tree.cssselect('section.main > div.sales-container > div.sales-promos > section.calendar-sales > div.tab_content > div.scroll-container > article.sale a.sale-link')
         for node in nodes:
-            event, is_new, is_updated = self.parse_one_node(node, dept, ctx, upcoming=True)
+            ret = self.parse_one_node(node, dept, ctx, upcoming=True)
+            if ret is None: continue
+            event, is_new, is_updated = ret
             image, sale_title, sale_description, events_begin = self.get_picture_description(event.combine_url, ctx)
             if not event.sale_description:
                 event.image_urls = image
@@ -267,16 +273,18 @@ class Server(object):
 
     def parse_one_node(self, node, dept, ctx, upcoming=False):
         """.. :py:method::
-            parse one event node
         """
-        link = node.xpath('./a')[0].get('href')
+        link = node.get('href')
         link = link if link.startswith('http') else self.siteurl + link
         if self.siteurl not in link: # women have www.giltcity.com and www.jetsetter.com
             return
-        sale_title = node.xpath('./a/img')[0].get('alt').strip()
-        image = node.xpath('./a/img/@src')
-        if image: # type lxml.etree._ElementStringResult
-            image = str(image[0]) if image[0].startswith('http:') else 'http:' + image[0]
+        if '/home/sale' in link or '/sale/home' in link:
+            return
+
+        sale_title = node.cssselect('header.sale-header h1.sale-name')[0].text_content().strip().encode('utf-8')
+        image = node.cssselect('figure img')[0].get('src')
+        image = image if image.startswith('http:') else 'http:' + image
+
         if link.rsplit('/', 1)[-1] == 'ss':
             event_id = link.rsplit('/', 2)[-2]
             is_leaf = False
@@ -308,7 +316,6 @@ class Server(object):
             event = Event(event_id=event_id)
             event.urgent = True
             event.combine_url = link
-            event.sale_title = sale_title
             if image:
                 event.image_urls.append(image)
             event.is_leaf = is_leaf
@@ -320,6 +327,8 @@ class Server(object):
                 event.dept = ['children']
             elif '/home/sale' in link or '/sale/home' in link:
                 event.dept = ['home']
+        if not event.sale_title or event.sale_title.encode('utf-8') != sale_title:
+            event.sale_title = sale_title
         event.update_time = datetime.utcnow()
         return event, is_new, is_updated
 
@@ -360,9 +369,9 @@ class Server(object):
         groups = tree.cssselect('div#main div.ss-col-wrapper > div.ss-col-wide > div.row_group')
         for group in groups:
             group_title = group.cssselect('h2.row_group_title')[0].text_content().strip()
-            nodes = group.cssselect('ul.sales > li.brand_square')
+            nodes = group.cssselect('ul.sales > li[class^="brand_"]') # brand_square, brand_wide
             for node in nodes:
-                ret = self.parse_one_node(node, dept, ctx)
+                ret = self.parse_one_leaf_node(node, dept, ctx)
                 if ret is None: continue
                 event, is_new, is_updated = ret
                 if is_new:
@@ -370,6 +379,31 @@ class Server(object):
                     if group_title: event.group_title = group_title
                 event.save()
                 common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
+
+
+    def parse_one_leaf_node(self, node, dept, ctx):
+        """.. :py:method::
+            parse one event node
+        """
+        link = node.xpath('./a')[0].get('href')
+        link = link if link.startswith('http') else self.siteurl + link
+        if self.siteurl not in link: # women have www.giltcity.com and www.jetsetter.com
+            return
+        sale_title = node.xpath('./a/img')[0].get('alt').strip()
+        image = node.xpath('./a/img/@src')
+        if image: # type lxml.etree._ElementStringResult
+            image = str(image[0]) if image[0].startswith('http:') else 'http:' + image[0]
+        if link.rsplit('/', 1)[-1] == 'ss':
+            event_id = link.rsplit('/', 2)[-2]
+            is_leaf = False
+        else:
+            event_id = link.rsplit('/', 1)[-1]
+            is_leaf = True
+
+        if is_leaf is False:
+            self.get_child_event(event_id, link, dept, ctx)
+        event, is_new, is_updated = self.get_or_create_event(event_id, link, dept, sale_title, image, is_leaf)
+        return event, is_new, is_updated
 
 
     def gilt_time(self, data_gilt_time):
@@ -390,17 +424,23 @@ class Server(object):
         url = 'http://www.gilt.com/home/sale'
         tree = self.download_page_get_correct_tree(url, dept, 'download \'home\' error', ctx)
 
-        nav = tree.cssselect('div.content-container > section.content > div.holds-position-2 > div.position')[0]
         # hero 'div.elements-container > article.element'
-        hero = nav.cssselect('section.module-full > div.elements-container > article.element-hero')[0]
-        event, is_new, is_updated = self.parse_one_home_node(hero, dept, ctx)
-        sale_title = hero.cssselect('div.hero-center-wrapper > div.hero-center-container > div.hero-editorial > header.element-header > hgroup > .headline')[0].text_content().strip()
-        event.sale_title = sale_title
-        event.save()
-        common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
+        hero = tree.cssselect('section.main a.sale-link')[0]
+        link = hero.get('href')
+        link = link if link.startswith('http') else self.siteurl + link
+        if self.siteurl in link: # have www.giltcity.com and www.jetsetter.com
+            img = hero.cssselect('section.hero')[0]
+            image = self.extract_hero_image.search(img.get('style')).group(1)
+            image = image if image.startswith('http:') else 'http:' + image
+            sale_title = img.cssselect('header.sale-header h1.sale-name')[0].text_content().strip().encode('utf-8')
+            ret = self.get_or_create_event(link.rsplit('/', 1)[-1], link, dept, sale_title, image, is_leaf=True)
+            if ret is not None:
+                event, is_new, is_updated = ret
+                event.save()
+                common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
 
         # on sale
-        nodes = nav.cssselect('section.module-sale-mosaic > div.elements-container > article.element')
+        nodes = tree.cssselect('section.main div.sales-container section.new-sales article.sale a.sale-link')
         for node in nodes:
             ret = self.parse_one_home_node(node, dept, ctx)
             if ret is not None:
@@ -409,10 +449,10 @@ class Server(object):
                 common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
 
         # start later today & ending soon, sometimes ending soon is disappeared
-        for sale_small in nav.cssselect('section.module-additional-sale-mosaic'):
-            headline = sale_small.cssselect('header.module-header > hgroup h1.headline')[0].text_content().strip()
+        for sale_small in tree.cssselect('section.main section.additional-sales'):
+            headline = sale_small.cssselect('header.section-header h1.section-title')[0].text_content().strip()
             if 'Starting Later Today' == headline:
-                nodes = sale_small.cssselect('div.elements-container > article.element')
+                nodes = sale_small.cssselect('article.sale a.sale-link')
                 for node in nodes:
                     ret = self.parse_one_home_node(node, dept, ctx)
                     if ret is not None:
@@ -420,7 +460,10 @@ class Server(object):
                     else: continue
 
                     if not event.sale_description:
-                        events_begin, events_end, image, sale_description = self.get_home_future_events_begin_end(event.combine_url, event.event_id, ctx)
+                        ret = self.get_home_future_events_begin_end(event.combine_url, event.event_id, ctx)
+                        if ret is None:
+                            continue
+                        events_begin, events_end, image, sale_description = ret
                         if event.events_begin != events_begin:
                             event.events_begin = events_begin
                             event.update_history.update({ 'events_begin': datetime.utcnow() })
@@ -432,7 +475,7 @@ class Server(object):
                     event.save()
                     common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
             elif 'Ending Soon' == headline:
-                nodes = sale_small.cssselect('div.elements-container > article.element')
+                nodes = sale_small.cssselect('article.sale a.sale-link')
                 for node in nodes:
                     ret = self.parse_one_home_node(node, dept, ctx)
                     if ret is not None:
@@ -441,7 +484,7 @@ class Server(object):
                         common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
 
         # upcoming
-        nodes = nav.cssselect('section.module-sidebar-mosaic > div.elements-container > article.element-cms-default > ul.nav > li.nav-item > div.nav-dropdown > section.nav-section > ul > li.nav-topic')
+        nodes = tree.cssselect('section.module-sidebar-mosaic > div.elements-container > article.element-cms-default > ul.nav > li.nav-item > div.nav-dropdown > section.nav-section > ul > li.nav-topic')
         for node in nodes:
             self.parse_one_home_upcoming_node(node, dept, ctx)
 
@@ -449,13 +492,12 @@ class Server(object):
     def parse_one_home_node(self, node, dept, ctx):
         """.. :py:method::
         """
-        bottom_node = node.cssselect('figure > span > a')[0]
-        link = bottom_node.get('href')
+        link = node.get('href')
         link = link if link.startswith('http') else self.siteurl + link
         if self.siteurl in link: # have www.giltcity.com and www.jetsetter.com
-            image = bottom_node.cssselect('img')[0].get('src')
+            sale_title = node.cssselect('header.sale-header h1.sale-name')[0].text_content().strip().encode('utf-8')
+            image = node.cssselect('figure img')[0].get('src')
             image = image if image.startswith('http:') else 'http:' + image
-            sale_title = bottom_node.cssselect('img')[0].get('alt')
 
             event, is_new, is_updated = self.get_or_create_event(link.rsplit('/', 1)[-1], link, dept, sale_title, image, is_leaf=True)
             return event, is_new, is_updated
@@ -472,14 +514,14 @@ class Server(object):
             sale_title = node.cssselect('span.topic-label > a')[0].text_content()
             event, is_new, is_updated = self.get_or_create_event(link.rsplit('/', 1)[-1], link, dept, sale_title, image='', is_leaf=True)
 
-            if not event.sale_description:
-                events_begin, events_end, image, sale_description = self.get_home_future_events_begin_end(link, link.rsplit('/', 1)[-1], ctx)
-                if event.events_begin != events_begin:
-                    event.events_begin = events_begin
-                    event.update_history.update({ 'events_begin': datetime.utcnow() })
-                if event.events_end != events_end:
-                    event.events_end = events_end
-                    event.update_history.update({ 'events_end': datetime.utcnow() })
+            events_begin, events_end, image, sale_description = self.get_home_future_events_begin_end(link, link.rsplit('/', 1)[-1], ctx)
+            if event.events_begin != events_begin:
+                event.events_begin = events_begin
+                event.update_history.update({ 'events_begin': datetime.utcnow() })
+            if event.events_end != events_end:
+                event.events_end = events_end
+                event.update_history.update({ 'events_end': datetime.utcnow() })
+            if not sale_description:
                 event.image_urls = image if isinstance(image, list) else [image]
                 event.sale_description = sale_description
             event.save()
@@ -492,19 +534,23 @@ class Server(object):
         :param key: event id or department
         """
         if '/sale/children' in link or '/sale/women' in link or '/sale/men' in link:
-            image, sale_title, sale_description, events_begin = self.get_picture_description(link, ctx)
+            ret = self.get_picture_description(link, ctx)
+            if ret is None:
+                return
+            image, sale_title, sale_description, events_begin = ret
             return events_begin, None, image, sale_description
 
         tree = self.download_page_get_correct_tree(link, key, 'download \'home\' upcoming event page error', ctx)
         timer = tree.cssselect('div.page-container > div.content-container > section.page-details > div.layout-background > div.layout-wrapper > div.layout-container > section.sale-details > div.sale-time')[0]
-        _begin = timer.get('data-timer-start')
+        _begin = timer.get('data-gilt-dom-time-frame-time-start')
         events_begin = datetime.utcfromtimestamp(float(_begin[:10]))
-        _end = timer.get('data-timer-end') # 1356714000000
+        _end = timer.get('data-gilt-dom-time-frame-time-end') # 1356714000000
         events_end = datetime.utcfromtimestamp(float(_end[:10]))
-        bottom_node = timer = tree.cssselect('div.page-container > div.content-container > section.content > div > div.position > section.module > div.elements-container > article.element')[0]
+
+        bottom_node = tree.cssselect('div.page-container > div.content-container > section.content > div > div.position > section.module > div.elements-container > article.element')[0]
         image = bottom_node.cssselect('figure > span > img')[0].get('src')
         image = image if image.startswith('http:') else 'http:' + image
-        sale_description = bottom_node.cssselect('div.sharable-editorial > header.element-header > div.element-content')[0].text_content().strip()
+        sale_description = bottom_node.cssselect('div.sharable-editorial > header.element-header > div.element-content')[0].text_content().strip().encode('utf-8')
         return events_begin, events_end, image, sale_description
 
 
@@ -525,9 +571,9 @@ class Server(object):
 
         if '/home/sale' in url or '/sale/home' in url: # home
             timer = tree.cssselect('div.page-container > div.content-container > section.page-details > div.layout-background > div.layout-wrapper > div.layout-container > section.sale-details > div.sale-time')[0]
-            _begin = timer.get('data-timer-start')
+            _begin = timer.get('data-gilt-dom-time-frame-time-start')
             events_begin = datetime.utcfromtimestamp(float(_begin[:10]))
-            _end = timer.get('data-timer-end')
+            _end = timer.get('data-gilt-dom-time-frame-time-end')
             events_end = datetime.utcfromtimestamp(float(_end[:10]))
             bottom_node = tree.cssselect('div.page-container > div.content-container > div.content-area-wrapper > section.content > div.position > section.module > div.elements-container > article.element')[0]
             image = bottom_node.cssselect('figure.element-media > span.media > img')[0].get('src')
@@ -615,10 +661,19 @@ class Server(object):
             if color: product.color = color
             if sizes: product.sizes = sizes
         else:
-            if soldout and product.soldout != True:
-                product.soldout = True
+            if soldout != product.soldout:
+                product.soldout = soldout
                 is_updated = True
                 product.update_history.update({ 'soldout': datetime.utcnow() })
+            if product.combine_url != link:
+                product.combine_url = link
+                product.update_history.update({ 'combine_url': datetime.utcnow() })
+            if product.price != price:
+                product.price = price
+                product.update_history.update({ 'price': datetime.utcnow() })
+            if listprice and product.listprice != listprice:
+                product.listprice = listprice
+                product.update_history.update({ 'listprice': datetime.utcnow() })
         if event_id not in product.event_id: product.event_id.append(event_id)
         product.list_update_time = datetime.utcnow()
         product.save()
@@ -634,9 +689,9 @@ class Server(object):
         link = product_name.get('href')
         link = link if link.startswith('http') else self.siteurl + link
         title = ' '.join( product_name.xpath('.//text()') )
-        price = node.cssselect('header.overview > div.price > div.sale-price > span.nouveau-price')[0].text_content().strip()
+        price = node.cssselect('header.overview > div.price > div.sale-price > span.nouveau-price')[0].text_content().replace('$', '').replace(',', '').strip()
         listprice = node.cssselect('header.overview > div.price > div.original-price > span')
-        listprice = listprice[0].text_content().strip() if listprice else ''
+        listprice = listprice[0].text_content().replace('$', '').replace(',', '').strip() if listprice else ''
         soldout = True if 'Sold Out' == node.cssselect('section.inventory-status > h1.inventory-state')[0].text_content().strip() else False
         return look_id, brand, link, title, price, listprice, soldout
 
@@ -697,8 +752,8 @@ class Server(object):
             link = link if link.startswith('http') else self.siteurl + link
             title = text.cssselect('h1.product-name > a')[0].text_content()
             listprice = node.cssselect('div.product-price > div.original-price')
-            listprice = listprice[0].text_content() if listprice else ''
-            price = node.cssselect('div.product-price > div.gilt-price')[0].text_content().strip()
+            listprice = listprice[0].text_content().replace('$', '').replace(',', '').strip() if listprice else ''
+            price = node.cssselect('div.product-price > div.gilt-price')[0].text_content().replace('$', '').replace('Gilt', '').replace(',', '').strip()
             status = node.cssselect('section.product-details > section.inventory-status')
             soldout = True if status and 'Sold Out' in status[0].text_content() else False
             attribute = node.cssselect('div.quickadd-wrapper > section.quickadd > form.sku-selection')[0]
@@ -732,61 +787,102 @@ class Server(object):
         if tree is None: return
 
         if '/home/sale' in url or '/sale/home' in url: # home
-            nav = tree.cssselect('div.page-container > div.content-container > section.content > div.layout-container > div.positions > div.position-2 > section.module > div.elements-container > article.element-product')[0]
-            text = nav.cssselect('section.product-details')[0]
-            shipping = 'Extended Delivery Timeline: ' + text.cssselect('div.delivery-estimate')[0].text_content().strip().replace('\n', ' ')
-            returned = text.cssselect('div.return-policy')[0].text_content().strip()
-            list_info = []
-            detail = text.cssselect('section.product-description > div#PRODUCT_DETAILS')[0]
-            lis = detail.xpath('.//li')
-            if not lis: # make sure not miss 'ul'
-                for i in detail.iterchildren():
-                    list_info.append(i.text_content())
-            else: # use 'li' and 'p' to fill list_info
-                for i in lis:
-                    list_info.append(i.text_content())
-                for i in detail.xpath('p'):
-                    list_info.append(i.text_content())
-            use_care = text.cssselect('section.product-description > div#USE_AND_CARE')
-            if use_care:
-                list_info.append( use_care[0].text_content().strip() )
+            try:
+                nav = tree.cssselect('div.page-container > div.content-container > section.content > div.layout-container > div.positions > div.position-2 > section.module > div.elements-container > article.element-product')[0]
+                text = nav.cssselect('section.product-details')[0]
+                shipping = 'Extended Delivery Timeline: ' + text.cssselect('div.delivery-estimate')[0].text_content().strip().replace('\n', ' ')
+                returned = text.cssselect('div.return-policy')[0].text_content().strip()
+                list_info = []
+                detail = text.cssselect('section.product-description > div#PRODUCT_DETAILS')[0]
+                lis = detail.xpath('.//li')
+                if not lis: # make sure not miss 'ul'
+                    for i in detail.iterchildren():
+                        list_info.append(i.text_content())
+                else: # use 'li' and 'p' to fill list_info
+                    for i in lis:
+                        list_info.append(i.text_content())
+                    for i in detail.xpath('p'):
+                        list_info.append(i.text_content())
+                use_care = text.cssselect('section.product-description > div#USE_AND_CARE')
+                if use_care:
+                    list_info.append( use_care[0].text_content().strip() )
 
-            image_urls = []
-            for img in nav.cssselect('section.product-image > ul.photo-selection > li.photo > img'):
-                image = img.get('src').rsplit('/', 1)[0] + '/lg.jpg'
-                image = image if image.startswith('http:') else 'http:' + image
-                image_urls.append(image)
+                image_urls = []
+                for img in nav.cssselect('section.product-image > ul.photo-selection > li.photo > img'):
+                    image = img.get('src').rsplit('/', 1)[0] + '/lg.jpg'
+                    image = image if image.startswith('http:') else 'http:' + image
+                    image_urls.append(image)
+            except IndexError:
+                nav = tree.cssselect('section#details')[0]
+                text = nav.cssselect('section.summary')[0]
+                shipping = text.cssselect('section.fulfillment div.estimated-delivery')
+                shipping = shipping[0].text_content().strip().replace('\n', ' ') if shipping else ''
+                returned = text.cssselect('section.fulfillment div.return-policy')
+                returned = returned[0].text_content().strip() if returned else ''
+                list_info = []
+                for i in nav.cssselect('#description section.content-container section.tab-content ul li'):
+                    list_info.append( i.text_content().strip() )
+                for i in nav.cssselect('#description section.content-container section.tab-content p'):
+                    list_info.append( i.text_content().strip() )
+
+                image_urls = []
+                for img in nav.cssselect('#photos ul.photo-selection > li > img'):
+                    image = img.get('src').rsplit('/', 1)[0] + '/lg.jpg'
+                    image = image if image.startswith('http:') else 'http:' + image
+                    image_urls.append(image)
+
             color, sizes = None, None
         else: # women, men, children
-            nav = tree.cssselect('section#main > section#product-detail > article.product')[0]
-            text = nav.cssselect('div.summary')[0]
-            shipping = text.cssselect('div.details > dl.delivery > dd.delivery-window')
-            shipping = 'Estimated Delivery: ' + shipping[0].text_content().strip().replace('\n', ' ') if shipping else ''
-            returned = text.cssselect('div.details > dl.return-policy > dd')
-            returned = returned[0].text_content().strip() if returned else ''
-            list_info = []
-            for desc in text.cssselect('div.structured-description > section.fragment'):
-                desc_title = desc.cssselect('header.structure-title > h1')[0].text_content()
-                if desc_title == 'Description':
-                    for i in desc.cssselect('header.structure-title')[0].xpath('./following-sibling::*'):
-                        list_info.append( i.text_content() )
-                elif desc_title == 'Use and Care':
-                    list_info.append( desc.text_content().replace('Use and Care', '').strip() )
-                # elif desc_title == 'At a Glance':
-                #     desc.text_content().replace('At a Glance', '').strip()
-                # elif desc_title == 'Designer':
-                #     desc.text_content().replace('Designer', '').strip()
-            sizes = []
-            for i in text.cssselect('form.sku-selection > div[data-gilt-attribute-name=Size] > ul.sku-attribute-values > li[data-gilt-value-name]'):
-                sizes.append(i.get('data-gilt-value-name'))
-            color = text.cssselect('form.sku-selection > div[data-gilt-attribute-name=Color] > dl.attribute-label > dd.selected-attribute-value')
-            color = color[0].text_content().strip() if color else ''
+            try:
+                nav = tree.cssselect('section#main section#product-detail > article.product')[0]
+                text = nav.cssselect('div.summary')[0]
+                shipping = text.cssselect('div.details > dl.delivery > dd.delivery-window')
+                shipping = 'Estimated Delivery: ' + shipping[0].text_content().strip().replace('\n', ' ') if shipping else ''
+                returned = text.cssselect('div.details > dl.return-policy > dd')
+                returned = returned[0].text_content().strip() if returned else ''
+                list_info = []
+                for desc in text.cssselect('div.structured-description > section.fragment'):
+                    desc_title = desc.cssselect('header.structure-title > h1')[0].text_content()
+                    if desc_title == 'Description':
+                        for i in desc.cssselect('header.structure-title')[0].xpath('./following-sibling::*'):
+                            list_info.append( i.text_content() )
+                    elif desc_title == 'Use and Care':
+                        list_info.append( desc.text_content().replace('Use and Care', '').strip() )
+                    # elif desc_title == 'At a Glance':
+                    #     desc.text_content().replace('At a Glance', '').strip()
+                    # elif desc_title == 'Designer':
+                    #     desc.text_content().replace('Designer', '').strip()
+                sizes = []
+                for i in text.cssselect('form.sku-selection > div[data-gilt-attribute-name=Size] > ul.sku-attribute-values > li[data-gilt-value-name]'):
+                    sizes.append(i.get('data-gilt-value-name'))
+                color = text.cssselect('form.sku-selection > div[data-gilt-attribute-name=Color] > dl.attribute-label > dd.selected-attribute-value')
+                color = color[0].text_content().strip() if color else ''
 
-            image_urls = []
-            for img in nav.cssselect('div.photos > ul.photo-selection > li.photo > img'):
-                image = img.get('src').rsplit('/', 1)[0] + '/lg.jpg'
-                image = image if image.startswith('http:') else 'http:' + image
-                image_urls.append(image)
+                image_urls = []
+                for img in nav.cssselect('div.photos > ul.photo-selection > li.photo > img'):
+                    image = img.get('src').rsplit('/', 1)[0] + '/lg.jpg'
+                    image = image if image.startswith('http:') else 'http:' + image
+                    image_urls.append(image)
+            except IndexError:
+                nav = tree.cssselect('section#details')[0]
+                text = nav.cssselect('section.summary')[0]
+                shipping = text.cssselect('section.fulfillment div.estimated-delivery')
+                shipping = shipping[0].text_content().strip().replace('\n', ' ') if shipping else ''
+                returned = text.cssselect('section.fulfillment div.return-policy')
+                returned = returned[0].text_content().strip() if returned else ''
+                list_info = []
+                for i in nav.cssselect('#description section.content-container section.tab-content ul li'):
+                    list_info.append( i.text_content().strip() )
+                for i in nav.cssselect('#description section.content-container section.tab-content p'):
+                    list_info.append( i.text_content().strip() )
+
+                image_urls = []
+                for img in nav.cssselect('#photos ul.photo-selection > li > img'):
+                    image = img.get('src').rsplit('/', 1)[0] + '/lg.jpg'
+                    image = image if image.startswith('http:') else 'http:' + image
+                    image_urls.append(image)
+                sizes, color = None, None
+
 
         is_new, is_updated = False, False
         product = Product.objects(key=key).first()
@@ -830,6 +926,6 @@ class Server(object):
 
 if __name__ == '__main__':
     server = Server()
-    server.crawl_listing('http://www.gilt.com/sale/men/last-chance-essentials-7424')
+    server.crawl_product('http://www.gilt.com/home/sale/outdoor-681413/1010238275-koverton-serene-barstool-set-of-2')
     exit()
-    server.crawl_listing('http://www.gilt.com/home/sale/candle-blowout-7052')
+    server.crawl_product('http://www.gilt.com/sale/women/helmut-lang-4469/product/1000949706-helmut-by-helmut-lang-drape-front-ribbed-cardigan')

@@ -31,12 +31,13 @@
         {% for e in events %}
         <div style="float: left; width: 250px; height: 500px;">
           <a target="_blank" href="{{e.original_url}}"><img src="{{ e.cover_image|imagesize('280x280') }}" style="width:240px; height:240px;"/><br /></a>
+          <b style="color:grey">@score</b> {{ e.score }}<br />
           <b style="color:grey">@site_key</b> {{ e.site_key }}<br />
           <b style="color:grey">@title</b> {{ e.title }}<br />
           <b style="color:grey">@departments</b> {{ e.departments }}<br />
           <b style="color:grey">@brands(first 3)</b> {{ e.brands[:3] }}<br />
           <b style="color:grey">@tags(first 3)</b> {{ e.tags[:3] }}<br />
-          <a target="_blank" href="http://favbuy.com/event/{{ e.id }}/"><i class="icon icon-yellow icon-extlink"></i>Go to Event</a><br />
+          <a target="_blank" href="http://www.favbuy.com/event/{{ e.id }}/"><i class="icon icon-yellow icon-extlink"></i>Go to Event</a><br />
           <a href="/editdata/event/{{ e.id }}/"><i class="icon icon-edit icon-blue"></i>Edit Event</a><br />
           <a href="/viewdata/products?events={{ e.id }}"><i class="icon icon-red icon-folder-open"></i>Products in Event</a><br />
         </div>                                

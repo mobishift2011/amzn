@@ -254,6 +254,21 @@ class Server(object):
 
         product_ids = []
         tree = lxml.html.fromstring(content)
+
+        event = Event.objects(event_id=event_id).first()
+        if not event: event = Event(event_id=event_id)
+
+        end = tree.cssselect('div#event_header div.page div.media ul.imgExt li.mts')
+        ends = end[0].text_content().strip().lower() if end else ''
+        if 'has ended' in ends:
+            if not event.events_end:
+                event.events_end = datetime.utcnow()
+                event.update_history.update({ 'events_end': datetime.utcnow() })
+                event.product_ids = []
+                event.update_time = datetime.utcnow()
+                event.save()
+                return
+
         nodes = tree.cssselect('div.line > div.page > div#items > ul#products > li.product')
         for node in nodes:
             js = json.loads(node.get('data-json'))
@@ -268,9 +283,9 @@ class Server(object):
             link = link if link.startswith('http') else self.siteurl + link
             slug, key = self.extract_slug_product.match(link).groups()
 
-            price = node.cssselect('div.item_thumb2 > div > div.media > div.bd > p > span.price')[0].text_content().replace('modnique', '').strip()
+            price = node.cssselect('div.item_thumb2 > div > div.media > div.bd > p > span.price')[0].text_content().replace('modnique', '').replace('$', '').replace(',', '').strip()
             listprice = node.cssselect('div.item_thumb2 > div > div.media > div.bd > p > span.bare')
-            listprice = listprice[0].text_content().replace('retail', '').strip() if listprice else ''
+            listprice = listprice[0].text_content().replace('retail', '').replace('$', '').replace(',', '').strip() if listprice else ''
             soldout = True if node.cssselect('div.item_thumb2 > div.soldSticker') else False
 
             is_new, is_updated = False, False
@@ -287,18 +302,25 @@ class Server(object):
                 product.price = price
                 product.soldout = soldout
             else:
-                if soldout and product.soldout != True:
-                    product.soldout = True
+                if product.soldout != soldout:
+                    product.soldout = soldout
                     is_updated = True
                     product.update_history.update({ 'soldout': datetime.utcnow() })
+                if product.combine_url != link:
+                    product.combine_url = link
+                    product.update_history.update({ 'combine_url': datetime.utcnow() })
+                if product.price != price:
+                    product.price = price
+                    product.update_history.update({ 'price': datetime.utcnow() })
+                if product.listprice != listprice:
+                    product.listprice = listprice
+                    product.update_history.update({ 'listprice': datetime.utcnow() })
             if event_id not in product.event_id: product.event_id.append(event_id)
             product.list_update_time = datetime.utcnow()
             product.save()
             common_saved.send(sender=ctx, obj_type='Product', key=key, url=link, is_new=is_new, is_updated=is_updated)
             product_ids.append(key)
 
-        event = Event.objects(event_id=event_id).first()
-        if not event: event = Event(event_id=event_id)
         if event.urgent == True:
             event.urgent = False
             ready = True
@@ -343,8 +365,8 @@ class Server(object):
 
 
     def parse_product(self, tree):
-        nav = tree.cssselect('div > div.ptl > div.page > div.line')[0] # bgDark or bgShops
-        images = nav.cssselect('div > div#product_gallery > div.line > div#product_imagelist > a')
+        # nav = tree.cssselect('div > div.line > div.page > div.line')[0] # bgDark or bgShops
+        images = tree.cssselect('div#product_gallery > div.line > div#product_imagelist > a')
         image_urls = []
         for img in images:
             img_url = img.get('href') 
@@ -352,8 +374,8 @@ class Server(object):
             if img_url == 'http://llthumb.bids.com/mod$image.getSuperImgsSrc()':
                 img_url = img.cssselect('img')[0].get('src')
             image_urls.append( img_url )
-        shipping = nav.cssselect('div.lastUnit > div.line form div#item_content_wrapper > div#item_wrapper > div#product_delivery')[0].text_content().strip()
-        info = nav.cssselect('div.lastUnit > div.line div#showcase > div.container')[0]
+        shipping = tree.cssselect('div#item_content_wrapper > div#item_wrapper > div#product_delivery')[0].text_content().strip()
+        info = tree.cssselect('div.lastUnit div.line div#showcase > div.container')[0]
         list_info = []
         nodes = info.cssselect('div.tab_container > div#tab1 p')
         for node in nodes:
@@ -373,15 +395,16 @@ class Server(object):
                     reason='download product url error, {0}'.format(content))
             return
         tree = lxml.html.fromstring(content[0])
-        key = re.compile('.*itemid=([^&]+).*').match(content[1]).group(1)
+        slug, key = self.extract_slug_product.match(content[1]).groups()
+        # key = re.compile('.*itemid=([^&]+).*').match(content[1]).group(1)
 
         image_urls, shipping, list_info, brand, returned = self.parse_product(tree)
-        nav = tree.cssselect('div > div.ptl > div.page > div.line')[0] # bgDark or bgShops
-        pprice = nav.cssselect('div.lastUnit > div.line form > div.mod > div.hd > div.media > div.bd')[0]
-        price = pprice.cssselect('span.price')[0].text_content()
+        # nav = tree.cssselect('div > div.line > div.page > div.line')[0] # bgDark or bgShops
+        pprice = tree.cssselect('div.lastUnit > div.line form > div.mod > div.hd > div.media > div.bd')[0]
+        price = pprice.cssselect('span.price')[0].text_content().replace('$', '').replace(',', '').strip()
         listprice = pprice.cssselect('span.bare')
-        listprice = listprice[0].text_content().replace('retail', '').strip() if listprice else ''
-        title = nav.cssselect('div.lastUnit > div.line > h4.pbs')[0].text_content().strip()
+        listprice = listprice[0].text_content().replace('retail', '').replace('$', '').replace(',', '').strip() if listprice else ''
+        title = tree.cssselect('div.lastUnit > div.line > h4.pbs')[0].text_content().strip()
 
         is_new, is_updated = False, False
         product = Product.objects(key=key).first()

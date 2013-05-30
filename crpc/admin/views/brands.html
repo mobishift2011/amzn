@@ -1,6 +1,10 @@
 {% extends "layout.html" %}
 {% block content %}
 
+                <form action="/brand/search/" method="post">{{ xsrf_form_html()|safe }}
+                    <input type="text" name="q" placeholder="search..."/>
+                    <input type="submit" value='search'>
+                </form>
 {% if brands %}
 <div class="row-fluid">
     <div>
@@ -25,11 +29,12 @@
                 </div>
             </div>
             <div class="box-content">
-                <table class="table table-striped table-bordered bootstrap-datatable datatable">
+                <table class="table table-striped table-bordered bootstrap-datatable ">
                     <thead>
                         <tr>
                             <th>title</th>
                             <th>title edit</th>
+                            <th>chinese title</th>
                             <th>title checked</th>
                             <th>level</th>
                             <th>delete</th>
@@ -45,6 +50,7 @@
                     <tr title="{{ brand['title'] }}">
                         <td>{{ brand['title'] }}</td>
                         <td>{% if brand['title_edit'] %}{{ brand['title_edit'] }}{% endif %}</td>
+                        <td>{{ brand['title_cn'] }}</td>
                         <td>
                             {% if brand['title_checked'] %}
                             <i class="icon-ok"></i>
@@ -99,6 +105,30 @@
                     {% endfor %}
                   </tbody>
                 </table>
+                {% if pagination %}
+                <div class="pagination pagination-centered">
+                  <ul>
+                    {% if pagination.has_prev %}
+                    <li><a class="pagination" page="{{pagination.page-1}}" href="#">Prev</a></li>
+                    {% endif %}
+                    {% for page in pagination.iter_pages() %}
+                    {% if page %}
+                      {% if page == pagination.page %}
+                        <li class="active"><a class="pagination" page="" href="#">{{page}}</a></li>
+                      {% else %}
+                        <li><a class="pagination" page="{{page}}" href="#">{{page}}</a></li>
+                      {% endif %}
+                    {% else %}
+                      <li><a class="pagination" page="" href="#">...</a></li>
+                    {% endif %}
+                    {% endfor %}
+                    {% if pagination.has_next %}
+                    <li><a class="pagination" page="{{pagination.page+1}}" href="#">Next</a></li>
+                    {% endif %}
+                  </ul>
+                </div>  
+                {% endif %}
+
                 <p class="pull-right">
                     <a class="btn btn-success" href="#">
                         <i class="icon-zoom-in icon-white"></i>  
@@ -147,6 +177,7 @@
                         <tr>
                             <th>title</th>
                             <th>title edit</th>
+                            <th>chinese title</th>
                             <th>global searchs</th>
                             <th>Actions</th>
                         </tr>
@@ -156,6 +187,7 @@
                     <tr title="{{ brand['title'] }}">
                         <td>{{ brand['title'] }}</td>
                         <td>{% if brand['title_edit'] %}{{ brand['title_edit'] }}{% endif %}</td>
+                        <td>{{ brand['title_cn'] }}</td>
                         <td>{{ brand['global_searchs'] }}
                         </td>
                        
@@ -246,7 +278,7 @@ $('.btn_delete').click(function(e){
 
 $('.btn_view').click(function(e){
         e.preventDefault();
-        $('#iframe_brand').attr('src', '../brand/'+encodeURIComponent($(this).parent().parent().attr('title'))+'?t=iframe&d=e');
+        $('#iframe_brand').attr('src', '/brand/'+encodeURIComponent($(this).parent().parent().attr('title'))+'?t=iframe&d=e');
         $('#brand_modal').modal('show');
 });
 
@@ -267,6 +299,18 @@ $('.btn_edit_power').click(function(e){
         var url = "/brand/power/" + encodeURIComponent($(this).attr('title'));
         window.open(url);
 });
+
+
+  // pagination
+  $('a.pagination').live('click', function(){
+    if ($(this).attr('page')) {
+      var param = {};
+      param['limit'] = 100;
+      param['offset'] = $(this).attr('page');
+      var url = "/brands/?" + $.param(param);
+      window.location.href = url;
+    }
+  });
 
 </script>
 {% endblock %}

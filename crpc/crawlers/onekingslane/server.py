@@ -13,7 +13,6 @@ import sys
 import time
 import zerorpc
 import lxml.html
-import itertools
 import pytz
 
 from datetime import datetime, timedelta
@@ -122,7 +121,7 @@ class Server(object):
     def __init__(self):
         self.siteurl = 'https://www.onekingslane.com'
         self.upcoming_url = 'https://www.onekingslane.com/calendar'
-        self.category_url = 'https://www.onekingslane.com/vintage-market-finds'
+        self.category_url = 'https://www.onekingslane.com/vintage-market-finds/todaysarrivals'
         self.net = onekingslaneLogin()
         self.extract_eventid = re.compile('https://www.onekingslane.com/sales/(\d+)')
         self.extract_large_img = re.compile('(.*\?)\$.*\$')
@@ -157,7 +156,7 @@ class Server(object):
             l = node.cssselect('a[href]')[0].get('href')
             link = l if l.startswith('http') else self.siteurl + l
             event_id = self.extract_eventid.match(link).group(1)
-            img = node.cssselect('div.eventStatus > a > img[src]')[0].get('src')
+            img = node.cssselect('div.eventStatus img[src]')[0].get('src')
             image = self.extract_large_img.match(img).group(1) + '$mp_hero_standard$'
 
             event, is_new = Event.objects.get_or_create(event_id=event_id)
@@ -232,13 +231,12 @@ class Server(object):
         """
         cont = self.net.fetch_page(self.category_url)
         tree = lxml.html.fromstring(cont)
-        today = tree.cssselect('div#wrapper > div#okl-content > div#okl-vmf-landing-hd > ul > li.product > a.trackVmfProduct')
-        nodes = tree.cssselect('div#wrapper > div#okl-content > div#okl-vmf-landing-bd > ul > li > h4 > a')
-        for node in itertools.chain(today, nodes):
+        today = tree.cssselect('div#wrapper div#okl-content div#okl-vmf-category-carousel-hd div.carousel-container ul li a')
+        for node in today:
             link = node.get('href')
             dept = node.text_content()
             if not dept: dept = link.split('/')[-1]
-            category_key = re.compile(r'.*/vintage-market-finds/(.*)').match(link).group(1)
+            category_key = re.compile(r'.*/vintage-market-finds/(.*)\?').match(link).group(1)
 
             is_new, is_updated = False, False
             category = Category.objects(key=category_key).first()
@@ -292,7 +290,7 @@ class Server(object):
 
         if not category.sale_description:
             category.sale_description = tree.cssselect('div#wrapper > div#okl-content > div#okl-vmf-category-carousel-hd > h3+p')[0].text_content()
-        items = tree.cssselect('div#wrapper > div#okl-content > div#okl-vmf-product-list > ul.products > li.trackVmfProduct')
+        items = tree.cssselect('div#wrapper > div#okl-content > div#okl-vmf-product-list > ul.products > li[id^="productId_"]')
         category.num = len(items)
 
         if category_key == 'todaysarrivals':
@@ -321,12 +319,13 @@ class Server(object):
         is_new, is_updated = False, False
         if not product:
             is_new = True
+            product = Product(key=product_id)
             product.category_key = [category_key]
             product.image_urls = [item.cssselect('a[href] > img')[0].get('src').replace('medium', 'fullzoom')]
             product.short_desc = item.cssselect('h6')[0].text_content()
             product.title = item.cssselect('h5 > a')[0].text_content().strip()
-            product.listprice = item.cssselect('ul > li.retail')[0].text_content().replace(',','').replace('Retail', '').strip()
-            product.price = item.cssselect('ul > li:nth-of-type(2)')[0].text_content().replace(',','').replace('Our Price', '').strip()
+            product.listprice = item.cssselect('ul > li.retail')[0].text_content().replace(',','').replace('Retail', '').replace('$', '').strip()
+            product.price = item.cssselect('ul > li:nth-of-type(2)')[0].text_content().replace(',','').replace('Our Price', '').replace('$', '').strip()
             if item.cssselect('em.sold'): product.soldout = True
             product.event_type = False
             product.updated = False
@@ -339,8 +338,8 @@ class Server(object):
                     product.soldout = True
                     is_updated = True
                     product.update_history.update({ 'soldout': datetime.utcnow() })
-            listprice = item.cssselect('ul > li.retail')[0].text_content().replace(',','').replace('Retail', '').strip()
-            price = item.cssselect('ul > li:nth-of-type(2)')[0].text_content().replace(',','').replace('Our Price', '').strip()
+            listprice = item.cssselect('ul > li.retail')[0].text_content().replace(',','').replace('Retail', '').replace('$', '').strip()
+            price = item.cssselect('ul > li:nth-of-type(2)')[0].text_content().replace(',','').replace('Our Price', '').replace('$', '').strip()
             if product.listprice != listprice:
                 product.listprice = listprice
                 product.update_history.update({ 'listprice': datetime.utcnow() })
@@ -362,8 +361,8 @@ class Server(object):
 
         :param tree: listing page url's lxml tree
         """
-        path = tree.cssselect('div#wrapper > div#okl-content > div.sales-event')[0]
-        items = path.cssselect('div#okl-product > ul.products > li[id^="product-tile-"]')
+        path = tree.cssselect('div#okl-content > div.sales-event')[0]
+        items = tree.cssselect('div#okl-product ul.products > li[id^="product-tile-"]')
         event_id = self.extract_eventid.match(url).group(1)
         event, is_new = Event.objects.get_or_create(event_id=event_id)
         if not event.sale_description:
@@ -410,6 +409,7 @@ class Server(object):
         is_new, is_updated = False, False
         if not product:
             is_new = True
+            product = Product(key=product_id)
             product.event_id = [event_id]
             product.title = item.cssselect('h3 > a[data-linkname]')[0].text.encode('utf-8').strip()
 #            product.sell_rank = int(item.get('data-sortorder'))
@@ -418,11 +418,11 @@ class Server(object):
             product.image_urls = [image]
 
             if listprice:
-                product.listprice = listprice[0].text_content().replace(',','').replace('Retail', '').strip()
+                product.listprice = listprice[0].text_content().replace(',','').replace('Retail', '').replace('$', '').strip()
             if not price:
                 common_failed.send(sender=ctx, url=event_id + '/' + product_id, reason='price not resolve right')
                 return
-            product.price = price[0].text_content().replace(',','').replace('Our Price', '').strip()
+            product.price = price[0].text_content().replace(',','').replace('Our Price', '').replace('$', '').strip()
             if item.cssselect('a.sold-out'): product.soldout = True
             product.updated = False
             product.combine_url = 'https://www.onekingslane.com/product/{0}/{1}'.format(event_id, product_id)
@@ -440,12 +440,12 @@ class Server(object):
                 product.update_history.update({ 'combine_url': datetime.utcnow() })
 
             if listprice:
-                listprice = listprice[0].text_content().replace(',','').replace('Retail', '').strip()
+                listprice = listprice[0].text_content().replace(',','').replace('Retail', '').replace('$', '').strip()
                 if product.listprice != listprice:
                     product.listprice = listprice
                     product.update_history.update({ 'listprice': datetime.utcnow() })
             if price:
-                price = price[0].text_content().replace(',','').replace('Our Price', '').strip()
+                price = price[0].text_content().replace(',','').replace('Our Price', '').replace('$', '').strip()
                 if product.price != price:
                     product.price = price
                     product.update_history.update({ 'price': datetime.utcnow() })
@@ -478,10 +478,10 @@ class Server(object):
         :param url: porduct url need to crawl
         """
         product_id = url.split('/')[-1]
-        node = tree.cssselect('body > div#wrapper > div#okl-content > div#okl-product')[0]
-        vintage = node.cssselect('form#productOverview > dl.vintage')[0]
-        era = vintage.cssselect('dd:first-of-type')
-        condition = vintage.cssselect('dd:nth-of-type(2)')
+        node = tree.cssselect('div#wrapper div#okl-content')[0]
+#        vintage = node.cssselect('form#productOverview > dl.vintage')[0]
+#        era = vintage.cssselect('dd:first-of-type')
+#        condition = vintage.cssselect('dd:nth-of-type(2)')
         seller = node.cssselect('div#productDescription > div#okl-vmf-vendor')
         list_info = node.cssselect('div#productDetails > dl:first-of-type')[0].xpath('.//text()')
 
@@ -499,8 +499,8 @@ class Server(object):
             category_path.insert(0, 'home') # 'home > lighting > light'
             product.cats.append( ' > '.join(category_path) )
 
-        if era: product.era = era[0].text_content()
-        if condition: product.condition = condition[0].text_content()
+#        if era: product.era = era[0].text_content()
+#        if condition: product.condition = condition[0].text_content()
         img = node.cssselect('div#productDescription > div#altImages')
         if img:
             for i in img[0].cssselect('img.altImage'):
@@ -586,6 +586,7 @@ class Server(object):
         
 
 if __name__ == '__main__':
+    Server().crawl_product('https://www.onekingslane.com/vintage-market-finds/product/1190018')
     server = zerorpc.Server(Server())
     server.bind("tcp://0.0.0.0:{0}".format(CRAWLER_PORT))
     server.run()

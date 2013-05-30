@@ -20,9 +20,9 @@ from settings import CRPC_ROOT
 
 __lock = Semaphore(1)
 
-exclude_crawlers = ['common', 'amazon', 'newegg', 'ecost', 'bhphotovideo', 'bestbuy', 'dickssport', 'overstock', 'cabelas', ]
+exclude_crawlers = ['common', 'amazon', 'newegg', 'ecost', 'bhphotovideo', 'bestbuy', 'dickssport', 'overstock', 'cabelas', 'slickdeals', 'techbargains']
 # for auto-scheduler. bluefly, beyondtherack, nomorerack, zulily should better not be schedule together
-picked_crawlers = (
+luxury_crawlers = (
          'belleandclive',
          'ideeli',
          'bluefly',
@@ -35,10 +35,26 @@ picked_crawlers = (
          'lot18',
          'myhabit',
          'modnique',
-         'zulily',
+#         'zulily',
          'onekingslane',
          'hautelook', )
 
+deal_crawlers = (
+    'nordstrom',
+    '6pm',
+    'ebags',
+    'shopbop',
+    'ashford',
+    'macys',
+    'bloomingdales',
+    'saksfifthavenue',
+    'landsend',
+    'backcountry',
+    'anntaylor',
+    'loft',
+)
+
+picked_crawlers = tuple(set(luxury_crawlers) | set(deal_crawlers))
 
 login_email = {'bluefly': '2012luxurygoods@gmail.com',
                'ideeli': '2012luxurygoods@gmail.com',
@@ -52,7 +68,7 @@ login_email = {'bluefly': '2012luxurygoods@gmail.com',
                'myhabit': '2012luxurygoods@gmail.com',
                'belleandclive': '2012luxurygoods@gmail.com',
                'modnique': '2012luxurygoods@gmail.com',
-               'zulily': 'badname@zulily.com',
+#               'zulily': 'badbad@zulily.com',
                'onekingslane': '2012luxurygoods@gmail.com',
                'hautelook': '2012luxurygoods@gmail.com',
 }
@@ -60,7 +76,10 @@ login_email = {'bluefly': '2012luxurygoods@gmail.com',
 configFile = ConfigParser.ConfigParser()
 def get_login_email(site):
     configFile.read( os.path.join(os.path.dirname(__file__), 'username.ini') )
-    email = random.choice( [i.strip() for i in configFile.get('username', site).split(',')] )
+    try:
+        email = random.choice( [i.strip() for i in configFile.get('username', site).split(',')] )
+    except ConfigParser.NoOptionError:
+        return ''
     return email
 
 login_passwd = 'abcd1234'
@@ -157,5 +176,20 @@ def time_convert(time_str, time_format, timezone='PT'):
 
     tinfo = time_str + str(pt.normalize(datetime.now(tz=pt)).year)
     endtime = pt.localize(datetime.strptime(tinfo, time_format))
+    return endtime.astimezone(pytz.utc)
+
+def time_convert_std(time_str, time_format, timezone='PT'):
+    """.. :py:method::
+
+    :param time_str: u'2013 SAT OCT 20 9 AM'
+    :param time_format: '%Y %a %b %d %I %p'
+    :rtype: datetime type utc time
+    """
+    if timezone == 'PT' or timezone == 'PST' or timezone == 'PDT':
+        pt = pytz.timezone('US/Pacific')
+    elif timezone == 'ET' or timezone == 'EST' or timezone == 'EDT':
+        pt = pytz.timezone('US/Eastern')
+
+    endtime = pt.localize(datetime.strptime(time_str, time_format))
     return endtime.astimezone(pytz.utc)
 

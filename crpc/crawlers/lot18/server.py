@@ -133,7 +133,6 @@ class Server(object):
             product.event_type = False
             product.page_num = page_num
             product.title = prd['title']
-            # product.image_urls = ['http:' + prd['images']['large'], 'http:' + prd['images']['xlarge']]
             product.bottle_count = bottle_count
             product.listprice = listprice
             product.price = prd['prices']['price']
@@ -141,10 +140,21 @@ class Server(object):
             product.soldout = prd['is_soldout']
             product.category_key = ['lot18']
         else:
-            if prd['is_soldout'] and product.soldout != True:
-                product.soldout = True
+            if product.soldout != prd['is_soldout']:
+                product.soldout = prd['is_soldout']
                 is_updated = True
                 product.update_history.update({ 'soldout': datetime.utcnow() })
+            if product.title != prd['title']:
+                product.title = prd['title']
+                product.update_history.update({ 'title': datetime.utcnow() })
+            if listprice and float(product.listprice) != float(listprice):
+                product.listprice = listprice
+                product.update_history.update({ 'listprice': datetime.utcnow() })
+            if float(product.price) != float(prd['prices']['price']):
+                product.price = prd['prices']['price']
+                product.update_history.update({ 'price': datetime.utcnow() })
+            if not product.image_urls:
+                product.image_urls = ['http:' + prd['images']['large'], 'http:' + prd['images']['xlarge']]
 
         if prd['type'] not in product.cats: product.cats.append(prd['type'])
         _utcnow = datetime.utcnow()
@@ -199,6 +209,10 @@ class Server(object):
         imgs = nav.cssselect('div.container-product-review > span.product-review-additional > div.product-detail-thumb > img')
         for img in imgs:
             image_urls.append( 'http:' + img.get('src') )
+        if not image_urls:
+            imgs = nav.cssselect('div.container-product-detail div.product-detail img.img-product-detail')
+            for img in imgs:
+                image_urls.append( 'http:' + img.get('src') )
 
         is_new, is_updated = False, False
         product = Product.objects(key=url.rsplit('/', 1)[-1]).first()

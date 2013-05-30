@@ -46,7 +46,10 @@ def sync2mastiff(host=MASTIFF_HOST):
 				'level': brand.level,
 				# 'aliases': brand.alias,
 				'global_searchs': brand.global_searchs,
-				'logo_url': brand.images[0] if brand.images else ''
+				'logo_url': brand.images[0] if brand.images else '',
+				'icon_url': brand.icon if brand.icon else '',
+				'cn_name': brand.title_cn,
+				'cn_blurb': brand.blurb_cn,
 			}
 
 			if query['objects']:
@@ -55,6 +58,8 @@ def sync2mastiff(host=MASTIFF_HOST):
 			else:
 				print 'post new brand', params.get('name')
 				api.brand.post(params)
+
+			print name, brand.title_cn
 
 		except Exception, e:
 			logger.error('Sync {0} to mastiff error: {1}'.format(name.encode('utf-8'), traceback.format_exc()))

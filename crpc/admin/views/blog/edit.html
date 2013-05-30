@@ -1,0 +1,79 @@
+{% block content %}
+<script type="text/javascript" src="/assets/kindeditor/kindeditor.js"></script>
+<script type="text/javascript" src="/assets/kindeditor/lang/zh_CN.js"></script>
+<link id="bs-css" href="/assets/css/bootstrap-cerulean.css" rel="stylesheet">
+<script>
+        var editor;
+        KindEditor.ready(function(K) {
+                editor = K.create('#content', {
+                        allowImageUpload:true,
+                        height:'800px',
+                        width:'800px',
+                        fontSizeTable:'14px', filterMode :true,
+                        items:[
+                            'source', '|', 'undo', 'redo', '|', 'template',
+                            'plainpaste', '|', 'insertorderedlist', 'insertunorderedlist', 'subscript',
+                            'superscript', 'clearhtml', 'quickformat', '|',
+                            'formatblock', '|', 'forecolor', 'hilitecolor', 'bold',
+                            'italic', 'underline', 'removeformat','|','image','map',
+                            'table', '|','fullscreen','/', 'code',
+                            'link', 'unlink', '|', 'about'
+                        ],
+                        htmlTags:{
+                            table: ['border', 'cellspacing', 'cellpadding', 'width', 'height', 'align'],
+                            'td,th': ['align', 'valign', 'width', 'height', 'colspan', 'rowspan', 'bgcolor'],
+                            a : ['href'],
+                            img : ['src', 'width', 'height'],
+                            'ol,ul,li,blockquote,h1,h2,h3,h4,h5,h6' : ['align'],
+                            pre : ['class'],
+                            p: ['.color,align'],
+                            span: ['.color'],
+                            'hr,br,tbody,tr,strong,b,sub,sup,em,i,u,strike' : []
+                        },
+                        uploadJson : '/blog/upload/',
+                        fieldName : 'file',                
+                        extraFileUploadParams : {
+                            file_type : 'image',
+                            _xsrf:'{{ xsrf_token }}',
+                        },
+                        allowFileManager : true,
+
+                });
+
+                
+        });
+
+</script>
+
+<div id="main-content">
+  {% if message %}
+    {{ message }}
+  {% else %}
+  <form class="form-horizontal" method="POST" action="/blog/{% if r.id %}edit/{% else %}add{% endif %}{{ r.id }}/">
+					{{ xsrf_form_html() }}
+      <fieldset>
+        <legend>Write a new blog</legend>
+        <div class="control-group">
+          <label class="control-label" for="typeahead">Title</label>
+          <div class="controls">
+              <input type="text" class="span6 typeahead" id="typeahead" name="title" value="{{ r.title }}" >
+            <p class="help-block"></p>
+          </div>
+        </div>
+        <div class="control-group">
+          <label class="control-label" for="textarea2">Content</label>
+          <div class="controls">
+              <textarea class="cleditor" id="content" rows="3" name="content">{{ r.content }}</textarea>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">Save</button>
+          <button type="reset" class="btn">Cancel</button>
+        </div>
+      </fieldset>
+    </form>   
+{% endif %}
+</div><!--main-content-->
+  
+
+{% endblock %}

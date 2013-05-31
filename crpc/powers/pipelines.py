@@ -168,7 +168,7 @@ class ProductPipeline(object):
 
             if product.favbuy_listprice != product.listprice:
                 product.favbuy_listprice = product.listprice
-                product.update_history['favbuy_listpriced'] = datetime.utcnow()
+                product.update_history['favbuy_listprice'] = datetime.utcnow()
             return is_updated
 
         favbuy_price = parse_price(product.price)

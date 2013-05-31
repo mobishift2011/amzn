@@ -642,8 +642,8 @@ class EmailHandler(BaseHandler):
 
 class BlogHandler(BaseHandler):
 
+    @tornado.web.authenticated
     def get(self,name=None):
-        print 'name',name
         if name == 'add/':
             return self.render_edit()
         elif name.startswith('listing'):
@@ -669,13 +669,11 @@ class BlogHandler(BaseHandler):
         r = False
         if id:
             r = api.blog(id).get()
-        xsrf_token = self.xsrf_token
-        print 'token',xsrf_token
         return self.render('blog/edit.html',r=r,xsrf_token=self.xsrf_token)
 
+    @tornado.web.authenticated
     def post(self,name=None):
         """ create a new blog """
-        print 'post',name
         data = {}
         keys = ['title','content']
         for key in keys:
@@ -684,7 +682,6 @@ class BlogHandler(BaseHandler):
         if name == 'add/':
             # create new blog
             r = api.blog.post(data)
-            print 'r',r
             id = r['id']
 
         elif name == 'upload/':

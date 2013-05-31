@@ -369,12 +369,16 @@ class Server(object):
         if not listprice:
             if product.listprice:
                 product.listprice = None
+                product.update_history.update({ 'listprice': datetime.utcnow() })
+                product.price_history.append(['listprice', '', datetime.utcnow()])
         elif listprice and listprice != product.listprice:
             product.listprice = listprice
             product.update_history.update({ 'listprice': datetime.utcnow() })
+            product.price_history.append(['listprice', listprice, datetime.utcnow()])
         if price and price != product.price:
             product.price = price
             product.update_history.update({ 'price': datetime.utcnow() })
+            product.price_history.append(['price', price, datetime.utcnow()])
         if category_key not in product.category_key: product.category_key.append(category_key)
         if category_path and category_path not in product.cats: product.cats.append(category_path)
         product.list_update_time = datetime.utcnow()

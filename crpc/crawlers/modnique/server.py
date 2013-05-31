@@ -404,7 +404,7 @@ class Server(object):
         price = pprice.cssselect('span.price')[0].text_content().replace('$', '').replace(',', '').strip()
         listprice = pprice.cssselect('span.bare')
         listprice = listprice[0].text_content().replace('retail', '').replace('$', '').replace(',', '').strip() if listprice else ''
-        title = tree.cssselect('div.lastUnit > div.line > h4.pbs')[0].text_content().strip()
+        title = tree.cssselect('div.lastUnit > div.line > .pbs')[0].text_content().strip()
 
         is_new, is_updated = False, False
         product = Product.objects(key=key).first()

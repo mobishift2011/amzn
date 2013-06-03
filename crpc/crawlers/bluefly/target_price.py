@@ -231,7 +231,7 @@ class Server(object):
         pages_num = ( int(products_num) - 1) // NUM_PER_PAGE + 1
         
         for prd in products:
-            self.crawl_every_product_in_listing(key, category_path, prd, 1, ctx)
+            self.crawl_every_product_in_listing(category_path, prd, 1, ctx)
 
         for page_num in xrange(1, pages_num): # the real page number is page_num+1
             page_url = '{0}/_/N-{1}/Nao-{2}/list.fly'.format(self.siteurl, key, page_num*NUM_PER_PAGE)
@@ -244,7 +244,7 @@ class Server(object):
             page_num = int( page_num[0].text_content() )
         nodes = tree.cssselect('div#productGridContainer > div.productGridRow > div.productContainer')
         for node in nodes:
-            self.crawl_every_product_in_listing(url.rsplit('/', 1)[-1], [], node, 1, ctx)
+            self.crawl_every_product_in_listing([], node, 1, ctx)
 
         if page_num:
             for i in xrange(1, page_num):
@@ -256,7 +256,7 @@ class Server(object):
                 tree = lxml.html.fromstring(content)
                 nodes = tree.cssselect('div#productGridContainer > div.productGridRow > div.productContainer')
                 for node in nodes:
-                    self.crawl_every_product_in_listing(url.rsplit('/', 1)[-1], [], node, i+1, ctx)
+                    self.crawl_every_product_in_listing([], node, i+1, ctx)
 
 
     def get_next_page_in_listing(self, key, category_path, url, page_num, ctx):
@@ -274,14 +274,13 @@ class Server(object):
         navigation = tree.cssselect('div[id] > div#listProductPage')[0]
         products = navigation.cssselect('div#listProductContent > div#rightPageColumn > div.listProductGrid > div#productGridContainer > div.productGridRow div.productContainer')
         for prd in products:
-            self.crawl_every_product_in_listing(key, category_path, prd, page_num, ctx)
+            self.crawl_every_product_in_listing(category_path, prd, page_num, ctx)
 
 
-    def crawl_every_product_in_listing(self, category_key, category_path, prd, page_num, ctx):
+    def crawl_every_product_in_listing(self, category_path, prd, page_num, ctx):
         """.. :py:method::
             crawl next listing page
 
-        :param category_key: category key in this listing
         :param category_path: "home > Women's Apparel > Blazers, Jackets & Vests"
         :param prd: product node in this page
         :param page_num: the categroy listing page number
@@ -319,88 +318,6 @@ class Server(object):
         obj.close()
 
 
-#    def crawl_product(self, url, ctx='', **kwargs):
-#        """.. :py:method::
-#        """
-#        slug, key = self.extract_product_slug_key.match(url).groups()
-#        content = fetch_page(url)
-#        if content is None or isinstance(content, int):
-#            content = fetch_page(url)
-#            if content is None or isinstance(content, int):
-#                return
-#        tree = lxml.html.fromstring(content)
-#        detail = tree.cssselect('div#page-wrapper > div#main-container > section#main-product-detail')[0]
-#
-#        image_urls = []
-#        imgs = detail.cssselect('div.product-image > div.image-thumbnail-container > a')
-#        for img in imgs:
-#            aa, outx, bb, outy, cc = self.extract_large_image.search(img.get('rel')).groups()
-#            image_urls.append( '{0}{1}{2}{3}{4}'.format(aa, int(outx)*2, bb, int(outy)*2, cc) )
-#        if image_urls == []:
-#            img = detail.cssselect('div.product-image > a[href] > img.current-product-image')
-#            if img:
-#                aa, outx, bb, outy, cc = re.compile("(.+?outputx=)(\d+)(&outputy=)(\d+)(&.+)").match(img[0].get('src')).groups()
-#                image_urls = [ '{0}{1}{2}{3}{4}'.format(aa, int(outx)*2, bb, int(outy)*2, cc) ]
-#            else:
-#                img = detail.cssselect('div.product-image > a[data-large-image]')
-#                if img: image_urls = [ img[0].get('data-large-image') ]
-#
-#        color = detail.cssselect('div.product-info > form#product > div.product-variations > div.pdp-label > em')
-#        color = color[0].text_content() if color else ''
-#        sizes = detail.cssselect('div.product-info > form#product > div.product-sizes > div.size-picker > ul.product-size > li')
-#
-#        sizes_scarcity = []
-#        for size in sizes:
-#            for i in sizes_scarcity:
-#                if i[0] == size.get('data-size'):
-#                    i[1] = size.get('data-stock')
-#                    break
-#            else:
-#                sizes_scarcity.append( [size.get('data-size'), size.get('data-stock')] )
-#
-#        shipping = detail.cssselect('div.product-info > div.shipping-policy')
-#        shipping = shipping[0].text_content().strip().replace('\n', '') if shipping else ''
-#        returned = detail.cssselect('div.product-info > div.return-policy')
-#        returned = returned[0].text_content().strip().replace('\n', '') if returned else ''
-#        summary = detail.cssselect('div.product-info > div.product-info-tabs > div.product-detail-list > div.product-description')[0].text_content().strip()
-#        property_list_info = detail.cssselect('div.product-info > div.product-info-tabs > div.product-detail-list > ul.property-list > li')
-#        list_info = []
-#        for p in property_list_info:
-#            list_info.append( p.text_content().strip().replace('\n', '') )
-#
-#        num_reviews = tree.cssselect('div#page-wrapper > div#ratings-reviews-qa > div.ratings-reviews > div.review-stats > div.product-rating-summary > div.review-count')
-#        num_reviews = num_reviews[0].text_content() if num_reviews else ''
-#
-#        is_new, is_updated = False, False
-#        product = Product.objects(key=key).first()
-#        if not product:
-#            is_new = True
-#            product = Product(key=key)
-#
-#        if not product.price:
-#            prices = detail.cssselect('div.product-info > div.product-prices > div.product-price')
-#            if prices:
-#                product.price = prices[0].cssselect('span[itemprop=price]')[0].text_content().replace('$', '').replace('(FINAL SALE)', '').replace(',', '').strip()
-#                if not product.listprice:
-#                    product.listprice = prices[0].cssselect('span.retail-price')[0].text_content().replace('retail :', '').replace('$', '').replace(',', '').strip()
-#
-#        product.image_urls = image_urls
-#        product.color = color
-#        product.sizes_scarcity = sizes_scarcity
-#        product.shipping = shipping
-#        product.returned = returned
-#        product.summary = summary
-#        product.list_info = list_info
-#        product.num_reviews = num_reviews
-#        product.full_update_time = datetime.utcnow()
-#        if product.updated == False:
-#            product.updated = True
-#            ready = True
-#        else: ready = False
-#        product.save()
-
-
-
 if __name__ == '__main__':
     ss = Server()
     ss.crawl_category()
@@ -408,5 +325,5 @@ if __name__ == '__main__':
         try:
             ss.crawl_listing(url)
         except:
-            open('url.txt', 'a').write( url )
+            open('url.txt', 'a').write( url + '\n')
 

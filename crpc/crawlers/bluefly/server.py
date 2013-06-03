@@ -334,16 +334,24 @@ class Server(object):
 #            common_failed.send(sender=ctx, key=category_key, url=link,
 #                    reason='This product have no price.page_num: {0}'.format(page_num))
 
+
         slug, key = self.extract_product_slug_key.match(link).groups()
         soldout = True if prd.cssselect('div.stockMessage div.listOutOfStock') else False
         brand = prd.cssselect('div.layoutChanger > div.listBrand > a')[0].text_content().strip()
         title = prd.cssselect('div.layoutChanger > div.listLineMargin > div.productShortName')[0].text_content().strip().encode('utf-8')
         listprice = prd.cssselect('div.layoutChanger > div.listProductPrices > div.priceRetail > span.priceRetailvalue')
         listprice = listprice[0].text_content().replace('$', '').replace(',', '').strip() if listprice else ''
+        if (price and '.' not in price) or (listprice and '.' not in listprice):
+            try:
+                if float(price) > float(listprice):
+                    return
+            except:
+                pass
         
         rating = prd.cssselect('div.layoutChanger > div.product-detail-rating > img')
         rating = rating[0].get('alt') if rating else ''
         combine_url = '{0}/slug/p/{1}/detail.fly'.format(self.siteurl, key)
+
 
         is_new, is_updated = False, False
         product = Product.objects(key=key).first()

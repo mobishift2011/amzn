@@ -307,7 +307,7 @@ class Server(object):
         
         combine_url = '{0}/slug/p/{1}/detail.fly'.format(self.siteurl, key)
         if '.' not in price or '.' not in listprice:
-            alarm( '[{0},{1}], {2}'.format(listprice, price, combine_url) )
+            self.alarm( '[{0},{1}], {2}'.format(listprice, price, combine_url) )
 
 
     def alarm(self, message):

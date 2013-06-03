@@ -379,7 +379,7 @@ def classify_product_department(site, product, use_event_info=False, return_judg
             d1 = []
             for eid in p.event_id:
                 e = m.Event.objects.get(event_id=eid)
-                if e.events_end > datetime.utcnow() or e.events_begin > datetime.utcnow():
+                if (e.events_end and e.events_end > datetime.utcnow()) or (e.events_begin and e.events_begin > datetime.utcnow()):
                     d1.extend(classify_event_department(site, e))
                     d1.extend(guess_event_dept(site, e))
             d1 = list(set(d1))

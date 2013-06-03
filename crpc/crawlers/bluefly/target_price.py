@@ -312,7 +312,7 @@ class Server(object):
 
     def alarm(self, message):
         url = 'http://monitor.favbuy.org:5000/message/7afb42247532896255a48df47e046d1e/'
-        obj = urllib.urlopen(url=url, data = urllib.urlencode({'message':reportmsg, 'shared_secret':'tempfavbuy'}) )
+        obj = urllib.urlopen(url=url, data = urllib.urlencode({'message': message, 'shared_secret':'tempfavbuy'}) )
 
         if obj.read() != 'OK':
             print message

@@ -18,6 +18,7 @@ def parse_price(price):
         return 0.
 
     amount = 0.
+    price = ''.join(price.split())
     pattern = re.compile(r'^[^\d]*(\d+(,\d{3})*(\.\d+)?)')
     match = pattern.search(price)
     if match:

@@ -405,5 +405,8 @@ if __name__ == '__main__':
     ss = Server()
     ss.crawl_category()
     for url in ss.category_url:
-        ss.crawl_listing(url)
+        try:
+            ss.crawl_listing(url)
+        except:
+            open('url.txt', 'a').write( url )
 

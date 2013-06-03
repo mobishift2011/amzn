@@ -306,7 +306,7 @@ class Server(object):
         listprice = listprice[0].text_content().replace('$', '').replace(',', '').strip() if listprice else ''
         
         combine_url = '{0}/slug/p/{1}/detail.fly'.format(self.siteurl, key)
-        if '.' not in price or '.' not in listprice:
+        if (price and '.' not in price) or (listprice and '.' not in listprice):
             self.alarm( '[{0},{1}], {2}'.format(listprice, price, combine_url) )
 
 

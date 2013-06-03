@@ -18,6 +18,7 @@ def parse_price(price):
         return 0.
 
     amount = 0.
+    price = ''.join(price.split())
     pattern = re.compile(r'^[^\d]*(\d+(,\d{3})*(\.\d+)?)')
     match = pattern.search(price)
     if match:
@@ -160,6 +161,16 @@ class ProductPipeline(object):
         is_updated = False
         favbuy_price = None
         listprice = None
+
+        if self.site == 'bluefly':
+            if product.favbuy_price != product.price:
+                product.favbuy_price = product.price
+                product.update_history['favbuy_price'] = datetime.utcnow()
+
+            if product.favbuy_listprice != product.listprice:
+                product.favbuy_listprice = product.listprice
+                product.update_history['favbuy_listprice'] = datetime.utcnow()
+            return is_updated
 
         favbuy_price = parse_price(product.price)
         if favbuy_price and str(favbuy_price) != product.favbuy_price:

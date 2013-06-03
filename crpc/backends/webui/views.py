@@ -153,6 +153,7 @@ def import_brands(eb):
         set__blurb = eb['blurb'],
         set__blurb_cn = eb['blurb_cn'],
         set__images = eb['images'],
+        set__icon = eb['icon'],
         set__level = eb['level'],
         set__dept = eb['dept'],
         set__is_delete = eb['is_delete'],

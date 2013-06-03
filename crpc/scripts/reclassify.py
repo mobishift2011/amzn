@@ -6,7 +6,7 @@ import gevent.pool
 from backends.matching.feature import sites
 from backends.matching.mechanic_classifier import classify_product_department, classify_event_department
 from settings import MASTIFF_HOST
-from datetime import datetime
+from datetime import datetime, timedelta
 from slumber import API
 from collections import Counter
 import requests
@@ -17,15 +17,24 @@ api = API(MASTIFF_HOST)
 def get_site_module(site):
     return __import__('crawlers.'+site+'.models', fromlist=['Category', 'Event', 'Product'])
 
-def reclassify(site='beyondtherack'):
+def reclassify(site='modnique'):
     utcnow = datetime.utcnow()
     m = get_site_module(site)
-    for p in m.Product.objects(updated=True):
+    count = 0
+    for p in m.Product.objects(updated=True, list_update_time__gt=utcnow-timedelta(days=7)).skip(3500).timeout(None):
+        count += 1
+        print count
         dept = classify_product_department(site, p)
-        if p.favbuy_dept != dept:
+        if True:
             p.favbuy_dept = dept
             p.save()
             print 'RECLASSIFY PRODUCT', site, p.key, p.favbuy_dept
+            if p.muri:
+                pid = p.muri.split('/')[-2]
+                api.product(pid).patch({'department_path':p.favbuy_dept})
+                print 'TARGET ', pid
+        
+    return
     if hasattr(m, 'Event'):
         for e in m.Event.objects():
             print 'RECLASSIFY EVENT', site, e.event_id, 
@@ -91,20 +100,20 @@ def reclassify_mastiff():
     pool = gevent.pool.Pool(10)
 
     # EVENTS
-    PAGESIZE = 20
-    offset = 0
-    total = 2**32
-    while offset < total:
-        print 'EVENT OFFSET', offset, 'OF', total
-        data = api.event.get(offset=offset, limit=PAGESIZE)
-        total = data['meta']['total_count']
-        offset += PAGESIZE
-        pool.spawn(patch_mastiff_event, data)
+    #PAGESIZE = 20
+    #offset = 0
+    #total = 2**32
+    #while offset < total:
+    #    print 'EVENT OFFSET', offset, 'OF', total
+    #    data = api.event.get(offset=offset, limit=PAGESIZE)
+    #    total = data['meta']['total_count']
+    #    offset += PAGESIZE
+    #    pool.spawn(patch_mastiff_event, data)
 
     # PRODUCTS
     PAGESIZE = 20
     offset = 0
-    total = api.product.get(offset=offset, limit=1)['meta']['total_count']
+    total = api.product.get(site_key__startswith='modnique', offset=offset, limit=1)['meta']['total_count']
     while offset < total: 
         print "PRODUCT OFFSET", offset, 'OF', total
         pool.spawn(patch_mastiff_product, offset, PAGESIZE) 
@@ -122,5 +131,6 @@ def reclassify_mongodb():
     for j in jobs:
         j.join()
 
-reclassify_mongodb()
-reclassify_mastiff()
+#reclassify_mongodb()
+#reclassify_mastiff()
+reclassify()

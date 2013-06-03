@@ -191,7 +191,6 @@
 [0] Hobos -> Bags; Handbags
 [0] Satchel -> Bags; Handbags
 [0] Satchels -> Bags; Handbags
-[0] Chrismas -> Home; Home Accessories
 [0] Backpack -> Bags; Backpacks & Laptop Bags
 [0] Backpacks -> Bags; Backpacks & Laptop Bags
 [0] Girls Shoes -> Kids & Baby; Girls' Shoes
@@ -1552,3 +1551,4 @@
 [2] Purse -> Bags; Wallets
 [2] Pochette -> Bags; Handbags
 [2] Dress Shoe -> Shoes
+[2] Chrismas -> Accessories

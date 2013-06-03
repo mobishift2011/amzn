@@ -229,8 +229,6 @@ class Server(object):
         products_num = navigation.cssselect('div#listProductContent > div#rightPageColumn > div#ls_topRightNavBar > div.ls_pageNav > span#ls_pageNumDisplayInfo > span.ls_minEmphasis')[0].text_content().split('of')[-1].strip()
 
         pages_num = ( int(products_num) - 1) // NUM_PER_PAGE + 1
-        Category.objects(key=key).update_one(set__num=int(products_num),
-                                             set__update_time=datetime.utcnow())
         
         for prd in products:
             self.crawl_every_product_in_listing(key, category_path, prd, 1, ctx)

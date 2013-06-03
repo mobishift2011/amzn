@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import re
 from models import CATS
+from datetime import datetime
 
 DEFAULT =  {
     "dept_in": "Event",
@@ -378,7 +379,9 @@ def classify_product_department(site, product, use_event_info=False, return_judg
             d1 = []
             for eid in p.event_id:
                 e = m.Event.objects.get(event_id=eid)
-                d1.extend(classify_event_department(site, e))
+                if (e.events_end and e.events_end > datetime.utcnow()) or (e.events_begin and e.events_begin > datetime.utcnow()):
+                    d1.extend(classify_event_department(site, e))
+                    d1.extend(guess_event_dept(site, e))
             d1 = list(set(d1))
             judge.append(['B']+d1)
             result.extend( d1 )
@@ -520,6 +523,8 @@ def guess_event_dept(site, event):
       
     if 'Designer' in results:
         results.remove('Designer')
+    if 'Apparel' in results:
+        results.remove('Apparel')
         
     if hasattr(event, 'sale_title') and event.sale_title:
         patwomen = set(["women's", "she's", "woman", "womans", "women", "pumps", "her", "she"])
@@ -543,7 +548,7 @@ def guess_event_dept(site, event):
             results.append('Bags')
         return list(set(results))
 
-if __name__ == '__main__':
+def count():
     from datetime import datetime
     from crawlers.common.stash import luxury_crawlers
     from collections import Counter
@@ -558,3 +563,9 @@ if __name__ == '__main__':
             counter[ tuple(c) ] += 1 
 
     pprint(counter.most_common())
+
+if __name__ == '__main__':
+    m = get_site_module('modnique')
+    print classify_product_department('modnique', m.Product.objects(pk='01479347').first())
+
+

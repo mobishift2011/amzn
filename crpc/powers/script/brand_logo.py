@@ -8,6 +8,7 @@ from PIL import Image, ImageChops
 from cStringIO import StringIO
 from datetime import datetime, timedelta
 from hashlib import md5
+from urllib import quote_plus
 
 import boto
 import requests
@@ -78,17 +79,24 @@ class Imager():
         self.bucket_key.key = key
         self.bucket_key.set_contents_from_file(image, headers={'Content-Type':'image/jpeg', 'Cache-Control':'max-age=31536000, public'})
 
+    def delete(self, key):
+        self.bucket_key.key = key
+        BUCKET.delete_key(self.bucket_key)
+
     def save(self, filepath):
         name, appendix = os.path.splitext(filepath)
         key = self.bucket_key
         key.key = name
         abspath = ROOT_DIR + '/' + filepath
+        encoded_key = quote_plus(key.key)
 
         with open(abspath) as f:
-            if not key.exists():
+            if True:
+            # if not key.exists():
+                # self.delete(key.key)
                 self.upload2s3(f, key.key)
         
-        return '{0}/{1}'.format(S3_IMAGE_URL, key.key)
+        return '{0}/{1}'.format(S3_IMAGE_URL, encoded_key)
 
 
 def upload(filepath):

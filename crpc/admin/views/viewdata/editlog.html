@@ -1,0 +1,138 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<div id="main-content">
+  <ul class="breadcrumb">
+    <li>
+      <a href="/">Home</a> <span class="divider">/</span>
+    </li>
+    <li>
+      <a href="#">View Data</a>
+    </li>
+  </ul>
+
+  <div>
+    <ul class="nav nav-tabs">
+      <li name="viewdata"><a href="/viewdata/recommend">Recommend</a></li>
+      <li name="viewdata"><a href="/viewdata/events">Events</a></li>
+      <li name="viewdata"><a href="/viewdata/products">Products</a></li>
+      <li name="viewdata"><a href="/viewdata/classification">Classification</a></li>
+      <li name="viewdata"><a href="/viewdata/editlog">EditLog</a></li>
+    </ul>
+  </div>
+  <div>
+    <h2>最近七天修改报表</h2>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>类别\日期</th>
+          <th>今天</th>
+          <th>昨天</th>
+          <th>前天</th>
+          <th>大前天</th>
+          <th>大大前天</th>
+          <th>大大大前天</th>
+          <th>大大大大前天</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th>Event</th>
+          <td>{{report[0]['event']}}</td>
+          <td>{{report[1]['event']}}</td>
+          <td>{{report[2]['event']}}</td>
+          <td>{{report[3]['event']}}</td>
+          <td>{{report[4]['event']}}</td>
+          <td>{{report[5]['event']}}</td>
+          <td>{{report[6]['event']}}</td>
+        </tr>
+        <tr>
+          <th>Product</th>
+          <td>{{report[0]['product']}}</td>
+          <td>{{report[1]['product']}}</td>
+          <td>{{report[2]['product']}}</td>
+          <td>{{report[3]['product']}}</td>
+          <td>{{report[4]['product']}}</td>
+          <td>{{report[5]['product']}}</td>
+          <td>{{report[6]['product']}}</td>
+        </tr>
+      </tbody> 
+    </table>
+    <hr>
+    <h2>修改日志</h2>
+    <div class="pagination pagination-centered">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>时间</th>
+            <th>站点</th>
+            <th>P/E</th>
+            <th>缩略图</th>
+            <th>标题</th>
+            <th>分类</th>
+            <th>查看网站页面</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for log in logs %}
+          <tr>
+            <td>{{log.time|bjtime}}</td>
+            <td>{{log.site}}</td>
+            <td>{{log.type}}</td>
+            <td><img src="{{log.image|imagesize('224x0')}}" height="50px;"/></td>
+            <td>{{log.title}}</td>
+            <td>{{log.departments}}</td>
+            <td><a class="btn btn-small btn-primary" target="_blank" href="http://www.favbuy.com/{{log.type}}/{{log.mid}}/">查看页面</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <ul>
+        {% if pagination.has_prev %}
+        <li><a class="pagination" page="{{pagination.page-1}}" href="#">Prev</a></li>
+        {% endif %}
+        {% for page in pagination.iter_pages() %}
+        {% if page %}
+          {% if page == pagination.page %}
+            <li class="active"><a class="pagination" page="" href="#">{{page}}</a></li>
+          {% else %}
+            <li><a class="pagination" page="{{page}}" href="#">{{page}}</a></li>
+          {% endif %}
+        {% else %}
+          <li><a class="pagination" page="" href="#">...</a></li>
+        {% endif %}
+        {% endfor %}
+        {% if pagination.has_next %}
+        <li><a class="pagination" page="{{pagination.page+1}}" href="#">Next</a></li>
+        {% endif %}
+      </ul>
+    </div>   
+  </div>
+</div><!--main-content-->
+  
+      
+{% endblock %}
+
+{% block script %}
+<script>
+  // make nav css correct
+  $('li[name=viewdata]').each(function(){
+    var link = $(this).find(">:first-child").attr('href');
+    if (window.location.href.indexOf(link) != -1){
+      $(this).addClass('active');
+    }
+  });
+
+  // make selection consistent with url
+  var param = $.deparam(window.location.href.substr(window.location.href.indexOf('?')+1));
+
+  // pagination
+  $('a.pagination').live('click', function(){
+    if ($(this).attr('page')) {
+      param['offset'] = ($(this).attr('page')-1)*20;
+      var url = "/viewdata/products?" + $.param(param);
+      window.location.href = url;
+    }
+  });
+</script>
+{% endblock %}

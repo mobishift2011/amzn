@@ -5,6 +5,8 @@
 #  [1] - if XXXX in a title; we can determine the main department of it
 #  [2] - if XXXX in a title; we can determine the sub department of it
 # The XXXX is tested in a brute-force; longest first way
+[0] Bowtie -> Men; Accessories
+[0] Bowties -> Men; Accessories
 [0] Pearl River Set -> Home; Furniture & Lighting
 [0] Pendants -> Jewelry & Watches; Pendants
 [0] Necklaces -> Jewelry & Watches; Necklaces
@@ -766,8 +768,6 @@
 [2] Flats -> Shoes
 [2] Tie -> Accessories
 [2] Ties -> Accessories
-[2] Bowtie -> Accessories
-[2] Bowties -> Accessories
 [2] Hat -> Accessories
 [2] Hats -> Accessories
 [2] Scarf -> Accessories

@@ -102,7 +102,7 @@ class BaseEvent(Document, BaseDocumentSkeleton):
     meta = {
         "allow_inheritance": True,
         "collection": "event",
-        "indexes": ["urgent", "events_begin", "events_end", "soldout", "event_id", "is_leaf", "image_complete", "brand_complete", "propagation_complete", "create_time"],
+        "indexes": ["urgent", "events_begin", "events_end", "soldout", "event_id", "is_leaf", "image_complete", "brand_complete", "propagation_complete", "create_time", 'disallow_classification'],
     }
 
 
@@ -194,7 +194,7 @@ class BaseProduct(Document):
     meta                =   {
         "allow_inheritance": True,
         "collection": "product",
-        "indexes":  ["key", "list_update_time", "full_update_time", "model", "brand", "updated", "image_complete", "brand_complete", "tag_complete", "dept_complete", "url_complete"],
+        "indexes":  ["key", "list_update_time", "full_update_time", "model", "brand", "updated", "image_complete", "brand_complete", "tag_complete", "dept_complete", "url_complete", 'disallow_classification'],
     }
 
     def url(self):

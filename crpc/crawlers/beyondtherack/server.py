@@ -201,34 +201,33 @@ class Server(object):
             event.save()
             common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
 
-        for dept in self.dept_link.keys():
-            self.crawl_one_dept_text_info(dept, tree, ctx)
-
-
-    def crawl_one_dept_text_info(self, dept, tree, ctx):
-        """.. :py:method::
-
-            event ending soon. This section is not exist in the beyondtherack anymore
-        :param dept: dept of this site
-        :param tree: the xpath tree of main page
-        """
-        items = tree.cssselect('div.headerframe ul#nav > li.menu_item_{0} > div.submenu > table td > div.submenu-section > a'.format(dept))
-        for item in items:
-            link = item.get('href')
-            event_id = self.extract_event_id.match(link).group(1)
-            ending_soon = item.cssselect('div.menu-item-ending-soon')
-            if ending_soon:
-                sale_title = ending_soon[0].cssselect('div.link')[0].text_content()
-            else:
-                sale_title = item.cssselect('div.menu-item')[0].text_content()
-
-            event, is_new, is_updated = self.get_or_create_event(event_id)
-
-            if dept not in event.dept: event.dept.append(dept)
-            event.sale_title = sale_title
-            event.update_time = datetime.utcnow()
-            event.save()
-            common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
+#        for dept in self.dept_link.keys():
+#            self.crawl_one_dept_text_info(dept, tree, ctx)
+#
+#
+#    def crawl_one_dept_text_info(self, dept, tree, ctx):
+#        """.. :py:method::
+#
+#            event ending soon. This section is not exist in the beyondtherack anymore
+#        :param dept: dept of this site
+#        :param tree: the xpath tree of main page
+#        """
+#        items = tree.cssselect('div.headerframe ul#nav > li.menu_item_{0} > div.submenu > table td > div.submenu-section > a'.format(dept))
+#        for item in items:
+#            link = item.get('href')
+#            event_id = self.extract_event_id.match(link).group(1)
+#            ending_soon = item.cssselect('div.menu-item-ending-soon')
+#            if ending_soon:
+#                sale_title = ending_soon[0].cssselect('div.link')[0].text_content()
+#            else:
+#                sale_title = item.cssselect('div.menu-item')[0].text_content()
+#
+#            event, is_new, is_updated = self.get_or_create_event(event_id)
+#
+#            event.sale_title = sale_title
+#            event.update_time = datetime.utcnow()
+#            event.save()
+#            common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
 
 
     def crawl_one_dept_image(self, dept, url, ctx):
@@ -531,14 +530,11 @@ class Server(object):
 
 if __name__ == '__main__':
     ss = Server()
+    ss.crawl_category()
+    exit()
     import time
     image = ''
     while True:
         image = ss.check(image)
         time.sleep(500)
     exit()
-    import zerorpc
-    from settings import CRAWLER_PORT
-    server = zerorpc.Server(Server())
-    server.bind('tcp://0.0.0.0:{0}'.format(CRAWLER_PORT))
-    server.run()

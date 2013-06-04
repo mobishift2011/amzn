@@ -231,7 +231,7 @@ class Server(object):
         pages_num = ( int(products_num) - 1) // NUM_PER_PAGE + 1
         
         for prd in products:
-            self.crawl_every_product_in_listing(category_path, prd, 1, ctx)
+            self.crawl_every_product_in_listing(url, category_path, prd, 1, ctx)
 
         for page_num in xrange(1, pages_num): # the real page number is page_num+1
             page_url = '{0}/_/N-{1}/Nao-{2}/list.fly'.format(self.siteurl, key, page_num*NUM_PER_PAGE)
@@ -244,7 +244,7 @@ class Server(object):
             page_num = int( page_num[0].text_content() )
         nodes = tree.cssselect('div#productGridContainer > div.productGridRow > div.productContainer')
         for node in nodes:
-            self.crawl_every_product_in_listing([], node, 1, ctx)
+            self.crawl_every_product_in_listing(url, [], node, 1, ctx)
 
         if page_num:
             for i in xrange(1, page_num):
@@ -256,7 +256,7 @@ class Server(object):
                 tree = lxml.html.fromstring(content)
                 nodes = tree.cssselect('div#productGridContainer > div.productGridRow > div.productContainer')
                 for node in nodes:
-                    self.crawl_every_product_in_listing([], node, i+1, ctx)
+                    self.crawl_every_product_in_listing(page_url, [], node, i+1, ctx)
 
 
     def get_next_page_in_listing(self, key, category_path, url, page_num, ctx):
@@ -274,10 +274,10 @@ class Server(object):
         navigation = tree.cssselect('div[id] > div#listProductPage')[0]
         products = navigation.cssselect('div#listProductContent > div#rightPageColumn > div.listProductGrid > div#productGridContainer > div.productGridRow div.productContainer')
         for prd in products:
-            self.crawl_every_product_in_listing(category_path, prd, page_num, ctx)
+            self.crawl_every_product_in_listing(url, category_path, prd, page_num, ctx)
 
 
-    def crawl_every_product_in_listing(self, category_path, prd, page_num, ctx):
+    def crawl_every_product_in_listing(self, url, category_path, prd, page_num, ctx):
         """.. :py:method::
             crawl next listing page
 
@@ -306,7 +306,7 @@ class Server(object):
         
         combine_url = '{0}/slug/p/{1}/detail.fly'.format(self.siteurl, key)
         if (price and '.' not in price) or (listprice and '.' not in listprice):
-            self.alarm( '[{0},{1}], {2}'.format(listprice, price, combine_url) )
+            self.alarm( '{0}, {1} [{2},{3}], {4}'.format(url, page_num, listprice, price, combine_url) )
 
 
     def alarm(self, message):

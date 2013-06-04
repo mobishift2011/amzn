@@ -21,30 +21,72 @@
     </ul>
   </div>
   <div>
-  {% if message %}
-    {{ message }}
-  {% else %}
-    <div style="display: inline-block; vertical-align:middle;">
-        <input class="input-large" id="searchinput" type="text" />
-        <button class="btn" id="searchtitle">Search Title</button> 
-    </div>
-    <div class="container">
-        {% for e in events %}
-        <div style="float: left; width: 250px; height: 500px;">
-          <a target="_blank" href="{{e.original_url}}"><img src="{{ e.cover_image|imagesize('280x280') }}" style="width:240px; height:240px;"/><br /></a>
-          <b style="color:grey">@score</b> {{ e.score }}<br />
-          <b style="color:grey">@site_key</b> {{ e.site_key }}<br />
-          <b style="color:grey">@title</b> {{ e.title }}<br />
-          <b style="color:grey">@departments</b> {{ e.departments }}<br />
-          <b style="color:grey">@brands(first 3)</b> {{ e.brands[:3] }}<br />
-          <b style="color:grey">@tags(first 3)</b> {{ e.tags[:3] }}<br />
-          <a target="_blank" href="http://www.favbuy.com/event/{{ e.id }}/"><i class="icon icon-yellow icon-extlink"></i>Go to Event</a><br />
-          <a href="/editdata/event/{{ e.id }}/"><i class="icon icon-edit icon-blue"></i>Edit Event</a><br />
-          <a href="/viewdata/products?events={{ e.id }}"><i class="icon icon-red icon-folder-open"></i>Products in Event</a><br />
-        </div>                                
-        {% endfor %}
-    </div>
+    <h2>最近七天修改报表</h2>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>类别\日期</th>
+          <th>今天</th>
+          <th>昨天</th>
+          <th>前天</th>
+          <th>大前天</th>
+          <th>大大前天</th>
+          <th>大大大前天</th>
+          <th>大大大大前天</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th>Event</th>
+          <td>{{report[0]['event']}}</td>
+          <td>{{report[1]['event']}}</td>
+          <td>{{report[2]['event']}}</td>
+          <td>{{report[3]['event']}}</td>
+          <td>{{report[4]['event']}}</td>
+          <td>{{report[5]['event']}}</td>
+          <td>{{report[6]['event']}}</td>
+        </tr>
+        <tr>
+          <th>Product</th>
+          <td>{{report[0]['product']}}</td>
+          <td>{{report[1]['product']}}</td>
+          <td>{{report[2]['product']}}</td>
+          <td>{{report[3]['product']}}</td>
+          <td>{{report[4]['product']}}</td>
+          <td>{{report[5]['product']}}</td>
+          <td>{{report[6]['product']}}</td>
+        </tr>
+      </tbody> 
+    </table>
+    <hr>
+    <h2>修改日志</h2>
     <div class="pagination pagination-centered">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>时间</th>
+            <th>站点</th>
+            <th>P/E</th>
+            <th>缩略图</th>
+            <th>标题</th>
+            <th>分类</th>
+            <th>查看网站页面</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for log in logs %}
+          <tr>
+            <td>{{log.time|bjtime}}</td>
+            <td>{{log.site}}</td>
+            <td>{{log.type}}</td>
+            <td><img src="{{log.image|imagesize('224x0')}}" height="50px;"/></td>
+            <td>{{log.title}}</td>
+            <td>{{log.departments}}</td>
+            <td><a class="btn btn-small btn-primary" target="_blank" href="http://www.favbuy.com/{{log.type}}/{{log.mid}}/">查看页面</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
       <ul>
         {% if pagination.has_prev %}
         <li><a class="pagination" page="{{pagination.page-1}}" href="#">Prev</a></li>
@@ -65,25 +107,10 @@
         {% endif %}
       </ul>
     </div>   
-  {% endif %}
   </div>
 </div><!--main-content-->
   
       
-<div class="modal hide fade" id="myModal">
-  <div class="modal-header">
-    <button type="button" class="close" data-dismiss="modal">×</button>
-    <h3>Settings</h3>
-  </div>
-  <div class="modal-body">
-    <p>Here settings can be configured...</p>
-  </div>
-  <div class="modal-footer">
-    <a href="#" class="btn" data-dismiss="modal">Close</a>
-    <a href="#" class="btn btn-primary">Save changes</a>
-  </div>
-</div>
-
 {% endblock %}
 
 {% block script %}
@@ -94,11 +121,6 @@
     if (window.location.href.indexOf(link) != -1){
       $(this).addClass('active');
     }
-  })
-
-  $('#searchtitle').click(function(){
-    var url = "/viewdata/events?"+ $.param({'title__icontains':$('#searchinput').val()});
-    window.location.href = url;
   });
 
   // make selection consistent with url
@@ -108,11 +130,9 @@
   $('a.pagination').live('click', function(){
     if ($(this).attr('page')) {
       param['offset'] = ($(this).attr('page')-1)*20;
-      var url = "/viewdata/events?" + $.param(param);
+      var url = "/viewdata/products?" + $.param(param);
       window.location.href = url;
     }
   });
-
-
 </script>
 {% endblock %}

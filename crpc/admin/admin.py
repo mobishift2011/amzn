@@ -48,6 +48,19 @@ from backends.monitor.models import Stat
 _worker = ThreadPool(4)
 DISTRIBUTIONID = 'E3QJD92P0IKIG2'
 
+# editlog db
+import pymongo
+db = pymongo.MongoClient().editlog
+db.editlog.ensure_index([('time', -1)])
+db_schema =  [
+    'time',
+    'type',
+    'mid',
+    'site',
+    'key',
+]
+# end editlog db
+
 def invalidate_cloudfront(key):
     threading.Thread(target=_invalidate, args=(key,)).start()
 
@@ -126,7 +139,12 @@ def imagesize(imageobj, wxh):
                 h = size[1]
         return imageobj['url'] + '_{0}x{1}'.format(w, h)
 
+def bjtime(timeobj):
+    if timeobj:
+        return timeobj+timedelta(hours=8)
+
 JINJA2_ENV.filters['imagesize'] = imagesize
+JINJA2_ENV.filters['bjtime'] = bjtime
 
 class BaseHandler(tornado.web.RequestHandler): 
     def __init__(self, *args, **kwargs): 
@@ -293,9 +311,14 @@ class EditDataHandler(BaseHandler):
         elif type == 'product':
             self._edit_product(id)
 
+    def logedit(self, site, key, type, mid):
+        time = datetime.utcnow()
+        db.editlog.insert({'time':time, 'type':type, 'site':site, 'key':key, 'mid':mid})
+
     def _edit_event(self,id):
         event               = api.event(id).get()
         site,key            = event['site_key'].split('_',1)
+        self.logedit(site, key, 'event', id)
 
         data = {}
         data['title']       = self.get_argument('title')
@@ -352,6 +375,7 @@ class EditDataHandler(BaseHandler):
         # POST
         product               = api.product(id).get()
         site,key              = product['site_key'].split('_',1)
+        self.logedit(site, key, 'product', id)
 
         data = {}
         data['title']         = self.get_argument('title')
@@ -414,6 +438,35 @@ class ViewDataHandler(BaseHandler):
             self.render_reclassify_all()
         elif subpath == 'recommend':
             self.render_recommend()
+        elif subpath == 'editlog':
+            self.render_editlog()
+
+    def render_editlog(self):
+        a_week_ago = datetime.utcnow() - timedelta(days=7)
+        report = {}
+        for daykey in range(7):
+            if daykey not in report:
+                report[daykey] = {'event':0, 'product':0}
+        for log in db.editlog.find({'time':{'$gt':a_week_ago}}):
+            daykey = (log['time'] - a_week_ago).seconds/86400
+            if log['type'] == 'event':
+                report[daykey]['event'] += 1
+            else:
+                report[daykey]['product'] += 1
+        total_count = db.editlog.find().count()
+        page = int(self.get_argument('page', '1'))
+        pagination = Pagination(page, 20, total_count)
+        logs = list(db.editlog.find().sort([('time', -1)]).skip((page-1)*20).limit(20))
+        for log in logs:
+            if log['type'] == 'event':
+                t = api.event(log['mid']).get()
+            else:
+                t = api.product(log['mid']).get()
+            log['image'] = t['cover_image']
+            log['title'] = t['title']
+            log['departments'] = t.get('departments', []) or t.get('department_path', [])
+            
+        self.render('viewdata/editlog.html', report=report, logs=logs, pagination=pagination)
     
     def render_reclassify_all(self):
         kwargs = {}

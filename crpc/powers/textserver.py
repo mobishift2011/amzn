@@ -8,7 +8,7 @@ from backends.matching.extractor import Extractor
 from brandapi import Extracter
 from pipelines import EventPipeline, ProductPipeline
 from deals.pipelines import ProductPipeline as DealProductPipeline
-from backends.monitor.models import Stat
+# from backends.monitor.models import Stat
 
 from powers.events import brand_refresh
 from crawlers.common.stash import picked_crawlers
@@ -89,7 +89,7 @@ class TextServer(object):
             if p.propagate(products):
                 logger.info('event propagated -> {0}'.format(kwargs))
                 interval = datetime.utcnow().replace(second=0, microsecond=0)
-                Stat.objects(site=site, doctype='event', interval=interval).update(inc__prop_num=1, upsert=True)             
+                # Stat.objects(site=site, doctype='event', interval=interval).update(inc__prop_num=1, upsert=True)             
             else:
                 logger.error('event propagation failed -> {0}'.format(kwargs))
 

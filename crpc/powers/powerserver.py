@@ -9,7 +9,7 @@ from configs import *
 from tools import ImageTool
 from powers.events import *
 from imglib import trim, scale
-from backends.monitor.models import Stat
+# from backends.monitor.models import Stat
 
 from crawlers.common.stash import picked_crawlers
 from os import listdir
@@ -79,7 +79,7 @@ class PowerServer(object):
                 instance.save()
                 image_crawled.send(sender=sender, model=model, key=key)
                 interval = datetime.utcnow().replace(second=0, microsecond=0)
-                Stat.objects(site=site, doctype=doctype.lower(), interval=interval).update(inc__image_num=1, upsert=True)
+                # Stat.objects(site=site, doctype=doctype.lower(), interval=interval).update(inc__image_num=1, upsert=True)
             else:
                 logger.error('crawling image of {0} failed'.format(sender))
 

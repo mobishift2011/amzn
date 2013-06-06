@@ -448,7 +448,7 @@ class ViewDataHandler(BaseHandler):
             if daykey not in report:
                 report[daykey] = {'event':0, 'product':0}
         for log in db.editlog.find({'time':{'$gt':a_week_ago}}):
-            daykey = (log['time'] - a_week_ago).seconds/86400
+            daykey = (datetime.utcnow()-log['time']).days
             if log['type'] == 'event':
                 report[daykey]['event'] += 1
             else:

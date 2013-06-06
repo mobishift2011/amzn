@@ -313,7 +313,9 @@ class EditDataHandler(BaseHandler):
 
     def logedit(self, site, key, type, mid):
         time = datetime.utcnow()
-        db.editlog.insert({'time':time, 'type':type, 'site':site, 'key':key, 'mid':mid})
+        an_hour_ago = datetime.utcnow() - timedelta(hours=1)
+        if not db.editlog.find_one({'time':{'$gt':an_hour_ago}, 'mid': mid}):
+            db.editlog.insert({'time':time, 'type':type, 'site':site, 'key':key, 'mid':mid})
 
     def _edit_event(self,id):
         event               = api.event(id).get()

@@ -51,7 +51,7 @@ class CheckServer(object):
         price = pprice.cssselect('span.price')[0].text_content().replace('$', '').replace(',', '').strip()
         listprice = pprice.cssselect('span.bare')
         listprice = listprice[0].text_content().replace('retail', '').replace('$', '').replace(',', '').strip() if listprice else ''
-        title = tree.cssselect('div.lastUnit > div.line > h4.pbs')[0].text_content().strip().encode('utf-8')
+        title = tree.cssselect('div.lastUnit > div.line > .pbs')[0].text_content().strip().encode('utf-8')
         text = self.size.search(ret[0]).group(1)
         soldout = False if "Available" in text or "Last 1 Left" in text or "In Member's Bag" in text else True
 

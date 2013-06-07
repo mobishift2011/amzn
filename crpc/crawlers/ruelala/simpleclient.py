@@ -35,11 +35,11 @@ class CheckServer(object):
             api.product(_id).patch({ 'ends_at': utcnow.isoformat() })
 
     def check_onsale_product(self, id, url):
-        prd = Product.objects(key=id).first()
-        if prd is None:
-            print '\n\nruelala {0}, {1}\n\n'.format(id, url)
-            return
-
+#        prd = Product.objects(key=id).first()
+#        if prd is None:
+#            print '\n\nruelala {0}, {1}\n\n'.format(id, url)
+#            return
+#
         ret = self.s.get(url)
         if ret.url == 'http://www.ruelala.com/event':
             if prd.muri:
@@ -62,11 +62,15 @@ class CheckServer(object):
         size_matrix = self.size_matrix.search(ret.content).group(1)
         js = json.loads(size_matrix)
         soldout = True
-        for size, value in js['sizeColorMatrix'].iteritems():
-            if value['currentQty'] > 0:
-                soldout = False
-                break
-        if prd.soldout != soldout:
+        if js['sizeColorMatrix'] == None:
+            soldout = None
+        else:
+            for size, value in js['sizeColorMatrix'].iteritems():
+                if value['currentQty'] > 0:
+                    soldout = False
+                    break
+
+        if soldout != None and prd.soldout != soldout:
             print 'ruelala product[{0}] soldout error: [{1}, {2}]'.format(prd.combine_url, prd.soldout, soldout)
             prd.soldout = soldout
             prd.update_history.update({ 'soldout': datetime.utcnow() })
@@ -120,4 +124,5 @@ class CheckServer(object):
         return 'ruelala_'+product_id, title+'_'+description
 
 if __name__ == '__main__':
-    CheckServer().check_onsale_product('1111012412', 'https://www.ruelala.com/event/product/68760/1111012412/0/DEFAULT')
+    CheckServer().check_onsale_product('3018094898', 'http://www.ruelala.com/event/product/74269/3018094898/0/DEFAULT')
+

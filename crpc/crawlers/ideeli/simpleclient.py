@@ -68,10 +68,14 @@ class CheckServer(object):
 
         price = tree.cssselect('div#offer_price div.info div.name_container div.price_container span.price')[0].text_content().replace('$', '').replace(',', '').strip()
         if not price:
-            try:
-                node = tree.cssselect('div#sizes_container_{0} div.sizes div.size_container'.format(id))[0]
-            except IndexError:
-                node = tree.cssselect("div[id^='sizes_container_'] div.sizes div.size_container")[0]
+            node = tree.cssselect('div#sizes_container_{0} div.sizes div.size_container'.format(id))
+            if not node:
+                try:
+                    node = tree.cssselect("div[id^='sizes_container_'] div.sizes div.size_container")[0]
+                except IndexError:
+                    return
+            else:
+                node = node[0]
             price = node.get('data-type-price').replace('$', '').replace(',', '').strip()
             listprice = node.get('data-type-msrp').replace('$', '').replace(',', '').strip()
         else:

@@ -38,9 +38,12 @@ def sync2mastiff(host=MASTIFF_HOST):
 	for brand in brands:
 		try:
 			name = brand.title_edit or brand.title
+			safe_name = name.replace('/', '_')
+			safe_name = safe_name.replace('?', '_')
 			query = api.brand.get(name=name)
 			params = {
 				'name': name.encode('utf-8'),
+				'safe_name': safe_name,
 				'url': brand.url.encode('utf-8') if brand.url else '',
 				'blurb': brand.blurb.encode('utf-8') if brand.blurb else '',
 				'level': brand.level,

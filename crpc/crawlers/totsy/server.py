@@ -136,7 +136,7 @@ class Server(object):
             event_id = re.compile('.*catalog/category/view/id/(\d+)').match(link).group(1)
         else:
             event_id = self.extract_event_id.match(link).group(1)
-        sale_title = node.cssselect('a.thumbnail > span.event-link > img')[0].get('alt').strip()
+        sale_title = node.cssselect('a.thumbnail > span.event-link > img')[0].get('alt').strip().encode('utf-8')
         nav = node.cssselect('a.thumbnail > div.more > div.more-content > section.container > h6')
         dept, ages = [], []
         for n in nav:
@@ -169,7 +169,7 @@ class Server(object):
             event_id = re.compile('.*catalog/category/view/id/(\d+)').match(link).group(1)
         else:
             event_id = self.extract_event_id.match(link).group(1)
-        sale_title = node.cssselect('div.thumbnail > hgroup a')[0].text_content()
+        sale_title = node.cssselect('div.thumbnail > hgroup a')[0].text_content().strip().encode('utf-8')
         text = node.cssselect('div.thumbnail p.counter')[0].get('data-enddate')# 'December 23, 2012, 8:00:00' the timezone when you regist
         _begin = time_convert_std(text, '%B %d, %Y, %X', 'ET')
         utc_events_begin = datetime(_begin.year, _begin.month, _begin.day, _begin.hour, _begin.minute)

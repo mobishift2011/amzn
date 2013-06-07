@@ -47,15 +47,18 @@ class CheckServer(object):
             return
 
         tree = lxml.html.fromstring(ret[0])
-        pprice = tree.cssselect('div.lastUnit > div.line form > div.mod > div.hd > div.media > div.bd')[0]
-        price = pprice.cssselect('span.price')[0].text_content().replace('$', '').replace(',', '').strip()
-        listprice = pprice.cssselect('span.bare')
-        listprice = listprice[0].text_content().replace('retail', '').replace('$', '').replace(',', '').strip() if listprice else ''
+        pprice = tree.cssselect('div.lastUnit > div.line form > div.mod > div.hd > div.media > div.bd')
+        if pprice:
+            price = pprice[0].cssselect('span.price')[0].text_content().replace('$', '').replace(',', '').strip()
+            listprice = pprice[0].cssselect('span.bare')
+            listprice = listprice[0].text_content().replace('retail', '').replace('$', '').replace(',', '').strip() if listprice else ''
+        else:
+            price = listprice = ''
         title = tree.cssselect('div.lastUnit > div.line > .pbs')[0].text_content().strip().encode('utf-8')
         text = self.size.search(ret[0]).group(1)
         soldout = False if "Available" in text or "Last 1 Left" in text or "In Member's Bag" in text else True
 
-        if prd.price.replace('$', '').replace(',', '').strip() != price:
+        if price and prd.price.replace('$', '').replace(',', '').strip() != price:
             print 'modnique product[{0}] price error: {1}, {2}'.format(prd.combine_url, prd.price.replace('$', '').replace(',', '').strip(), price)
             prd.price = price
             prd.update_history.update({ 'price': datetime.utcnow() })

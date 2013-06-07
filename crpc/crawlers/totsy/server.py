@@ -398,7 +398,7 @@ class Server(object):
         imgs = nav.cssselect('div.product-media > div.more-views > ul.thumbnails > li > div.thumbnail')
         for img in imgs:
             image_urls.append( img.cssselect('a')[0].get('href') )
-        cont = nav.cssselect('div.product-main > div > div.product-content')[0]
+        cont = nav.cssselect('div.product-main div div.product-content')[0]
         # summary = cont.cssselect('div.product_desc')[0].text.strip()
         list_info = []
         for s in cont.xpath('div[@class="product_desc"]/text()'):
@@ -434,4 +434,5 @@ class Server(object):
 
 if __name__ == '__main__':
     ss = Server()
-    ss.crawl_category()
+    ss.crawl_product('http://www.totsy.com/sales/product-846129.html')
+#    ss.crawl_category()

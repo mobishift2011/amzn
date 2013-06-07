@@ -795,6 +795,12 @@ class CrawlerHandler(AsyncProcessMixIn):
         elif subpath == 'control':
             self.render('crawler/control.html')
 
+        elif subpath == 'errors':
+            from backends.monitor.models import Fail
+            one_day_ago = datetime.utcnow() - timedelta(days=1)
+            page = int(self.get_argument('page', '1'))
+            fails = Fail.objects(method='check_onsale_product', time__gt=one_day_ago).skip(page*20-20).limit(20).order_by('-time')
+            self.render('crawler/errors.html', fails=fails, page=page)
         # publish
         elif subpath == 'publish':
             if parameter == 'chkpub':

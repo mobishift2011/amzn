@@ -86,6 +86,7 @@ class Fail(Document):
         "db_alias": DB,
         "max_documents": 100*1000,
         "max_size": 5*1000*1000*1000,
+        "indexes":  [("time","site","method"), ],
     }
 
     def __str__(self):

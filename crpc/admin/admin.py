@@ -43,7 +43,7 @@ from powers.configs import AWS_ACCESS_KEY, AWS_SECRET_KEY
 from backends.webui.views import get_one_site_schedule, get_publish_report, task_all_tasks, task_updates
 from backends.monitor.upcoming_ending_events_count import upcoming_events, ending_events
 from backends.monitor.publisher_report import wink
-from backends.monitor.models import Stat
+from backends.monitor.models import Stat, Fail
 
 _worker = ThreadPool(4)
 DISTRIBUTIONID = 'E3QJD92P0IKIG2'
@@ -60,6 +60,37 @@ db_schema =  [
     'key',
 ]
 # end editlog db
+
+import redis
+import pickle
+cache = redis.Redis(db=13)
+def get_cached(func, args=[], kwargs={}, key=None, timeout=300):
+    """ cache func(*args) result based on ``key`` and ``timeout``
+    
+    this function is designed to take care of ``thundering herd`` problem
+    by setting an extra ``key_valid`` indicator
+
+    the ``key`` itself doesn't get expired, only ``key_valid`` does
+    if ``key_valid`` is invalidated, it revalidate itself really quick and 
+    updates the new value to ``key``, much better
+    """
+    if not key:
+        raise ValueError("key cannot be None")
+
+    key_valid = key + '_valid?'
+    value = cache.get(key)
+    value_valid = cache.get(key_valid)
+
+    if (not value_valid) or (not value):
+        cache.setex(key_valid, 'set', timeout)
+        value = func(*args, **kwargs)
+        value = pickle.dumps(value)
+        cache.set(key, value)
+
+    value = pickle.loads(value)
+
+    return value
+
 
 def invalidate_cloudfront(key):
     threading.Thread(target=_invalidate, args=(key,)).start()
@@ -777,6 +808,32 @@ class MonitorHandler(BaseHandler):
         self.render('monitor.html')
 
 class CrawlerHandler(AsyncProcessMixIn):
+    def _get_report(self):
+        one_day_ago = datetime.utcnow() - timedelta(days=1)
+        report = {}
+        sites = set()
+        methods = set()
+        for fail in Fail.objects(time__gt=one_day_ago).only('site', 'method'):
+            sites.add(fail.site)
+            methods.add(fail.method)
+            rkey = '{}.{}'.format(fail.site, fail.method)
+            if rkey not in report:
+                report[rkey] = 0
+            report[rkey] += 1
+        for site in sites:
+            report[site+'.all'] = 0
+        for method in methods:
+            report['all.'+method] = 0
+        for rkey in report:
+            site, method = rkey.split('.')
+            if site != 'all' and method != 'all': 
+                report[site+'.all'] += report[rkey]
+                report['all.'+method] += report[rkey]
+        report['all.all'] = 0
+        for site in sites:
+            report['all.all'] += report[site+'.all']
+        return {'report':report, 'sites':sites, 'methods':methods}
+
     @tornado.web.authenticated
     @tornado.web.asynchronous
     def get(self, subpath, parameter):
@@ -796,11 +853,26 @@ class CrawlerHandler(AsyncProcessMixIn):
             self.render('crawler/control.html')
 
         elif subpath == 'errors':
-            from backends.monitor.models import Fail
             one_day_ago = datetime.utcnow() - timedelta(days=1)
             page = int(self.get_argument('page', '1'))
-            fails = Fail.objects(method='check_onsale_product', time__gt=one_day_ago).order_by('-time').skip(page*20-20).limit(20)
-            self.render('crawler/errors.html', fails=fails, page=page)
+            site = self.get_argument('site', None)
+            method = self.get_argument('method', None)
+    
+            report = {}
+            showreport = False
+            if site and not method:
+                fails = Fail.objects(site=site, time__gt=one_day_ago)
+            elif method and not site:
+                fails = Fail.objects(method=method, time__gt=one_day_ago)
+            elif site and method:
+                fails = Fail.objects(site=site, method=method, time__gt=one_day_ago)
+            else:
+                fails = Fail.objects(time__gt=one_day_ago)
+                showreport = True
+                report = get_cached(self._get_report, key='get_report')
+
+            fails = fails.order_by('-time').skip(page*20-20).limit(20)
+            self.render('crawler/errors.html', fails=fails, page=page, showreport=showreport, **report)
         # publish
         elif subpath == 'publish':
             if parameter == 'chkpub':

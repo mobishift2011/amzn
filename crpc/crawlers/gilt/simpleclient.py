@@ -28,10 +28,10 @@ class CheckServer(object):
         return tree
 
     def check_onsale_product(self, id, url):
-#        prd = Product.objects(key=id).first()
-#        if prd is None:
-#            print '\n\ngilt {0}, {1}\n\n'.format(id, url)
-#            return
+        prd = Product.objects(key=id).first()
+        if prd is None:
+            print '\n\ngilt {0}, {1}\n\n'.format(id, url)
+            return
 
         ret = self.s.get(url, headers=self.headers)
         tree = self.get_correct_tree(ret.content)

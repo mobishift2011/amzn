@@ -3,6 +3,7 @@ import re
 import json
 import lxml.html
 
+from datetime import datetime, timedelta
 from models import Product
 from server import giltLogin
 """ gilt not need to login ,
@@ -36,12 +37,11 @@ class CheckServer(object):
         ret = self.s.get(url, headers=self.headers)
         tree = self.get_correct_tree(ret.content)
         if '/home/sale' in url or '/sale/home' in url: # home
-            node = tree.cssselect('div.content-container div.positions div.elements-container article.product-full section.product-details')[0]
-            brand = node.cssselect('h3.product-brand')[0].text_content()
-            title = node.cssselect('h1.product-name')[0].text_content()
-            soldout = True if node.cssselect('form.sku-selection div.actions p.secondary-action a') else False
+            node = tree.cssselect('section#details section.summary')[0]
+            title = node.cssselect('header.overview h1.product-name')[0].text_content().strip()
+            brand = node.cssselect('header.overview .brand-name .brand-name-text')[0].text_content().strip()
 
-            listprice = node.cssselect('div.product-price div.original-price')
+            listprice = node.cssselect('header.overview .price div.original-price span.msrp')
             listprice = listprice[0].text_content().replace('$', '').replace(',', '').strip() if listprice else ''
             if listprice and \
                         ('-' in listprice or '-' in prd.listprice) and \
@@ -59,7 +59,7 @@ class CheckServer(object):
                 prd.update_history.update({ 'listprice': datetime.utcnow() })
                 prd.save()
 
-            price = node.cssselect('div.product-price div.gilt-price')[0].text_content().replace('$', '').replace('Gilt', '').replace(',', '').strip()
+            price = node.cssselect('header.overview .price div.sale-price span')[0].text_content().replace('$', '').replace('Gilt', '').replace(',', '').strip()
             if ('-' in price or '-' in prd.price) and \
                     prd.price.replace('$', '').replace('Gilt', '').replace(',', '').strip() != price:
                 print 'gilt product[{0}] price {1} vs {2}'.format(url, prd.price.replace('$', '').replace('Gilt', '').replace(',', '').strip(), price)
@@ -76,11 +76,11 @@ class CheckServer(object):
 
             if prd.title.lower() != title.lower():
                 print 'gilt product[{0}] title error: [{1}, {2}]'.format(url, prd.title.encode('utf-8').lower(), title.encode('utf-8').lower())
-            if prd.soldout != soldout:
-                print 'gilt product[{0}] soldout error: [{1}, {2}]'.format(url, prd.soldout, soldout)
-                prd.soldout = soldout
-                prd.update_history.update({ 'soldout': datetime.utcnow() })
-                prd.save()
+#            if prd.soldout != soldout:
+#                print 'gilt product[{0}] soldout error: [{1}, {2}]'.format(url, prd.soldout, soldout)
+#                prd.soldout = soldout
+#                prd.update_history.update({ 'soldout': datetime.utcnow() })
+#                prd.save()
 
         else: # women, men, children
             node = tree.cssselect('section#details section.summary')[0]
@@ -90,7 +90,7 @@ class CheckServer(object):
             except IndexError:
                 print '\n\ngilt brand {0} \n\n'.format(url)
 
-            listprice = node.cssselect('header.overview div.price div.original-price span.msrp')
+            listprice = node.cssselect('header.overview .price div.original-price span.msrp')
             listprice = listprice[0].text_content().replace('$', '').replace(',', '').strip() if listprice else ''
             if listprice and \
                     ('-' in listprice or '-' in prd.listprice) and \

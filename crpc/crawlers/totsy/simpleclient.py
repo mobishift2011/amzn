@@ -51,7 +51,10 @@ class CheckServer(object):
         title = node.cssselect('div.product-header h3')[0].text_content().encode('utf-8')
         info = node.cssselect('div.product-addtocart form#product_addtocart_form div#product-main-info')[0]
         soldout = True if info.cssselect('div.availability') else False
-        price = info.cssselect('div.product-prices div.product-prices-main div.price-box span.special-price')[0].text_content().replace('$', '').strip()
+        price = info.cssselect('div.product-prices div.product-prices-main div.price-box span.special-price')
+        price = price[0].text_content().replace('$', '').strip() if price else ''
+        if not price:
+            soldout = True
         listprice = info.cssselect('div.product-prices div.product-prices-main div.product-price-was')[0].text_content().replace('Was', '').replace('$', '').strip()
 
         if prd.title.encode('utf-8').lower() != title.lower():
@@ -61,7 +64,7 @@ class CheckServer(object):
             prd.soldout = soldout
             prd.update_history.update({ 'soldout': datetime.utcnow() })
             prd.save()
-        if prd.price.replace('$', '').strip() != price:
+        if price and prd.price.replace('$', '').strip() != price:
             print 'totsy product[{0}] price error: {1} vs {2}'.format(url, prd.price.replace('$', '').strip(), price)
         if prd.listprice.replace('$', '').strip() != listprice:
             print 'totsy product[{0}] listprice error: {1} vs {2}'.format(url, prd.listprice.replace('$', '').strip(), listprice)

@@ -47,8 +47,8 @@ class CheckServer(object):
             return
 
         tree = lxml.html.fromstring(cont)
-        node = tree.cssselect('section#pageheader div.row div.product-main')[0]
-        title = node.cssselect('div.page-header h3')[0].text_content().encode('utf-8')
+        node = tree.cssselect('#mainContent div.container div.row div.product-main')[0]
+        title = node.cssselect('div.product-header h3')[0].text_content().encode('utf-8')
         info = node.cssselect('div.product-addtocart form#product_addtocart_form div#product-main-info')[0]
         soldout = True if info.cssselect('div.availability') else False
         price = info.cssselect('div.product-prices div.product-prices-main div.price-box span.special-price')[0].text_content().replace('$', '').strip()
@@ -58,6 +58,9 @@ class CheckServer(object):
             print 'totsy product[{0}] title error: {1} vs {2}'.format(url, prd.title.encode('utf-8'), title)
         if prd.soldout != soldout:
             print 'totsy product[{0}] soldout error: {1} vs {2}'.format(url, prd.soldout, soldout)
+            prd.soldout = soldout
+            prd.update_history.update({ 'soldout': datetime.utcnow() })
+            prd.save()
         if prd.price.replace('$', '').strip() != price:
             print 'totsy product[{0}] price error: {1} vs {2}'.format(url, prd.price.replace('$', '').strip(), price)
         if prd.listprice.replace('$', '').strip() != listprice:
@@ -75,5 +78,6 @@ class CheckServer(object):
         pass
 
 if __name__ == '__main__':
+    CheckServer().check_onsale_product('product-1054956', 'http://www.totsy.com/sales/product-1054956.html')
+    exit()
     CheckServer().check_onsale_product('orthaheel-cecilia-952045', 'http://www.totsy.com/sales/orthaheel-dr-weil-by-orthaheel-8018/orthaheel-cecilia-952045.html')
-    pass

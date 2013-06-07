@@ -1,18 +1,26 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # Author: bishop Liu <miracle (at) gmail.com>
-
 import os
 import time
 import random
 import traceback
-from datetime import datetime
+from datetime import datetime, timedelta
 from gevent.pool import Pool
 from mongoengine import Q
 
 from crawlers.common.stash import picked_crawlers
 from helpers.rpc import get_rpcs
 
+from crawlers.common.events import *
+
+common_saved.bind('sync')
+def do_nothing(*args, **kwargs):
+    pass
+
+common_failed.bind('sync')
+def do_nothing(*args, **kwargs):
+    pass
 
 def get_site_module(site):
     """.. :py:method::
@@ -29,11 +37,15 @@ def get_site_module(site):
     return get_site_module.mod[site]
 
 
-def spout_obj(site, method):
-    """ """
+def spout_obj(site, method, full=False):
+    """ if full, spout full, else elimite which have been recently updated in list updating"""
     m = get_site_module(site)
     if method == 'check_onsale_product':
-        obj = m.Product.objects(Q(products_end__gt=datetime.utcnow()) | Q(products_end__exists=False)).timeout(False)
+        if not full:
+            obj = m.Product.objects( (Q(products_end__gt=datetime.utcnow()) | Q(products_end__exists=False)) \
+                        & Q(list_update_time__lt=datetime.utcnow()-timedelta(hours=1)) ).timeout(False)
+        else:
+            obj = m.Product.objects(Q(products_end__gt=datetime.utcnow()) | Q(products_end__exists=False)).timeout(False)
         print '{0} have {1} on sale event/category products.'.format(site, obj.count())
         for o in obj:
             yield {'id': o.key, 'url': o.url()}
@@ -46,6 +58,7 @@ def spout_obj(site, method):
 
     elif method == 'check_offsale_product':
         obj = m.Product.objects(products_end__lt=datetime.utcnow()).timeout(False)
+
         print '{0} have {1} off sale event products.'.format(site, obj.count())
         for o in obj:
             yield {'id': o.key, 'url': o.url()}
@@ -102,12 +115,9 @@ def offsale_schedule():
     # rpc = get_rpcs()
 
 # call will change the crpc/mastiff database
+    checkout('ruelala', 'check_onsale_product', rpc)
     checkout('onekingslane', 'check_onsale_event', rpc)
     checkout('onekingslane', 'check_onsale_product', rpc)
-
-    checkout('ruelala', 'check_onsale_product', rpc)
-
-    checkout('bluefly', 'check_onsale_product', rpc)
 
     checkout('lot18', 'check_onsale_product', rpc)
 
@@ -132,6 +142,7 @@ def offsale_schedule():
 
     # add endtime to nomorerack offstore products
     checkout('nomorerack', 'check_offsale_product', rpc)
+    checkout('bluefly', 'check_onsale_product', rpc)
 
 def control():
     log_file = '/tmp/onoff_sale.log'

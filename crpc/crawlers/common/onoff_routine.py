@@ -1,18 +1,27 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # Author: bishop Liu <miracle (at) gmail.com>
-
 import os
 import time
 import random
 import traceback
-from datetime import datetime
+from datetime import datetime, timedelta
 from gevent.pool import Pool
 from mongoengine import Q
 
 from crawlers.common.stash import picked_crawlers
 from helpers.rpc import get_rpcs
 
+from crawlers.common.events import *
+from backends.monitor.models import Fail
+
+common_saved.bind('sync')
+def do_nothing(*args, **kwargs):
+    pass
+
+common_failed.bind('sync')
+def do_nothing(*args, **kwargs):
+    pass
 
 def get_site_module(site):
     """.. :py:method::
@@ -29,11 +38,15 @@ def get_site_module(site):
     return get_site_module.mod[site]
 
 
-def spout_obj(site, method):
-    """ """
+def spout_obj(site, method, full=False):
+    """ if full, spout full, else elimite which have been recently updated in list updating"""
     m = get_site_module(site)
     if method == 'check_onsale_product':
-        obj = m.Product.objects(Q(products_end__gt=datetime.utcnow()) | Q(products_end__exists=False)).timeout(False)
+        if not full:
+            obj = m.Product.objects( (Q(products_end__gt=datetime.utcnow()) | Q(products_end__exists=False)) \
+                        & Q(list_update_time__lt=datetime.utcnow()-timedelta(hours=1)) ).timeout(False)
+        else:
+            obj = m.Product.objects(Q(products_end__gt=datetime.utcnow()) | Q(products_end__exists=False)).timeout(False)
         print '{0} have {1} on sale event/category products.'.format(site, obj.count())
         for o in obj:
             yield {'id': o.key, 'url': o.url()}
@@ -46,6 +59,7 @@ def spout_obj(site, method):
 
     elif method == 'check_offsale_product':
         obj = m.Product.objects(products_end__lt=datetime.utcnow()).timeout(False)
+
         print '{0} have {1} off sale event products.'.format(site, obj.count())
         for o in obj:
             yield {'id': o.key, 'url': o.url()}
@@ -79,14 +93,23 @@ def call_rpc(rpc, site, method, *args, **kwargs):
     try:
         rpc.run_cmd(site, method, args, kwargs)
     except Exception as e:
-        print 'RPC call error: {0}'.format(traceback.format_exc())
+        key = kwargs.get('id')
+        url = kwargs.get('url')
+        f = Fail()
+        f.site = site
+        f.method = method
+        f.key = key
+        f.url = url
+        f.message = traceback.format_exc()
+        f.save()
+        #print 'RPC call error: {0}'.format(traceback.format_exc())
 
 
-def checkout(site, method, rpc, concurrency=10):
+def checkout(site, method, rpc, concurrency=10, full=False):
     """ """
     rpcs = rpc if isinstance(rpc, list) else [rpc]
     pool = Pool(len(rpcs) * concurrency)
-    ret = spout_obj(site, method)
+    ret = spout_obj(site, method, full=full)
     if ret is False:
         return
     for kwargs in ret:
@@ -95,55 +118,54 @@ def checkout(site, method, rpc, concurrency=10):
     pool.join()
 
 
-def offsale_schedule():
+def offsale_schedule(full=False):
+    """  do checking
+
+    if full is False, spout products whose list_update_time is old(so we should update them manually)
+    if full is True, spout products no matter what value list_update_time is
+    """
     from checkserver import CheckServer
     rpc = CheckServer()
     # rpc = get_rpcs([{'host_string':'root@127.0.0.1', 'port':8899}])
     # rpc = get_rpcs()
 
-# call will change the crpc/mastiff database
-    checkout('onekingslane', 'check_onsale_event', rpc)
-    checkout('onekingslane', 'check_onsale_product', rpc)
+    # call will change the crpc/mastiff database
+    checkout('ruelala', 'check_onsale_product', rpc, full)
+    checkout('onekingslane', 'check_onsale_event', rpc, full)
+    checkout('onekingslane', 'check_onsale_product', rpc, full)
+    checkout('lot18', 'check_onsale_product', rpc, full)
+    checkout('gilt', 'check_onsale_product', rpc, full)
+    checkout('nomorerack', 'check_onsale_product', rpc, full)
+    checkout('belleandclive', 'check_onsale_product', rpc, full)
+    checkout('venteprivee', 'check_onsale_product', rpc, full)
+    checkout('ideeli', 'check_onsale_product', rpc, full)
+    checkout('modnique', 'check_onsale_product', rpc, full)
+    checkout('totsy', 'check_onsale_product', rpc, full)
+    checkout('nordstrom', 'check_onsale_product', rpc, full)
+    checkout('6pm', 'check_onsale_product', rpc, full)
+    checkout('ashford', 'check_onsale_product', rpc, full)
+    checkout('saksfifthavenue', 'check_onsale_product', rpc, full)
 
-    checkout('ruelala', 'check_onsale_product', rpc)
-
-    checkout('bluefly', 'check_onsale_product', rpc)
-
-    checkout('lot18', 'check_onsale_product', rpc)
-
-    checkout('gilt', 'check_onsale_product', rpc)
-
-    checkout('nomorerack', 'check_onsale_product', rpc)
-
-    # add offsale product a products_end
-    checkout('nomorerack', 'check_offsale_product', rpc)
-
-    checkout('belleandclive', 'check_onsale_product', rpc)
-
-    checkout('venteprivee', 'check_onsale_product', rpc)
-
-    checkout('ideeli', 'check_onsale_product', rpc)
-
-    checkout('modnique', 'check_onsale_product', rpc)
-
-    checkout('totsy', 'check_onsale_product', rpc)
-
-    checkout('nordstrom', 'check_onsale_product', rpc)
-    checkout('6pm', 'check_onsale_product', rpc)
-    checkout('ashford', 'check_onsale_product', rpc)
-    checkout('saksfifthavenue', 'check_onsale_product', rpc)
-
-    # add endtime to nomorerack offstore products
-    checkout('nomorerack', 'check_offsale_product', rpc)
+    if full:
+        # add endtime to nomorerack offstore products
+        checkout('nomorerack', 'check_offsale_product', rpc, full)
+        checkout('bluefly', 'check_onsale_product', rpc, full)
 
 def control():
     log_file = '/tmp/onoff_sale.log'
     if os.path.isfile(log_file):
+        # when log file exists, we do full=False update ( every 600 seconds )
+        try:
+            offsale_schedule(full=False)
+        except:
+            traceback.print_exc()
+
         if time.time() - os.path.getctime(log_file) > 86400:
             os.unlink(log_file)
         else:
             return
     else:
+        # else, we create one, and do full=True update (every one day)
         with open(log_file, 'w') as fd:
             try:
                 offsale_schedule()

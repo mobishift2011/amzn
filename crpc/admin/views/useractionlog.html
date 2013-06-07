@@ -25,6 +25,7 @@
                     <th>用户(Session)</th>
                     <th>行为</th>
                     <th>我站产品</th>
+                    <th>Referer</th>
                     <th>原站链接</th>
                   </tr>
                 </thead>
@@ -35,6 +36,7 @@
                       <td>{{log.session}}</td>
                       <td>{{log.action}}</td>
                       <td><a href="http://www.favbuy.com/product/{{log.pid}}/" target="_blank">{{log.title}}</a></td>
+                      <td>{{log.referer}}</td>
                       <td><a href="{{log.url}}">原站链接</a></td>
                     </tr>
                   {% endfor %}

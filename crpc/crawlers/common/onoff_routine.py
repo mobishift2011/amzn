@@ -125,6 +125,9 @@ def offsale_schedule():
 
     checkout('nomorerack', 'check_onsale_product', rpc)
 
+    # add offsale product a products_end
+    checkout('nomorerack', 'check_offsale_product', rpc)
+
     checkout('belleandclive', 'check_onsale_product', rpc)
 
     checkout('venteprivee', 'check_onsale_product', rpc)

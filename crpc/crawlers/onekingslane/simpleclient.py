@@ -107,6 +107,9 @@ class CheckServer(object):
         soldout = True if tree.cssselect('.sold-out') else False
         if soldout !=  prd.soldout:
             print 'onekingslane product[{0}] soldout error: {1} vs {2}'.format(prd.combine_url, prd.soldout, soldout)
+            prd.soldout = soldout
+            prd.update_history.update({ 'soldout': datetime.utcnow() })
+            prd.save()
 
         return True
 

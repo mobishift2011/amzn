@@ -49,6 +49,7 @@ def spout_obj(site, method, full=False):
             obj = m.Product.objects(Q(products_end__gt=datetime.utcnow()) | Q(products_end__exists=False)).timeout(False)
         print '{0} have {1} on sale event/category products.'.format(site, obj.count())
         for o in obj:
+            print o.url()
             yield {'id': o.key, 'url': o.url()}
 
 #        if hasattr(m, 'Category'):
@@ -93,6 +94,7 @@ def call_rpc(rpc, site, method, *args, **kwargs):
     try:
         rpc.run_cmd(site, method, args, kwargs)
     except Exception as e:
+        print 'RPC call error: {0}'.format(traceback.format_exc())
         key = kwargs.get('id')
         url = kwargs.get('url')
         f = Fail()
@@ -102,7 +104,6 @@ def call_rpc(rpc, site, method, *args, **kwargs):
         f.url = url
         f.message = traceback.format_exc()
         f.save()
-        #print 'RPC call error: {0}'.format(traceback.format_exc())
 
 
 def checkout(site, method, rpc, concurrency=10, full=False):
@@ -130,26 +131,26 @@ def offsale_schedule(full=False):
     # rpc = get_rpcs()
 
     # call will change the crpc/mastiff database
-    checkout('ruelala', 'check_onsale_product', rpc, full)
-    checkout('onekingslane', 'check_onsale_event', rpc, full)
-    checkout('onekingslane', 'check_onsale_product', rpc, full)
-    checkout('lot18', 'check_onsale_product', rpc, full)
-    checkout('gilt', 'check_onsale_product', rpc, full)
-    checkout('nomorerack', 'check_onsale_product', rpc, full)
-    checkout('belleandclive', 'check_onsale_product', rpc, full)
-    checkout('venteprivee', 'check_onsale_product', rpc, full)
-    checkout('ideeli', 'check_onsale_product', rpc, full)
-    checkout('modnique', 'check_onsale_product', rpc, full)
-    checkout('totsy', 'check_onsale_product', rpc, full)
-    checkout('nordstrom', 'check_onsale_product', rpc, full)
-    checkout('6pm', 'check_onsale_product', rpc, full)
-    checkout('ashford', 'check_onsale_product', rpc, full)
-    checkout('saksfifthavenue', 'check_onsale_product', rpc, full)
+    checkout('ruelala', 'check_onsale_product', rpc, full=full)
+    checkout('onekingslane', 'check_onsale_event', rpc, full=full)
+    checkout('onekingslane', 'check_onsale_product', rpc, full=full)
+    checkout('lot18', 'check_onsale_product', rpc, full=full)
+    checkout('gilt', 'check_onsale_product', rpc, full=full)
+    checkout('nomorerack', 'check_onsale_product', rpc, full=full)
+    checkout('belleandclive', 'check_onsale_product', rpc, full=full)
+    checkout('venteprivee', 'check_onsale_product', rpc, full=full)
+    checkout('ideeli', 'check_onsale_product', rpc, full=full)
+    checkout('modnique', 'check_onsale_product', rpc, full=full)
+    checkout('totsy', 'check_onsale_product', rpc, full=full)
+    checkout('nordstrom', 'check_onsale_product', rpc, full=full)
+    checkout('6pm', 'check_onsale_product', rpc, full=full)
+    checkout('ashford', 'check_onsale_product', rpc, full=full)
+    checkout('saksfifthavenue', 'check_onsale_product', rpc, full=full)
 
     if full:
         # add endtime to nomorerack offstore products
-        checkout('nomorerack', 'check_offsale_product', rpc, full)
-        checkout('bluefly', 'check_onsale_product', rpc, full)
+        checkout('nomorerack', 'check_offsale_product', rpc, full=full)
+        checkout('bluefly', 'check_onsale_product', rpc, full=full)
 
 def control():
     log_file = '/tmp/onoff_sale.log'

@@ -13,6 +13,7 @@ from crawlers.common.stash import picked_crawlers
 from helpers.rpc import get_rpcs
 
 from crawlers.common.events import *
+from backends.monitor.models import Fail
 
 common_saved.bind('sync')
 def do_nothing(*args, **kwargs):
@@ -92,7 +93,16 @@ def call_rpc(rpc, site, method, *args, **kwargs):
     try:
         rpc.run_cmd(site, method, args, kwargs)
     except Exception as e:
-        print 'RPC call error: {0}'.format(traceback.format_exc())
+        key = kwargs.get('id')
+        url = kwargs.get('url')
+        f = Fail()
+        f.site = site
+        f.method = method
+        f.key = key
+        f.url = url
+        f.message = traceback.format_exc()
+        f.save()
+        #print 'RPC call error: {0}'.format(traceback.format_exc())
 
 
 def checkout(site, method, rpc, concurrency=10):
@@ -124,9 +134,6 @@ def offsale_schedule():
     checkout('gilt', 'check_onsale_product', rpc)
 
     checkout('nomorerack', 'check_onsale_product', rpc)
-
-    # add offsale product a products_end
-    checkout('nomorerack', 'check_offsale_product', rpc)
 
     checkout('belleandclive', 'check_onsale_product', rpc)
 

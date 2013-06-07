@@ -105,11 +105,11 @@ def call_rpc(rpc, site, method, *args, **kwargs):
         #print 'RPC call error: {0}'.format(traceback.format_exc())
 
 
-def checkout(site, method, rpc, concurrency=10):
+def checkout(site, method, rpc, concurrency=10, full=False):
     """ """
     rpcs = rpc if isinstance(rpc, list) else [rpc]
     pool = Pool(len(rpcs) * concurrency)
-    ret = spout_obj(site, method)
+    ret = spout_obj(site, method, full=full)
     if ret is False:
         return
     for kwargs in ret:
@@ -118,50 +118,54 @@ def checkout(site, method, rpc, concurrency=10):
     pool.join()
 
 
-def offsale_schedule():
+def offsale_schedule(full=False):
+    """  do checking
+
+    if full is False, spout products whose list_update_time is old(so we should update them manually)
+    if full is True, spout products no matter what value list_update_time is
+    """
     from checkserver import CheckServer
     rpc = CheckServer()
     # rpc = get_rpcs([{'host_string':'root@127.0.0.1', 'port':8899}])
     # rpc = get_rpcs()
 
-# call will change the crpc/mastiff database
-    checkout('ruelala', 'check_onsale_product', rpc)
-    checkout('onekingslane', 'check_onsale_event', rpc)
-    checkout('onekingslane', 'check_onsale_product', rpc)
+    # call will change the crpc/mastiff database
+    checkout('ruelala', 'check_onsale_product', rpc, full)
+    checkout('onekingslane', 'check_onsale_event', rpc, full)
+    checkout('onekingslane', 'check_onsale_product', rpc, full)
+    checkout('lot18', 'check_onsale_product', rpc, full)
+    checkout('gilt', 'check_onsale_product', rpc, full)
+    checkout('nomorerack', 'check_onsale_product', rpc, full)
+    checkout('belleandclive', 'check_onsale_product', rpc, full)
+    checkout('venteprivee', 'check_onsale_product', rpc, full)
+    checkout('ideeli', 'check_onsale_product', rpc, full)
+    checkout('modnique', 'check_onsale_product', rpc, full)
+    checkout('totsy', 'check_onsale_product', rpc, full)
+    checkout('nordstrom', 'check_onsale_product', rpc, full)
+    checkout('6pm', 'check_onsale_product', rpc, full)
+    checkout('ashford', 'check_onsale_product', rpc, full)
+    checkout('saksfifthavenue', 'check_onsale_product', rpc, full)
 
-    checkout('lot18', 'check_onsale_product', rpc)
-
-    checkout('gilt', 'check_onsale_product', rpc)
-
-    checkout('nomorerack', 'check_onsale_product', rpc)
-
-    checkout('belleandclive', 'check_onsale_product', rpc)
-
-    checkout('venteprivee', 'check_onsale_product', rpc)
-
-    checkout('ideeli', 'check_onsale_product', rpc)
-
-    checkout('modnique', 'check_onsale_product', rpc)
-
-    checkout('totsy', 'check_onsale_product', rpc)
-
-    checkout('nordstrom', 'check_onsale_product', rpc)
-    checkout('6pm', 'check_onsale_product', rpc)
-    checkout('ashford', 'check_onsale_product', rpc)
-    checkout('saksfifthavenue', 'check_onsale_product', rpc)
-
-    # add endtime to nomorerack offstore products
-    checkout('nomorerack', 'check_offsale_product', rpc)
-    checkout('bluefly', 'check_onsale_product', rpc)
+    if full:
+        # add endtime to nomorerack offstore products
+        checkout('nomorerack', 'check_offsale_product', rpc, full)
+        checkout('bluefly', 'check_onsale_product', rpc, full)
 
 def control():
     log_file = '/tmp/onoff_sale.log'
     if os.path.isfile(log_file):
+        # when log file exists, we do full=False update ( every 600 seconds )
+        try:
+            offsale_schedule(full=False)
+        except:
+            traceback.print_exc()
+
         if time.time() - os.path.getctime(log_file) > 86400:
             os.unlink(log_file)
         else:
             return
     else:
+        # else, we create one, and do full=True update (every one day)
         with open(log_file, 'w') as fd:
             try:
                 offsale_schedule()

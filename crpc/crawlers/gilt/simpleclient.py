@@ -83,14 +83,12 @@ class CheckServer(object):
                 prd.save()
 
         else: # women, men, children
-            node = tree.cssselect('#main #product-detail div.summary')[0]
-            title = node.cssselect('header.overview h1.product-name div.product-display-name')[0].text_content().strip()
+            node = tree.cssselect('section#details section.summary')[0]
+            title = node.cssselect('header.overview h1.product-name')[0].text_content().strip()
             try:
-                brand = node.cssselect('header.overview h2.brand-name .primary')[0].text_content().strip()
+                brand = node.cssselect('header.overview h2.brand-name .brand-name-text')[0].text_content().strip()
             except IndexError:
                 print '\n\ngilt brand {0} \n\n'.format(url)
-            soldout = node.cssselect('form.sku-selection div.submit-area a.add-to-wait-list')[0].get('class')
-            soldout = False if 'hidden' in soldout else True
 
             listprice = node.cssselect('header.overview div.price div.original-price span.msrp')
             listprice = listprice[0].text_content().replace('$', '').replace(',', '').strip() if listprice else ''
@@ -110,7 +108,7 @@ class CheckServer(object):
                 prd.update_history.update({ 'listprice': datetime.utcnow() })
                 prd.save()
 
-            price = node.cssselect('header.overview div.price div.sale-price span.nouveau-price')[0].text_content().replace('$', '').replace(',', '').strip()
+            price = node.cssselect('header.overview .price div.sale-price span')[0].text_content().replace('$', '').replace(',', '').strip()
             if ('-' in price or '-' in prd.price) and \
                     prd.price.replace('$', '').replace(',', '').strip() != price:
                 print 'gilt product[{0}] price {1} vs {2}'.format(url, prd.price.replace('$', '').replace(',', '').strip(), price)
@@ -127,11 +125,11 @@ class CheckServer(object):
 
             if prd.title.lower() != title.lower():
                 print 'gilt product[{0}] title error: [{1}, {2}]'.format(url, prd.title.encode('utf-8').lower(), title.encode('utf-8').lower())
-            if prd.soldout != soldout:
-                print 'gilt product[{0}] soldout error: [{1}, {2}]'.format(url, prd.soldout, soldout)
-                prd.soldout = soldout
-                prd.update_history.update({ 'soldout': datetime.utcnow() })
-                prd.save()
+#            if prd.soldout != soldout:
+#                print 'gilt product[{0}] soldout error: [{1}, {2}]'.format(url, prd.soldout, soldout)
+#                prd.soldout = soldout
+#                prd.update_history.update({ 'soldout': datetime.utcnow() })
+#                prd.save()
 
 
 
@@ -158,4 +156,4 @@ class CheckServer(object):
         return 'gilt_'+product_id, title+'\n'+description
 
 if __name__ == '__main__':
-    CheckServer().check_onsale_product('142260201-hiho-batik-mom-onesie-2-pack', 'http://www.gilt.com/sale/children/beanstalx-by-jaxxwear/product/142260201-hiho-batik-mom-onesie-2-pack')
+    CheckServer().check_onsale_product('142260201-hiho-batik-mom-onesie-2-pack', 'http://www.gilt.com/brand/hiho-batik/product/142260201-hiho-batik-mom-onesie-2-pack')

@@ -926,6 +926,5 @@ class Server(object):
 
 if __name__ == '__main__':
     server = Server()
-    server.crawl_product('http://www.gilt.com/home/sale/outdoor-681413/1010238275-koverton-serene-barstool-set-of-2')
+    server.crawl_product('http://www.gilt.com/brand/hiho-batik/product/142260201-hiho-batik-mom-onesie-2-pack')
     exit()
-    server.crawl_product('http://www.gilt.com/sale/women/helmut-lang-4469/product/1000949706-helmut-by-helmut-lang-drape-front-ribbed-cardigan')

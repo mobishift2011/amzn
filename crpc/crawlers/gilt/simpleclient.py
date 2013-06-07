@@ -108,7 +108,7 @@ class CheckServer(object):
                 prd.update_history.update({ 'listprice': datetime.utcnow() })
                 prd.save()
 
-            price = node.cssselect('header.overview div.price div.sale-price span.nouveau-price')[0].text_content().replace('$', '').replace(',', '').strip()
+            price = node.cssselect('header.overview .price div.sale-price span')[0].text_content().replace('$', '').replace(',', '').strip()
             if ('-' in price or '-' in prd.price) and \
                     prd.price.replace('$', '').replace(',', '').strip() != price:
                 print 'gilt product[{0}] price {1} vs {2}'.format(url, prd.price.replace('$', '').replace(',', '').strip(), price)

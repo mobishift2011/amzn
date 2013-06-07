@@ -13,6 +13,11 @@
                 </ul>
             </div>
             <div class="sortable row-fluid">
+              {% if site %}
+                <h2>User actions within 24hours about site {{site}}</h2>
+              {% else %}
+                <h2>User actions within 24hours</h2>
+              {% endif %}
               <table class="table table-striped">
                 <thead>
                   <tr>

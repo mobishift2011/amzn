@@ -1,0 +1,45 @@
+{% extends "layout.html" %}
+{% block content %}
+        <!-- content starts -->
+            <div>
+                <ul class="breadcrumb">
+                    <li>
+                        <a href="#">Home</a> <span class="divider">/</span>
+                    </li>
+                    <li>
+                        <a href="/useractionlog/">UserActionLog</a>
+                    </li>
+                    <li class="pull-right" id="time"></li>
+                </ul>
+            </div>
+            <div class="sortable row-fluid">
+              <table class="table table-striped">
+                <thead>
+                  <tr>
+                    <th>时间</th>
+                    <th>用户(Session)</th>
+                    <th>行为</th>
+                    <th>我站产品</th>
+                    <th>原站链接</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for log in logs %}
+                    <tr>
+                      <td>{{log.time}}</td>
+                      <td>{{log.session}}</td>
+                      <td>{{log.action}}</td>
+                      <td><a href="http://www.favbuy.com/product/{{log.pid}}/" target="_blank">{{log.title}}</a></td>
+                      <td><a href="{{log.url}}">原站链接</a></td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            
+{% endblock %}
+
+{% block script %}
+<script>
+</script>
+{% endblock %}

@@ -222,6 +222,16 @@ class AsyncProcessMixIn(BaseHandler):
             tornado.ioloop.IOLoop.instance().add_callback(lambda: callback(result))
         _worker.apply_async(func, argc, kwargs, _callback)
 
+class UserActionLogHandler(BaseHandler):
+    @tornado.web.authenticated
+    def get(self):
+        site = self.get_argument('site', None)
+        if site:
+            logs = api.useraction.get(special='recent_useraction_by_site', site=site)
+        else:
+            logs = api.useraction.get(special='recent_useraction_by_site')
+        
+        self.render("useractionlog.html", logs=logs)
 
 class IndexHandler(BaseHandler):
     @tornado.web.authenticated
@@ -240,7 +250,7 @@ class IndexHandler(BaseHandler):
         num_view_products = api.useraction.get(limit=1, name='view product')['meta']['total_count']
         num_new_view_products_a = api.useraction.get(**{'limit':1, 'time__gt':yesterday, 'name':'view product','values.available':'true'})['meta']['total_count']
         num_new_view_products = api.useraction.get(limit=1, time__gt=yesterday, name='view product')['meta']['total_count']
-        buys = api.useraction.get(limit=1000, name='click buy', order_by='-time', time__gt=yesterday)['objects']
+        buys = api.useraction.get(limit=2000, name='click buy', order_by='-time', time__gt=yesterday)['objects']
         #buys = api.useraction.get(limit=1000, name='click buy', order_by='-time')['objects']
 
         top_buys = {}
@@ -250,6 +260,7 @@ class IndexHandler(BaseHandler):
         for b in buys:
             c_top_buys[ b['values']['product_id'] ] += 1
             pids.append( b['values']['product_id'] )
+        pids = list(set(pids))
         c10_top_buys = c_top_buys.most_common(10)
         for id, count in c10_top_buys:
             top_buys[id] = {'count': count}
@@ -1323,6 +1334,7 @@ application = tornado.web.Application([
     (r"/logout/", LogoutHandler),
     (r"/crawler/([^/]*)/?(.*)", CrawlerHandler),
     (r"/monitor/", MonitorHandler),
+    (r"/useractionlog/", UserActionLogHandler),
     (r"/dashboard/(.*)", DashboardHandler),
     (r"/viewdata/(.*)", ViewDataHandler),
     (r"/editdata/(.*)/(.*)/", EditDataHandler),

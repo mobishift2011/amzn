@@ -142,15 +142,15 @@ def offsale_schedule(full=False):
     checkout('ideeli', 'check_onsale_product', rpc, full=full)
     checkout('modnique', 'check_onsale_product', rpc, full=full)
     checkout('totsy', 'check_onsale_product', rpc, full=full)
-    checkout('nordstrom', 'check_onsale_product', rpc, full=full)
-    checkout('6pm', 'check_onsale_product', rpc, full=full)
-    checkout('ashford', 'check_onsale_product', rpc, full=full)
-    checkout('saksfifthavenue', 'check_onsale_product', rpc, full=full)
 
     if full:
         # add endtime to nomorerack offstore products
         checkout('nomorerack', 'check_offsale_product', rpc, full=full)
         checkout('bluefly', 'check_onsale_product', rpc, full=full)
+        checkout('nordstrom', 'check_onsale_product', rpc, full=full)
+        checkout('6pm', 'check_onsale_product', rpc, full=full)
+        checkout('ashford', 'check_onsale_product', rpc, full=full)
+        checkout('saksfifthavenue', 'check_onsale_product', rpc, full=full)
 
 def control():
     log_file = '/tmp/onoff_sale.log'

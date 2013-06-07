@@ -129,8 +129,8 @@
   // pagination
   $('a.pagination').live('click', function(){
     if ($(this).attr('page')) {
-      param['offset'] = ($(this).attr('page')-1)*20;
-      var url = "/viewdata/products?" + $.param(param);
+      param['page'] = $(this).attr('page');
+      var url = "/viewdata/editlog?" + $.param(param);
       window.location.href = url;
     }
   });

@@ -83,7 +83,9 @@ class Fail(Document):
     message         =   StringField()
 
     meta        =   {
-         "db_alias": DB,
+        "db_alias": DB,
+        "max_documents": 100*1000,
+        "max_size": 5*1000*1000*1000,
     }
 
     def __str__(self):
@@ -131,6 +133,8 @@ class Task(Document):
     # meta
     meta        =   {
         "indexes":  ["status", "site", "method", "started_at", "updated_at", "ended_at"],
+        "max_documents": 10*1000,
+        "max_size": 500*1000*1000,
         "db_alias": DB,
     }
 

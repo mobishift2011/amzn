@@ -114,6 +114,7 @@ def offsale_schedule():
     checkout('gilt', 'check_onsale_product', rpc)
 
     checkout('nomorerack', 'check_onsale_product', rpc)
+
     # add offsale product a products_end
     checkout('nomorerack', 'check_offsale_product', rpc)
 
@@ -131,6 +132,9 @@ def offsale_schedule():
     checkout('6pm', 'check_onsale_product', rpc)
     checkout('ashford', 'check_onsale_product', rpc)
     checkout('saksfifthavenue', 'check_onsale_product', rpc)
+
+    # add endtime to nomorerack offstore products
+    checkout('nomorerack', 'check_offsale_product', rpc)
 
 def control():
     log_file = '/tmp/onoff_sale.log'

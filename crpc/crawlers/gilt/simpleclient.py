@@ -35,6 +35,8 @@ class CheckServer(object):
             return
 
         ret = self.s.get(url, headers=self.headers)
+        if ret.url == 'http://www.gilt.com/':
+            return
         tree = self.get_correct_tree(ret.content)
         if '/home/sale' in url or '/sale/home' in url: # home
             node = tree.cssselect('section#details section.summary')[0]

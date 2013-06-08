@@ -41,7 +41,7 @@ class CheckServer(object):
             return
 
         ret = self.s.get(url)
-        if ret.url == 'http://www.ruelala.com/event':
+        if ret.url == 'http://www.ruelala.com/event' or ret.url == 'http://www.ruelala.com/event/index':
             if prd.muri:
                 self.offsale_update(prd.muri)
             if not prd.products_end or prd.products_end > datetime.utcnow():

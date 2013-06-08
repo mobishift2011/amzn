@@ -36,6 +36,9 @@ class CheckServer(object):
 
         ret = self.s.get(url, headers=self.headers)
         if ret.url == 'http://www.gilt.com/':
+            prd.soldout = True
+            prd.update_history.update({ 'soldout': datetime.utcnow() })
+            prd.save()
             return
         tree = self.get_correct_tree(ret.content)
         if '/home/sale' in url or '/sale/home' in url: # home

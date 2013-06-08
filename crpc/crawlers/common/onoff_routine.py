@@ -44,7 +44,7 @@ def spout_obj(site, method, full=False):
     if method == 'check_onsale_product':
         if not full:
             obj = m.Product.objects( (Q(products_end__gt=datetime.utcnow()) | Q(products_end__exists=False)) \
-                        & Q(list_update_time__lt=datetime.utcnow()-timedelta(hours=1)) ).timeout(False)
+                        & Q(list_update_time__lt=datetime.utcnow()-timedelta(hours=1)) & Q(soldout=False)).timeout(False)
         else:
             obj = m.Product.objects(Q(products_end__gt=datetime.utcnow()) | Q(products_end__exists=False)).timeout(False)
         print '{0} have {1} on sale event/category products.'.format(site, obj.count())
@@ -106,7 +106,7 @@ def call_rpc(rpc, site, method, *args, **kwargs):
         f.save()
 
 
-def checkout(site, method, rpc, concurrency=10, full=False):
+def checkout(site, method, rpc, concurrency=30, full=False):
     """ """
     rpcs = rpc if isinstance(rpc, list) else [rpc]
     pool = Pool(len(rpcs) * concurrency)

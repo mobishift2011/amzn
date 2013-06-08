@@ -12,21 +12,21 @@
                     <li class="pull-right" id="time"></li>
                 </ul>
             </div>
-            <div class="sortable row-fluid">
+            <div class="row-fluid">
               {% if site %}
-                <h2>User actions within 24hours about site {{site}}</h2>
+                <h2>User actions within 24 hours about site {{site}}</h2>
               {% else %}
-                <h2>User actions within 24hours</h2>
+                <h2>User actions within 24 hours</h2>
               {% endif %}
-              <table class="table table-striped">
+              <table class="table table-striped" style="table-layout:fixed;width:100%;word-wrap:break-word;">
                 <thead>
                   <tr>
-                    <th>时间</th>
-                    <th>用户(Session)</th>
-                    <th>行为</th>
-                    <th>我站产品</th>
+                    <th width="18%">UTC Time</th>
+                    <th width="10%">User(Session)</th>
+                    <th width="10%">Action</th>
+                    <th>Title</th>
                     <th>Referer</th>
-                    <th>原站链接</th>
+                    <th width="10%">Original Link</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -36,8 +36,8 @@
                       <td>{{log.session}}</td>
                       <td>{{log.action}}</td>
                       <td><a href="http://www.favbuy.com/product/{{log.pid}}/" target="_blank">{{log.title}}</a></td>
-                      <td>{{log.referer}}</td>
-                      <td><a href="{{log.url}}">原站链接</a></td>
+                      <td><a target="_blank" href="{{log.referer}}">{{log.referer}}</a></td>
+                      <td><a target="_blank" href="{{log.url}}">Open Link</a></td>
                     </tr>
                   {% endfor %}
                 </tbody>

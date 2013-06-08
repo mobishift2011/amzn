@@ -231,7 +231,7 @@ class UserActionLogHandler(BaseHandler):
         else:
             logs = api.useraction.get(special='recent_useraction_by_site')
         
-        self.render("useractionlog.html", logs=logs)
+        self.render("useractionlog.html", logs=logs, site=site)
 
 class IndexHandler(BaseHandler):
     @tornado.web.authenticated

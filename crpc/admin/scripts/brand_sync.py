@@ -14,7 +14,7 @@ logger = getlogger('brandsync', filename='/tmp/brandsync.log')
 
 def sync2power(host="http://localhost:1317/brand/"):
 	"""Brand of catalogIndex sync to the one of power"""
-	brands = EditBrand.objects(is_delete=False)
+	brands = EditBrand.objects()
 	logger.debug('Total edit brands to sync {0}: {1}'.format(host, len(brands)))
 
 	for brand in brands:

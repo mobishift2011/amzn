@@ -13,12 +13,12 @@
                         <input type="text" class="input-small datepicker" id="date" value="">
                         &nbsp;
                         <a class="btn btn-primary btn-small" href="/useraction/overview?date=0">Today</a>
-                        <a class="btn btn-primary btn-small" href="/useraction/overview?date=1">Yesterday</a>
-                        <a class="btn btn-primary btn-small" href="/useraction/overview?date=2">2 days ago</a>
-                        <a class="btn btn-primary btn-small" href="/useraction/overview?date=3">3 days ago</a>
-                        <a class="btn btn-primary btn-small" href="/useraction/overview?date=4">4 days ago</a>
-                        <a class="btn btn-primary btn-small" href="/useraction/overview?date=5">5 days ago</a>
-                        <a class="btn btn-primary btn-small" href="/useraction/overview?date=5">6 days ago</a>
+                        <a class="btn btn-primary btn-small" href="/useraction/overview?date=-1">Yesterday</a>
+                        <a class="btn btn-primary btn-small" href="/useraction/overview?date=-2">2 days ago</a>
+                        <a class="btn btn-primary btn-small" href="/useraction/overview?date=-3">3 days ago</a>
+                        <a class="btn btn-primary btn-small" href="/useraction/overview?date=-4">4 days ago</a>
+                        <a class="btn btn-primary btn-small" href="/useraction/overview?date=-5">5 days ago</a>
+                        <a class="btn btn-primary btn-small" href="/useraction/overview?date=-6">6 days ago</a>
                       </div>
                     </div>
                 </fieldset>
@@ -141,9 +141,9 @@
                                 show: true,
                                 radius: 2 / 3,
                                 formatter: function (label, series) {
-                                    return '<div style="font-size:10;text-align:center;padding:2px;color:black;margin-left:-80%;margin-top:-20%;">' + label + '<br/>' + Math.round(series.percent) + '%('+series.data[0][1] + ')</div>';
+                                    return '<div style="font-size:8pt;text-align:center;padding:0px;color:black;margin:0px;background-color:#def">' + label + ': '+ Math.round(series.percent) + '%('+series.data[0][1] + ')</div>';
                                 },
-                                threshold: 0.03
+                                threshold: 0.01
                             }
                     }
             },
@@ -162,7 +162,7 @@
 
     $('#date').live('change', function(){
         var thedate = $(this).val();
-        var date = Math.floor((new Date().getTime() - new Date(thedate).getTime())/86400000)
+        var date = -Math.floor((new Date().getTime() - new Date(thedate).getTime())/86400000)
         window.location.href = '/useraction/overview?date='+date;
     });
 </script>

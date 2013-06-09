@@ -269,9 +269,9 @@ function poll_1(interval){
                 var d = data[i];
                 html += '<li>'
                 if (d['user']['screen_name']){
-                    html += '<a href="#">' + d['user']['screen_name'] + '</a>';
+                    html += '<a href="/useraction/userlog?session='+d['session_id']+'">' + d['user']['screen_name'] + '</a>';
                 }else{
-                    html += '<a href="#">' + 'user_'+d['session_id'].substr(0,10) + '</a>';
+                    html += '<a href="/useraction/userlog?session='+d['session_id']+'">' + 'user_'+d['session_id'].substr(0,10) + '</a>';
                 }
                 html += ' ';
                 if (d['values']['event_id']){

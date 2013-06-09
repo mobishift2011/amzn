@@ -257,13 +257,16 @@ class UserActionHandler(BaseHandler):
         osdata = []
         browserdata = []
         logindata = []
+        countrydata = []
         for k in overview['os']:
             osdata.append({'label':k, 'data':overview['os'][k] })
         for k in overview['browser']:
             browserdata.append({'label':k, 'data':overview['browser'][k]}) 
+        for k in overview['country']:
+            countrydata.append({'label':k, 'data':overview['country'][k]})
         for k in overview['login']:
             logindata.append({'label':k, 'data':overview['login'][k]}) 
-        self.render("useraction/overview.html", overview=overview, osdata=osdata, browserdata=browserdata, logindata=logindata) 
+        self.render("useraction/overview.html", overview=overview, osdata=osdata, browserdata=browserdata, logindata=logindata, countrydata=countrydata) 
 
     def sitelog(self):
         site = self.get_argument('site', None)

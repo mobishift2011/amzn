@@ -238,10 +238,18 @@ class UserActionHandler(BaseHandler):
             self.userlog()
     
     def topusers(self):
-        self.render("useraction/topusers.html")
+        date = int(self.get_argument('date', '0'))
+        topusers = api.useraction.get(special='useraction_topusers', date=date)
+        self.render("useraction/topusers.html", topusers=topusers)
 
     def userlog(self):
-        self.render("useraction/userlog.html")
+        page = int(self.get_argument('page', '1'))
+        session = self.get_argument('session')
+        data = api.useraction.get(session_id=session, order_by='-time', offset=(page-1)*20, limit=20)
+        total_count = data['meta']['total_count']
+        pagination = Pagination(page, 20, total_count)
+        logs = data['objects']
+        self.render("useraction/userlog.html", pagination=pagination, logs=logs)
 
     def overview(self):
         date = int(self.get_argument('date', '0'))

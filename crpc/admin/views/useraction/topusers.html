@@ -5,6 +5,60 @@
   {% include "useraction/subnav.html" %}
   <div>
     <div class="container">
+            <form class="form-horizontal" style="margin-left:-50px;">
+                <fieldset>
+                    <div class="control-group">
+                      <label class="control-label" for="date">Choose Date</label>
+                      <div class="controls">
+                        <input type="text" class="input-small datepicker" id="date" value="">
+                        &nbsp;
+                        <a class="btn btn-primary btn-small" href="/useraction/topusers?date=0">Today</a>
+                        <a class="btn btn-primary btn-small" href="/useraction/topusers?date=-1">Yesterday</a>
+                        <a class="btn btn-primary btn-small" href="/useraction/topusers?date=-2">2 days ago</a>
+                        <a class="btn btn-primary btn-small" href="/useraction/topusers?date=-3">3 days ago</a>
+                        <a class="btn btn-primary btn-small" href="/useraction/topusers?date=-4">4 days ago</a>
+                        <a class="btn btn-primary btn-small" href="/useraction/topusers?date=-5">5 days ago</a>
+                        <a class="btn btn-primary btn-small" href="/useraction/topusers?date=-6">6 days ago</a>
+                      </div>
+                    </div>
+                </fieldset>
+            </form>
+            <div class="box span8">
+                <div class="box-header well">
+                    <h2><i class="icon-list-alt"></i> The Most Active Users</h2>
+                    <div class="box-icon">
+                        <a href="#" class="btn btn-setting btn-round"><i class="icon-cog"></i></a>
+                        <a href="#" class="btn btn-minimize btn-round"><i class="icon-chevron-up"></i></a>
+                        <a href="#" class="btn btn-close btn-round"><i class="icon-remove"></i></a>
+                    </div>
+                </div>
+                <div class="box-content">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>SessionID</th>
+                                <th>Num of Activities</th>
+                                <th>User Name</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for session, count in topusers.topusers %}
+                            <tr>
+                                <td>{{session}}</td>
+                                <td>{{count}}</td>
+                                {% if topusers.sessionuser[session] %}
+                                <td>{{topusers.sessionuser[session]['username']}}</td>
+                                {% else %}
+                                <td>Anonymous User</td>
+                                {% endif %}
+                                <td><a href="/useraction/userlog?session={{session}}">see detail</a></td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
     </div>
     {% if pagination %}
     <div class="pagination pagination-centered">
@@ -36,4 +90,11 @@
 
 {% block script %}
 {% include "useraction/commonscript.html" %}
+<script>
+    $('#date').live('change', function(){
+        var thedate = $(this).val();
+        var date = -Math.floor((new Date().getTime() - new Date(thedate).getTime())/86400000)
+        window.location.href = '/useraction/topusers?date='+date;
+    });
+</script>
 {% endblock %}

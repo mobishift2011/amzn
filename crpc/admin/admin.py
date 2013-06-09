@@ -222,16 +222,48 @@ class AsyncProcessMixIn(BaseHandler):
             tornado.ioloop.IOLoop.instance().add_callback(lambda: callback(result))
         _worker.apply_async(func, argc, kwargs, _callback)
 
-class UserActionLogHandler(BaseHandler):
+class UserActionHandler(BaseHandler):
     @tornado.web.authenticated
-    def get(self):
+    def get(self, subpath):
+        if not subpath:
+            self.redirect('/useraction/overview')
+       
+        if subpath == 'overview':
+            self.overview() 
+        elif subpath == 'sitelog':
+            self.sitelog()
+        elif subpath == 'topusers':
+            self.topusers()
+        elif subpath == 'userlog':
+            self.userlog()
+    
+    def topusers(self):
+        self.render("useraction/topusers.html")
+
+    def userlog(self):
+        self.render("useraction/userlog.html")
+
+    def overview(self):
+        date = int(self.get_argument('date', '0'))
+        overview = api.useraction.get(special='useraction_overview', date=date)
+        osdata = []
+        browserdata = []
+        logindata = []
+        for k in overview['os']:
+            osdata.append({'label':k, 'data':overview['os'][k] })
+        for k in overview['browser']:
+            browserdata.append({'label':k, 'data':overview['browser'][k]}) 
+        for k in overview['login']:
+            logindata.append({'label':k, 'data':overview['login'][k]}) 
+        self.render("useraction/overview.html", overview=overview, osdata=osdata, browserdata=browserdata, logindata=logindata) 
+
+    def sitelog(self):
         site = self.get_argument('site', None)
         if site:
             logs = api.useraction.get(special='recent_useraction_by_site', site=site)
         else:
             logs = api.useraction.get(special='recent_useraction_by_site')
-        
-        self.render("useractionlog.html", logs=logs, site=site)
+        self.render("useraction/sitelog.html", logs=logs, site=site)
 
 class IndexHandler(BaseHandler):
     @tornado.web.authenticated
@@ -1334,7 +1366,7 @@ application = tornado.web.Application([
     (r"/logout/", LogoutHandler),
     (r"/crawler/([^/]*)/?(.*)", CrawlerHandler),
     (r"/monitor/", MonitorHandler),
-    (r"/useractionlog/", UserActionLogHandler),
+    (r"/useraction/(.*)", UserActionHandler),
     (r"/dashboard/(.*)", DashboardHandler),
     (r"/viewdata/(.*)", ViewDataHandler),
     (r"/editdata/(.*)/(.*)/", EditDataHandler),

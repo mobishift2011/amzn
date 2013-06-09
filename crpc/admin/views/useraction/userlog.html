@@ -1,0 +1,39 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<div id="main-content">
+  {% include "useraction/subnav.html" %}
+  <div>
+    <div class="container">
+    </div>
+    {% if pagination %}
+    <div class="pagination pagination-centered">
+      <ul>
+        {% if pagination.has_prev %}
+        <li><a class="pagination" page="{{pagination.page-1}}" href="#">Prev</a></li>
+        {% endif %}
+        {% for page in pagination.iter_pages() %}
+        {% if page %}
+          {% if page == pagination.page %}
+            <li class="active"><a class="pagination" page="" href="#">{{page}}</a></li>
+          {% else %}
+            <li><a class="pagination" page="{{page}}" href="#">{{page}}</a></li>
+          {% endif %}
+        {% else %}
+          <li><a class="pagination" page="" href="#">...</a></li>
+        {% endif %}
+        {% endfor %}
+        {% if pagination.has_next %}
+        <li><a class="pagination" page="{{pagination.page+1}}" href="#">Next</a></li>
+        {% endif %}
+      </ul>
+    </div>   
+    {% endif %}
+  </div>
+</div><!--main-content-->
+      
+{% endblock %}
+
+{% block script %}
+{% include "useraction/commonscript.html" %}
+{% endblock %}

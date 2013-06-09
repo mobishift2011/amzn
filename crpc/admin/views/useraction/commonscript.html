@@ -1,0 +1,23 @@
+<script>
+  // make nav css correct
+  $('li[name=useraction]').each(function(){
+    var link = $(this).find(">:first-child").attr('href');
+    if (window.location.href.indexOf(link) != -1){
+      $(this).addClass('active');
+    }
+  })
+
+  // make selection consistent with url
+  var param = $.deparam(window.location.href.substr(window.location.href.indexOf('?')+1));
+
+  // pagination
+  $('a.pagination').live('click', function(){
+    if ($(this).attr('page')) {
+      var param = {}
+      param['offset'] = ($(this).attr('page')-1)*80;
+      var url = "/useraction/recommend?" + $.param(param);
+      window.location.href = url;
+    }
+  });
+
+</script>

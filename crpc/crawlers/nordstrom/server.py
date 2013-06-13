@@ -115,7 +115,7 @@ class Server(object):
             self.crawl_listing_of_no_leaf(tree, ctx=ctx, **kwargs)
             return
 
-        product_nodes = listing_node.cssselect('div.row > div')
+        product_nodes = listing_node.cssselect('div.row div.fashion-item')
         if not product_nodes:
             self.crawl_listing_of_no_leaf(tree, ctx=ctx, **kwargs)
             return
@@ -123,12 +123,9 @@ class Server(object):
         category = Category.objects(key=kwargs.get('key')).first()
         no_discount_num = 0 # sometimes no discount product occurs between the  discount ones ordered by sale.
         for product_node in product_nodes:
-            if not product_node.get('id'):
-                continue
-
-            key = product_node.get('data-style-id')
+            key = product_node.get('id')
             if not key:
-                common_failed.send(sender=ctx, url=url, reason='listing product has no data-style-id')
+                common_failed.send(sender=ctx, url=url, reason='listing product has no id')
                 continue
 
             try:
@@ -351,22 +348,27 @@ if __name__ == '__main__':
     # server = zerorpc.Server(Server())
     # server.bind('tcp://0.0.0.0:{0}'.format(CRAWLER_PORT))
     # server.run()
+    from gevent.pool import Pool
+    pool = Pool()
 
     s = Server()
-    # s.crawl_category()
+    s.crawl_category()
 
-    counter = 0
-    categories = Category.objects()
-    for category in categories:
-        counter += 1
-        print '~~~~~~~~~~', counter
-        print category.combine_url; print
-        s.crawl_listing(category.combine_url, **{'key': category.key})
+    # counter = 0
+    # categories = Category.objects()
+    # for category in categories:
+    #     counter += 1
+    #     print '~~~~~~~~~~', counter
+    #     print category.combine_url; print
+    #     pool.spawn(s.crawl_listing, category.combine_url, **{'key': category.key})
+    #     # s.crawl_listing(category.combine_url, **{'key': category.key})
+    # pool.join()
 
         #style 1 auxpage
         # if category.combine_url == 'http://shop.nordstrom.com/c/spring-fervor?origin=topnav&cm_sp=Top Navigation-_-Women-_-Spring Trend Guide':
         #     s.crawl_listing(category.combine_url, **{'key': category.key})
         #     continue
 
-    # for product in Product.objects():
-    #     s.crawl_product(product.combine_url, **{'key': product.key})
+    for product in Product.objects():
+        print product.title
+        s.crawl_product(product.combine_url, **{'key': product.key})

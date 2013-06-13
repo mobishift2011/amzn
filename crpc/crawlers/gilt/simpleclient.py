@@ -35,7 +35,7 @@ class CheckServer(object):
             return
 
         ret = self.s.get(url, headers=self.headers)
-        if ret.url == 'http://www.gilt.com/':
+        if ret.url == 'http://www.gilt.com/' or ret.content == '':
             prd.soldout = True
             prd.update_history.update({ 'soldout': datetime.utcnow() })
             prd.save()
@@ -81,11 +81,6 @@ class CheckServer(object):
 
             if prd.title.lower() != title.lower():
                 print 'gilt product[{0}] title error: [{1}, {2}]'.format(url, prd.title.encode('utf-8').lower(), title.encode('utf-8').lower())
-#            if prd.soldout != soldout:
-#                print 'gilt product[{0}] soldout error: [{1}, {2}]'.format(url, prd.soldout, soldout)
-#                prd.soldout = soldout
-#                prd.update_history.update({ 'soldout': datetime.utcnow() })
-#                prd.save()
 
         else: # women, men, children
             node = tree.cssselect('section#details section.summary')[0]
@@ -135,11 +130,6 @@ class CheckServer(object):
 
             if prd.title.lower() != title.lower():
                 print 'gilt product[{0}] title error: [{1}, {2}]'.format(url, prd.title.encode('utf-8').lower(), title.encode('utf-8').lower())
-#            if prd.soldout != soldout:
-#                print 'gilt product[{0}] soldout error: [{1}, {2}]'.format(url, prd.soldout, soldout)
-#                prd.soldout = soldout
-#                prd.update_history.update({ 'soldout': datetime.utcnow() })
-#                prd.save()
 
 
 
@@ -166,4 +156,6 @@ class CheckServer(object):
         return 'gilt_'+product_id, title+'\n'+description
 
 if __name__ == '__main__':
+    CheckServer().check_onsale_product('146818336-llum-coco-minidress', 'http://www.gilt.com/sale/children/llum-2402/product/146818336-llum-coco-minidress')
+    exit()
     CheckServer().check_onsale_product('142260201-hiho-batik-mom-onesie-2-pack', 'http://www.gilt.com/brand/hiho-batik/product/142260201-hiho-batik-mom-onesie-2-pack')

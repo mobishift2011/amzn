@@ -130,7 +130,7 @@
                             <tbody>     
                             {% for site, count in top_buy_sites.most_common() %}
                               <tr>
-                                <td><a href="/useractionlog/?site={{site}}">{{site}}</a></td>
+                                <td><a href="/useraction/sitelog?site={{site}}">{{site}}</a></td>
                                 <td>{{count}}/{{num_view_products_by_site.get(site, 0)}}</td>
                                 {% if site in num_view_products_by_site and num_view_products_by_site[site] %}
                                 <td>{{ "{:,.2f}".format(100*count/num_view_products_by_site[site]) }} %</td>
@@ -269,9 +269,9 @@ function poll_1(interval){
                 var d = data[i];
                 html += '<li>'
                 if (d['user']['screen_name']){
-                    html += '<a href="#">' + d['user']['screen_name'] + '</a>';
+                    html += '<a href="/useraction/userlog?session='+d['session_id']+'">' + d['user']['screen_name'] + '</a>';
                 }else{
-                    html += '<a href="#">' + 'user_'+d['session_id'].substr(0,10) + '</a>';
+                    html += '<a href="/useraction/userlog?session='+d['session_id']+'">' + 'user_'+d['session_id'].substr(0,10) + '</a>';
                 }
                 html += ' ';
                 if (d['values']['event_id']){

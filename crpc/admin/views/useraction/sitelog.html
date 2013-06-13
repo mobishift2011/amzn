@@ -1,22 +1,14 @@
 {% extends "layout.html" %}
 {% block content %}
+<div id="main-content">
+  {% include "useraction/subnav.html" %}
+  <div>
         <!-- content starts -->
-            <div>
-                <ul class="breadcrumb">
-                    <li>
-                        <a href="#">Home</a> <span class="divider">/</span>
-                    </li>
-                    <li>
-                        <a href="/useractionlog/">UserActionLog</a>
-                    </li>
-                    <li class="pull-right" id="time"></li>
-                </ul>
-            </div>
             <div class="row-fluid">
               {% if site %}
-                <h2>User actions within 24 hours about site {{site}}</h2>
+                <h3>User actions within 24 hours about site {{site}}</h2>
               {% else %}
-                <h2>User actions within 24 hours</h2>
+                <h3>User actions within 24 hours</h2>
               {% endif %}
               <table class="table table-striped" style="table-layout:fixed;width:100%;word-wrap:break-word;">
                 <thead>
@@ -43,10 +35,11 @@
                 </tbody>
               </table>
             </div>
+    </div>
+</div>
             
 {% endblock %}
 
 {% block script %}
-<script>
-</script>
+{% include "useraction/commonscript.html" %}
 {% endblock %}

@@ -1,0 +1,185 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<div id="main-content">
+  {% include "useraction/subnav.html" %}
+  <div>
+    <div class="container">
+            <form class="form-horizontal" style="margin-left:-50px;">
+                <fieldset>
+                    <div class="control-group">
+                      <label class="control-label" for="date">Choose Date</label>
+                      <div class="controls">
+                        <input type="text" class="input-small datepicker" id="date" value="">
+                        &nbsp;
+                        <a class="btn btn-primary btn-small" href="/useraction/overview?date=0">Today</a>
+                        <a class="btn btn-primary btn-small" href="/useraction/overview?date=-1">Yesterday</a>
+                        <a class="btn btn-primary btn-small" href="/useraction/overview?date=-2">2 days ago</a>
+                        <a class="btn btn-primary btn-small" href="/useraction/overview?date=-3">3 days ago</a>
+                        <a class="btn btn-primary btn-small" href="/useraction/overview?date=-4">4 days ago</a>
+                        <a class="btn btn-primary btn-small" href="/useraction/overview?date=-5">5 days ago</a>
+                        <a class="btn btn-primary btn-small" href="/useraction/overview?date=-6">6 days ago</a>
+                      </div>
+                    </div>
+                </fieldset>
+            </form>
+            <div class="box">
+                <div class="box-header well">
+                    <h2><i class="icon-list-alt"></i> Hourly Visiting Chart (Total: {{overview.uv}}UV, {{overview.av}}AV)</h2>
+                    <div class="box-icon">
+                        <a href="#" class="btn btn-setting btn-round"><i class="icon-cog"></i></a>
+                        <a href="#" class="btn btn-minimize btn-round"><i class="icon-chevron-up"></i></a>
+                        <a href="#" class="btn btn-close btn-round"><i class="icon-remove"></i></a>
+                    </div>
+                </div>
+                <div class="box-content">
+                     <div id="hourchart" class="center" style="height:300px;"></div>
+                </div>
+            </div>
+            <div class="row-fluid sortable">
+                <div class="box span6">
+                    <div class="box-header well" data-original-title>
+                        <h2><i class="icon-list-alt"></i> OS Distribution</h2>
+                        <div class="box-icon">
+                            <a href="#" class="btn btn-setting btn-round"><i class="icon-cog"></i></a>
+                            <a href="#" class="btn btn-minimize btn-round"><i class="icon-chevron-up"></i></a>
+                            <a href="#" class="btn btn-close btn-round"><i class="icon-remove"></i></a>
+                        </div>
+                    </div>
+                    <div class="box-content">
+                        <div id="oschart" style="height:500px"></div>
+                    </div>
+                </div>
+                <div class="box span6">
+                    <div class="box-header well" data-original-title>
+                        <h2><i class="icon-list-alt"></i> Browser Distribution</h2>
+                        <div class="box-icon">
+                            <a href="#" class="btn btn-setting btn-round"><i class="icon-cog"></i></a>
+                            <a href="#" class="btn btn-minimize btn-round"><i class="icon-chevron-up"></i></a>
+                            <a href="#" class="btn btn-close btn-round"><i class="icon-remove"></i></a>
+                        </div>
+                    </div>
+                    <div class="box-content">
+                        <div id="browserchart" style="height:500px"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="row-fluid sortable">
+                <div class="box span6">
+                    <div class="box-header well" data-original-title>
+                        <h2><i class="icon-list-alt"></i> Country Distribution</h2>
+                        <div class="box-icon">
+                            <a href="#" class="btn btn-setting btn-round"><i class="icon-cog"></i></a>
+                            <a href="#" class="btn btn-minimize btn-round"><i class="icon-chevron-up"></i></a>
+                            <a href="#" class="btn btn-close btn-round"><i class="icon-remove"></i></a>
+                        </div>
+                    </div>
+                    <div class="box-content">
+                        <div id="countrychart" style="height:500px"></div>
+                    </div>
+                </div>
+                <div class="box span6">
+                    <div class="box-header well" data-original-title>
+                        <h2><i class="icon-list-alt"></i> Login User Chart</h2>
+                        <div class="box-icon">
+                            <a href="#" class="btn btn-setting btn-round"><i class="icon-cog"></i></a>
+                            <a href="#" class="btn btn-minimize btn-round"><i class="icon-chevron-up"></i></a>
+                            <a href="#" class="btn btn-close btn-round"><i class="icon-remove"></i></a>
+                        </div>
+                    </div>
+                    <div class="box-content">
+                        <div id="loginchart" style="height:500px"></div>
+                    </div>
+                </div>
+            </div>  
+    </div>
+    {% if pagination %}
+    <div class="pagination pagination-centered">
+      <ul>
+        {% if pagination.has_prev %}
+        <li><a class="pagination" page="{{pagination.page-1}}" href="#">Prev</a></li>
+        {% endif %}
+        {% for page in pagination.iter_pages() %}
+        {% if page %}
+          {% if page == pagination.page %}
+            <li class="active"><a class="pagination" page="" href="#">{{page}}</a></li>
+          {% else %}
+            <li><a class="pagination" page="{{page}}" href="#">{{page}}</a></li>
+          {% endif %}
+        {% else %}
+          <li><a class="pagination" page="" href="#">...</a></li>
+        {% endif %}
+        {% endfor %}
+        {% if pagination.has_next %}
+        <li><a class="pagination" page="{{pagination.page+1}}" href="#">Next</a></li>
+        {% endif %}
+      </ul>
+    </div>   
+    {% endif %}
+  </div>
+</div><!--main-content-->
+      
+{% endblock %}
+
+{% block script %}
+{% include "useraction/commonscript.html" %}
+<script>
+	if($("#hourchart").length)
+	{
+        var d1 = {{overview.d1}};
+        var d2 = {{overview.d2}};
+
+		function plotWithOptions() {
+			var p = $.plot($("#hourchart"), [
+                    {data:d1, label:'UV'},
+                    {data:d2, label:'AV'},
+                ], {
+				series: {
+					//stack: 1,
+					lines: { show: true, fill: true},
+				},
+                xaxis: {
+                    ticks: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23]
+                }
+			});
+		}
+
+		plotWithOptions();
+	}
+    function plotpie(elem, data){
+        $.plot(elem, data,
+        {
+            series: {
+                    pie: {
+                            show: true,
+                            label: {
+                                show: true,
+                                radius: 2 / 3,
+                                formatter: function (label, series) {
+                                    return '<div style="font-size:8pt;text-align:center;padding:0px;color:black;margin:0px;background-color:#def">' + label + ': '+ Math.round(series.percent) + '%('+series.data[0][1] + ')</div>';
+                                },
+                                threshold: 0.01
+                            }
+                    }
+            },
+            grid: {
+                    hoverable: true,
+                    clickable: true
+            },
+            legend: {
+                show: false
+            }
+        });
+    }
+    plotpie($('#oschart'), {{osdata}});
+    plotpie($('#browserchart'), {{browserdata}});
+    plotpie($('#countrychart'), {{countrydata}});
+    plotpie($('#loginchart'), {{logindata}});
+
+    $('#date').live('change', function(){
+        var thedate = $(this).val();
+        var date = -Math.floor((new Date().getTime() - new Date(thedate).getTime())/86400000)
+        window.location.href = '/useraction/overview?date='+date;
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,78 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<div id="main-content">
+  {% include "useraction/subnav.html" %}
+  <div>
+    <div class="container">
+            <div class="box">
+                <div class="box-header well">
+                    <h2><i class="icon-list-alt"></i> The Most Active Users</h2>
+                    <div class="box-icon">
+                        <a href="#" class="btn btn-setting btn-round"><i class="icon-cog"></i></a>
+                        <a href="#" class="btn btn-minimize btn-round"><i class="icon-chevron-up"></i></a>
+                        <a href="#" class="btn btn-close btn-round"><i class="icon-remove"></i></a>
+                    </div>
+                </div>
+                <div class="box-content">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Session</th>
+                                <th>Action</th>
+                                <th>Meta Info</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for log in logs %}
+                            <tr>
+                                <td>{{log.time}}</td>
+                                <td>{{log.session_id}}</td>
+                                <td>{{log.name}}</td>
+                                <td style="line-height:10px; display:inline-block">
+                                {% for k, v in log['values'].iteritems() if k not in  ['csrfmiddlewaretoken', 'from_email'] %}
+                                    <div class="row-fluid" style="font-size:11px; margin-top:0px;; padding:0px; line-height:10px;">
+                                       <div class="span2"><b>{{k}}</b></div>
+                                       <div class="span10">{{v}}</div>
+                                    </div>
+                                {% endfor %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+    </div>
+    {% if pagination %}
+    <div class="pagination pagination-centered">
+      <ul>
+        {% if pagination.has_prev %}
+        <li><a class="pagination" page="{{pagination.page-1}}" href="#">Prev</a></li>
+        {% endif %}
+        {% for page in pagination.iter_pages() %}
+        {% if page %}
+          {% if page == pagination.page %}
+            <li class="active"><a class="pagination" page="" href="#">{{page}}</a></li>
+          {% else %}
+            <li><a class="pagination" page="{{page}}" href="#">{{page}}</a></li>
+          {% endif %}
+        {% else %}
+          <li><a class="pagination" page="" href="#">...</a></li>
+        {% endif %}
+        {% endfor %}
+        {% if pagination.has_next %}
+        <li><a class="pagination" page="{{pagination.page+1}}" href="#">Next</a></li>
+        {% endif %}
+      </ul>
+    </div>   
+    {% endif %}
+  </div>
+</div><!--main-content-->
+      
+{% endblock %}
+
+{% block script %}
+{% include "useraction/commonscript.html" %}
+{% endblock %}

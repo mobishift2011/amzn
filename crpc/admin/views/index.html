@@ -88,6 +88,7 @@
                         </div>
                     </div>
                 </div><!--/span-->
+
                         
                 <!--
                 <div class="box span4">
@@ -149,7 +150,7 @@
                         </div>
                     </div>
                 </div><!--/span-->
-                        
+
                 <!--
                 <div class="box span4">
                     <div class="box-header well" data-original-title>
@@ -257,7 +258,7 @@
 {% block script %}
 <script>
 
-function poll_1(interval){
+function poll_useraction(interval){
     $.ajax({
         type: 'GET',
         url: '/dashboard/member_activity.json',
@@ -287,13 +288,13 @@ function poll_1(interval){
                 html += ' @'+d['time'].substr(5,14)+'</li>\n';
             }
             $('#member-activity').html(html);
-            setTimeout(function(){poll_1(interval)}, interval);
+            setTimeout(function(){poll_useraction(interval)}, interval);
         },
     });
 }
 
 
-function poll_2(interval){
+function poll_email(interval){
     $.ajax({
         type:'GET',
         url:'/dashboard/email.json',
@@ -306,18 +307,34 @@ function poll_2(interval){
                 for(var j=0;j<d['receiver'].length;j++){html+=d['receiver'][j]}
                 html += '</li>'
             }
-
             $('#email').html(html);
-            setTimeout(function(){poll_2(interval)}, interval);
-        
+            setTimeout(function(){poll_email(interval)}, interval);
         },
-        
     
     });
 }
 
-poll_1(15000);
-poll_2(15000);
+function poll_keyword(interval){
+    $.ajax({
+        type:'GET',
+        url:'/dashboard/keyword.json',
+        dataType:'json',
+        success:function(data){
+            var html = ''
+            for(var i=0; i<data.length;i++){
+                var d = data[i];
+                html += '<li>' +d['type']+ ' / ' +d['query'] + ' / ' + d['num_searchs']
+                html += '</li>'
+            }
+
+            $('#keyword').html(html);
+            setTimeout(function(){poll_keyword(interval)}, interval);
+        },
+    });
+}
+
+poll_useraction(15000);
+poll_email(25000);
 
 $('#time').text(
     new Date()

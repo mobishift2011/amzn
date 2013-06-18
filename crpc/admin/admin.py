@@ -780,6 +780,18 @@ class EmailHandler(BaseHandler):
         r = api.email(id).get()
         return self.render('email/detail.html',r=r)
 
+class KeywordHandler(BaseHandler):
+
+    @tornado.web.authenticated
+    def get(self):
+        page = int(self.get_argument('page', 1))
+        limit = 20
+        offset = (page-1)*limit
+        res = api.searchkeyword.get(limit=limit,offset=offset,order_by='-num_searchs')
+        total_count =  res['meta']['total_count']
+        pagination = Pagination(page, limit, total_count)
+        self.render('keyword/list.html',results=res['objects'],pagination=pagination)
+
 class BlogHandler(BaseHandler):
 
     @tornado.web.authenticated
@@ -1045,10 +1057,13 @@ class DashboardHandler(BaseHandler):
             self.content_type = 'application/json'
             emails = api.email.get(limit=10,order_by='-created_at')['objects']
             self.finish(json.dumps(emails))
+        elif path == 'keyword.json':
+            self.content_type = 'application/json'
+            res = api.searchkeyword.get(limit=10,order_by='-num_searchs')['objects']
+            self.finish(json.dumps(res))
         else:
             self.content_type = 'application/json'
             self.finish(json.dumps(['no content']))
-
 
 class ScheduleHandler(BaseHandler):
     @tornado.web.authenticated
@@ -1075,7 +1090,6 @@ class ScheduleHandler(BaseHandler):
         d.update({'pk': key})
         r = delete_schedule(d)
         return self.write(json.dumps(r))
-
 
 class AffiliateHandler(BaseHandler):
     @tornado.web.authenticated
@@ -1392,6 +1406,7 @@ application = tornado.web.Application([
     (r"/feedback/(.*)", FeedbackHandler),
     (r"/email/(.*)", EmailHandler),
     (r"/blog/(.*)", BlogHandler),
+    (r"/keyword/", KeywordHandler),
     (r"/member/(.*)", MemberHandler),
     (r"/sitepref/(.*)", PreferenceHandler),
     (r"/ajax/(.*)", AjaxHandler),

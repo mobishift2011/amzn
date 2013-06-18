@@ -125,7 +125,7 @@ def sync_latest_code():
     env.hosts = HOSTS
     execute(_sync_latest_code)  
 
-@parallel
+#@parallel
 def _sync_latest_code():
     puts(green('Syncing Latest Code'))
     with cd('/srv/crpc'):
@@ -320,7 +320,7 @@ def _restart_zero():
     puts(green("Restarting Zero Servers"))
     with settings(warn_only=True):
         run('killall supervisord')
-        run('sleep 3')
+        run('sleep 10')
         run('cd /srv/crpc && ulimit -n 8192 && supervisord -c supervisord.conf -l /tmp/supervisord.log')
 
 def deploy():

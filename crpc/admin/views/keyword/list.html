@@ -25,6 +25,7 @@
                       <td>num_results</td>
                       <td>depts</td>
                       <td>searched_at</td>
+                      <td>searched_at</td>
                   </tr>
               </thead>
               <tbody>
@@ -38,6 +39,7 @@
                   <td>{{ r.num_results }}</td>
                   <td>{% for d in  r.depts %}{{d}},{% endfor %}</td>
                   <td>{{ r.searched_at}}</td>
+                  <td><a name="{{ r.query }}" id="{{ r.id }}" href="javascript:void(0);" class="btn btn_delete">delete</a></td>
               </tr>
               {% endfor %}
               </tbody>
@@ -132,6 +134,31 @@
     }
   });
 
+function getCookie(name) {
+    var r = document.cookie.match("\\b" + name + "=([^;]*)\\b");
+    return r ? r[1] : undefined;
+}
+
+$('.btn_delete').die().live('click',function(e){
+
+    var title = $(this).attr('name');
+    var id    = $(this).attr('id');
+    var tr = $(this).parent().parent()
+
+    if(!confirm('Are you sure to delete '+ title +' ?')){
+        return;
+    }
+    $.ajax({
+        url: '/keyword/'+id+'?_xsrf='+getCookie("_xsrf"),
+        type: 'DELETE',
+        data: {_xsrf: getCookie("_xsrf")}, 
+        success: function(data) {
+            if(data=='1'){
+                tr.remove();
+            }
+        }
+    });
+})
 
 </script>
 {% endblock %}

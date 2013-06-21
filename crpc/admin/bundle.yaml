@@ -18,6 +18,52 @@ cssheader:
         - css/opa-icons.css
         - css/uploadify.css
         - css/jquery.jcrop.min.css
+jsfooter:
+    output: cache/footer.bundled.js
+    contents:
+        - js/jquery-1.7.2.min.js
+        - js/jquery-ui-1.8.21.custom.min.js
+        - js/bootstrap-transition.js
+        - js/bootstrap-alert.js
+        - js/bootstrap-modal.js
+        - js/bootstrap-dropdown.js
+        - js/bootstrap-scrollspy.js
+        - js/bootstrap-tab.js
+        - js/bootstrap-tooltip.js
+        - js/bootstrap-popover.js
+        - js/bootstrap-button.js
+        - js/bootstrap-collapse.js
+        - js/bootstrap-carousel.js
+        - js/bootstrap-typeahead.js
+        - js/bootstrap-tour.js
+
+        - js/fullcalendar.min.js
+        - js/excanvas.js
+        - js/jquery.cookie.js
+        - js/jquery.dataTables.min.js
+
+        - js/jquery.flot.min.js
+        - js/jquery.flot.pie.min.js
+        - js/jquery.flot.stack.js
+        - js/jquery.flot.resize.min.js
+
+        - js/jquery.chosen.min.js
+        - js/jquery.uniform.min.js
+        - js/jquery.colorbox.min.js
+        - js/jquery.cleditor.min.js
+        - js/jquery.noty.js
+        - js/jquery.elfinder.min.js
+        - js/jquery.raty.min.js
+        - js/jquery.iphone.toggle.js
+        - js/jquery.autogrow-textarea.js
+        - js/jquery.uploadify-3.1.min.js
+        - js/jquery.history.js
+
+        - js/charisma.js
+
+        - js/jquery.deparam.js
+        - js/jquery.jcrop.min.js
+        - js/jquery.color.js
 
 cssall:
     output: cache/all.bundled.css
@@ -51,61 +97,12 @@ cssall:
         - css/charisma-app.css             
         - css/jquery.jcrop.min.css
 
-js1:
-    output: cache/bundled.1.js
-    contents:
-        - js/jquery-1.7.2.min.js
-        - js/jquery-ui-1.8.21.custom.min.js
-        - js/bootstrap-transition.js
-        - js/bootstrap-alert.js
-        - js/bootstrap-modal.js
-        - js/bootstrap-dropdown.js
-        - js/bootstrap-scrollspy.js
-        - js/bootstrap-tab.js
-        - js/bootstrap-tooltip.js
-        - js/bootstrap-popover.js
-        - js/bootstrap-button.js
-        - js/bootstrap-collapse.js
-        - js/bootstrap-carousel.js
-        - js/bootstrap-typeahead.js
-        - js/bootstrap-tour.js
-
-js2:
-    output: cache/bundled.2.js
-    contents:
-        - js/fullcalendar.min.js
-        - js/excanvas.js
-        - js/jquery.cookie.js
-        - js/jquery.dataTables.min.js
-        - js/jquery.flot.min.js
-        - js/jquery.flot.pie.min.js
-        - js/jquery.flot.stack.js
-        - js/jquery.flot.resize.min.js
-        - js/jquery.chosen.min.js
-        - js/jquery.uniform.min.js
-        - js/jquery.colorbox.min.js
-        - js/jquery.cleditor.min.js
-        - js/jquery.noty.js
-        - js/jquery.elfinder.min.js
-        - js/jquery.raty.min.js
-        - js/jquery.iphone.toggle.js
-        - js/jquery.autogrow-textarea.js
-        - js/jquery.uploadify-3.1.min.js
-        - js/jquery.history.js
-        - js/charisma.js
-        - js/jquery.deparam.js
-        - js/jquery.jcrop.min.js
-        - js/jquery.color.js
-
-js3:
-    output: cache/bundled.3.js
+jsall:
+    filters: jsmin, jspacker 
+    output: cache/all.bundled.js
     contents:
         - js/jquery-1.7.2.min.js
         - js/jquery.chosen.min.js           
-
-js4:
-    output: cache/bundled.4.js
-    contents:
         - js/jquery.history.js
         - js/jquery.colorbox.min.js         
         - js/jquery.cookie.js               
@@ -123,10 +120,6 @@ js4:
         - js/jquery.flot.stack.js
         - js/jquery-ui-1.8.21.custom.min.js 
         - js/jquery.autogrow-textarea.js    
-
-js5:
-    output: cache/bundled.5.js
-    contents:
         - js/bootstrap-alert.js             
         - js/bootstrap-tooltip.js           
         - js/bootstrap-button.js            
@@ -141,10 +134,6 @@ js5:
         - js/bootstrap-scrollspy.js         
         - js/bootstrap-tab.js               
         - js/bootstrap-toggle.js            
-
-js6:
-    output: cache/bundled.6.js
-    contents:
         - js/fullcalendar.min.js            
         - js/excanvas.js                    
         - js/charisma.js                    

@@ -58,7 +58,11 @@ class CheckServer(object):
             print 'product {0} is unavailable now, muri: {1} -> {2}'.format(product.key, product.muri, product.combine_url)
             return
 
-        price_node = tree.cssselect('div#theater div#productForm form#prForm ul li#priceSlot')[0]
+        try:
+            price_node = tree.cssselect('div#theater div#productForm form#prForm ul li#priceSlot')[0]
+        except IndexError:
+            offsale_update(product)
+            return
         listprice = price_node.cssselect('.oldPrice')[0].text.strip()
         price = price_node.cssselect('.price')[0].text.strip()
 

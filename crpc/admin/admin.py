@@ -783,14 +783,28 @@ class EmailHandler(BaseHandler):
 class KeywordHandler(BaseHandler):
 
     @tornado.web.authenticated
-    def get(self):
-        page = int(self.get_argument('page', 1))
-        limit = 20
-        offset = (page-1)*limit
-        res = api.searchkeyword.get(limit=limit,offset=offset,order_by='-num_searchs')
-        total_count =  res['meta']['total_count']
-        pagination = Pagination(page, limit, total_count)
-        self.render('keyword/list.html',results=res['objects'],pagination=pagination)
+    def get(self,name=''):
+        if not name or name == 'list':
+            page = int(self.get_argument('page', 1))
+            limit = 20
+            offset = (page-1)*limit
+            res = api.searchkeyword.get(is_deleted=False,limit=limit,offset=offset,order_by='-num_searchs')
+            total_count =  res['meta']['total_count']
+            pagination = Pagination(page, limit, total_count)
+            self.render('keyword/list.html',results=res['objects'],pagination=pagination)
+
+    @tornado.web.authenticated
+    def delete(self,id):
+        if id:
+            response = {'status':0,'info':''}
+            api.searchkeyword(id).patch({'is_deleted':True})
+            r = api.searchkeyword(id).get()
+            if r['is_deleted']:
+                response['status'] = 1
+                self.write('1')
+            else:
+                self.write('0')
+
 
 class BlogHandler(BaseHandler):
 
@@ -1142,7 +1156,6 @@ class BrandSearchHandler(BaseHandler):
         brands = search_brands(query) if query else []
         self.render('brands.html', brands=brands)
 
-
 class BrandHandler(BaseHandler):
     @tornado.web.authenticated
     def get(self, brand_title):
@@ -1406,7 +1419,7 @@ application = tornado.web.Application([
     (r"/feedback/(.*)", FeedbackHandler),
     (r"/email/(.*)", EmailHandler),
     (r"/blog/(.*)", BlogHandler),
-    (r"/keyword/", KeywordHandler),
+    (r"/keyword/(.*)", KeywordHandler),
     (r"/member/(.*)", MemberHandler),
     (r"/sitepref/(.*)", PreferenceHandler),
     (r"/ajax/(.*)", AjaxHandler),

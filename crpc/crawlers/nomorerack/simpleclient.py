@@ -66,7 +66,7 @@ class CheckServer(object):
             prd.listprice = listprice
             prd.update_history.update({ 'listprice': datetime.utcnow() })
             prd.save()
-        if prd.products_end != products_end:
+        if products_ends and prd.products_end != products_end:
             print 'nomorerack product[{0}] products_end error: [{1} vs {2}]'.format(url, prd.products_end, products_end)
             prd.products_end = products_end
             prd.update_history.update({ 'products_end': datetime.utcnow() })
@@ -88,7 +88,7 @@ class CheckServer(object):
         offsale = tree.cssselect('div#content div#front div#primary div#products_view div.right div.add_to_cart div#add_to_cart div.error_message')
         offsale = 'not available' in offsale[0].text_content() if offsale else False
         products_end = self.parse_time(tree)
-        if prd.products_end != products_end:
+        if products_end and prd.products_end != products_end:
             print 'nomorerack product[{0}] products_end error: [{1} vs {2}]'.format(url, prd.products_end, products_end)
             prd.products_end = products_end
             prd.update_history.update({ 'products_end': datetime.utcnow() })
@@ -102,9 +102,9 @@ class CheckServer(object):
         pass
 
     def parse_time(self, tree):
-        ends = tree.cssselect('div#wrapper > div#content > div#front > div.ribbon > div.ribbon-center h4')
+        ends = tree.cssselect('div#content div#front div.ribbon div.ribbon-center h4')
         if not ends:
-            ends = tree.cssselect('div#wrapper > div#content > div#front > div.top > div.ribbon-center > p')
+            ends = tree.cssselect('div#content div#front div.top div.ribbon-center > p')
             end = ends[0].text_content()
             if not end:
                 end = ends[-1].text_content()
@@ -112,6 +112,8 @@ class CheckServer(object):
         else:
             ends = ends[0].text_content()
         ends = ends.split('until')[-1].strip().replace('st', '').replace('nd', '').replace('rd', '').replace('th', '') 
+        if ends == '':
+            return None
         time_str, time_zone = ends.rsplit(' ', 1)
 
         if len(time_str.split(' ')) == 3:
@@ -149,4 +151,4 @@ class CheckServer(object):
         return 'nomorerack_'+product_id, title+'_'+description
 
 if __name__ == '__main__':
-    CheckServer().check_offsale_product('228589-genuine_diamond_accent_ring_in_sterling_silver_with_gift_box', 'http://nomorerack.com/daily_deals/view/228589-genuine_diamond_accent_ring_in_sterling_silver_with_gift_box')
+    CheckServer().check_onsale_product('460260-2_piece_set__logitech_wireless_wave_keyboard___mouse', 'http://www.nomorerack.com/daily_deals/view/460260-2_piece_set__logitech_wireless_wave_keyboard___mouse')

@@ -28,6 +28,12 @@
         <input class="input-large" id="searchinput" type="text" />
         <button class="btn" id="searchtitle">Search Title</button> 
     </div>
+    <hr style="margin-top: 5px; margin-bottom:10px;"/>
+    <div>
+       Dept: <input type='text' id='dept1' style="width:10%" />
+       <button style="margin-top:-8px;" class="btn" id="deptnew">View Depts</button>
+    </div>
+    <hr style="margin-top: 5px; margin-bottom:10px;"/>
     <div class="container">
         {% for e in events %}
         <div style="float: left; width: 250px; height: 500px;">
@@ -113,6 +119,10 @@
     }
   });
 
+  $('#deptnew').live('click', function(){
+    var dept = $('#dept1').val()
+    location.href = '/viewdata/events?order_by=-updated_at&departments__all='+dept;
+  });
 
 </script>
 {% endblock %}

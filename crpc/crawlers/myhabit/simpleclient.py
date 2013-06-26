@@ -55,7 +55,9 @@ class CheckServer(object):
 
 
     def check_offsale_product(self, id, url):
+        # jslink don't have products_end. Myhabit's products_end is get from its event
         pass
+
 
     def check_onsale_event(self, id, url):
         pass

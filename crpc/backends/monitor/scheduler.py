@@ -22,12 +22,9 @@ def delete_expire_task(expire_minutes=EXPIRE_MINUTES):
     :param expire_minutes: set the expire running task in hours
     """
     expire_datetime = datetime.utcnow() - timedelta(minutes=expire_minutes)
-    for t in Task.objects(status=Task.RUNNING, updated_at__lt=expire_datetime):
-        t.status = Task.FAILED
-        t.ended_at = datetime.utcnow()
-        t.save()
-        task_broke_completed(t.site, t.method)
-
+    # we update step by step, because a strange contraint on capped documents
+    Task.objects(status=Task.RUNNING, updated_at__lt=expire_datetime).all().update(set__status=Task.FAILED)
+    Task.objects(status=Task.RUNNING, updated_at__lt=expire_datetime).all().update(set__ended_at=datetime.utcnow())
 
 class Scheduler(object):
     """ make schedules easy """

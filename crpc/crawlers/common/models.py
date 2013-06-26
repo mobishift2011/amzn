@@ -228,6 +228,8 @@ class LuxuryProduct(BaseProduct):
     scarcity            =   StringField()
     list_info           =   ListField(StringField(), default=list)
     
+    on_again            =   BooleanField()
+
     favbuy_listprice    =   StringField()
     
     meta                = {

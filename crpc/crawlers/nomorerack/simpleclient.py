@@ -90,11 +90,15 @@ class CheckServer(object):
         products_end = self.parse_time(tree)
         if offsale is True and (not prd.products_end or prd.products_end > datetime.utcnow()):
             tt = products_end if products_end else datetime.utcnow()
+            if tt.year !=  prd.products_end.year:
+                return
             prd.products_end = datetime(tt.year, tt.month, tt.day, tt.hour, tt.minute)
             prd.update_history.update({ 'products_end': datetime.utcnow() })
             prd.save()
         elif products_end and prd.products_end != products_end:
             print 'nomorerack product[{0}] products_end error: [{1} vs {2}]'.format(url, prd.products_end, products_end)
+            if products_end.year !=  prd.products_end.year:
+                return
             prd.products_end = products_end
             prd.update_history.update({ 'products_end': datetime.utcnow() })
             prd.save()

@@ -100,6 +100,7 @@ class CheckServer(object):
             if prd.products_end != products_end:
                 prd.products_end = products_end
                 prd.update_history.update({ 'products_end': datetime.utcnow() })
+                prd.on_again = True
                 prd.save()
                 print '\n\nbelleandclive product[{0}] on sale again.'.format(url)
 
@@ -112,4 +113,15 @@ class CheckServer(object):
         pass
 
 if __name__ == '__main__':
-    CheckServer().check_onsale_product('323367001','http://www.belleandclive.com/browse/product.jsp?id=323367001')
+    check = CheckServer()
+
+    obj = Product.objects(products_end__lt=datetime.utcnow()).timeout(False)
+    print 'have {0} off sale event products.'.format(obj.count())
+    for o in obj:
+        check.check_offsale_product( o.key, o.url() )
+
+    obj = Product.objects(products_end__exists=False).timeout(False)
+    print 'have {0} off sale category products.'.format(obj.count())
+    for o in obj:
+        check.check_offsale_product( o.key, o.url() )
+

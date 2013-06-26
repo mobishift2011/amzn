@@ -95,6 +95,7 @@ class CheckServer(object):
             print 'nomorerack product[{0}] products_end error: [{1} vs {2}]'.format(url, prd.products_end, products_end)
             prd.products_end = datetime(tt.year, tt.month, tt.day, tt.hour, tt.minute)
             prd.update_history.update({ 'products_end': datetime.utcnow() })
+            prd.on_again = True
             prd.save()
         elif products_end and prd.products_end != products_end:
             if products_end.year !=  prd.products_end.year:
@@ -102,6 +103,7 @@ class CheckServer(object):
             print 'nomorerack product[{0}] products_end error: [{1} vs {2}]'.format(url, prd.products_end, products_end)
             prd.products_end = products_end
             prd.update_history.update({ 'products_end': datetime.utcnow() })
+            prd.on_again = True
             prd.save()
 
 
@@ -161,4 +163,15 @@ class CheckServer(object):
         return 'nomorerack_'+product_id, title+'_'+description
 
 if __name__ == '__main__':
-    CheckServer().check_onsale_product('460260-2_piece_set__logitech_wireless_wave_keyboard___mouse', 'http://www.nomorerack.com/daily_deals/view/460260-2_piece_set__logitech_wireless_wave_keyboard___mouse')
+    check = CheckServer()
+
+    obj = Product.objects(products_end__lt=datetime.utcnow()).timeout(False)
+    print 'have {0} off sale event products.'.format(obj.count())
+    for o in obj:
+        check.check_offsale_product( o.key, o.url() )
+
+    obj = Product.objects(products_end__exists=False).timeout(False)
+    print 'have {0} off sale category products.'.format(obj.count())
+    for o in obj:
+        check.check_offsale_product( o.key, o.url() )
+

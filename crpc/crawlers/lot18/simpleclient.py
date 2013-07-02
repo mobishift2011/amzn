@@ -92,7 +92,9 @@ class CheckServer(object):
                 else:
                     products_end = None
             else:
-                products_end = _utcnow + timedelta(365)
+                # no products_end, mastiff don't allow none, so add a long time
+                # If it off sale, can be fond by offsale function
+                products_end = _utcnow + timedelta(days=365)
 
             if products_end:
                 print '\n\nlot18 product[{0}] on sale again.'.format(url)

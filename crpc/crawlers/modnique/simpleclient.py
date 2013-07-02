@@ -96,11 +96,23 @@ class CheckServer(object):
             print '\n\nmodnique download error: {0} , {1}\n\n'.format(ret[0], ret[1])
             return
 
+        soldout = None
         tree = lxml.html.fromstring(ret[0])
         text = tree.cssselect('#soldout a span')[0].text_content().strip()
         if 'Add To Waitlist' in text:
+            soldout = True
         elif 'sold out' in text:
+            soldout = True
         elif 'size sold' in text:
+            soldout = False
+        if soldout is False:
+            print '\n\nmodnique product[{0}] on sale again.'.format(url)
+            # no specific time, so add 3 days, If it off sale, can be fond by offsale function
+            products_end = datetime.utcnow() + timedelat(days=3)
+            prd.products_end = products_end
+            prd.update_history.update({ 'products_end': datetime.utcnow() })
+            prd.on_again = True
+            prd.save()
 
     def check_onsale_event(self, id, url):
         pass

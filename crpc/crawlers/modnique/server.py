@@ -278,12 +278,12 @@ class Server(object):
 #                if color.isdigit(): color = ''
 #            except AttributeError:
 #                pass
-            title = node.cssselect('div.item_thumb2 > div.itemTitle > h6.neutral')[0].text_content().strip()
+            title = node.cssselect('div.item_thumb2 div.itemTitle h6.neutral')[0].text_content().strip()
             link = node.cssselect('div.item_thumb2 > div.hd > a.item_link')[0].get('href').strip() # link have '\r\n'
             link = link if link.startswith('http') else self.siteurl + link
             slug, key = self.extract_slug_product.match(link).groups()
 
-            price = node.cssselect('div.item_thumb2 > div > div.media > div.bd > p > span.price')[0].text_content().replace('modnique', '').replace('$', '').replace(',', '').strip()
+            price = node.cssselect('div.item_thumb2 div.media div.bd p span.price')[0].text_content().replace('modnique', '').replace('$', '').replace(',', '').strip()
             listprice = node.cssselect('div.item_thumb2 > div > div.media > div.bd > p > span.bare')
             listprice = listprice[0].text_content().replace('retail', '').replace('$', '').replace(',', '').strip() if listprice else ''
             soldout = True if node.cssselect('div.item_thumb2 > div.soldSticker') else False
@@ -432,6 +432,9 @@ class Server(object):
 
 
 if __name__ == '__main__':
+    Server().crawl_listing('http://www.modnique.com/saleevent/Apparel/Everything-under-39-for-Her-by-BCBGMaxazria-Ivanka-Trump-and-More/12117/seeac/gseeac')
+    exit()
+
     import zerorpc
     from settings import CRAWLER_PEERS
     server = zerorpc.Server(Server(), heartbeat=None)

@@ -105,7 +105,19 @@ class CheckServer(object):
 
 
     def check_offsale_product(self, id, url):
-        pass
+        prd = Product.objects(key=id).first()
+        if prd is None:
+            print '\n\nruelala {0}, {1}\n\n'.format(id, url)
+            return
+
+        ret = self.s.get(url)
+        if ret.url == 'http://www.ruelala.com/event' or ret.url == 'http://www.ruelala.com/event/index':
+            return -302
+        if ret.url == 'http://www.ruelala.com/common/errorGeneral':
+            return -302
+        else:
+            print url
+
 
     def check_onsale_event(self, id, url):
         pass

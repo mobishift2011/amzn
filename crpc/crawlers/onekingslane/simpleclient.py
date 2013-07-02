@@ -2,7 +2,7 @@ import requests
 import lxml.html
 import re
 import slumber
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from settings import MASTIFF_HOST
 from models import Event, Product
@@ -122,6 +122,12 @@ class CheckServer(object):
         if already_end:
             return True
         else:
+            print '\n\nonekingslane product[{0}] on sale again.'.format(url)
+            products_end = datetime.utcnow() + timedelat(days=3)
+            prd.update_history.update({ 'products_end': datetime.utcnow() })
+            prd.on_again = True
+            prd.save()
+
             return False
 
 

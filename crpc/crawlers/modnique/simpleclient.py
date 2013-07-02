@@ -5,7 +5,7 @@
 import re
 import slumber
 import lxml.html
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from models import Product
 from server import fetch_product
@@ -121,4 +121,4 @@ class CheckServer(object):
         pass
 
 if __name__ == '__main__':
-    CheckServer().check_onsale_product('01513534', 'http://www.modnique.com/product/Our-Favorite-Silver-Jewelry-Styles/10399/Ladies-Necklace-Designed-In-925-Sterling-Silver/01513534/color/Silver/size/seeac/gseeac')
+    CheckServer().check_offsale_product('01492742', 'http://www.modnique.com/product/Top-Trends-Shop/8545/Color-Me-Red-Wrap-V-Neck-Dress/01492742/color/PURPLE/size/seeac/gseeac')

@@ -1,7 +1,7 @@
 import requests
 import lxml.html
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from server import lot18Login
 from models import Product
@@ -56,7 +56,51 @@ class CheckServer(object):
 
 
     def check_offsale_product(self, id, url):
-        pass
+        prd = Product.objects(key=id).first()
+        if prd is None:
+            print '\n\nlot18 {0}, {1}\n\n'.format(id, url)
+            return
+
+        ret = self.net.fetch_page(url)
+        if isinstance(ret, int):
+            ret = self.net.fetch_page(url)
+            if isinstance(ret, int):
+                return
+
+        soldout = True if self.soldout.search(ret) else False
+        if prd.soldout != soldout:
+            print 'lot18 product[{0}] soldout error: {1} vs {2}'.format(url, prd.soldout, soldout)
+            prd.soldout = soldout
+            prd.update_history.update({ 'soldout': datetime.utcnow() })
+            prd.save()
+
+        tree = lxml.html.fromstring(ret)
+        if soldout != True:
+            _utcnow = datetime.utcnow()
+            period = tree.xpath('.//div[@class="product-info product-note"]/text()')
+            period = period[0].strip().split('in')[-1] if period else ''
+            if period:
+                num, slug = period.split()
+                if 'day' in period:
+                    products_end = _utcnow + timedelta(days=int(num))
+                elif 'hour' in period:
+                    products_end = _utcnow + timedelta(hours=int(num)+1)
+                elif 'minute' in period:
+                    products_end = _utcnow + timedelta(minutes=int(num))
+                elif 'week' in period:
+                    products_end = _utcnow + timedelta(weeks=int(num))
+                else:
+                    products_end = None
+            else:
+                products_end = _utcnow + timedelta(365)
+
+            if products_end:
+                print '\n\nlot18 product[{0}] on sale again.'.format(url)
+                prd.products_end = products_end
+                prd.update_history.update({ 'products_end': datetime.utcnow() })
+                prd.on_again = True
+                prd.save()
+
 
     def check_onsale_event(self, id, url):
         pass
@@ -76,4 +120,5 @@ class CheckServer(object):
         return 'lot18_'+product_id, title+'_'+description
 
 if __name__ == '__main__':
-    CheckServer()
+    url = 'http://www.lot18.com/product/3830/2010-ten-sisters-marlborough-pinot-noir-trio'
+    CheckServer().check_offsale_product('3830', url)

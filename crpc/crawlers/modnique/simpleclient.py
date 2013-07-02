@@ -84,7 +84,23 @@ class CheckServer(object):
 
 
     def check_offsale_product(self, id, url):
-        pass
+        prd = Product.objects(key=id).first()
+        if prd is None:
+            print '\n\nmodnique {0}, {1}\n\n'.format(id, url)
+            return
+
+        ret = fetch_product(url)
+        if ret[0] == -302:
+            return
+        elif isinstance(ret[0], int):
+            print '\n\nmodnique download error: {0} , {1}\n\n'.format(ret[0], ret[1])
+            return
+
+        tree = lxml.html.fromstring(ret[0])
+        text = tree.cssselect('#soldout a span')[0].text_content().strip()
+        if 'Add To Waitlist' in text:
+        elif 'sold out' in text:
+        elif 'size sold' in text:
 
     def check_onsale_event(self, id, url):
         pass

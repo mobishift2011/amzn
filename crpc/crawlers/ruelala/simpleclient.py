@@ -3,7 +3,7 @@ import lxml.html
 import re
 import json
 import slumber
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from settings import MASTIFF_HOST
 from models import Product
@@ -116,7 +116,12 @@ class CheckServer(object):
         if ret.url == 'http://www.ruelala.com/common/errorGeneral':
             return -302
         else:
-            print url
+            print '\n\nruelala product[{0}] on sale again.'.format(url)
+            products_end = datetime.utcnow() + timedelat(days=3)
+            prd.update_history.update({ 'products_end': datetime.utcnow() })
+            prd.on_again = True
+            prd.save()
+
 
 
     def check_onsale_event(self, id, url):

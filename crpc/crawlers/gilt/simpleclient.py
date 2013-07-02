@@ -134,7 +134,35 @@ class CheckServer(object):
 
 
     def check_offsale_product(self, id, url):
-        pass
+        prd = Product.objects(key=id).first()
+        if prd is None:
+            print '\n\ngilt {0}, {1}\n\n'.format(id, url)
+            return
+
+        ret = self.s.get(url, headers=self.headers)
+        if ret.url == 'http://www.gilt.com/' or ret.content == '':
+            prd.soldout = True
+            prd.update_history.update({ 'soldout': datetime.utcnow() })
+            prd.save()
+            return
+        tree = self.get_correct_tree(ret.content)
+
+        soldout = True
+        sizes = tree.cssselect('#sku-selection .sku-attribute .sku-attribute-values li')
+        count = len(sizes)
+        for size in sizes:
+            if 'for_sale' in size.get('class'):
+                soldout = False
+        if soldout is False:
+            print '\n\ngilt product[{0}] on sale again.'.format(url)
+            if prd.soldout != soldout:
+                prd.soldout = soldout
+                prd.update_history.update({ 'soldout': datetime.utcnow() })
+            prd.products_end = datetime.utcnow() + timedelta(days=3)
+            prd.update_history.update({ 'products_end': datetime.utcnow() })
+            prd.on_again = True
+            prd.save()
+
 
     def check_onsale_event(self, id, url):
         pass
@@ -155,7 +183,6 @@ class CheckServer(object):
         description = product_info['description'].replace('<br>','\n').encode('utf-8')
         return 'gilt_'+product_id, title+'\n'+description
 
+
 if __name__ == '__main__':
-    CheckServer().check_onsale_product('146818336-llum-coco-minidress', 'http://www.gilt.com/sale/children/llum-2402/product/146818336-llum-coco-minidress')
-    exit()
-    CheckServer().check_onsale_product('142260201-hiho-batik-mom-onesie-2-pack', 'http://www.gilt.com/brand/hiho-batik/product/142260201-hiho-batik-mom-onesie-2-pack')
+    CheckServer().check_offsale_product('1002417648-swissted-heatmiser-at-mission-mill-1994', 'http://www.gilt.com/home/sale/art-134/1002417648-swissted-heatmiser-at-mission-mill-1994')

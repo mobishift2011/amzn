@@ -436,7 +436,7 @@ class Server(object):
 
 
 if __name__ == '__main__':
-    url = 'http://nomorerack.com/daily_deals/view/464589-solar_powered_window_thermometer'
+    url = 'http://www.nomorerack.com/daily_deals/view/485693-set_of_3__litefuze_rechargeable_solar_outdoor_mosaic_lamps'
     Server().crawl_product(url)
     exit()
     server = zerorpc.Server(Server())

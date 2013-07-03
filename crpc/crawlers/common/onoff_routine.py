@@ -153,6 +153,15 @@ def offsale_schedule(full=False):
         checkout('saksfifthavenue', 'check_onsale_product', rpc, full=full)
         checkout('nomorerack', 'check_offsale_product', rpc, full=full)
 
+    checkout('belleandclive', 'check_offsale_product', rpc, full=full)
+    checkout('beyondtherack', 'check_offsale_product', rpc, full=full)
+    checkout('gilt', 'check_offsale_product', rpc, full=full)
+    checkout('lot18', 'check_offsale_product', rpc, full=full)
+    checkout('modnique', 'check_offsale_product', rpc, full=full)
+    checkout('onekingslane', 'check_offsale_product', rpc, full=full)
+    checkout('ruelala', 'check_offsale_product', rpc, full=full)
+
+
 def control():
     log_file = '/tmp/onoff_sale.log'
     if os.path.isfile(log_file):

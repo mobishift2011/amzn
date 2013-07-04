@@ -284,9 +284,9 @@ class Server(object):
             slug, key = self.extract_slug_product.match(link).groups()
 
             price = node.cssselect('div.item_thumb2 div.media div.bd p span.price')[0].text_content().replace('modnique', '').replace('$', '').replace(',', '').strip()
-            listprice = node.cssselect('div.item_thumb2 > div > div.media > div.bd > p > span.bare')
+            listprice = node.cssselect('div.item_thumb2 div.media div.bd p span.bare')
             listprice = listprice[0].text_content().replace('retail', '').replace('$', '').replace(',', '').strip() if listprice else ''
-            soldout = True if node.cssselect('div.item_thumb2 > div.soldSticker') else False
+            soldout = True if node.cssselect('div.item_thumb2 .soldSticker') else False
 
             is_new, is_updated = False, False
             product = Product.objects(key=key).first()
@@ -432,7 +432,7 @@ class Server(object):
 
 
 if __name__ == '__main__':
-    Server().crawl_listing('http://www.modnique.com/saleevent/Apparel/Everything-under-39-for-Her-by-BCBGMaxazria-Ivanka-Trump-and-More/12117/seeac/gseeac')
+    Server().crawl_listing('http://www.modnique.com/saleevent/Handbags-Accessories/Gucci-Sunglasses/12124/seeac/gseeac')
     exit()
 
     import zerorpc

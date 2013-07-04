@@ -4,7 +4,7 @@
 
 import slumber
 import lxml.html
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from server import belleandcliveLogin
 from models import Product, Event
@@ -96,7 +96,10 @@ class CheckServer(object):
         else:
             tree = lxml.html.fromstring(cont)
             time = tree.cssselect('#sub-header p.countdown')[0].get('data-countdown')[:-3]
-            products_end = datetime.utcfromtimestamp( float(time) )
+            if time:
+                products_end = datetime.utcfromtimestamp( float(time) )
+            else:
+                products_end = datetime.utcnow() + timedelta(days=3)
             if prd.products_end != products_end:
                 prd.products_end = products_end
                 prd.update_history.update({ 'products_end': datetime.utcnow() })
@@ -118,7 +121,7 @@ if __name__ == '__main__':
     obj = Product.objects(products_end__lt=datetime.utcnow()).timeout(False)
     print 'have {0} off sale event products.'.format(obj.count())
     obj2 = Product.objects(products_end__exists=False).timeout(False)
-    print 'have {0} off sale category products.'.format(obj.count())
+    print 'have {0} off sale category products.'.format(obj2.count())
 
     for o in obj:
         check.check_offsale_product( o.key, o.url() )

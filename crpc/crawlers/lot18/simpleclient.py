@@ -122,5 +122,14 @@ class CheckServer(object):
         return 'lot18_'+product_id, title+'_'+description
 
 if __name__ == '__main__':
-    url = 'http://www.lot18.com/product/3830/2010-ten-sisters-marlborough-pinot-noir-trio'
-    CheckServer().check_offsale_product('3830', url)
+    check = CheckServer()
+    obj = Product.objects(products_end__lt=datetime.utcnow()).timeout(False)
+    print 'have {0} off sale event products.'.format(obj.count())
+    for o in obj:
+        check.check_offsale_product( o.key, o.url() )
+
+    obj = Product.objects(products_end__exists=False).timeout(False)
+    print 'have {0} off sale category products.'.format(obj.count())
+    for o in obj:
+        check.check_offsale_product( o.key, o.url() )
+

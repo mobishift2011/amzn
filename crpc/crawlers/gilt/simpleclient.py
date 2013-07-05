@@ -185,4 +185,16 @@ class CheckServer(object):
 
 
 if __name__ == '__main__':
-    CheckServer().check_offsale_product('1002417648-swissted-heatmiser-at-mission-mill-1994', 'http://www.gilt.com/home/sale/art-134/1002417648-swissted-heatmiser-at-mission-mill-1994')
+    check = CheckServer()
+
+    obj = Product.objects(products_end__lt=datetime.utcnow()).timeout(False)
+    print 'have {0} off sale event products.'.format(obj.count())
+    obj2 = Product.objects(products_end__exists=False).timeout(False)
+    print 'have {0} off sale category products.'.format(obj2.count())
+
+    for o in obj:
+        check.check_offsale_product( o.key, o.url() )
+
+    for o in obj2:
+        check.check_offsale_product( o.key, o.url() )
+

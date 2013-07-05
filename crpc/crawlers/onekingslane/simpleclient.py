@@ -123,7 +123,7 @@ class CheckServer(object):
             return True
         else:
             print '\n\nonekingslane product[{0}] on sale again.'.format(url)
-            products_end = datetime.utcnow() + timedelat(days=3)
+            products_end = datetime.utcnow() + timedelta(days=3)
             prd.update_history.update({ 'products_end': datetime.utcnow() })
             prd.on_again = True
             prd.save()
@@ -181,7 +181,7 @@ if __name__ == '__main__':
 
     obj = Product.objects(products_end__lt=datetime.utcnow()).timeout(False)
     print 'have {0} off sale event products.'.format(obj.count())
-        obj2 = Product.objects(products_end__exists=False).timeout(False)
+    obj2 = Product.objects(products_end__exists=False).timeout(False)
     print 'have {0} off sale category products.'.format(obj2.count())
 
     for o in obj:

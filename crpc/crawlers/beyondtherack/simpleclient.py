@@ -95,7 +95,7 @@ class CheckServer(object):
         else:
             tree = lxml.html.fromstring(cont)
             tt = tree.cssselect('#eventTTL')[0].get('eventttl')
-            products_end = datetime.utcfromtimestamp(tt)
+            products_end = datetime.utcfromtimestamp( float(tt) )
             if not prd.products_end or prd.products_end < products_end:
                 print '\n\nbeyondtherack product[{0}] on sale again.'.format(url)
                 prd.products_end = products_end

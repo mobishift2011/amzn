@@ -94,7 +94,11 @@ class CheckServer(object):
                 return
         else:
             tree = lxml.html.fromstring(cont)
-            tt = tree.cssselect('#eventTTL')[0].get('eventttl')
+            try: # only have style. 'EVENT HAS ENDED'
+                tt = tree.cssselect('#eventTTL')[0].get('eventttl')
+            except IndexError:
+                return
+
             products_end = datetime.utcfromtimestamp( float(tt) )
             if not prd.products_end or prd.products_end < products_end:
                 print '\n\nbeyondtherack product[{0}] on sale again.'.format(url)

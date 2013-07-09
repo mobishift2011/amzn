@@ -108,7 +108,7 @@ class CheckServer(object):
         if soldout is False:
             print '\n\nmodnique product[{0}] on sale again.'.format(url)
             # no specific time, so add 3 days, If it off sale, can be fond by offsale function
-            products_end = datetime.utcnow() + timedelat(days=3)
+            products_end = datetime.utcnow() + timedelta(days=3)
             prd.products_end = products_end
             prd.update_history.update({ 'products_end': datetime.utcnow() })
             prd.on_again = True

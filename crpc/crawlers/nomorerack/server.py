@@ -47,6 +47,8 @@ def fetch_product_page(url):
     # nomorerack will redirect to homepage automatically when this product is not exists.
     if ret.url == u'http://nomorerack.com/' and ret.url[:-1] != url:
         return -302
+    if ret.url == u'http://www.nomorerack.com/' and ret.url[:-1] != url:
+        return -302
     elif ret.url.startswith(u'http://nomorerack.com/events/view/'):
         return -302
 

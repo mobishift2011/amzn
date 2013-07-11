@@ -117,7 +117,7 @@ class CheckServer(object):
             return -302
         else:
             print '\n\nruelala product[{0}] on sale again.'.format(url)
-            products_end = datetime.utcnow() + timedelat(days=3)
+            products_end = datetime.utcnow() + timedelta(days=3)
             prd.update_history.update({ 'products_end': datetime.utcnow() })
             prd.on_again = True
             prd.save()

@@ -71,7 +71,7 @@ class Server(object):
         tree = lxml.html.fromstring(content)
         self.upcoming_proc(tree, ctx)
 
-        events = tree.cssselect('div.bgDark > div.mbm > div > div.page > ul#nav > li.fCalc:first-of-type')[0]
+        events = tree.cssselect('div.bgDark div.mbm > div > div.page > ul#nav > li.fCalc:first-of-type')[0]
         dept_link = {} # get department, link
         for e in events.cssselect('ul.subnav > li.eventsMenuWidth > ul.pbm > li.unit > a.pvn'):
             link = e.get('href')
@@ -93,11 +93,11 @@ class Server(object):
             common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=link, is_new=is_new, is_updated=is_updated)
 
         # get 'the-shops' category
-        link = tree.cssselect('div.bgDark > div.mbm > div > div.page > ul#nav > li.fCalc:nth-of-type(2) > a.phl')[0].get('href')
+        link = tree.cssselect('div.bgDark div.mbm > div > div.page > ul#nav > li.fCalc:nth-of-type(2) > a.phl')[0].get('href')
         self.crawl_shops(link.rsplit('/', 1)[-1], link, ctx)
 
         # http://www.modnique.com/saleevent/Daily-Deal/2000/seeac/gseeac
-        sale = tree.cssselect('div.bgDark > div.mbm > div > div.page > ul#nav > li.fCalc:nth-of-type(3) > a.phl')[0].get('href')
+        sale = tree.cssselect('div.bgDark div.mbm > div > div.page > ul#nav > li.fCalc:nth-of-type(3) > a.phl')[0].get('href')
         self.parse_sale(sale, ctx)
 
         for dept, link in dept_link.iteritems():
@@ -186,7 +186,7 @@ class Server(object):
         """.. :py:method::
         """
         _utcnow = datetime.utcnow()
-        nodes = tree.cssselect('div#content > div#upcoming_sales li#upcoming_sales_container > div.sale_thumb > div.media')
+        nodes = tree.cssselect('div#upcoming_sales li#upcoming_sales_container > div.sale_thumb > div.media')
         for node in nodes:
             link = node.cssselect('div.sRollover > div.mbs > a')[0].get('href')
             slug, event_id = self.extract_slug_id.match(link).groups()
@@ -432,7 +432,7 @@ class Server(object):
 
 
 if __name__ == '__main__':
-    Server().crawl_listing('http://www.modnique.com/saleevent/Handbags-Accessories/Gucci-Sunglasses/12124/seeac/gseeac')
+    Server().crawl_category()
     exit()
 
     import zerorpc

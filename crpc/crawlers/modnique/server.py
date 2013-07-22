@@ -283,7 +283,7 @@ class Server(object):
             link = link if link.startswith('http') else self.siteurl + link
             slug, key = self.extract_slug_product.match(link).groups()
 
-            price = node.cssselect('div.item_thumb2 div.media div.bd p span.price')[0].text_content().replace('modnique', '').replace('$', '').replace(',', '').strip()
+            price = node.cssselect('div.item_thumb2 div.media div.bd p span.fwb')[0].text_content().replace('modnique', '').replace('$', '').replace(',', '').strip()
             listprice = node.cssselect('div.item_thumb2 div.media div.bd p span.bare')
             listprice = listprice[0].text_content().replace('retail', '').replace('$', '').replace(',', '').strip() if listprice else ''
             soldout = True if node.cssselect('div.item_thumb2 .soldSticker') else False
@@ -432,7 +432,7 @@ class Server(object):
 
 
 if __name__ == '__main__':
-    Server().crawl_category()
+    Server().crawl_listing('http://www.modnique.com/saleevent/Apparel/Mid-Year-Blowout-Dresses/12412/seeac/gseeac')
     exit()
 
     import zerorpc

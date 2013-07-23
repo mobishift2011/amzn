@@ -153,6 +153,16 @@ def offsale_schedule(full=False):
         checkout('saksfifthavenue', 'check_onsale_product', rpc, full=full)
         checkout('nomorerack', 'check_offsale_product', rpc, full=full)
 
+
+def onsale_schedule(full=False):
+    """  do checking
+
+    """
+    from checkserver import CheckServer
+    rpc = CheckServer()
+    # rpc = get_rpcs([{'host_string':'root@127.0.0.1', 'port':8899}])
+    # rpc = get_rpcs()
+
     checkout('belleandclive', 'check_offsale_product', rpc, full=full)
     checkout('beyondtherack', 'check_offsale_product', rpc, full=full)
     checkout('gilt', 'check_offsale_product', rpc, full=full)
@@ -161,9 +171,10 @@ def offsale_schedule(full=False):
     checkout('onekingslane', 'check_offsale_product', rpc, full=full)
     checkout('ruelala', 'check_offsale_product', rpc, full=full)
 
-
 def control():
     log_file = '/tmp/onoff_sale.log'
+    pool = Pool(2)
+
     if os.path.isfile(log_file):
         # when log file exists, we do full=False update ( every 600 seconds )
         try:
@@ -180,6 +191,7 @@ def control():
         with open(log_file, 'w') as fd:
             try:
                 offsale_schedule()
+                pool.spawn(onsale_schedule)
 
                 from powers.script import secondhand_filter
                 secondhand_filter.filter()

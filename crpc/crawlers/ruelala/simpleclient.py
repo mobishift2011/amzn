@@ -3,7 +3,7 @@ import lxml.html
 import re
 import json
 import slumber
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from settings import MASTIFF_HOST
 from models import Product
@@ -105,7 +105,24 @@ class CheckServer(object):
 
 
     def check_offsale_product(self, id, url):
-        pass
+        prd = Product.objects(key=id).first()
+        if prd is None:
+            print '\n\nruelala {0}, {1}\n\n'.format(id, url)
+            return
+
+        ret = self.s.get(url)
+        if ret.url == 'http://www.ruelala.com/event' or ret.url == 'http://www.ruelala.com/event/index':
+            return -302
+        if ret.url == 'http://www.ruelala.com/common/errorGeneral':
+            return -302
+        else:
+            print '\n\nruelala product[{0}] on sale again.'.format(url)
+            products_end = datetime.utcnow() + timedelta(days=3)
+            prd.update_history.update({ 'products_end': datetime.utcnow() })
+            prd.on_again = True
+            prd.save()
+
+
 
     def check_onsale_event(self, id, url):
         pass
@@ -124,5 +141,16 @@ class CheckServer(object):
         return 'ruelala_'+product_id, title+'_'+description
 
 if __name__ == '__main__':
-    CheckServer().check_onsale_product('3018094898', 'http://www.ruelala.com/event/product/74269/3018094898/0/DEFAULT')
+    check = CheckServer()
+
+    obj = Product.objects(products_end__lt=datetime.utcnow()).timeout(False)
+    print 'have {0} off sale event products.'.format(obj.count())
+    obj2 = Product.objects(products_end__exists=False).timeout(False)
+    print 'have {0} off sale category products.'.format(obj2.count())
+
+    for o in obj:
+        check.check_offsale_product( o.key, o.url() )
+
+    for o in obj2:
+        check.check_offsale_product( o.key, o.url() )
 

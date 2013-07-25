@@ -2,7 +2,7 @@ import requests
 import lxml.html
 import re
 import slumber
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from settings import MASTIFF_HOST
 from models import Event, Product
@@ -122,6 +122,12 @@ class CheckServer(object):
         if already_end:
             return True
         else:
+            print '\n\nonekingslane product[{0}] on sale again.'.format(url)
+            products_end = datetime.utcnow() + timedelta(days=3)
+            prd.update_history.update({ 'products_end': datetime.utcnow() })
+            prd.on_again = True
+            prd.save()
+
             return False
 
 
@@ -171,6 +177,20 @@ class CheckServer(object):
         return 'onekingslane_'+product_id, title+'_'+description
 
 if __name__ == '__main__':
+    check = CheckServer()
+
+    obj = Product.objects(products_end__lt=datetime.utcnow()).timeout(False)
+    print 'have {0} off sale event products.'.format(obj.count())
+    obj2 = Product.objects(products_end__exists=False).timeout(False)
+    print 'have {0} off sale category products.'.format(obj2.count())
+
+    for o in obj:
+        check.check_offsale_product( o.key, o.url() )
+
+    for o in obj2:
+        check.check_offsale_product( o.key, o.url() )
+
+
     import sys
     from optparse import OptionParser
 

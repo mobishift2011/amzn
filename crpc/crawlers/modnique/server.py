@@ -71,7 +71,7 @@ class Server(object):
         tree = lxml.html.fromstring(content)
         self.upcoming_proc(tree, ctx)
 
-        events = tree.cssselect('div.bgDark > div.mbm > div > div.page > ul#nav > li.fCalc:first-of-type')[0]
+        events = tree.cssselect('div.bgDark div.mbm > div > div.page > ul#nav > li.fCalc:first-of-type')[0]
         dept_link = {} # get department, link
         for e in events.cssselect('ul.subnav > li.eventsMenuWidth > ul.pbm > li.unit > a.pvn'):
             link = e.get('href')
@@ -93,11 +93,11 @@ class Server(object):
             common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=link, is_new=is_new, is_updated=is_updated)
 
         # get 'the-shops' category
-        link = tree.cssselect('div.bgDark > div.mbm > div > div.page > ul#nav > li.fCalc:nth-of-type(2) > a.phl')[0].get('href')
+        link = tree.cssselect('div.bgDark div.mbm > div > div.page > ul#nav > li.fCalc:nth-of-type(2) > a.phl')[0].get('href')
         self.crawl_shops(link.rsplit('/', 1)[-1], link, ctx)
 
         # http://www.modnique.com/saleevent/Daily-Deal/2000/seeac/gseeac
-        sale = tree.cssselect('div.bgDark > div.mbm > div > div.page > ul#nav > li.fCalc:nth-of-type(3) > a.phl')[0].get('href')
+        sale = tree.cssselect('div.bgDark div.mbm > div > div.page > ul#nav > li.fCalc:nth-of-type(3) > a.phl')[0].get('href')
         self.parse_sale(sale, ctx)
 
         for dept, link in dept_link.iteritems():
@@ -186,7 +186,7 @@ class Server(object):
         """.. :py:method::
         """
         _utcnow = datetime.utcnow()
-        nodes = tree.cssselect('div#content > div#upcoming_sales li#upcoming_sales_container > div.sale_thumb > div.media')
+        nodes = tree.cssselect('div#upcoming_sales li#upcoming_sales_container > div.sale_thumb > div.media')
         for node in nodes:
             link = node.cssselect('div.sRollover > div.mbs > a')[0].get('href')
             slug, event_id = self.extract_slug_id.match(link).groups()
@@ -278,15 +278,15 @@ class Server(object):
 #                if color.isdigit(): color = ''
 #            except AttributeError:
 #                pass
-            title = node.cssselect('div.item_thumb2 > div.itemTitle > h6.neutral')[0].text_content().strip()
+            title = node.cssselect('div.item_thumb2 div.itemTitle h6.neutral')[0].text_content().strip()
             link = node.cssselect('div.item_thumb2 > div.hd > a.item_link')[0].get('href').strip() # link have '\r\n'
             link = link if link.startswith('http') else self.siteurl + link
             slug, key = self.extract_slug_product.match(link).groups()
 
-            price = node.cssselect('div.item_thumb2 > div > div.media > div.bd > p > span.price')[0].text_content().replace('modnique', '').replace('$', '').replace(',', '').strip()
-            listprice = node.cssselect('div.item_thumb2 > div > div.media > div.bd > p > span.bare')
+            price = node.cssselect('div.item_thumb2 div.media div.bd p span.fwb')[0].text_content().replace('modnique', '').replace('$', '').replace(',', '').strip()
+            listprice = node.cssselect('div.item_thumb2 div.media div.bd p span.bare')
             listprice = listprice[0].text_content().replace('retail', '').replace('$', '').replace(',', '').strip() if listprice else ''
-            soldout = True if node.cssselect('div.item_thumb2 > div.soldSticker') else False
+            soldout = True if node.cssselect('div.item_thumb2 .soldSticker') else False
 
             is_new, is_updated = False, False
             product = Product.objects(key=key).first()
@@ -432,6 +432,9 @@ class Server(object):
 
 
 if __name__ == '__main__':
+    Server().crawl_listing('http://www.modnique.com/saleevent/Apparel/Mid-Year-Blowout-Dresses/12412/seeac/gseeac')
+    exit()
+
     import zerorpc
     from settings import CRAWLER_PEERS
     server = zerorpc.Server(Server(), heartbeat=None)

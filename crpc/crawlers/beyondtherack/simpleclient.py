@@ -79,7 +79,35 @@ class CheckServer(object):
 
 
     def check_offsale_product(self, id, url):
-        pass
+        prd = Product.objects(key=id).first()
+        if prd is None:
+            print '\n\nbeyondtherack {0}, {1}\n\n'.format(id, url)
+            return
+
+        cont = self.net.fetch_product_page(url)
+        if cont == -302:
+            return
+        elif cont is None or isinstance(cont, int):
+            cont = self.net.fetch_product_page(url)
+            if cont is None or isinstance(cont, int):
+                print '\n\nbeyondtherack product[{0}] download error.\n\n'.format(url)
+                return
+        else:
+            tree = lxml.html.fromstring(cont)
+            try: # only have style. 'EVENT HAS ENDED'
+                tt = tree.cssselect('#eventTTL')[0].get('eventttl')
+            except IndexError:
+                return
+
+            products_end = datetime.utcfromtimestamp( float(tt) )
+            if not prd.products_end or prd.products_end < products_end:
+                print '\n\nbeyondtherack product[{0}] on sale again.'.format(url)
+                prd.products_end = products_end
+                prd.update_history.update({ 'products_end': datetime.utcnow() })
+                prd.on_again = True
+                prd.save()
+
+
 
     def check_onsale_event(self, id, url):
         pass
@@ -88,4 +116,16 @@ class CheckServer(object):
         pass
 
 if __name__ == '__main__':
-    CheckServer().check_onsale_product('','')
+    check = CheckServer()
+
+    obj = Product.objects(products_end__lt=datetime.utcnow()).timeout(False)
+    print 'have {0} off sale event products.'.format(obj.count())
+    obj2 = Product.objects(products_end__exists=False).timeout(False)
+    print 'have {0} off sale category products.'.format(obj2.count())
+
+    for o in obj:
+        check.check_offsale_product( o.key, o.url() )
+
+    for o in obj2:
+        check.check_offsale_product( o.key, o.url() )
+

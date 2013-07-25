@@ -134,8 +134,8 @@ class Task(Document):
     # meta
     meta        =   {
         "indexes":  ["status", "site", "method", "started_at", "updated_at", "ended_at"],
-        "max_documents": 10*1000,
-        "max_size": 500*1000*1000,
+        #"max_documents": 10*1000,
+        #"max_size": 500*1000*1000,
         "db_alias": DB,
     }
 

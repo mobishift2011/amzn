@@ -434,5 +434,5 @@ class Server(object):
 
 if __name__ == '__main__':
     ss = Server()
-    ss.crawl_product('http://www.totsy.com/sales/product-846129.html')
-#    ss.crawl_category()
+#    ss.crawl_product('http://www.totsy.com/sales/product-846129.html')
+    ss.crawl_category()

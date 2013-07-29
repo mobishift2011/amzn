@@ -109,8 +109,9 @@ class Server(object):
                         self.save_child_event(child['event_id'], events_begin, events_end, sale_title, sale_description, dept, tagline, ctx)
                         is_leaf = False
 
-            grid_img = 'http://www.hautelook.com/assets/{0}/grid-large.jpg'.format(event_code)
-            pop_img = 'http://www.hautelook.com/assets/{0}/pop-large.jpg'.format(event_code)
+#            grid_img = 'http://www.hautelook.com/assets/{0}/grid-large.jpg'.format(event_code)
+#            pop_img = 'http://www.hautelook.com/assets/{0}/pop-large.jpg'.format(event_code)
+            pop_img = 'http://www.hautelook.com/assets/{0}/event-square.jpg'.format(event_code)
             is_new, is_updated = False, False
             event = Event.objects(event_id=event_id).first()
             if not event:
@@ -124,7 +125,7 @@ class Server(object):
                 event.is_leaf = is_leaf
             if sale_description and not event.sale_description:
                 event.sale_description = sale_description
-            if grid_img not in event.image_urls: event.image_urls.append(grid_img)
+#            if grid_img not in event.image_urls: event.image_urls.append(grid_img)
             if pop_img not in event.image_urls: event.image_urls.append(pop_img)
             if event.events_begin != events_begin:
                 event.update_history.update({ 'events_begin': datetime.utcnow() })

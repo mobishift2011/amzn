@@ -109,7 +109,7 @@ class Server(object):
                         self.save_child_event(child['event_id'], events_begin, events_end, sale_title, sale_description, dept, tagline, ctx)
                         is_leaf = False
 
-#            grid_img = 'http://www.hautelook.com/assets/{0}/grid-large.jpg'.format(event_code)
+            grid_img = 'http://www.hautelook.com/assets/{0}/grid-large.jpg'.format(event_code)
 #            pop_img = 'http://www.hautelook.com/assets/{0}/pop-large.jpg'.format(event_code)
             pop_img = 'http://www.hautelook.com/assets/{0}/event-square.jpg'.format(event_code)
             is_new, is_updated = False, False

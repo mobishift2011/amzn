@@ -344,7 +344,7 @@ class Server(object):
                 return
         tree = lxml.html.fromstring(content[0])
 
-        image_urls, shipping, list_info, brand, returned = self.parse_product(tree)
+        image_urls, shipping, list_info, returned = self.parse_product(tree)
 
         is_new, is_updated = False, False
         product = Product.objects(key=key).first()
@@ -366,7 +366,7 @@ class Server(object):
 
     def parse_product(self, tree):
         # nav = tree.cssselect('div > div.line > div.page > div.line')[0] # bgDark or bgShops
-        images = tree.cssselect('div#product_gallery > div.line > div#product_imagelist > a')
+        images = tree.cssselect('div#product_imagelist .gallery a')
         image_urls = []
         for img in images:
             img_url = img.get('href') 
@@ -374,18 +374,17 @@ class Server(object):
             if img_url == 'http://llthumb.bids.com/mod$image.getSuperImgsSrc()':
                 img_url = img.cssselect('img')[0].get('src')
             image_urls.append( img_url )
-        shipping = tree.cssselect('div#item_content_wrapper > div#item_wrapper > div#product_delivery')[0].text_content().strip()
-        info = tree.cssselect('div.lastUnit div.line div#showcase > div.container')[0]
+        shipping = tree.cssselect('div#product_delivery')[0].text_content().strip()
+        info = tree.cssselect('div#showcase')[0]
         list_info = []
-        nodes = info.cssselect('div.tab_container > div#tab1 p')
+        nodes = info.cssselect('div#tab1content > p')
         for node in nodes:
             text = node.text_content().strip()
             if text.isdigit(): continue
             if text: list_info.append(text)
 
-        brand = info.cssselect('div#tab4')[0].text_content().strip()
-        returned = info.cssselect('div#tab5')[0].text_content().strip()
-        return image_urls, shipping, list_info, brand, returned
+        returned = info.cssselect('div#tab4content')[0].text_content().strip()
+        return image_urls, shipping, list_info, returned
 
 
     def parse_sale(self, url, ctx):
@@ -398,7 +397,7 @@ class Server(object):
         slug, key = self.extract_slug_product.match(content[1]).groups()
         # key = re.compile('.*itemid=([^&]+).*').match(content[1]).group(1)
 
-        image_urls, shipping, list_info, brand, returned = self.parse_product(tree)
+        image_urls, shipping, list_info, returned = self.parse_product(tree)
         # nav = tree.cssselect('div > div.line > div.page > div.line')[0] # bgDark or bgShops
         pprice = tree.cssselect('div.lastUnit > div.line form > div.mod > div.hd > div.media > div.bd')[0]
         price = pprice.cssselect('span.price')[0].text_content().replace('$', '').replace(',', '').strip()
@@ -432,8 +431,6 @@ class Server(object):
 
 
 if __name__ == '__main__':
-    Server().crawl_listing('http://www.modnique.com/saleevent/Apparel/Mid-Year-Blowout-Dresses/12412/seeac/gseeac')
-    exit()
 
     import zerorpc
     from settings import CRAWLER_PEERS

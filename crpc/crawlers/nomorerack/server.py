@@ -380,6 +380,7 @@ class Server(object):
             # image_urls.append( img.get('src') )
             # image_urls.append( img.get('src').replace('tn.', 'rg.') )
             image_urls.append( img.get('src').replace('tn.', 'lg.') ) # we just need one large image
+
         ends = tree.cssselect('div#wrapper > div#content > div#front > div.ribbon > div.ribbon-center h4')
         if not ends:
             ends = tree.cssselect('div#wrapper > div#content > div#front > div.top > div.ribbon-center > p')
@@ -402,6 +403,7 @@ class Server(object):
                 time_format = '%B %d %I:%M %p%Y'
 
             try:
+                if 'Augu ' in time_str: time_str = time_str.replace('Augu ', 'August ')
                 products_end = time_convert(time_str, time_format, time_zone)
             except ValueError:
                 if len(time_str.split(' ')) == 3:
@@ -438,7 +440,7 @@ class Server(object):
 
 
 if __name__ == '__main__':
-    url = 'http://www.nomorerack.com/daily_deals/view/485693-set_of_3__litefuze_rechargeable_solar_outdoor_mosaic_lamps'
+    url = 'http://www.nomorerack.com/daily_deals/view/523445-eliconn_google_android_4_0_1_2ghz_4gb_7__tablet_pc___accessories'
     Server().crawl_product(url)
     exit()
     server = zerorpc.Server(Server())

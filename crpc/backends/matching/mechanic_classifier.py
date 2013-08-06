@@ -58,6 +58,15 @@ MODNIQUE = {
         "men": ["Men"],
         "beauty": ["Beauty & Health"],
         "shoes": ["Women"],
+    },
+    "contains": {
+        "Women": ["Women"],
+        "Men": ["Men"],
+        "For Her": ["Women"],
+        "Handbags": ["Women", "Bags"],
+        "Beauty": ["Women", "Beauty & Health"],
+        "Jewelry": ["Women", "Jewelry & Watches"],
+        "Watches": ["Women", "Jewelry & Watches"],
     }
 }
 
@@ -434,26 +443,25 @@ def classify_product_department(site, product, use_event_info=False, return_judg
 
 def test_event():
     import random
-    from web import sites
     while True:
-        site = random.choice(sites)
+        site = 'modnique'
         m = get_site_module(site)
         
         if hasattr(m, 'Event'):
             e = random.choice(list(m.Event.objects()))
             print e.sale_title, e.dept, e.event_id
-            print "==>", site, classify_event_department(site, e)
+            print "==>", site, classify_event_department(site, e), guess_event_dept(site, e)
         raw_input()
 
 def test_product():
     import time
     import random
-    from web import sites
+    #from web import sites
+    sites = ['modnique']
     for site in sites:
-        site = 'beyondtherack'
         m = get_site_module(site)
-        count = m.Product.objects().count()
-        index = random.randint(0, count-1)
+        #count = m.Product.objects().count()
+        #index = random.randint(0, count-1)
         count = 0
         total = 0
         for p in m.Product.objects():
@@ -525,12 +533,13 @@ def guess_event_dept(site, event):
         results.remove('Apparel')
         
     if hasattr(event, 'sale_title') and event.sale_title:
-        patwomen = set(["women's", "she's", "woman", "womans", "women", "pumps", "her", "she"])
-        patmen = set(["man", "men", "men's", "he's", "his", "him"])
-        patkids = set(["kids'", "kids", "toys", "baby"])
+        patwomen = set(["women's", "she's", "woman", "womans", "women", "pumps", "her", "she", "sunglasses", "dresses"])
+        patmen = set(["man", "men", "men's", "he's", "his", "him", "sunglasses"])
+        patkids = set(["kids'", "kids", "toys", "baby", "maternity"])
         pathome = set(["beds", "art", "house", "rugs", "lighting", "duvet", "towel", "sheet", "furniture", "home"])
         patwatches = set(["watches", "jewelry", "diamonds"])
         patbags = set(["bags", "handbags"])
+        pathealth = set(["skincare"])
         words = set(re.split(r'[ -:]', event.sale_title.strip().lower()))
         if words & patwomen:
             results.append('Women')
@@ -544,6 +553,8 @@ def guess_event_dept(site, event):
             results.append('Jewelry & Watches')
         if words & patbags:
             results.append('Bags')
+        if words & pathealth:
+            results.append('Beauty & Health')
         return list(set(results))
 
 def count():
@@ -563,7 +574,8 @@ def count():
     pprint(counter.most_common())
 
 if __name__ == '__main__':
-    m = get_site_module('modnique')
-    print classify_product_department('modnique', m.Product.objects(pk='01479347').first())
+    #m = get_site_module('modnique')
+    #print classify_product_department('modnique', m.Product.objects(pk='01479347').first())
+    test_product()
 
 

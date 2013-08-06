@@ -456,12 +456,12 @@ def test_event():
 def test_product():
     import time
     import random
-    from web import sites
+    #from web import sites
+    sites = ['modnique']
     for site in sites:
-        site = 'beyondtherack'
         m = get_site_module(site)
-        count = m.Product.objects().count()
-        index = random.randint(0, count-1)
+        #count = m.Product.objects().count()
+        #index = random.randint(0, count-1)
         count = 0
         total = 0
         for p in m.Product.objects():
@@ -576,6 +576,6 @@ def count():
 if __name__ == '__main__':
     #m = get_site_module('modnique')
     #print classify_product_department('modnique', m.Product.objects(pk='01479347').first())
-    test_event()
+    test_product()
 
 

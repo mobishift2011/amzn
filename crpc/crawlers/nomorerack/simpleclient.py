@@ -52,7 +52,7 @@ class CheckServer(object):
         listprice = price_node.cssselect('p del')[0].text_content().replace('$', '').replace(',', '').replace('Retail', '').strip()
         soldout = node.cssselect('div.add_to_cart div#add_to_cart div.error_message')
         soldout = 'out' in soldout[0].text_content() if soldout else False
-        products_end = self.parse_time(tree)
+        products_end = self.parse_time(tree, cont)
 
         if prd.title.lower() != title.lower():
             print 'nomorerack product[{0}] title error: [{1} vs {2}]'.format(url, prd.title.encode('utf-8'), title.encode('utf-8'))
@@ -87,7 +87,7 @@ class CheckServer(object):
         tree = lxml.html.fromstring(cont)
         offsale = tree.cssselect('div#content div#front div#primary div#products_view div.right div.add_to_cart div#add_to_cart div.error_message')
         offsale = 'not available' in offsale[0].text_content() if offsale else False
-        products_end = self.parse_time(tree)
+        products_end = self.parse_time(tree, cont)
         if offsale is True and (not prd.products_end or prd.products_end > datetime.utcnow()):
             tt = products_end if products_end else datetime.utcnow()
             if tt.year !=  prd.products_end.year:
@@ -113,7 +113,7 @@ class CheckServer(object):
     def check_offsale_event(self, id, url):
         pass
 
-    def parse_time(self, tree):
+    def parse_time(self, tree, cont):
         ends = tree.cssselect('div#content div#front div.ribbon div.ribbon-center h4')
         if not ends:
             ends = tree.cssselect('div#content div#front div.top div.ribbon-center > p')
@@ -125,7 +125,10 @@ class CheckServer(object):
             ends = ends[0].text_content()
         ends = ends.split('until')[-1].strip().replace('st', '').replace('nd', '').replace('rd', '').replace('th', '') 
         if ends == '':
-            return None
+            y, m, d, h, mm, s = re.compile('until: new \$\.countdown\.UTCDate\(.+, (\d+), (.+), (\d+), (\d+), (\d+), (\d+)\),').search(cont).groups()
+            products_end = datetime(int(y), int(m.split('-')[0]), int(d), int(h), int(mm), int(s))
+            return products_end
+
         time_str, time_zone = ends.rsplit(' ', 1)
 
         if len(time_str.split(' ')) == 3:
@@ -164,6 +167,10 @@ class CheckServer(object):
 
 if __name__ == '__main__':
     check = CheckServer()
+    cont = requests.get('http://www.nomorerack.com/daily_deals/view/462805-set_of_2__led_fiber_optic_light_up_hair_barrettes').content
+    tree = lxml.html.fromstring(cont)
+    check.parse_time(tree, cont)
+    exit()
 
     obj = Product.objects(products_end__lt=datetime.utcnow()).timeout(False)
     print 'have {0} off sale event products.'.format(obj.count())

@@ -5,7 +5,7 @@
 import re
 import slumber
 import lxml.html
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from models import Product
 from server import fetch_product
@@ -84,7 +84,35 @@ class CheckServer(object):
 
 
     def check_offsale_product(self, id, url):
-        pass
+        prd = Product.objects(key=id).first()
+        if prd is None:
+            print '\n\nmodnique {0}, {1}\n\n'.format(id, url)
+            return
+
+        ret = fetch_product(url)
+        if ret[0] == -302:
+            return
+        elif isinstance(ret[0], int):
+            print '\n\nmodnique download error: {0} , {1}\n\n'.format(ret[0], ret[1])
+            return
+
+        soldout = None
+        tree = lxml.html.fromstring(ret[0])
+        text = tree.cssselect('#soldout a span')[0].text_content().strip()
+        if 'Add To Waitlist' in text:
+            soldout = True
+        elif 'sold out' in text:
+            soldout = True
+        elif 'size sold' in text:
+            soldout = False
+        if soldout is False:
+            print '\n\nmodnique product[{0}] on sale again.'.format(url)
+            # no specific time, so add 3 days, If it off sale, can be fond by offsale function
+            products_end = datetime.utcnow() + timedelta(days=3)
+            prd.products_end = products_end
+            prd.update_history.update({ 'products_end': datetime.utcnow() })
+            prd.on_again = True
+            prd.save()
 
     def check_onsale_event(self, id, url):
         pass
@@ -93,4 +121,16 @@ class CheckServer(object):
         pass
 
 if __name__ == '__main__':
-    CheckServer().check_onsale_product('01513534', 'http://www.modnique.com/product/Our-Favorite-Silver-Jewelry-Styles/10399/Ladies-Necklace-Designed-In-925-Sterling-Silver/01513534/color/Silver/size/seeac/gseeac')
+    check = CheckServer()
+
+    obj = Product.objects(products_end__lt=datetime.utcnow()).timeout(False)
+    print 'have {0} off sale event products.'.format(obj.count())
+    obj2 = Product.objects(products_end__exists=False).timeout(False)
+    print 'have {0} off sale category products.'.format(obj2.count())
+
+    for o in obj:
+        check.check_offsale_product( o.key, o.url() )
+
+    for o in obj2:
+        check.check_offsale_product( o.key, o.url() )
+

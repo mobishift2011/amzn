@@ -7,6 +7,7 @@ This is the server part of zeroRPC module. Call by client automatically, run on 
 
 """
 
+import re
 import time
 import lxml.html
 from datetime import datetime
@@ -45,6 +46,8 @@ def fetch_product_page(url):
 
     # nomorerack will redirect to homepage automatically when this product is not exists.
     if ret.url == u'http://nomorerack.com/' and ret.url[:-1] != url:
+        return -302
+    if ret.url == u'http://www.nomorerack.com/' and ret.url[:-1] != url:
         return -302
     elif ret.url.startswith(u'http://nomorerack.com/events/view/'):
         return -302
@@ -377,6 +380,7 @@ class Server(object):
             # image_urls.append( img.get('src') )
             # image_urls.append( img.get('src').replace('tn.', 'rg.') )
             image_urls.append( img.get('src').replace('tn.', 'lg.') ) # we just need one large image
+
         ends = tree.cssselect('div#wrapper > div#content > div#front > div.ribbon > div.ribbon-center h4')
         if not ends:
             ends = tree.cssselect('div#wrapper > div#content > div#front > div.top > div.ribbon-center > p')
@@ -387,28 +391,33 @@ class Server(object):
         else:
             ends = ends[0].text_content()
         ends = ends.split('until')[-1].strip().replace('st', '').replace('nd', '').replace('rd', '').replace('th', '') 
-        time_str, time_zone = ends.rsplit(' ', 1)
+        if ends == '': 
+            y, m, d, h, mm, s = re.compile('until: new \$\.countdown\.UTCDate\(.+, (\d+), (.+), (\d+), (\d+), (\d+), (\d+)\),').search(content).groups()
+            products_end = datetime(int(y), int(m.split('-')[0]), int(d), int(h), int(mm), int(s))
+        else:
+            time_str, time_zone = ends.rsplit(' ', 1)
 
-        if len(time_str.split(' ')) == 3:
-            time_format = '%B %d %I:%M%p%Y'
-        elif len(time_str.split(' ')) == 4:
-            time_format = '%B %d %I:%M %p%Y'
-
-        try:
-            products_end = time_convert(time_str, time_format, time_zone)
-        except ValueError:
             if len(time_str.split(' ')) == 3:
-                a, b, c = time_str.split(' ')
-                if c[:2] == '00' and c[5] == 'A':
-                    products_end = time_convert(time_str.replace('AM', ' '), '%B %d %H:%M %Y', time_zone)
-                elif int(c[:2]) >=13 and c[5] == 'P':
-                    products_end = time_convert(time_str.replace('PM', ' '), '%B %d %H:%M %Y', time_zone)
+                time_format = '%B %d %I:%M%p%Y'
             elif len(time_str.split(' ')) == 4:
-                a, b, c, d = time_str.split(' ')
-                if c[:2] == '00' and d[0] == 'A':
-                    products_end = time_convert(time_str.replace('AM', ''), '%B %d %H:%M %Y', time_zone)
-                elif int(c[:2]) >=13 and d[0] == 'P':
-                    products_end = time_convert(time_str.replace('PM', ''), '%B %d %H:%M %Y', time_zone)
+                time_format = '%B %d %I:%M %p%Y'
+
+            try:
+                if 'Augu ' in time_str: time_str = time_str.replace('Augu ', 'August ')
+                products_end = time_convert(time_str, time_format, time_zone)
+            except ValueError:
+                if len(time_str.split(' ')) == 3:
+                    a, b, c = time_str.split(' ')
+                    if c[:2] == '00' and c[5] == 'A':
+                        products_end = time_convert(time_str.replace('AM', ' '), '%B %d %H:%M %Y', time_zone)
+                    elif int(c[:2]) >=13 and c[5] == 'P':
+                        products_end = time_convert(time_str.replace('PM', ' '), '%B %d %H:%M %Y', time_zone)
+                elif len(time_str.split(' ')) == 4:
+                    a, b, c, d = time_str.split(' ')
+                    if c[:2] == '00' and d[0] == 'A':
+                        products_end = time_convert(time_str.replace('AM', ''), '%B %d %H:%M %Y', time_zone)
+                    elif int(c[:2]) >=13 and d[0] == 'P':
+                        products_end = time_convert(time_str.replace('PM', ''), '%B %d %H:%M %Y', time_zone)
 
         is_new, is_updated = False, False
         product = Product.objects(key=product_id).first()
@@ -431,6 +440,9 @@ class Server(object):
 
 
 if __name__ == '__main__':
+    url = 'http://www.nomorerack.com/daily_deals/view/523445-eliconn_google_android_4_0_1_2ghz_4gb_7__tablet_pc___accessories'
+    Server().crawl_product(url)
+    exit()
     server = zerorpc.Server(Server())
     server.bind("tcp://0.0.0.0:{0}".format(CRAWLER_PORT))
     server.run()

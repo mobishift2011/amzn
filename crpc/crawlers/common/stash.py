@@ -30,7 +30,7 @@ luxury_crawlers = (
          'gilt',
          'nomorerack',
          'venteprivee',
-         'totsy',
+#         'totsy',
          'beyondtherack',
          'lot18',
          'myhabit',

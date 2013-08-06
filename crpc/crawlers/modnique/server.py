@@ -363,7 +363,7 @@ class Server(object):
         price = node.cssselect('div.item_thumb2 div.media div.bd p span.fwb')[0].text_content().replace('modnique', '').replace('$', '').replace(',', '').strip()
         listprice = node.cssselect('div.item_thumb2 div.media div.bd p span.bare')
         listprice = listprice[0].text_content().replace('retail', '').replace('$', '').replace(',', '').strip() if listprice else ''
-        soldout = True if node.cssselect('div.item_thumb2 .soldSticker') else False
+        soldout = True if node.cssselect('div.item_thumb2 .hd .posAbsb div') else False
 
         is_new, is_updated = False, False
         product = Product.objects(key=key).first()
@@ -437,10 +437,11 @@ class Server(object):
         images = tree.cssselect('div#product_imagelist .gallery a')
         image_urls = []
         for img in images:
-            img_url = img.get('href') 
-            # lots of page don't have super image, or only have several super, then get the medium
-            if img_url == 'http://llthumb.bids.com/mod$image.getSuperImgsSrc()':
-                img_url = img.cssselect('img')[0].get('src')
+            img_url = img.cssselect('img')[0].get('src')
+#            img_url = img.get('href') 
+#            # lots of page don't have super image, or only have several super, then get the medium
+#            if img_url == 'http://llthumb.bids.com/mod$image.getSuperImgsSrc()':
+#                img_url = img.cssselect('img')[0].get('src')
             image_urls.append( img_url )
         shipping = tree.cssselect('div#product_delivery')[0].text_content().strip()
         info = tree.cssselect('div#showcase')[0]

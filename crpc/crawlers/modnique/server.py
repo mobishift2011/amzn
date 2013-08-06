@@ -91,6 +91,8 @@ class Server(object):
                     e.save()
                     common_saved.send(sender=ctx, obj_type='Event', key=e.event_id, url=e.combine_url, is_new=False, is_updated=True)
 
+        self.parse_sale('http://www.modnique.com/saleevent/Daily-Deal/2000/seeac/gseeac', ctx)
+
 #        events = tree.cssselect('div.bgDark div.mbm > div > div.page > ul#nav > li.fCalc:first-of-type')[0]
 #        dept_link = {} # get department, link
 #        for e in events.cssselect('ul.subnav > li.eventsMenuWidth > ul.pbm > li.unit > a.pvn'):
@@ -468,11 +470,11 @@ class Server(object):
 
         image_urls, shipping, list_info, returned = self.parse_product(tree)
         # nav = tree.cssselect('div > div.line > div.page > div.line')[0] # bgDark or bgShops
-        pprice = tree.cssselect('div.lastUnit > div.line form > div.mod > div.hd > div.media > div.bd')[0]
-        price = pprice.cssselect('span.price')[0].text_content().replace('$', '').replace(',', '').strip()
-        listprice = pprice.cssselect('span.bare')
+        pprice = tree.cssselect('.bgShops .page .unitRight form[name=AddToCart] .pBuy .borMedGrey')[0]
+        price = pprice.cssselect('div.fsem1-8')[0].text_content().replace('modnique', '').replace('$', '').replace(',', '').strip()
+        listprice = pprice.cssselect('span.lightMedGrey')
         listprice = listprice[0].text_content().replace('retail', '').replace('$', '').replace(',', '').strip() if listprice else ''
-        title = tree.cssselect('div.lastUnit > div.line > .pbs')[0].text_content().strip()
+        title = tree.cssselect('.bgShops .page .unitRight h1.darkGrey')[0].text_content().strip()
 
         is_new, is_updated = False, False
         product = Product.objects(key=key).first()
@@ -501,7 +503,7 @@ class Server(object):
 
 if __name__ == '__main__':
     s = Server()
-    s.crawl_category()
+    s.parse_sale('http://www.modnique.com/saleevent/Daily-Deal/2000/seeac/gseeac', ctx='')
     exit()
 
     import zerorpc

@@ -278,6 +278,8 @@ class Server(object):
             event.combine_url = link
             event.slug = slug
             event.sale_title = sale_title
+        if not event.events_begin:
+            event.events_begin = datetime.utcnow().date()
         event.update_time = datetime.utcnow()
         return event, is_new, is_updated
 
@@ -503,7 +505,7 @@ class Server(object):
 
 if __name__ == '__main__':
     s = Server()
-    s.parse_sale('http://www.modnique.com/saleevent/Daily-Deal/2000/seeac/gseeac', ctx='')
+    s.crawl_category()
     exit()
 
     import zerorpc

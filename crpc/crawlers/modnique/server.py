@@ -70,23 +70,28 @@ class Server(object):
             content = fetch_event(self.eventurl)
         tree = lxml.html.fromstring(content)
 
+        # events
         events = tree.cssselect('#saleEvents .unit .eventFluid a.block')
         for ev in events:
-            link = ev.get('href')
-            link = link if link.startswith('http') else self.siteurl + link
-            slug, event_id = self.extract_slug_id.search(link).groups()
+            self.crawl_category_event(ev, ctx)
 
-            img = ev.cssselect('noscript img')[0].get('src')
-            img = img.replace('NB.jpg', 'SS.jpg')
+        # shops: no events_end
+        event_id_page = []
+        shops = tree.cssselect('#saleEvents .unit .shopFluid a.block')
+        for sp in shops:
+            ev_id = self.crawl_category_event(sp, ctx, shop=True)
+            event_id_page.append(ev_id)
 
-            sale_title = ev.cssselect('.oDark')[0].text_content().strip()
+        event_id_db = [e for e in Event.objects(events_end__exists=False, dept=['shops'])]
+        if len(event_id_page) > 1: # no download or parse error condition
+            for e in event_id_db:
+                if e.event_id not in event_id_page:
+                    e.events_end = datetime.utcnow()
+                    e.update_history.update({ 'events_end': datetime.utcnow() })
+                    e.save()
+                    common_saved.send(sender=ctx, obj_type='Event', key=e.event_id, url=e.combine_url, is_new=False, is_updated=True)
 
-            event, is_new, is_updated = self.get_event_from_db(event_id, link, slug, sale_title)
-            event.image_urls = [img]
-            event.save()
-            common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=link, is_new=is_new, is_updated=is_updated)
-
-#        tree.cssselect('.bgShops .posRel .zi3 ')
+        self.parse_sale('http://www.modnique.com/saleevent/Daily-Deal/2000/seeac/gseeac', ctx)
 
 #        events = tree.cssselect('div.bgDark div.mbm > div > div.page > ul#nav > li.fCalc:first-of-type')[0]
 #        dept_link = {} # get department, link
@@ -119,7 +124,27 @@ class Server(object):
 #
 #        for dept, link in dept_link.iteritems():
 #            self.crawl_dept(dept, link, ctx)
-#
+
+
+    def crawl_category_event(self, ev, ctx, shop=False):
+        link = ev.get('href')
+        link = link if link.startswith('http') else self.siteurl + link
+        slug, event_id = self.extract_slug_id.search(link).groups()
+
+        img = ev.cssselect('noscript img')[0].get('src')
+        img = img.replace('NB.jpg', 'SS.jpg')
+
+        sale_title = ev.cssselect('.oDark')[0].text_content().strip()
+
+        event, is_new, is_updated = self.get_event_from_db(event_id, link, slug, sale_title)
+        event.image_urls = [img]
+        if shop:
+            event.dept = ['shops']
+        event.save()
+        common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=link, is_new=is_new, is_updated=is_updated)
+        return event_id
+
+
     def crawl_shops(self, dept, url, ctx):
         """.. :py:method::
             dept can't not add to event here, because all the dept page have all the events.
@@ -253,6 +278,8 @@ class Server(object):
             event.combine_url = link
             event.slug = slug
             event.sale_title = sale_title
+        if not event.events_begin:
+            event.events_begin = datetime.utcnow().date()
         event.update_time = datetime.utcnow()
         return event, is_new, is_updated
 
@@ -285,6 +312,19 @@ class Server(object):
                 event.update_time = datetime.utcnow()
                 event.save()
                 return
+
+        ends = tree.cssselect('#countdown')
+        if ends:
+            day,hour,minu = ends[0].text_content().strip().split()
+            day = int( day.replace('D', '') )
+            hour = int( hour.replace('H', '') )
+            minu = int( minu.replace('M', '') )
+            ends = datetime.utcnow() + timedelta(days=day, hours=hour, minutes=minu)
+            if not event.events_end or abs(event.events_end - ends) > timedelta(minutes=15):
+                event.events_end = ends
+                event.update_history.update({ 'events_end': datetime.utcnow() })
+                event.update_time = datetime.utcnow()
+                event.save()
 
         nodes = tree.cssselect('div.line > div.page > div#items > ul#products > li.product')
         for node in nodes:
@@ -327,7 +367,7 @@ class Server(object):
         price = node.cssselect('div.item_thumb2 div.media div.bd p span.fwb')[0].text_content().replace('modnique', '').replace('$', '').replace(',', '').strip()
         listprice = node.cssselect('div.item_thumb2 div.media div.bd p span.bare')
         listprice = listprice[0].text_content().replace('retail', '').replace('$', '').replace(',', '').strip() if listprice else ''
-        soldout = True if node.cssselect('div.item_thumb2 .soldSticker') else False
+        soldout = True if node.cssselect('div.item_thumb2 .hd .posAbsb div') else False
 
         is_new, is_updated = False, False
         product = Product.objects(key=key).first()
@@ -401,10 +441,11 @@ class Server(object):
         images = tree.cssselect('div#product_imagelist .gallery a')
         image_urls = []
         for img in images:
-            img_url = img.get('href') 
-            # lots of page don't have super image, or only have several super, then get the medium
-            if img_url == 'http://llthumb.bids.com/mod$image.getSuperImgsSrc()':
-                img_url = img.cssselect('img')[0].get('src')
+            img_url = img.cssselect('img')[0].get('src')
+#            img_url = img.get('href') 
+#            # lots of page don't have super image, or only have several super, then get the medium
+#            if img_url == 'http://llthumb.bids.com/mod$image.getSuperImgsSrc()':
+#                img_url = img.cssselect('img')[0].get('src')
             image_urls.append( img_url )
         shipping = tree.cssselect('div#product_delivery')[0].text_content().strip()
         info = tree.cssselect('div#showcase')[0]
@@ -431,11 +472,11 @@ class Server(object):
 
         image_urls, shipping, list_info, returned = self.parse_product(tree)
         # nav = tree.cssselect('div > div.line > div.page > div.line')[0] # bgDark or bgShops
-        pprice = tree.cssselect('div.lastUnit > div.line form > div.mod > div.hd > div.media > div.bd')[0]
-        price = pprice.cssselect('span.price')[0].text_content().replace('$', '').replace(',', '').strip()
-        listprice = pprice.cssselect('span.bare')
+        pprice = tree.cssselect('.bgShops .page .unitRight form[name=AddToCart] .pBuy .borMedGrey')[0]
+        price = pprice.cssselect('div.fsem1-8')[0].text_content().replace('modnique', '').replace('$', '').replace(',', '').strip()
+        listprice = pprice.cssselect('span.lightMedGrey')
         listprice = listprice[0].text_content().replace('retail', '').replace('$', '').replace(',', '').strip() if listprice else ''
-        title = tree.cssselect('div.lastUnit > div.line > .pbs')[0].text_content().strip()
+        title = tree.cssselect('.bgShops .page .unitRight h1.darkGrey')[0].text_content().strip()
 
         is_new, is_updated = False, False
         product = Product.objects(key=key).first()
@@ -464,8 +505,7 @@ class Server(object):
 
 if __name__ == '__main__':
     s = Server()
-    url = 'http://www.modnique.com/product/Women/Handbags-Accessories/Gulia/Giulia-Leather-Handbags-Made-In-Italy/12669/Giulia-Crocodile-Embossed-Genuine-Leather-Small-Satchel-Made-In-Italy/01593523/color/RED/size/seeac/gseeac'
-    s.crawl_product(url)
+    s.crawl_category()
     exit()
 
     import zerorpc

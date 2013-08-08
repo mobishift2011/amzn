@@ -4,6 +4,7 @@ from gevent import monkey; monkey.patch_all()
 import gevent
 
 from backends.matching.mechanic_classifier import classify_product_department, guess_event_dept
+from mongoengine import Q
 
 from crawlers.common.events import common_saved
 from crawlers.common.stash import deal_crawlers
@@ -69,7 +70,7 @@ def batch_image_crawling(sender, **kwargs):
 
 @ready_for_batch.bind
 def batch_text_extract(sender, **kwargs):
-    from datetime import datetime
+    from datetime import datetime, timedelta
     utcnow = datetime.utcnow()
     logger.info('batch text extract listens: {0} -> {1}'.format(sender, kwargs.items()))
     site, method, dummy = sender.split('.')
@@ -77,9 +78,11 @@ def batch_text_extract(sender, **kwargs):
 
     if doctype.capitalize() == 'Event':
         # if there's an upcoming event in a site, try recognize the departments
+        # or if this event is newly created, for example, ideeli/modnique has no upcoming events now
         m = get_site_module(site)
         if hasattr(m, 'Event'):
-            for event in m.Event.objects(events_begin__gt=utcnow, favbuy_dept=[]):
+            one_day_ago = utcnow - timedelta(days=1)
+            for event in m.Event.objects((Q(events_begin__gt=utcnow) or Q(create_time__gt=one_day_ago)) and Q(favbuy_dept=[])):
                 try:
                     event.favbuy_dept = guess_event_dept(site, event)
                     event.save()
@@ -119,4 +122,4 @@ def batch_text_extract(sender, **kwargs):
 
 
 if __name__ == '__main__':
-    batch_text_extract('myhabit.update_listing.haha', doctype='Event')
+    batch_text_extract('myhabit.update_listing.haha', doctype='Event', site='modnique')

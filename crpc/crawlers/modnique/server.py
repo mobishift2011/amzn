@@ -130,13 +130,14 @@ class Server(object):
         link = ev.get('href')
         link = link if link.startswith('http') else self.siteurl + link
         slug, event_id = self.extract_slug_id.search(link).groups()
+        dept = slug.split('/')[0]
 
         img = ev.cssselect('noscript img')[0].get('src')
         img = img.replace('NB.jpg', 'SS.jpg')
 
         sale_title = ev.cssselect('.oDark')[0].text_content().strip()
 
-        event, is_new, is_updated = self.get_event_from_db(event_id, link, slug, sale_title)
+        event, is_new, is_updated = self.get_event_from_db(event_id, link, slug, sale_title, dept)
         event.image_urls = [img]
         if shop:
             event.dept = ['shops']
@@ -260,7 +261,7 @@ class Server(object):
             common_saved.send(sender=ctx, obj_type='Event', key=event_id, url=link, is_new=is_new, is_updated=is_updated)
 
 
-    def get_event_from_db(self, event_id, link, slug, sale_title):
+    def get_event_from_db(self, event_id, link, slug, sale_title, dept):
         """.. :py:method::
             get a event object from database
         :param str event_id:
@@ -278,6 +279,7 @@ class Server(object):
             event.combine_url = link
             event.slug = slug
             event.sale_title = sale_title
+            event.dept = [dept]
         if not event.events_begin:
             event.events_begin = datetime.utcnow().date()
         event.update_time = datetime.utcnow()

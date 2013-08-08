@@ -440,7 +440,7 @@ class Server(object):
 
 
 if __name__ == '__main__':
-    url = 'http://www.nomorerack.com/daily_deals/view/523445-eliconn_google_android_4_0_1_2ghz_4gb_7__tablet_pc___accessories'
+    url = 'http://nomorerack.com/daily_deals/view/543345-stuhrling_mens_gen_y_sport_chronograph_watch___orange'
     Server().crawl_product(url)
     exit()
     server = zerorpc.Server(Server())

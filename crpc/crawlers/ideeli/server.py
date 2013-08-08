@@ -159,9 +159,11 @@ class Server(object):
         title = node.cssselect('div > span.event_grid_cta > span.title')[0].text_content().strip()
         sale_title = brand + ' ' + title if title else brand
         begin = node.cssselect('div > span.event_grid_cta > span.starts_in > span.starting_in_timer')[0].text_content()
-        end = node.cssselect('div > span.event_grid_cta > span.ends_in > span.ending_soon_timer')[0].text_content()
         events_begin = datetime.utcfromtimestamp( float(begin) )
-        events_end = datetime.utcfromtimestamp( float(end) )
+        end = node.cssselect('div > span.event_grid_cta > span.ends_in > span.ending_soon_timer')
+        if end:
+            events_end = datetime.utcfromtimestamp( float(end[0].text_content()) )
+        else: events_end = None
 
         is_new, is_updated = False, False
         event = Event.objects(event_id=event_id).first()
@@ -176,7 +178,7 @@ class Server(object):
         if event.events_begin != events_begin:
             event.update_history.update({ 'events_begin': datetime.utcnow() })
             event.events_begin = events_begin
-        if event.events_end != events_end:
+        if events_end and event.events_end != events_end:
             event.update_history.update({ 'events_end': datetime.utcnow() })
             event.events_end = events_end
         event.update_time = datetime.utcnow()

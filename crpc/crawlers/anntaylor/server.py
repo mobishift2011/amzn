@@ -24,7 +24,10 @@ class Server(object):
             dept_name = dept_name[0].text_content().replace('AT', '').strip()
             if dept_name == 'Lookbook': continue
             for node_l2 in node.cssselect('div.wrapper-l2 ul.list-l2 li'):
-                link = node_l2.cssselect('a')[0].get('href')
+                try:
+                    link = node_l2.cssselect('a')[0].get('href')
+                except:
+                    continue
                 link = link if link.startswith('http') else self.siteurl + link
                 name = node_l2.cssselect('a')[0].text_content().replace('AT', '').strip()
                 if name == 'ANN Wedding Swatches Summer': continue

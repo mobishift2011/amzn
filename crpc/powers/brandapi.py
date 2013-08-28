@@ -23,7 +23,7 @@ class Extracter(object):
                 index.enter(brand_key.lower().encode('utf-8'), brand)
             index.enter(brand.lower().encode('utf-8'), brand)
         index.fix()
-        logger.info('total brands index count:{0}'.format(len(brands)))
+        logger.info('total brands index count:{0}'.format(brands.count()))
         return index
 
     def rebuild_index(self):

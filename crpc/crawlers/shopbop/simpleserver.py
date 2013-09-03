@@ -60,6 +60,19 @@ class CheckServer(object):
     def check_offsale_event(self, id, url):
         pass
 
+class Publish(object):
+    import slumber
+    from settings import MASTIFF_HOST
+    def __init__(self):
+        self.api = slumber.API(MASTIFF_HOST)
+
+    def publish_old_stuff(self):
+        for prd in Product.objects():
+            if prd.publish_time < prd.update_history['soldout']:
+                self.api.product(prd['_id']).patch({'sold_out': prd.soldout})
+                prd.publish_time = datetime.utcnow()
+                prd.save()
+
 
 if __name__ == '__main__':
 #    check_onsale_product('845524441951543', 'http://www.shopbop.com/maya-ballet-flat-rag-bone/vp/v=1/845524441951543.htm')

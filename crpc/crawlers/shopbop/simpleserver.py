@@ -5,6 +5,7 @@
 import lxml.html
 from datetime import datetime
 from server import req
+from models import Product
 
 
 class CheckServer(object):
@@ -29,13 +30,14 @@ class CheckServer(object):
 
         tree = lxml.html.fromstring(ret)
 
+        listprice = price = None
         for price_node in tree.cssselect('div#productPrices div.priceBlock'):
             if price_node.cssselect('span.salePrice'):
                 price = price_node.cssselect('span.salePrice')[0].text_content().replace(',', '').replace('$', '').strip()
             elif price_node.cssselect('span.originalRetailPrice'):
                 listprice = price_node.cssselect('span.originalRetailPrice')[0].text_content().replace(',', '').replace('$', '').strip()
 
-        soldout = True if tree.cssselect('div#productInformation img#soldOutImage') else False
+        soldout = True if tree.cssselect('img#soldOutImage') else False
 
         if listprice and prd.listprice != listprice:
             prd.listprice = listprice
@@ -60,5 +62,18 @@ class CheckServer(object):
 
 
 if __name__ == '__main__':
-    check_onsale_product('845524441951543', 'http://www.shopbop.com/maya-ballet-flat-rag-bone/vp/v=1/845524441951543.htm')
+#    check_onsale_product('845524441951543', 'http://www.shopbop.com/maya-ballet-flat-rag-bone/vp/v=1/845524441951543.htm')
 
+    import traceback
+    from gevent.pool import Pool
+    try:
+        from crawlers.common.onoff_routine import spout_obj
+        import os, sys
+
+        method = sys.argv[1] if len(sys.argv) > 1 else 'check_onsale_product'
+        pool = Pool(10)
+        for product in spout_obj(os.path.split(os.path.abspath(__file__+'/../'))[-1], method):
+            pool.spawn(getattr(CheckServer(), method), product.get('id'), product.get('url'))
+            pool.join()
+    except:
+        print traceback.format_exc()

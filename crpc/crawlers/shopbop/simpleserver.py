@@ -60,16 +60,16 @@ class CheckServer(object):
     def check_offsale_event(self, id, url):
         pass
 
+import slumber
+from settings import MASTIFF_HOST
 class Publish(object):
-    import slumber
-    from settings import MASTIFF_HOST
     def __init__(self):
         self.api = slumber.API(MASTIFF_HOST)
 
     def publish_old_stuff(self):
         for prd in Product.objects():
-            if prd.publish_time < prd.update_history['soldout']:
-                self.api.product(prd['_id']).patch({'sold_out': prd.soldout})
+            if prd.publish_time is None or 'soldout' not in prd.update_history or prd.publish_time < prd.update_history['soldout']:
+                self.api.product(prd.id).patch({'sold_out': prd.soldout})
                 prd.publish_time = datetime.utcnow()
                 prd.save()
 

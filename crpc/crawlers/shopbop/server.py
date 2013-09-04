@@ -201,8 +201,8 @@ class Server(object):
             return
         else:
             listprice = listprice[0].text_content().replace(',', '').replace('$', '').strip()
-        summary = tree.cssselect('div#longDescriptionContainer')[0].text_content()
-        shipping = tree.cssselect('div#freeDeliveriesContainer')[0].text_content()
+        summary = tree.cssselect('div#longDescriptionContainer')[0].text_content().strip()
+        shipping = tree.cssselect('div#freeDeliveriesContainer')[0].text_content().strip()
         image_urls = []
         for i in tree.cssselect('ul#thumbnailList li.thumbnailListItem img.thumbImages'):
             img = i.get('src')

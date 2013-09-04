@@ -86,6 +86,9 @@ class CheckServer(object):
 
         cont = self.net.fetch_product_page(url)
         if cont == -302:
+            if prd.products_end and 'products_end' not in prd.update_history:
+                _id = prd.muri.rsplit('/', 2)[-2]
+                api.product(_id).patch({ 'ends_at': prd.products_end })
             return
         elif cont is None or isinstance(cont, int):
             cont = self.net.fetch_product_page(url)
@@ -129,3 +132,16 @@ if __name__ == '__main__':
     for o in obj2:
         check.check_offsale_product( o.key, o.url() )
 
+    import traceback
+    from gevent.pool import Pool
+    try:
+        from crawlers.common.onoff_routine import spout_obj
+        import os, sys
+
+        method = sys.argv[1] if len(sys.argv) > 1 else 'check_onsale_product'
+        pool = Pool(10)
+        for product in spout_obj(os.path.split(os.path.abspath(__file__+'/../'))[-1], method):
+            pool.spawn(getattr(CheckServer(), method), product.get('id'), product.get('url'))
+            pool.join()
+    except:
+        print traceback.format_exc()

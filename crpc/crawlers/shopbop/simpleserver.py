@@ -69,7 +69,7 @@ class Publish(object):
     def publish_old_stuff(self):
         for prd in Product.objects():
             if prd.publish_time is None or 'soldout' not in prd.update_history or prd.publish_time < prd.update_history['soldout']:
-                self.api.product(prd.id).patch({'sold_out': prd.soldout})
+                self.api.product(prd.muri.strip('/').split('/')[-1]).patch({'sold_out': prd.soldout})
                 prd.publish_time = datetime.utcnow()
                 prd.save()
 

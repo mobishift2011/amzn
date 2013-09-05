@@ -53,4 +53,17 @@ class CheckServer(object):
         pass
 
 if __name__ == '__main__':
-    CheckServer().check_onsale_product('1056013', 'http://us.venteprivee.com/v1/api/productdetail/content/1056013')
+#    CheckServer().check_onsale_product('1056013', 'http://us.venteprivee.com/v1/api/productdetail/content/1056013')
+    import slumber
+    from settings import MASTIFF_HOST
+    api = slumber.API(MASTIFF_HOST)
+
+    for prd in Product.objects():
+        if not prd.muri:
+            continue
+        id = prd.muri.rsplit('/', 2)[-2]
+        if not prd.publish_time:
+            api.product(id).patch({'ends_at': prd.products_end.isoformat() })
+        elif 'products_end' in prd.update_history and prd.update_history['products_end'] > prd.publish_time:
+            api.product(id).patch({'ends_at': prd.products_end.isoformat() })
+

@@ -86,8 +86,10 @@ class CheckServer(object):
 
         cont = self.net.fetch_product_page(url)
         if cont == -302:
-            if prd.products_end and 'products_end' not in prd.update_history:
-                _id = prd.muri.rsplit('/', 2)[-2]
+            _id = prd.muri.rsplit('/', 2)[-2]
+            if not prd.products_end or 'products_end' not in prd.update_history:
+                api.product(_id).patch({ 'ends_at': prd.products_end })
+            elif prd.publish_time and prd.update_history.products_end > prd.publish_time:
                 api.product(_id).patch({ 'ends_at': prd.products_end })
             return
         elif cont is None or isinstance(cont, int):

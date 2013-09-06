@@ -88,9 +88,18 @@ class CheckServer(object):
         if cont == -302:
             _id = prd.muri.rsplit('/', 2)[-2]
             if not prd.products_end or 'products_end' not in prd.update_history:
-                api.product(_id).patch({ 'ends_at': prd.products_end })
+                if prd.products_end:
+                    prd.update_history.update({ 'products_end': prd.products_end })
+                    api.product(_id).patch({ 'ends_at': prd.products_end.isoformat() })
+                else:
+                    _now = datetime.utcnow()
+                    prd.products_end = _now
+                    prd.update_history.update({ 'products_end': _now })
+                    api.product(_id).patch({ 'ends_at': datetime.utcnow().isoformat() })
             elif prd.publish_time and prd.update_history.products_end > prd.publish_time:
-                api.product(_id).patch({ 'ends_at': prd.products_end })
+                api.product(_id).patch({ 'ends_at': prd.products_end.isofromat() })
+                prd.publish_time = prd.products_end
+            prd.save()
             return
         elif cont is None or isinstance(cont, int):
             cont = self.net.fetch_product_page(url)
@@ -123,7 +132,7 @@ class CheckServer(object):
 if __name__ == '__main__':
     check = CheckServer()
 
-    obj = Product.objects(products_end__lt=datetime.utcnow()).timeout(False)
+    obj = Product.objects.where("function(){ a=this.update_history; if(a){return a.products_end != undefined;}else{return false;}}").timeout(False)
     print 'have {0} off sale event products.'.format(obj.count())
     obj2 = Product.objects(products_end__exists=False).timeout(False)
     print 'have {0} off sale category products.'.format(obj2.count())

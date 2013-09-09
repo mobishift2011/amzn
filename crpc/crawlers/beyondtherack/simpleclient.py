@@ -10,6 +10,7 @@ from server import beyondtherackLogin
 from models import Product, Event
 
 from settings import MASTIFF_HOST
+from mongoengine import *
 api = slumber.API(MASTIFF_HOST)
 
 class CheckServer(object):
@@ -86,8 +87,8 @@ class CheckServer(object):
 
         cont = self.net.fetch_product_page(url)
         if cont == -302:
-            _id = prd.muri.rsplit('/', 2)[-2]
             if not prd.muri: return
+            _id = prd.muri.rsplit('/', 2)[-2]
             if not prd.products_end or 'products_end' not in prd.update_history:
                 if prd.products_end:
                     prd.update_history.update({ 'products_end': prd.products_end })
@@ -98,7 +99,7 @@ class CheckServer(object):
                     prd.update_history.update({ 'products_end': _now })
                     api.product(_id).patch({ 'ends_at': datetime.utcnow().isoformat() })
             elif prd.publish_time and prd.update_history['products_end'] > prd.publish_time:
-                api.product(_id).patch({ 'ends_at': prd.products_end.isofromat() })
+                api.product(_id).patch({ 'ends_at': prd.products_end.isoformat() })
                 prd.publish_time = prd.products_end
             prd.save()
             return
@@ -133,13 +134,13 @@ class CheckServer(object):
 if __name__ == '__main__':
     check = CheckServer()
 
-    a = Product.obejcts(products_end__lt=datetime(year=2013, month=3, day=1))
-    b = Product.obejcts(Q(products_end__lt=datetime(year=2013, month=4, day=1)) & Q(products_end__gt=datetime(year=2013, month=3, day=1)))
-    c = Product.obejcts(Q(products_end__lt=datetime(year=2013, month=5, day=1)) & Q(products_end__gt=datetime(year=2013, month=4, day=1)))
-    d = Product.obejcts(Q(products_end__lt=datetime(year=2013, month=6, day=1)) & Q(products_end__gt=datetime(year=2013, month=5, day=1)))
-    e = Product.obejcts(Q(products_end__lt=datetime(year=2013, month=7, day=1)) & Q(products_end__gt=datetime(year=2013, month=6, day=1))) 
-    f = Product.obejcts(Q(products_end__lt=datetime(year=2013, month=8, day=1)) & Q(products_end__gt=datetime(year=2013, month=7, day=1)))
-    g = Product.obejcts(Q(products_end__lt=datetime(year=2013, month=9, day=1)) & Q(products_end__gt=datetime(year=2013, month=8, day=1)))
+    a = Product.objects(products_end__lt=datetime(year=2013, month=3, day=1))
+    b = Product.objects(Q(products_end__lt=datetime(year=2013, month=4, day=1)) & Q(products_end__gt=datetime(year=2013, month=3, day=1)))
+    c = Product.objects(Q(products_end__lt=datetime(year=2013, month=5, day=1)) & Q(products_end__gt=datetime(year=2013, month=4, day=1)))
+    d = Product.objects(Q(products_end__lt=datetime(year=2013, month=6, day=1)) & Q(products_end__gt=datetime(year=2013, month=5, day=1)))
+    e = Product.objects(Q(products_end__lt=datetime(year=2013, month=7, day=1)) & Q(products_end__gt=datetime(year=2013, month=6, day=1))) 
+    f = Product.objects(Q(products_end__lt=datetime(year=2013, month=8, day=1)) & Q(products_end__gt=datetime(year=2013, month=7, day=1)))
+    g = Product.objects(Q(products_end__lt=datetime(year=2013, month=9, day=1)) & Q(products_end__gt=datetime(year=2013, month=8, day=1)))
     for o in a:
         check.check_offsale_product( o.key, o.url() )
     exit()

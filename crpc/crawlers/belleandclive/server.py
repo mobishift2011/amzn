@@ -11,6 +11,7 @@ This is the server part of zeroRPC module. Call by client automatically, run on 
 import re
 import lxml.html
 
+from datetime import timedelta
 from models import *
 from crawlers.common.events import common_saved, common_failed
 from crawlers.common.stash import *
@@ -181,8 +182,22 @@ class Server(object):
         img = nav.cssselect('img.sale-image')[0].get('src')
         img = img if img.startswith('http') else self.siteurl + img
         sale_title = nav.cssselect('img.sale-image')[0].get('alt')
-        end = nav.cssselect('div.description > p.countdown')[0].get('data-countdown')
-        events_end = datetime.utcfromtimestamp( float(end[:10]) )
+        end = nav.cssselect('div.description > p.countdown')[0].text_content().strip()
+        head, tail = end.split(':')
+        if 'day' in head and 'hour' in tail:
+            day = head.split()[0]
+            hour = tail.split()[0]
+            events_end = datetime.utcnow() + timedelta(days=int(day), hours=int(hour))
+
+        elif 'hour' in head and 'min' in tail:
+            hour = head.split()[0]
+            minu = tail.split()[0]
+            events_end = datetime.utcnow() + timedelta(hours=int(hour), minutes=int(minu))
+        else:
+            events_end = datetime.utcnow() + timedelta(days=3)
+
+#        end = nav.cssselect('div.description > p.countdown')[0].get('data-countdown')
+#        events_end = datetime.utcfromtimestamp( float(end[:10]) )
         sale_description = nav.cssselect('div.description > p.desc')[0].text_content()
         event_id = url.rsplit('cat', 1)[-1]
         self.get_or_create_event(dept, event_id, url, img, sale_title, sale_description, events_end, ctx)

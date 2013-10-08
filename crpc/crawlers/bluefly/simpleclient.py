@@ -50,12 +50,14 @@ class CheckServer(object):
         except IndexError:
             print 'bluefly product[{0}] listprice not get.'.format(url)
 
-        price = tree.cssselect('div.product-info div.product-prices span[itemprop=price]')[0].text_content().replace('(FINAL SALE)', '').replace('$', '').replace(',', '').strip()
-        if float(price) != float(prd.price.replace('$', '').replace(',', '').strip()):
-            print 'bluefly product[{0}] price error: {1} vs {2}'.format(url, prd.price.replace('$', '').replace(',', '').strip(), price)
-            prd.price = price
-            prd.update_history.update({ 'price': datetime.utcnow() })
-            prd.save()
+        price = tree.cssselect('div.product-info div.product-prices span[itemprop=price]')
+        if price:
+            price = price[0].text_content().replace('(FINAL SALE)', '').replace('$', '').replace(',', '').strip()
+            if float(price) != float(prd.price.replace('$', '').replace(',', '').strip()):
+                print 'bluefly product[{0}] price error: {1} vs {2}'.format(url, prd.price.replace('$', '').replace(',', '').strip(), price)
+                prd.price = price
+                prd.update_history.update({ 'price': datetime.utcnow() })
+                prd.save()
         if title.lower() != prd.title.lower():
             print 'bluefly product[{0}] title error: {1} vs {2}'.format(url, prd.title.encode('utf-8'), title.encode('utf-8'))
 

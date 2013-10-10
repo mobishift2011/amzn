@@ -41,7 +41,9 @@ class CheckServer(object):
             prd.save()
 
         try:
-            listprice = tree.cssselect('div.product-info div.product-prices span.retail-price')[0].text_content().replace('retail :', '').replace('$', '').replace(',', '').strip()
+            listprice = tree.cssselect('div.product-info div.product-prices span.retail-price')
+            if listprice:
+                listprice = listprice[0].text_content().replace('retail :', '').replace('$', '').replace(',', '').strip()
             if listprice and prd.listprice:
                 if float(listprice.replace('Retail :', '')) != float(prd.listprice.replace('$', '').replace(',', '').strip()):
                     print 'bluefly product[{0}] listprice error: {1} vs {2}'.format(url, prd.listprice.replace('$', '').replace(',', '').strip(), listprice)

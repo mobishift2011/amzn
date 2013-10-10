@@ -48,7 +48,7 @@ class CheckServer(object):
                     prd.listprice = listprice
                     prd.update_history.update({ 'listprice': datetime.utcnow() })
                     prd.save()
-        except IndexError:
+        except IndexError and ValueError:
             print 'bluefly product[{0}] listprice not get.'.format(url)
 
         price = tree.cssselect('div.product-info div.product-prices span[itemprop=price]')

@@ -537,4 +537,3 @@ if __name__ == '__main__':
     while True:
         image = ss.check(image)
         time.sleep(500)
-    exit()

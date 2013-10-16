@@ -201,7 +201,7 @@ class Server(object):
             return
         key = self.get_product_id.match(url).group(1)
         t = lxml.html.fromstring(ret)
-        listprice = t.cssselect('div#divStrikeThroughPrice')[0].text_content().replace('$', '').replace(',', '').strip()
+        listprice = t.cssselect('div#divPricing .fnt15 .strike')[0].text_content().replace('$', '').replace(',', '').strip()
         list_info, summary = [], []
         for l in t.cssselect('#model-overview-tab div.tab-leftcontent-container div.product-spec-line'):
             a = l.cssselect('div.left')[0].text_content().strip()
@@ -211,7 +211,7 @@ class Server(object):
             summary.append( li.text_content().strip() )
         summary = '\n'.join(summary)
 
-        image = t.cssselect('div#divHeroImage img')[0].get('src')
+        image = t.cssselect('div#rmvHeroImage img')[0].get('src')
         image = image if image.startswith('http') else 'http:' + image
         link, hei, wid = re.compile('(.+\?).*&hei=(\d+)&wid=(\d+).*').match(image).groups()
         hei, wid = int(hei)*3, int(wid)*3
@@ -241,7 +241,6 @@ class Server(object):
 
 if __name__ == '__main__':
     ss = Server()
-    ss.crawl_category()
+    ss.crawl_product('http://www.ebags.com/product/halston-heritage/organic-medium-hobo/256676?productid=10250559')
     exit()
-    ss.crawl_listing('http://www.ebags.com/search/h/sale?items=96?items=144?page=1')
 

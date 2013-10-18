@@ -116,7 +116,10 @@ class ImageTool:
             if thumb:
                 if doctype.capitalize() == 'Product' or \
                     (doctype.capitalize() == 'Event' and not self.__image_path):
-                        resolutions = self.thumbnail_and_upload(doctype, image_content, self.__key.key, exist_keys)
+                        try: #image file is truncated will not thumbnail succeed
+                            resolutions = self.thumbnail_and_upload(doctype, image_content, self.__key.key, exist_keys)
+                        except:
+                            continue
 
             self.__image_path.append({'url':s3_url, 'resolutions':resolutions})
 

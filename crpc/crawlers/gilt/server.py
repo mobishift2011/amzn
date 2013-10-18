@@ -193,7 +193,7 @@ class Server(object):
             common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
 
         # starting later. When today's upcoming on sale, this column disappear for a while
-        # this label not exist anymore, instead of starting tomorrow
+        # When ending soon really end, this column is showing. instead of starting tomorrow
         nodes = tree.cssselect('section.main section.starting-later-today article.sale a.sale-link')
         for node in nodes:
             ret = self.parse_one_node(node, dept, ctx, upcoming=True)
@@ -227,7 +227,9 @@ class Server(object):
             ret = self.parse_one_node(node, dept, ctx, upcoming=True)
             if ret is None: continue
             event, is_new, is_updated = ret
-            image, sale_title, sale_description, events_begin = self.get_picture_description(event.combine_url, ctx)
+            ret = self.get_picture_description(event.combine_url, ctx)
+            if ret is None: continue
+            image, sale_title, sale_description, events_begin = ret
             if not event.sale_description:
                 event.image_urls = image
                 event.sale_title = sale_title # some sale_title is too long to be omit by ...
@@ -926,5 +928,5 @@ class Server(object):
 
 if __name__ == '__main__':
     server = Server()
-    server.crawl_product('http://www.gilt.com/brand/hiho-batik/product/142260201-hiho-batik-mom-onesie-2-pack')
+    server.crawl_category()
     exit()

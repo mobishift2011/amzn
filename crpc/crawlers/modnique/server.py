@@ -328,7 +328,8 @@ class Server(object):
                 event.update_time = datetime.utcnow()
                 event.save()
 
-        nodes = tree.cssselect('div.line > div.page > div#items > ul#products > li.product')
+#        nodes = tree.cssselect('div.line > div.page > div#items > ul#products > li.product')
+        nodes = tree.cssselect('ul#items div.product')
         for node in nodes:
             key = self.crawl_listing_one_node(node, event_id, ctx)
             product_ids.append(key)
@@ -361,14 +362,14 @@ class Server(object):
 #                if color.isdigit(): color = ''
 #            except AttributeError:
 #                pass
-        title = node.cssselect('div.item_thumb2 div.itemTitle h6.neutral')[0].text_content().strip()
-        link = node.cssselect('div.item_thumb2 > div.hd > a.item_link')[0].get('href').strip() # link have '\r\n'
+        title = node.cssselect('div.item_thumb2 div.eventItemLabelFluid h6.neutral')[0].text_content().strip()
+        link = node.cssselect('div.item_thumb2 div.eventItemFluid a.item_link')[0].get('href').strip() # link have '\r\n'
         link = link if link.startswith('http') else self.siteurl + link
         slug, key = self.extract_slug_product.match(link).groups()
 
-        price = node.cssselect('div.item_thumb2 div.media div.bd p span.fwb')[0].text_content().replace('modnique', '').replace('$', '').replace(',', '').strip()
-        listprice = node.cssselect('div.item_thumb2 div.media div.bd p span.bare')
-        listprice = listprice[0].text_content().replace('retail', '').replace('$', '').replace(',', '').strip() if listprice else ''
+        price = node.cssselect('div.item_thumb2 div.eventItemLabelFluid div.bd p span.fwb')[0].text_content().replace('modnique', '').replace('$', '').replace(',', '').strip()
+        listprice = node.cssselect('div.item_thumb2 div.eventItemLabelFluid div.bd p span.bare')
+        listprice = listprice[0].text_content().replace('retail', '').replace('$', '').replace(',', '').strip().split()[0] if listprice else ''
         soldout = True if node.cssselect('div.item_thumb2 .hd .posAbsb div') else False
 
         is_new, is_updated = False, False
@@ -443,7 +444,7 @@ class Server(object):
         images = tree.cssselect('div#product_imagelist .gallery a')
         image_urls = []
         for img in images:
-            img_url = img.cssselect('img')[0].get('src')
+            img_url = img.cssselect('img')[0].get('data-original')
 #            img_url = img.get('href') 
 #            # lots of page don't have super image, or only have several super, then get the medium
 #            if img_url == 'http://llthumb.bids.com/mod$image.getSuperImgsSrc()':
@@ -474,11 +475,12 @@ class Server(object):
 
         image_urls, shipping, list_info, returned = self.parse_product(tree)
         # nav = tree.cssselect('div > div.line > div.page > div.line')[0] # bgDark or bgShops
-        pprice = tree.cssselect('.bgShops .page .unitRight form[name=AddToCart] .pBuy .borMedGrey')[0]
+#        pprice = tree.cssselect('.bgShops .page .unitRight form[name=AddToCart] .pBuy .borMedGrey')[0]
+        pprice = tree.cssselect('#mainContent .pBuy .borMedGrey')[0]
         price = pprice.cssselect('div.fsem1-8')[0].text_content().replace('modnique', '').replace('$', '').replace(',', '').strip()
         listprice = pprice.cssselect('span.lightMedGrey')
         listprice = listprice[0].text_content().replace('retail', '').replace('$', '').replace(',', '').strip() if listprice else ''
-        title = tree.cssselect('.bgShops .page .unitRight h1.darkGrey')[0].text_content().strip()
+        title = tree.cssselect('#mainContent .page .unitRight h1.fontRaleway')[0].text_content().strip()
 
         is_new, is_updated = False, False
         product = Product.objects(key=key).first()

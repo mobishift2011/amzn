@@ -144,6 +144,7 @@ class Server(object):
         """
             save a child event
         """
+        pop_img = 'http://www.hautelook.com/assets/{0}/event-square.jpg'.format(event_id)
         is_new, is_updated = False, False
         event = Event.objects(event_id=event_id).first()
         if not event:
@@ -154,6 +155,8 @@ class Server(object):
             event.tagline = tagline
             event.urgent = True
             event.combine_url = 'http://www.hautelook.com/event/{0}'.format(event_id)
+        if pop_img not in event.image_urls:
+            event.image_urls.append(pop_img)
         if sale_description and not event.sale_description:
             event.sale_description = sale_description
         if event.events_begin != events_begin:

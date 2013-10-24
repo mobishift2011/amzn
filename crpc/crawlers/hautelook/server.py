@@ -144,7 +144,9 @@ class Server(object):
         """
             save a child event
         """
-        pop_img = 'http://www.hautelook.com/assets/{0}/event-square.jpg'.format(event_id)
+        ret = req.get('http://www.hautelook.com/v3/event/{0}'.format(event_id))
+        event_code = json.loads(ret.content)['event']['event_code']
+        pop_img = 'http://www.hautelook.com/assets/{0}/event-square.jpg'.format(event_code)
         is_new, is_updated = False, False
         event = Event.objects(event_id=event_id).first()
         if not event:

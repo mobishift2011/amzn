@@ -208,13 +208,13 @@ class Server(object):
             except:
                 continue
 
-        info_node = tree.cssselect('div.pdp-item-container > table > tr > td')[0]
-        brand = info_node.cssselect('h1.boldBlackText12')[0].text.strip()
+        info_node = tree.cssselect('div.pdp-item-container div.pdp-reskin-general-info')[0]
+        brand = info_node.cssselect('h1.brand')[0].text.strip()
         try:
-            title = info_node.cssselect('h2.boldBlackText12')[0].text.strip()
-        except UnicodeDecodeError:
+            title = info_node.cssselect('h2.description')[0].text.strip()
+        except:
             title = None
-        list_info_node = info_node.cssselect('div.productCopy-container table tr td span#api_prod_copy1')[0]
+        list_info_node = tree.cssselect('div.productCopy-container table tr td span#api_prod_copy1')[0]
         list_info = [li.text.strip() for li in list_info_node.cssselect('ul li')]
 
         # update product
@@ -278,7 +278,7 @@ if __name__ == '__main__':
     #     s.crawl_listing(url=category.combine_url, **{'key': category.key})
     #     print
     #     break
-
+    
     for product in Product.objects():
         print product.combine_url
         print product.key

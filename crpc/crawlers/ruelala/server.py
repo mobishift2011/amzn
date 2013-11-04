@@ -192,7 +192,8 @@ class Server(object):
             common_failed.send(sender=ctx, key=dept, url=url, reason='Gifts url has error: {0}'.format(cont))
             return
         tree = lxml.html.fromstring(cont)
-        nodes = tree.cssselect('body > div.container > div#canvasContainer > section#gift-center > div#gc-wrapper a[href]')
+        # nodes = tree.cssselect('body > div.container > div#canvasContainer > section#gift-center > div#gc-wrapper a[href]')
+        nodes = tree.cssselect('.image-component a[href]')
         for node in nodes:
             link = node.get('href')
             event_id = link.rsplit('/', 1)[-1]
@@ -613,4 +614,4 @@ class Server(object):
 
 if __name__ == '__main__':
     server = Server()
-    server.crawl_product('http://www.ruelala.com/event/product/63415/1411876124/1/DEFAULT')
+    server.crawl_category()

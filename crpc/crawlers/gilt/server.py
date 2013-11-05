@@ -345,7 +345,7 @@ class Server(object):
         # kids event already on sale, but in men's starting later today
         if not nav: return
         image = nav[0].xpath('./img/@src')
-        sale_title = nav[0].cssselect('section.copy > header.header')[0].text_content().strip()
+        sale_title = nav[0].cssselect('section.copy > header.header')[0].text_content().strip().encode('utf-8')
         sale_description = nav[0].cssselect('section.copy > p.bio')[0].text_content().strip().encode('utf-8')
 
         data_gilt_time = tree.cssselect('span#shopInCountdown')[0].get('data-gilt-time')
@@ -393,7 +393,7 @@ class Server(object):
         link = link if link.startswith('http') else self.siteurl + link
         if self.siteurl not in link: # women have www.giltcity.com and www.jetsetter.com
             return
-        sale_title = node.xpath('./a/img')[0].get('alt').strip()
+        sale_title = node.xpath('./a/img')[0].get('alt').strip().encode('utf-8')
         image = node.xpath('./a/img/@src')
         if image: # type lxml.etree._ElementStringResult
             image = str(image[0]) if image[0].startswith('http:') else 'http:' + image[0]
@@ -515,7 +515,7 @@ class Server(object):
         if self.siteurl in link: # have www.giltcity.com and www.jetsetter.com
             # image = node.cssselect('figure.element-media > a > img')[0].get('src')
             # image = image if image.startswith('http:') else 'http:' + image
-            sale_title = node.cssselect('span.topic-label > a')[0].text_content()
+            sale_title = node.cssselect('span.topic-label > a')[0].text_content().strip().encode('utf-8')
             event, is_new, is_updated = self.get_or_create_event(link.rsplit('/', 1)[-1], link, dept, sale_title, image='', is_leaf=True)
 
             events_begin, events_end, image, sale_description = self.get_home_future_events_begin_end(link, link.rsplit('/', 1)[-1], ctx)

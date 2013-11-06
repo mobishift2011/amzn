@@ -588,7 +588,14 @@ class Server(object):
         else: # women, men, children
             events_begin, image, sale_description = None, None, None
             try:
-                _end = tree.cssselect('section#main > div > section.page-header-container  section.page-head-top  > div.clearfix > section.sale-countdown > time.sale-end-time')[0].get('datetime')
+                _end = tree.cssselect('.page-container .content-container .page-details .layout-container .sale-details .sale-time')
+                if _end:
+                    # events_begin = datetime.utcfromtimestamp( float( _end[0].get('data-gilt-dom-time-frame-time-start')[:-3] ) )
+                    events_end = datetime.utcfromtimestamp( float( _end[0].get('data-gilt-dom-time-frame-time-end')[:-3] ) )
+                else:
+                    _end = tree.cssselect('section#main > div > section.page-header-container  section.page-head-top  > div.clearfix > section.sale-countdown > time.sale-end-time')[0].get('datetime')
+                    events_end = datetime.strptime(_end, '%Y-%m-%dT%XZ') # 2012-12-26T05:00:00Z
+
             except IndexError:
                 data_gilt_time = tree.cssselect('span#shopInCountdown')[0].get('data-gilt-time')
                 events_begin = self.gilt_time(data_gilt_time)
@@ -599,7 +606,6 @@ class Server(object):
                     event.product_ids = []
                     event.save()
                 return
-            events_end = datetime.strptime(_end, '%Y-%m-%dT%XZ') # 2012-12-26T05:00:00Z
 
             nodes = tree.cssselect('section#main > div > section#product-listing > div.elements-container > article[id^="look-"]')
             for node in nodes:

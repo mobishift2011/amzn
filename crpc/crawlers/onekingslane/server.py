@@ -220,11 +220,11 @@ class Server(object):
 
     def utcstr2datetime(self, date_str):
         """.. :py:method::
-            covert time from the format into utcnow()
-            '20121105T150000Z'
+            covert time from the format into utcnow() '2013-11-09 16:00:00 UTC'
         """
-        fmt = "%Y%m%dT%H%M%S"
-        return datetime.strptime(date_str.rstrip('Z'), fmt)
+#        fmt = "%Y%m%dT%H%M%S" #'20121105T150000Z'
+#        return datetime.strptime(date_str.rstrip('Z'), fmt)
+        return datetime.strptime(date_str.rstrip('UTC').rstrip(), "%Y-%m-%d %H:%M:%S")
 
     def shop_by_category(self, ctx):
         """.. :py:method::
@@ -361,21 +361,21 @@ class Server(object):
 
         :param tree: listing page url's lxml tree
         """
-        path = tree.cssselect('div#okl-content > div.sales-event')[0]
+        path = tree.cssselect('div#okl-content .story .introduction')[0]
         items = tree.cssselect('div#okl-product ul.products > li[id^="product-tile-"]')
         event_id = self.extract_eventid.match(url).group(1)
         event, is_new = Event.objects.get_or_create(event_id=event_id)
         if not event.sale_description:
-            sale_description = path.cssselect('div#okl-bio > div.event-description .description')
+            sale_description = path.cssselect('div > p')
             if sale_description:
                 event.sale_description = sale_description[0].text_content().strip()
-        end_date = path.cssselect('div#okl-bio > h2.share')[0].get('data-end')
+        end_date = path.cssselect('.countdown')[0].get('datetime')
         events_end = self.utcstr2datetime(end_date)
         if event.events_end != events_end:
             event.update_history.update({ 'events_end': datetime.utcnow() })
             event.events_end = events_end
         if not event.sale_title:
-            event.sale_title = path.cssselect('div#okl-bio > h2.share > strong')[0].text
+            event.sale_title = path.cssselect('div > h2')[0].text
 
         event.num = len(items)
         event.update_time = datetime.utcnow()

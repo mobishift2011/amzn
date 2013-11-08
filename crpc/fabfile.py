@@ -46,7 +46,7 @@ def production():
 
 def integrate():
     global CRPC
-    CRPC = ['root@mongodb.favbuy.org']
+    CRPC = ['root@ec2-50-17-86-170.compute-1.amazonaws.com']
     _setup_env('INTEGRATE') 
 
 def _setup_env(env):

@@ -84,24 +84,24 @@ envs = {
     },
     'INTEGRATE': {
         'CRAWLER_PEERS': [
-            {'host_string':'root@ec2-54-214-158-182.us-west-2.compute.amazonaws.com', 'port':1234},
-            {'host_string':'root@ec2-54-214-158-182.us-west-2.compute.amazonaws.com', 'port':12344},
-            {'host_string':'root@ec2-54-214-60-157.us-west-2.compute.amazonaws.com', 'port':1235},
-            {'host_string':'root@ec2-54-214-60-157.us-west-2.compute.amazonaws.com', 'port':12355},
+            {'host_string':'root@127.0.0.1', 'port':1234},
+            {'host_string':'root@127.0.0.1', 'port':12344},
+            {'host_string':'root@127.0.0.1', 'port':1235},
+            {'host_string':'root@127.0.0.1', 'port':12355},
         ],
         'POWER_PEERS': [
-            {'host_string':'root@ec2-54-245-30-93.us-west-2.compute.amazonaws.com', 'port':1230},
-            {'host_string':'root@ec2-54-245-30-93.us-west-2.compute.amazonaws.com', 'port':1231},
-            {'host_string':'root@ec2-50-112-200-119.us-west-2.compute.amazonaws.com', 'port':1232},
-            {'host_string':'root@ec2-50-112-200-119.us-west-2.compute.amazonaws.com', 'port':1233},
+            {'host_string':'root@127.0.0.1', 'port':1230},
+            {'host_string':'root@127.0.0.1', 'port':1231},
+            {'host_string':'root@127.0.0.1', 'port':1232},
+            {'host_string':'root@127.0.0.1', 'port':1233},
         ],
         'TEXT_PEERS': [
-            {'host_string':'root@ec2-54-214-158-182.us-west-2.compute.amazonaws.com', 'port':1237},
-            {'host_string':'root@ec2-54-214-60-157.us-west-2.compute.amazonaws.com', 'port':1238},
+            {'host_string':'root@127.0.0.1', 'port':1237},
+            {'host_string':'root@127.0.0.1', 'port':1238},
         ],
         'USE_INDEX': '',
-        'MONGODB_HOST': '10.254.9.183',
-        'REDIS_HOST': '10.254.9.183',
+        'MONGODB_HOST': '10.149.8.38',
+        'REDIS_HOST': '10.149.8.38',
         'MASTIFF_HOST': "http://integrate.favbuy.org:8001/api/v1"
     },
 }

@@ -135,15 +135,9 @@ class Server(object):
                 if v['size'] not in sizes: sizes.append(v['size'])
         # tag is not precision. e.g. a bag is in shoes
         # tag = product_data['productGL'] if 'productGL' in product_data else '' # 'apparel', 'home', 'jewelry', ''
-
-        soldout_link = 'http://www.myhabit.com/request/getBuyableAsinInfo?flavor=child&sid=177-1156003-3872738&saleId={0}&asin={1}'.format(event_id, cAsins)
-        ret = req.get(soldout_link)
-        jsdata = json.loads(ret.content)
-        waitlist = jsdata['buyableAsin'][cAsins]['hasWaitlist']
-        soldout = True if waitlist is True else False
-#        if casin in cAsins and 'soldOut' in cAsins[casin] and cAsins[casin]['soldOut'] == 1:
-#            soldout = True
-#        else: soldout = False
+        if casin in cAsins and 'soldOut' in cAsins[casin] and cAsins[casin]['soldOut'] == 1:
+            soldout = True
+        else: soldout = False
         jslink = prefix_url + asins[asin]['url'] if asin in asins else ''
         combine_url = 'http://www.myhabit.com/homepage#page=d&sale={0}&asin={1}&cAsin={2}'.format(event_id, asin, casin)
 

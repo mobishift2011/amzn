@@ -137,6 +137,7 @@ class Server(object):
         # tag = product_data['productGL'] if 'productGL' in product_data else '' # 'apparel', 'home', 'jewelry', ''
 
         soldout_link = 'http://www.myhabit.com/request/getBuyableAsinInfo?asin={0}&saleId={1}&flavor=parent&sid=177-4704555-7345351'.format(asin, event_id)
+        # one soldout link contains this asin's all color.
         ret = req.get(soldout_link)
         jsdata = json.loads(ret.content)
         key_list = sorted(jsdata['buyableAsin'].keys())

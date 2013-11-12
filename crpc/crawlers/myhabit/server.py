@@ -136,11 +136,32 @@ class Server(object):
         # tag is not precision. e.g. a bag is in shoes
         # tag = product_data['productGL'] if 'productGL' in product_data else '' # 'apparel', 'home', 'jewelry', ''
 
-        soldout_link = 'http://www.myhabit.com/request/getBuyableAsinInfo?flavor=child&sid=177-1156003-3872738&saleId={0}&asin={1}'.format(event_id, cAsins)
+        soldout_link = 'http://www.myhabit.com/request/getBuyableAsinInfo?asin={0}&saleId={1}&flavor=parent&sid=177-4704555-7345351'.format(asin, event_id)
         ret = req.get(soldout_link)
         jsdata = json.loads(ret.content)
-        waitlist = jsdata['buyableAsin'][cAsins]['hasWaitlist']
-        soldout = True if waitlist is True else False
+        key_list = sorted(jsdata['buyableAsin'].keys())
+        len_sizes = len(sizes)
+        soldout = False
+        if len_sizes == 0:
+            if jsdata['buyableAsin'][casin]['stats']['remaining']['claimed'] == 0:
+                soldout = True
+            else:
+                soldout = False
+
+        else: # more than one size.
+            if 'asin' in key_list: key_list.remove('asin')
+            if 'privateSaleID' in key_list: key_list.remove('privateSaleID')
+
+            count = 0
+            for l in key_list:
+                if l == casin or (count > 0 and count < len_sizes):
+                    count += 1
+                    if jsdata['buyableAsin'][l]['stats']['remaining']['claimed'] == 0:
+                        soldout = True
+                    else:
+                        soldout = False
+                        break
+        
 #        if casin in cAsins and 'soldOut' in cAsins[casin] and cAsins[casin]['soldOut'] == 1:
 #            soldout = True
 #        else: soldout = False

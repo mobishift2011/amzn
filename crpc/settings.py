@@ -78,8 +78,8 @@ envs = {
             {'host_string':'root@crawler2.favbuy.org', 'port':12345},
         ],
         'USE_INDEX': '',
-        'MONGODB_HOST': '10.166.5.153', 
-        'REDIS_HOST': '10.166.5.153',
+        'MONGODB_HOST': '10.236.137.117', 
+        'REDIS_HOST': '10.236.137.117',
         'MASTIFF_HOST': "http://mastiff.favbuy.org:8001/api/v1"
     },
     'INTEGRATE': {
@@ -100,8 +100,8 @@ envs = {
             {'host_string':'root@127.0.0.1', 'port':1238},
         ],
         'USE_INDEX': '',
-        'MONGODB_HOST': '10.149.8.38',
-        'REDIS_HOST': '10.149.8.38',
+        'MONGODB_HOST': '10.236.137.117',
+        'REDIS_HOST': '10.236.137.117',
         'MASTIFF_HOST': "http://integrate.favbuy.org:8001/api/v1"
     },
 }

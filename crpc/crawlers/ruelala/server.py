@@ -359,8 +359,8 @@ class Server(object):
 
         shipping = tree.cssselect('div#main > div#customContentWrapper > div#customContentTabs > div#expTerms')
         detail = tree.cssselect('div#main > div#customContentWrapper > div#customContentTabs > div#expDetails')
-        shipping = shipping[0].text_content() if shipping else ''
-        detail = detail[0].text_content() if detail else ''
+        shipping = shipping[0].text_content().strip() if shipping else ''
+        detail = detail[0].text_content().strip() if detail else ''
 
         product = Product.objects(key=product_id).first()
         is_new, is_updated = False, False
@@ -510,13 +510,13 @@ class Server(object):
         :rtype: detect how many image_urls on the product
         """
         prefix = 'http://www.ruelala.com/images/product/'
-        for i in xrange(1, 1000):
+        for i in xrange(0, 1000):
             sub = '%s/%s_RLLA_%d.jpg' %(product_id[:6], product_id, i+1)
             status = self.net.fetch_image(prefix + sub)
             if status == 404:
                 return i
 
-    def _make_img_urls(slef, product_key, img_count):
+    def _make_img_urls(self, product_key, img_count):
         """
         the keyworld `RLLZ` in url  meaning large size(about 800*1000), `RLLD` meaning small size (about 400 *500)
         http://www.ruelala.com/images/product/131385/1313856984_RLLZ_1.jpg
@@ -531,6 +531,17 @@ class Server(object):
             subfix = '%s/%s_RLLZ_%d.jpg' %(product_key[:6], product_key, i+1)
             url = urllib.basejoin(prefix, subfix)
             urls.append(url)
+
+        # num_image_urls() if return 0, means RLLZ and RLLA is not work, use RLLDE instead.
+        if img_count == 0:
+            for j in xrange(0, 1000):
+                sub = '%s/%s_RLLDE_%d.jpg' %(product_key[:6], product_key, j+1)
+                url = urllib.basejoin(prefix, sub)
+                status = self.net.fetch_image(url)
+                if status != 404:
+                    urls.append(url)
+                else:
+                    return urls
         return urls
 
     def crawl_product(self, url, ctx='', **kwargs):

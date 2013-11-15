@@ -760,9 +760,9 @@ class Server(object):
         tree = lxml.html.fromstring(cont)
         # "product-on-sale" is the only difference between two right pattern.
         # nodes = tree.cssselect('article.product-on-sale')
-        nodes = tree.cssselect('article.in-flash-sale') # 'element-product' can have giltcity
+        nodes = tree.cssselect('article.element-product') # 'element-product' can have giltcity, 'in-flash-sale' not collect enough product
         for node in nodes:
-            look_id = node.get('data-home-look-id')
+            look_id_recursion = node.get('data-home-look-id')
             text = node.cssselect('section.product-details > header > hgroup')[0]
             brand = text.cssselect('h3.product-brand')[0].text_content().strip()
             link = text.cssselect('h1.product-name > a')[0].get('href')
@@ -784,7 +784,10 @@ class Server(object):
 
             self.get_or_create_product(ctx, url.rsplit('/', 1)[-1], link.rsplit('/', 1)[-1], link, title, listprice, price, brand, soldout, color, sizes)
             product_ids.append(link.rsplit('/', 1)[-1])
-        ret = self.detect_rest_home_product(url, look_id, ctx)
+
+        if look_id_recursion == look_id: # if the same product recursion everytime, the stack will go explosion
+            return []
+        ret = self.detect_rest_home_product(url, look_id_recursion, ctx)
         if ret: product_ids.extend(ret)
         return product_ids
 

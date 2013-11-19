@@ -339,7 +339,8 @@ def classify_product_department(site, product, use_event_info=False, return_judg
     if use_event_info:
         for eid in p.event_id:
             e = m.Event.objects.get(event_id=eid)
-            title = e.sale_title + u" " + title
+            if e.sale_title is not None:
+                title = e.sale_title + u" " + title
 
     title = preprocess(title)
 

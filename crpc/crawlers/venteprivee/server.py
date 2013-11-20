@@ -60,7 +60,7 @@ class ventepriveeLogin(object):
             'password': login_passwd,
             'rememberMe': False,
         }
-        self.current_email = login_email[DB]
+        self.current_email = 'piipaa@yeah.net'#login_email[DB]
         self._signin = {}
 
     def login_account(self):

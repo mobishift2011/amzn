@@ -574,15 +574,25 @@ class Server(object):
         if tree is None: return
 
         if '/home/sale' in url or '/sale/home' in url: # home
-            timer = tree.cssselect('div.page-container > div.content-container > section.page-details > div.layout-background > div.layout-wrapper > div.layout-container > section.sale-details > div.sale-time')[0]
+            timer = tree.cssselect('div.page-container > div.content-container > section.page-details > div.layout-background > div.layout-wrapper > div.layout-container > section.sale-details > div.sale-time')
+            if not timer:
+                timer = tree.cssselect('div.sale-countdown')[0] # hidden in crawler2
+            else:
+                timer = timer[0]
+
             _begin = timer.get('data-gilt-dom-time-frame-time-start')
             events_begin = datetime.utcfromtimestamp(float(_begin[:10]))
             _end = timer.get('data-gilt-dom-time-frame-time-end')
             events_end = datetime.utcfromtimestamp(float(_end[:10]))
-            bottom_node = tree.cssselect('div.page-container > div.content-container > div.content-area-wrapper > section.content > div.position > section.module > div.elements-container > article.element')[0]
-            image = bottom_node.cssselect('figure.element-media > span.media > img')[0].get('src')
-            image = image if image.startswith('http:') else 'http:' + image
-            sale_description = bottom_node.cssselect('div.promo-content-wrapper > header.element-header > div.element-content')[0].text_content().strip()
+            bottom_node = tree.cssselect('div.page-container > div.content-container > div.content-area-wrapper > section.content > div.position > section.module > div.elements-container > article.element')
+            if bottom_node:
+                bottom_node = bottom_node[0]
+                image = bottom_node.cssselect('figure.element-media > span.media > img')[0].get('src')
+                image = image if image.startswith('http:') else 'http:' + image
+                sale_description = bottom_node.cssselect('div.promo-content-wrapper > header.element-header > div.element-content')[0].text_content().strip()
+            else:
+                image = None
+                sale_description = tree.cssselect('head meta[property="og:description"]')[0].get('content').encode('utf-8')
 
             product_ids = self.detect_rest_home_product(url, '', ctx)
         else: # women, men, children
@@ -594,8 +604,13 @@ class Server(object):
                     # events_begin = datetime.utcfromtimestamp( float( _end[0].get('data-gilt-dom-time-frame-time-start')[:-3] ) )
                     events_end = datetime.utcfromtimestamp( float( _end[0].get('data-gilt-dom-time-frame-time-end')[:-3] ) )
                 else:
-                    _end = tree.cssselect('section#main > div > section.page-header-container  section.page-head-top  > div.clearfix > section.sale-countdown > time.sale-end-time')[0].get('datetime')
-                    events_end = datetime.strptime(_end, '%Y-%m-%dT%XZ') # 2012-12-26T05:00:00Z
+                    _end = tree.cssselect('section#main > div > section.page-header-container  section.page-head-top  > div.clearfix > section.sale-countdown > time.sale-end-time')
+                    if _end:
+                        _end = _end[0].get('datetime')
+                        events_end = datetime.strptime(_end, '%Y-%m-%dT%XZ') # 2012-12-26T05:00:00Z
+                    else:
+                        _end = tree.cssselect('div.sale-countdown')[0].get('data-gilt-dom-time-frame-time-end')[:-3] # hidden in crawler2
+                        events_end = datetime.utcfromtimestamp( float(_end) )
             except IndexError:
 
                 # event turn into an upcoming event
@@ -620,6 +635,24 @@ class Server(object):
                 self.get_or_create_product(ctx, event_id, link.rsplit('/', 1)[-1], link, title, listprice, price, brand, soldout)
                 product_ids.append(link.rsplit('/', 1)[-1])
 
+            if nodes == []:
+                nodes = tree.cssselect('div section.sale-listing article.product-look')
+                for node in nodes:
+                    garbage, look_id = node.get('qid').split('-')
+                    brand = node.cssselect('header .look-name h2.brand-name .brand-name-text')[0].text_content().strip().encode('utf-8')
+                    product_name = node.cssselect('header .look-name h1.product-name > a')[0]
+                    link = product_name.get('href')
+                    link = link if link.startswith('http') else self.siteurl + link
+                    title = ' '.join( product_name.xpath('.//text()') )
+
+                    price = node.cssselect('header .pricing .sale-price .price')[0].text_content().replace('$', '').replace(',', '').strip()
+                    price = price.strip('Gilt').strip()
+                    listprice = node.cssselect('header .pricing .original-price > span')
+                    listprice = listprice[0].text_content().replace('$', '').replace(',', '').strip() if listprice else ''
+                    soldout = None # if this event soldout a lot
+                    self.get_or_create_product(ctx, event_id, link.rsplit('/', 1)[-1], link, title, listprice, price, brand, soldout)
+                    product_ids.append(link.rsplit('/', 1)[-1])
+
             ret = self.detect_rest_product(url, look_id, ctx)
             if ret: product_ids.extend( ret )
 
@@ -635,7 +668,8 @@ class Server(object):
         if '/home/sale' in url or '/sale/home' in url: # home
             if not event.sale_description:
                 event.sale_description = sale_description
-            event.image_urls = [image]
+            if image:
+                event.image_urls = [image]
         event.product_ids = product_ids
         event.save()
         if event.urgent == True:
@@ -674,11 +708,12 @@ class Server(object):
             if listprice: product.listprice = listprice
             product.price = price
             product.brand = brand
-            product.soldout = soldout
+            if soldout is not None:
+                product.soldout = soldout
             if color: product.color = color
             if sizes: product.sizes = sizes
         else:
-            if soldout != product.soldout:
+            if soldout is not None and soldout != product.soldout:
                 product.soldout = soldout
                 is_updated = True
                 product.update_history.update({ 'soldout': datetime.utcnow() })

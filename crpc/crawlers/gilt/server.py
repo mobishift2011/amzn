@@ -217,7 +217,7 @@ class Server(object):
                 ret = self.get_picture_description(event.combine_url, ctx)
                 if ret is not None: # starting later today, already on sale
                     image, sale_title, sale_description, events_begin = ret
-                    event.image_urls = image
+                    if image: event.image_urls = image
                     event.sale_description = sale_description
 
             event.save()
@@ -233,7 +233,7 @@ class Server(object):
             if ret is None: continue
             image, sale_title, sale_description, events_begin = ret
             if not event.sale_description:
-                event.image_urls = image
+                if image: event.image_urls = image
                 event.sale_title = sale_title # some sale_title is too long to be omit by ...
                 event.sale_description = sale_description
             if event.events_begin != events_begin:
@@ -257,7 +257,7 @@ class Server(object):
             event, is_new, is_updated = ret
             image, sale_title, sale_description, events_begin = self.get_picture_description(event.combine_url, ctx)
             if not event.sale_description:
-                event.image_urls = image
+                if image: event.image_urls = image
                 # some sale_title is too long to be omit by ...
                 event.sale_title = sale_title
                 event.sale_description = sale_description
@@ -345,8 +345,10 @@ class Server(object):
         # kids event already on sale, but in men's starting later today
         if not nav: return
         image = nav[0].xpath('./img/@src')
-        sale_title = nav[0].cssselect('section.copy > header.header')[0].text_content().strip().encode('utf-8')
+        sale_title = nav[0].cssselect('header.header')[0].text_content().strip().encode('utf-8')
         sale_description = nav[0].cssselect('section.copy > p.bio')[0].text_content().strip().encode('utf-8')
+#        sale_title = nav[0].cssselect('section.copy > header.header')[0].text_content().strip().encode('utf-8')
+#        sale_description = nav[0].cssselect('section.copy > p.bio')[0].text_content().strip().encode('utf-8')
 
         data_gilt_time = tree.cssselect('span#shopInCountdown')[0].get('data-gilt-time')
         events_begin = self.gilt_time(data_gilt_time)
@@ -474,8 +476,9 @@ class Server(object):
                         if event.events_end != events_end:
                             event.events_end = events_end
                             event.update_history.update({ 'events_end': datetime.utcnow() })
-                        event.image_urls = [image]
-                        event.sale_description = sale_description
+                        if image:
+                            event.image_urls = image if isinstance(image, list) else [image]
+                        if sale_description: event.sale_description = sale_description
                     event.save()
                     common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
             elif 'Ending Soon' == headline:
@@ -527,7 +530,7 @@ class Server(object):
                 event.update_history.update({ 'events_end': datetime.utcnow() })
             if not sale_description:
                 event.image_urls = image if isinstance(image, list) else [image]
-                event.sale_description = sale_description
+                if sale_description: event.sale_description = sale_description
             event.save()
             common_saved.send(sender=ctx, obj_type='Event', key=event.event_id, url=event.combine_url, is_new=is_new, is_updated=is_updated)
 
@@ -554,7 +557,8 @@ class Server(object):
         bottom_node = tree.cssselect('div.page-container > div.content-container > section.content > div > div.position > section.module > div.elements-container > article.element')[0]
         image = bottom_node.cssselect('figure > span > img')[0].get('src')
         image = image if image.startswith('http:') else 'http:' + image
-        sale_description = bottom_node.cssselect('div.sharable-editorial > header.element-header > div.element-content')[0].text_content().strip().encode('utf-8')
+        sale_description = bottom_node.cssselect('div.sharable-editorial > header.element-header > div.element-content')
+        sale_description = sale_description[0].text_content().strip().encode('utf-8') if sale_description else ''
         return events_begin, events_end, image, sale_description
 
 

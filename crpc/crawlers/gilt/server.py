@@ -548,7 +548,11 @@ class Server(object):
             return events_begin, None, image, sale_description
 
         tree = self.download_page_get_correct_tree(link, key, 'download \'home\' upcoming event page error', ctx)
-        timer = tree.cssselect('div.page-container > div.content-container > section.page-details > div.layout-background > div.layout-wrapper > div.layout-container > section.sale-details > div.sale-time')[0]
+        try:
+            timer = tree.cssselect('div.page-container > div.content-container > section.page-details > div.layout-background > div.layout-wrapper > div.layout-container > section.sale-details > div.sale-time')[0]
+        except:
+            open('/tmp/gilt_home_upcoming.html', 'w').write(lxml.html.tostring(tree))
+            return
         _begin = timer.get('data-gilt-dom-time-frame-time-start')
         events_begin = datetime.utcfromtimestamp(float(_begin[:10]))
         _end = timer.get('data-gilt-dom-time-frame-time-end') # 1356714000000

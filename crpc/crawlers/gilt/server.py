@@ -661,12 +661,12 @@ class Server(object):
                     self.get_or_create_product(ctx, event_id, link.rsplit('/', 1)[-1], link, title, listprice, price, brand, soldout)
                     product_ids.append(link.rsplit('/', 1)[-1])
 
-	        try:
-				ret = self.detect_rest_product(url, look_id, ctx)
-	        except:
-				# turn upcoming event, id num have slightly change.
-				open('/tmp/gilt_turn_upcoming.html', 'w').write(lxml.html.tostring(tree))
-				return
+            try:
+                ret = self.detect_rest_product(url, look_id, ctx)
+            except:
+                # turn upcoming event, id num have slightly change.
+                open('/tmp/gilt_turn_upcoming.html', 'w').write(lxml.html.tostring(tree))
+                return
 
             if ret: product_ids.extend( ret )
 
@@ -834,10 +834,10 @@ class Server(object):
             self.get_or_create_product(ctx, url.rsplit('/', 1)[-1], link.rsplit('/', 1)[-1], link, title, listprice, price, brand, soldout, color, sizes)
             product_ids.append(link.rsplit('/', 1)[-1])
 
-	    try:
-			if look_id_recursion == look_id: # if the same product recursion everytime, the stack will go explosion
-				return []
-	    except:
+        try:
+            if look_id_recursion == look_id: # if the same product recursion everytime, the stack will go explosion
+                return []
+        except:
             open('/tmp/gilt_home_eventover.html', 'w').write(lxml.html.tostring(tree))
             return
         ret = self.detect_rest_home_product(url, look_id_recursion, ctx)

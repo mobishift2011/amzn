@@ -49,7 +49,7 @@ class Server(object):
         self.crawl_women_shoes_handbags_category('shoes', shoes_url, ctx)
         self.crawl_women_shoes_handbags_category('handbags&accessories', handbags_accessories_url, ctx)
         self.crawl_jewelry_category('jewelry', jewelry_url, ctx)
-        self.crawl_women_shoes_handbags_category('beauty', beauty_url, ctx)
+        self.crawl_beauty_category('beauty', beauty_url, ctx)
         self.crawl_women_shoes_handbags_category('men', men_url, ctx)
         self.crawl_kids_category('kids', kids_url, ctx)
         self.crawl_newarrivals_category('new', new_url, ctx)
@@ -97,9 +97,9 @@ class Server(object):
     def crawl_women_shoes_handbags_category(self, category, url, ctx):
         tree = self.download_category_return_xmltree(category, url, ctx)
         if tree is None: return
-        navigation = tree.cssselect('div#leftDeptColumn div.dept-nav-section')[0]
+        navigation = tree.cssselect('div#departmentLeftNaviContainer div.dept-nav-section')[0]
         node1 = navigation.cssselect('ul li a')
-        navigation = tree.cssselect('div#leftDeptColumn div.dept-nav-section')[-1]
+        navigation = tree.cssselect('div#departmentLeftNaviContainer div.dept-nav-section')[-1]
         node2 = navigation.cssselect('ul li a')
         for i in itertools.chain(node1, node2):
             directory = i.text_content().strip()
@@ -149,7 +149,7 @@ class Server(object):
             self.save_category_to_db(url, key, slug, cats, ctx)
 
 
-    def crawl_sale_category(self, category, url, ctx):
+    def crawl_beauty_category(self, category, url, ctx):
         """
             This category will generate path, "home > Shoes" ect.
         """
@@ -158,6 +158,29 @@ class Server(object):
         navigation = tree.cssselect('div#leftDeptColumn div.dept-nav-section')[0]
         node1 = navigation.cssselect('ul li a')
         navigation = tree.cssselect('div#leftDeptColumn div.dept-nav-section')[1]
+        node2 = navigation.cssselect('ul li a')
+        for i in itertools.chain(node1, node2):
+            directory = i.text_content().strip()
+            link = i.get('href')
+            if 'newarrivals.fly' in link:
+                continue
+            link = link if link.startswith('http') else self.siteurl + link
+            m = self.extract_slug_key_of_listingurl.match(link)
+            if not m: continue
+            slug, key = m.groups()
+            cats = [category, directory]
+            self.save_category_to_db(url, key, slug, cats, ctx)
+
+
+    def crawl_sale_category(self, category, url, ctx):
+        """
+            This category will generate path, "home > Shoes" ect.
+        """
+        tree = self.download_category_return_xmltree(category, url, ctx)
+        if tree is None: return
+        navigation = tree.cssselect('div#departmentLeftNaviContainer div.dept-nav-section')[0]
+        node1 = navigation.cssselect('ul li a')
+        navigation = tree.cssselect('div#departmentLeftNaviContainer div.dept-nav-section')[1]
         node2 = navigation.cssselect('ul li a')
         for i in itertools.chain(node1, node2):
             directory = i.text_content().strip()

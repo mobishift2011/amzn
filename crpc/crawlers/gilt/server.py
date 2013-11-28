@@ -665,7 +665,9 @@ class Server(object):
                 ret = self.detect_rest_product(url, look_id, ctx)
             except:
                 # turn upcoming event, id num have slightly change.
-                open('/tmp/gilt_turn_upcoming.html', 'w').write(lxml.html.tostring(tree))
+                with open('/tmp/gilt_turn_upcoming.html', 'w') as fd:
+                    fd.write(url + '\n')
+                    fd.write(lxml.html.tostring(tree))
                 return
 
             if ret: product_ids.extend( ret )

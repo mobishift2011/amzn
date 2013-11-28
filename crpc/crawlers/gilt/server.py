@@ -647,11 +647,11 @@ class Server(object):
                 nodes = tree.cssselect('div section.sale-listing article.product-look')
                 for node in nodes:
                     garbage, look_id = node.get('qid').split('-')
-                    brand = node.cssselect('header .look-name h2.brand-name .brand-name-text')[0].text_content().strip().encode('utf-8')
+                    brand = node.cssselect('header .look-name h2.brand-name .brand-name-text')[0].text_content().strip().encode('utf-8').strip()
                     product_name = node.cssselect('header .look-name h1.product-name > a')[0]
                     link = product_name.get('href')
                     link = link if link.startswith('http') else self.siteurl + link
-                    title = ' '.join( product_name.xpath('.//text()') )
+                    title = ' '.join( product_name.xpath('.//text()') ).strip()
 
                     price = node.cssselect('header .pricing .sale-price .price')[0].text_content().replace('$', '').replace(',', '').strip()
                     price = price.strip('Gilt').strip()
@@ -750,11 +750,11 @@ class Server(object):
         """.. :py:method::
         """
         garbage, look_id = node.get('id').split('-')
-        brand = node.cssselect('header.overview > hgroup.look-name > h2.brand-name > div.primary > div.favorite-tooltip-link > button.favorite-star-button')[0].get('data-gilt-brand-name').encode('utf-8')
+        brand = node.cssselect('header.overview > hgroup.look-name > h2.brand-name > div.primary > div.favorite-tooltip-link > button.favorite-star-button')[0].get('data-gilt-brand-name').encode('utf-8').strip()
         product_name = node.cssselect('header.overview > hgroup.look-name > h1.product-name > a')[0]
         link = product_name.get('href')
         link = link if link.startswith('http') else self.siteurl + link
-        title = ' '.join( product_name.xpath('.//text()') )
+        title = ' '.join( product_name.xpath('.//text()') ).strip()
         price = node.cssselect('header.overview > div.price > div.sale-price > span.nouveau-price')[0].text_content().replace('$', '').replace(',', '').strip()
         listprice = node.cssselect('header.overview > div.price > div.original-price > span')
         listprice = listprice[0].text_content().replace('$', '').replace(',', '').strip() if listprice else ''
@@ -816,7 +816,7 @@ class Server(object):
             brand = text.cssselect('h3.product-brand')[0].text_content().strip()
             link = text.cssselect('h1.product-name > a')[0].get('href')
             link = link if link.startswith('http') else self.siteurl + link
-            title = text.cssselect('h1.product-name > a')[0].text_content()
+            title = text.cssselect('h1.product-name > a')[0].text_content().strip()
             listprice = node.cssselect('div.product-price > div.original-price')
             listprice = listprice[0].text_content().replace('$', '').replace(',', '').strip() if listprice else ''
             price = node.cssselect('div.product-price > div.gilt-price')[0].text_content().replace('$', '').replace('Gilt', '').replace(',', '').strip()

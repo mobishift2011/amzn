@@ -470,9 +470,26 @@ class Server(object):
                     reason='download product url error, {0}'.format(content))
             return
         tree = lxml.html.fromstring(content[0])
-        slug, key = self.extract_slug_product.match(content[1]).groups()
-        # key = re.compile('.*itemid=([^&]+).*').match(content[1]).group(1)
+        if content[1] == url:
+            for node in tree.cssselect('ul#items div.item_link .eventItemLabelFluid .btnViewProduct'):
+                link = node.get('href').strip()
+                link = link if link.startswith('http') else self.siteurl + link
 
+                ret = fetch_product(link)
+                if ret is None or isinstance(ret[0], int):
+                    common_failed.send(sender=ctx, key='', url=url,
+                        reason='download product url error, {0}'.format(content))
+                    continue
+                tree = lxml.html.fromstring(ret[0])
+                slug, key = self.extract_slug_product.match(ret[1]).groups()
+                self.save_product_page(key, ret[1], tree, ctx)
+
+        else:
+            slug, key = self.extract_slug_product.match(content[1]).groups()
+            self.save_product_page(key, content[1], tree, ctx)
+
+
+    def save_product_page(self, key, url, tree, ctx):
         image_urls, shipping, list_info, returned = self.parse_product(tree)
         # nav = tree.cssselect('div > div.line > div.page > div.line')[0] # bgDark or bgShops
 #        pprice = tree.cssselect('.bgShops .page .unitRight form[name=AddToCart] .pBuy .borMedGrey')[0]
@@ -487,7 +504,7 @@ class Server(object):
         if not product:
             is_new = True
             product = Product(key=key)
-        product.combine_url = content[1]
+        product.combine_url = url
         [product.image_urls.append(img) for img in image_urls if img not in product.image_urls]
         product.shipping = shipping
         product.list_info = list_info

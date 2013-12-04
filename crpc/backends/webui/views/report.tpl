@@ -118,7 +118,7 @@
             var total = 0;
             var products = $(node);
             for(var j in products){
-              var value = parseInt(products[j].innerText);
+              var value = parseInt(products[j].innerHTML);
               if(value){
                 total += value;
               }
@@ -138,7 +138,7 @@
             var total = 0;
             var events = $(node);
             for(var j in events){
-              var value = parseInt(events[j].innerText);
+              var value = parseInt(events[j].innerHTML);
               if(value){
                 total += value;
               }

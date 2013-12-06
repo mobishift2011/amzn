@@ -41,7 +41,7 @@ class TextServer(object):
         for name in picked_crawlers:
             self.__m[name] = __import__("crawlers."+name+'.models', fromlist=['Event', 'Product'])
     
-    def process_product(self, args=(), kwargs=()):
+    def process_product(self, args=(), kwargs={}):
         site = kwargs.get('site')
         key = kwargs.get('key')
 
